@@ -1,0 +1,86 @@
+<!doctype html>
+<html>
+<head>
+    <title>KREDA Professional</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="description" content="KREDA Professional"/>
+    <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"/>
+    <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/"/>
+    {{ StyleManager }}
+    <link rel="shortcut icon" type="image/x-icon" href="{{ PathBase }}/favicon.ico"/>
+    <link rel="apple-touch-icon" href="{{ PathBase }}/apple-touch-icon.png"/>
+    <script src="{{ PathBase }}/Sphere/Client/Script/Loader.js"></script>
+    {{ ScriptManager }}
+</head>
+<body>
+
+{{ PositionNavigation }}
+
+{{ PositionContent }}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 footer  small">
+            <div class="clearfix">
+                <div class="footer-logo">
+                    <a href="#">KREDA&nbsp;<img src="{{ PathBase }}/Sphere/Client/Style/Resource/logo_kreide2.png"
+                                                width="105"
+                                                height="61"></a>
+                </div>
+
+                {#<dl class="footer-nav">#}
+                {#<dt class="nav-title">Mandanten</dt>#}
+                {#<dd class="nav-item">#}
+                {#<a href="http://www.ege-annaberg.de/">Evangelische Schulgemeinschaft Erzgebirge e.V. (EGE)</a>#}
+                {#</dd>#}
+                {#<dd class="nav-item">#}
+                {#<a href="http://eszc.de/">Freie Evangelische Schulverein Chemnitz e.V. (ESZC)</a>#}
+                {#</dd>#}
+                {#</dl>#}
+                {#<dl class="footer-nav">#}
+                {#<dt class="nav-title">Anwendung</dt>#}
+                {#<dd class="nav-item">#}
+                {#<a href="{{ PathBase }}/Client/Sphere/Assistance/Impressum">Impressum</a>#}
+                {#</dd>#}
+                {#<dd class="nav-item">#}
+                {#<a href="http://www.haus-der-edv.de">Support</a>#}
+                {#</dd>#}
+                {#</dl>#}
+                {#<dl class="footer-nav">#}
+                {#<dt class="nav-title">Hilfe</dt>#}
+                {#<dd class="nav-item">#}
+                {#<a href="{{ PathBase }}/Client/Sphere/Assistance">Online Hilfe</a>#}
+                {#</dd>#}
+                {#<dd class="nav-item">#}
+                {#<a href="http://kwzwickau.github.io/KREDA-Sphere/">Api Dokumentation</a>#}
+                {#</dd>#}
+                {#</dl>#}
+            </div>
+            <div class="footer-copyright text-center small">
+                Mandant: {{ PositionConsumer }}
+                <br/>
+                <br/>
+                Erstellt in {{ PositionRuntime }}
+                <br/>
+                {{ PositionHost }}
+                <br/>
+                © 2014 - {{ "now"|date("Y") }}
+                <div class="text-left">
+                    {{ PositionDebugger }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    Client.Use( 'ModAlways', function()
+    {
+        jQuery().ModAlways();
+    } );
+</script>
+</body>
+</html>
+
+

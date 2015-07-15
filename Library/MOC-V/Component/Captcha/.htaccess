@@ -1,0 +1,5 @@
+# Restrict Server PHP-File Access
+
+	<FilesMatch "^(simple-php-captcha.php)$">
+		Allow from All
+	</FilesMatch>

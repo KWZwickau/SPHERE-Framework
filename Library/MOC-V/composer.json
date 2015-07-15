@@ -1,0 +1,15 @@
+{
+  "name": "derdu/moc-framework-mark-v",
+  "description": "Mind the task - forget the obstacles...",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "DerDu",
+      "email": "gerdchristian.kunze@googlemail.com"
+    }
+  ],
+  "require-dev": {
+    "codeclimate/php-test-reporter": "dev-master"
+  }
+}

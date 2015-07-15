@@ -1,0 +1,32 @@
+# see http://about.travis-ci.org/docs/user/languages/php/ for more hints
+language: php
+
+php:
+  - 5.3
+  - 5.4
+  - 5.5
+  - 5.6
+  - hhvm
+matrix:
+  allow_failures:
+    - 5.3
+    - 5.6
+    - php: hhvm
+
+before_script:
+  - curl -s http://getcomposer.org/installer | php
+  - php composer.phar install --dev --no-interaction
+
+script:
+ - mkdir -p build/logs
+ - phpunit --configuration TestSuite/phpunit.xml --coverage-text --debug
+ - phpunit --configuration TestSuite/phpunit.xml --coverage-clover build/logs/clover.xml
+
+after_script:
+ - php vendor/bin/coveralls -v
+ - CODECLIMATE_REPO_TOKEN="66db97ed4e54d528ec942e58f9ece9e8858cea9ee4c41f2a1e10256416695631" ./vendor/bin/test-reporter --stdout > codeclimate.json
+ - "curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports"
+
+notifications:
+  email: false
+

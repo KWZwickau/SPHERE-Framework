@@ -1,0 +1,56 @@
+[
+  {
+    "name": "symfony/phpunit-bridge",
+    "version": "2.8.x-dev",
+    "version_normalized": "2.8.9999999.9999999-dev",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/symfony/phpunit-bridge.git",
+      "reference": "5176d52793dc79cdcd558bf6f25098800f2a6f53"
+    },
+    "dist": {
+      "type": "zip",
+      "url": "https://api.github.com/repos/symfony/phpunit-bridge/zipball/5176d52793dc79cdcd558bf6f25098800f2a6f53",
+      "reference": "5176d52793dc79cdcd558bf6f25098800f2a6f53",
+      "shasum": ""
+    },
+    "require": {
+      "php": ">=5.3.3"
+    },
+    "suggest": {
+      "symfony/debug": "For tracking deprecated interfaces usages at runtime with DebugClassLoader"
+    },
+    "time": "2015-04-24 07:03:44",
+    "type": "symfony-bridge",
+    "extra": {
+      "branch-alias": {
+        "dev-master": "2.8-dev"
+      }
+    },
+    "installation-source": "source",
+    "autoload": {
+      "files": [
+        "bootstrap.php"
+      ],
+      "psr-4": {
+        "Symfony\\Bridge\\PhpUnit\\": ""
+      }
+    },
+    "notification-url": "https://packagist.org/downloads/",
+    "license": [
+      "MIT"
+    ],
+    "authors": [
+      {
+        "name": "Symfony Community",
+        "homepage": "http://symfony.com/contributors"
+      },
+      {
+        "name": "Nicolas Grekas",
+        "email": "p@tchwork.com"
+      }
+    ],
+    "description": "Symfony PHPUnit Bridge",
+    "homepage": "http://symfony.com"
+  }
+]

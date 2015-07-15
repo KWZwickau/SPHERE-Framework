@@ -1,0 +1,137 @@
+[
+  {
+    "name": "eden/core",
+    "version": "1.0.9",
+    "version_normalized": "1.0.9.0",
+    "target-dir": "Eden/Core",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Eden-PHP/Core.git",
+      "reference": "3f48f2de858c809924b220f5ab06b63f076cdd27"
+    },
+    "dist": {
+      "type": "zip",
+      "url": "https://api.github.com/repos/Eden-PHP/Core/zipball/3f48f2de858c809924b220f5ab06b63f076cdd27",
+      "reference": "3f48f2de858c809924b220f5ab06b63f076cdd27",
+      "shasum": ""
+    },
+    "require": {
+      "php": ">=5.3.1"
+    },
+    "time": "2013-09-28 04:20:29",
+    "type": "library",
+    "installation-source": "dist",
+    "autoload": {
+      "psr-0": {
+        "Eden\\Core\\": ""
+      }
+    },
+    "notification-url": "https://packagist.org/downloads/",
+    "license": [
+      "MIT"
+    ],
+    "authors": [
+      {
+        "name": "Christian Blanquera",
+        "email": "cblanquera@openovate.com"
+      }
+    ],
+    "description": "Eden Core component full of secret sauce",
+    "homepage": "http://eden-php.com",
+    "keywords": [
+      "eden",
+      "library"
+    ]
+  },
+  {
+    "name": "eden/type",
+    "version": "1.0.3",
+    "version_normalized": "1.0.3.0",
+    "target-dir": "Eden/Type",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Eden-PHP/Type.git",
+      "reference": "d504ac9e6b6f80f4b84bbd2b61b99b0063323ea1"
+    },
+    "dist": {
+      "type": "zip",
+      "url": "https://api.github.com/repos/Eden-PHP/Type/zipball/d504ac9e6b6f80f4b84bbd2b61b99b0063323ea1",
+      "reference": "d504ac9e6b6f80f4b84bbd2b61b99b0063323ea1",
+      "shasum": ""
+    },
+    "require": {
+      "eden/core": "1.*",
+      "php": ">=5.3.1"
+    },
+    "time": "2013-09-24 09:55:45",
+    "type": "library",
+    "installation-source": "dist",
+    "autoload": {
+      "psr-0": {
+        "Eden\\Type\\": ""
+      }
+    },
+    "notification-url": "https://packagist.org/downloads/",
+    "license": [
+      "MIT"
+    ],
+    "authors": [
+      {
+        "name": "Christian Blanquera",
+        "email": "cblanquera@openovate.com"
+      }
+    ],
+    "description": "Eden data type component",
+    "homepage": "http://eden-php.com",
+    "keywords": [
+      "eden",
+      "library"
+    ]
+  },
+  {
+    "name": "eden/system",
+    "version": "1.0.3",
+    "version_normalized": "1.0.3.0",
+    "target-dir": "Eden/System",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Eden-PHP/System.git",
+      "reference": "bde522152d9d9882fa838fbbe62f7dd51d3b0bb8"
+    },
+    "dist": {
+      "type": "zip",
+      "url": "https://api.github.com/repos/Eden-PHP/System/zipball/bde522152d9d9882fa838fbbe62f7dd51d3b0bb8",
+      "reference": "bde522152d9d9882fa838fbbe62f7dd51d3b0bb8",
+      "shasum": ""
+    },
+    "require": {
+      "eden/core": "1.*",
+      "eden/type": "1.*",
+      "php": ">=5.3.1"
+    },
+    "time": "2013-09-24 09:56:06",
+    "type": "library",
+    "installation-source": "dist",
+    "autoload": {
+      "psr-0": {
+        "Eden\\System\\": ""
+      }
+    },
+    "notification-url": "https://packagist.org/downloads/",
+    "license": [
+      "MIT"
+    ],
+    "authors": [
+      {
+        "name": "Christian Blanquera",
+        "email": "cblanquera@openovate.com"
+      }
+    ],
+    "description": "Eden file and folder component",
+    "homepage": "http://eden-php.com",
+    "keywords": [
+      "eden",
+      "library"
+    ]
+  }
+]

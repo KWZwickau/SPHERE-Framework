@@ -1,0 +1,6 @@
+{
+  "includes": [
+    "foo.json",
+    "bar.json"
+  ]
+}
