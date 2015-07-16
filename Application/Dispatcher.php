@@ -48,6 +48,8 @@ class Dispatcher
     public static function registerRoute( RouteParameter $Route )
     {
 
+        // TODO: Register -IF- Access granted
+
         if (in_array( $Route->getPath(), self::$Router->getRouteList() )) {
             throw new \Exception( __CLASS__.' > Route already available! ('.$Route->getPath().')' );
         } else {

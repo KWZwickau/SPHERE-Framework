@@ -22,9 +22,6 @@
 
 # Restrict Server PHP-File Access
 
-	<Files 'Client'>
-		ForceType application/x-httpd-php
-	</Files>
 	<FilesMatch "(\.php|\.html)$">
 		Order Deny,Allow
 		Deny from All

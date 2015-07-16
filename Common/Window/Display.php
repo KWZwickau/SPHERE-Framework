@@ -69,6 +69,8 @@ class Display extends Configuration implements ITemplateInterface
     public function addClusterNavigation( Link $Link )
     {
 
+        // TODO: Register -IF- Current Path matches Link Path
+
         if ($Link->isActive()) {
             $this->ClusterBreadcrumb = $Link->getName()->getValue();
         }

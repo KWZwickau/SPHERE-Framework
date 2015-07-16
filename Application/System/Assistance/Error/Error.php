@@ -14,6 +14,9 @@ class Error
     public static function registerModule()
     {
 
+        /**
+         * Register Route
+         */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute( __NAMESPACE__.'/Authenticator',
                 '\SPHERE\Application\System\Assistance\Error\Authenticator\Module::frontendAssistance'
