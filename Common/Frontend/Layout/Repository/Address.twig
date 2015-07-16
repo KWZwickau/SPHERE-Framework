@@ -1,0 +1,17 @@
+{% if(Address) %}
+    {{ Address.getStreetName }}
+    {{ Address.getStreetNumber }}
+    {{ Address.getPostOfficeBox }}
+    <br/>
+    {% set City = Address.getTblAddressCity %}
+    {% if(City) %}
+        {{ City.getCode }}
+        {{ City.getName }}
+        {{ City.getDistrict }}
+    {% endif %}
+    <br/>
+    {% set State = Address.getTblAddressState %}
+    {% if(State) %}
+        {{ State.getName }}
+    {% endif %}
+{% endif %}

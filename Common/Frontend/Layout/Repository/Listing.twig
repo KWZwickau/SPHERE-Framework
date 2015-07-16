@@ -1,0 +1,26 @@
+{#Simple Text List#}
+{% if( TextList|length > 0) %}
+    <ul class="list-group">
+        {% for Text in TextList %}
+            <li class="list-group-item">{{ Text }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+{#Simple Link List#}
+{% if( LinkList|length > 0) %}
+    <div class="list-group">
+        {% for Link in LinkList %}
+            <a href="{{ Link.Target }}" class="list-group-item">{{ Link.Title }}</a>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if( ContentList|length > 0) %}
+    {#<div class="list-group">#}
+    {#<a href="#" class="list-group-item active">#}
+    {#<h4 class="list-group-item-heading">List group item heading</h4>#}
+    {#<p class="list-group-item-text">...</p>#}
+    {#</a>#}
+    {#</div>#}
+{% endif %}

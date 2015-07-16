@@ -27,7 +27,7 @@ class Script extends Configuration
          */
 
         $this->setSource(
-            'jQuery', '/Library/jQuery/1.11.1/dist/jquery.min.js',
+            'jQuery', '/Library/jQuery/1.11.3/jquery-1.11.3.min.js',
             "'undefined' !== typeof jQuery"
         );
         $this->setSource(
@@ -39,7 +39,7 @@ class Script extends Configuration
             "'undefined' !== typeof moment"
         );
         $this->setSource(
-            'Bootstrap', '/Library/Bootstrap/3.3.4/dist/js/bootstrap.min.js',
+            'Bootstrap', '/Library/Bootstrap/3.3.5/dist/js/bootstrap.min.js',
             "'function' === typeof jQuery().emulateTransitionEnd"
         );
         $this->setSource(
@@ -101,7 +101,13 @@ class Script extends Configuration
          */
 
         $this->setModule(
-            'ModAlways', array( 'Bootstrap.Jasny', 'Bootstrap', 'jQuery.Ui', 'jQuery' )
+            'ModAlways',
+            array(
+//                'Bootstrap.Jasny',
+                'Bootstrap',
+                'jQuery.Ui',
+                'jQuery'
+            )
         );
         $this->setModule(
             'ModTable',

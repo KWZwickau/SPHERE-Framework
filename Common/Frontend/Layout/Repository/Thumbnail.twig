@@ -1,0 +1,19 @@
+<div class="thumbnail">
+    <img class="img-responsive {{ Type }}" src="{{ File }}" height="{{ Height }}">
+
+    <div class="caption text-center">
+        {% if( Title|length > 0) %}
+            <h3>{{ Title }}</h3>
+        {% endif %}
+        {% if( Description|length > 0) %}
+            <p>{{ Description }}</p>
+        {% endif %}
+        {% if( ButtonList|length > 0) %}
+            <p>
+                {% for Button in ButtonList %}
+                    {{ Button }}
+                {% endfor %}
+            </p>
+        {% endif %}
+    </div>
+</div>

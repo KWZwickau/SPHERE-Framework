@@ -8,72 +8,152 @@
     <meta name="description" content="KREDA Professional"/>
     <link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"/>
     <link rel="schema.DCTERMS" href="http://purl.org/dc/terms/"/>
-    {{ StyleManager }}
+    {{ ManagerStyle }}
     <link rel="shortcut icon" type="image/x-icon" href="{{ PathBase }}/favicon.ico"/>
     <link rel="apple-touch-icon" href="{{ PathBase }}/apple-touch-icon.png"/>
-    <script src="{{ PathBase }}/Sphere/Client/Script/Loader.js"></script>
-    {{ ScriptManager }}
+    <script src="{{ PathBase }}/Common/Script/Loader.js"></script>
+    {{ ManagerScript }}
 </head>
 <body>
 
-{{ PositionNavigation }}
+<!-- Navigation (Level:Cluster/Service) -->
+<nav class="navbar navbar-inverse" role="navigation"
+     style="border-radius: inherit; margin: inherit;">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-xs-4 col-sm-1 col-md-3 col-lg-3">
+                <div class="navbar-header">
+                    <div class="navbar-text">
+                        KREDA
+                        <span class="visible-xs-inline visible-md-inline visible-lg-inline"> Professional</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-8 col-sm-11 col-md-9 col-lg-9">
+                <div class="navbar-collapse collapse" id="LevelClient">
+                    <ul class="nav navbar-nav navbar-left">
+                        {{ NavigationCluster }}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        {{ NavigationService }}
+                    </ul>
+                </div>
+            </div>
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#LevelClient"
+                    aria-expanded="false" aria-controls="navbar">
+                <span class="pull-left">
+                    <a>{{ BreadcrumbCluster }}</a>{% if( BreadcrumbCluster is not empty ) %}&nbsp;{% endif %}
+                </span>
+                <span class="pull-right">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </span>
+            </button>
+        </div>
+    </div>
+</nav>
 
-{{ PositionContent }}
+{% if( NavigationApplication is not empty ) %}
+    <!-- Navigation (Level:Application) -->
+    <nav class="navbar navbar-default" role="navigation"
+         style="border-radius: inherit; margin: inherit; border-width: 0; border-bottom-width: 1px;">
+        <div class="container-fluid">
+            <div class="row">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#LevelApplication"
+                        aria-expanded="false" aria-controls="navbar">
+                <span class="pull-left">
+                    <a>{{ BreadcrumbApplication }}</a>{% if( BreadcrumbApplication is not empty ) %}&nbsp;{% endif %}
+                </span>
+                <span class="pull-right">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </span>
+                </button>
+                <div class="col-xs-12">
+                    <div class="navbar-collapse collapse" id="LevelApplication">
+                        <ul class="nav navbar-nav navbar-left">
+                            {{ NavigationApplication }}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+{% endif %}
+
+{% if( NavigationModule is not empty ) %}
+    <!-- Navigation (Level:Module) -->
+    <nav class="navbar navbar-default" role="navigation"
+         style="border-radius: inherit; margin: inherit; border-width: 0; border-bottom-width: 1px;">
+        <div class="container-fluid">
+            <div class="row">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                        data-target="#LevelModule"
+                        aria-expanded="false" aria-controls="navbar">
+                <span class="pull-left">
+                    <a>{{ BreadcrumbModule }}</a>{% if( BreadcrumbModule is not empty ) %}&nbsp;{% endif %}
+                </span>
+                <span class="pull-right">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </span>
+                </button>
+                <div class="col-xs-12">
+                    <div class="navbar-collapse collapse" id="LevelModule">
+                        <ul class="nav navbar-nav navbar-left">
+                            {{ NavigationModule }}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+{% endif %}
+
+
+<div class="container-fluid">
+    {{ Content }}
+</div>
 
 <div class="container-fluid">
     <div class="row">
         <div class="col-xs-12 footer  small">
             <div class="clearfix">
                 <div class="footer-logo">
-                    <a href="#">KREDA&nbsp;<img src="{{ PathBase }}/Sphere/Client/Style/Resource/logo_kreide2.png"
+                    <a href="#">KREDA&nbsp;<img src="{{ PathBase }}/Common/Style/Resource/logo_kreide2.png"
                                                 width="105"
                                                 height="61"></a>
                 </div>
-
-                {#<dl class="footer-nav">#}
-                {#<dt class="nav-title">Mandanten</dt>#}
-                {#<dd class="nav-item">#}
-                {#<a href="http://www.ege-annaberg.de/">Evangelische Schulgemeinschaft Erzgebirge e.V. (EGE)</a>#}
-                {#</dd>#}
-                {#<dd class="nav-item">#}
-                {#<a href="http://eszc.de/">Freie Evangelische Schulverein Chemnitz e.V. (ESZC)</a>#}
-                {#</dd>#}
-                {#</dl>#}
-                {#<dl class="footer-nav">#}
-                {#<dt class="nav-title">Anwendung</dt>#}
-                {#<dd class="nav-item">#}
-                {#<a href="{{ PathBase }}/Client/Sphere/Assistance/Impressum">Impressum</a>#}
-                {#</dd>#}
-                {#<dd class="nav-item">#}
-                {#<a href="http://www.haus-der-edv.de">Support</a>#}
-                {#</dd>#}
-                {#</dl>#}
-                {#<dl class="footer-nav">#}
-                {#<dt class="nav-title">Hilfe</dt>#}
-                {#<dd class="nav-item">#}
-                {#<a href="{{ PathBase }}/Client/Sphere/Assistance">Online Hilfe</a>#}
-                {#</dd>#}
-                {#<dd class="nav-item">#}
-                {#<a href="http://kwzwickau.github.io/KREDA-Sphere/">Api Dokumentation</a>#}
-                {#</dd>#}
-                {#</dl>#}
             </div>
             <div class="footer-copyright text-center small">
                 Mandant: {{ PositionConsumer }}
                 <br/>
                 <br/>
-                Erstellt in {{ PositionRuntime }}
+                Erstellt in {{ DebuggerRuntime }}
                 <br/>
-                {{ PositionHost }}
+                {{ DebuggerHost }}
                 <br/>
                 © 2014 - {{ "now"|date("Y") }}
                 <div class="text-left">
-                    {{ PositionDebugger }}
+                    {{ DebuggerProtocol }}
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+
 <script>
     Client.Use( 'ModAlways', function()
     {

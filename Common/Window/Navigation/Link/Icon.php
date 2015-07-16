@@ -1,0 +1,41 @@
+<?php
+namespace SPHERE\Common\Window\Navigation\Link;
+
+use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\System\Extension\Configuration;
+
+/**
+ * Class Icon
+ *
+ * @package SPHERE\Common\Window\Navigation\Link
+ */
+class Icon extends Configuration
+{
+
+    /** @var IIconInterface $Value */
+    private $Value = null;
+
+    public function __construct( IIconInterface $Value )
+    {
+
+        $this->Value = $Value;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+
+        return (string)$this->getValue();
+    }
+
+    /**
+     * @return IIconInterface
+     */
+    public function getValue()
+    {
+
+        return $this->Value;
+    }
+}

@@ -1,0 +1,29 @@
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-2 col-xs-1"></div>
+        <div class="col-md-8 col-xs-10">
+            <h3 class="text-danger">
+                Es ist ein unerwarteter Fehler aufgetreten
+            </h3>
+
+            <div class="row">
+                <div class="col-lg-8 col-md-7 col-sm-6 col-xs-12">
+                    Typ <strong>{{ ErrorCode }}</strong>
+
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6 visible-sm visible-md visible-lg text-right">
+                    {% if ErrorMenu is not empty %}
+                        <div class="btn-group">
+                            {% for Route, Title in ErrorMenu %}
+                                <a href="{{ Route }}" class="btn btn-primary">{{ Title }}</a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <hr/>
+            <div class="text-left alert alert-warning">{{ ErrorMessage }}</div>
+        </div>
+        <div class="col-md-2 col-xs-1"></div>
+    </div>
+</div>

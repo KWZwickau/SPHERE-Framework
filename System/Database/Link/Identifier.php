@@ -31,7 +31,7 @@ class Identifier
      * @param string      $Service
      * @param string|null $Consumer
      */
-    public function __construct( $Cluster, $Application, $Module, $Service = null, $Consumer = null )
+    public function __construct( $Cluster, $Application, $Module = null, $Service = null, $Consumer = null )
     {
 
         $this->Cluster = $Cluster;
@@ -39,7 +39,7 @@ class Identifier
         $this->Module = $Module;
         $this->Service = $Service;
         $this->Consumer = $Consumer;
-        $this->Configuration = $Cluster.':'.$Application.':'.$Module.( $Service === null ? '' : ':'.$Service ).( $Consumer === null ? '' : ':'.$Consumer );
+        $this->Configuration = $Cluster.':'.$Application.( $Module === null ? '' : ':'.$Module ).( $Service === null ? '' : ':'.$Service ).( $Consumer === null ? '' : ':'.$Consumer );
         $this->Identifier = sha1( $this->Configuration );
     }
 

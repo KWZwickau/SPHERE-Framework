@@ -9,8 +9,4 @@ namespace SPHERE\Common\Frontend;
 interface IFrontendInterface
 {
 
-    /**
-     * @return string
-     */
-    public function getContent();
 }

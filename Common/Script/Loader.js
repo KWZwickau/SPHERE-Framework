@@ -8,8 +8,8 @@ var Client = (function()
         useConfig[Module] = {
             Depending: Depending,
             Source: window.location.pathname.slice(
-                0, window.location.pathname.search( 'Client' )
-            ) + 'Sphere/Client/Script/' + Module + '.js',
+                0, window.location.pathname.search( '/' )
+            ) + '/Common/Script/' + Module + '.js',
             /**
              * @return {boolean}
              */

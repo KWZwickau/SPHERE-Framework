@@ -1,0 +1,39 @@
+<form {% if( Hash is not empty ) %}id="{{ Hash }}"{% endif %}
+      action="{{ FormAction }}{{ FormData }}{% if( Hash is not empty ) %}#{{ Hash }}{% endif %}"
+      method="post"
+      enctype="multipart/form-data"
+    >
+    {% for FormGroup in GridGroupList %}
+        {% if( FormGroup.getFormTitle is not empty ) %}
+            {{ FormGroup.getFormTitle }}
+        {% endif %}
+        {% for FormRow in FormGroup.getFormRow %}
+            <div class="row">
+                {% for FormColumn in FormRow.getFormColumn %}
+                    <div class="col-md-{{ FormColumn.Size }}">
+                        {% for GridElement in FormColumn.getFrontend %}
+                            {{ GridElement }}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    {% if( FormButtonList|length > 0) %}
+        <div class="form-group">
+            <div class="btn-group">
+                {% for FormButton in FormButtonList %}
+                    {{ FormButton }}
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</form>
+{% if FormConfirm is not empty %}
+    <script type="text/javascript">
+        Client.Use( 'ModForm', function()
+        {
+            jQuery( "form#{{ Hash }}" ).ModForm( {notifyChangedMessage: "{{ FormConfirm }}"} );
+        } );
+    </script>
+{% endif %}

@@ -49,7 +49,7 @@ class Register
         if ($this->hasConnection( $Identifier )) {
             return self::$Register[$Identifier->getIdentifier()];
         } else {
-            throw new \Exception();
+            throw new \Exception( __CLASS__.' > Connection not available: ('.$Identifier->getIdentifier().') ['.$Identifier->getConfiguration().']' );
         }
     }
 }

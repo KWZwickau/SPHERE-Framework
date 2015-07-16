@@ -53,7 +53,7 @@ class Configuration
                         $this->Configuration['Username'],
                         $this->Configuration['Password'],
                         empty( $this->Configuration['Database'] )
-                            ? str_replace( ':', '_', $this->Identifier->getConfiguration() )
+                            ? str_replace( ':', '', $this->Identifier->getConfiguration() )
                             : $this->Configuration['Database'],
                         $this->Configuration['Host'],
                         empty( $this->Configuration['Port'] )
@@ -62,7 +62,7 @@ class Configuration
                     )
                 );
             } else {
-                throw new \Exception( 'Missing Configuration: '.$this->Identifier->getConfiguration() );
+                throw new \Exception( __CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')' );
             }
         }
     }

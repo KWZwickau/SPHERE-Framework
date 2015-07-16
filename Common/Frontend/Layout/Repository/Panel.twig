@@ -1,0 +1,24 @@
+<div class="panel {{ Type }}">
+    {% if( Title|length > 0) %}
+        <div class="panel-heading">
+            <h6 class="panel-title">{{ Title }}</h6>
+        </div>
+    {% endif %}
+    {% if( Content|length > 0) %}
+        <div class="panel-body">
+            {{ Content }}
+        </div>
+    {% endif %}
+    {% if( ContentList|length > 0) %}
+        <ul class="list-group">
+            {% for Content in ContentList %}
+                <li class="list-group-item">{{ Content }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    {% if( Footer|length > 0) %}
+        <div class="panel-footer">
+            {{ Footer }}
+        </div>
+    {% endif %}
+</div>

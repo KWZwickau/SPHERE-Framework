@@ -153,6 +153,4 @@ class Memcached implements ITypeInterface
             }
         }
     }
-
-
 }
