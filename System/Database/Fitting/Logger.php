@@ -27,7 +27,7 @@ class Logger extends Configuration implements SQLLogger
     {
 
         $this->Data = func_get_args();
-        $this->Data[3] = self::getDebugger()->getTimeGap();
+        $this->Data[3] = $this->getDebugger()->getTimeGap();
 
         $Log = $sql;
 
@@ -43,7 +43,7 @@ class Logger extends Configuration implements SQLLogger
 
         $Log .= ' '.$types;
 
-        self::getDebugger()->protocolDump( $Log );
+        $this->getDebugger()->protocolDump( $Log );
     }
 
     /**
@@ -54,8 +54,8 @@ class Logger extends Configuration implements SQLLogger
     public function stopQuery()
     {
 
-        self::getDebugger()->addProtocol(
-            number_format( ( self::getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, ',', '' )
+        $this->getDebugger()->addProtocol(
+            number_format( ( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, ',', '' )
         );
     }
 }

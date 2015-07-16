@@ -46,14 +46,18 @@ class Display extends Configuration implements ITemplateInterface
     }
 
     /**
-     * @param Link[] $Link
+     * @param Link|null $Link
      *
      * @return Display
      */
-    public function setClusterNavigation( $Link )
+    public function setClusterNavigation( Link $Link = null )
     {
 
-        $this->ClusterNavigation = array( $Link );
+        if (null === $Link) {
+            $this->ClusterNavigation = array();
+        } else {
+            $this->ClusterNavigation = array( $Link );
+        }
         return $this;
     }
 
@@ -73,14 +77,18 @@ class Display extends Configuration implements ITemplateInterface
     }
 
     /**
-     * @param Link[] $Link
+     * @param Link|null $Link
      *
      * @return Display
      */
-    public function setApplicationNavigation( $Link )
+    public function setApplicationNavigation( Link $Link = null )
     {
 
-        $this->ApplicationNavigation = array( $Link );
+        if (null === $Link) {
+            $this->ApplicationNavigation = array();
+        } else {
+            $this->ApplicationNavigation = array( $Link );
+        }
         return $this;
     }
 
@@ -100,14 +108,18 @@ class Display extends Configuration implements ITemplateInterface
     }
 
     /**
-     * @param Link[] $Link
+     * @param Link|null $Link
      *
      * @return Display
      */
-    public function setModuleNavigation( $Link )
+    public function setModuleNavigation( Link $Link = null )
     {
 
-        $this->ModuleNavigation = array( $Link );
+        if (null === $Link) {
+            $this->ModuleNavigation = array();
+        } else {
+            $this->ModuleNavigation = array( $Link );
+        }
         return $this;
     }
 
@@ -127,14 +139,18 @@ class Display extends Configuration implements ITemplateInterface
     }
 
     /**
-     * @param Link[] $Link
+     * @param Link|null $Link
      *
      * @return Display
      */
-    public function setServiceNavigation( $Link )
+    public function setServiceNavigation( Link $Link = null )
     {
 
-        $this->ServiceNavigation = array( $Link );
+        if (null === $Link) {
+            $this->ServiceNavigation = array();
+        } else {
+            $this->ServiceNavigation = array( $Link );
+        }
         return $this;
     }
 

@@ -3,6 +3,7 @@ namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\System\Extension\Configuration;
 
 /**
