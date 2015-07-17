@@ -6,6 +6,7 @@ use SPHERE\Application\Dispatcher;
 use SPHERE\Application\System\System;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Authenticator\Type\Post;
 use SPHERE\System\Extension\Extension;
@@ -129,8 +130,8 @@ class Main extends Extension
     {
 
         if (!array_key_exists( 'REST', $this->getRequest()->getParameterArray() )) {
-            $Get = ( new \SPHERE\System\Authenticator\Authenticator( new Get() ) )->getAuthenticator();
-            $Post = ( new \SPHERE\System\Authenticator\Authenticator( new Post() ) )->getAuthenticator();
+            $Get = ( new Authenticator( new Get() ) )->getAuthenticator();
+            $Post = ( new Authenticator( new Post() ) )->getAuthenticator();
             if (!( $Get->validateSignature() && $Post->validateSignature() )) {
                 self::getDisplay()->setClusterNavigation();
                 self::getDisplay()->setApplicationNavigation();

@@ -4,6 +4,7 @@ namespace SPHERE\Application\System\Assistance\Error;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\Common\Window\Stage;
 
 /**
  * Class Error
@@ -28,9 +29,15 @@ class Error implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link( new Link\Route( __NAMESPACE__.'/Shutdown' ), new Link\Name( 'Betriebsstörung' ) )
         );
+
         /**
          * Register Route
          */
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute( __NAMESPACE__,
+                'Error::frontendError'
+            )
+        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute( __NAMESPACE__.'/Authenticator',
                 'Frontend::frontendAuthenticator'
@@ -41,5 +48,16 @@ class Error implements IModuleInterface
                 'Frontend::frontendShutdown'
             )
         );
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendError()
+    {
+
+        $Stage = new Stage( 'Fehlermeldungen', 'Bitte wählen Sie ein Thema' );
+
+        return $Stage;
     }
 }

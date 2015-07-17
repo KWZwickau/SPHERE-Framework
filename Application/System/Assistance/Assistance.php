@@ -6,6 +6,7 @@ use SPHERE\Application\System\Assistance\Error\Error;
 use SPHERE\Application\System\Assistance\Support\Support;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\Common\Window\Stage;
 
 /**
  * Class Assistance
@@ -39,8 +40,14 @@ class Assistance implements IApplicationInterface
         );
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendAssistance()
     {
 
+        $Stage = new Stage( 'Hilfe', 'Bitte wählen Sie ein Thema' );
+
+        return $Stage;
     }
 }
