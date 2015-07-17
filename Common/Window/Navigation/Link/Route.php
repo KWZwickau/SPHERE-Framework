@@ -1,14 +1,14 @@
 <?php
 namespace SPHERE\Common\Window\Navigation\Link;
 
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Route
  *
  * @package SPHERE\Common\Window\Navigation\Link
  */
-class Route extends Configuration
+class Route extends Extension
 {
 
     /** @var string $Pattern */
@@ -18,6 +18,10 @@ class Route extends Configuration
 
     public function __construct( $Value )
     {
+
+        // Map Route to FileSystem
+        $Value = str_replace( array( '/', '//', '\\', '\\\\' ), '/', $Value );
+        $Value = str_replace( 'SPHERE/Application', '', $Value );
 
         if (preg_match( $this->Pattern, $Value )) {
             $this->Value = $this->getRequest()->getUrlBase().$Value;

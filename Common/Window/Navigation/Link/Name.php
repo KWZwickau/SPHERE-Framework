@@ -1,14 +1,14 @@
 <?php
 namespace SPHERE\Common\Window\Navigation\Link;
 
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Name
  *
  * @package SPHERE\Common\Window\Navigation\Link
  */
-class Name extends Configuration
+class Name extends Extension
 {
 
     /** @var string $Pattern */

@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Window\Navigation\Link;
 
 use SPHERE\Common\Frontend\Icon\IIconInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Icon
  *
  * @package SPHERE\Common\Window\Navigation\Link
  */
-class Icon extends Configuration
+class Icon extends Extension
 {
 
     /** @var IIconInterface $Value */

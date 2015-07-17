@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Layout\Structure;
 
 use SPHERE\Common\Frontend\Layout\ILayoutInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class LayoutRow
  *
  * @package SPHERE\Common\Frontend\Layout\Structure
  */
-class LayoutRow extends Configuration implements ILayoutInterface
+class LayoutRow extends Extension implements ILayoutInterface
 {
 
     /** @var LayoutColumn[] $LayoutColumn */

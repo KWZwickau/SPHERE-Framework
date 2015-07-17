@@ -3,15 +3,16 @@ namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Frontend\Link\ILinkInterface;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Stage
  *
  * @package SPHERE\Common\Window
  */
-class Stage extends Configuration implements ITemplateInterface
+class Stage extends Extension implements ITemplateInterface
 {
 
     /** @var IBridgeInterface $Template */
@@ -81,11 +82,11 @@ class Stage extends Configuration implements ITemplateInterface
     }
 
     /**
-     * @param \KREDA\Sphere\Client\Frontend\Button\AbstractType $Button
+     * @param ILinkInterface $Button
      *
      * @return Stage
      */
-    public function addButton( AbstractType $Button )
+    public function addButton( ILinkInterface $Button )
     {
 
         $this->Menu[] = $Button->__toString();

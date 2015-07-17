@@ -48,7 +48,7 @@ class TwigCache implements ITypeInterface
     public function getWastedSize()
     {
 
-        return $this->getSizeAvailable() - $this->getSizeFree() - $this->getSizeUsed();
+        return $this->getAvailableSize() - $this->getFreeSize() - $this->getUsedSize();
     }
 
     /**

@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Header
  *
  * @package SPHERE\Common\Frontend\Layout\Repository
  */
-class Header extends Configuration implements ITemplateInterface
+class Header extends Extension implements ITemplateInterface
 {
 
     /** @var string $Title */

@@ -3,9 +3,9 @@ namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
-class Panel extends Configuration implements ITemplateInterface
+class Panel extends Extension implements ITemplateInterface
 {
 
     const PANEL_TYPE_DEFAULT = 'panel-default';

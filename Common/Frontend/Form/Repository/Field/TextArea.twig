@@ -1,0 +1,18 @@
+<div class="form-group {{ ElementGroup }}">
+    {% if( ElementLabel is not empty ) %}
+        <label>{{ ElementLabel }}</label>
+    {% endif %}
+    {% if( ElementIcon is not empty ) %}
+    <div class="input-group">
+        <span class="input-group-addon">
+            {{ ElementIcon }}
+        </span>
+        {% endif %}
+        <textarea name="{{ ElementName }}" class="form-control" placeholder="{{ ElementPlaceholder }}"
+                  rows="5">{{ ElementValue }}</textarea>
+        {{ ElementFeedbackIcon }}
+        {% if( ElementIcon is not empty ) %}
+    </div>
+    {% endif %}
+    {{ ElementFeedbackMessage }}
+</div>

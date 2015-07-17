@@ -49,7 +49,7 @@ class ApcSma implements ITypeInterface
     public function getUsedSize()
     {
 
-        return $this->getSizeAvailable() - $this->getSizeFree();
+        return $this->getAvailableSize() - $this->getFreeSize();
     }
 
     /**

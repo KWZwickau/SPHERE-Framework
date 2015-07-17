@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class PullRight
  *
  * @package SPHERE\Common\Frontend\Layout\Repository
  */
-class PullRight extends Configuration implements ITemplateInterface
+class PullRight extends Extension implements ITemplateInterface
 {
 
     /** @var string $Content */

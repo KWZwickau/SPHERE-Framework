@@ -1,14 +1,14 @@
 <?php
 namespace SPHERE\Common;
 
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Script
  *
  * @package SPHERE\Common
  */
-class Script extends Configuration
+class Script extends Extension
 {
 
     /** @var array $SourceList */
@@ -55,17 +55,17 @@ class Script extends Configuration
             "'undefined' !== typeof jQuery.fn.iCheck"
         );
         $this->setSource(
-            'jQuery.DataTable', '/Library/jQuery.DataTables/1.10.4/media/js/jquery.dataTables.min.js',
+            'jQuery.DataTable', '/Library/jQuery.DataTables/1.10.7/media/js/jquery.dataTables.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable"
         );
         $this->setSource(
             'jQuery.DataTable.Responsive',
-            '/Library/jQuery.DataTables/1.10.4/extensions/Responsive/js/dataTables.responsive.min.js',
+            '/Library/jQuery.DataTables/1.10.7/extensions/Responsive/js/dataTables.responsive.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
         );
         $this->setSource(
             'Bootstrap.DataTable',
-            '/Library/jQuery.DataTables.Plugins/1.0.1/integration/bootstrap/3/dataTables.bootstrap.min.js',
+            '/Library/jQuery.DataTables.Plugins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.ext.renderer.pageButton.bootstrap"
         );
         $this->setSource(

@@ -6,14 +6,14 @@ use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Display
  *
  * @package SPHERE\Common\Window
  */
-class Display extends Configuration implements ITemplateInterface
+class Display extends Extension implements ITemplateInterface
 {
 
     /** @var IBridgeInterface $Template */
@@ -69,8 +69,6 @@ class Display extends Configuration implements ITemplateInterface
     public function addClusterNavigation( Link $Link )
     {
 
-        // TODO: Register -IF- Current Path matches Link Path
-
         if ($Link->isActive()) {
             $this->ClusterBreadcrumb = $Link->getName()->getValue();
         }
@@ -102,10 +100,21 @@ class Display extends Configuration implements ITemplateInterface
     public function addApplicationNavigation( Link $Link )
     {
 
-        if ($Link->isActive()) {
-            $this->ApplicationBreadcrumb = $Link->getName()->getValue();
+        // Is Link suitable?
+        $Target = explode( '/', $Link->getRoute()->getValue() );
+        $Current = explode( '/', $this->getRequest()->getPathInfo() );
+        $Branch = array_diff_assoc( $Target, $Current );
+        if ($Branch !== null) {
+            reset( $Branch );
+            $Branch = key( $Branch );
         }
-        array_push( $this->ApplicationNavigation, $Link );
+
+        if ($Branch === null || $Branch >= 3) {
+            if ($Link->isActive()) {
+                $this->ApplicationBreadcrumb = $Link->getName()->getValue();
+            }
+            array_push( $this->ApplicationNavigation, $Link );
+        }
         return $this;
     }
 
@@ -133,10 +142,21 @@ class Display extends Configuration implements ITemplateInterface
     public function addModuleNavigation( Link $Link )
     {
 
-        if ($Link->isActive()) {
-            $this->ModuleBreadcrumb = $Link->getName()->getValue();
+        // Is Link suitable?
+        $Target = explode( '/', $Link->getRoute()->getValue() );
+        $Current = explode( '/', $this->getRequest()->getPathInfo() );
+        $Branch = array_diff_assoc( $Target, $Current );
+        if ($Branch !== null) {
+            reset( $Branch );
+            $Branch = key( $Branch );
         }
-        array_push( $this->ModuleNavigation, $Link );
+
+        if ($Branch === null || $Branch >= 4) {
+            if ($Link->isActive()) {
+                $this->ModuleBreadcrumb = $Link->getName()->getValue();
+            }
+            array_push( $this->ModuleNavigation, $Link );
+        }
         return $this;
     }
 

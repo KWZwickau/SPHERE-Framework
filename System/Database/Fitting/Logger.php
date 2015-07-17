@@ -2,14 +2,14 @@
 namespace SPHERE\System\Database\Fitting;
 
 use Doctrine\DBAL\Logging\SQLLogger;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Logger
  *
  * @package SPHERE\System\Database\Fitting
  */
-class Logger extends Configuration implements SQLLogger
+class Logger extends Extension implements SQLLogger
 {
 
     private $Data = array();

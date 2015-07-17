@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Well
  *
  * @package KREDA\Sphere\Client\Frontend\Layout\Type
  */
-class Well extends Configuration implements ITemplateInterface
+class Well extends Extension implements ITemplateInterface
 {
 
     /** @var string $Content */

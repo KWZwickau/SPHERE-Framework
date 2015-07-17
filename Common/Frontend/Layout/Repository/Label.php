@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Label
  *
  * @package SPHERE\Common\Frontend\Layout\Repository
  */
-class Label extends Configuration implements ITemplateInterface
+class Label extends Extension implements ITemplateInterface
 {
 
     const LABEL_TYPE_NORMAL = '';

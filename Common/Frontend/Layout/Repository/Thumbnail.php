@@ -3,14 +3,14 @@ namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use MOC\V\Core\FileSystem\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Thumbnail
  *
  * @package SPHERE\Common\Frontend\Layout\Repository
  */
-class Thumbnail extends Configuration implements ITemplateInterface
+class Thumbnail extends Extension implements ITemplateInterface
 {
 
     const THUMBNAIL_TYPE_DEFAULT = '';

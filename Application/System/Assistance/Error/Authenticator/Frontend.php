@@ -19,10 +19,10 @@ class Frontend implements IFrontendInterface
     /**
      * @return Stage
      */
-    public static function stageAuthenticator()
+    public function frontendAuthenticator()
     {
 
-        $Stage = new Stage( 'Sicherheit', 'Parameter' );
+        $Stage = new Stage( 'Authentifikator', 'Prüfung der Anfrage' );
 
         $Stage->setMessage( '<strong>Problem:</strong> Die Anwendung darf die Anfrage nicht verarbeiten' );
 
@@ -30,9 +30,9 @@ class Frontend implements IFrontendInterface
             '<h2 class="text-left"><small>Mögliche Ursachen</small></h2>'
             .new Danger( 'Das System hat fehlerhafte oder mutwillig veränderte Eingabedaten erkannt' )
             .'<h2 class="text-left"><small>Mögliche Lösungen</small></h2>'
-            .new Warning( 'Bitte ändern Sie keine Daten in der Url und verwenden Sie nur die vom System erzeugten Anfragen' )
+            .new Warning( 'Bitte ändern Sie keine Daten in der Adressleiste des Browsers und verwenden Sie nur die vom System erzeugten Anfragen' )
             .new Info( 'Bitte führen Sie Anfragen an das System nicht über Tagesgrenzen hinweg aus' )
-            .new Success( 'Alle Parameter wurden aus Sicherheitsgründen ignoriert' )
+            .new Success( 'Die Anfrage und alle Parameter wurden aus Sicherheitsgründen verworfen' )
         );
 
         return $Stage;

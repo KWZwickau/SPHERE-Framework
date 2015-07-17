@@ -5,14 +5,14 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Window\Navigation\Link\Icon;
 use SPHERE\Common\Window\Navigation\Link\Name;
 use SPHERE\Common\Window\Navigation\Link\Route;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Link
  *
  * @package SPHERE\Common\Window\Navigation
  */
-class Link extends Configuration
+class Link extends Extension
 {
 
     /** @var IBridgeInterface $Template */

@@ -1,10 +1,10 @@
 <?php
 namespace SPHERE\Common\Frontend\Form\Structure;
 
-use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\Common\Frontend\Form\IStructureInterface;
+use SPHERE\System\Extension\Extension;
 
-class FormRow extends Configuration implements IFormInterface
+class FormRow extends Extension implements IStructureInterface
 {
 
     /** @var FormColumn[] $FormColumn */

@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Form\Repository;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Aspect
  *
  * @package SPHERE\Common\Frontend\Form\Repository
  */
-class Aspect extends Configuration implements ITemplateInterface
+class Aspect extends Extension implements ITemplateInterface
 {
 
     /** @var string $Title */

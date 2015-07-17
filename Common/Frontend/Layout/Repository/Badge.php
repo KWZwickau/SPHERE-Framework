@@ -2,14 +2,14 @@
 namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Badge
  *
  * @package SPHERE\Common\Frontend\Layout\Repository
  */
-class Badge extends Configuration implements ITemplateInterface
+class Badge extends Extension implements ITemplateInterface
 {
 
     const BADGE_TYPE_NORMAL = '';

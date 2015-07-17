@@ -8,14 +8,14 @@ use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Authenticator\Type\Post;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Main
  *
  * @package SPHERE\Common
  */
-class Main extends Configuration
+class Main extends Extension
 {
 
     /** @var Display $Display */
@@ -55,11 +55,6 @@ class Main extends Configuration
         return self::$Dispatcher;
     }
 
-    public function runRestApi()
-    {
-
-    }
-
     public function runPlatform()
     {
 
@@ -93,7 +88,7 @@ class Main extends Configuration
     /**
      *
      */
-    public function setErrorHandler()
+    private function setErrorHandler()
     {
 
         set_error_handler(
@@ -109,7 +104,7 @@ class Main extends Configuration
     /**
      *
      */
-    public function setShutdownHandler()
+    private function setShutdownHandler()
     {
 
         register_shutdown_function(
@@ -130,12 +125,12 @@ class Main extends Configuration
     /**
      * @return bool
      */
-    public function runAuthenticator()
+    private function runAuthenticator()
     {
 
         if (!array_key_exists( 'REST', $this->getRequest()->getParameterArray() )) {
-            $Get = ( new \SPHERE\System\Authenticator\Configuration( new Get() ) )->getAuthenticator();
-            $Post = ( new \SPHERE\System\Authenticator\Configuration( new Post() ) )->getAuthenticator();
+            $Get = ( new \SPHERE\System\Authenticator\Authenticator( new Get() ) )->getAuthenticator();
+            $Post = ( new \SPHERE\System\Authenticator\Authenticator( new Post() ) )->getAuthenticator();
             if (!( $Get->validateSignature() && $Post->validateSignature() )) {
                 self::getDisplay()->setClusterNavigation();
                 self::getDisplay()->setApplicationNavigation();

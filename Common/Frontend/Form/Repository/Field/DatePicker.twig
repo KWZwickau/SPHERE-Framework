@@ -1,0 +1,29 @@
+<div class="form-group {{ ElementGroup }}">
+    {% if( ElementLabel is not empty ) %}
+        <label>{{ ElementLabel }}</label>
+    {% endif %}
+    {% if( ElementIcon is not empty ) %}
+    <div class="input-group">
+        <span class="input-group-addon">
+            {{ ElementIcon }}
+        </span>
+        {% endif %}
+        <input type="text" class="form-control" name="{{ ElementName }}"
+               placeholder="{{ ElementPlaceholder }}"
+               data-date-format="DD.MM.YYYY" data-date-language="de" data-date-pickTime="false"
+               data-bv-date-format="DD.MM.YYYY"
+               value="{{ ElementValue }}"/>
+
+        {{ ElementFeedbackIcon }}
+        {% if( ElementIcon is not empty ) %}
+    </div>
+    {% endif %}
+    {{ ElementFeedbackMessage }}
+</div>
+<script type="text/javascript">
+    Client.Use( 'ModPicker', function()
+        {
+            jQuery( 'input[type="text"][name="{{ ElementName }}"]' ).ModPicker();
+        }
+    );
+</script>

@@ -35,8 +35,19 @@ class Dispatcher
     public static function createRoute( $Path, $Controller )
     {
 
+        /**
+         * Map Controller Class to FQN
+         */
+        if (false === strpos( $Controller, 'SPHERE' )) {
+            $Controller = '\\'.$Path.'\\'.$Controller;
+        }
+        // Map Controller to Syntax
+        $Controller = str_replace( array( '/', '//', '\\', '\\\\' ), '\\', $Controller );
+
+        // Map Route to FileSystem
         $Path = str_replace( array( '/', '//', '\\', '\\\\' ), '/', $Path );
         $Path = trim( str_replace( 'SPHERE/Application', '', $Path ), '/' );
+
         return new RouteParameter( $Path, $Controller );
     }
 

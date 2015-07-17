@@ -4,6 +4,7 @@ namespace SPHERE;
 use MOC\V\Core\AutoLoader\AutoLoader;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Setup: Php
@@ -22,32 +23,9 @@ require_once( __DIR__.'/Library/MOC-V/Core/AutoLoader/AutoLoader.php' );
 AutoLoader::getNamespaceAutoLoader( 'MOC\V', __DIR__.'/Library/MOC-V' );
 AutoLoader::getNamespaceAutoLoader( 'SPHERE', __DIR__.'/', 'SPHERE' );
 
+//new System\Database\Database( new Identifier( 'System', 'Protocol' ) );
+//new System\Database\Database( new Identifier( 'System', 'Gatekeeper', 'Token' ) );
+
 $Main = new Main();
 $Main->runPlatform();
-/*
-try {
 
-    new System\Database\Configuration( new Identifier( 'System', 'Protocol' ) );
-    new System\Database\Configuration( new Identifier( 'System', 'Gatekeeper', 'Token' ) );
-
-    $Display = $Main->getDisplay();
-
-    $Display->addServiceNavigation( new Link(
-        new Link\Route( '/System/Authentication' ),
-        new Link\Name( 'Anmelden' ),
-        new Link\Icon( new Lock() )
-    ) );
-
-    print $Display->getContent();
-
-} catch( \ErrorException $Exception ) {
-
-    $Main->getDisplay()->setException( $Exception );
-
-    print $Main->getDisplay()->getContent();
-} catch( \Exception $Exception ) {
-
-    $Main->getDisplay()->setException( $Exception );
-
-    print $Main->getDisplay()->getContent();
-}

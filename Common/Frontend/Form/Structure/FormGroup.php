@@ -1,11 +1,11 @@
 <?php
 namespace SPHERE\Common\Frontend\Form\Structure;
 
-use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\IStructureInterface;
 use SPHERE\Common\Frontend\Form\Repository\Title;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
-class FormGroup extends Configuration implements IFormInterface
+class FormGroup extends Extension implements IStructureInterface
 {
 
     /** @var FormRow[] $FormRow */
@@ -15,7 +15,7 @@ class FormGroup extends Configuration implements IFormInterface
 
     /**
      * @param FormRow|FormRow[] $FormRow
-     * @param Title         $FormTitle
+     * @param Title             $FormTitle
      */
     public function __construct( $FormRow, Title $FormTitle = null )
     {

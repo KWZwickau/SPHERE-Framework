@@ -3,14 +3,14 @@ namespace SPHERE\Common\Frontend\Layout\Structure;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Layout\ILayoutInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Layout
  *
  * @package SPHERE\Common\Frontend\Layout\Structure
  */
-class Layout extends Configuration implements ILayoutInterface
+class Layout extends Extension implements ILayoutInterface
 {
 
     /** @var LayoutGroup[] $LayoutGroup */

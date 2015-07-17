@@ -1,0 +1,30 @@
+<div class="form-group {{ ElementGroup }}">
+    {% if( ElementLabel is not empty ) %}
+        <label for="{{ ElementName }}">{{ ElementLabel }}</label>
+    {% endif %}
+    {% if( ElementIcon is not empty ) %}
+    <div class="input-group">
+        <span class="input-group-addon">
+            {{ ElementIcon }}
+        </span>
+        {% endif %}
+        <select id="{{ ElementName }}" name="{{ ElementName }}">
+            {% for Value, Title in ElementData %}
+                <option value="{{ Value }}">{{ Title }}</option>
+            {% endfor %}
+        </select>
+        {{ ElementFeedbackIcon }}
+        {% if( ElementIcon is not empty ) %}
+    </div>
+    {% endif %}
+    {{ ElementFeedbackMessage }}
+</div>
+<script type="text/javascript">
+    Client.Use( 'ModSelecter', function()
+        {
+            var guiSelect = jQuery( 'select[name="{{ ElementName }}"]' );
+            guiSelect.find( 'option[value="{{ ElementValue }}"]' ).attr( 'selected', 'selected' );
+            guiSelect.ModSelecter();
+        }
+    );
+</script>

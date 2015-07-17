@@ -11,4 +11,8 @@ use SPHERE\Common\Frontend\ITemplateInterface;
 interface IIconInterface extends ITemplateInterface
 {
 
+    /**
+     * @return string
+     */
+    public function getValue();
 }

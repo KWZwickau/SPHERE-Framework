@@ -3,14 +3,14 @@ namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Address
  *
  * @package SPHERE\Common\Frontend\Layout\Repository
  */
-class Address extends Configuration implements ITemplateInterface
+class Address extends Extension implements ITemplateInterface
 {
 
     /** @var IBridgeInterface $Template */

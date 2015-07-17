@@ -3,14 +3,14 @@ namespace SPHERE\Common\Frontend\Layout\Structure;
 
 use SPHERE\Common\Frontend\Layout\ILayoutInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class LayoutGroup
  *
  * @package SPHERE\Common\Frontend\Layout\Structure
  */
-class LayoutGroup extends Configuration implements ILayoutInterface
+class LayoutGroup extends Extension implements ILayoutInterface
 {
 
     /** @var LayoutRow[] $LayoutRow */

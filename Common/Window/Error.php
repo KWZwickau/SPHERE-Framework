@@ -3,14 +3,15 @@ namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Error
  *
  * @package SPHERE\Common\Window
  */
-class Error extends Configuration implements ITemplateInterface
+class Error extends Extension implements ITemplateInterface
 {
 
     /** @var IBridgeInterface $Template */
@@ -37,13 +38,15 @@ class Error extends Configuration implements ITemplateInterface
             }
         } else {
             $this->Template->setVariable( 'ErrorMessage', $Message );
-//            $this->Template->setVariable( 'ErrorMenu', array(
-//                $this->extensionRequest()->getUrlBase()
-//                .'/'.trim( '/Sphere/Assistance/Support/Ticket'
-//                    .'?TicketSubject='.urlencode( $Code )
-//                    .'&TicketMessage='.urlencode( $Message ),
-//                    '/' ) => 'Fehlerbericht senden'
-//            ) );
+            $this->Template->setVariable( 'ErrorMenu', array(
+                    new Primary( 'Fehlerbericht senden', '/System/Assistance/Support/Ticket', null,
+                        array(
+                            'TicketSubject' => urlencode( $Code ),
+                            'TicketMessage' => urlencode( $Message )
+                        )
+                    )
+                )
+            );
         }
     }
 

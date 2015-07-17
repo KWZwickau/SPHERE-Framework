@@ -11,4 +11,8 @@ use SPHERE\Common\Frontend\ITemplateInterface;
 interface IMessageInterface extends ITemplateInterface
 {
 
+    /**
+     * @return string
+     */
+    public function getName();
 }

@@ -1,16 +1,16 @@
 <?php
 namespace SPHERE\Common\Frontend\Form\Structure;
 
-use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\IStructureInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class FormColumn
  *
  * @package KREDA\Sphere\Client\Frontend\Form\Structure
  */
-class FormColumn extends Configuration implements IFormInterface
+class FormColumn extends Extension implements IStructureInterface
 {
 
     /** @var IFrontendInterface|IFrontendInterface[] $Frontend */

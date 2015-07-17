@@ -3,14 +3,14 @@ namespace SPHERE\Common\Frontend\Layout\Structure;
 
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\ILayoutInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class LayoutColumn
  *
  * @package SPHERE\Common\Frontend\Layout\Structure
  */
-class LayoutColumn extends Configuration implements ILayoutInterface
+class LayoutColumn extends Extension implements ILayoutInterface
 {
 
     /** @var string|IFrontendInterface|IFrontendInterface[] $Frontend */

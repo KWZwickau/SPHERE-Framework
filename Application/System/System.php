@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\Application\System;
 
+use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\System\Assistance\Assistance;
+use SPHERE\Application\System\Information\Information;
 use SPHERE\Common\Window\Navigation\Link;
 
 /**
@@ -9,7 +11,7 @@ use SPHERE\Common\Window\Navigation\Link;
  *
  * @package SPHERE\Application\System
  */
-class System
+class System implements IClusterInterface
 {
 
     public static function registerCluster()
@@ -19,5 +21,6 @@ class System
          * Register Application
          */
         Assistance::registerApplication();
+        Information::registerApplication();
     }
 }

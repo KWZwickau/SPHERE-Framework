@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\Application\System\Assistance;
 
+use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\System\Assistance\Error\Error;
+use SPHERE\Application\System\Assistance\Support\Support;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -10,7 +12,7 @@ use SPHERE\Common\Window\Navigation\Link;
  *
  * @package SPHERE\Application\System\Assistance
  */
-class Assistance
+class Assistance implements IApplicationInterface
 {
 
     public static function registerApplication()
@@ -20,30 +22,25 @@ class Assistance
          * Register Module
          */
         Error::registerModule();
+        Support::registerModule();
         /**
          * Register Navigation
          */
         Main::getDisplay()->addServiceNavigation(
-            new Link( new Link\Route( '/System/Assistance' ), new Link\Name( 'Hilfe' ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ) )
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute( __NAMESPACE__,
-                '\SPHERE\Application\System\Assistance\Assistance::navigationAssistance'
+                'Assistance::frontendAssistance'
             )
         );
     }
 
-    public static function navigationAssistance()
+    public function frontendAssistance()
     {
 
-        /**
-         * Register Navigation
-         */
-        Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( '/System/Assistance' ), new Link\Name( 'Hilfe' ) )
-        );
     }
 }

@@ -2,9 +2,9 @@
 namespace SPHERE\System\Authenticator\Type;
 
 use SPHERE\System\Authenticator\ITypeInterface;
-use SPHERE\System\Extension\Configuration;
+use SPHERE\System\Extension\Extension;
 
-class Get extends Configuration implements ITypeInterface
+class Get extends Extension implements ITypeInterface
 {
 
     /** @var string $Secret */
