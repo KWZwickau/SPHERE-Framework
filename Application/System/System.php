@@ -3,6 +3,7 @@ namespace SPHERE\Application\System;
 
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\System\Assistance\Assistance;
+use SPHERE\Application\System\Gatekeeper\Gatekeeper;
 use SPHERE\Application\System\Information\Information;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -22,5 +23,6 @@ class System implements IClusterInterface
          */
         Assistance::registerApplication();
         Information::registerApplication();
+        Gatekeeper::registerApplication();
     }
 }
