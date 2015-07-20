@@ -1,0 +1,12 @@
+<div>
+    <small>Sollten sie nicht automatisch weitergeleitet werden, klicken Sie bitte hier</small>
+    <br/><br/>
+    <a href="{{ UrlBase }}{{ Route }}" class="btn btn-default">Weiter</a>
+</div>
+<br/>
+<br/>
+<meta http-equiv="Refresh" content="{{ Timeout }}; URL={{ UrlBase }}{{ Route }}" property="">
+<!--suppress DynamicallyGeneratedCodeJS -->
+<script language=javascript>
+    setTimeout( "location.href='{{ UrlBase }}{{ Route }}'", {{ Timeout }}1000 );
+</script>

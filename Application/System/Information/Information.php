@@ -4,6 +4,7 @@ namespace SPHERE\Application\System\Information;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\System\Information\Cache\Cache;
 use SPHERE\Application\System\Information\Database\Database;
+use SPHERE\Application\System\Information\Platform\Platform;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -22,6 +23,7 @@ class Information implements IApplicationInterface
         /**
          * Register Module
          */
+        Platform::registerModule();
         Cache::registerModule();
         Database::registerModule();
         /**
@@ -38,6 +40,9 @@ class Information implements IApplicationInterface
         );
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendMachine()
     {
 

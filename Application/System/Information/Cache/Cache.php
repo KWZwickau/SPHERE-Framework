@@ -2,9 +2,24 @@
 namespace SPHERE\Application\System\Information\Cache;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\System\Information\Cache\Frontend\Status;
+use SPHERE\Common\Frontend\Icon\Repository\Flash;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Cache\Cache as CacheType;
+use SPHERE\System\Cache\Type\ApcSma;
+use SPHERE\System\Cache\Type\Apcu;
+use SPHERE\System\Cache\Type\ApcUser;
+use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Type\OpCache;
+use SPHERE\System\Cache\Type\TwigCache;
 
 /**
  * Class Cache
@@ -34,13 +49,53 @@ class Cache implements IModuleInterface
     }
 
     /**
+     * @param bool $Clear
+     *
      * @return Stage
      */
-    public function frontendCache()
+    public function frontendCache( $Clear = false )
     {
 
-        $Stage = new Stage( 'Cache', '' );
+        $Stage = new Stage( 'Cache', 'Status' );
 
+        if ($Clear) {
+            ApcSma::clearCache();
+            ApcUser::clearCache();
+            Apcu::clearCache();
+            Memcached::clearCache();
+            OpCache::clearCache();
+            TwigCache::clearCache();
+        }
+        $Stage->setContent(
+            new Layout( array(
+                new LayoutGroup( new LayoutRow(
+                    new LayoutColumn( new Status(
+                        ( new CacheType( new Memcached() ) )->getCache()
+                    ) )
+                ), new Title( 'Memcached' ) ),
+                new LayoutGroup( new LayoutRow(
+                    new LayoutColumn( new Status(
+                        ( new CacheType( new Apcu() ) )->getCache()
+                    ) )
+                ), new Title( 'APCu' ) ),
+                new LayoutGroup( new LayoutRow(
+                    new LayoutColumn( new Status(
+                        ( new CacheType( new OpCache() ) )->getCache()
+                    ) )
+                ), new Title( 'Zend OpCache' ) ),
+                new LayoutGroup( new LayoutRow(
+                    new LayoutColumn( new Status(
+                        ( new CacheType( new TwigCache() ) )->getCache()
+                    ) )
+                ), new Title( 'Twig' ) ),
+                new LayoutGroup( new LayoutRow(
+                    new LayoutColumn(
+                        new Primary( 'Clear', '/System/Information/Cache', new Flash(),
+                            array( 'Clear' => true ), 'Cache leeren' )
+                    )
+                ) )
+            ) )
+        );
         return $Stage;
     }
 }

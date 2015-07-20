@@ -11,7 +11,7 @@ use SPHERE\System\Cache\ITypeInterface;
 class TwigCache implements ITypeInterface
 {
 
-    private static $Cache = '/../../../../Library/MOC-V/Component/Template/Component/Bridge/Repository/TwigTemplate';
+    private static $Cache = '/../../../Library/MOC-V/Component/Template/Component/Bridge/Repository/TwigTemplate';
 
     /**
      * @return void

@@ -4,6 +4,11 @@ namespace SPHERE\Common\Frontend\Form;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
 
+/**
+ * Interface IFieldInterface
+ *
+ * @package SPHERE\Common\Frontend\Form
+ */
 interface IFieldInterface extends ITemplateInterface
 {
 

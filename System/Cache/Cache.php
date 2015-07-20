@@ -25,6 +25,8 @@ class Cache
             $Configuration = parse_ini_file( __DIR__.'/Configuration.ini', true );
             if (isset( $Configuration[$this->Type->getConfiguration()] )) {
                 $this->Type->setConfiguration( $Configuration[$this->Type->getConfiguration()] );
+            } else {
+                $this->Type->setConfiguration( null );
             }
         }
     }

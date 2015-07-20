@@ -4,11 +4,23 @@ namespace SPHERE\System\Database;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\MemcachedCache;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Setup;
+use SPHERE\Common\Frontend\Icon\Repository\Flash;
+use SPHERE\Common\Frontend\Icon\Repository\Off;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Warning;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Logger;
@@ -29,6 +41,8 @@ class Database
     private $Identifier = null;
     /** @var array $Configuration */
     private $Configuration = array();
+    /** @var array $Protocol */
+    private $Protocol = array();
 
     /**
      * @param Identifier $Identifier
@@ -71,7 +85,7 @@ class Database
      * @param $EntityPath
      * @param $EntityNamespace
      *
-     * @return EntityManager
+     * @return Manager
      * @throws ORMException
      */
     public function getEntityManager( $EntityPath, $EntityNamespace )
@@ -145,22 +159,24 @@ class Database
     }
 
     /**
+     * @return AbstractPlatform
      * @throws \Exception
      */
     public function getPlatform()
     {
 
-        ( new Register() )->getConnection( $this->Identifier )->getConnection()
+        return ( new Register() )->getConnection( $this->Identifier )->getConnection()
             ->getBridgeInterface()->getConnection()->getDatabasePlatform();
     }
 
     /**
+     * @return string
      * @throws \Exception
      */
     public function getDatabase()
     {
 
-        ( new Register() )->getConnection( $this->Identifier )->getConnection()
+        return ( new Register() )->getConnection( $this->Identifier )->getConnection()
             ->getBridgeInterface()->getConnection()->getDatabase();
     }
 
@@ -169,7 +185,7 @@ class Database
      *
      * @return bool
      */
-    final public function hasView( $ViewName )
+    public function hasView( $ViewName )
     {
 
         return in_array( $ViewName, $this->getSchemaManager()->listViews() );
@@ -185,12 +201,21 @@ class Database
     }
 
     /**
+     * @return Schema
+     */
+    public function getSchema()
+    {
+
+        return $this->getSchemaManager()->createSchema();
+    }
+
+    /**
      * @param string $TableName
      * @param string $ColumnName
      *
      * @return bool
      */
-    final public function hasColumn( $TableName, $ColumnName )
+    public function hasColumn( $TableName, $ColumnName )
     {
 
         return in_array( $ColumnName, $this->getSchemaManager()->listTableColumns( $TableName ) );
@@ -202,7 +227,7 @@ class Database
      *
      * @return bool
      */
-    final public function hasIndex( Table $Table, $ColumnList )
+    public function hasIndex( Table $Table, $ColumnList )
     {
 
         if ($Table->columnsAreIndexed( $ColumnList )) {
@@ -217,10 +242,54 @@ class Database
      *
      * @return bool
      */
-    final public function hasTable( $TableName )
+    public function hasTable( $TableName )
     {
 
         return in_array( $TableName, $this->getSchemaManager()->listTableNames() );
     }
 
+    /**
+     * @param string $Item
+     */
+    public function addProtocol( $Item )
+    {
+
+        if (empty( $this->Protocol )) {
+            $this->Protocol[] = '<samp>'.$Item.'</samp>';
+        } else {
+            $this->Protocol[] = '<div><span class="glyphicon glyphicon-transfer"></span>&nbsp;<samp>'.$Item.'</samp></div>';
+        }
+    }
+
+
+    /**
+     * @param bool $Simulate
+     *
+     * @return string
+     */
+    public function getProtocol( $Simulate = false )
+    {
+
+        if (count( $this->Protocol ) == 1) {
+            $Protocol = new Success(
+                new Layout( new LayoutGroup( new LayoutRow( array(
+                    new LayoutColumn( new Ok().'&nbsp'.implode( '', $this->Protocol ), 9 ),
+                    new LayoutColumn( new Off().'&nbsp;Kein Update notwendig', 3 )
+                ) ) ) )
+            );
+        } else {
+            $Protocol = new Info(
+                new Layout( new LayoutGroup( new LayoutRow( array(
+                    new LayoutColumn( new Flash().'&nbsp;'.implode( '', $this->Protocol ), 9 ),
+                    new LayoutColumn(
+                        ( $Simulate
+                            ? new Warning().'&nbsp;Update notwendig'
+                            : new Ok().'&nbsp;Update durchgefÃ¼hrt'
+                        ), 3 )
+                ) ) ) )
+            );
+        }
+        $this->Protocol = array();
+        return $Protocol;
+    }
 }

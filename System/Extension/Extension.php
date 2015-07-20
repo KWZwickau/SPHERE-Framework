@@ -5,6 +5,7 @@ use Markdownify\Converter;
 use MOC\V\Component\Template\Template;
 use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\System\Extension\Repository\Debugger;
+use SPHERE\System\Extension\Repository\ModHex;
 use SPHERE\System\Extension\Repository\SuperGlobal;
 
 /**
@@ -22,6 +23,17 @@ class Extension
     {
 
         return new Debugger();
+    }
+
+    /**
+     * @param string $String
+     *
+     * @return ModHex
+     */
+    public function getModHex( $String )
+    {
+
+        return ModHex::withString( $String );
     }
 
     /**

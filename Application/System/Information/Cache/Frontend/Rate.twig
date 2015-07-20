@@ -1,0 +1,24 @@
+{% if( CountHits > 0 ) and ( CountMisses > 0 ) %}
+    {% if(CountHits+CountMisses > 0) %}
+        {% set Success = 100/(CountHits+CountMisses)*CountHits %}
+    {% else %}
+        {% set Success = 0 %}
+    {% endif %}
+    {% set Danger = 100 - Success %}
+    <h5>Hits: {{ Success|number_format(2, '.', ',') }}%</h5>
+    <div class="progress progress-striped">
+        <div class="progress-bar progress-bar-success" style="width:{{ Success }}%;">
+            <span class="sr-only">Hits</span>
+        </div>
+        <div class="progress-bar progress-bar-danger" style="width:{{ Danger }}%;">
+            <span class="sr-only">Misses</span>
+        </div>
+    </div>
+{% else %}
+    <h5>Hits: Not available</h5>
+    <div class="progress progress-striped">
+        <div class="progress-bar progress-bar-info" style="width:100%;">
+            <span class="sr-only">Not available</span>
+        </div>
+    </div>
+{% endif %}
