@@ -2,6 +2,7 @@
 namespace SPHERE\Application\System\Gatekeeper\Token;
 
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\System\Gatekeeper\Token\Service\Data;
 use SPHERE\Application\System\Gatekeeper\Token\Service\Setup;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
@@ -42,6 +43,10 @@ class Service implements IServiceInterface
     public function setupService( $Simulate )
     {
 
-        return ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
+        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
+        if (!$Simulate) {
+            ( new Data( $this->Binding ) )->setupDatabaseContent();
+        }
+        return $Protocol;
     }
 }
