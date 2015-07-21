@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping\PreUpdate;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class Entity
+ * Class Object
  *
  * - Id (bigint)
  * - EntityCreate (datetime)
@@ -21,7 +21,7 @@ use SPHERE\System\Extension\Extension;
  * @MappedSuperclass
  * @HasLifecycleCallbacks
  */
-abstract class Entity extends Extension
+abstract class Object extends Extension
 {
 
     /**

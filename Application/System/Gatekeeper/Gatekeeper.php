@@ -2,7 +2,8 @@
 namespace SPHERE\Application\System\Gatekeeper;
 
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Application\System\Gatekeeper\Account\Account;
+use SPHERE\Application\System\Gatekeeper\Authentication\Authentication;
+use SPHERE\Application\System\Gatekeeper\Token\Token;
 
 /**
  * Class Gatekeeper
@@ -18,6 +19,7 @@ class Gatekeeper implements IApplicationInterface
         /**
          * Register Module
          */
-        Account::registerModule();
+        Authentication::registerModule();
+        Token::registerModule();
     }
 }

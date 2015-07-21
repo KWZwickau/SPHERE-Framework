@@ -12,7 +12,7 @@ class Off implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'halflings halflings-off';
 
     /**
      * @return string

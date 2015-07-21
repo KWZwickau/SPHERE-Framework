@@ -5,14 +5,14 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\System\Gatekeeper\Consumer\Service\Entity\TblConsumer;
+use SPHERE\System\Database\Fitting\Object;
 
 /**
  * @Entity
  * @Table(name="tblToken")
  * @Cache(usage="NONSTRICT_READ_WRITE")
  */
-class TblToken extends \SPHERE\System\Database\Fitting\Entity
+class TblToken extends Object
 {
 
     const ATTR_IDENTIFIER = 'Identifier';

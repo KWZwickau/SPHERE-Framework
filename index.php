@@ -26,9 +26,6 @@ require_once( __DIR__.'/Library/MOC-V/Core/AutoLoader/AutoLoader.php' );
 AutoLoader::getNamespaceAutoLoader( 'MOC\V', __DIR__.'/Library/MOC-V' );
 AutoLoader::getNamespaceAutoLoader( 'SPHERE', __DIR__.'/', 'SPHERE' );
 
-//new System\Database\Database( new Identifier( 'System', 'Protocol' ) );
-//new System\Database\Database( new Identifier( 'System', 'Gatekeeper', 'Token' ) );
-
 $Main = new Main();
 $Main->runPlatform();
 

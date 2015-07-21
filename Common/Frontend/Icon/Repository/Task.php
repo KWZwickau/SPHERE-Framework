@@ -4,7 +4,7 @@ namespace SPHERE\Common\Frontend\Icon\Repository;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
- * Class TaskIcon
+ * Class Task
  *
  * @package SPHERE\Common\Frontend\Icon\Repository
  */
@@ -12,7 +12,7 @@ class Task implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicon glyphicon-tasks';
 
     /**
      * @return string

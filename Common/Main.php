@@ -118,7 +118,9 @@ class Main extends Extension
                 $Display->addServiceNavigation(
                     new Link( new Link\Route( '/' ), new Link\Name( 'Zurück zur Anwendung' ) )
                 );
-                print $Display->getContent();
+                $Display->setException(
+                    new \ErrorException( $Error['message'], 0, $Error['type'], $Error['file'], $Error['line'] )
+                );
             }, self::getDisplay()
         );
     }

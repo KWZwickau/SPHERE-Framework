@@ -2,6 +2,7 @@
 namespace SPHERE\Application\System\Assistance\Error;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -48,6 +49,14 @@ class Error implements IModuleInterface
                 'Frontend::frontendShutdown'
             )
         );
+    }
+
+    /**
+     * @return IServiceInterface
+     */
+    public static function useService()
+    {
+        // TODO: Implement useService() method.
     }
 
     /**

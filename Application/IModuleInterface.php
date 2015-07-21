@@ -10,4 +10,9 @@ interface IModuleInterface
 {
 
     public static function registerModule();
+
+    /**
+     * @return IServiceInterface
+     */
+    public static function useService();
 }

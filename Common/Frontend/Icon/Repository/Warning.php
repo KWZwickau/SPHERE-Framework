@@ -12,7 +12,7 @@ class Warning implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-warning-sign';
 
     /**
      * @return string

@@ -2,6 +2,7 @@
 namespace SPHERE\Application\System\Information\Cache;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\System\Information\Cache\Frontend\Status;
 use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -46,6 +47,14 @@ class Cache implements IModuleInterface
                 'Cache::frontendCache'
             )
         );
+    }
+
+    /**
+     * @return IServiceInterface
+     */
+    public static function useService()
+    {
+        // TODO: Implement useService() method.
     }
 
     /**

@@ -5,28 +5,25 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
 
 /**
- * Class DataStructure
+ * Class Setup
  *
  * @package SPHERE\Application\System\Gatekeeper\Token\Service
  */
-class DataStructure
+class Setup
 {
 
-    /** @var null|Structure $Structure */
-    private $Structure = null;
+    /** @var null|Structure $Connection */
+    private $Connection = null;
 
     /**
-     *
+     * @param Structure $Connection
      */
-    function __construct()
+    function __construct( Structure $Connection )
     {
 
-        $this->Structure = new Structure(
-            new Identifier( 'System', 'Gatekeeper', 'Token' )
-        );
+        $this->Connection = $Connection;
     }
 
     /**
@@ -40,14 +37,14 @@ class DataStructure
         /**
          * Table
          */
-        $Schema = clone $this->Structure->getSchema();
+        $Schema = clone $this->Connection->getSchema();
         $this->setTableToken( $Schema );
         /**
          * Migration & Protocol
          */
-        $this->Structure->addProtocol( __CLASS__ );
-        $this->Structure->setMigration( $Schema, $Simulate );
-        return $this->Structure->getProtocol( $Simulate );
+        $this->Connection->addProtocol( __CLASS__ );
+        $this->Connection->setMigration( $Schema, $Simulate );
+        return $this->Connection->getProtocol( $Simulate );
     }
 
     /**
@@ -62,23 +59,23 @@ class DataStructure
         /**
          * Install
          */
-        $Table = $this->Structure->createTable( $Schema, 'tblToken' );
+        $Table = $this->Connection->createTable( $Schema, 'tblToken' );
         /**
          * Upgrade
          */
-        if (!$this->Structure->hasColumn( 'tblToken', 'Identifier' )) {
+        if (!$this->Connection->hasColumn( 'tblToken', 'Identifier' )) {
             $Table->addColumn( 'Identifier', 'string' );
         }
-        if (!$this->Structure->hasIndex( $Table, array( 'Identifier' ) )) {
+        if (!$this->Connection->hasIndex( $Table, array( 'Identifier' ) )) {
             $Table->addUniqueIndex( array( 'Identifier' ) );
         }
-        if (!$this->Structure->hasColumn( 'tblToken', 'Serial' )) {
+        if (!$this->Connection->hasColumn( 'tblToken', 'Serial' )) {
             $Table->addColumn( 'Serial', 'string', array( 'notnull' => false ) );
         }
-        if (!$this->Structure->hasIndex( $Table, array( 'Serial' ) )) {
+        if (!$this->Connection->hasIndex( $Table, array( 'Serial' ) )) {
             $Table->addUniqueIndex( array( 'Serial' ) );
         }
-        if (!$this->Structure->hasColumn( 'tblToken', 'serviceGatekeeper_Consumer' )) {
+        if (!$this->Connection->hasColumn( 'tblToken', 'serviceGatekeeper_Consumer' )) {
             $Table->addColumn( 'serviceGatekeeper_Consumer', 'bigint', array( 'notnull' => false ) );
         }
 
@@ -92,6 +89,6 @@ class DataStructure
     protected function getTableToken()
     {
 
-        return $this->Structure->getSchema()->getTable( 'tblToken' );
+        return $this->Connection->getSchema()->getTable( 'tblToken' );
     }
 }

@@ -11,9 +11,11 @@ use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Setup;
+use MOC\V\Component\Database\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -28,13 +30,14 @@ use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Database\Link\Register;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Database
  *
  * @package SPHERE\System\Database
  */
-class Database
+class Database extends Extension
 {
 
     /** @var Identifier $Identifier */
@@ -91,9 +94,12 @@ class Database
     public function getEntityManager( $EntityPath, $EntityNamespace )
     {
 
+        // Sanatize Namespace
+        $EntityNamespace = trim( str_replace( array( '/', '\\' ), '\\', $EntityNamespace ), '\\' ).'\\';
+
         $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration( array( $EntityPath ) );
         $MetadataConfiguration->setDefaultRepositoryClassName( '\SPHERE\System\Database\Fitting\Repository' );
-        $ConnectionConfig = $this->getConnection()->getBridgeInterface()->getConnection()->getConfiguration();
+        $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
         if (class_exists( '\Memcached', false )) {
             $Cache = new MemcachedCache();
             /** @var Memcached $CacheConfiguration */
@@ -122,12 +128,12 @@ class Database
             }
         }
         $ConnectionConfig->setSQLLogger( new Logger() );
-
-        return new Manager( EntityManager::create( $this->getConnection(), $MetadataConfiguration ), $EntityNamespace );
+        return new Manager( EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ),
+            $EntityNamespace );
     }
 
     /**
-     * @return \MOC\V\Component\Database\Database|null
+     * @return IBridgeInterface|null
      * @throws \Exception
      */
     public function getConnection()
@@ -144,7 +150,7 @@ class Database
     public function setStatement( $Statement )
     {
 
-        return $this->getConnection()->getBridgeInterface()->prepareStatement( $Statement )->executeWrite();
+        return $this->getConnection()->prepareStatement( $Statement )->executeWrite();
     }
 
     /**
@@ -155,7 +161,7 @@ class Database
     public function getStatement( $Statement )
     {
 
-        return $this->getConnection()->getBridgeInterface()->prepareStatement( $Statement )->executeRead();
+        return $this->getConnection()->prepareStatement( $Statement )->executeRead();
     }
 
     /**
@@ -165,8 +171,7 @@ class Database
     public function getPlatform()
     {
 
-        return ( new Register() )->getConnection( $this->Identifier )->getConnection()
-            ->getBridgeInterface()->getConnection()->getDatabasePlatform();
+        return $this->getConnection()->getConnection()->getDatabasePlatform();
     }
 
     /**
@@ -176,8 +181,7 @@ class Database
     public function getDatabase()
     {
 
-        return ( new Register() )->getConnection( $this->Identifier )->getConnection()
-            ->getBridgeInterface()->getConnection()->getDatabase();
+        return $this->getConnection()->getConnection()->getDatabase();
     }
 
     /**
@@ -197,7 +201,7 @@ class Database
     public function getSchemaManager()
     {
 
-        return $this->getConnection()->getBridgeInterface()->getSchemaManager();
+        return $this->getConnection()->getSchemaManager();
     }
 
     /**
@@ -218,7 +222,7 @@ class Database
     public function hasColumn( $TableName, $ColumnName )
     {
 
-        return in_array( $ColumnName, $this->getSchemaManager()->listTableColumns( $TableName ) );
+        return in_array( strtolower( $ColumnName ), array_keys( $this->getSchemaManager()->listTableColumns( $TableName ) ) );
     }
 
     /**
@@ -257,7 +261,7 @@ class Database
         if (empty( $this->Protocol )) {
             $this->Protocol[] = '<samp>'.$Item.'</samp>';
         } else {
-            $this->Protocol[] = '<div><span class="glyphicon glyphicon-transfer"></span>&nbsp;<samp>'.$Item.'</samp></div>';
+            $this->Protocol[] = '<div>'.new Transfer().'&nbsp;<samp>'.$Item.'</samp></div>';
         }
     }
 

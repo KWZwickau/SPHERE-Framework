@@ -1,9 +1,9 @@
 <?php
 namespace SPHERE\System\Database\Fitting;
 
-use Doctrine\DBAL\Schema\AbstractSchemaManager;
-use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Schema\AbstractSchemaManager as DBALSchemaManager;
+use Doctrine\DBAL\Schema\Schema as DBALSchema;
+use Doctrine\DBAL\Schema\Table as DBALTable;
 use SPHERE\System\Database\Database;
 use SPHERE\System\Database\Link\Identifier;
 
@@ -28,13 +28,13 @@ class Structure
     }
 
     /**
-     * @param Schema $Schema
+     * @param DBALSchema $Schema
      * @param string $Name
      *
-     * @return Table
+     * @return DBALTable
      * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    public function createTable( Schema &$Schema, $Name )
+    public function createTable( DBALSchema &$Schema, $Name )
     {
 
         if (!$this->Database->hasTable( $Name )) {
@@ -54,10 +54,10 @@ class Structure
     }
 
     /**
-     * @param Table $KeyTarget Foreign Key (Column: KeySource Name)
-     * @param Table $KeySource Foreign Data (Column: Id)
+     * @param DBALTable $KeyTarget Foreign Key (Column: KeySource Name)
+     * @param DBALTable $KeySource Foreign Data (Column: Id)
      */
-    public function addForeignKey( Table &$KeyTarget, Table $KeySource )
+    public function addForeignKey( DBALTable &$KeyTarget, DBALTable $KeySource )
     {
 
         if (!$this->Database->hasColumn( $KeyTarget->getName(), $KeySource->getName() )) {
@@ -69,10 +69,10 @@ class Structure
     }
 
     /**
-     * @param Schema $Schema
+     * @param DBALSchema $Schema
      * @param bool   $Simulate
      */
-    public function setMigration( Schema &$Schema, $Simulate = true )
+    public function setMigration( DBALSchema &$Schema, $Simulate = true )
     {
 
         $Statement = $this->Database->getSchema()->getMigrateToSql( $Schema,
@@ -100,7 +100,7 @@ class Structure
     }
 
     /**
-     * @return AbstractSchemaManager
+     * @return DBALSchemaManager
      */
     public function getSchemaManager()
     {
@@ -109,7 +109,7 @@ class Structure
     }
 
     /**
-     * @return Schema
+     * @return DBALSchema
      */
     public function getSchema()
     {
@@ -130,12 +130,12 @@ class Structure
     }
 
     /**
-     * @param Table $Table
+     * @param DBALTable $Table
      * @param array $ColumnList
      *
      * @return bool
      */
-    public function hasIndex( Table $Table, $ColumnList )
+    public function hasIndex( DBALTable $Table, $ColumnList )
     {
 
         return $this->Database->hasIndex( $Table, $ColumnList );

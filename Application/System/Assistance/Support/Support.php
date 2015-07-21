@@ -2,6 +2,7 @@
 namespace SPHERE\Application\System\Assistance\Support;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -41,6 +42,14 @@ class Support implements IModuleInterface
                 ->setParameterDefault( 'TicketSubject', null )
                 ->setParameterDefault( 'TicketMessage', null )
         );
+    }
+
+    /**
+     * @return IServiceInterface
+     */
+    public static function useService()
+    {
+        // TODO: Implement useService() method.
     }
 
     /**

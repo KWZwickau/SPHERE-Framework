@@ -2,6 +2,7 @@
 namespace SPHERE\Application\System\Information\Platform;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -31,6 +32,14 @@ class Platform implements IModuleInterface
                 'Platform::frontendPlatform'
             )
         );
+    }
+
+    /**
+     * @return IServiceInterface
+     */
+    public static function useService()
+    {
+        // TODO: Implement useService() method.
     }
 
     /**
