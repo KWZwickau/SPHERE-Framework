@@ -128,8 +128,9 @@ class Database extends Extension
             }
         }
         $ConnectionConfig->setSQLLogger( new Logger() );
-        return new Manager( EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ),
-            $EntityNamespace );
+        return new Manager(
+            EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ), $EntityNamespace
+        );
     }
 
     /**
@@ -222,7 +223,8 @@ class Database extends Extension
     public function hasColumn( $TableName, $ColumnName )
     {
 
-        return in_array( strtolower( $ColumnName ), array_keys( $this->getSchemaManager()->listTableColumns( $TableName ) ) );
+        return in_array( strtolower( $ColumnName ),
+            array_keys( $this->getSchemaManager()->listTableColumns( $TableName ) ) );
     }
 
     /**

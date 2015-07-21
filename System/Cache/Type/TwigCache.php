@@ -16,7 +16,7 @@ class TwigCache implements ITypeInterface
     /**
      * @return void
      */
-    public static function clearCache()
+    public function clearCache()
     {
 
         $E = new \Twig_Environment( null, array( 'cache' => realpath( __DIR__.self::$Cache ) ) );

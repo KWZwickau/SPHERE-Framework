@@ -19,7 +19,7 @@ class OpCache implements ITypeInterface
     /**
      * @return void
      */
-    public static function clearCache()
+    public function clearCache()
     {
 
         if (function_exists( 'opcache_reset' )) {

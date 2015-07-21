@@ -17,7 +17,7 @@ class Apcu implements ITypeInterface
     /**
      * @return void
      */
-    public static function clearCache()
+    public function clearCache()
     {
 
         if (function_exists( 'apc_clear_cache' )) {

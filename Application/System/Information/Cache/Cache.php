@@ -15,7 +15,6 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Cache\Cache as CacheType;
-use SPHERE\System\Cache\Type\ApcSma;
 use SPHERE\System\Cache\Type\Apcu;
 use SPHERE\System\Cache\Type\ApcUser;
 use SPHERE\System\Cache\Type\Memcached;
@@ -68,12 +67,11 @@ class Cache implements IModuleInterface
         $Stage = new Stage( 'Cache', 'Status' );
 
         if ($Clear) {
-            ApcSma::clearCache();
-            ApcUser::clearCache();
-            Apcu::clearCache();
-            Memcached::clearCache();
-            OpCache::clearCache();
-            TwigCache::clearCache();
+            ( new CacheType( new ApcUser() ) )->getCache()->clearCache();
+            ( new CacheType( new Apcu() ) )->getCache()->clearCache();
+            ( new CacheType( new Memcached() ) )->getCache()->clearCache();
+            ( new CacheType( new OpCache() ) )->getCache()->clearCache();
+            ( new CacheType( new TwigCache() ) )->getCache()->clearCache();
         }
         $Stage->setContent(
             new Layout( array(

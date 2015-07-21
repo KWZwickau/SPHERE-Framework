@@ -12,32 +12,32 @@ class Memcached implements ITypeInterface
 {
 
     /** @var \Memcached $Status */
-    private static $Server = null;
+    private $Server = null;
     /** @var string $Host */
-    private static $Host = '';
+    private $Host = '';
     /** @var string $Port */
-    private static $Port = '11211';
+    private $Port = '11211';
     /** @var array $Status */
     private $Status = null;
 
     /**
      * @return void
      */
-    public static function clearCache()
+    public function clearCache()
     {
 
-        if (null !== self::$Server) {
-            self::$Server->flush();
+        if (null !== $this->Server) {
+            $this->Server->flush();
         }
     }
 
     /**
      * @return \Memcached
      */
-    public static function getServer()
+    public function getServer()
     {
 
-        return self::$Server;
+        return $this->Server;
     }
 
     /**
@@ -57,7 +57,7 @@ class Memcached implements ITypeInterface
 
         $this->fetchStatus();
         if (!empty( $this->Status )) {
-            return $this->Status[self::getConnection()]['get_hits'];
+            return $this->Status[$this->getConnection()]['get_hits'];
         }
         return -1;
     }
@@ -65,18 +65,18 @@ class Memcached implements ITypeInterface
     private function fetchStatus()
     {
 
-        if (null !== self::$Server && empty( $this->Status )) {
-            $this->Status = self::$Server->getStats();
+        if (null !== $this->Server && empty( $this->Status )) {
+            $this->Status = $this->Server->getStats();
         }
     }
 
     /**
      * @return string
      */
-    public static function getConnection()
+    public function getConnection()
     {
 
-        return self::$Host.':'.self::$Port;
+        return $this->Host.':'.$this->Port;
     }
 
     /**
@@ -87,7 +87,7 @@ class Memcached implements ITypeInterface
 
         $this->fetchStatus();
         if (!empty( $this->Status )) {
-            return $this->Status[self::getConnection()]['get_misses'];
+            return $this->Status[$this->getConnection()]['get_misses'];
         }
         return -1;
     }
@@ -109,7 +109,7 @@ class Memcached implements ITypeInterface
 
         $this->fetchStatus();
         if (!empty( $this->Status )) {
-            return $this->Status[self::getConnection()]['limit_maxbytes'];
+            return $this->Status[$this->getConnection()]['limit_maxbytes'];
         }
         return -1;
     }
@@ -122,7 +122,7 @@ class Memcached implements ITypeInterface
 
         $this->fetchStatus();
         if (!empty( $this->Status )) {
-            return $this->Status[self::getConnection()]['bytes'];
+            return $this->Status[$this->getConnection()]['bytes'];
         }
         return -1;
     }
@@ -142,14 +142,14 @@ class Memcached implements ITypeInterface
     public function setConfiguration( $Configuration )
     {
 
-        self::$Host = $Configuration['Host'];
-        self::$Port = $Configuration['Port'];
+        $this->Host = $Configuration['Host'];
+        $this->Port = $Configuration['Port'];
 
-        if (self::$Host && self::$Port) {
-            if (class_exists( '\Memcached', false ) && null === self::$Server) {
-                self::$Server = new \Memcached();
-                self::$Server->addServer( self::$Host, self::$Port );
-                self::$Server->setOption( \Memcached::OPT_TCP_NODELAY, true );
+        if ($this->Host && $this->Port) {
+            if (class_exists( '\Memcached', false ) && null === $this->Server) {
+                $this->Server = new \Memcached();
+                $this->Server->addServer( $this->Host, $this->Port );
+                $this->Server->setOption( \Memcached::OPT_TCP_NODELAY, true );
             }
         }
     }

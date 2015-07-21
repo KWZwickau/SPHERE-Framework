@@ -12,7 +12,7 @@ interface ITypeInterface
     /**
      * @return void
      */
-    public static function clearCache();
+    public function clearCache();
 
     /**
      * @return integer
