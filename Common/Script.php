@@ -70,7 +70,7 @@ class Script extends Extension
         );
         $this->setSource(
             'Bootstrap.DatetimePicker',
-            '/Library/Bootstrap.DateTimePicker/3.1.3/build/js/bootstrap-datetimepicker.min.js',
+            '/Library/Bootstrap.DateTimePicker/4.14.30/build/js/bootstrap-datetimepicker.min.js',
             "'undefined' !== typeof jQuery.fn.datetimepicker"
         );
         $this->setSource(

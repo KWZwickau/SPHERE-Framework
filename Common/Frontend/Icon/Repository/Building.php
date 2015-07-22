@@ -29,7 +29,7 @@ class Building implements IIconInterface
     public function getContent()
     {
 
-        return '<span class="'.$this->getValue().'"></span>';
+        return '<span class="'.$this->getValue().'" aria-hidden="true"></span>';
     }
 
     /**

@@ -12,7 +12,7 @@ class Lock implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicon glyphicon-lock';
+    private $Value = 'glyphicons glyphicons-lock';
 
     /**
      * @return string
@@ -29,7 +29,7 @@ class Lock implements IIconInterface
     public function getContent()
     {
 
-        return '<span class="'.$this->getValue().'"></span>';
+        return '<span class="'.$this->getValue().'" aria-hidden="true"></span>';
     }
 
     /**

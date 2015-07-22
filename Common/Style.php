@@ -20,11 +20,13 @@ class Style extends Extension
     private function __construct()
     {
 
-        $this->setSource( '/Library/Bootstrap/3.3.5/dist/css/bootstrap.min.css' );
+//        $this->setSource( '/Library/Bootstrap/3.3.5/dist/css/bootstrap.min.css' );
+        $this->setSource( '/Common/Style/Bootstrap.css' );
         $this->setSource( '/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/css/glyphicons-halflings.css' );
         $this->setSource( '/Library/Bootstrap.Glyphicons/1.9.0/glyphicons/web/html_css/css/glyphicons.css' );
         $this->setSource( '/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_filetypes/web/html_css/css/glyphicons-filetypes.css' );
         $this->setSource( '/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_social/web/html_css/css/glyphicons-social.css' );
+        $this->setSource( '/Common/Style/Glyphicons.css' );
 //        $this->setSource( '/Library/Bootstrap.FileInput/4.1.6/css/fileinput.min.css' );
 //        $this->setSource( '/Library/Bootstrap.Checkbox/0.3.3/awesome-bootstrap-checkbox.css' );
 //        $this->setSource( '/Library/Bootstrap.Jasny/3.1.3/dist/css/jasny-bootstrap.min.css' );

@@ -286,17 +286,17 @@ $(function () {
   // todo(fat): sux you have to do this.
   .on('affix.bs.affix', function (e) {
     $(e.target).width(e.target.offsetWidth)
-  });
+  })
 
   $('.js-affixed-element-bottom').affix({
     offset: {
       bottom: $('.js-footer').outerHeight(true) + 10
     }
-  });
+  })
 
   $('.js-grow-btn').on('click', function() {
     $('.js-content').append('<p>Ipsum corrupti ipsam est temporibus.</p>')
-  });
+  })
   $('.js-shrink-btn').on('click', function() {
     $('.js-content p').last().remove()
   })

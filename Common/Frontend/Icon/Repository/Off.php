@@ -12,7 +12,7 @@ class Off implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-off';
+    private $Value = 'glyphicons glyphicons-power';
 
     /**
      * @return string
@@ -29,7 +29,7 @@ class Off implements IIconInterface
     public function getContent()
     {
 
-        return '<span class="'.$this->getValue().'"></span>';
+        return '<span class="'.$this->getValue().'" aria-hidden="true"></span>';
     }
 
     /**
