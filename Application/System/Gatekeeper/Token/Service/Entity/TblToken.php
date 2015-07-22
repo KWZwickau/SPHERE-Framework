@@ -5,18 +5,21 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\System\Database\Fitting\Object;
+use SPHERE\Application\System\Gatekeeper\Consumer\Consumer;
+use SPHERE\Application\System\Gatekeeper\Consumer\Service\Entity\TblConsumer;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
  * @Table(name="tblToken")
  * @Cache(usage="NONSTRICT_READ_WRITE")
  */
-class TblToken extends Object
+class TblToken extends Element
 {
 
     const ATTR_IDENTIFIER = 'Identifier';
-    const ATTR_SERVICE_GATEKEEPER_CONSUMER = 'serviceGatekeeper_Consumer';
+    const ATTR_SERIAL = 'Serial';
+    const SERVICE_TBL_CONSUMER = 'serviceTblConsumer';
 
     /**
      * @Column(type="string")
@@ -29,7 +32,7 @@ class TblToken extends Object
     /**
      * @Column(type="bigint")
      */
-    protected $serviceGatekeeper_Consumer;
+    protected $serviceTblConsumer;
 
     /**
      * @param string $Identifier
@@ -82,22 +85,22 @@ class TblToken extends Object
     /**
      * @return bool|TblConsumer
      */
-    public function getServiceGatekeeperConsumer()
+    public function getServiceTblConsumer()
     {
 
-        if (null === $this->serviceGatekeeper_Consumer) {
+        if (null === $this->serviceTblConsumer) {
             return false;
         } else {
-            return Gatekeeper::serviceConsumer()->entityConsumerById( $this->serviceGatekeeper_Consumer );
+            return Consumer::useService()->getConsumerById( $this->serviceTblConsumer );
         }
     }
 
     /**
      * @param null|TblConsumer $tblConsumer
      */
-    public function setServiceGatekeeperConsumer( TblConsumer $tblConsumer = null )
+    public function setServiceTblConsumer( TblConsumer $tblConsumer = null )
     {
 
-        $this->serviceGatekeeper_Consumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );
+        $this->serviceTblConsumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );
     }
 }

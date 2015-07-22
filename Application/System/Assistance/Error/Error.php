@@ -59,6 +59,11 @@ class Error implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    public static function useFrontend()
+    {
+        // TODO: Implement useFrontend() method.
+    }
+
     /**
      * @return Stage
      */

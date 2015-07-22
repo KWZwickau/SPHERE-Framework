@@ -290,7 +290,7 @@ class Database extends Extension
                     new LayoutColumn(
                         ( $Simulate
                             ? new Warning().'&nbsp;Update notwendig'
-                            : new Ok().'&nbsp;Update durchgefÃ¼hrt'
+                            : new Ok().'&nbsp;Update durchgeführt'
                         ), 3 )
                 ) ) ) )
             );

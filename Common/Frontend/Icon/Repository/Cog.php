@@ -12,7 +12,7 @@ class Cog implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-cog';
+    private $Value = 'glyphicons glyphicons-cogwheel';
 
     /**
      * @return string

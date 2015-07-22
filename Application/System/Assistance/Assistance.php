@@ -4,6 +4,7 @@ namespace SPHERE\Application\System\Assistance;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\System\Assistance\Error\Error;
 use SPHERE\Application\System\Assistance\Support\Support;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -28,7 +29,7 @@ class Assistance implements IApplicationInterface
          * Register Navigation
          */
         Main::getDisplay()->addServiceNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ), new Link\Icon( new Question() ) )
         );
         /**
          * Register Route

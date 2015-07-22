@@ -12,7 +12,7 @@ class Remove implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-circle-remove';
 
     /**
      * @return string

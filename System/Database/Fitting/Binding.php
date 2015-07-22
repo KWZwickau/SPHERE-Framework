@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\System\Database\Fitting;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use SPHERE\System\Database\Database;
 use SPHERE\System\Database\Link\Identifier;
 
@@ -62,15 +61,6 @@ class Binding
     {
 
         return $this->Database->getStatement( $Statement );
-    }
-
-    /**
-     * @return AbstractPlatform
-     */
-    public function getPlatform()
-    {
-
-        return $this->Database->getPlatform();
     }
 
     /**

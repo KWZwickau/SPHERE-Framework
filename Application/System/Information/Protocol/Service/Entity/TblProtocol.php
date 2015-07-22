@@ -5,19 +5,18 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\System\Protocol\Activity\Service\Entity\Gatekeeper;
-use SPHERE\Application\System\Protocol\Activity\Service\Entity\Management;
-use SPHERE\Application\System\Protocol\Activity\Service\Entity\TblAccount;
-use SPHERE\Application\System\Protocol\Activity\Service\Entity\TblConsumer;
-use SPHERE\Application\System\Protocol\Activity\Service\Entity\TblPerson;
-use SPHERE\System\Database\Fitting\Object;
+use SPHERE\Application\System\Gatekeeper\Account\Account;
+use SPHERE\Application\System\Gatekeeper\Account\Service\Entity\TblAccount;
+use SPHERE\Application\System\Gatekeeper\Consumer\Consumer;
+use SPHERE\Application\System\Gatekeeper\Consumer\Service\Entity\TblConsumer;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
  * @Table(name="tblProtocol")
  * @Cache(usage="READ_WRITE")
  */
-class TblProtocol extends Object
+class TblProtocol extends Element
 {
 
     /**
@@ -31,7 +30,7 @@ class TblProtocol extends Object
     /**
      * @Column(type="bigint")
      */
-    protected $serviceGatekeeper_Account;
+    protected $serviceTblAccount;
     /**
      * @Column(type="string")
      */
@@ -39,19 +38,7 @@ class TblProtocol extends Object
     /**
      * @Column(type="bigint")
      */
-    protected $serviceManagement_Person;
-    /**
-     * @Column(type="string")
-     */
-    protected $PersonFirstName;
-    /**
-     * @Column(type="string")
-     */
-    protected $PersonLastName;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceGatekeeper_Consumer;
+    protected $serviceTblConsumer;
     /**
      * @Column(type="string")
      */
@@ -59,7 +46,7 @@ class TblProtocol extends Object
     /**
      * @Column(type="string")
      */
-    protected $ConsumerSuffix;
+    protected $ConsumerAcronym;
     /**
      * @Column(type="text")
      */
@@ -108,23 +95,23 @@ class TblProtocol extends Object
     /**
      * @return bool|TblAccount
      */
-    public function getServiceGatekeeperAccount()
+    public function getServiceTblAccount()
     {
 
-        if (null === $this->serviceGatekeeper_Account) {
+        if (null === $this->serviceTblAccount) {
             return false;
         } else {
-            return Gatekeeper::serviceAccount()->entityAccountById( $this->serviceGatekeeper_Account );
+            return Account::useService()->getAccountById( $this->serviceTblAccount );
         }
     }
 
     /**
      * @param null|TblAccount $tblAccount
      */
-    public function setServiceGatekeeperAccount( TblAccount $tblAccount = null )
+    public function setServiceTblAccount( TblAccount $tblAccount = null )
     {
 
-        $this->serviceGatekeeper_Account = ( null === $tblAccount ? null : $tblAccount->getId() );
+        $this->serviceTblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
     }
 
     /**
@@ -146,83 +133,25 @@ class TblProtocol extends Object
     }
 
     /**
-     * @return bool|TblPerson
-     */
-    public function getServiceManagementPerson()
-    {
-
-        if (null === $this->serviceManagement_Person) {
-            return false;
-        } else {
-            return Management::servicePerson()->entityPersonById( $this->serviceManagement_Person );
-        }
-    }
-
-    /**
-     * @param null|TblPerson $tblPerson
-     */
-    public function setServiceManagementPerson( TblPerson $tblPerson = null )
-    {
-
-        $this->serviceManagement_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
-    }
-
-    /**
-     * @return string
-     */
-    public function getPersonFirstName()
-    {
-
-        return $this->PersonFirstName;
-    }
-
-    /**
-     * @param string $PersonFirstName
-     */
-    public function setPersonFirstName( $PersonFirstName )
-    {
-
-        $this->PersonFirstName = $PersonFirstName;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPersonLastName()
-    {
-
-        return $this->PersonLastName;
-    }
-
-    /**
-     * @param string $PersonLastName
-     */
-    public function setPersonLastName( $PersonLastName )
-    {
-
-        $this->PersonLastName = $PersonLastName;
-    }
-
-    /**
      * @return bool|TblConsumer
      */
-    public function getServiceGatekeeperConsumer()
+    public function getServiceTblConsumer()
     {
 
-        if (null === $this->serviceGatekeeper_Consumer) {
+        if (null === $this->serviceTblConsumer) {
             return false;
         } else {
-            return Gatekeeper::serviceConsumer()->entityConsumerById( $this->serviceGatekeeper_Consumer );
+            return Consumer::useService()->getConsumerById( $this->serviceTblConsumer );
         }
     }
 
     /**
      * @param null|TblConsumer $tblConsumer
      */
-    public function setServiceGatekeeperConsumer( TblConsumer $tblConsumer = null )
+    public function setServiceTblConsumer( TblConsumer $tblConsumer = null )
     {
 
-        $this->serviceGatekeeper_Consumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );
+        $this->serviceTblConsumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );
     }
 
     /**
@@ -246,19 +175,19 @@ class TblProtocol extends Object
     /**
      * @return string
      */
-    public function getConsumerSuffix()
+    public function getConsumerAcronym()
     {
 
-        return $this->ConsumerSuffix;
+        return $this->ConsumerAcronym;
     }
 
     /**
-     * @param string $ConsumerSuffix
+     * @param string $ConsumerAcronym
      */
-    public function setConsumerSuffix( $ConsumerSuffix )
+    public function setConsumerAcronym( $ConsumerAcronym )
     {
 
-        $this->ConsumerSuffix = $ConsumerSuffix;
+        $this->ConsumerAcronym = $ConsumerAcronym;
     }
 
     /**

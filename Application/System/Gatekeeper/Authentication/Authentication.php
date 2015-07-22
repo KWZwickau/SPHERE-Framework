@@ -6,7 +6,6 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\System\Gatekeeper\Authentication\Identification\Identification;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\Common\Window\Stage;
 
 /**
  * Class Authentication
@@ -24,7 +23,7 @@ class Authentication implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( '', __CLASS__.'::frontendWelcome' )
+            Main::getDispatcher()->createRoute( '', __NAMESPACE__.'\Frontend::frontendWelcome' )
         );
     }
 
@@ -37,16 +36,13 @@ class Authentication implements IModuleInterface
     }
 
     /**
-     * @return Stage
+     * @return Frontend
      */
-    public function frontendWelcome()
+    public static function useFrontend()
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle( 'Willkommen' );
-        $Stage->setDescription( 'KREDA Professional' );
-        $Stage->setMessage( date( 'd.m.Y - H:i:s' ) );
-        return $Stage;
-
+        return new Frontend();
     }
+
+
 }

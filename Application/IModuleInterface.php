@@ -15,4 +15,6 @@ interface IModuleInterface
      * @return IServiceInterface
      */
     public static function useService();
+
+    public static function useFrontend();
 }

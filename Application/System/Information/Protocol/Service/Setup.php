@@ -75,8 +75,8 @@ class Setup
             $Table->addIndex( array( 'ProtocolTimestamp' ) );
         }
         // Editor
-        if (!$this->Connection->hasColumn( 'tblProtocol', 'serviceGatekeeper_Account' )) {
-            $Table->addColumn( 'serviceGatekeeper_Account', 'bigint', array( 'notnull' => false ) );
+        if (!$this->Connection->hasColumn( 'tblProtocol', 'serviceTblAccount' )) {
+            $Table->addColumn( 'serviceTblAccount', 'bigint', array( 'notnull' => false ) );
         }
         if (!$this->Connection->hasColumn( 'tblProtocol', 'AccountUsername' )) {
             $Table->addColumn( 'AccountUsername', 'string', array( 'notnull' => false ) );
@@ -84,24 +84,9 @@ class Setup
         if (!$this->Connection->hasIndex( $Table, array( 'AccountUsername' ) )) {
             $Table->addIndex( array( 'AccountUsername' ) );
         }
-        if (!$this->Connection->hasColumn( 'tblProtocol', 'serviceManagement_Person' )) {
-            $Table->addColumn( 'serviceManagement_Person', 'bigint', array( 'notnull' => false ) );
-        }
-        if (!$this->Connection->hasColumn( 'tblProtocol', 'PersonFirstName' )) {
-            $Table->addColumn( 'PersonFirstName', 'string', array( 'notnull' => false ) );
-        }
-        if (!$this->Connection->hasIndex( $Table, array( 'PersonFirstName' ) )) {
-            $Table->addIndex( array( 'PersonFirstName' ) );
-        }
-        if (!$this->Connection->hasColumn( 'tblProtocol', 'PersonLastName' )) {
-            $Table->addColumn( 'PersonLastName', 'string', array( 'notnull' => false ) );
-        }
-        if (!$this->Connection->hasIndex( $Table, array( 'PersonLastName' ) )) {
-            $Table->addIndex( array( 'PersonLastName' ) );
-        }
         // Consumer
-        if (!$this->Connection->hasColumn( 'tblProtocol', 'serviceGatekeeper_Consumer' )) {
-            $Table->addColumn( 'serviceGatekeeper_Consumer', 'bigint', array( 'notnull' => false ) );
+        if (!$this->Connection->hasColumn( 'tblProtocol', 'serviceTblConsumer' )) {
+            $Table->addColumn( 'serviceTblConsumer', 'bigint', array( 'notnull' => false ) );
         }
         if (!$this->Connection->hasColumn( 'tblProtocol', 'ConsumerName' )) {
             $Table->addColumn( 'ConsumerName', 'string', array( 'notnull' => false ) );
@@ -109,11 +94,11 @@ class Setup
         if (!$this->Connection->hasIndex( $Table, array( 'ConsumerName' ) )) {
             $Table->addIndex( array( 'ConsumerName' ) );
         }
-        if (!$this->Connection->hasColumn( 'tblProtocol', 'ConsumerSuffix' )) {
-            $Table->addColumn( 'ConsumerSuffix', 'string', array( 'notnull' => false ) );
+        if (!$this->Connection->hasColumn( 'tblProtocol', 'ConsumerAcronym' )) {
+            $Table->addColumn( 'ConsumerAcronym', 'string', array( 'notnull' => false ) );
         }
-        if (!$this->Connection->hasIndex( $Table, array( 'ConsumerSuffix' ) )) {
-            $Table->addIndex( array( 'ConsumerSuffix' ) );
+        if (!$this->Connection->hasIndex( $Table, array( 'ConsumerAcronym' ) )) {
+            $Table->addIndex( array( 'ConsumerAcronym' ) );
         }
         // Data
         if (!$this->Connection->hasColumn( 'tblProtocol', 'EntityFrom' )) {

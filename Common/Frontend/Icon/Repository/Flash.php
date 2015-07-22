@@ -12,7 +12,7 @@ class Flash implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-flash';
 
     /**
      * @return string

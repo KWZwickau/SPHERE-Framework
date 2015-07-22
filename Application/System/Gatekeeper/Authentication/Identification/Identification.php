@@ -5,10 +5,8 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\Common\Window\Stage;
 
 /**
  * Class Identification
@@ -28,7 +26,7 @@ class Identification implements IModuleInterface
             new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Anmelden' ), new Link\Icon( new Lock() ) )
         );
         Main::getDisplay()->addServiceNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/SignOut' ), new Link\Name( 'Abmelden' ),
+            new Link( new Link\Route( __NAMESPACE__.'/Offline' ), new Link\Name( 'Abmelden' ),
                 new Link\Icon( new Off() ) )
         );
 
@@ -48,43 +46,45 @@ class Identification implements IModuleInterface
             new Link( new Link\Route( __NAMESPACE__.'/System' ), new Link\Name( 'System' ),
                 new Link\Icon( new Lock() ) )
         );
-
+        /**
+         * Register Route
+         */
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'Identification::frontendAuthenticationSwitch'
+            __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendIdentification'
         )
             ->setParameterDefault( 'CredentialName', null )
             ->setParameterDefault( 'CredentialLock', null )
             ->setParameterDefault( 'CredentialKey', null )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SignOut', __NAMESPACE__.'\SignOut::stageSignOut'
+            __NAMESPACE__.'/Offline', __NAMESPACE__.'\Frontend::frontendDestroySession'
         )
             ->setParameterDefault( 'CredentialName', null )
             ->setParameterDefault( 'CredentialLock', null )
             ->setParameterDefault( 'CredentialKey', null )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Student', __NAMESPACE__.'\SignIn::stageStudent'
+            __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendCreateSessionStudent'
         )
             ->setParameterDefault( 'CredentialName', null )
             ->setParameterDefault( 'CredentialLock', null )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Teacher', __NAMESPACE__.'\SignIn::stageTeacher'
-        )
-            ->setParameterDefault( 'CredentialName', null )
-            ->setParameterDefault( 'CredentialLock', null )
-            ->setParameterDefault( 'CredentialKey', null )
-        );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Management', __NAMESPACE__.'\SignIn::stageManagement'
+            __NAMESPACE__.'/Teacher', __NAMESPACE__.'\Frontend::frontendCreateSessionTeacher'
         )
             ->setParameterDefault( 'CredentialName', null )
             ->setParameterDefault( 'CredentialLock', null )
             ->setParameterDefault( 'CredentialKey', null )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/System', __NAMESPACE__.'\SignIn::stageSystem'
+            __NAMESPACE__.'/Management', __NAMESPACE__.'\Frontend::frontendCreateSessionManagement'
+        )
+            ->setParameterDefault( 'CredentialName', null )
+            ->setParameterDefault( 'CredentialLock', null )
+            ->setParameterDefault( 'CredentialKey', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/System', __NAMESPACE__.'\Frontend::frontendCreateSessionSystem'
         )
             ->setParameterDefault( 'CredentialName', null )
             ->setParameterDefault( 'CredentialLock', null )
@@ -101,28 +101,13 @@ class Identification implements IModuleInterface
     }
 
     /**
-     * @return Stage
+     * @return Frontend
      */
-    public static function frontendAuthenticationSwitch()
+    public static function useFrontend()
     {
 
-        $View = new Stage();
-        $View->setTitle( 'Anmeldung' );
-        $View->setMessage( 'Bitte wählen Sie den Typ der Anmeldung' );
-        $View->setContent(
-            new Primary(
-                'Schüler', '/System/Gatekeeper/Authentication/Identification/Student', new Lock()
-            ).
-            new Primary(
-                'Lehrer', '/System/Gatekeeper/Authentication/Identification/Teacher', new Lock()
-            ).
-            new Primary(
-                'Verwaltung', '/System/Gatekeeper/Authentication/Identification/Management', new Lock()
-            ).
-            new Primary(
-                'System', '/System/Gatekeeper/Authentication/Identification/System', new Lock()
-            )
-        );
-        return $View;
+        return new Frontend();
     }
+
+
 }

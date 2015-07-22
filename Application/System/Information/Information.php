@@ -6,6 +6,7 @@ use SPHERE\Application\System\Information\Cache\Cache;
 use SPHERE\Application\System\Information\Database\Database;
 use SPHERE\Application\System\Information\Platform\Platform;
 use SPHERE\Application\System\Information\Protocol\Protocol;
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -32,7 +33,7 @@ class Information implements IApplicationInterface
          * Register Navigation
          */
         Main::getDisplay()->addServiceNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'System' ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'System' ), new Link\Icon( new CogWheels() ) )
         );
         /**
          * Register Route

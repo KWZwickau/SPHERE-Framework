@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\System\Database\Fitting;
 
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\AbstractSchemaManager as DBALSchemaManager;
 use Doctrine\DBAL\Schema\Schema as DBALSchema;
 use Doctrine\DBAL\Schema\Table as DBALTable;
@@ -25,6 +26,15 @@ class Structure
     {
 
         $this->Database = new Database( $Identifier );
+    }
+
+    /**
+     * @return AbstractPlatform
+     */
+    public function getPlatform()
+    {
+
+        return $this->Database->getPlatform();
     }
 
     /**

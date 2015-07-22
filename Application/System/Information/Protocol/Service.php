@@ -2,10 +2,12 @@
 namespace SPHERE\Application\System\Information\Protocol;
 
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\System\Gatekeeper\Account\Account;
 use SPHERE\Application\System\Information\Protocol\Service\Data;
 use SPHERE\Application\System\Information\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Application\System\Information\Protocol\Service\Setup;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 
@@ -54,5 +56,88 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->getProtocolAll();
+    }
+
+    /**
+     * @param string  $DatabaseName
+     * @param Element $Entity
+     *
+     * @return false|TblProtocol
+     */
+    public function createInsertEntry(
+        $DatabaseName,
+        Element $Entity
+    ) {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblConsumer = $tblAccount->getServiceTblConsumer();
+        } else {
+            $tblConsumer = null;
+        }
+
+        return ( new Data( $this->Binding ) )->createProtocolEntry(
+            $DatabaseName,
+            ( $tblAccount ? $tblAccount : null ),
+            ( $tblConsumer ? $tblConsumer : null ),
+            null,
+            $Entity
+        );
+    }
+
+    /**
+     * @param string  $DatabaseName
+     * @param Element $From
+     * @param Element $To
+     *
+     * @return false|TblProtocol
+     */
+    public function createUpdateEntry(
+        $DatabaseName,
+        Element $From,
+        Element $To
+    ) {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblConsumer = $tblAccount->getServiceTblConsumer();
+        } else {
+            $tblConsumer = null;
+        }
+
+        return ( new Data( $this->Binding ) )->createProtocolEntry(
+            $DatabaseName,
+            ( $tblAccount ? $tblAccount : null ),
+            ( $tblConsumer ? $tblConsumer : null ),
+            $From,
+            $To
+        );
+    }
+
+    /**
+     * @param string  $DatabaseName
+     * @param Element $Entity
+     *
+     * @return false|TblProtocol
+     */
+    public function createDeleteEntry(
+        $DatabaseName,
+        Element $Entity = null
+    ) {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $tblConsumer = $tblAccount->getServiceTblConsumer();
+        } else {
+            $tblConsumer = null;
+        }
+
+        return ( new Data( $this->Binding ) )->createProtocolEntry(
+            $DatabaseName,
+            ( $tblAccount ? $tblAccount : null ),
+            ( $tblConsumer ? $tblConsumer : null ),
+            $Entity,
+            null
+        );
     }
 }

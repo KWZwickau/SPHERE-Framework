@@ -59,6 +59,12 @@ class Database extends Extension implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    public static function useFrontend()
+    {
+        // TODO: Implement useFrontend() method.
+    }
+
+
     /**
      * @return Stage
      */
@@ -82,6 +88,7 @@ class Database extends Extension implements IModuleInterface
 
         // Fetch Modules
         $ClassList = get_declared_classes();
+        /** @noinspection PhpUnusedParameterInspection */
         array_walk( $ClassList, function( &$Class, $Index, $Simulation ) {
             $Inspection = new \ReflectionClass( $Class );
             if( $Inspection->isInternal() ) {

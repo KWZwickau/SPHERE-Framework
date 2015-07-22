@@ -42,6 +42,11 @@ class Platform implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    public static function useFrontend()
+    {
+        // TODO: Implement useFrontend() method.
+    }
+
     /**
      * @return Stage
      */
@@ -56,4 +61,5 @@ class Platform implements IModuleInterface
 
         return $Stage;
     }
+
 }

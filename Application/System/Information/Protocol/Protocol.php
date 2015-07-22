@@ -36,17 +36,9 @@ class Protocol implements IModuleInterface
         );
     }
 
-    /**
-     * @return Service
-     */
-    public static function useService()
+    public static function useFrontend()
     {
-
-        return new Service(
-            new Identifier( 'System', 'Protocol' ),
-            __DIR__.'/Service/Entity',
-            __NAMESPACE__.'\Service\Entity'
-        );
+        // TODO: Implement useFrontend() method.
     }
 
     /**
@@ -80,4 +72,16 @@ class Protocol implements IModuleInterface
 
         return $Stage;
     }
+
+    /**
+     * @return Service
+     */
+    public static function useService()
+    {
+
+        return new Service( new Identifier( 'System', 'Protocol' ),
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+        );
+    }
+
 }

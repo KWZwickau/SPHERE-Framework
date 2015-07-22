@@ -35,9 +35,7 @@ class Dispatcher
     public static function createRoute( $Path, $Controller )
     {
 
-        /**
-         * Map Controller Class to FQN
-         */
+        // Map Controller Class to FQN
         if (false === strpos( $Controller, 'SPHERE' )) {
             $Controller = '\\'.$Path.'\\'.$Controller;
         }

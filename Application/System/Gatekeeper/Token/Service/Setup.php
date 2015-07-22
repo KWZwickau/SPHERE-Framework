@@ -75,8 +75,8 @@ class Setup
         if (!$this->Connection->hasIndex( $Table, array( 'Serial' ) )) {
             $Table->addUniqueIndex( array( 'Serial' ) );
         }
-        if (!$this->Connection->hasColumn( 'tblToken', 'serviceGatekeeper_Consumer' )) {
-            $Table->addColumn( 'serviceGatekeeper_Consumer', 'bigint', array( 'notnull' => false ) );
+        if (!$this->Connection->hasColumn( 'tblToken', 'serviceTblConsumer' )) {
+            $Table->addColumn( 'serviceTblConsumer', 'bigint', array( 'notnull' => false ) );
         }
 
         return $Table;
@@ -86,7 +86,7 @@ class Setup
      * @return Table
      * @throws SchemaException
      */
-    protected function getTableToken()
+    public function getTableToken()
     {
 
         return $this->Connection->getSchema()->getTable( 'tblToken' );

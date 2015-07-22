@@ -1,10 +1,12 @@
 <?php
 namespace SPHERE\Application\System\Information\Protocol\Service;
 
+use SPHERE\Application\System\Gatekeeper\Account\Service\Entity\TblAccount;
+use SPHERE\Application\System\Gatekeeper\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\System\Information\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Object;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -24,73 +26,6 @@ class Data
     {
 
         $this->Connection = $Connection;
-    }
-
-    /**
-     * @return TblProtocol[]|bool
-     */
-    public function getProtocolAll()
-    {
-
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblProtocol' )->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
-    }
-
-    /**
-     * @param string           $DatabaseName
-     * @param null|TblAccount  $tblAccount
-     * @param null|TblPerson   $tblPerson
-     * @param null|TblConsumer $tblConsumer
-     * @param null|Object      $FromEntity
-     * @param null|Object      $ToEntity
-     *
-     * @return false|TblProtocol
-     */
-    protected function createProtocolEntry(
-        $DatabaseName,
-        TblAccount $tblAccount = null,
-        TblPerson $tblPerson = null,
-        TblConsumer $tblConsumer = null,
-        Object $FromEntity = null,
-        Object $ToEntity = null
-    ) {
-
-        // Skip if nothing changed
-        if (null !== $FromEntity && null !== $ToEntity) {
-            $From = $FromEntity->__toArray();
-            sort( $From );
-            $To = $ToEntity->__toArray();
-            sort( $To );
-            if ($From === $To) {
-                return false;
-            }
-        }
-
-        $Manager = $this->Connection->getEntityManager();
-
-        $Entity = new TblProtocol();
-        $Entity->setProtocolDatabase( $DatabaseName );
-        $Entity->setProtocolTimestamp( time() );
-        if ($tblAccount) {
-            $Entity->setServiceGatekeeperAccount( $tblAccount );
-            $Entity->setAccountUsername( $tblAccount->getUsername() );
-        }
-        if ($tblPerson) {
-            $Entity->setServiceManagementPerson( $tblPerson );
-            $Entity->setPersonFirstName( $tblPerson->getFirstName() );
-            $Entity->setPersonLastName( $tblPerson->getLastName() );
-        }
-        if ($tblConsumer) {
-            $Entity->setServiceGatekeeperConsumer( $tblConsumer );
-            $Entity->setConsumerName( $tblConsumer->getName() );
-            $Entity->setConsumerSuffix( $tblConsumer->getDatabaseSuffix() );
-        }
-        $Entity->setEntityFrom( ( $FromEntity ? serialize( $FromEntity ) : null ) );
-        $Entity->setEntityTo( ( $ToEntity ? serialize( $ToEntity ) : null ) );
-
-        $Manager->saveEntity( $Entity );
-
-        return $Entity;
     }
 
     /**
@@ -126,5 +61,65 @@ class Data
         } else {
             return $object;
         }
+    }
+
+    /**
+     * @return TblProtocol[]|bool
+     */
+    public function getProtocolAll()
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblProtocol' )->findAll();
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param string           $DatabaseName
+     * @param null|TblAccount  $tblAccount
+     * @param null|TblConsumer $tblConsumer
+     * @param null|Element     $FromEntity
+     * @param null|Element     $ToEntity
+     *
+     * @return false|TblProtocol
+     */
+    public function createProtocolEntry(
+        $DatabaseName,
+        TblAccount $tblAccount = null,
+        TblConsumer $tblConsumer = null,
+        Element $FromEntity = null,
+        Element $ToEntity = null
+    ) {
+
+        // Skip if nothing changed
+        if (null !== $FromEntity && null !== $ToEntity) {
+            $From = $FromEntity->__toArray();
+            sort( $From );
+            $To = $ToEntity->__toArray();
+            sort( $To );
+            if ($From === $To) {
+                return false;
+            }
+        }
+
+        $Manager = $this->Connection->getEntityManager();
+
+        $Entity = new TblProtocol();
+        $Entity->setProtocolDatabase( $DatabaseName );
+        $Entity->setProtocolTimestamp( time() );
+        if ($tblAccount) {
+            $Entity->setServiceTblAccount( $tblAccount );
+            $Entity->setAccountUsername( $tblAccount->getUsername() );
+        }
+        if ($tblConsumer) {
+            $Entity->setServiceTblConsumer( $tblConsumer );
+            $Entity->setConsumerName( $tblConsumer->getName() );
+            $Entity->setConsumerAcronym( $tblConsumer->getAcronym() );
+        }
+        $Entity->setEntityFrom( ( $FromEntity ? serialize( $FromEntity ) : null ) );
+        $Entity->setEntityTo( ( $ToEntity ? serialize( $ToEntity ) : null ) );
+
+        $Manager->saveEntity( $Entity );
+
+        return $Entity;
     }
 }

@@ -33,7 +33,7 @@ class PasswordField extends Extension implements IFieldInterface
     ) {
 
         $this->Name = $Name;
-        $this->Template = $this->extensionTemplate( __DIR__.'/PasswordField.twig' );
+        $this->Template = $this->getTemplate( __DIR__.'/PasswordField.twig' );
         $this->Template->setVariable( 'ElementName', $Name );
         $this->Template->setVariable( 'ElementLabel', $Label );
         $this->Template->setVariable( 'ElementPlaceholder', $Placeholder );
