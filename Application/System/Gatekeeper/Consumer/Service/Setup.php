@@ -67,13 +67,4 @@ class Setup
 
         return $Table;
     }
-
-    /**
-     * @return Table
-     */
-    public function getTableConsumer()
-    {
-
-        return $this->Connection->getSchema()->getTable( 'tblConsumer' );
-    }
 }

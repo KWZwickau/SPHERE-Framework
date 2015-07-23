@@ -55,7 +55,8 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.iCheck"
         );
         $this->setSource(
-            'jQuery.DataTable', '/Library/jQuery.DataTables/1.10.7/media/js/jquery.dataTables.min.js',
+            'jQuery.DataTable',
+            '/Library/jQuery.DataTables/1.10.7/media/js/jquery.dataTables.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable"
         );
         $this->setSource(
@@ -63,6 +64,11 @@ class Script extends Extension
             '/Library/jQuery.DataTables/1.10.7/extensions/Responsive/js/dataTables.responsive.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable.Responsive"
         );
+//        $this->setSource(
+//            'jQuery.DataTable.Plugin.Sorting.Weekday',
+//            '/Library/jQuery.DataTables.Plugins/1.0.1/sorting/weekday.js',
+//            "'undefined' !== typeof jQuery.fn.dataTable.ext.type.order['weekday-pre']"
+//        );
         $this->setSource(
             'Bootstrap.DataTable',
             '/Library/jQuery.DataTables.Plugins/1.10.7/integration/bootstrap/3/dataTables.bootstrap.min.js',
@@ -88,7 +94,7 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.inputmask"
         );
         $this->setSource(
-            'Twitter.Typeahead', '/Library/Twitter.Typeahead/0.10.5/dist/typeahead.bundle.min.js',
+            'Twitter.Typeahead', '/Library/Twitter.Typeahead/0.11.1/dist/typeahead.bundle.min.js',
             "'undefined' !== typeof jQuery.fn.typeahead"
         );
         $this->setSource(
@@ -101,17 +107,12 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways',
-            array(
-//                'Bootstrap.Jasny',
-                'Bootstrap',
-                'jQuery.Ui',
-                'jQuery'
-            )
+            'ModAlways', array( 'Bootstrap.Jasny', 'Bootstrap', 'jQuery.Ui', 'jQuery' )
         );
         $this->setModule(
             'ModTable',
             array(
+//                'jQuery.DataTable.Plugin.Sorting.Weekday',
                 'Bootstrap.DataTable',
                 'jQuery.DataTable.Responsive',
                 'jQuery.DataTable',

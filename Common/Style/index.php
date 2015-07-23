@@ -35,7 +35,6 @@ $Parser = array( 'cache_dir' => __DIR__.'/Resource', 'compress' => false );
 $Less = new \Less_Parser( $Parser );
 
 $Less->parseFile( __DIR__.'/../../Library/Bootstrap/3.3.5/less/bootstrap.less' );
-
 //$Less->parse( '@body-bg: #000;' );
 //$Less->parse( '@text-color: @gray-lighter;' );
 //$Less->parse( '@icon-font-path: "../../../Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/";' );

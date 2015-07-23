@@ -9,7 +9,7 @@ use SPHERE\Application\System\Gatekeeper\Token\Service\Setup;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
-use SPHERE\System\Token\Token;
+use SPHERE\System\Token\Token as HardwareToken;
 use SPHERE\System\Token\Type\YubiKey;
 
 /**
@@ -127,7 +127,7 @@ class Service implements IServiceInterface
     {
 
         /** @var YubiKey $YubiKey */
-        $YubiKey = ( new Token( new YubiKey() ) )->getToken();
+        $YubiKey = ( new HardwareToken( new YubiKey() ) )->getToken();
         $Key = $YubiKey->parseKey( $Value );
         return $YubiKey->verifyKey( $Key );
     }

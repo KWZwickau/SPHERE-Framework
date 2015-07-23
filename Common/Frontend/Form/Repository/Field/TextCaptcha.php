@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Common\Frontend\Form\Repository\Field;
 
+use MOC\V\Component\Captcha\Captcha;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Icon\IIconInterface;

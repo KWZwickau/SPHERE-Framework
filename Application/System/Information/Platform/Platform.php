@@ -5,7 +5,6 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\Common\Window\Stage;
 
 /**
  * Class Platform
@@ -22,14 +21,14 @@ class Platform implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Platform' ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Plattform' ) )
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute( __NAMESPACE__,
-                'Platform::frontendPlatform'
+                __NAMESPACE__.'\Frontend::frontendPlatform'
             )
         );
     }
@@ -42,24 +41,12 @@ class Platform implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    /**
+     * @return Frontend
+     */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
-
-    /**
-     * @return Stage
-     */
-    public function frontendPlatform()
-    {
-
-        $Stage = new Stage( 'Platform', 'Status' );
-
-        $Stage->setContent(
-            new Extension()
-        );
-
-        return $Stage;
-    }
-
 }

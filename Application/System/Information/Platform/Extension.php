@@ -63,7 +63,7 @@ class Extension
         $this->buildTargetList();
         echo "Build Skip-Tree...\n";
         ob_flush();
-        $this->buildSkipTree( __DIR__.'/../../../' );
+        $this->buildSkipTree( __DIR__.'/../../../../' );
         $this->scanTargetTree();
         echo "</pre>";
     }

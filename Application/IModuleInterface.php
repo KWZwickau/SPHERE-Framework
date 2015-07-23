@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application;
 
+use SPHERE\Common\Frontend\IFrontendInterface;
+
 /**
  * Interface IModuleInterface
  *
@@ -16,5 +18,8 @@ interface IModuleInterface
      */
     public static function useService();
 
+    /**
+     * @return IFrontendInterface
+     */
     public static function useFrontend();
 }

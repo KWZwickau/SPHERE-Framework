@@ -22,7 +22,7 @@ class System implements IClusterInterface
          * Register Application
          */
         Assistance::registerApplication();
-        Gatekeeper::registerApplication();
         Information::registerApplication();
+        Gatekeeper::registerApplication();
     }
 }

@@ -1,0 +1,42 @@
+/* SELECTER RESPONSIVE */
+
+.selecter {
+    max-width: inherit;
+    margin: inherit;
+}
+.selecter-selected {
+    padding: 5px 10px;
+}
+.selecter-item {
+    padding: 5px 10px;
+}
+
+/* CHECKBOX RESPONSIVE */
+/*.checkbox {*/
+    /*margin: 1px;*/
+    /*padding: 0;*/
+    /*line-height: 21px;*/
+/*}*/
+
+/*.checkbox input[type=checkbox] {*/
+    /*position: inherit;*/
+    /*margin: 0 0 0 5px;*/
+    /*cursor: pointer;*/
+/*}*/
+
+/*.checkbox label {*/
+    /*line-height: 19px;*/
+/*}*/
+
+.checkbox input[type=checkbox]:checked + label:after {
+    font-family: 'Glyphicons Halflings', serif;
+    content: "\e013";
+    /*padding: 0 4px;*/
+    /*margin-top: -1px;*/
+}
+
+/*.checkbox label:after {*/
+    /*padding-left: 4px;*/
+    /*padding-top: 3px;*/
+    /*font-size: 9px;*/
+/*}*/
