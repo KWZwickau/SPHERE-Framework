@@ -12,7 +12,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
-use SPHERE\Common\Frontend\Link\Repository\Primary as PrimaryLink;
+use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
@@ -31,11 +31,20 @@ class Frontend
     {
 
         $View = new Stage( 'Anmeldung', 'Bitte wählen Sie den Typ der Anmeldung' );
+        $View->setMessage( 'Anmeldend als:' );
         $View->setContent(
-            new PrimaryLink( 'Schüler', '/System/Gatekeeper/Authentication/Identification/Student', new Lock() )
-            .new PrimaryLink( 'Lehrer', '/System/Gatekeeper/Authentication/Identification/Teacher', new Lock() )
-            .new PrimaryLink( 'Verwaltung', '/System/Gatekeeper/Authentication/Identification/Management', new Lock() )
-            .new PrimaryLink( 'System', '/System/Gatekeeper/Authentication/Identification/System', new Lock() )
+            new \SPHERE\Common\Frontend\Link\Repository\Primary( 'Schüler',
+                '/System/Gatekeeper/Authentication/Identification/Student', new Lock()
+            )
+            .new \SPHERE\Common\Frontend\Link\Repository\Primary( 'Lehrer',
+                '/System/Gatekeeper/Authentication/Identification/Teacher', new YubiKey()
+            )
+            .new \SPHERE\Common\Frontend\Link\Repository\Primary( 'Verwaltung',
+                '/System/Gatekeeper/Authentication/Identification/Management', new YubiKey()
+            )
+            .new Danger( 'System',
+                '/System/Gatekeeper/Authentication/Identification/System', new YubiKey()
+            )
         );
         return $View;
     }
@@ -47,7 +56,7 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendcreatesessionTeacher( $CredentialName, $CredentialLock, $CredentialKey )
+    public function frontendCreateSessionTeacher( $CredentialName, $CredentialLock, $CredentialKey )
     {
 
         $View = new Stage( 'Anmeldung', 'Lehrer' );
@@ -56,13 +65,14 @@ class Frontend
             new Form(
                 new FormGroup( array(
                         new FormRow(
-                            new FormColumn( new TextField( 'CredentialName', 'Benutzername', '', new Person() ) )
+                            new FormColumn( new TextField( 'CredentialName', 'Benutzername', 'Benutzername',
+                                new Person() ) )
                         ),
                         new FormRow(
-                            new FormColumn( new PasswordField( 'CredentialLock', 'Passwort', '', new Lock() ) )
+                            new FormColumn( new PasswordField( 'CredentialLock', 'Passwort', 'Passwort', new Lock() ) )
                         ),
                         new FormRow(
-                            new FormColumn( new PasswordField( 'CredentialKey', 'YubiKey', '', new YubiKey() ) )
+                            new FormColumn( new PasswordField( 'CredentialKey', 'YubiKey', 'YubiKey', new YubiKey() ) )
                         )
                     )
                 ), new Primary( 'Anmelden' )
@@ -80,7 +90,7 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendcreatesessionSystem( $CredentialName, $CredentialLock, $CredentialKey )
+    public function frontendCreateSessionSystem( $CredentialName, $CredentialLock, $CredentialKey )
     {
 
         $View = new Stage( 'Anmeldung', 'System' );
@@ -89,13 +99,14 @@ class Frontend
             new Form(
                 new FormGroup( array(
                         new FormRow(
-                            new FormColumn( new TextField( 'CredentialName', 'Benutzername', '', new Person() ) )
+                            new FormColumn( new TextField( 'CredentialName', 'Benutzername', 'Benutzername',
+                                new Person() ) )
                         ),
                         new FormRow(
-                            new FormColumn( new PasswordField( 'CredentialLock', 'Passwort', '', new Lock() ) )
+                            new FormColumn( new PasswordField( 'CredentialLock', 'Passwort', 'Passwort', new Lock() ) )
                         ),
                         new FormRow(
-                            new FormColumn( new PasswordField( 'CredentialKey', 'YubiKey', '', new YubiKey() ) )
+                            new FormColumn( new PasswordField( 'CredentialKey', 'YubiKey', 'YubiKey', new YubiKey() ) )
                         )
                     )
                 ), new Primary( 'Anmelden' )
@@ -112,7 +123,7 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendcreatesessionStudent( $CredentialName, $CredentialLock )
+    public function frontendCreateSessionStudent( $CredentialName, $CredentialLock )
     {
 
         $View = new Stage( 'Anmeldung', 'Schüler' );
@@ -144,7 +155,7 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendcreatesessionManagement( $CredentialName, $CredentialLock, $CredentialKey )
+    public function frontendCreateSessionManagement( $CredentialName, $CredentialLock, $CredentialKey )
     {
 
         $View = new Stage( 'Anmeldung', 'Verwaltung' );
@@ -153,13 +164,14 @@ class Frontend
             new Form(
                 new FormGroup( array(
                         new FormRow(
-                            new FormColumn( new TextField( 'CredentialName', 'Benutzername', '', new Person() ) )
+                            new FormColumn( new TextField( 'CredentialName', 'Benutzername', 'Benutzername',
+                                new Person() ) )
                         ),
                         new FormRow(
-                            new FormColumn( new PasswordField( 'CredentialLock', 'Passwort', '', new Lock() ) )
+                            new FormColumn( new PasswordField( 'CredentialLock', 'Passwort', 'Passwort', new Lock() ) )
                         ),
                         new FormRow(
-                            new FormColumn( new PasswordField( 'CredentialKey', 'YubiKey', '', new YubiKey() ) )
+                            new FormColumn( new PasswordField( 'CredentialKey', 'YubiKey', 'YubiKey', new YubiKey() ) )
                         )
                     )
                 ), new Primary( 'Anmelden' )

@@ -29,11 +29,11 @@
         </div>
     {% endif %}
 </form>
-{% if FormConfirm is not empty %}
-    <script type="text/javascript">
-        Client.Use( 'ModForm', function()
-        {
-            jQuery( "form#{{ Hash }}" ).ModForm( {notifyChangedMessage: "{{ FormConfirm }}"} );
-        } );
-    </script>
-{% endif %}
+<script type="text/javascript">
+    Client.Use( 'ModForm', function()
+    {
+        {% if FormConfirm is not empty %}
+        jQuery( "form#{{ Hash }}" ).ModForm( {notifyChangedMessage: "{{ FormConfirm }}"} );
+        {% endif %}
+    } );
+</script>

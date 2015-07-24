@@ -55,6 +55,10 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.iCheck"
         );
         $this->setSource(
+            'jQuery.Mask', '/Library/jQuery.InputMask/3.1.63/dist/jquery.inputmask.bundle.min.js',
+            "'undefined' !== typeof jQuery.fn.inputmask"
+        );
+        $this->setSource(
             'jQuery.DataTable',
             '/Library/jQuery.DataTables/1.10.7/media/js/jquery.dataTables.min.js',
             "'undefined' !== typeof jQuery.fn.DataTable"
@@ -89,11 +93,6 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.selectpicker"
         );
         $this->setSource(
-            'Bootstrap.Jasny',
-            '/Library/Bootstrap.Jasny/3.1.3/dist/js/jasny-bootstrap.min.js',
-            "'undefined' !== typeof jQuery.fn.inputmask"
-        );
-        $this->setSource(
             'Twitter.Typeahead', '/Library/Twitter.Typeahead/0.11.1/dist/typeahead.bundle.min.js',
             "'undefined' !== typeof jQuery.fn.typeahead"
         );
@@ -107,7 +106,7 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways', array( 'Bootstrap.Jasny', 'Bootstrap', 'jQuery.Ui', 'jQuery' )
+            'ModAlways', array( 'Bootstrap', 'jQuery.Ui', 'jQuery' )
         );
         $this->setModule(
             'ModTable',
@@ -147,7 +146,7 @@ class Script extends Extension
             'ModSortable', array( 'jQuery.Ui', 'jQuery' )
         );
         $this->setModule(
-            'ModForm', array( 'jQuery' )
+            'ModForm', array( 'jQuery.Mask', 'jQuery' )
         );
     }
 

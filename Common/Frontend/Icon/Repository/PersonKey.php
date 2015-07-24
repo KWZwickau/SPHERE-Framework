@@ -12,7 +12,7 @@ class PersonKey implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-user-key';
 
     /**
      * @return string

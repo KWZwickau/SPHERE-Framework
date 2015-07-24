@@ -148,11 +148,14 @@ class Form extends Extension implements IFormInterface
 
     /**
      * @param string $Message
+     *
+     * @return Form
      */
     public function setConfirm( $Message )
     {
 
         $this->Template->setVariable( 'FormConfirm', $Message );
+        return $this;
     }
 
     /**

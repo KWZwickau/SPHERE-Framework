@@ -7,6 +7,9 @@ use SPHERE\Application\System\Gatekeeper\Authentication\Authentication;
 use SPHERE\Application\System\Gatekeeper\Authorization\Authorization;
 use SPHERE\Application\System\Gatekeeper\Consumer\Consumer;
 use SPHERE\Application\System\Gatekeeper\Token\Token;
+use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
+use SPHERE\Common\Main;
+use SPHERE\Common\Window\Navigation\Link;
 
 /**
  * Class Gatekeeper
@@ -27,5 +30,11 @@ class Gatekeeper implements IApplicationInterface
         Account::registerModule();
         Authorization::registerModule();
         Authentication::registerModule();
+        /**
+         * Register Navigation
+         */
+        Main::getDisplay()->addServiceNavigation(
+            new Link( new Link\Route( __NAMESPACE__.'/Authorization' ), new Link\Name( 'Berechtigungen' ), new Link\Icon( new PersonKey() ) )
+        );
     }
 }

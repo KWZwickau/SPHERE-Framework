@@ -37,7 +37,6 @@ class Style extends Extension
         $this->setSource( '/Library/Bootstrap.DateTimePicker/4.14.30/build/css/bootstrap-datetimepicker.min.css' );
         $this->setSource( '/Library/Bootstrap.FileInput/4.1.6/css/fileinput.min.css' );
         $this->setSource( '/Library/Bootstrap.Select/1.6.4/dist/css/bootstrap-select.min.css' );
-        $this->setSource( '/Library/Bootstrap.Jasny/3.1.3/dist/css/jasny-bootstrap.min.css' );
         $this->setSource( '/Library/Twitter.Typeahead.Bootstrap/1.0.1/typeaheadjs.css' );
 
         $this->setSource( '/Common/Style/Correction.css' );

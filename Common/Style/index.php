@@ -40,7 +40,7 @@ $Less->parseFile( __DIR__.'/../../Library/Bootstrap/3.3.5/less/bootstrap.less' )
 //$Less->parse( '@icon-font-path: "../../../Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/fonts/";' );
 //
 //$Less->parse( '@headings-font-family: "CorpoALigCondensedRegular";' );
-//    $Less->parse( '@font-size-base: 13px;' );
+$Less->parse( '@font-size-base: 13px;' );
 
 //$Less->parse( '@headings-color: @gray;' );
 //$Less->parse( '@headings-small-color: @gray-light;' );
@@ -53,12 +53,12 @@ $Less->parseFile( __DIR__.'/../../Library/Bootstrap/3.3.5/less/bootstrap.less' )
 
 //$Less->parse( '@link-color: @gray-lighter;' );
 //$Less->parse( '@link-hover-color: #00adef;' );
-//$Less->parse( '@link-hover-decoration: none;' );
-//
-//$Less->parse( '@nav-link-padding: 9px 9px;' );
+$Less->parse( '@link-hover-decoration: none;' );
+
+$Less->parse( '@nav-link-padding: 9px 15px;' );
 //$Less->parse( '@nav-link-hover-bg: transparent;' );
 //
-//$Less->parse( '@navbar-height: 40px;' );
+$Less->parse( '@navbar-height: 40px;' );
 //    $Less->parse( '@navbar-margin-bottom: 5px;' );
 //
 //$Less->parse( '@navbar-default-color: @gray-lighter;' );
@@ -96,8 +96,8 @@ $Less->parse( '@panel-body-padding: 5px 10px;' );
 
 $Less->parse( '@thumbnail-padding: 6px;' );
 $Less->parse( '@thumbnail-caption-padding: 9px;' );
-$Less->parse( '@thumbnail-border: @gray-dark;' );
-$Less->parse( '@thumbnail-border-radius: 0;' );
+//$Less->parse( '@thumbnail-border: @gray-dark;' );
+//$Less->parse( '@thumbnail-border-radius: 0;' );
 
 // Component
 $Less->parse( '@padding-base-vertical: 4px;' );

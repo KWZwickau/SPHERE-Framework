@@ -1,7 +1,12 @@
 <?php
 namespace SPHERE\Application\System\Information\Platform;
 
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
+use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
+use SPHERE\Common\Frontend\Form\Repository\Button\Success;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
@@ -57,7 +62,7 @@ class Frontend implements IFrontendInterface
 //        );
 
         $Stage->setContent(
-            new Form(
+            ( new Form(
                 new FormGroup( array(
                     new FormRow( array(
                         new FormColumn(
@@ -106,22 +111,17 @@ class Frontend implements IFrontendInterface
                             new TextField( 'TextField', 'TextField', 'TextField' )
                             , 3 ),
                     ) ),
-                    new FormRow( array(
-                        new FormColumn(
-                            new TableData( array(
-                                array( 'A' => 1, 'B' => '2' ),
-                                array( 'A' => 2, 'B' => '34567890' )
-                            ) )
-                        ,6),
+//                    new FormRow( array(
 //                        new FormColumn(
 //                            new \SPHERE\Common\Frontend\Form\Repository\Title('Title')
 //                        ,3),
 //                        new FormColumn(
 //                            new Aspect('Aspect')
 //                        ,3),
-                    ) )
-                ) )
-            )
+//                    ) )
+                ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Form-Title' ) ),
+                array( new Primary( 'Primary' ), new Danger( 'Danger' ), new Success( 'Success' ), new Reset( 'Reset' ) )
+            ) )
             .new Layout(
                 new LayoutGroup( array(
                     new LayoutRow( array(
@@ -146,24 +146,32 @@ class Frontend implements IFrontendInterface
                             new Listing( 'Listing' )
                         ), 3 ),
                         new LayoutColumn( array(
-                            new Panel( 'Panel', array() )
+                            new Panel( 'Panel', array( 'Conten 1', 'Content 2', 'Content 3' ), Panel::PANEL_TYPE_DEFAULT, 'Footer' )
                         ), 3 ),
                         new LayoutColumn( array(
                             new PullRight( 'PullRight' )
                         ), 3 ),
                     ) ),
                     new LayoutRow( array(
-//                        new LayoutColumn( array(
-//                            new Thumbnail()
-//                        ), 3 ),
                         new LayoutColumn( array(
-                            new Title( 'Title' )
+                            new Thumbnail(
+                                FileSystem::getFileLoader( '/Common/Style/Resource/logo_kreide2.png' ),
+                                'Title', 'Description',
+                                array( new \SPHERE\Common\Frontend\Link\Repository\Primary( 'Primary', '' ) )
+                            )
                         ), 3 ),
                         new LayoutColumn( array(
                             new Well( 'Well', array() )
                         ), 3 ),
+                        new LayoutColumn(
+                            new TableData( array(
+                                array( 'A' => 1, 'B' => '2' ),
+                                array( 'A' => 2, 'B' => '34567890' )
+                            ) )
+                        ,6),
+
                     ) ),
-                ) )
+                ), new Title( 'Layout-Title' ) )
             )
         );
 

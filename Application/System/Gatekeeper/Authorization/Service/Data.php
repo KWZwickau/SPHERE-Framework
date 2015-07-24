@@ -374,4 +374,14 @@ class Data
             ->findOneBy( array( TblRole::ATTR_NAME => $Name ) );
         return ( null === $Entity ? false : $Entity );
     }
+
+    /**
+     * @return bool|TblRole[]
+     */
+    public function getRoleAll()
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRole' )->findAll();
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
 }

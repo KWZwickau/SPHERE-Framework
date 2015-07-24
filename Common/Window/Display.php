@@ -77,7 +77,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link|null $Link
+     * @param Link $Link
      *
      * @return Display
      */
@@ -93,13 +93,20 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link $Link
+     * @param Link       $Link
+     * @param Link\Route $Restriction
      *
      * @return Display
      */
-    public function addApplicationNavigation( Link $Link )
+    public function addApplicationNavigation( Link $Link, Link\Route $Restriction = null )
     {
 
+        // Is Link applicable?
+        if ($Restriction !== null) {
+            if (0 !== strpos( $this->getRequest()->getPathInfo(), $Restriction->getValue() )) {
+                return $this;
+            }
+        }
         // Is Link suitable?
         $Target = explode( '/', $Link->getRoute()->getValue() );
         $Current = explode( '/', $this->getRequest()->getPathInfo() );
@@ -119,7 +126,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link|null $Link
+     * @param Link $Link
      *
      * @return Display
      */
@@ -135,13 +142,20 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link $Link
+     * @param Link       $Link
+     * @param Link\Route $Restriction
      *
      * @return Display
      */
-    public function addModuleNavigation( Link $Link )
+    public function addModuleNavigation( Link $Link, Link\Route $Restriction = null )
     {
 
+        // Is Link applicable?
+        if ($Restriction !== null) {
+            if (0 !== strpos( $this->getRequest()->getPathInfo(), $Restriction->getValue() )) {
+                return $this;
+            }
+        }
         // Is Link suitable?
         $Target = explode( '/', $Link->getRoute()->getValue() );
         $Current = explode( '/', $this->getRequest()->getPathInfo() );
@@ -161,7 +175,7 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
-     * @param Link|null $Link
+     * @param Link $Link
      *
      * @return Display
      */

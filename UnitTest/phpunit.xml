@@ -6,27 +6,22 @@
          processIsolation="false">
     <testsuites>
         <testsuite name="SPHERE">
-            <directory suffix=".php">./Tests/Application</directory>
-            <directory suffix=".php">./Tests/Client</directory>
+            <directory suffix=".php">./Tests/System</directory>
             <directory suffix=".php">./Tests/Common</directory>
+            <directory suffix=".php">./Tests/Application</directory>
         </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="false">
-            <directory suffix=".php">./Tests/Application</directory>
-            <directory suffix=".php">./Tests/Client</directory>
+            <directory suffix=".php">./Tests/System</directory>
             <directory suffix=".php">./Tests/Common</directory>
-            <directory suffix=".php">./../Application</directory>
-            <directory suffix=".php">./../Client</directory>
+            <directory suffix=".php">./Tests/Application</directory>
+            <directory suffix=".php">./../System</directory>
             <directory suffix=".php">./../Common</directory>
-            <exclude>
-                <directory suffix=".php">./../Common/Extension/Faker</directory>
-                <directory suffix=".php">./../Common/Extension/GitHub</directory>
-            </exclude>
+            <directory suffix=".php">./../Application</directory>
         </whitelist>
     </filter>
     <logging>
         <log type="coverage-clover" target="./Report/Coverage.xml"/>
-        <log type="coverage-html" target="./Report/Coverage.html"/>
     </logging>
 </phpunit>
