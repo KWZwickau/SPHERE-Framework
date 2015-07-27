@@ -1,8 +1,8 @@
 <?php
 namespace SPHERE\Application\System\Information\Protocol\Service;
 
-use SPHERE\Application\System\Gatekeeper\Account\Service\Entity\TblAccount;
-use SPHERE\Application\System\Gatekeeper\Consumer\Service\Entity\TblConsumer;
+use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\System\Information\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\System\Database\Fitting\Binding;
@@ -75,8 +75,8 @@ class Data
 
     /**
      * @param string           $DatabaseName
-     * @param null|TblAccount  $tblAccount
-     * @param null|TblConsumer $tblConsumer
+     * @param null|\SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAccount  $tblAccount
+     * @param null|\SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer
      * @param null|Element     $FromEntity
      * @param null|Element     $ToEntity
      *

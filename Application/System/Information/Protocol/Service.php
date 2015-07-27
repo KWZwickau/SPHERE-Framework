@@ -2,7 +2,7 @@
 namespace SPHERE\Application\System\Information\Protocol;
 
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\System\Gatekeeper\Account\Account;
+use SPHERE\Application\System\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\System\Information\Protocol\Service\Data;
 use SPHERE\Application\System\Information\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Application\System\Information\Protocol\Service\Setup;
