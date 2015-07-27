@@ -147,8 +147,9 @@ class TblProtocol extends Element
     /**
      * @param null|\SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer
      */
-    public function setServiceTblConsumer( \SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer = null )
-    {
+    public function setServiceTblConsumer(
+        \SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer = null
+    ) {
 
         $this->serviceTblConsumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );
     }

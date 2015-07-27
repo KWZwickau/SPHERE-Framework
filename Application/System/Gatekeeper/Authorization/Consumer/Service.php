@@ -5,6 +5,8 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Data;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Setup;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
@@ -94,6 +96,47 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param string         $ConsumerAcronym
+     * @param string         $ConsumerName
+     *
+     * @return IFormInterface|Redirect
+     */
+    public function createConsumer(
+        IFormInterface &$Form,
+        $ConsumerAcronym,
+        $ConsumerName
+    ) {
+
+        if (null === $ConsumerName
+            && null === $ConsumerAcronym
+        ) {
+            return $Form;
+        }
+
+        $Error = false;
+        if (null !== $ConsumerAcronym && empty( $ConsumerAcronym )) {
+            $Form->setError( 'ConsumerAcronym', 'Bitte geben Sie ein Mandantenkürzel an' );
+            $Error = true;
+        }
+        if ($this->getConsumerByAcronym( $ConsumerAcronym )) {
+            $Form->setError( 'ConsumerAcronym', 'Das Mandantenkürzel muss einzigartig sein' );
+            $Error = true;
+        }
+        if (null !== $ConsumerName && empty( $ConsumerName )) {
+            $Form->setError( 'ConsumerName', 'Bitte geben Sie einen gültigen Mandantenname ein' );
+            $Error = true;
+        }
+
+        if ($Error) {
+            return $Form;
+        } else {
+            ( new Data( $this->Binding ) )->createConsumer( $ConsumerAcronym, $ConsumerName );
+            return new Redirect( '/System/Gatekeeper/Authorization/Consumer/Create', 0 );
+        }
+    }
+
+    /**
      * @param string $Acronym
      *
      * @return bool|TblConsumer
@@ -102,17 +145,5 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->getConsumerByAcronym( $Acronym );
-    }
-
-    /**
-     * @param string $Acronym
-     * @param string $Name
-     *
-     * @return TblConsumer
-     */
-    public function createConsumer( $Acronym, $Name )
-    {
-
-        return ( new Data( $this->Binding ) )->createConsumer( $Acronym, $Name );
     }
 }

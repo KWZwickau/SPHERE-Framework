@@ -12,7 +12,7 @@ class Info implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-circle-info';
 
     /**
      * @return string

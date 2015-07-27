@@ -7,6 +7,7 @@ use SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity\Tbl
 use SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilegeRight;
 use SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity\TblRight;
 use SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\System\Information\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 
@@ -33,38 +34,49 @@ class Data
     public function setupDatabaseContent()
     {
 
-    }
+        $tblRole = $this->createRole( 'Administrator' );
 
-    /**
-     * @param string $Route
-     *
-     * @return TblRight
-     */
-    public function createRight( $Route )
-    {
+        $tblLevel = $this->createLevel( 'Rechteverwaltung' );
+        $this->addRoleLevel( $tblRole, $tblLevel );
 
-        $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblRight' )->findOneBy( array( TblRight::ATTR_ROUTE => $Route ) );
-        if (null === $Entity) {
-            $Entity = new TblRight( $Route );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
-        }
-        return $Entity;
+        $tblPrivilege = $this->createPrivilege( 'Rechteverwaltung' );
+        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/System/Gatekeeper/Authorization/Access' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+
+        $tblPrivilege = $this->createPrivilege( 'Rollen' );
+        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/System/Gatekeeper/Authorization/Access/Role' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+
+        $tblPrivilege = $this->createPrivilege( 'Zugriffslevel' );
+        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/System/Gatekeeper/Authorization/Access/Level' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+
+        $tblPrivilege = $this->createPrivilege( 'Privilegien' );
+        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/System/Gatekeeper/Authorization/Access/Privilege' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+
+        $tblPrivilege = $this->createPrivilege( 'Rechte' );
+        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/System/Gatekeeper/Authorization/Access/Right' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
     }
 
     /**
      * @param string $Name
      *
-     * @return TblPrivilege
+     * @return TblRole
      */
-    public function createPrivilege( $Name )
+    public function createRole( $Name )
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblPrivilege' )->findOneBy( array( TblPrivilege::ATTR_NAME => $Name ) );
+        $Entity = $Manager->getEntity( 'TblRole' )->findOneBy( array( TblRole::ATTR_NAME => $Name ) );
         if (null === $Entity) {
-            $Entity = new TblPrivilege( $Name );
+            $Entity = new TblRole( $Name );
             $Manager->saveEntity( $Entity );
             Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
         }
@@ -90,17 +102,85 @@ class Data
     }
 
     /**
-     * @param string $Name
+     * @param TblRole  $TblRole
+     * @param TblLevel $TblLevel
      *
-     * @return TblRole
+     * @return TblRoleLevel
      */
-    public function createRole( $Name )
+    public function addRoleLevel( TblRole $TblRole, TblLevel $TblLevel )
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblRole' )->findOneBy( array( TblRole::ATTR_NAME => $Name ) );
+        $Entity = $Manager->getEntity( 'TblRoleLevel' )
+            ->findOneBy( array(
+                TblRoleLevel::ATTR_TBL_ROLE  => $TblRole->getId(),
+                TblRoleLevel::ATTR_TBL_LEVEL => $TblLevel->getId()
+            ) );
         if (null === $Entity) {
-            $Entity = new TblRole( $Name );
+            $Entity = new TblRoleLevel();
+            $Entity->setTblRole( $TblRole );
+            $Entity->setTblLevel( $TblLevel );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return TblPrivilege
+     */
+    public function createPrivilege( $Name )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblPrivilege' )->findOneBy( array( TblPrivilege::ATTR_NAME => $Name ) );
+        if (null === $Entity) {
+            $Entity = new TblPrivilege( $Name );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblLevel     $tblLevel
+     * @param TblPrivilege $tblPrivilege
+     *
+     * @return TblLevelPrivilege
+     */
+    public function addLevelPrivilege( TblLevel $tblLevel, TblPrivilege $tblPrivilege )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblLevelPrivilege' )
+            ->findOneBy( array(
+                TblLevelPrivilege::ATTR_TBL_LEVEL     => $tblLevel->getId(),
+                TblLevelPrivilege::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
+            ) );
+        if (null === $Entity) {
+            $Entity = new TblLevelPrivilege();
+            $Entity->setTblLevel( $tblLevel );
+            $Entity->setTblPrivilege( $tblPrivilege );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param string $Route
+     *
+     * @return TblRight
+     */
+    public function createRight( $Route )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblRight' )->findOneBy( array( TblRight::ATTR_ROUTE => $Route ) );
+        if (null === $Entity) {
+            $Entity = new TblRight( $Route );
             $Manager->saveEntity( $Entity );
             Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
         }
@@ -154,31 +234,6 @@ class Data
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param TblLevel     $tblLevel
-     * @param TblPrivilege $tblPrivilege
-     *
-     * @return TblLevelPrivilege
-     */
-    public function addLevelPrivilege( TblLevel $tblLevel, TblPrivilege $tblPrivilege )
-    {
-
-        $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblLevelPrivilege' )
-            ->findOneBy( array(
-                TblLevelPrivilege::ATTR_TBL_LEVEL     => $tblLevel->getId(),
-                TblLevelPrivilege::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
-            ) );
-        if (null === $Entity) {
-            $Entity = new TblLevelPrivilege();
-            $Entity->setTblLevel( $tblLevel );
-            $Entity->setTblPrivilege( $tblPrivilege );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
-        }
-        return $Entity;
     }
 
     /**
@@ -383,5 +438,25 @@ class Data
 
         $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRole' )->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     *
+     * @param TblRole $tblRole
+     *
+     * @return bool|TblRoleLevel[]
+     */
+    public function getLevelAllByRole( TblRole $tblRole )
+    {
+
+        /** @var TblRoleLevel[] $EntityList */
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRoleLevel' )->findBy( array(
+            TblRoleLevel::ATTR_TBL_ROLE => $tblRole->getId()
+        ) );
+        array_walk( $EntityList, function ( TblRoleLevel &$V ) {
+
+            $V = $V->getTblLevel();
+        } );
+        return ( null === $EntityList ? false : $EntityList );
     }
 }

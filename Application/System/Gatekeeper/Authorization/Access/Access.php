@@ -2,7 +2,6 @@
 namespace SPHERE\Application\System\Gatekeeper\Authorization\Access;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -43,22 +42,40 @@ class Access implements IModuleInterface
             __NAMESPACE__, 'Frontend::frontendWelcome'
         ) );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Role', __NAMESPACE__.'\Frontend\Role::frontendCreateRole'
+            __NAMESPACE__.'/Role', __NAMESPACE__.'\Frontend::frontendRole'
         )
             ->setParameterDefault( 'Name', null )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Level', __NAMESPACE__.'\Frontend\Level::frontendCreateLevel'
+            __NAMESPACE__.'/RoleGrantLevel', __NAMESPACE__.'\Frontend::frontendRoleGrantLevel'
+        )
+            ->setParameterDefault( 'tblLevel', null )
+            ->setParameterDefault( 'Remove', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Level', __NAMESPACE__.'\Frontend::frontendLevel'
         )
             ->setParameterDefault( 'Name', null )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Privilege', __NAMESPACE__.'\Frontend\Privilege::frontendCreatePrivilege'
+            __NAMESPACE__.'/LevelGrantPrivilege', __NAMESPACE__.'\Frontend::frontendLevelGrantPrivilege'
+        )
+            ->setParameterDefault( 'tblPrivilege', null )
+            ->setParameterDefault( 'Remove', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Privilege', __NAMESPACE__.'\Frontend::frontendPrivilege'
         )
             ->setParameterDefault( 'Name', null )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Right', __NAMESPACE__.'\Frontend\Right::frontendCreateRight'
+            __NAMESPACE__.'/PrivilegeGrantRight', __NAMESPACE__.'\Frontend::frontendPrivilegeGrantRight'
+        )
+            ->setParameterDefault( 'tblRight', null )
+            ->setParameterDefault( 'Remove', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Right', __NAMESPACE__.'\Frontend::frontendRight'
         )
             ->setParameterDefault( 'Name', null )
         );
@@ -76,11 +93,12 @@ class Access implements IModuleInterface
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 
 }

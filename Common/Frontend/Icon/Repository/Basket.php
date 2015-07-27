@@ -12,7 +12,7 @@ class Basket implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicon glyphicon-shopping-cart';
+    private $Value = 'glyphicons glyphicons-shopping-cart';
 
     /**
      * @return string

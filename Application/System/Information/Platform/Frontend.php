@@ -2,7 +2,6 @@
 namespace SPHERE\Application\System\Information\Platform;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
@@ -120,7 +119,12 @@ class Frontend implements IFrontendInterface
 //                        ,3),
 //                    ) )
                 ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Form-Title' ) ),
-                array( new Primary( 'Primary' ), new Danger( 'Danger' ), new Success( 'Success' ), new Reset( 'Reset' ) )
+                array(
+                    new Primary( 'Primary' ),
+                    new Danger( 'Danger' ),
+                    new Success( 'Success' ),
+                    new Reset( 'Reset' )
+                )
             ) )
             .new Layout(
                 new LayoutGroup( array(
@@ -146,7 +150,8 @@ class Frontend implements IFrontendInterface
                             new Listing( 'Listing' )
                         ), 3 ),
                         new LayoutColumn( array(
-                            new Panel( 'Panel', array( 'Conten 1', 'Content 2', 'Content 3' ), Panel::PANEL_TYPE_DEFAULT, 'Footer' )
+                            new Panel( 'Panel', array( 'Conten 1', 'Content 2', 'Content 3' ),
+                                Panel::PANEL_TYPE_DEFAULT, 'Footer' )
                         ), 3 ),
                         new LayoutColumn( array(
                             new PullRight( 'PullRight' )
@@ -168,7 +173,7 @@ class Frontend implements IFrontendInterface
                                 array( 'A' => 1, 'B' => '2' ),
                                 array( 'A' => 2, 'B' => '34567890' )
                             ) )
-                        ,6),
+                            , 6 ),
 
                     ) ),
                 ), new Title( 'Layout-Title' ) )

@@ -4,6 +4,7 @@ namespace SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Enti
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Access;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -45,5 +46,14 @@ class TblRole extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return bool|TblLevel
+     */
+    public function getTblLevelAll()
+    {
+
+        return Access::useService()->getLevelById( $this->tblLevel );
     }
 }

@@ -13,6 +13,7 @@ use SPHERE\System\Extension\Extension;
  */
 class TableVertical extends Extension implements ITemplateInterface
 {
+
     /** @var TableHead[] $TableHead */
     protected $TableHead = array();
     /** @var TableBody[] $TableBody */
@@ -72,21 +73,20 @@ class TableVertical extends Extension implements ITemplateInterface
     /**
      * @return string
      */
+    public function __toString()
+    {
+
+        return $this->getContent();
+    }
+
+    /**
+     * @return string
+     */
     public function getContent()
     {
 
         $this->Template->setVariable( 'BodyList', $this->TableRow );
         return $this->Template->getContent();
-    }
-
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-
-        return $this->getContent();
     }
 
     /**

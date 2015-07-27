@@ -22,11 +22,20 @@ class Token implements IModuleInterface
             new Link\Name( 'Hardware-Token' ) ),
             new Link\Route( '/System/Gatekeeper/Authorization' )
         );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'Frontend::frontendYubiKey'
+        )
+            ->setParameterDefault( 'CredentialKey', null )
+        );
     }
 
+    /**
+     * @return Frontend
+     */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 
     /**

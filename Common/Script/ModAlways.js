@@ -28,6 +28,14 @@
                     return closingEvent.message || 'Warnung: Die Daten wurden noch nicht gespeichert.';
                 }
             } );
+
+            /**
+             * Tooltip
+             */
+            $( '[data-toggle="tooltip"]' ).tooltip( {
+                container: 'body',
+                placement: 'auto top'
+            } )
         } );
         return this;
 

@@ -74,11 +74,11 @@ class Data
     }
 
     /**
-     * @param string           $DatabaseName
-     * @param null|\SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAccount  $tblAccount
+     * @param string                                                                                       $DatabaseName
+     * @param null|\SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAccount   $tblAccount
      * @param null|\SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer
-     * @param null|Element     $FromEntity
-     * @param null|Element     $ToEntity
+     * @param null|Element                                                                                 $FromEntity
+     * @param null|Element                                                                                 $ToEntity
      *
      * @return false|TblProtocol
      */

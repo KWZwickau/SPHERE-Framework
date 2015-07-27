@@ -259,4 +259,40 @@ class Service implements IServiceInterface
 
         return ( new Data( $this->Binding ) )->getRoleAll();
     }
+
+    /**
+     *
+     * @param TblRole $tblRole
+     *
+     * @return bool|TblLevel[]
+     */
+    public function getLevelAllByRole( TblRole $tblRole )
+    {
+
+        return ( new Data( $this->Binding ) )->getLevelAllByRole( $tblRole );
+    }
+
+    /**
+     *
+     * @param TblPrivilege $tblPrivilege
+     *
+     * @return bool|TblRight[]
+     */
+    public function getRightAllByPrivilege( TblPrivilege $tblPrivilege )
+    {
+
+        return ( new Data( $this->Binding ) )->getRightAllByPrivilege( $tblPrivilege );
+    }
+
+    /**
+     *
+     * @param TblLevel $tblLevel
+     *
+     * @return bool|TblPrivilege[]
+     */
+    public function getPrivilegeAllByLevel( TblLevel $tblLevel )
+    {
+
+        return ( new Data( $this->Binding ) )->getPrivilegeAllByLevel( $tblLevel );
+    }
 }

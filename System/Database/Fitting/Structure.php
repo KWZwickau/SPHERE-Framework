@@ -39,7 +39,7 @@ class Structure
 
     /**
      * @param DBALSchema $Schema
-     * @param string $Name
+     * @param string     $Name
      *
      * @return DBALTable
      * @throws \Doctrine\DBAL\Schema\SchemaException
@@ -80,7 +80,7 @@ class Structure
 
     /**
      * @param DBALSchema $Schema
-     * @param bool   $Simulate
+     * @param bool       $Simulate
      */
     public function setMigration( DBALSchema &$Schema, $Simulate = true )
     {
@@ -141,7 +141,7 @@ class Structure
 
     /**
      * @param DBALTable $Table
-     * @param array $ColumnList
+     * @param array     $ColumnList
      *
      * @return bool
      */

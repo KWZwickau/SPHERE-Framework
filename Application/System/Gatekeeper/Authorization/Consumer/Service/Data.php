@@ -29,7 +29,7 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->createConsumer( 'DEMO', 'Consumer' );
+        $this->createConsumer( 'DEMO', 'Mandant' );
     }
 
     /**
