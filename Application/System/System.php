@@ -4,7 +4,7 @@ namespace SPHERE\Application\System;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\System\Assistance\Assistance;
 use SPHERE\Application\System\Gatekeeper\Gatekeeper;
-use SPHERE\Application\System\Information\Information;
+use SPHERE\Application\System\Platform\Platform;
 use SPHERE\Common\Window\Navigation\Link;
 
 /**
@@ -21,8 +21,8 @@ class System implements IClusterInterface
         /**
          * Register Application
          */
-        Assistance::registerApplication();
-        Information::registerApplication();
         Gatekeeper::registerApplication();
+        Assistance::registerApplication();
+        Platform::registerApplication();
     }
 }

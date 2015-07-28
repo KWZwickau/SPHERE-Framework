@@ -94,7 +94,13 @@ class Setup
             $Table->addColumn( 'Name', 'string' );
         }
         if (!$this->Connection->hasIndex( $Table, array( 'Name' ) )) {
-            $Table->addIndex( array( 'Name' ) );
+            $Table->addUniqueIndex( array( 'Name' ) );
+        }
+        if (!$this->Connection->hasColumn( 'tblIdentification', 'Description' )) {
+            $Table->addColumn( 'Description', 'string' );
+        }
+        if (!$this->Connection->hasIndex( $Table, array( 'Description' ) )) {
+            $Table->addIndex( array( 'Description' ) );
         }
         return $Table;
     }

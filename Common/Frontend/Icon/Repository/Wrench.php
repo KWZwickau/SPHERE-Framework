@@ -12,7 +12,7 @@ class Wrench implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-wrench';
 
     /**
      * @return string

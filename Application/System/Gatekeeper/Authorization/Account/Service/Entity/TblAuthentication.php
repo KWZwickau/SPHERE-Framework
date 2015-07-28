@@ -14,58 +14,59 @@ use SPHERE\System\Database\Fitting\Element;
 class TblAuthentication extends Element
 {
 
-    const SERVICE_TBL_ACCOUNT = 'serviceTblAccount';
-    const SERVICE_TBL_IDENTIFICATION = 'serviceTblIdentification';
+    const ATTR_TBL_ACCOUNT = 'tblAccount';
+    const ATTR_TBL_IDENTIFICATION = 'tblIdentification';
+
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblIdentification;
+    protected $tblAccount;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblAccount;
+    protected $tblIdentification;
 
     /**
      * @return bool|TblAccount
      */
-    public function getServiceTblAccount()
+    public function getTblAccount()
     {
 
-        if (null === $this->serviceTblAccount) {
+        if (null === $this->tblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById( $this->serviceTblAccount );
+            return Account::useService()->getAccountById( $this->tblAccount );
         }
     }
 
     /**
      * @param null|TblAccount $tblAccount
      */
-    public function setServiceTblAccount( TblAccount $tblAccount = null )
+    public function setTblAccount( TblAccount $tblAccount = null )
     {
 
-        $this->serviceTblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
+        $this->tblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
     }
 
     /**
      * @return bool|TblIdentification
      */
-    public function getServiceTblIdentification()
+    public function getTblIdentification()
     {
 
-        if (null === $this->serviceTblIdentification) {
+        if (null === $this->tblIdentification) {
             return false;
         } else {
-            return Account::useService()->getIdentificationById( $this->serviceTblIdentification );
+            return Account::useService()->getIdentificationById( $this->tblIdentification );
         }
     }
 
     /**
      * @param null|TblIdentification $tblIdentification
      */
-    public function setServiceTblIdentification( TblIdentification $tblIdentification = null )
+    public function setTblIdentification( TblIdentification $tblIdentification = null )
     {
 
-        $this->serviceTblIdentification = ( null === $tblIdentification ? null : $tblIdentification->getId() );
+        $this->tblIdentification = ( null === $tblIdentification ? null : $tblIdentification->getId() );
     }
 }

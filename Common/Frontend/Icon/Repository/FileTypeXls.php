@@ -12,7 +12,7 @@ class FileTypeXls implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'filetypes filetypes-xls';
 
     /**
      * @return string

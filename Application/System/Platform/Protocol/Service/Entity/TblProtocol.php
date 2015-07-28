@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\System\Information\Protocol\Service\Entity;
+namespace SPHERE\Application\System\Platform\Protocol\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
@@ -8,6 +8,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -132,7 +133,7 @@ class TblProtocol extends Element
     }
 
     /**
-     * @return bool|\SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer
+     * @return bool|TblConsumer
      */
     public function getServiceTblConsumer()
     {
@@ -145,10 +146,10 @@ class TblProtocol extends Element
     }
 
     /**
-     * @param null|\SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer
+     * @param null|TblConsumer $tblConsumer
      */
     public function setServiceTblConsumer(
-        \SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer = null
+        TblConsumer $tblConsumer = null
     ) {
 
         $this->serviceTblConsumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );

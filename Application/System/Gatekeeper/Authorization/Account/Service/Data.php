@@ -1,13 +1,18 @@
 <?php
 namespace SPHERE\Application\System\Gatekeeper\Authorization\Account\Service;
 
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
+use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
+use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\System\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
-use SPHERE\Application\System\Information\Protocol\Protocol;
+use SPHERE\Application\System\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Application\System\Platform\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**
@@ -33,24 +38,34 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->createIdentification( 'Student' );
-        $this->createIdentification( 'Teacher' );
-        $this->createIdentification( 'Management' );
-        $this->createIdentification( 'System' );
+        $this->createIdentification( 'Student', 'Schüler / Eltern' );
+        $this->createIdentification( 'Teacher', 'Lehrer' );
+        $this->createIdentification( 'Management', 'Verwaltung' );
+        $this->createIdentification( 'System', 'System' );
+
+        $tblToken = Token::useService()->getTokenById( 1 );
+        $tblConsumer = Consumer::useService()->getConsumerById( 1 );
+        $tblAccount = $this->createAccount( 'System', 'System', $tblToken, $tblConsumer );
+        $tblIdentification = $this->getIdentificationByName( 'System' );
+        $this->addAccountAuthentication( $tblAccount, $tblIdentification );
+        $tblRole = Access::useService()->getRoleByName( 'Administrator' );
+        $this->addAccountAuthorization( $tblAccount, $tblRole );
     }
 
     /**
      * @param string $Name
+     * @param string $Description
      *
      * @return TblIdentification
      */
-    public function createIdentification( $Name )
+    public function createIdentification( $Name, $Description = '' )
     {
 
         $Manager = $this->Connection->getEntityManager();
         $Entity = $Manager->getEntity( 'TblIdentification' )->findOneBy( array( TblIdentification::ATTR_NAME => $Name ) );
         if (null === $Entity) {
             $Entity = new TblIdentification( $Name );
+            $Entity->setDescription( $Description );
             $Manager->saveEntity( $Entity );
             Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
         }
@@ -82,6 +97,127 @@ class Data
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblIdentification
+     */
+    public function getIdentificationByName( $Name )
+    {
+
+        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblIdentification' )
+            ->findOneBy( array( TblIdentification::ATTR_NAME => $Name ) );
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblAccount        $tblAccount
+     * @param TblIdentification $tblIdentification
+     *
+     * @return TblAuthentication
+     */
+    public function addAccountAuthentication( TblAccount $tblAccount, TblIdentification $tblIdentification )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblAuthentication' )
+            ->findOneBy( array(
+                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
+            ) );
+        if (null === $Entity) {
+            $Entity = new TblAuthentication();
+            $Entity->setTblAccount( $tblAccount );
+            $Entity->setTblIdentification( $tblIdentification );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
+     *
+     * @return TblAuthorization
+     */
+    public function addAccountAuthorization( TblAccount $tblAccount, TblRole $tblRole )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblAuthorization' )
+            ->findOneBy( array(
+                TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAuthorization::SERVICE_TBL_ROLE => $tblRole->getId()
+            ) );
+        if (null === $Entity) {
+            $Entity = new TblAuthorization();
+            $Entity->setTblAccount( $tblAccount );
+            $Entity->setServiceTblRole( $tblRole );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
+    }
+
+    /**
+     * @return TblIdentification[]|bool
+     */
+    public function getIdentificationAll()
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblIdentification' )->findAll();
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblAccount $TblAccount
+     * @param TblRole    $TblRole
+     *
+     * @return bool
+     */
+    public function removeAccountAuthorization( TblAccount $TblAccount, TblRole $TblRole )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblAuthorization $Entity */
+        $Entity = $Manager->getEntity( 'TblAccountRole' )
+            ->findOneBy( array(
+                TblAuthorization::ATTR_TBL_ACCOUNT => $TblAccount->getId(),
+                TblAuthorization::SERVICE_TBL_ROLE => $TblRole->getId()
+            ) );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount        $TblAccount
+     * @param TblIdentification $TblIdentification
+     *
+     * @return bool
+     */
+    public function removeAccountAuthentication( TblAccount $TblAccount, TblIdentification $TblIdentification )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblAuthentication $Entity */
+        $Entity = $Manager->getEntity( 'TblAccountIdentification' )
+            ->findOneBy( array(
+                TblAuthentication::ATTR_TBL_ACCOUNT        => $TblAccount->getId(),
+                TblAuthentication::ATTR_TBL_IDENTIFICATION => $TblIdentification->getId()
+            ) );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param string $Username
      *
      * @return bool|TblAccount
@@ -107,6 +243,16 @@ class Data
     }
 
     /**
+     * @return TblAccount[]|bool
+     */
+    public function getAccountAll()
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblAccount' )->findAll();
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblIdentification
@@ -115,19 +261,6 @@ class Data
     {
 
         $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblIdentification', $Id );
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param string $Name
-     *
-     * @return bool|TblIdentification
-     */
-    public function getIdentificationByName( $Name )
-    {
-
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblIdentification' )
-            ->findOneBy( array( TblIdentification::ATTR_NAME => $Name ) );
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -153,6 +286,20 @@ class Data
 
         $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblAccount' )->findBy( array(
             TblAccount::SERVICE_TBL_TOKEN => $tblToken->getId()
+        ) );
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAuthorizationAllByAccount( TblAccount $tblAccount )
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblAuthorization' )->findBy( array(
+            TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ) );
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -193,8 +340,8 @@ class Data
 
         $tblAuthentication = $this->Connection->getEntityManager()->getEntity( 'TblAuthentication' )
             ->findOneBy( array(
-                TblAuthentication::SERVICE_TBL_ACCOUNT        => $tblAccount->getId(),
-                TblAuthentication::SERVICE_TBL_IDENTIFICATION => $tblIdentification->getId()
+                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ) );
         // Identification not valid
         if (null === $tblAuthentication) {

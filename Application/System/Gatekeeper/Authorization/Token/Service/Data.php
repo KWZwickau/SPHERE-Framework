@@ -4,7 +4,7 @@ namespace SPHERE\Application\System\Gatekeeper\Authorization\Token\Service;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\System\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
-use SPHERE\Application\System\Information\Protocol\Protocol;
+use SPHERE\Application\System\Platform\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Extension\Extension;
 

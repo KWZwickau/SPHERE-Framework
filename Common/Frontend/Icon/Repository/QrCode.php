@@ -12,7 +12,7 @@ class QrCode implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-qrcode';
 
     /**
      * @return string

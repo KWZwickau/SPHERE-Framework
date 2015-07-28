@@ -3,7 +3,7 @@ namespace SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service;
 
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
-use SPHERE\Application\System\Information\Protocol\Protocol;
+use SPHERE\Application\System\Platform\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**

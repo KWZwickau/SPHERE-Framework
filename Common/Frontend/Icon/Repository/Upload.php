@@ -12,7 +12,7 @@ class Upload implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-cloud-upload';
 
     /**
      * @return string

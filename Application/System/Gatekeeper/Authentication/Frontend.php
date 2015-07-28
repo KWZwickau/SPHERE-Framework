@@ -48,16 +48,16 @@ class Frontend
         $View->setMessage( 'Anmeldend als:' );
         $View->setContent(
             new \SPHERE\Common\Frontend\Link\Repository\Primary( 'Schüler',
-                '/System/Gatekeeper/Authentication/Identification/Student', new Lock()
+                '/System/Gatekeeper/Authentication/Student', new Lock()
             )
             .new \SPHERE\Common\Frontend\Link\Repository\Primary( 'Lehrer',
-                '/System/Gatekeeper/Authentication/Identification/Teacher', new YubiKey()
+                '/System/Gatekeeper/Authentication/Teacher', new YubiKey()
             )
             .new \SPHERE\Common\Frontend\Link\Repository\Primary( 'Verwaltung',
-                '/System/Gatekeeper/Authentication/Identification/Management', new YubiKey()
+                '/System/Gatekeeper/Authentication/Management', new YubiKey()
             )
             .new Danger( 'System',
-                '/System/Gatekeeper/Authentication/Identification/System', new YubiKey()
+                '/System/Gatekeeper/Authentication/System', new YubiKey()
             )
         );
         return $View;

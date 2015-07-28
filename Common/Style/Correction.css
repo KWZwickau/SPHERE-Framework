@@ -25,11 +25,25 @@
     padding: 5px 10px;
 }
 
+/* RADIOBOX RESPONSIVE */
+
+.panel .panel-body .radio,
+.list-group .list-group-item .radio {
+    margin-top: inherit;
+    margin-bottom: inherit;
+}
+
 /* CHECKBOX RESPONSIVE */
 
 .checkbox input[type=checkbox]:checked + label:after {
     font-family: 'Glyphicons Halflings', serif;
     content: "\e013";
+}
+
+.panel .panel-body .checkbox,
+.list-group .list-group-item .checkbox {
+    margin-top: inherit;
+    margin-bottom: inherit;
 }
 
 /* TYPEAHEAD RESPONSIVE */

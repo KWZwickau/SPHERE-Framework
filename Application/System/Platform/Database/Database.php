@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\System\Information\Database;
+namespace SPHERE\Application\System\Platform\Database;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
@@ -21,7 +21,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class Database
  *
- * @package SPHERE\Application\System\Information\Database
+ * @package SPHERE\Application\System\Platform\Database
  */
 class Database extends Extension implements IModuleInterface
 {

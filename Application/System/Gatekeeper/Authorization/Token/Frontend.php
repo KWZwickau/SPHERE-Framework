@@ -59,7 +59,7 @@ class Frontend
                 ? new TableData( $tblTokenAll, new Title( 'Bestehende Hardware-Token' ), array(
                     'Name'   => 'Name',
                     'Number' => 'Seriennummer',
-                    'Option' => 'Optionen'
+//                    'Option' => 'Optionen'
                 ) )
                 : new Warning( 'Keine Hardware-Token vorhanden' )
             )

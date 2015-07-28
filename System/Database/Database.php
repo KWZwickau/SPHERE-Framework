@@ -116,16 +116,13 @@ class Database extends Extension
             }
         } else {
             if (function_exists( 'apc_fetch' )) {
-                $MetadataConfiguration->setQueryCacheImpl( new ApcCache() );
                 $MetadataConfiguration->setMetadataCacheImpl( new ApcCache() );
-                $MetadataConfiguration->setHydrationCacheImpl( new ApcCache() );
-                $ConnectionConfig->setResultCacheImpl( new ApcCache() );
             } else {
-                $MetadataConfiguration->setQueryCacheImpl( new ArrayCache() );
                 $MetadataConfiguration->setMetadataCacheImpl( new ArrayCache() );
-                $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
-                $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
             }
+            $MetadataConfiguration->setQueryCacheImpl( new ArrayCache() );
+            $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
+            $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
         }
         $ConnectionConfig->setSQLLogger( new Logger() );
         return new Manager(

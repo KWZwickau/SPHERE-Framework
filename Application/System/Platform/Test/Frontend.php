@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\System\Information\Platform;
+namespace SPHERE\Application\System\Platform\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
@@ -43,7 +43,7 @@ use SPHERE\Common\Window\Stage;
 /**
  * Class Frontend
  *
- * @package SPHERE\Application\System\Information\Platform
+ * @package SPHERE\Application\System\Platform\Test
  */
 class Frontend implements IFrontendInterface
 {
@@ -54,11 +54,9 @@ class Frontend implements IFrontendInterface
     public function frontendPlatform()
     {
 
-        $Stage = new Stage( 'Plattform', 'Status' );
+        $Stage = new Stage( 'Test', 'Frontend' );
 
-//        $Stage->setContent(
-//            new Extension()
-//        );
+        $Stage->getDebugger()->screenDump( $Stage->getGlobal()->POST );
 
         $Stage->setContent(
             ( new Form(
@@ -69,8 +67,8 @@ class Frontend implements IFrontendInterface
                                 array( '123', '234', '345' ) )
                             , 3 ),
                         new FormColumn( array(
-                            new CheckBox( 'CheckBox', 'CheckBox' ),
-                            new RadioBox( 'RadioBox1', 'RadioBox1a' ),
+                            new CheckBox( 'CheckBox', 'CheckBox', 'c1' ),
+                            new RadioBox( 'RadioBox1', 'RadioBox1a', '1a' ),
                         ), 3 ),
                         new FormColumn(
                             new DatePicker( 'DatePicker', 'DatePicker', 'DatePicker' )
@@ -90,9 +88,9 @@ class Frontend implements IFrontendInterface
                             new PasswordField( 'PasswordField', 'PasswordField', 'PasswordField' )
                             , 3 ),
                         new FormColumn( array(
-                            new RadioBox( 'RadioBox1', 'RadioBox1b' ),
-                            new RadioBox( 'RadioBox2', 'RadioBox2' ),
-                            new RadioBox( 'RadioBox3', 'RadioBox3' ),
+                            new RadioBox( 'RadioBox1', 'RadioBox1b', '1b' ),
+                            new RadioBox( 'RadioBox2', 'RadioBox2', '2' ),
+                            new RadioBox( 'RadioBox3', 'RadioBox3', '3' ),
                         ), 3 ),
                     ) ),
                     new FormRow( array(

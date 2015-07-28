@@ -83,7 +83,12 @@ class Service implements IServiceInterface
     public function getConsumerBySession( $Session = null )
     {
 
-        return ( new Data( $this->Binding ) )->getConsumerBySession( $Session );
+        $tblConsumer = ( new Data( $this->Binding ) )->getConsumerBySession( $Session );
+        if ($tblConsumer) {
+            return $tblConsumer;
+        } else {
+            return ( new Data( $this->Binding ) )->getConsumerById( 1 );
+        }
     }
 
     /**

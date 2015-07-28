@@ -19,6 +19,10 @@ class TblIdentification extends Element
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
 
     /**
      * @param string $Name
@@ -45,5 +49,23 @@ class TblIdentification extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription( $Description )
+    {
+
+        $this->Description = $Description;
     }
 }

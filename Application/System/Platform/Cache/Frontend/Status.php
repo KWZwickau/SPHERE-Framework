@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\System\Information\Cache\Frontend;
+namespace SPHERE\Application\System\Platform\Cache\Frontend;
 
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\System\Cache\ITypeInterface;
@@ -8,7 +8,7 @@ use SPHERE\System\Extension\Extension;
 /**
  * Class Status
  *
- * @package SPHERE\Application\System\Information\Cache\Frontend
+ * @package SPHERE\Application\System\Platform\Cache\Frontend
  */
 class Status extends Extension implements ITemplateInterface
 {

@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
@@ -275,6 +276,10 @@ class Display extends Extension implements ITemplateInterface
 
         $this->Template->setVariable( 'Content', implode( '', $this->Content ) );
         $this->Template->setVariable( 'PathBase', $this->getRequest()->getPathBase() );
+        $this->Template->setVariable( 'Consumer',
+            '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
+            .Consumer::useService()->getConsumerBySession()->getName()
+        );
 
         return $this->Template->getContent();
     }

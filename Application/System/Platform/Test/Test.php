@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\System\Information\Platform;
+namespace SPHERE\Application\System\Platform\Test;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
@@ -7,11 +7,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
 /**
- * Class Platform
+ * Class Test
  *
- * @package SPHERE\Application\System\Information\Platform
+ * @package SPHERE\Application\System\Platform\Test
  */
-class Platform implements IModuleInterface
+class Test implements IModuleInterface
 {
 
     public static function registerModule()
@@ -21,7 +21,7 @@ class Platform implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Plattform' ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Frontend-Test' ) )
         );
         /**
          * Register Route

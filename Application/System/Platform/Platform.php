@@ -1,22 +1,22 @@
 <?php
-namespace SPHERE\Application\System\Information;
+namespace SPHERE\Application\System\Platform;
 
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Application\System\Information\Cache\Cache;
-use SPHERE\Application\System\Information\Database\Database;
-use SPHERE\Application\System\Information\Platform\Platform;
-use SPHERE\Application\System\Information\Protocol\Protocol;
+use SPHERE\Application\System\Platform\Cache\Cache;
+use SPHERE\Application\System\Platform\Database\Database;
+use SPHERE\Application\System\Platform\Protocol\Protocol;
+use SPHERE\Application\System\Platform\Test\Test;
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
 /**
- * Class Information
+ * Class Platform
  *
- * @package SPHERE\Application\System\Information
+ * @package SPHERE\Application\System\Platform
  */
-class Information implements IApplicationInterface
+class Platform implements IApplicationInterface
 {
 
     public static function registerApplication()
@@ -25,7 +25,7 @@ class Information implements IApplicationInterface
         /**
          * Register Module
          */
-        Platform::registerModule();
+        Test::registerModule();
         Cache::registerModule();
         Database::registerModule();
         Protocol::registerModule();
@@ -33,13 +33,13 @@ class Information implements IApplicationInterface
          * Register Navigation
          */
         Main::getDisplay()->addServiceNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'System' ), new Link\Icon( new CogWheels() ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Plattform' ), new Link\Icon( new CogWheels() ) )
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__, 'Information::frontendMachine' )
+            Main::getDispatcher()->createRoute( __NAMESPACE__, 'Platform::frontendMachine' )
         );
     }
 

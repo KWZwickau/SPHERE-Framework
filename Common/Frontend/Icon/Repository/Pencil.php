@@ -12,7 +12,7 @@ class Pencil implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-pen';
 
     /**
      * @return string

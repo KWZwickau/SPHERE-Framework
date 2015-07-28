@@ -1,11 +1,11 @@
 <?php
-namespace SPHERE\Application\System\Information\Protocol;
+namespace SPHERE\Application\System\Platform\Protocol;
 
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\System\Information\Protocol\Service\Data;
-use SPHERE\Application\System\Information\Protocol\Service\Entity\TblProtocol;
-use SPHERE\Application\System\Information\Protocol\Service\Setup;
+use SPHERE\Application\System\Platform\Protocol\Service\Data;
+use SPHERE\Application\System\Platform\Protocol\Service\Entity\TblProtocol;
+use SPHERE\Application\System\Platform\Protocol\Service\Setup;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Element;
 use SPHERE\System\Database\Fitting\Structure;
@@ -14,7 +14,7 @@ use SPHERE\System\Database\Link\Identifier;
 /**
  * Class Service
  *
- * @package SPHERE\Application\System\Information\Protocol
+ * @package SPHERE\Application\System\Platform\Protocol
  */
 class Service implements IServiceInterface
 {

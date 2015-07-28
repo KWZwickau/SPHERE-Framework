@@ -2,10 +2,13 @@
 namespace SPHERE\Application\System\Gatekeeper\Authorization\Account;
 
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Data;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\System\Gatekeeper\Authorization\Account\Service\Setup;
+use SPHERE\Application\System\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\System\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
@@ -97,6 +100,15 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->getIdentificationByName( $Name );
+    }
+
+    /**
+     * @return TblIdentification[]|bool
+     */
+    public function getIdentificationAll()
+    {
+
+        return ( new Data( $this->Binding ) )->getIdentificationAll();
     }
 
     /**
@@ -274,5 +286,60 @@ class Service implements IServiceInterface
             }
         }
         return $Form;
+    }
+
+    /**
+     * @return TblAccount[]|bool
+     */
+    public function getAccountAll()
+    {
+
+        return ( new Data( $this->Binding ) )->getAccountAll();
+    }
+
+    /**
+     * @param TblToken $tblToken
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountAllByToken( TblToken $tblToken )
+    {
+
+        return ( new Data( $this->Binding ) )->getAccountAllByToken( $tblToken );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
+     *
+     * @return bool
+     */
+    public function hasAuthorization( TblAccount $tblAccount, TblRole $tblRole )
+    {
+
+        $tblAuthorization = $this->getAuthorizationAllByAccount( $tblAccount );
+        /** @noinspection PhpUnusedParameterInspection */
+        array_walk( $tblAuthorization, function ( TblAuthorization &$tblAuthorization, $Index, TblRole $tblRole ) {
+
+            if ($tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()) {
+                $tblAuthorization = false;
+            }
+        }, $tblRole );
+        $tblAuthorization = array_filter( $tblAuthorization );
+        if (!empty( $tblAuthorization )) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAuthorizationAllByAccount( TblAccount $tblAccount )
+    {
+
+        return ( new Data( $this->Binding ) )->getAuthorizationAllByAccount( $tblAccount );
     }
 }

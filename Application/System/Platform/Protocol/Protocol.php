@@ -1,7 +1,8 @@
 <?php
-namespace SPHERE\Application\System\Information\Protocol;
+namespace SPHERE\Application\System\Platform\Protocol;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\System\Platform\Protocol\Service;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
@@ -12,7 +13,7 @@ use SPHERE\System\Database\Link\Identifier;
 /**
  * Class Protocol
  *
- * @package SPHERE\Application\System\Information\Protocol
+ * @package SPHERE\Application\System\Platform\Protocol
  */
 class Protocol implements IModuleInterface
 {

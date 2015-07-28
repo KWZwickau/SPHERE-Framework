@@ -22,11 +22,19 @@ class Account implements IModuleInterface
             new Link\Name( 'Benutzerkonten' ) ),
             new Link\Route( '/System/Gatekeeper/Authorization' )
         );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'Frontend::frontendAccount'
+        )
+        );
     }
 
+    /**
+     * @return Frontend
+     */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 
     /**

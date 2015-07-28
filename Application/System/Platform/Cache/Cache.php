@@ -1,9 +1,9 @@
 <?php
-namespace SPHERE\Application\System\Information\Cache;
+namespace SPHERE\Application\System\Platform\Cache;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\System\Information\Cache\Frontend\Status;
+use SPHERE\Application\System\Platform\Cache\Frontend\Status;
 use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -24,7 +24,7 @@ use SPHERE\System\Cache\Type\TwigCache;
 /**
  * Class Cache
  *
- * @package SPHERE\Application\System\Information\Cache
+ * @package SPHERE\Application\System\Platform\Cache
  */
 class Cache implements IModuleInterface
 {
@@ -102,7 +102,7 @@ class Cache implements IModuleInterface
                 ), new Title( 'Twig' ) ),
                 new LayoutGroup( new LayoutRow(
                     new LayoutColumn(
-                        new Primary( 'Clear', '/System/Information/Cache', new Flash(),
+                        new Primary( 'Clear', '/System/Platform/Cache', new Flash(),
                             array( 'Clear' => true ), 'Cache leeren' )
                     )
                 ) )

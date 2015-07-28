@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\System\Information\Protocol\Service;
+namespace SPHERE\Application\System\Platform\Protocol\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -8,7 +8,7 @@ use SPHERE\System\Database\Fitting\Structure;
 /**
  * Class Setup
  *
- * @package SPHERE\Application\System\Information\Protocol\Service
+ * @package SPHERE\Application\System\Platform\Protocol\Service
  */
 class Setup
 {
