@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class UniqueConstraint implements Annotation
 {
-
     /**
      * @var string
      */

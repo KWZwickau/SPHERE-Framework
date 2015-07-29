@@ -20,6 +20,7 @@
 
 namespace Doctrine\ORM\Utility;
 
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Query\QueryException;
@@ -34,7 +35,6 @@ use Doctrine\ORM\Query\QueryException;
  */
 class PersisterHelper
 {
-
     /**
      * @param string                 $fieldName
      * @param ClassMetadata          $class
@@ -44,21 +44,20 @@ class PersisterHelper
      *
      * @throws QueryException
      */
-    public static function getTypeOfField( $fieldName, ClassMetadata $class, EntityManagerInterface $em )
+    public static function getTypeOfField($fieldName, ClassMetadata $class, EntityManagerInterface $em)
     {
-
-        if (isset( $class->fieldMappings[$fieldName] )) {
-            return array( $class->fieldMappings[$fieldName]['type'] );
+        if (isset($class->fieldMappings[$fieldName])) {
+            return array($class->fieldMappings[$fieldName]['type']);
         }
 
-        if (!isset( $class->associationMappings[$fieldName] )) {
+        if ( ! isset($class->associationMappings[$fieldName])) {
             return array();
         }
 
         $assoc = $class->associationMappings[$fieldName];
 
-        if (!$assoc['isOwningSide']) {
-            return self::getTypeOfField( $assoc['mappedBy'], $em->getClassMetadata( $assoc['targetEntity'] ), $em );
+        if (! $assoc['isOwningSide']) {
+            return self::getTypeOfField($assoc['mappedBy'], $em->getClassMetadata($assoc['targetEntity']), $em);
         }
 
         if ($assoc['type'] & ClassMetadata::MANY_TO_MANY) {
@@ -67,11 +66,11 @@ class PersisterHelper
             $joinData = $assoc;
         }
 
-        $types = array();
-        $targetClass = $em->getClassMetadata( $assoc['targetEntity'] );
+        $types       = array();
+        $targetClass = $em->getClassMetadata($assoc['targetEntity']);
 
         foreach ($joinData['joinColumns'] as $joinColumn) {
-            $types[] = self::getTypeOfColumn( $joinColumn['referencedColumnName'], $targetClass, $em );
+            $types[] = self::getTypeOfColumn($joinColumn['referencedColumnName'], $targetClass, $em);
         }
 
         return $types;
@@ -86,53 +85,52 @@ class PersisterHelper
      *
      * @throws \RuntimeException
      */
-    public static function getTypeOfColumn( $columnName, ClassMetadata $class, EntityManagerInterface $em )
+    public static function getTypeOfColumn($columnName, ClassMetadata $class, EntityManagerInterface $em)
     {
-
-        if (isset( $class->fieldNames[$columnName] )) {
+        if (isset($class->fieldNames[$columnName])) {
             $fieldName = $class->fieldNames[$columnName];
 
-            if (isset( $class->fieldMappings[$fieldName] )) {
+            if (isset($class->fieldMappings[$fieldName])) {
                 return $class->fieldMappings[$fieldName]['type'];
             }
         }
 
         // iterate over to-one association mappings
         foreach ($class->associationMappings as $assoc) {
-            if (!isset( $assoc['joinColumns'] )) {
+            if ( ! isset($assoc['joinColumns'])) {
                 continue;
             }
 
             foreach ($assoc['joinColumns'] as $joinColumn) {
                 if ($joinColumn['name'] == $columnName) {
                     $targetColumnName = $joinColumn['referencedColumnName'];
-                    $targetClass = $em->getClassMetadata( $assoc['targetEntity'] );
+                    $targetClass      = $em->getClassMetadata($assoc['targetEntity']);
 
-                    return self::getTypeOfColumn( $targetColumnName, $targetClass, $em );
+                    return self::getTypeOfColumn($targetColumnName, $targetClass, $em);
                 }
             }
         }
 
         // iterate over to-many association mappings
         foreach ($class->associationMappings as $assoc) {
-            if (!( isset( $assoc['joinTable'] ) && isset( $assoc['joinTable']['joinColumns'] ) )) {
+            if ( ! (isset($assoc['joinTable']) && isset($assoc['joinTable']['joinColumns']))) {
                 continue;
             }
 
             foreach ($assoc['joinTable']['joinColumns'] as $joinColumn) {
                 if ($joinColumn['name'] == $columnName) {
                     $targetColumnName = $joinColumn['referencedColumnName'];
-                    $targetClass = $em->getClassMetadata( $assoc['targetEntity'] );
+                    $targetClass      = $em->getClassMetadata($assoc['targetEntity']);
 
-                    return self::getTypeOfColumn( $targetColumnName, $targetClass, $em );
+                    return self::getTypeOfColumn($targetColumnName, $targetClass, $em);
                 }
             }
         }
 
-        throw new \RuntimeException( sprintf(
+        throw new \RuntimeException(sprintf(
             'Could not resolve type of column "%s" of class "%s"',
             $columnName,
             $class->getName()
-        ) );
+        ));
     }
 }

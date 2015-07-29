@@ -21,8 +21,8 @@
 namespace Doctrine\ORM\Cache\Region;
 
 use Doctrine\Common\Cache\MultiGetCache;
-use Doctrine\ORM\Cache\CollectionCacheEntry;
 use Doctrine\ORM\Cache\Region;
+use Doctrine\ORM\Cache\CollectionCacheEntry;
 
 /**
  * A cache region that enables the retrieval of multiple elements with one call
@@ -32,7 +32,6 @@ use Doctrine\ORM\Cache\Region;
  */
 class DefaultMultiGetRegion extends DefaultRegion
 {
-
     /**
      * Note that the multiple type is due to doctrine/cache not integrating the MultiGetCache interface
      * in its signature due to BC in 1.x
@@ -46,27 +45,24 @@ class DefaultMultiGetRegion extends DefaultRegion
      *
      * @param MultiGetCache $cache
      */
-    public function __construct( $name, MultiGetCache $cache, $lifetime = 0 )
+    public function __construct($name, MultiGetCache $cache, $lifetime = 0)
     {
-
         /* @var $cache \Doctrine\Common\Cache\Cache */
-        parent::__construct( $name, $cache, $lifetime );
+        parent::__construct($name, $cache, $lifetime);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getMultiple( CollectionCacheEntry $collection )
+    public function getMultiple(CollectionCacheEntry $collection)
     {
-
         $keysToRetrieve = array();
-
         foreach ($collection->identifiers as $index => $key) {
-            $keysToRetrieve[$index] = $this->getCacheEntryKey( $key );
+            $keysToRetrieve[$index] = $this->name . '_' . $key->hash;
         }
 
-        $items = $this->cache->fetchMultiple( $keysToRetrieve );
-        if (count( $items ) !== count( $keysToRetrieve )) {
+        $items = $this->cache->fetchMultiple($keysToRetrieve);
+        if (count($items) !== count($keysToRetrieve)) {
             return null;
         }
 
@@ -74,7 +70,6 @@ class DefaultMultiGetRegion extends DefaultRegion
         foreach ($keysToRetrieve as $index => $key) {
             $returnableItems[$index] = $items[$key];
         }
-
         return $returnableItems;
     }
 }

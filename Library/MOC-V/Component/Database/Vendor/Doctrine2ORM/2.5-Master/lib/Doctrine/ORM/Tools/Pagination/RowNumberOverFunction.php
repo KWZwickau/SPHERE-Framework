@@ -23,6 +23,7 @@ namespace Doctrine\ORM\Tools\Pagination;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Query\AST\Functions\FunctionNode;
 
+
 /**
  * RowNumberOverFunction
  *
@@ -33,7 +34,6 @@ use Doctrine\ORM\Query\AST\Functions\FunctionNode;
  */
 class RowNumberOverFunction extends FunctionNode
 {
-
     /**
      * @var \Doctrine\ORM\Query\AST\OrderByClause
      */
@@ -42,12 +42,11 @@ class RowNumberOverFunction extends FunctionNode
     /**
      * @override
      */
-    public function getSql( \Doctrine\ORM\Query\SqlWalker $sqlWalker )
+    public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker)
     {
-
-        return 'ROW_NUMBER() OVER('.trim( $sqlWalker->walkOrderByClause(
+        return 'ROW_NUMBER() OVER(' . trim($sqlWalker->walkOrderByClause(
             $this->orderByClause
-        ) ).')';
+        )) . ')';
     }
 
     /**
@@ -55,9 +54,8 @@ class RowNumberOverFunction extends FunctionNode
      *
      * @throws ORMException
      */
-    public function parse( \Doctrine\ORM\Query\Parser $parser )
+    public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
-
-        throw new ORMException( "The RowNumberOverFunction is not intended for, nor is it enabled for use in DQL." );
+        throw new ORMException("The RowNumberOverFunction is not intended for, nor is it enabled for use in DQL.");
     }
 }

@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class WhereClause extends Node
 {
-
     /**
      * @var ConditionalExpression
      */
@@ -39,18 +38,16 @@ class WhereClause extends Node
     /**
      * @param ConditionalExpression $conditionalExpression
      */
-    public function __construct( $conditionalExpression )
+    public function __construct($conditionalExpression)
     {
-
         $this->conditionalExpression = $conditionalExpression;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkWhereClause( $this );
+        return $sqlWalker->walkWhereClause($this);
     }
 }

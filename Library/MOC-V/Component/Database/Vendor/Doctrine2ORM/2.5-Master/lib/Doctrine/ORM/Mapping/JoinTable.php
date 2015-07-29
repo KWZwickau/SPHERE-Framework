@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class JoinTable implements Annotation
 {
-
     /**
      * @var string
      */

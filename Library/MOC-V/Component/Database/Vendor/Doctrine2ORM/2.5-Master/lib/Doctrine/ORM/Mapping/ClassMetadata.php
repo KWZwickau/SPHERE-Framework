@@ -26,5 +26,4 @@ namespace Doctrine\ORM\Mapping;
  */
 class ClassMetadata extends ClassMetadataInfo
 {
-
 }

@@ -23,7 +23,7 @@ namespace Doctrine\ORM\Query\AST;
  * GeneralCaseExpression ::= "CASE" WhenClause {WhenClause}* "ELSE" ScalarExpression "END"
  *
  * @since   2.2
- *
+ * 
  * @link    www.doctrine-project.org
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class GeneralCaseExpression extends Node
 {
-
     /**
      * @var array
      */
@@ -47,9 +46,8 @@ class GeneralCaseExpression extends Node
      * @param array $whenClauses
      * @param mixed $elseScalarExpression
      */
-    public function __construct( array $whenClauses, $elseScalarExpression )
+    public function __construct(array $whenClauses, $elseScalarExpression)
     {
-
         $this->whenClauses = $whenClauses;
         $this->elseScalarExpression = $elseScalarExpression;
     }
@@ -57,9 +55,8 @@ class GeneralCaseExpression extends Node
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkGeneralCaseExpression( $this );
+        return $sqlWalker->walkGeneralCaseExpression($this);
     }
 }

@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class EntityListeners implements Annotation
 {
-
     /**
      * Specifies the names of the entity listeners.
      *

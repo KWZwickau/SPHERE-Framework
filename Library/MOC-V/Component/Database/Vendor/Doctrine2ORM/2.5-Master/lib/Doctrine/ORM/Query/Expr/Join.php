@@ -30,12 +30,11 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class Join
 {
+    const INNER_JOIN    = 'INNER';
+    const LEFT_JOIN     = 'LEFT';
 
-    const INNER_JOIN = 'INNER';
-    const LEFT_JOIN = 'LEFT';
-
-    const ON = 'ON';
-    const WITH = 'WITH';
+    const ON            = 'ON';
+    const WITH          = 'WITH';
 
     /**
      * @var string
@@ -75,29 +74,21 @@ class Join
      * @param string|null $condition     The condition for the join.
      * @param string|null $indexBy       The index for the join.
      */
-    public function __construct(
-        $joinType,
-        $join,
-        $alias = null,
-        $conditionType = null,
-        $condition = null,
-        $indexBy = null
-    ) {
-
-        $this->joinType = $joinType;
-        $this->join = $join;
-        $this->alias = $alias;
-        $this->conditionType = $conditionType;
-        $this->condition = $condition;
-        $this->indexBy = $indexBy;
+    public function __construct($joinType, $join, $alias = null, $conditionType = null, $condition = null, $indexBy = null)
+    {
+        $this->joinType       = $joinType;
+        $this->join           = $join;
+        $this->alias          = $alias;
+        $this->conditionType  = $conditionType;
+        $this->condition      = $condition;
+        $this->indexBy        = $indexBy;
     }
 
     /**
-     * @return string
+     * @return string 
      */
     public function getJoinType()
     {
-
         return $this->joinType;
     }
 
@@ -106,7 +97,6 @@ class Join
      */
     public function getJoin()
     {
-
         return $this->join;
     }
 
@@ -115,7 +105,6 @@ class Join
      */
     public function getAlias()
     {
-
         return $this->alias;
     }
 
@@ -124,7 +113,6 @@ class Join
      */
     public function getConditionType()
     {
-
         return $this->conditionType;
     }
 
@@ -133,7 +121,6 @@ class Join
      */
     public function getCondition()
     {
-
         return $this->condition;
     }
 
@@ -142,7 +129,6 @@ class Join
      */
     public function getIndexBy()
     {
-
         return $this->indexBy;
     }
 
@@ -151,10 +137,9 @@ class Join
      */
     public function __toString()
     {
-
-        return strtoupper( $this->joinType ).' JOIN '.$this->join
-        .( $this->alias ? ' '.$this->alias : '' )
-        .( $this->indexBy ? ' INDEX BY '.$this->indexBy : '' )
-        .( $this->condition ? ' '.strtoupper( $this->conditionType ).' '.$this->condition : '' );
+        return strtoupper($this->joinType) . ' JOIN ' . $this->join
+             . ($this->alias ? ' ' . $this->alias : '')
+             . ($this->indexBy ? ' INDEX BY ' . $this->indexBy : '')
+             . ($this->condition ? ' ' . strtoupper($this->conditionType) . ' ' . $this->condition : '');
     }
 }

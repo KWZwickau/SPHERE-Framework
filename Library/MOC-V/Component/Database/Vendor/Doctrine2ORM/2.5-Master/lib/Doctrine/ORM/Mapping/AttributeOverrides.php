@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class AttributeOverrides implements Annotation
 {
-
     /**
      * One or more field or property mapping overrides.
      *

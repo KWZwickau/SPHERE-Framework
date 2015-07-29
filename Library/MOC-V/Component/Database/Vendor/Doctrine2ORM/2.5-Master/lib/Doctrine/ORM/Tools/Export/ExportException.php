@@ -6,16 +6,14 @@ use Doctrine\ORM\ORMException;
 
 class ExportException extends ORMException
 {
-
     /**
      * @param string $type
      *
      * @return ExportException
      */
-    public static function invalidExporterDriverType( $type )
+    public static function invalidExporterDriverType($type)
     {
-
-        return new self( "The specified export driver '$type' does not exist" );
+        return new self("The specified export driver '$type' does not exist");
     }
 
     /**
@@ -23,10 +21,9 @@ class ExportException extends ORMException
      *
      * @return ExportException
      */
-    public static function invalidMappingDriverType( $type )
+    public static function invalidMappingDriverType($type)
     {
-
-        return new self( "The mapping driver '$type' does not exist" );
+        return new self("The mapping driver '$type' does not exist");
     }
 
     /**
@@ -34,9 +31,8 @@ class ExportException extends ORMException
      *
      * @return ExportException
      */
-    public static function attemptOverwriteExistingFile( $file )
+    public static function attemptOverwriteExistingFile($file)
     {
-
-        return new self( "Attempting to overwrite an existing file '".$file."'." );
+        return new self("Attempting to overwrite an existing file '".$file."'.");
     }
 }

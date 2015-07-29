@@ -31,7 +31,6 @@ use Doctrine\ORM\Query\ResultSetMapping;
  */
 interface QueryCache
 {
-
     /**
      * @return boolean
      */
@@ -45,16 +44,16 @@ interface QueryCache
      *
      * @return boolean
      */
-    public function put( QueryCacheKey $key, ResultSetMapping $rsm, $result, array $hints = array() );
+    public function put(QueryCacheKey $key, ResultSetMapping $rsm, $result, array $hints = array());
 
     /**
-     * @param \Doctrine\ORM\Cache\QueryCacheKey    $key
-     * @param \Doctrine\ORM\Query\ResultSetMapping $rsm
-     * @param array                                $hints
+     * @param \Doctrine\ORM\Cache\QueryCacheKey     $key
+     * @param \Doctrine\ORM\Query\ResultSetMapping  $rsm
+     * @param array                                 $hints
      *
      * @return array|null
      */
-    public function get( QueryCacheKey $key, ResultSetMapping $rsm, array $hints = array() );
+    public function get(QueryCacheKey $key, ResultSetMapping $rsm, array $hints = array());
 
     /**
      * @return \Doctrine\ORM\Cache\Region

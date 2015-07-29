@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class NullComparisonExpression extends Node
 {
-
     /**
      * @var bool
      */
@@ -44,18 +43,16 @@ class NullComparisonExpression extends Node
     /**
      * @param Node $expression
      */
-    public function __construct( $expression )
+    public function __construct($expression)
     {
-
         $this->expression = $expression;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkNullComparisonExpression( $this );
+        return $sqlWalker->walkNullComparisonExpression($this);
     }
 }

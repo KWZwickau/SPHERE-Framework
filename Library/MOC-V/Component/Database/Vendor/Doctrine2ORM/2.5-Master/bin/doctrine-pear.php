@@ -19,19 +19,19 @@
 
 require_once 'Doctrine/Common/ClassLoader.php';
 
-$classLoader = new \Doctrine\Common\ClassLoader( 'Doctrine' );
+$classLoader = new \Doctrine\Common\ClassLoader('Doctrine');
 $classLoader->register();
 
-$classLoader = new \Doctrine\Common\ClassLoader( 'Symfony' );
+$classLoader = new \Doctrine\Common\ClassLoader('Symfony');
 $classLoader->register();
 
-$configFile = getcwd().DIRECTORY_SEPARATOR.'cli-config.php';
+$configFile = getcwd() . DIRECTORY_SEPARATOR . 'cli-config.php';
 
 $helperSet = null;
-if (file_exists( $configFile )) {
-    if (!is_readable( $configFile )) {
+if (file_exists($configFile)) {
+    if ( ! is_readable($configFile)) {
         trigger_error(
-            'Configuration file ['.$configFile.'] does not have read permission.', E_ERROR
+            'Configuration file [' . $configFile . '] does not have read permission.', E_ERROR
         );
     }
 
@@ -45,6 +45,6 @@ if (file_exists( $configFile )) {
     }
 }
 
-$helperSet = ( $helperSet ) ?: new \Symfony\Component\Console\Helper\HelperSet();
+$helperSet = ($helperSet) ?: new \Symfony\Component\Console\Helper\HelperSet();
 
-\Doctrine\ORM\Tools\Console\ConsoleRunner::run( $helperSet );
+\Doctrine\ORM\Tools\Console\ConsoleRunner::run($helperSet);

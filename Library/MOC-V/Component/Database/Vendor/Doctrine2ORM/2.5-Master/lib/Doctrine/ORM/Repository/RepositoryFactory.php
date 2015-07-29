@@ -25,11 +25,10 @@ use Doctrine\ORM\EntityManagerInterface;
  * Interface for entity repository factory.
  *
  * @author Guilherme Blanco <guilhermeblanco@hotmail.com>
- * @since  2.4
+ * @since 2.4
  */
 interface RepositoryFactory
 {
-
     /**
      * Gets the repository for an entity class.
      *
@@ -38,5 +37,5 @@ interface RepositoryFactory
      *
      * @return \Doctrine\Common\Persistence\ObjectRepository
      */
-    public function getRepository( EntityManagerInterface $entityManager, $entityName );
+    public function getRepository(EntityManagerInterface $entityManager, $entityName);
 }

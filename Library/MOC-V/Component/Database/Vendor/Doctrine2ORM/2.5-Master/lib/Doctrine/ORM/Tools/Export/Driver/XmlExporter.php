@@ -30,7 +30,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class XmlExporter extends AbstractExporter
 {
-
     /**
      * @var string
      */
@@ -39,90 +38,89 @@ class XmlExporter extends AbstractExporter
     /**
      * {@inheritdoc}
      */
-    public function exportClassMetadata( ClassMetadataInfo $metadata )
+    public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
-
-        $xml = new \SimpleXmlElement( "<?xml version=\"1.0\" encoding=\"utf-8\"?><doctrine-mapping ".
-            "xmlns=\"http://doctrine-project.org/schemas/orm/doctrine-mapping\" ".
+        $xml = new \SimpleXmlElement("<?xml version=\"1.0\" encoding=\"utf-8\"?><doctrine-mapping ".
+            "xmlns=\"http://doctrine-project.org/schemas/orm/doctrine-mapping\" " .
             "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ".
-            "xsi:schemaLocation=\"http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd\" />" );
+            "xsi:schemaLocation=\"http://doctrine-project.org/schemas/orm/doctrine-mapping http://doctrine-project.org/schemas/orm/doctrine-mapping.xsd\" />");
 
         if ($metadata->isMappedSuperclass) {
-            $root = $xml->addChild( 'mapped-superclass' );
+            $root = $xml->addChild('mapped-superclass');
         } else {
-            $root = $xml->addChild( 'entity' );
+            $root = $xml->addChild('entity');
         }
 
         if ($metadata->customRepositoryClassName) {
-            $root->addAttribute( 'repository-class', $metadata->customRepositoryClassName );
+            $root->addAttribute('repository-class', $metadata->customRepositoryClassName);
         }
 
-        $root->addAttribute( 'name', $metadata->name );
+        $root->addAttribute('name', $metadata->name);
 
-        if (isset( $metadata->table['name'] )) {
-            $root->addAttribute( 'table', $metadata->table['name'] );
+        if (isset($metadata->table['name'])) {
+            $root->addAttribute('table', $metadata->table['name']);
         }
 
-        if (isset( $metadata->table['schema'] )) {
-            $root->addAttribute( 'schema', $metadata->table['schema'] );
+        if (isset($metadata->table['schema'])) {
+            $root->addAttribute('schema', $metadata->table['schema']);
         }
 
         if ($metadata->inheritanceType && $metadata->inheritanceType !== ClassMetadataInfo::INHERITANCE_TYPE_NONE) {
-            $root->addAttribute( 'inheritance-type', $this->_getInheritanceTypeString( $metadata->inheritanceType ) );
+            $root->addAttribute('inheritance-type', $this->_getInheritanceTypeString($metadata->inheritanceType));
         }
 
-        if (isset( $metadata->table['options'] )) {
-            $optionsXml = $root->addChild( 'options' );
+        if (isset($metadata->table['options'])) {
+            $optionsXml = $root->addChild('options');
 
-            $this->exportTableOptions( $optionsXml, $metadata->table['options'] );
+            $this->exportTableOptions($optionsXml, $metadata->table['options']);
         }
 
         if ($metadata->discriminatorColumn) {
-            $discriminatorColumnXml = $root->addChild( 'discriminator-column' );
-            $discriminatorColumnXml->addAttribute( 'name', $metadata->discriminatorColumn['name'] );
-            $discriminatorColumnXml->addAttribute( 'type', $metadata->discriminatorColumn['type'] );
+            $discriminatorColumnXml = $root->addChild('discriminator-column');
+            $discriminatorColumnXml->addAttribute('name', $metadata->discriminatorColumn['name']);
+            $discriminatorColumnXml->addAttribute('type', $metadata->discriminatorColumn['type']);
 
-            if (isset( $metadata->discriminatorColumn['length'] )) {
-                $discriminatorColumnXml->addAttribute( 'length', $metadata->discriminatorColumn['length'] );
+            if (isset($metadata->discriminatorColumn['length'])) {
+                $discriminatorColumnXml->addAttribute('length', $metadata->discriminatorColumn['length']);
             }
         }
 
         if ($metadata->discriminatorMap) {
-            $discriminatorMapXml = $root->addChild( 'discriminator-map' );
+            $discriminatorMapXml = $root->addChild('discriminator-map');
 
             foreach ($metadata->discriminatorMap as $value => $className) {
-                $discriminatorMappingXml = $discriminatorMapXml->addChild( 'discriminator-mapping' );
-                $discriminatorMappingXml->addAttribute( 'value', $value );
-                $discriminatorMappingXml->addAttribute( 'class', $className );
+                $discriminatorMappingXml = $discriminatorMapXml->addChild('discriminator-mapping');
+                $discriminatorMappingXml->addAttribute('value', $value);
+                $discriminatorMappingXml->addAttribute('class', $className);
             }
         }
 
-        $trackingPolicy = $this->_getChangeTrackingPolicyString( $metadata->changeTrackingPolicy );
+        $trackingPolicy = $this->_getChangeTrackingPolicyString($metadata->changeTrackingPolicy);
 
-        if ($trackingPolicy != 'DEFERRED_IMPLICIT') {
-            $root->addChild( 'change-tracking-policy', $trackingPolicy );
+        if ( $trackingPolicy != 'DEFERRED_IMPLICIT') {
+            $root->addChild('change-tracking-policy', $trackingPolicy);
         }
 
-        if (isset( $metadata->table['indexes'] )) {
-            $indexesXml = $root->addChild( 'indexes' );
+        if (isset($metadata->table['indexes'])) {
+            $indexesXml = $root->addChild('indexes');
 
             foreach ($metadata->table['indexes'] as $name => $index) {
-                $indexXml = $indexesXml->addChild( 'index' );
-                $indexXml->addAttribute( 'name', $name );
-                $indexXml->addAttribute( 'columns', implode( ',', $index['columns'] ) );
-                if (isset( $index['flags'] )) {
-                    $indexXml->addAttribute( 'flags', implode( ',', $index['flags'] ) );
+                $indexXml = $indexesXml->addChild('index');
+                $indexXml->addAttribute('name', $name);
+                $indexXml->addAttribute('columns', implode(',', $index['columns']));
+                if(isset($index['flags'])) {
+                    $indexXml->addAttribute('flags', implode(',', $index['flags']));
                 }
             }
         }
 
-        if (isset( $metadata->table['uniqueConstraints'] )) {
-            $uniqueConstraintsXml = $root->addChild( 'unique-constraints' );
+        if (isset($metadata->table['uniqueConstraints'])) {
+            $uniqueConstraintsXml = $root->addChild('unique-constraints');
 
             foreach ($metadata->table['uniqueConstraints'] as $name => $unique) {
-                $uniqueConstraintXml = $uniqueConstraintsXml->addChild( 'unique-constraint' );
-                $uniqueConstraintXml->addAttribute( 'name', $name );
-                $uniqueConstraintXml->addAttribute( 'columns', implode( ',', $unique['columns'] ) );
+                $uniqueConstraintXml = $uniqueConstraintsXml->addChild('unique-constraint');
+                $uniqueConstraintXml->addAttribute('name', $name);
+                $uniqueConstraintXml->addAttribute('columns', implode(',', $unique['columns']));
             }
         }
 
@@ -130,14 +128,14 @@ class XmlExporter extends AbstractExporter
 
         $id = array();
         foreach ($fields as $name => $field) {
-            if (isset( $field['id'] ) && $field['id']) {
+            if (isset($field['id']) && $field['id']) {
                 $id[$name] = $field;
-                unset( $fields[$name] );
+                unset($fields[$name]);
             }
         }
 
         foreach ($metadata->associationMappings as $name => $assoc) {
-            if (isset( $assoc['id'] ) && $assoc['id']) {
+            if (isset($assoc['id']) && $assoc['id']) {
                 $id[$name] = array(
                     'fieldName' => $name,
                     'associationKey' => true
@@ -145,84 +143,84 @@ class XmlExporter extends AbstractExporter
             }
         }
 
-        if (!$metadata->isIdentifierComposite && $idGeneratorType = $this->_getIdGeneratorTypeString( $metadata->generatorType )) {
+        if ( ! $metadata->isIdentifierComposite && $idGeneratorType = $this->_getIdGeneratorTypeString($metadata->generatorType)) {
             $id[$metadata->getSingleIdentifierFieldName()]['generator']['strategy'] = $idGeneratorType;
         }
 
         if ($id) {
             foreach ($id as $field) {
-                $idXml = $root->addChild( 'id' );
-                $idXml->addAttribute( 'name', $field['fieldName'] );
+                $idXml = $root->addChild('id');
+                $idXml->addAttribute('name', $field['fieldName']);
 
-                if (isset( $field['type'] )) {
-                    $idXml->addAttribute( 'type', $field['type'] );
+                if (isset($field['type'])) {
+                    $idXml->addAttribute('type', $field['type']);
                 }
 
-                if (isset( $field['columnName'] )) {
-                    $idXml->addAttribute( 'column', $field['columnName'] );
+                if (isset($field['columnName'])) {
+                    $idXml->addAttribute('column', $field['columnName']);
                 }
 
-                if (isset( $field['length'] )) {
-                    $idXml->addAttribute( 'length', $field['length'] );
+                if (isset($field['length'])) {
+                    $idXml->addAttribute('length', $field['length']);
                 }
 
-                if (isset( $field['associationKey'] ) && $field['associationKey']) {
-                    $idXml->addAttribute( 'association-key', 'true' );
+                if (isset($field['associationKey']) && $field['associationKey']) {
+                    $idXml->addAttribute('association-key', 'true');
                 }
 
-                if ($idGeneratorType = $this->_getIdGeneratorTypeString( $metadata->generatorType )) {
-                    $generatorXml = $idXml->addChild( 'generator' );
-                    $generatorXml->addAttribute( 'strategy', $idGeneratorType );
+                if ($idGeneratorType = $this->_getIdGeneratorTypeString($metadata->generatorType)) {
+                    $generatorXml = $idXml->addChild('generator');
+                    $generatorXml->addAttribute('strategy', $idGeneratorType);
 
-                    $this->exportSequenceInformation( $idXml, $metadata );
+                    $this->exportSequenceInformation($idXml, $metadata);
                 }
             }
         }
 
         if ($fields) {
             foreach ($fields as $field) {
-                $fieldXml = $root->addChild( 'field' );
-                $fieldXml->addAttribute( 'name', $field['fieldName'] );
-                $fieldXml->addAttribute( 'type', $field['type'] );
+                $fieldXml = $root->addChild('field');
+                $fieldXml->addAttribute('name', $field['fieldName']);
+                $fieldXml->addAttribute('type', $field['type']);
 
-                if (isset( $field['columnName'] )) {
-                    $fieldXml->addAttribute( 'column', $field['columnName'] );
+                if (isset($field['columnName'])) {
+                    $fieldXml->addAttribute('column', $field['columnName']);
                 }
 
-                if (isset( $field['length'] )) {
-                    $fieldXml->addAttribute( 'length', $field['length'] );
+                if (isset($field['length'])) {
+                    $fieldXml->addAttribute('length', $field['length']);
                 }
 
-                if (isset( $field['precision'] )) {
-                    $fieldXml->addAttribute( 'precision', $field['precision'] );
+                if (isset($field['precision'])) {
+                    $fieldXml->addAttribute('precision', $field['precision']);
                 }
 
-                if (isset( $field['scale'] )) {
-                    $fieldXml->addAttribute( 'scale', $field['scale'] );
+                if (isset($field['scale'])) {
+                    $fieldXml->addAttribute('scale', $field['scale']);
                 }
 
-                if (isset( $field['unique'] ) && $field['unique']) {
-                    $fieldXml->addAttribute( 'unique', $field['unique'] ? 'true' : 'false' );
+                if (isset($field['unique']) && $field['unique']) {
+                    $fieldXml->addAttribute('unique', $field['unique'] ? 'true' : 'false');
                 }
 
-                if (isset( $field['options'] )) {
-                    $optionsXml = $fieldXml->addChild( 'options' );
+                if (isset($field['options'])) {
+                    $optionsXml = $fieldXml->addChild('options');
                     foreach ($field['options'] as $key => $value) {
-                        $optionXml = $optionsXml->addChild( 'option', $value );
-                        $optionXml->addAttribute( 'name', $key );
+                        $optionXml = $optionsXml->addChild('option', $value);
+                        $optionXml->addAttribute('name', $key);
                     }
                 }
 
-                if (isset( $field['version'] )) {
-                    $fieldXml->addAttribute( 'version', $field['version'] );
+                if (isset($field['version'])) {
+                    $fieldXml->addAttribute('version', $field['version']);
                 }
 
-                if (isset( $field['columnDefinition'] )) {
-                    $fieldXml->addAttribute( 'column-definition', $field['columnDefinition'] );
+                if (isset($field['columnDefinition'])) {
+                    $fieldXml->addAttribute('column-definition', $field['columnDefinition']);
                 }
 
-                if (isset( $field['nullable'] )) {
-                    $fieldXml->addAttribute( 'nullable', $field['nullable'] ? 'true' : 'false' );
+                if (isset($field['nullable'])) {
+                    $fieldXml->addAttribute('nullable', $field['nullable'] ? 'true' : 'false');
                 }
             }
         }
@@ -234,47 +232,45 @@ class XmlExporter extends AbstractExporter
             ClassMetadataInfo::MANY_TO_MANY,
         );
 
-        uasort( $metadata->associationMappings, function ( $m1, $m2 ) use ( &$orderMap ) {
+        uasort($metadata->associationMappings, function($m1, $m2) use (&$orderMap){
+            $a1 = array_search($m1['type'], $orderMap);
+            $a2 = array_search($m2['type'], $orderMap);
 
-            $a1 = array_search( $m1['type'], $orderMap );
-            $a2 = array_search( $m2['type'], $orderMap );
-
-            return strcmp( $a1, $a2 );
-        } );
+            return strcmp($a1, $a2);
+        });
 
         foreach ($metadata->associationMappings as $associationMapping) {
             if ($associationMapping['type'] == ClassMetadataInfo::ONE_TO_ONE) {
-                $associationMappingXml = $root->addChild( 'one-to-one' );
+                $associationMappingXml = $root->addChild('one-to-one');
             } elseif ($associationMapping['type'] == ClassMetadataInfo::MANY_TO_ONE) {
-                $associationMappingXml = $root->addChild( 'many-to-one' );
+                $associationMappingXml = $root->addChild('many-to-one');
             } elseif ($associationMapping['type'] == ClassMetadataInfo::ONE_TO_MANY) {
-                $associationMappingXml = $root->addChild( 'one-to-many' );
+                $associationMappingXml = $root->addChild('one-to-many');
             } elseif ($associationMapping['type'] == ClassMetadataInfo::MANY_TO_MANY) {
-                $associationMappingXml = $root->addChild( 'many-to-many' );
+                $associationMappingXml = $root->addChild('many-to-many');
             }
 
-            $associationMappingXml->addAttribute( 'field', $associationMapping['fieldName'] );
-            $associationMappingXml->addAttribute( 'target-entity', $associationMapping['targetEntity'] );
+            $associationMappingXml->addAttribute('field', $associationMapping['fieldName']);
+            $associationMappingXml->addAttribute('target-entity', $associationMapping['targetEntity']);
 
-            if (isset( $associationMapping['mappedBy'] )) {
-                $associationMappingXml->addAttribute( 'mapped-by', $associationMapping['mappedBy'] );
+            if (isset($associationMapping['mappedBy'])) {
+                $associationMappingXml->addAttribute('mapped-by', $associationMapping['mappedBy']);
             }
 
-            if (isset( $associationMapping['inversedBy'] )) {
-                $associationMappingXml->addAttribute( 'inversed-by', $associationMapping['inversedBy'] );
+            if (isset($associationMapping['inversedBy'])) {
+                $associationMappingXml->addAttribute('inversed-by', $associationMapping['inversedBy']);
             }
 
-            if (isset( $associationMapping['indexBy'] )) {
-                $associationMappingXml->addAttribute( 'index-by', $associationMapping['indexBy'] );
+            if (isset($associationMapping['indexBy'])) {
+                $associationMappingXml->addAttribute('index-by', $associationMapping['indexBy']);
             }
 
-            if (isset( $associationMapping['orphanRemoval'] ) && $associationMapping['orphanRemoval'] !== false) {
-                $associationMappingXml->addAttribute( 'orphan-removal', 'true' );
+            if (isset($associationMapping['orphanRemoval']) && $associationMapping['orphanRemoval'] !== false) {
+                $associationMappingXml->addAttribute('orphan-removal', 'true');
             }
 
-            if (isset( $associationMapping['fetch'] )) {
-                $associationMappingXml->addAttribute( 'fetch',
-                    $this->_getFetchModeString( $associationMapping['fetch'] ) );
+            if (isset($associationMapping['fetch'])) {
+                $associationMappingXml->addAttribute('fetch', $this->_getFetchModeString($associationMapping['fetch']));
             }
 
             $cascade = array();
@@ -298,125 +294,122 @@ class XmlExporter extends AbstractExporter
                 $cascade[] = 'cascade-detach';
             }
 
-            if (count( $cascade ) === 5) {
-                $cascade = array( 'cascade-all' );
+            if (count($cascade) === 5) {
+                $cascade  = array('cascade-all');
             }
 
             if ($cascade) {
-                $cascadeXml = $associationMappingXml->addChild( 'cascade' );
+                $cascadeXml = $associationMappingXml->addChild('cascade');
 
                 foreach ($cascade as $type) {
-                    $cascadeXml->addChild( $type );
+                    $cascadeXml->addChild($type);
                 }
             }
 
-            if (isset( $associationMapping['joinTable'] ) && $associationMapping['joinTable']) {
-                $joinTableXml = $associationMappingXml->addChild( 'join-table' );
-                $joinTableXml->addAttribute( 'name', $associationMapping['joinTable']['name'] );
-                $joinColumnsXml = $joinTableXml->addChild( 'join-columns' );
+            if (isset($associationMapping['joinTable']) && $associationMapping['joinTable']) {
+                $joinTableXml = $associationMappingXml->addChild('join-table');
+                $joinTableXml->addAttribute('name', $associationMapping['joinTable']['name']);
+                $joinColumnsXml = $joinTableXml->addChild('join-columns');
 
                 foreach ($associationMapping['joinTable']['joinColumns'] as $joinColumn) {
-                    $joinColumnXml = $joinColumnsXml->addChild( 'join-column' );
-                    $joinColumnXml->addAttribute( 'name', $joinColumn['name'] );
-                    $joinColumnXml->addAttribute( 'referenced-column-name', $joinColumn['referencedColumnName'] );
+                    $joinColumnXml = $joinColumnsXml->addChild('join-column');
+                    $joinColumnXml->addAttribute('name', $joinColumn['name']);
+                    $joinColumnXml->addAttribute('referenced-column-name', $joinColumn['referencedColumnName']);
 
-                    if (isset( $joinColumn['onDelete'] )) {
-                        $joinColumnXml->addAttribute( 'on-delete', $joinColumn['onDelete'] );
+                    if (isset($joinColumn['onDelete'])) {
+                        $joinColumnXml->addAttribute('on-delete', $joinColumn['onDelete']);
                     }
                 }
 
-                $inverseJoinColumnsXml = $joinTableXml->addChild( 'inverse-join-columns' );
+                $inverseJoinColumnsXml = $joinTableXml->addChild('inverse-join-columns');
 
                 foreach ($associationMapping['joinTable']['inverseJoinColumns'] as $inverseJoinColumn) {
-                    $inverseJoinColumnXml = $inverseJoinColumnsXml->addChild( 'join-column' );
-                    $inverseJoinColumnXml->addAttribute( 'name', $inverseJoinColumn['name'] );
-                    $inverseJoinColumnXml->addAttribute( 'referenced-column-name',
-                        $inverseJoinColumn['referencedColumnName'] );
+                    $inverseJoinColumnXml = $inverseJoinColumnsXml->addChild('join-column');
+                    $inverseJoinColumnXml->addAttribute('name', $inverseJoinColumn['name']);
+                    $inverseJoinColumnXml->addAttribute('referenced-column-name', $inverseJoinColumn['referencedColumnName']);
 
-                    if (isset( $inverseJoinColumn['onDelete'] )) {
-                        $inverseJoinColumnXml->addAttribute( 'on-delete', $inverseJoinColumn['onDelete'] );
+                    if (isset($inverseJoinColumn['onDelete'])) {
+                        $inverseJoinColumnXml->addAttribute('on-delete', $inverseJoinColumn['onDelete']);
                     }
 
-                    if (isset( $inverseJoinColumn['columnDefinition'] )) {
-                        $inverseJoinColumnXml->addAttribute( 'column-definition',
-                            $inverseJoinColumn['columnDefinition'] );
+                    if (isset($inverseJoinColumn['columnDefinition'])) {
+                        $inverseJoinColumnXml->addAttribute('column-definition', $inverseJoinColumn['columnDefinition']);
                     }
 
-                    if (isset( $inverseJoinColumn['nullable'] )) {
-                        $inverseJoinColumnXml->addAttribute( 'nullable', $inverseJoinColumn['nullable'] );
+                    if (isset($inverseJoinColumn['nullable'])) {
+                        $inverseJoinColumnXml->addAttribute('nullable', $inverseJoinColumn['nullable']);
                     }
 
-                    if (isset( $inverseJoinColumn['orderBy'] )) {
-                        $inverseJoinColumnXml->addAttribute( 'order-by', $inverseJoinColumn['orderBy'] );
+                    if (isset($inverseJoinColumn['orderBy'])) {
+                        $inverseJoinColumnXml->addAttribute('order-by', $inverseJoinColumn['orderBy']);
                     }
                 }
             }
-            if (isset( $associationMapping['joinColumns'] )) {
-                $joinColumnsXml = $associationMappingXml->addChild( 'join-columns' );
+            if (isset($associationMapping['joinColumns'])) {
+                $joinColumnsXml = $associationMappingXml->addChild('join-columns');
 
                 foreach ($associationMapping['joinColumns'] as $joinColumn) {
-                    $joinColumnXml = $joinColumnsXml->addChild( 'join-column' );
-                    $joinColumnXml->addAttribute( 'name', $joinColumn['name'] );
-                    $joinColumnXml->addAttribute( 'referenced-column-name', $joinColumn['referencedColumnName'] );
+                    $joinColumnXml = $joinColumnsXml->addChild('join-column');
+                    $joinColumnXml->addAttribute('name', $joinColumn['name']);
+                    $joinColumnXml->addAttribute('referenced-column-name', $joinColumn['referencedColumnName']);
 
-                    if (isset( $joinColumn['onDelete'] )) {
-                        $joinColumnXml->addAttribute( 'on-delete', $joinColumn['onDelete'] );
+                    if (isset($joinColumn['onDelete'])) {
+                        $joinColumnXml->addAttribute('on-delete', $joinColumn['onDelete']);
                     }
 
-                    if (isset( $joinColumn['columnDefinition'] )) {
-                        $joinColumnXml->addAttribute( 'column-definition', $joinColumn['columnDefinition'] );
+                    if (isset($joinColumn['columnDefinition'])) {
+                        $joinColumnXml->addAttribute('column-definition', $joinColumn['columnDefinition']);
                     }
 
-                    if (isset( $joinColumn['nullable'] )) {
-                        $joinColumnXml->addAttribute( 'nullable', $joinColumn['nullable'] );
+                    if (isset($joinColumn['nullable'])) {
+                        $joinColumnXml->addAttribute('nullable', $joinColumn['nullable']);
                     }
                 }
             }
-            if (isset( $associationMapping['orderBy'] )) {
-                $orderByXml = $associationMappingXml->addChild( 'order-by' );
+            if (isset($associationMapping['orderBy'])) {
+                $orderByXml = $associationMappingXml->addChild('order-by');
 
                 foreach ($associationMapping['orderBy'] as $name => $direction) {
-                    $orderByFieldXml = $orderByXml->addChild( 'order-by-field' );
-                    $orderByFieldXml->addAttribute( 'name', $name );
-                    $orderByFieldXml->addAttribute( 'direction', $direction );
+                    $orderByFieldXml = $orderByXml->addChild('order-by-field');
+                    $orderByFieldXml->addAttribute('name', $name);
+                    $orderByFieldXml->addAttribute('direction', $direction);
                 }
             }
         }
 
-        if (isset( $metadata->lifecycleCallbacks ) && count( $metadata->lifecycleCallbacks ) > 0) {
-            $lifecycleCallbacksXml = $root->addChild( 'lifecycle-callbacks' );
+        if (isset($metadata->lifecycleCallbacks) && count($metadata->lifecycleCallbacks)>0) {
+            $lifecycleCallbacksXml = $root->addChild('lifecycle-callbacks');
 
             foreach ($metadata->lifecycleCallbacks as $name => $methods) {
                 foreach ($methods as $method) {
-                    $lifecycleCallbackXml = $lifecycleCallbacksXml->addChild( 'lifecycle-callback' );
-                    $lifecycleCallbackXml->addAttribute( 'type', $name );
-                    $lifecycleCallbackXml->addAttribute( 'method', $method );
+                    $lifecycleCallbackXml = $lifecycleCallbacksXml->addChild('lifecycle-callback');
+                    $lifecycleCallbackXml->addAttribute('type', $name);
+                    $lifecycleCallbackXml->addAttribute('method', $method);
                 }
             }
         }
 
-        return $this->_asXml( $xml );
+        return $this->_asXml($xml);
     }
 
     /**
      * Exports (nested) option elements.
      *
      * @param \SimpleXMLElement $parentXml
-     * @param array             $options
+     * @param array $options
      */
-    private function exportTableOptions( \SimpleXMLElement $parentXml, array $options )
+    private function exportTableOptions(\SimpleXMLElement $parentXml, array $options)
     {
-
         foreach ($options as $name => $option) {
-            $isArray = is_array( $option );
+            $isArray   = is_array($option);
             $optionXml = $isArray
-                ? $parentXml->addChild( 'option' )
-                : $parentXml->addChild( 'option', (string)$option );
+                ? $parentXml->addChild('option')
+                : $parentXml->addChild('option', (string) $option);
 
-            $optionXml->addAttribute( 'name', (string)$name );
+            $optionXml->addAttribute('name', (string) $name);
 
             if ($isArray) {
-                $this->exportTableOptions( $optionXml, $option );
+                $this->exportTableOptions($optionXml, $option);
             }
         }
     }
@@ -429,20 +422,19 @@ class XmlExporter extends AbstractExporter
      *
      * @return void
      */
-    private function exportSequenceInformation( \SimpleXMLElement $identifierXmlNode, ClassMetadataInfo $metadata )
+    private function exportSequenceInformation(\SimpleXMLElement $identifierXmlNode, ClassMetadataInfo $metadata)
     {
-
         $sequenceDefinition = $metadata->sequenceGeneratorDefinition;
 
-        if (!( $metadata->generatorType === ClassMetadataInfo::GENERATOR_TYPE_SEQUENCE && $sequenceDefinition )) {
+        if (! ($metadata->generatorType === ClassMetadataInfo::GENERATOR_TYPE_SEQUENCE && $sequenceDefinition)) {
             return;
         }
 
-        $sequenceGeneratorXml = $identifierXmlNode->addChild( 'sequence-generator' );
+        $sequenceGeneratorXml = $identifierXmlNode->addChild('sequence-generator');
 
-        $sequenceGeneratorXml->addAttribute( 'sequence-name', $sequenceDefinition['sequenceName'] );
-        $sequenceGeneratorXml->addAttribute( 'allocation-size', $sequenceDefinition['allocationSize'] );
-        $sequenceGeneratorXml->addAttribute( 'initial-value', $sequenceDefinition['initialValue'] );
+        $sequenceGeneratorXml->addAttribute('sequence-name', $sequenceDefinition['sequenceName']);
+        $sequenceGeneratorXml->addAttribute('allocation-size', $sequenceDefinition['allocationSize']);
+        $sequenceGeneratorXml->addAttribute('initial-value', $sequenceDefinition['initialValue']);
     }
 
     /**
@@ -450,11 +442,10 @@ class XmlExporter extends AbstractExporter
      *
      * @return string $xml
      */
-    private function _asXml( $simpleXml )
+    private function _asXml($simpleXml)
     {
-
-        $dom = new \DOMDocument( '1.0', 'UTF-8' );
-        $dom->loadXML( $simpleXml->asXML() );
+        $dom = new \DOMDocument('1.0', 'UTF-8');
+        $dom->loadXML($simpleXml->asXML());
         $dom->formatOutput = true;
 
         return $dom->saveXML();

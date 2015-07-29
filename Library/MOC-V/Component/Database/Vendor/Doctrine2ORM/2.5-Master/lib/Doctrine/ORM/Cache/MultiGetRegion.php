@@ -23,21 +23,20 @@ namespace Doctrine\ORM\Cache;
 /**
  * Defines a region that supports multi-get reading.
  *
- * With one method call we can get multiple items.
+ * With one method call we can get multipe items.
  *
  * @since   2.5
  * @author  Asmir Mustafic
  */
 interface MultiGetRegion
 {
-
     /**
-     * Get all items from the cache identified by $keys.
+     * Get all items from the cache indentifed by $keys.
      * It returns NULL if some elements can not be found.
      *
      * @param CollectionCacheEntry $collection The collection of the items to be retrieved.
      *
      * @return CacheEntry[]|null The cached entries or NULL if one or more entries can not be found
      */
-    public function getMultiple( CollectionCacheEntry $collection );
+    public function getMultiple(CollectionCacheEntry $collection);
 }

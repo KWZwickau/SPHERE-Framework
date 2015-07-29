@@ -19,13 +19,13 @@
 
 namespace Doctrine\ORM\Query\AST\Functions;
 
-use Doctrine\ORM\Query\QueryException;
 use Doctrine\ORM\Query\SqlWalker;
+use Doctrine\ORM\Query\QueryException;
 
 /**
  * "DATE_ADD(date1, interval, unit)"
  *
- *
+ * 
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -33,29 +33,27 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class DateSubFunction extends DateAddFunction
 {
-
     /**
      * @override
      */
-    public function getSql( SqlWalker $sqlWalker )
+    public function getSql(SqlWalker $sqlWalker)
     {
-
-        switch (strtolower( $this->unit->value )) {
+        switch (strtolower($this->unit->value)) {
             case 'hour':
                 return $sqlWalker->getConnection()->getDatabasePlatform()->getDateSubHourExpression(
-                    $this->firstDateExpression->dispatch( $sqlWalker ),
-                    $this->intervalExpression->dispatch( $sqlWalker )
+                    $this->firstDateExpression->dispatch($sqlWalker),
+                    $this->intervalExpression->dispatch($sqlWalker)
                 );
             case 'day':
                 return $sqlWalker->getConnection()->getDatabasePlatform()->getDateSubDaysExpression(
-                    $this->firstDateExpression->dispatch( $sqlWalker ),
-                    $this->intervalExpression->dispatch( $sqlWalker )
+                    $this->firstDateExpression->dispatch($sqlWalker),
+                    $this->intervalExpression->dispatch($sqlWalker)
                 );
 
             case 'month':
                 return $sqlWalker->getConnection()->getDatabasePlatform()->getDateSubMonthExpression(
-                    $this->firstDateExpression->dispatch( $sqlWalker ),
-                    $this->intervalExpression->dispatch( $sqlWalker )
+                    $this->firstDateExpression->dispatch($sqlWalker),
+                    $this->intervalExpression->dispatch($sqlWalker)
                 );
 
             default:

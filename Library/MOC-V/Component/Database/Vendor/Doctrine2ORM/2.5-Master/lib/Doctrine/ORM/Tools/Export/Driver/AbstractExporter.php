@@ -32,7 +32,6 @@ use Doctrine\ORM\Tools\Export\ExportException;
  */
 abstract class AbstractExporter
 {
-
     /**
      * @var array
      */
@@ -56,9 +55,8 @@ abstract class AbstractExporter
     /**
      * @param string|null $dir
      */
-    public function __construct( $dir = null )
+    public function __construct($dir = null)
     {
-
         $this->_outputDir = $dir;
     }
 
@@ -67,11 +65,20 @@ abstract class AbstractExporter
      *
      * @return void
      */
-    public function setOverwriteExistingFiles( $overwrite )
+    public function setOverwriteExistingFiles($overwrite)
     {
-
         $this->_overwriteExistingFiles = $overwrite;
     }
+
+    /**
+     * Converts a single ClassMetadata instance to the exported format
+     * and returns it.
+     *
+     * @param ClassMetadataInfo $metadata
+     *
+     * @return string
+     */
+    abstract public function exportClassMetadata(ClassMetadataInfo $metadata);
 
     /**
      * Sets the array of ClassMetadataInfo instances to export.
@@ -80,9 +87,8 @@ abstract class AbstractExporter
      *
      * @return void
      */
-    public function setMetadata( array $metadata )
+    public function setMetadata(array $metadata)
     {
-
         $this->_metadata = $metadata;
     }
 
@@ -93,26 +99,7 @@ abstract class AbstractExporter
      */
     public function getExtension()
     {
-
         return $this->_extension;
-    }
-
-    /**
-     * Sets the directory to output the mapping files to.
-     *
-     *     [php]
-     *     $exporter = new YamlExporter($metadata, __DIR__ . '/yaml');
-     *     $exporter->setExtension('.yml');
-     *     $exporter->export();
-     *
-     * @param string $extension
-     *
-     * @return void
-     */
-    public function setExtension( $extension )
-    {
-
-        $this->_extension = $extension;
     }
 
     /**
@@ -127,9 +114,8 @@ abstract class AbstractExporter
      *
      * @return void
      */
-    public function setOutputDir( $dir )
+    public function setOutputDir($dir)
     {
-
         $this->_outputDir = $dir;
     }
 
@@ -143,36 +129,25 @@ abstract class AbstractExporter
      */
     public function export()
     {
-
-        if (!is_dir( $this->_outputDir )) {
-            mkdir( $this->_outputDir, 0777, true );
+        if ( ! is_dir($this->_outputDir)) {
+            mkdir($this->_outputDir, 0777, true);
         }
 
         foreach ($this->_metadata as $metadata) {
             // In case output is returned, write it to a file, skip otherwise
-            if ($output = $this->exportClassMetadata( $metadata )) {
-                $path = $this->_generateOutputPath( $metadata );
-                $dir = dirname( $path );
-                if (!is_dir( $dir )) {
-                    mkdir( $dir, 0777, true );
+            if($output = $this->exportClassMetadata($metadata)){
+                $path = $this->_generateOutputPath($metadata);
+                $dir = dirname($path);
+                if ( ! is_dir($dir)) {
+                    mkdir($dir, 0777, true);
                 }
-                if (file_exists( $path ) && !$this->_overwriteExistingFiles) {
-                    throw ExportException::attemptOverwriteExistingFile( $path );
+                if (file_exists($path) && !$this->_overwriteExistingFiles) {
+                    throw ExportException::attemptOverwriteExistingFile($path);
                 }
-                file_put_contents( $path, $output );
+                file_put_contents($path, $output);
             }
         }
     }
-
-    /**
-     * Converts a single ClassMetadata instance to the exported format
-     * and returns it.
-     *
-     * @param ClassMetadataInfo $metadata
-     *
-     * @return string
-     */
-    abstract public function exportClassMetadata( ClassMetadataInfo $metadata );
 
     /**
      * Generates the path to write the class for the given ClassMetadataInfo instance.
@@ -181,10 +156,26 @@ abstract class AbstractExporter
      *
      * @return string
      */
-    protected function _generateOutputPath( ClassMetadataInfo $metadata )
+    protected function _generateOutputPath(ClassMetadataInfo $metadata)
     {
+        return $this->_outputDir . '/' . str_replace('\\', '.', $metadata->name) . $this->_extension;
+    }
 
-        return $this->_outputDir.'/'.str_replace( '\\', '.', $metadata->name ).$this->_extension;
+    /**
+     * Sets the directory to output the mapping files to.
+     *
+     *     [php]
+     *     $exporter = new YamlExporter($metadata, __DIR__ . '/yaml');
+     *     $exporter->setExtension('.yml');
+     *     $exporter->export();
+     *
+     * @param string $extension
+     *
+     * @return void
+     */
+    public function setExtension($extension)
+    {
+        $this->_extension = $extension;
     }
 
     /**
@@ -192,9 +183,8 @@ abstract class AbstractExporter
      *
      * @return string
      */
-    protected function _getInheritanceTypeString( $type )
+    protected function _getInheritanceTypeString($type)
     {
-
         switch ($type) {
             case ClassMetadataInfo::INHERITANCE_TYPE_NONE:
                 return 'NONE';
@@ -215,9 +205,8 @@ abstract class AbstractExporter
      *
      * @return string
      */
-    protected function _getFetchModeString( $mode )
+    protected function _getFetchModeString($mode)
     {
-
         switch ($mode) {
             case ClassMetadataInfo::FETCH_EAGER:
                 return 'EAGER';
@@ -235,9 +224,8 @@ abstract class AbstractExporter
      *
      * @return string
      */
-    protected function _getChangeTrackingPolicyString( $policy )
+    protected function _getChangeTrackingPolicyString($policy)
     {
-
         switch ($policy) {
             case ClassMetadataInfo::CHANGETRACKING_DEFERRED_IMPLICIT:
                 return 'DEFERRED_IMPLICIT';
@@ -255,9 +243,8 @@ abstract class AbstractExporter
      *
      * @return string
      */
-    protected function _getIdGeneratorTypeString( $type )
+    protected function _getIdGeneratorTypeString($type)
     {
-
         switch ($type) {
             case ClassMetadataInfo::GENERATOR_TYPE_AUTO:
                 return 'AUTO';

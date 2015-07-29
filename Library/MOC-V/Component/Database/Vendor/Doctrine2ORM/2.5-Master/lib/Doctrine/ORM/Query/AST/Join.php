@@ -31,10 +31,9 @@ namespace Doctrine\ORM\Query\AST;
  */
 class Join extends Node
 {
-
-    const JOIN_TYPE_LEFT = 1;
+    const JOIN_TYPE_LEFT      = 1;
     const JOIN_TYPE_LEFTOUTER = 2;
-    const JOIN_TYPE_INNER = 3;
+    const JOIN_TYPE_INNER     = 3;
 
     /**
      * @var int
@@ -55,9 +54,8 @@ class Join extends Node
      * @param int  $joinType
      * @param Node $joinAssociationDeclaration
      */
-    public function __construct( $joinType, $joinAssociationDeclaration )
+    public function __construct($joinType, $joinAssociationDeclaration)
     {
-
         $this->joinType = $joinType;
         $this->joinAssociationDeclaration = $joinAssociationDeclaration;
     }
@@ -65,9 +63,8 @@ class Join extends Node
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkJoin( $this );
+        return $sqlWalker->walkJoin($this);
     }
 }

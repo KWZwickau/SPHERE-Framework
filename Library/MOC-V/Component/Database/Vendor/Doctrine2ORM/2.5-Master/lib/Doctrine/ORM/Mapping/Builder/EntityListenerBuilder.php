@@ -19,9 +19,9 @@
 
 namespace Doctrine\ORM\Mapping\Builder;
 
-use Doctrine\ORM\Events;
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Mapping\MappingException;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Events;
 
 /**
  * Builder for entity listeners.
@@ -31,7 +31,6 @@ use Doctrine\ORM\Mapping\MappingException;
  */
 class EntityListenerBuilder
 {
-
     /**
      * @var array Hash-map to handle event names.
      */
@@ -49,26 +48,25 @@ class EntityListenerBuilder
     /**
      * Lookup the entity class to find methods that match to event lifecycle names
      *
-     * @param \Doctrine\ORM\Mapping\ClassMetadata $metadata  The entity metadata.
-     * @param string                              $className The listener class name.
+     * @param \Doctrine\ORM\Mapping\ClassMetadata $metadata     The entity metadata.
+     * @param string $className                                 The listener class name.
      *
      * @throws \Doctrine\ORM\Mapping\MappingException           When the listener class not found.
      */
-    static public function bindEntityListener( ClassMetadata $metadata, $className )
+    static public function bindEntityListener(ClassMetadata $metadata, $className)
     {
+        $class = $metadata->fullyQualifiedClassName($className);
 
-        $class = $metadata->fullyQualifiedClassName( $className );
-
-        if (!class_exists( $class )) {
-            throw MappingException::entityListenerClassNotFound( $class, $className );
+        if ( ! class_exists($class)) {
+            throw MappingException::entityListenerClassNotFound($class, $className);
         }
 
-        foreach (get_class_methods( $class ) as $method) {
-            if (!isset( self::$events[$method] )) {
+        foreach (get_class_methods($class) as $method) {
+            if ( ! isset(self::$events[$method])) {
                 continue;
             }
 
-            $metadata->addEntityListener( $method, $class, $method );
+            $metadata->addEntityListener($method, $class, $method);
         }
     }
 }

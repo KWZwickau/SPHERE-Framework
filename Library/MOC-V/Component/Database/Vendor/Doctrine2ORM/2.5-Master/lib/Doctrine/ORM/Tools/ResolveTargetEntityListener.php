@@ -19,11 +19,11 @@
 
 namespace Doctrine\ORM\Tools;
 
-use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\OnClassMetadataNotFoundEventArgs;
-use Doctrine\ORM\Events;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\Common\EventSubscriber;
+use Doctrine\ORM\Events;
 
 /**
  * ResolveTargetEntityListener
@@ -32,11 +32,10 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * targets.
  *
  * @author Benjamin Eberlei <kontakt@beberlei.de>
- * @since  2.2
+ * @since 2.2
  */
 class ResolveTargetEntityListener implements EventSubscriber
 {
-
     /**
      * @var array[] indexed by original entity name
      */
@@ -47,7 +46,6 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function getSubscribedEvents()
     {
-
         return array(
             Events::loadClassMetadata,
             Events::onClassMetadataNotFound
@@ -63,11 +61,10 @@ class ResolveTargetEntityListener implements EventSubscriber
      *
      * @return void
      */
-    public function addResolveTargetEntity( $originalEntity, $newEntity, array $mapping )
+    public function addResolveTargetEntity($originalEntity, $newEntity, array $mapping)
     {
-
-        $mapping['targetEntity'] = ltrim( $newEntity, "\\" );
-        $this->resolveTargetEntities[ltrim( $originalEntity, "\\" )] = $mapping;
+        $mapping['targetEntity']                                   = ltrim($newEntity, "\\");
+        $this->resolveTargetEntities[ltrim($originalEntity, "\\")] = $mapping;
     }
 
     /**
@@ -77,14 +74,13 @@ class ResolveTargetEntityListener implements EventSubscriber
      *
      * @return void
      */
-    public function onClassMetadataNotFound( OnClassMetadataNotFoundEventArgs $args )
+    public function onClassMetadataNotFound(OnClassMetadataNotFoundEventArgs $args)
     {
-
-        if (array_key_exists( $args->getClassName(), $this->resolveTargetEntities )) {
+        if (array_key_exists($args->getClassName(), $this->resolveTargetEntities)) {
             $args->setFoundMetadata(
                 $args
                     ->getObjectManager()
-                    ->getClassMetadata( $this->resolveTargetEntities[$args->getClassname()]['targetEntity'] )
+                    ->getClassMetadata($this->resolveTargetEntities[$args->getClassname()]['targetEntity'])
             );
         }
     }
@@ -98,21 +94,20 @@ class ResolveTargetEntityListener implements EventSubscriber
      *
      * @internal this is an event callback, and should not be called directly
      */
-    public function loadClassMetadata( LoadClassMetadataEventArgs $args )
+    public function loadClassMetadata(LoadClassMetadataEventArgs $args)
     {
-
         /* @var $cm \Doctrine\ORM\Mapping\ClassMetadata */
         $cm = $args->getClassMetadata();
 
         foreach ($cm->associationMappings as $mapping) {
-            if (isset( $this->resolveTargetEntities[$mapping['targetEntity']] )) {
-                $this->remapAssociation( $cm, $mapping );
+            if (isset($this->resolveTargetEntities[$mapping['targetEntity']])) {
+                $this->remapAssociation($cm, $mapping);
             }
         }
 
         foreach ($this->resolveTargetEntities as $interface => $data) {
             if ($data['targetEntity'] == $cm->getName()) {
-                $args->getEntityManager()->getMetadataFactory()->setMetadataFor( $interface, $cm );
+                $args->getEntityManager()->getMetadataFactory()->setMetadataFor($interface, $cm);
             }
         }
     }
@@ -123,27 +118,26 @@ class ResolveTargetEntityListener implements EventSubscriber
      *
      * @return void
      */
-    private function remapAssociation( $classMetadata, $mapping )
+    private function remapAssociation($classMetadata, $mapping)
     {
-
         $newMapping = $this->resolveTargetEntities[$mapping['targetEntity']];
-        $newMapping = array_replace_recursive( $mapping, $newMapping );
+        $newMapping = array_replace_recursive($mapping, $newMapping);
         $newMapping['fieldName'] = $mapping['fieldName'];
 
-        unset( $classMetadata->associationMappings[$mapping['fieldName']] );
+        unset($classMetadata->associationMappings[$mapping['fieldName']]);
 
         switch ($mapping['type']) {
             case ClassMetadata::MANY_TO_MANY:
-                $classMetadata->mapManyToMany( $newMapping );
+                $classMetadata->mapManyToMany($newMapping);
                 break;
             case ClassMetadata::MANY_TO_ONE:
-                $classMetadata->mapManyToOne( $newMapping );
+                $classMetadata->mapManyToOne($newMapping);
                 break;
             case ClassMetadata::ONE_TO_MANY:
-                $classMetadata->mapOneToMany( $newMapping );
+                $classMetadata->mapOneToMany($newMapping);
                 break;
             case ClassMetadata::ONE_TO_ONE:
-                $classMetadata->mapOneToOne( $newMapping );
+                $classMetadata->mapOneToOne($newMapping);
                 break;
         }
     }

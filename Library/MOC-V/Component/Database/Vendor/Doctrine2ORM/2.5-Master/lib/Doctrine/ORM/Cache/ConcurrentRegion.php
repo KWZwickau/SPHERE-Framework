@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Cache;
  */
 interface ConcurrentRegion extends Region
 {
-
     /**
      * Attempts to read lock the mapping for the given key.
      *
@@ -42,7 +41,7 @@ interface ConcurrentRegion extends Region
      *
      * @throws \Doctrine\ORM\Cache\LockException Indicates a problem accessing the region.
      */
-    public function lock( CacheKey $key );
+    public function lock(CacheKey $key);
 
     /**
      * Attempts to read unlock the mapping for the given key.
@@ -54,5 +53,5 @@ interface ConcurrentRegion extends Region
      *
      * @throws \Doctrine\ORM\Cache\LockException Indicates a problem accessing the region.
      */
-    public function unlock( CacheKey $key, Lock $lock );
+    public function unlock(CacheKey $key, Lock $lock);
 }

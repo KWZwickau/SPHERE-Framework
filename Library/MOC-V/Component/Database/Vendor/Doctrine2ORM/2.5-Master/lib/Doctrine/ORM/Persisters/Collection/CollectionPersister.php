@@ -27,11 +27,10 @@ use Doctrine\ORM\PersistentCollection;
  * Define the behavior that should be implemented by all collection persisters.
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 interface CollectionPersister
 {
-
     /**
      * Deletes the persistent state represented by the given collection.
      *
@@ -39,7 +38,7 @@ interface CollectionPersister
      *
      * @return void
      */
-    public function delete( PersistentCollection $collection );
+    public function delete(PersistentCollection $collection);
 
     /**
      * Updates the given collection, synchronizing its state with the database
@@ -49,7 +48,7 @@ interface CollectionPersister
      *
      * @return void
      */
-    public function update( PersistentCollection $collection );
+    public function update(PersistentCollection $collection);
 
     /**
      * Counts the size of this persistent collection.
@@ -58,7 +57,7 @@ interface CollectionPersister
      *
      * @return integer
      */
-    public function count( PersistentCollection $collection );
+    public function count(PersistentCollection $collection);
 
     /**
      * Slices elements.
@@ -69,7 +68,7 @@ interface CollectionPersister
      *
      * @return  array
      */
-    public function slice( PersistentCollection $collection, $offset, $length = null );
+    public function slice(PersistentCollection $collection, $offset, $length = null);
 
     /**
      * Checks for existence of an element.
@@ -79,7 +78,7 @@ interface CollectionPersister
      *
      * @return boolean
      */
-    public function contains( PersistentCollection $collection, $element );
+    public function contains(PersistentCollection $collection, $element);
 
     /**
      * Checks for existence of a key.
@@ -89,7 +88,7 @@ interface CollectionPersister
      *
      * @return boolean
      */
-    public function containsKey( PersistentCollection $collection, $key );
+    public function containsKey(PersistentCollection $collection, $key);
 
     /**
      * Removes an element.
@@ -99,7 +98,7 @@ interface CollectionPersister
      *
      * @return mixed
      */
-    public function removeElement( PersistentCollection $collection, $element );
+    public function removeElement(PersistentCollection $collection, $element);
 
     /**
      * Gets an element by key.
@@ -109,7 +108,7 @@ interface CollectionPersister
      *
      * @return mixed
      */
-    public function get( PersistentCollection $collection, $index );
+    public function get(PersistentCollection $collection, $index);
 
     /**
      * Loads association entities matching the given Criteria object.
@@ -119,5 +118,5 @@ interface CollectionPersister
      *
      * @return array
      */
-    public function loadCriteria( PersistentCollection $collection, Criteria $criteria );
+    public function loadCriteria(PersistentCollection $collection, Criteria $criteria);
 }

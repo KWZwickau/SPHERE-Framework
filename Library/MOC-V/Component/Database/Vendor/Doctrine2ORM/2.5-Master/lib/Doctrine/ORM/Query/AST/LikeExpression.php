@@ -29,7 +29,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class LikeExpression extends Node
 {
-
     /**
      * @var bool
      */
@@ -55,9 +54,8 @@ class LikeExpression extends Node
      * @param InputParameter $stringPattern
      * @param Literal|null   $escapeChar
      */
-    public function __construct( $stringExpression, $stringPattern, $escapeChar = null )
+    public function __construct($stringExpression, $stringPattern, $escapeChar = null)
     {
-
         $this->stringExpression = $stringExpression;
         $this->stringPattern = $stringPattern;
         $this->escapeChar = $escapeChar;
@@ -66,9 +64,8 @@ class LikeExpression extends Node
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkLikeExpression( $this );
+        return $sqlWalker->walkLikeExpression($this);
     }
 }

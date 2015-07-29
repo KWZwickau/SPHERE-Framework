@@ -20,8 +20,8 @@
 namespace Doctrine\ORM\Tools\Console\Command;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -37,48 +37,45 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class EnsureProductionSettingsCommand extends Command
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
-            ->setName( 'orm:ensure-production-settings' )
-            ->setDescription( 'Verify that Doctrine is properly configured for a production environment.' )
-            ->setDefinition( array(
-                new InputOption(
-                    'complete', null, InputOption::VALUE_NONE,
-                    'Flag to also inspect database connection existence.'
-                )
-            ) )
-            ->setHelp( <<<EOT
+        ->setName('orm:ensure-production-settings')
+        ->setDescription('Verify that Doctrine is properly configured for a production environment.')
+        ->setDefinition(array(
+            new InputOption(
+                'complete', null, InputOption::VALUE_NONE,
+                'Flag to also inspect database connection existence.'
+            )
+        ))
+        ->setHelp(<<<EOT
 Verify that Doctrine is properly configured for a production environment.
 EOT
-            );
+        );
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function execute( InputInterface $input, OutputInterface $output )
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
-
-        $em = $this->getHelper( 'em' )->getEntityManager();
+        $em = $this->getHelper('em')->getEntityManager();
 
         try {
             $em->getConfiguration()->ensureProductionSettings();
 
-            if ($input->getOption( 'complete' ) !== null) {
+            if ($input->getOption('complete') !== null) {
                 $em->getConnection()->connect();
             }
-        } catch( \Exception $e ) {
-            $output->writeln( '<error>'.$e->getMessage().'</error>' );
+        } catch (\Exception $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
 
             return 1;
         }
 
-        $output->writeln( '<info>Environment is correctly configured for production.</info>' );
+        $output->writeln('<info>Environment is correctly configured for production.</info>');
     }
 }

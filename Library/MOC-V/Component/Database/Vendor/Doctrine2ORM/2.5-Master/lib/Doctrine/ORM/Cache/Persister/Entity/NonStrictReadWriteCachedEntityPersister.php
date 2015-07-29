@@ -20,6 +20,7 @@
 
 namespace Doctrine\ORM\Cache\Persister\Entity;
 
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\Cache\EntityCacheKey;
 
 /**
@@ -30,56 +31,38 @@ use Doctrine\ORM\Cache\EntityCacheKey;
  */
 class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
 {
-
     /**
      * {@inheritdoc}
      */
     public function afterTransactionComplete()
     {
-
         $isChanged = false;
 
-        if (isset( $this->queuedCache['insert'] )) {
+        if (isset($this->queuedCache['insert'])) {
             foreach ($this->queuedCache['insert'] as $entity) {
-                $isChanged = $this->updateCache( $entity, $isChanged );
+                $isChanged = $this->updateCache($entity, $isChanged);
             }
         }
 
-        if (isset( $this->queuedCache['update'] )) {
+        if (isset($this->queuedCache['update'])) {
             foreach ($this->queuedCache['update'] as $entity) {
-                $isChanged = $this->updateCache( $entity, $isChanged );
+                $isChanged = $this->updateCache($entity, $isChanged);
             }
         }
 
-        if (isset( $this->queuedCache['delete'] )) {
+        if (isset($this->queuedCache['delete'])) {
             foreach ($this->queuedCache['delete'] as $key) {
-                $this->region->evict( $key );
+                $this->region->evict($key);
 
                 $isChanged = true;
             }
         }
 
         if ($isChanged) {
-            $this->timestampRegion->update( $this->timestampKey );
+            $this->timestampRegion->update($this->timestampKey);
         }
 
         $this->queuedCache = array();
-    }
-
-    private function updateCache( $entity, $isChanged )
-    {
-
-        $class = $this->metadataFactory->getMetadataFor( get_class( $entity ) );
-        $key = new EntityCacheKey( $class->rootEntityName, $this->uow->getEntityIdentifier( $entity ) );
-        $entry = $this->hydrator->buildCacheEntry( $class, $key, $entity );
-        $cached = $this->region->put( $key, $entry );
-        $isChanged = $isChanged ?: $cached;
-
-        if ($this->cacheLogger && $cached) {
-            $this->cacheLogger->entityCachePut( $this->regionName, $key );
-        }
-
-        return $isChanged;
     }
 
     /**
@@ -87,20 +70,18 @@ class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
      */
     public function afterTransactionRolledBack()
     {
-
         $this->queuedCache = array();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function delete( $entity )
+    public function delete($entity)
     {
+        $key = new EntityCacheKey($this->class->rootEntityName, $this->uow->getEntityIdentifier($entity));
 
-        $key = new EntityCacheKey( $this->class->rootEntityName, $this->uow->getEntityIdentifier( $entity ) );
-
-        if ($this->persister->delete( $entity )) {
-            $this->region->evict( $key );
+        if ($this->persister->delete($entity)) {
+            $this->region->evict($key);
         }
 
         $this->queuedCache['delete'][] = $key;
@@ -109,11 +90,25 @@ class NonStrictReadWriteCachedEntityPersister extends AbstractEntityPersister
     /**
      * {@inheritdoc}
      */
-    public function update( $entity )
+    public function update($entity)
     {
-
-        $this->persister->update( $entity );
+        $this->persister->update($entity);
 
         $this->queuedCache['update'][] = $entity;
+    }
+
+    private function updateCache($entity, $isChanged)
+    {
+        $class      = $this->metadataFactory->getMetadataFor(get_class($entity));
+        $key        = new EntityCacheKey($class->rootEntityName, $this->uow->getEntityIdentifier($entity));
+        $entry      = $this->hydrator->buildCacheEntry($class, $key, $entity);
+        $cached     = $this->region->put($key, $entry);
+        $isChanged  = $isChanged ?: $cached;
+
+        if ($this->cacheLogger && $cached) {
+            $this->cacheLogger->entityCachePut($this->regionName, $key);
+        }
+
+        return $isChanged;
     }
 }

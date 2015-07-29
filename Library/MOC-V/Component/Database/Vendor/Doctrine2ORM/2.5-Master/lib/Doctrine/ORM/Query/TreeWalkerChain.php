@@ -29,7 +29,6 @@ namespace Doctrine\ORM\Query;
  */
 class TreeWalkerChain implements TreeWalker
 {
-
     /**
      * The tree walkers.
      *
@@ -59,41 +58,38 @@ class TreeWalkerChain implements TreeWalker
     private $_queryComponents;
 
     /**
-     * {@inheritdoc}
-     */
-    public function __construct( $query, $parserResult, array $queryComponents )
-    {
-
-        $this->_query = $query;
-        $this->_parserResult = $parserResult;
-        $this->_queryComponents = $queryComponents;
-        $this->_walkers = new TreeWalkerChainIterator( $this, $query, $parserResult );
-    }
-
-    /**
      * Returns the internal queryComponents array.
      *
      * @return array
      */
     public function getQueryComponents()
     {
-
         return $this->_queryComponents;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function setQueryComponent( $dqlAlias, array $queryComponent )
+    public function setQueryComponent($dqlAlias, array $queryComponent)
     {
+        $requiredKeys = array('metadata', 'parent', 'relation', 'map', 'nestingLevel', 'token');
 
-        $requiredKeys = array( 'metadata', 'parent', 'relation', 'map', 'nestingLevel', 'token' );
-
-        if (array_diff( $requiredKeys, array_keys( $queryComponent ) )) {
-            throw QueryException::invalidQueryComponent( $dqlAlias );
+        if (array_diff($requiredKeys, array_keys($queryComponent))) {
+            throw QueryException::invalidQueryComponent($dqlAlias);
         }
 
         $this->_queryComponents[$dqlAlias] = $queryComponent;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function __construct($query, $parserResult, array $queryComponents)
+    {
+        $this->_query = $query;
+        $this->_parserResult = $parserResult;
+        $this->_queryComponents = $queryComponents;
+        $this->_walkers = new TreeWalkerChainIterator($this, $query, $parserResult);
     }
 
     /**
@@ -103,20 +99,18 @@ class TreeWalkerChain implements TreeWalker
      *
      * @return void
      */
-    public function addTreeWalker( $walkerClass )
+    public function addTreeWalker($walkerClass)
     {
-
         $this->_walkers[] = $walkerClass;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkSelectStatement( AST\SelectStatement $AST )
+    public function walkSelectStatement(AST\SelectStatement $AST)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSelectStatement( $AST );
+            $walker->walkSelectStatement($AST);
 
             $this->_queryComponents = $walker->getQueryComponents();
         }
@@ -125,502 +119,457 @@ class TreeWalkerChain implements TreeWalker
     /**
      * {@inheritdoc}
      */
-    public function walkSelectClause( $selectClause )
+    public function walkSelectClause($selectClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSelectClause( $selectClause );
+            $walker->walkSelectClause($selectClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkFromClause( $fromClause )
+    public function walkFromClause($fromClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkFromClause( $fromClause );
+            $walker->walkFromClause($fromClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkFunction( $function )
+    public function walkFunction($function)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkFunction( $function );
+            $walker->walkFunction($function);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkOrderByClause( $orderByClause )
+    public function walkOrderByClause($orderByClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkOrderByClause( $orderByClause );
+            $walker->walkOrderByClause($orderByClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkOrderByItem( $orderByItem )
+    public function walkOrderByItem($orderByItem)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkOrderByItem( $orderByItem );
+            $walker->walkOrderByItem($orderByItem);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkHavingClause( $havingClause )
+    public function walkHavingClause($havingClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkHavingClause( $havingClause );
+            $walker->walkHavingClause($havingClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkJoin( $join )
+    public function walkJoin($join)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkJoin( $join );
+            $walker->walkJoin($join);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkSelectExpression( $selectExpression )
+    public function walkSelectExpression($selectExpression)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSelectExpression( $selectExpression );
+            $walker->walkSelectExpression($selectExpression);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkQuantifiedExpression( $qExpr )
+    public function walkQuantifiedExpression($qExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkQuantifiedExpression( $qExpr );
+            $walker->walkQuantifiedExpression($qExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkSubselect( $subselect )
+    public function walkSubselect($subselect)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSubselect( $subselect );
+            $walker->walkSubselect($subselect);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkSubselectFromClause( $subselectFromClause )
+    public function walkSubselectFromClause($subselectFromClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSubselectFromClause( $subselectFromClause );
+            $walker->walkSubselectFromClause($subselectFromClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkSimpleSelectClause( $simpleSelectClause )
+    public function walkSimpleSelectClause($simpleSelectClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSimpleSelectClause( $simpleSelectClause );
+            $walker->walkSimpleSelectClause($simpleSelectClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkSimpleSelectExpression( $simpleSelectExpression )
+    public function walkSimpleSelectExpression($simpleSelectExpression)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSimpleSelectExpression( $simpleSelectExpression );
+            $walker->walkSimpleSelectExpression($simpleSelectExpression);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkAggregateExpression( $aggExpression )
+    public function walkAggregateExpression($aggExpression)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkAggregateExpression( $aggExpression );
+            $walker->walkAggregateExpression($aggExpression);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkGroupByClause( $groupByClause )
+    public function walkGroupByClause($groupByClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkGroupByClause( $groupByClause );
+            $walker->walkGroupByClause($groupByClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkGroupByItem( $groupByItem )
+    public function walkGroupByItem($groupByItem)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkGroupByItem( $groupByItem );
+            $walker->walkGroupByItem($groupByItem);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkUpdateStatement( AST\UpdateStatement $AST )
+    public function walkUpdateStatement(AST\UpdateStatement $AST)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkUpdateStatement( $AST );
+            $walker->walkUpdateStatement($AST);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkDeleteStatement( AST\DeleteStatement $AST )
+    public function walkDeleteStatement(AST\DeleteStatement $AST)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkDeleteStatement( $AST );
+            $walker->walkDeleteStatement($AST);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkDeleteClause( AST\DeleteClause $deleteClause )
+    public function walkDeleteClause(AST\DeleteClause $deleteClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkDeleteClause( $deleteClause );
+            $walker->walkDeleteClause($deleteClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkUpdateClause( $updateClause )
+    public function walkUpdateClause($updateClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkUpdateClause( $updateClause );
+            $walker->walkUpdateClause($updateClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkUpdateItem( $updateItem )
+    public function walkUpdateItem($updateItem)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkUpdateItem( $updateItem );
+            $walker->walkUpdateItem($updateItem);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkWhereClause( $whereClause )
+    public function walkWhereClause($whereClause)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkWhereClause( $whereClause );
+            $walker->walkWhereClause($whereClause);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkConditionalExpression( $condExpr )
+    public function walkConditionalExpression($condExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkConditionalExpression( $condExpr );
+            $walker->walkConditionalExpression($condExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkConditionalTerm( $condTerm )
+    public function walkConditionalTerm($condTerm)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkConditionalTerm( $condTerm );
+            $walker->walkConditionalTerm($condTerm);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkConditionalFactor( $factor )
+    public function walkConditionalFactor($factor)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkConditionalFactor( $factor );
+            $walker->walkConditionalFactor($factor);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkConditionalPrimary( $condPrimary )
+    public function walkConditionalPrimary($condPrimary)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkConditionalPrimary( $condPrimary );
+            $walker->walkConditionalPrimary($condPrimary);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkExistsExpression( $existsExpr )
+    public function walkExistsExpression($existsExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkExistsExpression( $existsExpr );
+            $walker->walkExistsExpression($existsExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkCollectionMemberExpression( $collMemberExpr )
+    public function walkCollectionMemberExpression($collMemberExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkCollectionMemberExpression( $collMemberExpr );
+            $walker->walkCollectionMemberExpression($collMemberExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkEmptyCollectionComparisonExpression( $emptyCollCompExpr )
+    public function walkEmptyCollectionComparisonExpression($emptyCollCompExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkEmptyCollectionComparisonExpression( $emptyCollCompExpr );
+            $walker->walkEmptyCollectionComparisonExpression($emptyCollCompExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkNullComparisonExpression( $nullCompExpr )
+    public function walkNullComparisonExpression($nullCompExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkNullComparisonExpression( $nullCompExpr );
+            $walker->walkNullComparisonExpression($nullCompExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkInExpression( $inExpr )
+    public function walkInExpression($inExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkInExpression( $inExpr );
+            $walker->walkInExpression($inExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    function walkInstanceOfExpression( $instanceOfExpr )
+    function walkInstanceOfExpression($instanceOfExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkInstanceOfExpression( $instanceOfExpr );
+            $walker->walkInstanceOfExpression($instanceOfExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkLiteral( $literal )
+    public function walkLiteral($literal)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkLiteral( $literal );
+            $walker->walkLiteral($literal);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkBetweenExpression( $betweenExpr )
+    public function walkBetweenExpression($betweenExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkBetweenExpression( $betweenExpr );
+            $walker->walkBetweenExpression($betweenExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkLikeExpression( $likeExpr )
+    public function walkLikeExpression($likeExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkLikeExpression( $likeExpr );
+            $walker->walkLikeExpression($likeExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkStateFieldPathExpression( $stateFieldPathExpression )
+    public function walkStateFieldPathExpression($stateFieldPathExpression)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkStateFieldPathExpression( $stateFieldPathExpression );
+            $walker->walkStateFieldPathExpression($stateFieldPathExpression);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkComparisonExpression( $compExpr )
+    public function walkComparisonExpression($compExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkComparisonExpression( $compExpr );
+            $walker->walkComparisonExpression($compExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkInputParameter( $inputParam )
+    public function walkInputParameter($inputParam)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkInputParameter( $inputParam );
+            $walker->walkInputParameter($inputParam);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkArithmeticExpression( $arithmeticExpr )
+    public function walkArithmeticExpression($arithmeticExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkArithmeticExpression( $arithmeticExpr );
+            $walker->walkArithmeticExpression($arithmeticExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkArithmeticTerm( $term )
+    public function walkArithmeticTerm($term)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkArithmeticTerm( $term );
+            $walker->walkArithmeticTerm($term);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkStringPrimary( $stringPrimary )
+    public function walkStringPrimary($stringPrimary)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkStringPrimary( $stringPrimary );
+            $walker->walkStringPrimary($stringPrimary);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkArithmeticFactor( $factor )
+    public function walkArithmeticFactor($factor)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkArithmeticFactor( $factor );
+            $walker->walkArithmeticFactor($factor);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkSimpleArithmeticExpression( $simpleArithmeticExpr )
+    public function walkSimpleArithmeticExpression($simpleArithmeticExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkSimpleArithmeticExpression( $simpleArithmeticExpr );
+            $walker->walkSimpleArithmeticExpression($simpleArithmeticExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkPathExpression( $pathExpr )
+    public function walkPathExpression($pathExpr)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkPathExpression( $pathExpr );
+            $walker->walkPathExpression($pathExpr);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function walkResultVariable( $resultVariable )
+    public function walkResultVariable($resultVariable)
     {
-
         foreach ($this->_walkers as $walker) {
-            $walker->walkResultVariable( $resultVariable );
+            $walker->walkResultVariable($resultVariable);
         }
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getExecutor( $AST )
+    public function getExecutor($AST)
     {
     }
 }

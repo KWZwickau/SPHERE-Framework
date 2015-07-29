@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SubselectFromClause extends Node
 {
-
     /**
      * @var array
      */
@@ -39,18 +38,16 @@ class SubselectFromClause extends Node
     /**
      * @param array $identificationVariableDeclarations
      */
-    public function __construct( array $identificationVariableDeclarations )
+    public function __construct(array $identificationVariableDeclarations)
     {
-
         $this->identificationVariableDeclarations = $identificationVariableDeclarations;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkSubselectFromClause( $this );
+        return $sqlWalker->walkSubselectFromClause($this);
     }
 }

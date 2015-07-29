@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class ArithmeticExpression extends Node
 {
-
     /**
      * @var SimpleArithmeticExpression|null
      */
@@ -46,8 +45,7 @@ class ArithmeticExpression extends Node
      */
     public function isSimpleArithmeticExpression()
     {
-
-        return (bool)$this->simpleArithmeticExpression;
+        return (bool) $this->simpleArithmeticExpression;
     }
 
     /**
@@ -55,16 +53,14 @@ class ArithmeticExpression extends Node
      */
     public function isSubselect()
     {
-
-        return (bool)$this->subselect;
+        return (bool) $this->subselect;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $walker )
+    public function dispatch($walker)
     {
-
-        return $walker->walkArithmeticExpression( $this );
+        return $walker->walkArithmeticExpression($this);
     }
 }
