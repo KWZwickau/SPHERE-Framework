@@ -15,7 +15,6 @@ use Symfony\Component\Finder\Expression\Expression;
 
 class ExpressionTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @dataProvider getTypeGuesserData
      */
@@ -45,7 +44,6 @@ class ExpressionTest extends \PHPUnit_Framework_TestCase
 
     public function getTypeGuesserData()
     {
-
         return array(
             array( '{foo}', Expression::TYPE_REGEX ),
             array( '/foo/', Expression::TYPE_REGEX ),
@@ -56,7 +54,6 @@ class ExpressionTest extends \PHPUnit_Framework_TestCase
 
     public function getCaseSensitiveData()
     {
-
         return array(
             array( '{foo}m', true ),
             array( '/foo/i', false ),
@@ -66,7 +63,6 @@ class ExpressionTest extends \PHPUnit_Framework_TestCase
 
     public function getRegexRenderingData()
     {
-
         return array(
             array( '{foo}m', 'foo' ),
             array( '/foo/i', 'foo' ),

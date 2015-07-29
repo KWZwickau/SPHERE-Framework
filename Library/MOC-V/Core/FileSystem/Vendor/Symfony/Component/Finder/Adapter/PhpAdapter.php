@@ -20,13 +20,11 @@ use Symfony\Component\Finder\Iterator;
  */
 class PhpAdapter extends AbstractAdapter
 {
-
     /**
      * {@inheritdoc}
      */
     public function searchInDirectory( $dir )
     {
-
         $flags = \RecursiveDirectoryIterator::SKIP_DOTS;
 
         if ($this->followLinks) {
@@ -87,7 +85,6 @@ class PhpAdapter extends AbstractAdapter
      */
     public function getName()
     {
-
         return 'php';
     }
 
@@ -96,7 +93,6 @@ class PhpAdapter extends AbstractAdapter
      */
     protected function canBeUsed()
     {
-
         return true;
     }
 }

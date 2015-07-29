@@ -15,13 +15,11 @@ use Symfony\Component\Finder\Expression\Expression;
 
 class GlobTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @dataProvider getToRegexData
      */
     public function testGlobToRegex( $glob, $match, $noMatch )
     {
-
         foreach ($match as $m) {
             $this->assertRegExp( Expression::create( $glob )->getRegex()->render(), $m,
                 '::toRegex() converts a glob to a regexp' );
@@ -35,7 +33,6 @@ class GlobTest extends \PHPUnit_Framework_TestCase
 
     public function getToRegexData()
     {
-
         return array(
             array( '', array( '' ), array( 'f', '/' ) ),
             array( '*', array( 'foo' ), array( 'foo/', '/foo' ) ),

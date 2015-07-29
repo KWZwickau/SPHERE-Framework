@@ -19,6 +19,10 @@ use SPHERE\System\Database\Link\Identifier;
 class Service implements IServiceInterface
 {
 
+    /** @var TblConsumer[] $ConsumerByIdCache */
+    private static $ConsumerByIdCache = array();
+    /** @var TblConsumer[] $ConsumerByAcronymCache */
+    private static $ConsumerByAcronymCache = array();
     /** @var null|Binding */
     private $Binding = null;
     /** @var null|Structure */
@@ -61,7 +65,11 @@ class Service implements IServiceInterface
     public function getConsumerById( $Id )
     {
 
-        return ( new Data( $this->Binding ) )->getConsumerById( $Id );
+        if (array_key_exists( $Id, self::$ConsumerByIdCache )) {
+            return self::$ConsumerByIdCache[$Id];
+        }
+        self::$ConsumerByIdCache[$Id] = ( new Data( $this->Binding ) )->getConsumerById( $Id );
+        return self::$ConsumerByIdCache[$Id];
     }
 
     /**
@@ -149,6 +157,10 @@ class Service implements IServiceInterface
     public function getConsumerByAcronym( $Acronym )
     {
 
-        return ( new Data( $this->Binding ) )->getConsumerByAcronym( $Acronym );
+        if (array_key_exists( $Acronym, self::$ConsumerByAcronymCache )) {
+            return self::$ConsumerByAcronymCache[$Acronym];
+        }
+        self::$ConsumerByAcronymCache[$Acronym] = ( new Data( $this->Binding ) )->getConsumerByAcronym( $Acronym );
+        return self::$ConsumerByAcronymCache[$Acronym];
     }
 }

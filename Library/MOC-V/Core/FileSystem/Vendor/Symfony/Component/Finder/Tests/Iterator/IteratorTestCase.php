@@ -16,7 +16,6 @@ abstract class IteratorTestCase extends \PHPUnit_Framework_TestCase
 
     protected function assertIterator( $expected, \Traversable $iterator )
     {
-
         // set iterator_to_array $use_key to false to avoid values merge
         // this made FinderTest::testAppendWithAnArray() failed with GnuFinderAdapter
         $values = array_map( function ( \SplFileInfo $fileinfo ) {
@@ -83,7 +82,6 @@ abstract class IteratorTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function assertIteratorInForeach( $expected, \Traversable $iterator )
     {
-
         $values = array();
         foreach ($iterator as $file) {
             $this->assertInstanceOf( 'Symfony\\Component\\Finder\\SplFileInfo', $file );
@@ -104,7 +102,6 @@ abstract class IteratorTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function assertOrderedIteratorInForeach( $expected, \Traversable $iterator )
     {
-
         $values = array();
         foreach ($iterator as $file) {
             $this->assertInstanceOf( 'Symfony\\Component\\Finder\\SplFileInfo', $file );

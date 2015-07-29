@@ -20,7 +20,6 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 class FilePathsIterator extends \ArrayIterator
 {
-
     /**
      * @var string
      */
@@ -52,7 +51,6 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function __construct( array $paths, $baseDir )
     {
-
         $this->baseDir = $baseDir;
         $this->baseDirLength = strlen( $baseDir );
 
@@ -78,7 +76,6 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function current()
     {
-
         return $this->current;
     }
 
@@ -87,20 +84,17 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function key()
     {
-
         return $this->current->getPathname();
     }
 
     public function next()
     {
-
         parent::next();
         $this->buildProperties();
     }
 
     private function buildProperties()
     {
-
         $absolutePath = parent::current();
 
         if ($this->baseDir === substr( $absolutePath, 0, $this->baseDirLength )) {
@@ -116,7 +110,6 @@ class FilePathsIterator extends \ArrayIterator
 
     public function rewind()
     {
-
         parent::rewind();
         $this->buildProperties();
     }
@@ -126,7 +119,6 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function getSubPath()
     {
-
         return $this->subPath;
     }
 
@@ -135,7 +127,6 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function getSubPathname()
     {
-
         return $this->subPathname;
     }
 }

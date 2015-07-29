@@ -16,7 +16,6 @@ namespace Symfony\Component\Finder\Tests\Iterator;
  */
 class FilterIteratorTest extends RealIteratorTestCase
 {
-
     public function testFilterFilesystemIterators()
     {
 

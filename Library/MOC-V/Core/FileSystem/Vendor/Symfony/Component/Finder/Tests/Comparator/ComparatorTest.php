@@ -15,10 +15,8 @@ use Symfony\Component\Finder\Comparator\Comparator;
 
 class ComparatorTest extends \PHPUnit_Framework_TestCase
 {
-
     public function testGetSetOperator()
     {
-
         $comparator = new Comparator();
         try {
             $comparator->setOperator( 'foo' );
@@ -35,7 +33,6 @@ class ComparatorTest extends \PHPUnit_Framework_TestCase
 
     public function testGetSetTarget()
     {
-
         $comparator = new Comparator();
         $comparator->setTarget( 8 );
         $this->assertEquals( 8, $comparator->getTarget(), '->getTarget() returns the target' );
@@ -46,7 +43,6 @@ class ComparatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testTest( $operator, $target, $match, $noMatch )
     {
-
         $c = new Comparator();
         $c->setOperator( $operator );
         $c->setTarget( $target );
@@ -62,7 +58,6 @@ class ComparatorTest extends \PHPUnit_Framework_TestCase
 
     public function getTestData()
     {
-
         return array(
             array( '<', '1000', array( '500', '999' ), array( '1000', '1500' ) ),
         );

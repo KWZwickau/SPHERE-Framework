@@ -17,7 +17,7 @@
   ],
   "require": {
     "php": ">=5.3.3"
-  },
+    },
   "require-dev": {
     "symfony/phpunit-bridge": "~2.7"
   },
@@ -30,5 +30,5 @@
     "branch-alias": {
       "dev-master": "2.6-dev"
     }
-  }
+    }
 }

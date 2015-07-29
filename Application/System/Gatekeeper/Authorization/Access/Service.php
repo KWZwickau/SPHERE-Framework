@@ -28,8 +28,16 @@ use SPHERE\System\Extension\Extension;
 class Service extends Extension implements IServiceInterface
 {
 
-    /** @var array $Authorization */
-    private static $Authorization = array();
+    /** @var array $AuthorizationRequest */
+    private static $AuthorizationRequest = array();
+    /** @var array $AuthorizationCache */
+    private static $AuthorizationCache = array();
+    /** @var TblRole[] $RoleByIdCache */
+    private static $RoleByIdCache = array();
+    /** @var TblLevel[] $LevelByIdCache */
+    private static $LevelByIdCache = array();
+    /** @var TblPrivilege[] $PrivilegeByIdCache */
+    private static $PrivilegeByIdCache = array();
     /** @var null|Binding */
     private $Binding = null;
     /** @var null|Structure */
@@ -76,11 +84,31 @@ class Service extends Extension implements IServiceInterface
         $Route = '/'.trim( $Route, '/' );
 
         // Cache
-        if (in_array( $Route, self::$Authorization )) {
+        $this->hydrateAuthorization();
+        if (in_array( $Route, self::$AuthorizationCache ) || in_array( $Route, self::$AuthorizationRequest )) {
             return true;
         }
 
-        if (false !== ( $tblRight = $this->getRightByName( $Route ) )) {
+        if (false === ( $tblRight = $this->getRightByName( $Route ) )) {
+            // Access valid PUBLIC -> Access granted
+            self::$AuthorizationRequest[] = $Route;
+            return true;
+        } else {
+            if (!array_key_exists( 'REST', $this->getRequest()->getParameterArray() )) {
+                // Resource is not protected -> Access granted
+                self::$AuthorizationRequest[] = $Route;
+                return true;
+            } else {
+                // REST MUST BE protected -> Access denied
+                return false;
+            }
+        }
+    }
+
+    private function hydrateAuthorization()
+    {
+
+        if (empty( self::$AuthorizationCache )) {
             if (false !== ( $tblAccount = Account::useService()->getAccountById( 1 ) )) {
                 if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount( $tblAccount ) )) {
                     /** @var TblAuthorization $tblAuthorization */
@@ -93,45 +121,16 @@ class Service extends Extension implements IServiceInterface
                             /** @var TblPrivilege $tblPrivilege */
                             foreach ($tblPrivilegeAll as $tblPrivilege) {
                                 $tblRightAll = $tblPrivilege->getTblRightAll();
-                                /** @noinspection PhpUnusedParameterInspection */
-                                array_walk( $tblRightAll,
-                                    function ( TblRight &$tblRight, $Index, TblRight $Right ) {
-
-                                        if ($tblRight->getId() == $Right->getId()) {
-                                            // Access valid -> Access granted
-                                            $tblRight = true;
-                                        } else {
-                                            // Access not valid -> Access denied
-                                            $tblRight = false;
-                                        }
-                                    }, $tblRight );
-                                $tblRightAll = array_filter( $tblRightAll );
-                                if (!empty( $tblRightAll )) {
-                                    // Access valid -> Access granted
-                                    self::$Authorization[] = $Route;
-                                    return true;
+                                /** @var TblRight $tblRight */
+                                foreach ($tblRightAll as $tblRight) {
+                                    if (!in_array( $tblRight->getRoute(), self::$AuthorizationCache )) {
+                                        array_push( self::$AuthorizationCache, $tblRight->getRoute() );
+                                    }
                                 }
                             }
                         }
                     }
-                    // Access not valid -> Access denied
-                    return false;
-                } else {
-                    // Authorization invalid -> Access denied
-                    return false;
                 }
-            } else {
-                // Session invalid -> Access denied
-                return false;
-            }
-        } else {
-            if (!array_key_exists( 'REST', $this->getRequest()->getParameterArray() )) {
-                // Resource is not protected -> Access granted
-                self::$Authorization[] = $Route;
-                return true;
-            } else {
-                // REST MUST BE protected -> Access denied
-                return false;
             }
         }
     }
@@ -215,7 +214,11 @@ class Service extends Extension implements IServiceInterface
     public function getPrivilegeById( $Id )
     {
 
-        return ( new Data( $this->Binding ) )->getPrivilegeById( $Id );
+        if (array_key_exists( $Id, self::$PrivilegeByIdCache )) {
+            return self::$PrivilegeByIdCache[$Id];
+        }
+        self::$PrivilegeByIdCache[$Id] = ( new Data( $this->Binding ) )->getPrivilegeById( $Id );
+        return self::$PrivilegeByIdCache[$Id];
     }
 
     /**
@@ -266,7 +269,11 @@ class Service extends Extension implements IServiceInterface
     public function getLevelById( $Id )
     {
 
-        return ( new Data( $this->Binding ) )->getLevelById( $Id );
+        if (array_key_exists( $Id, self::$LevelByIdCache )) {
+            return self::$LevelByIdCache[$Id];
+        }
+        self::$LevelByIdCache[$Id] = ( new Data( $this->Binding ) )->getLevelById( $Id );
+        return self::$LevelByIdCache[$Id];
     }
 
     /**
@@ -317,7 +324,11 @@ class Service extends Extension implements IServiceInterface
     public function getRoleById( $Id )
     {
 
-        return ( new Data( $this->Binding ) )->getRoleById( $Id );
+        if (array_key_exists( $Id, self::$RoleByIdCache )) {
+            return self::$RoleByIdCache[$Id];
+        }
+        self::$RoleByIdCache[$Id] = ( new Data( $this->Binding ) )->getRoleById( $Id );
+        return self::$RoleByIdCache[$Id];
     }
 
     /**

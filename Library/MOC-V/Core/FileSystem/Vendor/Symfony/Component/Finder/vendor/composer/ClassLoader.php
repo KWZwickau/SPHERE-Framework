@@ -42,7 +42,6 @@ namespace Composer\Autoload;
  */
 class ClassLoader
 {
-
     // PSR-4
     private $prefixLengthsPsr4 = array();
     private $prefixDirsPsr4 = array();
@@ -69,25 +68,21 @@ class ClassLoader
 
     public function getPrefixesPsr4()
     {
-
         return $this->prefixDirsPsr4;
     }
 
     public function getFallbackDirs()
     {
-
         return $this->fallbackDirsPsr0;
     }
 
     public function getFallbackDirsPsr4()
     {
-
         return $this->fallbackDirsPsr4;
     }
 
     public function getClassMap()
     {
-
         return $this->classMap;
     }
 
@@ -96,7 +91,6 @@ class ClassLoader
      */
     public function addClassMap( array $classMap )
     {
-
         if ($this->classMap) {
             $this->classMap = array_merge( $this->classMap, $classMap );
         } else {
@@ -114,7 +108,6 @@ class ClassLoader
      */
     public function add( $prefix, $paths, $prepend = false )
     {
-
         if (!$prefix) {
             if ($prepend) {
                 $this->fallbackDirsPsr0 = array_merge(
@@ -162,7 +155,6 @@ class ClassLoader
      */
     public function addPsr4( $prefix, $paths, $prepend = false )
     {
-
         if (!$prefix) {
             // Register directories for the root namespace.
             if ($prepend) {
@@ -208,7 +200,6 @@ class ClassLoader
      */
     public function set( $prefix, $paths )
     {
-
         if (!$prefix) {
             $this->fallbackDirsPsr0 = (array)$paths;
         } else {
@@ -227,7 +218,6 @@ class ClassLoader
      */
     public function setPsr4( $prefix, $paths )
     {
-
         if (!$prefix) {
             $this->fallbackDirsPsr4 = (array)$paths;
         } else {
@@ -248,7 +238,6 @@ class ClassLoader
      */
     public function getUseIncludePath()
     {
-
         return $this->useIncludePath;
     }
 
@@ -259,7 +248,6 @@ class ClassLoader
      */
     public function setUseIncludePath( $useIncludePath )
     {
-
         $this->useIncludePath = $useIncludePath;
     }
 
@@ -270,7 +258,6 @@ class ClassLoader
      */
     public function isClassMapAuthoritative()
     {
-
         return $this->classMapAuthoritative;
     }
 
@@ -282,7 +269,6 @@ class ClassLoader
      */
     public function setClassMapAuthoritative( $classMapAuthoritative )
     {
-
         $this->classMapAuthoritative = $classMapAuthoritative;
     }
 
@@ -311,13 +297,13 @@ class ClassLoader
      *
      * @param  string $class The name of the class
      *
-     * @return bool|null True if loaded, null otherwise
+*@return bool|null True if loaded, null otherwise
      */
-    public function loadClass( $class )
+    public function loadClass( $class)
     {
 
         if ($file = $this->findFile( $class )) {
-            includeFile( $file );
+            includeFile( $file);
 
             return true;
         }
@@ -330,12 +316,11 @@ class ClassLoader
      *
      * @return string|false The path if found, false otherwise
      */
-    public function findFile( $class )
+    public function findFile( $class)
     {
-
         // work around for PHP 5.3.0 - 5.3.2 https://bugs.php.net/50731
         if ('\\' == $class[0]) {
-            $class = substr( $class, 1 );
+            $class = substr( $class, 1);
         }
 
         // class map lookup
@@ -346,11 +331,11 @@ class ClassLoader
             return false;
         }
 
-        $file = $this->findFileWithExtension( $class, '.php' );
+        $file = $this->findFileWithExtension( $class, '.php');
 
         // Search for Hack files if we are running on HHVM
         if ($file === null && defined( 'HHVM_VERSION' )) {
-            $file = $this->findFileWithExtension( $class, '.hh' );
+            $file = $this->findFileWithExtension( $class, '.hh');
         }
 
         if ($file === null) {
@@ -361,9 +346,8 @@ class ClassLoader
         return $file;
     }
 
-    private function findFileWithExtension( $class, $ext )
+    private function findFileWithExtension( $class, $ext)
     {
-
         // PSR-4 lookup
         $logicalPathPsr4 = strtr( $class, '\\', DIRECTORY_SEPARATOR ).$ext;
 
@@ -391,7 +375,7 @@ class ClassLoader
         if (false !== $pos = strrpos( $class, '\\' )) {
             // namespaced class name
             $logicalPathPsr0 = substr( $logicalPathPsr4, 0, $pos + 1 )
-                .strtr( substr( $logicalPathPsr4, $pos + 1 ), '_', DIRECTORY_SEPARATOR );
+                .strtr( substr( $logicalPathPsr4, $pos + 1 ), '_', DIRECTORY_SEPARATOR);
         } else {
             // PEAR-like class name
             $logicalPathPsr0 = strtr( $class, '_', DIRECTORY_SEPARATOR ).$ext;
@@ -428,8 +412,7 @@ class ClassLoader
  *
  * Prevents access to $this/self from included files.
  */
-function includeFile( $file )
+function includeFile( $file)
 {
-
     include $file;
 }

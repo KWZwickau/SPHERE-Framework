@@ -15,13 +15,11 @@ use Symfony\Component\Finder\Comparator\NumberComparator;
 
 class NumberComparatorTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @dataProvider getConstructorTestData
      */
     public function testConstructor( $successes, $failures )
     {
-
         foreach ($successes as $s) {
             new NumberComparator( $s );
         }
@@ -56,7 +54,6 @@ class NumberComparatorTest extends \PHPUnit_Framework_TestCase
 
     public function getTestData()
     {
-
         return array(
             array( '< 1000', array( '500', '999' ), array( '1000', '1500' ) ),
             array( '< 1K', array( '500', '999' ), array( '1000', '1500' ) ),
@@ -81,7 +78,6 @@ class NumberComparatorTest extends \PHPUnit_Framework_TestCase
 
     public function getConstructorTestData()
     {
-
         return array(
             array(
                 array(

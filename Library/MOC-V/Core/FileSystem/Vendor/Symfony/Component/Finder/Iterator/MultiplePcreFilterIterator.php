@@ -20,7 +20,6 @@ use Symfony\Component\Finder\Expression\Expression;
  */
 abstract class MultiplePcreFilterIterator extends FilterIterator
 {
-
     protected $matchRegexps = array();
     protected $noMatchRegexps = array();
 
@@ -33,7 +32,6 @@ abstract class MultiplePcreFilterIterator extends FilterIterator
      */
     public function __construct( \Iterator $iterator, array $matchPatterns, array $noMatchPatterns )
     {
-
         foreach ($matchPatterns as $pattern) {
             $this->matchRegexps[] = $this->toRegex( $pattern );
         }

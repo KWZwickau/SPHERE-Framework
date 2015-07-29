@@ -16,7 +16,6 @@ use Symfony\Component\Finder\Iterator\SizeRangeFilterIterator;
 
 class SizeRangeFilterIteratorTest extends RealIteratorTestCase
 {
-
     /**
      * @dataProvider getAcceptData
      */
@@ -32,7 +31,6 @@ class SizeRangeFilterIteratorTest extends RealIteratorTestCase
 
     public function getAcceptData()
     {
-
         $lessThan1KGreaterThan05K = array(
             '.foo',
             '.git',
@@ -52,16 +50,13 @@ class SizeRangeFilterIteratorTest extends RealIteratorTestCase
 
 class InnerSizeIterator extends \ArrayIterator
 {
-
     public function getFilename()
     {
-
         return parent::current();
     }
 
     public function isFile()
     {
-
         return $this->current()->isFile();
     }
 
@@ -73,7 +68,6 @@ class InnerSizeIterator extends \ArrayIterator
 
     public function getSize()
     {
-
         return $this->current()->getSize();
     }
 }

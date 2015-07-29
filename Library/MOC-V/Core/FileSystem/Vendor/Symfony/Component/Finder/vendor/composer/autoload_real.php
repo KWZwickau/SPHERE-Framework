@@ -4,12 +4,10 @@
 
 class ComposerAutoloaderInit3ab84b9371e9275f30ffcc69e1c23cc6
 {
-
     private static $loader;
 
     public static function loadClassLoader( $class )
     {
-
         if ('Composer\Autoload\ClassLoader' === $class) {
             require __DIR__.'/ClassLoader.php';
         }
@@ -17,7 +15,6 @@ class ComposerAutoloaderInit3ab84b9371e9275f30ffcc69e1c23cc6
 
     public static function getLoader()
     {
-
         if (null !== self::$loader) {
             return self::$loader;
         }
@@ -77,6 +74,5 @@ class ComposerAutoloaderInit3ab84b9371e9275f30ffcc69e1c23cc6
 
 function composerRequire3ab84b9371e9275f30ffcc69e1c23cc6( $file )
 {
-
     require $file;
 }

@@ -16,7 +16,6 @@ namespace Symfony\Component\Finder\Expression;
  */
 class Expression implements ValueInterface
 {
-
     const TYPE_REGEX = 1;
     const TYPE_GLOB = 2;
 
@@ -30,7 +29,6 @@ class Expression implements ValueInterface
      */
     public function __construct( $expr )
     {
-
         try {
             $this->value = Regex::create( $expr );
         } catch( \InvalidArgumentException $e ) {
@@ -54,7 +52,6 @@ class Expression implements ValueInterface
      */
     public function __toString()
     {
-
         return $this->render();
     }
 
@@ -63,7 +60,6 @@ class Expression implements ValueInterface
      */
     public function render()
     {
-
         return $this->value->render();
     }
 
@@ -72,7 +68,6 @@ class Expression implements ValueInterface
      */
     public function renderPattern()
     {
-
         return $this->value->renderPattern();
     }
 
@@ -81,7 +76,6 @@ class Expression implements ValueInterface
      */
     public function isCaseSensitive()
     {
-
         return $this->value->isCaseSensitive();
     }
 
@@ -90,7 +84,6 @@ class Expression implements ValueInterface
      */
     public function getType()
     {
-
         return $this->value->getType();
     }
 
@@ -121,7 +114,6 @@ class Expression implements ValueInterface
      */
     public function isRegex()
     {
-
         return self::TYPE_REGEX === $this->value->getType();
     }
 
@@ -130,7 +122,6 @@ class Expression implements ValueInterface
      */
     public function isGlob()
     {
-
         return self::TYPE_GLOB === $this->value->getType();
     }
 
@@ -141,7 +132,6 @@ class Expression implements ValueInterface
      */
     public function getGlob()
     {
-
         if (self::TYPE_GLOB !== $this->value->getType()) {
             throw new \LogicException( 'Regex can\'t be transformed to glob.' );
         }
@@ -154,7 +144,6 @@ class Expression implements ValueInterface
      */
     public function getRegex()
     {
-
         return self::TYPE_REGEX === $this->value->getType() ? $this->value : $this->value->toRegex();
     }
 }

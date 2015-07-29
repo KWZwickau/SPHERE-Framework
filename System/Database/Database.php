@@ -25,7 +25,6 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;
@@ -40,6 +39,10 @@ use SPHERE\System\Extension\Extension;
 class Database extends Extension
 {
 
+    /** @var null|bool $ConditionMemcached */
+    private static $ConditionMemcached = null;
+    /** @var null|bool $ConditionApc */
+    private static $ConditionApc = null;
     /** @var Manager[] $EntityManager */
     private static $EntityManager = array();
     /** @var Identifier $Identifier */
@@ -106,22 +109,22 @@ class Database extends Extension
         $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration( array( $EntityPath ) );
         $MetadataConfiguration->setDefaultRepositoryClassName( '\SPHERE\System\Database\Fitting\Repository' );
         $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
-        if (class_exists( '\Memcached', false )) {
+        if (self::$ConditionMemcached || self::$ConditionMemcached = class_exists( '\Memcached', false )) {
+            /** @var Memcached $CacheDriver */
+            $CacheDriver = ( new Cache( new Memcached() ) )->getCache();
             $Cache = new MemcachedCache();
-            /** @var Memcached $CacheConfiguration */
-            $CacheConfiguration = ( new Cache( new Memcached() ) )->getCache();
-            $Cache->setMemcached( $CacheConfiguration->getServer() );
+            $Cache->setMemcached( $CacheDriver->getServer() );
             $Cache->setNamespace( $EntityPath );
             $ConnectionConfig->setResultCacheImpl( $Cache );
             $MetadataConfiguration->setQueryCacheImpl( $Cache );
             $MetadataConfiguration->setHydrationCacheImpl( $Cache );
-            if (function_exists( 'apc_fetch' )) {
+            if (self::$ConditionApc || self::$ConditionApc = function_exists( 'apc_fetch' )) {
                 $MetadataConfiguration->setMetadataCacheImpl( new ApcCache() );
             } else {
                 $MetadataConfiguration->setMetadataCacheImpl( new ArrayCache() );
             }
         } else {
-            if (function_exists( 'apc_fetch' )) {
+            if (self::$ConditionApc || self::$ConditionApc = function_exists( 'apc_fetch' )) {
                 $MetadataConfiguration->setMetadataCacheImpl( new ApcCache() );
             } else {
                 $MetadataConfiguration->setMetadataCacheImpl( new ArrayCache() );
@@ -130,7 +133,7 @@ class Database extends Extension
             $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
             $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
         }
-        $ConnectionConfig->setSQLLogger( new Logger() );
+        //$ConnectionConfig->setSQLLogger( new Logger() );
         self::$EntityManager[$Identifier] = new Manager(
             EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ), $EntityNamespace
         );

@@ -26,7 +26,6 @@ use Symfony\Component\Finder\Shell\Shell;
  */
 abstract class AbstractFindAdapter extends AbstractAdapter
 {
-
     /**
      * @var Shell
      */
@@ -37,7 +36,6 @@ abstract class AbstractFindAdapter extends AbstractAdapter
      */
     public function __construct()
     {
-
         $this->shell = new Shell();
     }
 
@@ -46,7 +44,6 @@ abstract class AbstractFindAdapter extends AbstractAdapter
      */
     public function searchInDirectory( $dir )
     {
-
         // having "/../" in path make find fail
         $dir = realpath( $dir );
 
@@ -138,7 +135,6 @@ abstract class AbstractFindAdapter extends AbstractAdapter
      */
     protected function buildFindCommand( Command $command, $dir )
     {
-
         return $command
             ->ins( 'find' )
             ->add( 'find ' )
@@ -243,7 +239,6 @@ abstract class AbstractFindAdapter extends AbstractAdapter
      */
     private function buildSizesFiltering( Command $command, array $sizes )
     {
-
         foreach ($sizes as $i => $size) {
             $command->add( $i > 0 ? '-and' : null );
 
@@ -263,7 +258,7 @@ abstract class AbstractFindAdapter extends AbstractAdapter
                     break;
                 case '<':
                 default:
-                    $command->add( '-size -'.$size->getTarget().'c' );
+                $command->add( '-size -'.$size->getTarget().'c' );
             }
         }
     }
@@ -274,7 +269,6 @@ abstract class AbstractFindAdapter extends AbstractAdapter
      */
     private function buildDatesFiltering( Command $command, array $dates )
     {
-
         foreach ($dates as $i => $date) {
             $command->add( $i > 0 ? '-and' : null );
 
@@ -302,7 +296,7 @@ abstract class AbstractFindAdapter extends AbstractAdapter
                     break;
                 case '<':
                 default:
-                    $command->add( '-mmin +'.$mins );
+                $command->add( '-mmin +'.$mins );
             }
         }
     }

@@ -16,13 +16,11 @@ use Symfony\Component\Finder\Iterator\DateRangeFilterIterator;
 
 class DateRangeFilterIteratorTest extends RealIteratorTestCase
 {
-
     /**
      * @dataProvider getAcceptData
      */
     public function testAccept( $size, $expected )
     {
-
         $files = self::$files;
         $files[] = self::toAbsolute( 'doesnotexist' );
         $inner = new Iterator( $files );
@@ -34,7 +32,6 @@ class DateRangeFilterIteratorTest extends RealIteratorTestCase
 
     public function getAcceptData()
     {
-
         $since20YearsAgo = array(
             '.git',
             'test.py',

@@ -21,7 +21,6 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
 {
-
     /**
      * @var bool
      */
@@ -70,7 +69,6 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
      */
     public function getChildren()
     {
-
         try {
             $children = parent::getChildren();
 
@@ -95,7 +93,6 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
      */
     public function rewind()
     {
-
         if (false === $this->isRewindable()) {
             return;
         }
@@ -113,7 +110,6 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
      */
     public function isRewindable()
     {
-
         if (null !== $this->rewindable) {
             return $this->rewindable;
         }

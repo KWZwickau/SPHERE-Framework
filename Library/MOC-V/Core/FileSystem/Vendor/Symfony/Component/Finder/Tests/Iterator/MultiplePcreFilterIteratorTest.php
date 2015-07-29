@@ -15,20 +15,17 @@ use Symfony\Component\Finder\Iterator\MultiplePcreFilterIterator;
 
 class MultiplePcreFilterIteratorTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @dataProvider getIsRegexFixtures
      */
     public function testIsRegex( $string, $isRegex, $message )
     {
-
         $testIterator = new TestMultiplePcreFilterIterator();
         $this->assertEquals( $isRegex, $testIterator->isRegex( $string ), $message );
     }
 
     public function getIsRegexFixtures()
     {
-
         return array(
             array( 'foo', false, 'string' ),
             array( ' foo ', false, '" " is not a valid delimiter' ),
@@ -49,7 +46,6 @@ class MultiplePcreFilterIteratorTest extends \PHPUnit_Framework_TestCase
 
 class TestMultiplePcreFilterIterator extends MultiplePcreFilterIterator
 {
-
     public function __construct()
     {
     }

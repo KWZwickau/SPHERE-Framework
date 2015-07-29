@@ -44,7 +44,6 @@ use Symfony\Component\Finder\Iterator\SortableIterator;
  */
 class Finder implements \IteratorAggregate, \Countable
 {
-
     const IGNORE_VCS_FILES = 1;
     const IGNORE_DOT_FILES = 2;
     private static $vcsPatterns = array(
@@ -83,7 +82,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function __construct()
     {
-
         $this->ignore = static::IGNORE_VCS_FILES | static::IGNORE_DOT_FILES;
 
         $this
@@ -122,7 +120,6 @@ class Finder implements \IteratorAggregate, \Countable
     {
 
         $this->adapters = array_map( function ( array $properties ) {
-
             $properties['selected'] = false;
 
             return $properties;
@@ -136,7 +133,6 @@ class Finder implements \IteratorAggregate, \Countable
     {
 
         uasort( $this->adapters, function ( array $a, array $b ) {
-
             if ($a['selected'] || $b['selected']) {
                 return $a['selected'] ? -1 : 1;
             }
@@ -157,9 +153,8 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function addAdapter( AdapterInterface $adapter, $priority = 0 )
     {
-
         $this->adapters[$adapter->getName()] = array(
-            'adapter'  => $adapter,
+            'adapter' => $adapter,
             'priority' => $priority,
             'selected' => false,
         );
@@ -176,7 +171,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public static function create()
     {
-
         return new static();
     }
 
@@ -204,7 +198,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function useBestAdapter()
     {
-
         $this->resetAdapterSelection();
 
         return $this->sortAdapters();
@@ -217,7 +210,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function removeAdapters()
     {
-
         $this->adapters = array();
 
         return $this;
@@ -232,7 +224,6 @@ class Finder implements \IteratorAggregate, \Countable
     {
 
         return array_values( array_map( function ( array $adapter ) {
-
             return $adapter['adapter'];
         }, $this->adapters ) );
     }
@@ -246,7 +237,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function directories()
     {
-
         $this->mode = Iterator\FileTypeFilterIterator::ONLY_DIRECTORIES;
 
         return $this;
@@ -261,7 +251,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function files()
     {
-
         $this->mode = Iterator\FileTypeFilterIterator::ONLY_FILES;
 
         return $this;
@@ -339,7 +328,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function name( $pattern )
     {
-
         $this->names[] = $pattern;
 
         return $this;
@@ -358,7 +346,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function notName( $pattern )
     {
-
         $this->notNames[] = $pattern;
 
         return $this;
@@ -380,7 +367,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function contains( $pattern )
     {
-
         $this->contains[] = $pattern;
 
         return $this;
@@ -402,7 +388,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function notContains( $pattern )
     {
-
         $this->notContains[] = $pattern;
 
         return $this;
@@ -426,7 +411,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function path( $pattern )
     {
-
         $this->paths[] = $pattern;
 
         return $this;
@@ -450,7 +434,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function notPath( $pattern )
     {
-
         $this->notPaths[] = $pattern;
 
         return $this;
@@ -512,7 +495,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function ignoreDotFiles( $ignoreDotFiles )
     {
-
         if ($ignoreDotFiles) {
             $this->ignore |= static::IGNORE_DOT_FILES;
         } else {
@@ -535,7 +517,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function ignoreVCS( $ignoreVCS )
     {
-
         if ($ignoreVCS) {
             $this->ignore |= static::IGNORE_VCS_FILES;
         } else {
@@ -562,7 +543,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function sort( \Closure $closure )
     {
-
         $this->sort = $closure;
 
         return $this;
@@ -581,7 +561,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function sortByName()
     {
-
         $this->sort = Iterator\SortableIterator::SORT_BY_NAME;
 
         return $this;
@@ -600,7 +579,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function sortByType()
     {
-
         $this->sort = Iterator\SortableIterator::SORT_BY_TYPE;
 
         return $this;
@@ -621,7 +599,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function sortByAccessedTime()
     {
-
         $this->sort = Iterator\SortableIterator::SORT_BY_ACCESSED_TIME;
 
         return $this;
@@ -644,7 +621,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function sortByChangedTime()
     {
-
         $this->sort = Iterator\SortableIterator::SORT_BY_CHANGED_TIME;
 
         return $this;
@@ -665,7 +641,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function sortByModifiedTime()
     {
-
         $this->sort = Iterator\SortableIterator::SORT_BY_MODIFIED_TIME;
 
         return $this;
@@ -687,7 +662,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function filter( \Closure $closure )
     {
-
         $this->filters[] = $closure;
 
         return $this;
@@ -702,7 +676,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function followLinks()
     {
-
         $this->followLinks = true;
 
         return $this;
@@ -738,7 +711,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function in( $dirs )
     {
-
         $resolvedDirs = array();
 
         foreach ((array)$dirs as $dir) {
@@ -769,7 +741,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     public function append( $iterator )
     {
-
         if ($iterator instanceof \IteratorAggregate) {
             $this->iterators[] = $iterator->getIterator();
         } elseif ($iterator instanceof \Iterator) {
@@ -869,7 +840,6 @@ class Finder implements \IteratorAggregate, \Countable
      */
     private function buildAdapter( AdapterInterface $adapter )
     {
-
         return $adapter
             ->setFollowLinks( $this->followLinks )
             ->setDepths( $this->depths )

@@ -18,7 +18,6 @@ namespace Symfony\Component\Finder\Iterator;
  */
 class SortableIterator implements \IteratorAggregate
 {
-
     const SORT_BY_NAME = 1;
     const SORT_BY_TYPE = 2;
     const SORT_BY_ACCESSED_TIME = 3;
@@ -38,7 +37,6 @@ class SortableIterator implements \IteratorAggregate
      */
     public function __construct( \Traversable $iterator, $sort )
     {
-
         $this->iterator = $iterator;
 
         if (self::SORT_BY_NAME === $sort) {
@@ -48,7 +46,6 @@ class SortableIterator implements \IteratorAggregate
             };
         } elseif (self::SORT_BY_TYPE === $sort) {
             $this->sort = function ( $a, $b ) {
-
                 if ($a->isDir() && $b->isFile()) {
                     return -1;
                 } elseif ($a->isFile() && $b->isDir()) {

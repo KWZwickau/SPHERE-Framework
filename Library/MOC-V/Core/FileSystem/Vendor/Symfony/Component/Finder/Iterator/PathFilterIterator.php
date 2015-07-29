@@ -19,7 +19,6 @@ namespace Symfony\Component\Finder\Iterator;
  */
 class PathFilterIterator extends MultiplePcreFilterIterator
 {
-
     /**
      * Filters the iterator values.
      *
@@ -27,7 +26,6 @@ class PathFilterIterator extends MultiplePcreFilterIterator
      */
     public function accept()
     {
-
         $filename = $this->current()->getRelativePathname();
 
         if ('\\' === DIRECTORY_SEPARATOR) {

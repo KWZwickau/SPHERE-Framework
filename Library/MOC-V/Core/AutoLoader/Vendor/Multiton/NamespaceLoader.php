@@ -47,22 +47,22 @@ class NamespaceLoader
             return true;
         }
 
-//        if (function_exists( 'apc_fetch' )) {
-//            $Hash = sha1( $this->Namespace.$this->Path.$this->Separator.$this->Extension.$this->Prefix );
-//            // @codeCoverageIgnoreStart
-//            if (false === ( $Result = apc_fetch( $Hash.'#'.$ClassName ) )) {
-//                $Result = $this->checkCanLoadClass( $ClassName );
-//                apc_store( $Hash.'#'.$ClassName, ( $Result ? 1 : 0 ) );
-//            }
-//            if (!$Result) {
-//                return false;
-//            }
-//        } else {
+        if (function_exists( 'apc_fetch' )) {
+            $Hash = sha1( $this->Namespace.$this->Path.$this->Separator.$this->Extension.$this->Prefix );
+            // @codeCoverageIgnoreStart
+            if (false === ( $Result = apc_fetch( $Hash.'#'.$ClassName ) )) {
+                $Result = $this->checkCanLoadClass( $ClassName );
+                apc_store( $Hash.'#'.$ClassName, ( $Result ? 1 : 0 ) );
+            }
+            if (!$Result) {
+                return false;
+            }
+        } else {
             // @codeCoverageIgnoreEnd
             if (!$this->checkCanLoadClass( $ClassName )) {
                 return false;
             }
-//        }
+        }
 
         /** @noinspection PhpIncludeInspection */
         require( $this->Path.DIRECTORY_SEPARATOR

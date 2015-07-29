@@ -16,7 +16,6 @@ namespace Symfony\Component\Finder\Expression;
  */
 class Regex implements ValueInterface
 {
-
     const START_FLAG = '^';
     const END_FLAG = '$';
     const BOUNDARY = '~';
@@ -60,7 +59,6 @@ class Regex implements ValueInterface
      */
     public function __construct( $pattern, $options = '', $delimiter = null )
     {
-
         if (null !== $delimiter) {
             // removes delimiter escaping
             $pattern = str_replace( '\\'.$delimiter, $delimiter, $pattern );
@@ -130,7 +128,6 @@ class Regex implements ValueInterface
      */
     public function __toString()
     {
-
         return $this->render();
     }
 
@@ -139,7 +136,6 @@ class Regex implements ValueInterface
      */
     public function render()
     {
-
         return self::BOUNDARY
         .$this->renderPattern()
         .self::BOUNDARY
@@ -184,7 +180,6 @@ class Regex implements ValueInterface
      */
     public function getType()
     {
-
         return Expression::TYPE_REGEX;
     }
 
@@ -193,7 +188,6 @@ class Regex implements ValueInterface
      */
     public function prepend( $expr )
     {
-
         $this->pattern = $expr.$this->pattern;
 
         return $this;
@@ -204,7 +198,6 @@ class Regex implements ValueInterface
      */
     public function append( $expr )
     {
-
         $this->pattern .= $expr;
 
         return $this;
@@ -245,7 +238,6 @@ class Regex implements ValueInterface
      */
     public function setStartFlag( $startFlag )
     {
-
         $this->startFlag = $startFlag;
 
         return $this;
@@ -256,7 +248,6 @@ class Regex implements ValueInterface
      */
     public function hasStartFlag()
     {
-
         return $this->startFlag;
     }
 
@@ -278,7 +269,6 @@ class Regex implements ValueInterface
      */
     public function hasEndFlag()
     {
-
         return $this->endFlag;
     }
 
@@ -289,7 +279,6 @@ class Regex implements ValueInterface
      */
     public function setStartJoker( $startJoker )
     {
-
         $this->startJoker = $startJoker;
 
         return $this;
@@ -300,7 +289,6 @@ class Regex implements ValueInterface
      */
     public function hasStartJoker()
     {
-
         return $this->startJoker;
     }
 
@@ -322,7 +310,6 @@ class Regex implements ValueInterface
      */
     public function hasEndJoker()
     {
-
         return $this->endJoker;
     }
 
@@ -335,7 +322,6 @@ class Regex implements ValueInterface
     {
 
         $replace = function ( $subject ) use ( $replacement ) {
-
             $subject = $subject[0];
             $replace = 0 === substr_count( $subject, '\\' ) % 2;
 

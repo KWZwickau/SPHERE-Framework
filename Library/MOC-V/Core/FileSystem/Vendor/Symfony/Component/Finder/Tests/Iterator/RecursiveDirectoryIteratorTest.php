@@ -15,7 +15,6 @@ use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 class RecursiveDirectoryIteratorTest extends IteratorTestCase
 {
-
     /**
      * @dataProvider getPaths
      *
@@ -26,7 +25,6 @@ class RecursiveDirectoryIteratorTest extends IteratorTestCase
      */
     public function testRewind( $path, $seekable, $contains, $message = null )
     {
-
         try {
             $i = new RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS );
         } catch( \UnexpectedValueException $e ) {
@@ -48,7 +46,6 @@ class RecursiveDirectoryIteratorTest extends IteratorTestCase
      */
     public function testSeek( $path, $seekable, $contains, $message = null )
     {
-
         try {
             $i = new RecursiveDirectoryIterator( $path, \RecursiveDirectoryIterator::SKIP_DOTS );
         } catch( \UnexpectedValueException $e ) {
@@ -71,7 +68,6 @@ class RecursiveDirectoryIteratorTest extends IteratorTestCase
 
     public function getPaths()
     {
-
         $data = array();
 
         // ftp

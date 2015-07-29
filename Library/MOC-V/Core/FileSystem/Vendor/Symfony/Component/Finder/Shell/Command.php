@@ -16,7 +16,6 @@ namespace Symfony\Component\Finder\Shell;
  */
 class Command
 {
-
     /**
      * @var Command|null
      */
@@ -44,7 +43,6 @@ class Command
      */
     public function __construct( Command $parent = null )
     {
-
         $this->parent = $parent;
     }
 
@@ -55,7 +53,6 @@ class Command
      */
     public function __toString()
     {
-
         return $this->join();
     }
 
@@ -88,7 +85,6 @@ class Command
      */
     public function add( $bit )
     {
-
         $this->bits[] = $bit;
 
         return $this;
@@ -232,7 +228,6 @@ class Command
      */
     public function end()
     {
-
         if (null === $this->parent) {
             throw new \RuntimeException( 'Calling end on root command doesn\'t make sense.' );
         }
@@ -256,7 +251,6 @@ class Command
      */
     public function getErrorHandler()
     {
-
         return $this->errorHandler;
     }
 
@@ -267,7 +261,6 @@ class Command
      */
     public function setErrorHandler( \Closure $errorHandler )
     {
-
         $this->errorHandler = $errorHandler;
 
         return $this;
@@ -282,7 +275,6 @@ class Command
      */
     public function execute()
     {
-
         if (null === $errorHandler = $this->errorHandler) {
             exec( $this->join(), $output );
         } else {

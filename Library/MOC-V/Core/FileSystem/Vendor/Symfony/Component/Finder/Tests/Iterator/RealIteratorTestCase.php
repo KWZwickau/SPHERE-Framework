@@ -13,7 +13,6 @@ namespace Symfony\Component\Finder\Tests\Iterator;
 
 abstract class RealIteratorTestCase extends IteratorTestCase
 {
-
     protected static $tmpDir;
     protected static $files;
 
@@ -61,7 +60,6 @@ abstract class RealIteratorTestCase extends IteratorTestCase
 
     protected static function toAbsolute( $files = null )
     {
-
         /*
          * Without the call to setUpBeforeClass() property can be null.
          */
@@ -103,7 +101,6 @@ abstract class RealIteratorTestCase extends IteratorTestCase
 
     protected static function toAbsoluteFixtures( $files )
     {
-
         $f = array();
         foreach ($files as $file) {
             $f[] = realpath( __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'Fixtures'.DIRECTORY_SEPARATOR.$file );

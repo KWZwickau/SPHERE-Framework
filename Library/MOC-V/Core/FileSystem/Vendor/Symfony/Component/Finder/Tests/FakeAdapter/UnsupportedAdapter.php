@@ -18,7 +18,6 @@ use Symfony\Component\Finder\Adapter\AbstractAdapter;
  */
 class UnsupportedAdapter extends AbstractAdapter
 {
-
     /**
      * {@inheritdoc}
      */
@@ -33,7 +32,6 @@ class UnsupportedAdapter extends AbstractAdapter
      */
     public function getName()
     {
-
         return 'unsupported';
     }
 
@@ -42,7 +40,6 @@ class UnsupportedAdapter extends AbstractAdapter
      */
     protected function canBeUsed()
     {
-
         return false;
     }
 }

@@ -15,7 +15,6 @@ use Symfony\Component\Finder\Iterator\FilecontentFilterIterator;
 
 class FilecontentFilterIteratorTest extends IteratorTestCase
 {
-
     public function testAccept()
     {
 
@@ -52,7 +51,6 @@ class FilecontentFilterIteratorTest extends IteratorTestCase
 
     public function getTestFilterData()
     {
-
         $inner = new MockFileListIterator();
 
         $inner[] = new MockSplFileInfo( array(

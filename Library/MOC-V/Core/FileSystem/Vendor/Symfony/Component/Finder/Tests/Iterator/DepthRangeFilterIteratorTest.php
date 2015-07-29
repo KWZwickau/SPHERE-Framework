@@ -15,7 +15,6 @@ use Symfony\Component\Finder\Iterator\DepthRangeFilterIterator;
 
 class DepthRangeFilterIteratorTest extends RealIteratorTestCase
 {
-
     /**
      * @dataProvider getAcceptData
      */
@@ -35,7 +34,6 @@ class DepthRangeFilterIteratorTest extends RealIteratorTestCase
 
     public function getAcceptData()
     {
-
         $lessThan1 = array(
             '.git',
             'test.py',

@@ -18,7 +18,6 @@ namespace Symfony\Component\Finder\Iterator;
  */
 class FileTypeFilterIterator extends FilterIterator
 {
-
     const ONLY_FILES = 1;
     const ONLY_DIRECTORIES = 2;
 
@@ -32,7 +31,6 @@ class FileTypeFilterIterator extends FilterIterator
      */
     public function __construct( \Iterator $iterator, $mode )
     {
-
         $this->mode = $mode;
 
         parent::__construct( $iterator );
@@ -45,7 +43,6 @@ class FileTypeFilterIterator extends FilterIterator
      */
     public function accept()
     {
-
         $fileinfo = $this->current();
         if (self::ONLY_DIRECTORIES === ( self::ONLY_DIRECTORIES & $this->mode ) && $fileinfo->isFile()) {
             return false;

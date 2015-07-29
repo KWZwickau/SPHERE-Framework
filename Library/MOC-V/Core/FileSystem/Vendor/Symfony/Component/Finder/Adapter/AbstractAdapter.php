@@ -18,7 +18,6 @@ namespace Symfony\Component\Finder\Adapter;
  */
 abstract class AbstractAdapter implements AdapterInterface
 {
-
     private static $areSupported = array();
     protected $followLinks = false;
     protected $mode = 0;
@@ -42,7 +41,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function isSupported()
     {
-
         $name = $this->getName();
 
         if (!array_key_exists( $name, self::$areSupported )) {
@@ -70,7 +68,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setFollowLinks( $followLinks )
     {
-
         $this->followLinks = $followLinks;
 
         return $this;
@@ -81,7 +78,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setMode( $mode )
     {
-
         $this->mode = $mode;
 
         return $this;
@@ -92,7 +88,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setDepths( array $depths )
     {
-
         $this->minDepth = 0;
         $this->maxDepth = PHP_INT_MAX;
 
@@ -123,7 +118,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setExclude( array $exclude )
     {
-
         $this->exclude = $exclude;
 
         return $this;
@@ -134,7 +128,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setNames( array $names )
     {
-
         $this->names = $names;
 
         return $this;
@@ -145,7 +138,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setNotNames( array $notNames )
     {
-
         $this->notNames = $notNames;
 
         return $this;
@@ -156,7 +148,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setContains( array $contains )
     {
-
         $this->contains = $contains;
 
         return $this;
@@ -167,7 +158,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setNotContains( array $notContains )
     {
-
         $this->notContains = $notContains;
 
         return $this;
@@ -178,7 +168,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setSizes( array $sizes )
     {
-
         $this->sizes = $sizes;
 
         return $this;
@@ -189,7 +178,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setDates( array $dates )
     {
-
         $this->dates = $dates;
 
         return $this;
@@ -200,7 +188,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setFilters( array $filters )
     {
-
         $this->filters = $filters;
 
         return $this;
@@ -211,7 +198,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setSort( $sort )
     {
-
         $this->sort = $sort;
 
         return $this;
@@ -222,7 +208,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setPath( array $paths )
     {
-
         $this->paths = $paths;
 
         return $this;
@@ -233,7 +218,6 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function setNotPath( array $notPaths )
     {
-
         $this->notPaths = $notPaths;
 
         return $this;

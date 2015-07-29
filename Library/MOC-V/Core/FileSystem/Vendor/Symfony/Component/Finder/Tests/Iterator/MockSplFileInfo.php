@@ -13,7 +13,6 @@ namespace Symfony\Component\Finder\Tests\Iterator;
 
 class MockSplFileInfo extends \SplFileInfo
 {
-
     const   TYPE_DIRECTORY = 1;
     const   TYPE_FILE = 2;
     const   TYPE_UNKNOWN = 3;
@@ -52,7 +51,6 @@ class MockSplFileInfo extends \SplFileInfo
 
     public function setMode( $mode )
     {
-
         $this->mode = $mode;
     }
 
@@ -81,7 +79,6 @@ class MockSplFileInfo extends \SplFileInfo
 
     public function isFile()
     {
-
         if (null === $this->type) {
             return preg_match( '/file/', $this->getFilename() );
         };
@@ -91,7 +88,6 @@ class MockSplFileInfo extends \SplFileInfo
 
     public function isDir()
     {
-
         if (null === $this->type) {
             return preg_match( '/directory/', $this->getFilename() );
         }
@@ -101,7 +97,6 @@ class MockSplFileInfo extends \SplFileInfo
 
     public function isReadable()
     {
-
         if (null === $this->mode) {
             return preg_match( '/r\+/', $this->getFilename() );
         }
@@ -111,37 +106,31 @@ class MockSplFileInfo extends \SplFileInfo
 
     public function getContents()
     {
-
         return $this->contents;
     }
 
     public function setContents( $contents )
     {
-
         $this->contents = $contents;
     }
 
     public function getRelativePath()
     {
-
         return $this->relativePath;
     }
 
     public function setRelativePath( $relativePath )
     {
-
         $this->relativePath = $relativePath;
     }
 
     public function getRelativePathname()
     {
-
         return $this->relativePathname;
     }
 
     public function setRelativePathname( $relativePathname )
     {
-
         $this->relativePathname = $relativePathname;
     }
 }

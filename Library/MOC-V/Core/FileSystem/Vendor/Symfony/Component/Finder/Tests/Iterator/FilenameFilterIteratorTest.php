@@ -15,7 +15,6 @@ use Symfony\Component\Finder\Iterator\FilenameFilterIterator;
 
 class FilenameFilterIteratorTest extends IteratorTestCase
 {
-
     /**
      * @dataProvider getAcceptData
      */
@@ -31,7 +30,6 @@ class FilenameFilterIteratorTest extends IteratorTestCase
 
     public function getAcceptData()
     {
-
         return array(
             array( array( 'test.*' ), array(), array( 'test.php', 'test.py' ) ),
             array( array(), array( 'test.*' ), array( 'foo.php' ) ),
@@ -45,7 +43,6 @@ class FilenameFilterIteratorTest extends IteratorTestCase
 
 class InnerNameIterator extends \ArrayIterator
 {
-
     public function current()
     {
 
@@ -54,7 +51,6 @@ class InnerNameIterator extends \ArrayIterator
 
     public function getFilename()
     {
-
         return parent::current();
     }
 }

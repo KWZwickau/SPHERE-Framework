@@ -16,7 +16,6 @@ use Symfony\Component\Finder\Finder;
 
 class FinderTest extends Iterator\RealIteratorTestCase
 {
-
     public function testCreate()
     {
 
@@ -44,7 +43,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     private function buildFinder( Adapter\AdapterInterface $adapter )
     {
-
         return Finder::create()
             ->removeAdapters()
             ->addAdapter( $adapter );
@@ -439,7 +437,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
      */
     public function testFollowLinks( $adapter )
     {
-
         if ('\\' == DIRECTORY_SEPARATOR) {
             return;
         }
@@ -692,7 +689,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
      */
     public function testCountWithoutIn()
     {
-
         $finder = Finder::create()->files();
         count( $finder );
     }
@@ -744,13 +740,12 @@ class FinderTest extends Iterator\RealIteratorTestCase
      * Searching in multiple locations involves AppendIterator which does an unnecessary rewind which leaves FilterIterator
      * with inner FilesystemIterator in an invalid state.
      *
-     * @see          https://bugs.php.net/bug.php?id=49104
+     * @see https://bugs.php.net/bug.php?id=49104
      *
      * @dataProvider getAdaptersTestData
      */
     public function testMultipleLocations( Adapter\AdapterInterface $adapter )
     {
-
         $locations = array(
             self::$tmpDir.'/',
             self::$tmpDir.'/toto/',
@@ -797,7 +792,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     public function testAdaptersOrdering()
     {
-
         $finder = Finder::create()
             ->removeAdapters()
             ->addAdapter( new FakeAdapter\NamedAdapter( 'a' ), 0 )
@@ -809,7 +803,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
         $this->assertEquals(
             array( 'c', 'e', 'a', 'd', 'b' ),
             array_map( function ( Adapter\AdapterInterface $adapter ) {
-
                 return $adapter->getName();
             }, $finder->getAdapters() )
         );
@@ -835,7 +828,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     public function getAdaptersTestData()
     {
-
         return array_map(
             function ( $adapter ) {
 
@@ -847,7 +839,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     private function getValidAdapters()
     {
-
         return array_filter(
             array(
                 new Adapter\BsdFindAdapter(),
@@ -855,7 +846,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
                 new Adapter\PhpAdapter(),
             ),
             function ( Adapter\AdapterInterface $adapter ) {
-
                 return $adapter->isSupported();
             }
         );
@@ -863,7 +853,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     public function getContainsTestData()
     {
-
         $tests = array(
             array( '', '', array() ),
             array( 'foo', 'bar', array() ),
@@ -882,7 +871,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     private function buildTestData( array $tests )
     {
-
         $data = array();
         foreach ($this->getValidAdapters() as $adapter) {
             foreach ($tests as $test) {
@@ -895,7 +883,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     public function getRegexNameTestData()
     {
-
         $tests = array(
             array( '~.+\\.p.+~i' ),
             array( '~t.*s~i' ),
@@ -920,7 +907,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     public function testAdapterSelection()
     {
-
         // test that by default, PhpAdapter is selected
         $adapters = Finder::create()->getAdapters();
         $this->assertTrue( $adapters[0] instanceof Adapter\PhpAdapter );
@@ -936,7 +922,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
 
     public function getTestPathData()
     {
-
         $tests = array(
             array( '', '', array() ),
             array(
@@ -997,7 +982,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
      */
     public function testAccessDeniedException( Adapter\AdapterInterface $adapter )
     {
-
         if ('\\' === DIRECTORY_SEPARATOR) {
             $this->markTestSkipped( 'chmod is not supported on Windows' );
         }
@@ -1040,7 +1024,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
      */
     public function testIgnoredAccessDeniedException( Adapter\AdapterInterface $adapter )
     {
-
         if ('\\' === DIRECTORY_SEPARATOR) {
             $this->markTestSkipped( 'chmod is not supported on Windows' );
         }
@@ -1075,7 +1058,6 @@ class FinderTest extends Iterator\RealIteratorTestCase
      */
     public function testMultipleLocationsWithSubDirectories()
     {
-
         $locations = array(
             __DIR__.'/Fixtures/one',
             self::$tmpDir.DIRECTORY_SEPARATOR.'toto',

@@ -16,7 +16,6 @@ namespace Symfony\Component\Finder\Adapter;
  */
 interface AdapterInterface
 {
-
     /**
      * @param bool $followLinks
      *

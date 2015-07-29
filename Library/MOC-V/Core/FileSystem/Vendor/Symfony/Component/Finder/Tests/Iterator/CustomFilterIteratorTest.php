@@ -15,7 +15,6 @@ use Symfony\Component\Finder\Iterator\CustomFilterIterator;
 
 class CustomFilterIteratorTest extends IteratorTestCase
 {
-
     /**
      * @expectedException \InvalidArgumentException
      */
@@ -40,7 +39,6 @@ class CustomFilterIteratorTest extends IteratorTestCase
 
     public function getAcceptData()
     {
-
         return array(
             array(
                 array(

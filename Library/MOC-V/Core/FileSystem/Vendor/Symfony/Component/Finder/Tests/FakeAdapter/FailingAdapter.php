@@ -19,7 +19,6 @@ use Symfony\Component\Finder\Exception\AdapterFailureException;
  */
 class FailingAdapter extends AbstractAdapter
 {
-
     /**
      * {@inheritdoc}
      */
@@ -34,7 +33,6 @@ class FailingAdapter extends AbstractAdapter
      */
     public function getName()
     {
-
         return 'failing';
     }
 
@@ -43,7 +41,6 @@ class FailingAdapter extends AbstractAdapter
      */
     protected function canBeUsed()
     {
-
         return true;
     }
 }

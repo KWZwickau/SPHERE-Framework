@@ -18,7 +18,6 @@ namespace Symfony\Component\Finder;
  */
 class SplFileInfo extends \SplFileInfo
 {
-
     private $relativePath;
     private $relativePathname;
 
@@ -44,7 +43,6 @@ class SplFileInfo extends \SplFileInfo
      */
     public function getRelativePath()
     {
-
         return $this->relativePath;
     }
 
@@ -55,7 +53,6 @@ class SplFileInfo extends \SplFileInfo
      */
     public function getRelativePathname()
     {
-
         return $this->relativePathname;
     }
 

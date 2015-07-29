@@ -19,7 +19,6 @@ use Symfony\Component\Finder\Shell\Command;
  */
 class ShellCommandFailureException extends AdapterFailureException
 {
-
     /**
      * @var Command
      */
@@ -32,7 +31,6 @@ class ShellCommandFailureException extends AdapterFailureException
      */
     public function __construct( AdapterInterface $adapter, Command $command, \Exception $previous = null )
     {
-
         $this->command = $command;
         parent::__construct( $adapter, 'Shell command failed: "'.$command->join().'".', $previous );
     }
@@ -42,7 +40,6 @@ class ShellCommandFailureException extends AdapterFailureException
      */
     public function getCommand()
     {
-
         return $this->command;
     }
 }

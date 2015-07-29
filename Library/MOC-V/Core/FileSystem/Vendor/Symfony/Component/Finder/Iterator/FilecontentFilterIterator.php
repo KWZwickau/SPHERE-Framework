@@ -19,7 +19,6 @@ namespace Symfony\Component\Finder\Iterator;
  */
 class FilecontentFilterIterator extends MultiplePcreFilterIterator
 {
-
     /**
      * Filters the iterator values.
      *
@@ -27,7 +26,6 @@ class FilecontentFilterIterator extends MultiplePcreFilterIterator
      */
     public function accept()
     {
-
         if (!$this->matchRegexps && !$this->noMatchRegexps) {
             return true;
         }

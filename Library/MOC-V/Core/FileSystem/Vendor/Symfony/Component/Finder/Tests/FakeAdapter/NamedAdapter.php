@@ -18,7 +18,6 @@ use Symfony\Component\Finder\Adapter\AbstractAdapter;
  */
 class NamedAdapter extends AbstractAdapter
 {
-
     /**
      * @var string
      */
@@ -29,7 +28,6 @@ class NamedAdapter extends AbstractAdapter
      */
     public function __construct( $name )
     {
-
         $this->name = $name;
     }
 
@@ -47,7 +45,6 @@ class NamedAdapter extends AbstractAdapter
      */
     public function getName()
     {
-
         return $this->name;
     }
 
@@ -56,7 +53,6 @@ class NamedAdapter extends AbstractAdapter
      */
     protected function canBeUsed()
     {
-
         return true;
     }
 }

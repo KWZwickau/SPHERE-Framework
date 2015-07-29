@@ -16,7 +16,6 @@ namespace Symfony\Component\Finder\Shell;
  */
 class Shell
 {
-
     const TYPE_UNIX = 1;
     const TYPE_DARWIN = 2;
     const TYPE_CYGWIN = 3;
@@ -35,7 +34,6 @@ class Shell
      */
     public function getType()
     {
-
         if (null === $this->type) {
             $this->type = $this->guessType();
         }

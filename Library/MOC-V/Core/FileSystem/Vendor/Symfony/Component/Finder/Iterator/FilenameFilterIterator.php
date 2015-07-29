@@ -20,7 +20,6 @@ use Symfony\Component\Finder\Expression\Expression;
  */
 class FilenameFilterIterator extends MultiplePcreFilterIterator
 {
-
     /**
      * Filters the iterator values.
      *
@@ -28,7 +27,6 @@ class FilenameFilterIterator extends MultiplePcreFilterIterator
      */
     public function accept()
     {
-
         $filename = $this->current()->getFilename();
 
         // should at least not match one rule to exclude

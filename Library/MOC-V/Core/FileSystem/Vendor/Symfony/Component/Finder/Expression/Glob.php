@@ -16,7 +16,6 @@ namespace Symfony\Component\Finder\Expression;
  */
 class Glob implements ValueInterface
 {
-
     /**
      * @var string
      */
@@ -27,7 +26,6 @@ class Glob implements ValueInterface
      */
     public function __construct( $pattern )
     {
-
         $this->pattern = $pattern;
     }
 
@@ -36,7 +34,6 @@ class Glob implements ValueInterface
      */
     public function render()
     {
-
         return $this->pattern;
     }
 
@@ -45,7 +42,6 @@ class Glob implements ValueInterface
      */
     public function renderPattern()
     {
-
         return $this->pattern;
     }
 
@@ -54,7 +50,6 @@ class Glob implements ValueInterface
      */
     public function getType()
     {
-
         return Expression::TYPE_GLOB;
     }
 
@@ -63,7 +58,6 @@ class Glob implements ValueInterface
      */
     public function isCaseSensitive()
     {
-
         return true;
     }
 
@@ -72,7 +66,6 @@ class Glob implements ValueInterface
      */
     public function prepend( $expr )
     {
-
         $this->pattern = $expr.$this->pattern;
 
         return $this;
@@ -83,7 +76,6 @@ class Glob implements ValueInterface
      */
     public function append( $expr )
     {
-
         $this->pattern .= $expr;
 
         return $this;
@@ -109,7 +101,6 @@ class Glob implements ValueInterface
      */
     public function toRegex( $strictLeadingDot = true, $strictWildcardSlash = true )
     {
-
         $firstByte = true;
         $escaping = false;
         $inCurlies = 0;

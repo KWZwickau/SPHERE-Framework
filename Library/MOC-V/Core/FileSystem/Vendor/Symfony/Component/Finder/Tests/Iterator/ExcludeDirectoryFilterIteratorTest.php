@@ -16,7 +16,6 @@ use Symfony\Component\Finder\Iterator\RecursiveDirectoryIterator;
 
 class ExcludeDirectoryFilterIteratorTest extends RealIteratorTestCase
 {
-
     /**
      * @dataProvider getAcceptData
      */
@@ -33,7 +32,6 @@ class ExcludeDirectoryFilterIteratorTest extends RealIteratorTestCase
 
     public function getAcceptData()
     {
-
         $foo = array(
             '.bar',
             '.foo',

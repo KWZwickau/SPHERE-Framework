@@ -15,7 +15,6 @@ use Symfony\Component\Finder\Expression\Expression;
 
 class RegexTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
      * @dataProvider getHasFlagsData
      */
@@ -99,7 +98,6 @@ class RegexTest extends \PHPUnit_Framework_TestCase
 
     public function getHasFlagsData()
     {
-
         return array(
             array( '~^abc~', true, false ),
             array( '~abc$~', false, true ),
@@ -111,7 +109,6 @@ class RegexTest extends \PHPUnit_Framework_TestCase
 
     public function getHasJokersData()
     {
-
         return array(
             array( '~.*abc~', true, false ),
             array( '~abc.*~', false, true ),
@@ -123,7 +120,6 @@ class RegexTest extends \PHPUnit_Framework_TestCase
 
     public function getSetFlagsData()
     {
-
         return array(
             array( '~abc~', true, false, '~^abc~' ),
             array( '~abc~', false, true, '~abc$~' ),
@@ -134,7 +130,6 @@ class RegexTest extends \PHPUnit_Framework_TestCase
 
     public function getSetJokersData()
     {
-
         return array(
             array( '~abc~', true, false, '~.*abc~' ),
             array( '~abc~', false, true, '~abc.*~' ),
@@ -145,7 +140,6 @@ class RegexTest extends \PHPUnit_Framework_TestCase
 
     public function getReplaceJokersTestData()
     {
-
         return array(
             array( '~.abc~', '@abc' ),
             array( '~\\.abc~', '\\.abc' ),

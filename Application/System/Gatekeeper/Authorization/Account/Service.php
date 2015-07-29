@@ -24,6 +24,10 @@ use SPHERE\System\Database\Link\Identifier;
 class Service implements IServiceInterface
 {
 
+    /** @var TblAccount[] $AccountByIdCache */
+    private static $AccountByIdCache = array();
+    /** @var TblIdentification[] $IdentificationByIdCache */
+    private static $IdentificationByIdCache = array();
     /** @var null|Binding */
     private $Binding = null;
     /** @var null|Structure */
@@ -77,7 +81,11 @@ class Service implements IServiceInterface
     public function getAccountById( $Id )
     {
 
-        return ( new Data( $this->Binding ) )->getAccountById( $Id );
+        if (array_key_exists( $Id, self::$AccountByIdCache )) {
+            return self::$AccountByIdCache[$Id];
+        }
+        self::$AccountByIdCache[$Id] = ( new Data( $this->Binding ) )->getAccountById( $Id );
+        return self::$AccountByIdCache[$Id];
     }
 
     /**
@@ -88,7 +96,11 @@ class Service implements IServiceInterface
     public function getIdentificationById( $Id )
     {
 
-        return ( new Data( $this->Binding ) )->getIdentificationById( $Id );
+        if (array_key_exists( $Id, self::$IdentificationByIdCache )) {
+            return self::$IdentificationByIdCache[$Id];
+        }
+        self::$IdentificationByIdCache[$Id] = ( new Data( $this->Binding ) )->getIdentificationById( $Id );
+        return self::$IdentificationByIdCache[$Id];
     }
 
     /**

@@ -23,13 +23,11 @@ use Symfony\Component\Finder\Shell\Shell;
  */
 class GnuFindAdapter extends AbstractFindAdapter
 {
-
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
-
         return 'gnu_find';
     }
 
@@ -38,7 +36,6 @@ class GnuFindAdapter extends AbstractFindAdapter
      */
     protected function buildFormatSorting( Command $command, $sort )
     {
-
         switch ($sort) {
             case SortableIterator::SORT_BY_NAME:
                 $command->ins( 'sort' )->add( '| sort' );
@@ -74,7 +71,6 @@ class GnuFindAdapter extends AbstractFindAdapter
      */
     protected function canBeUsed()
     {
-
         return $this->shell->getType() === Shell::TYPE_UNIX && parent::canBeUsed();
     }
 
@@ -92,7 +88,6 @@ class GnuFindAdapter extends AbstractFindAdapter
      */
     protected function buildContentFiltering( Command $command, array $contains, $not = false )
     {
-
         foreach ($contains as $contain) {
             $expr = Expression::create( $contain );
 
