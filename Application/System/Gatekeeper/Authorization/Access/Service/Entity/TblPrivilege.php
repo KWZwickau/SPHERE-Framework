@@ -1,14 +1,17 @@
 <?php
 namespace SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Access;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
  * @Table(name="tblPrivilege")
+ * @Cache(usage="READ_ONLY")
  */
 class TblPrivilege extends Element
 {
@@ -45,5 +48,14 @@ class TblPrivilege extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return bool|TblRight[]
+     */
+    public function getTblRightAll()
+    {
+
+        return Access::useService()->getRightAllByPrivilege( $this );
     }
 }

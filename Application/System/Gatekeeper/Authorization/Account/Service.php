@@ -335,7 +335,7 @@ class Service implements IServiceInterface
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|TblAccount[]
+     * @return bool|TblAuthorization[]
      */
     public function getAuthorizationAllByAccount( TblAccount $tblAccount )
     {

@@ -160,24 +160,24 @@ class Data
     }
 
     /**
-     * @param TblRole  $TblRole
-     * @param TblLevel $TblLevel
+     * @param TblRole  $tblRole
+     * @param TblLevel $tblLevel
      *
      * @return TblRoleLevel
      */
-    public function addRoleLevel( TblRole $TblRole, TblLevel $TblLevel )
+    public function addRoleLevel( TblRole $tblRole, TblLevel $tblLevel )
     {
 
         $Manager = $this->Connection->getEntityManager();
         $Entity = $Manager->getEntity( 'TblRoleLevel' )
             ->findOneBy( array(
-                TblRoleLevel::ATTR_TBL_ROLE  => $TblRole->getId(),
-                TblRoleLevel::ATTR_TBL_LEVEL => $TblLevel->getId()
+                TblRoleLevel::ATTR_TBL_ROLE  => $tblRole->getId(),
+                TblRoleLevel::ATTR_TBL_LEVEL => $tblLevel->getId()
             ) );
         if (null === $Entity) {
             $Entity = new TblRoleLevel();
-            $Entity->setTblRole( $TblRole );
-            $Entity->setTblLevel( $TblLevel );
+            $Entity->setTblRole( $tblRole );
+            $Entity->setTblLevel( $tblLevel );
             $Manager->saveEntity( $Entity );
             Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
         }
@@ -246,24 +246,24 @@ class Data
     }
 
     /**
-     * @param TblPrivilege $TblPrivilege
-     * @param TblRight     $TblRight
+     * @param TblPrivilege $tblPrivilege
+     * @param TblRight     $tblRight
      *
      * @return TblPrivilegeRight
      */
-    public function addPrivilegeRight( TblPrivilege $TblPrivilege, TblRight $TblRight )
+    public function addPrivilegeRight( TblPrivilege $tblPrivilege, TblRight $tblRight )
     {
 
         $Manager = $this->Connection->getEntityManager();
         $Entity = $Manager->getEntity( 'TblPrivilegeRight' )
             ->findOneBy( array(
-                TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $TblPrivilege->getId(),
-                TblPrivilegeRight::ATTR_TBL_RIGHT     => $TblRight->getId()
+                TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId(),
+                TblPrivilegeRight::ATTR_TBL_RIGHT     => $tblRight->getId()
             ) );
         if (null === $Entity) {
             $Entity = new TblPrivilegeRight();
-            $Entity->setTblPrivilege( $TblPrivilege );
-            $Entity->setTblRight( $TblRight );
+            $Entity->setTblPrivilege( $tblPrivilege );
+            $Entity->setTblRight( $tblRight );
             $Manager->saveEntity( $Entity );
             Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
         }
@@ -271,20 +271,44 @@ class Data
     }
 
     /**
-     * @param TblPrivilege $TblPrivilege
-     * @param TblRight     $TblRight
+     * @param TblRole  $tblRole
+     * @param TblLevel $tblLevel
      *
      * @return bool
      */
-    public function removePrivilegeRight( TblPrivilege $TblPrivilege, TblRight $TblRight )
+    public function removeRoleLevel( TblRole $tblRole, TblLevel $tblLevel )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblRoleLevel $Entity */
+        $Entity = $Manager->getEntity( 'TblRoleLevel' )
+            ->findOneBy( array(
+                TblRoleLevel::ATTR_TBL_ROLE  => $tblRole->getId(),
+                TblRoleLevel::ATTR_TBL_LEVEL => $tblLevel->getId()
+            ) );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblPrivilege $tblPrivilege
+     * @param TblRight     $tblRight
+     *
+     * @return bool
+     */
+    public function removePrivilegeRight( TblPrivilege $tblPrivilege, TblRight $tblRight )
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblPrivilegeRight $Entity */
         $Entity = $Manager->getEntity( 'TblPrivilegeRight' )
             ->findOneBy( array(
-                TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $TblPrivilege->getId(),
-                TblPrivilegeRight::ATTR_TBL_RIGHT     => $TblRight->getId()
+                TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId(),
+                TblPrivilegeRight::ATTR_TBL_RIGHT     => $tblRight->getId()
             ) );
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );

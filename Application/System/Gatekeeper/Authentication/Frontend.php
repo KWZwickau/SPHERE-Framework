@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\YubiKey;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -21,7 +22,7 @@ use SPHERE\Common\Window\Stage;
  *
  * @package SPHERE\Application\System\Gatekeeper\Authentication
  */
-class Frontend
+class Frontend implements IFrontendInterface
 {
 
     /**
@@ -35,7 +36,6 @@ class Frontend
         $Stage->setDescription( 'KREDA Professional' );
         $Stage->setMessage( date( 'd.m.Y - H:i:s' ) );
         return $Stage;
-
     }
 
     /**

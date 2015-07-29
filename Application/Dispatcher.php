@@ -3,6 +3,7 @@ namespace SPHERE\Application;
 
 use MOC\V\Component\Router\Component\IBridgeInterface;
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Access;
 
 /**
  * Class Dispatcher
@@ -57,12 +58,12 @@ class Dispatcher
     public static function registerRoute( RouteParameter $Route )
     {
 
-        // TODO: Register -IF- Access granted
-
-        if (in_array( $Route->getPath(), self::$Router->getRouteList() )) {
-            throw new \Exception( __CLASS__.' > Route already available! ('.$Route->getPath().')' );
-        } else {
-            self::$Router->addRoute( $Route );
+        if (Access::useService()->hasAuthorization( $Route->getPath() )) {
+            if (in_array( $Route->getPath(), self::$Router->getRouteList() )) {
+                throw new \Exception( __CLASS__.' > Route already available! ('.$Route->getPath().')' );
+            } else {
+                self::$Router->addRoute( $Route );
+            }
         }
     }
 
@@ -79,7 +80,7 @@ class Dispatcher
         if (in_array( $Path, self::$Router->getRouteList() )) {
             return self::$Router->getRoute( $Path );
         } else {
-            throw new \Exception( __CLASS__.' > Route not available! ('.$Path.')' );
+            return self::$Router->getRoute( 'System/Assistance/Error/Authorization' );
         }
     }
 }

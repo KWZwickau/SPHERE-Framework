@@ -3,6 +3,7 @@ namespace SPHERE\Application\System\Assistance\Error;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -28,6 +29,9 @@ class Error implements IModuleInterface
             new Link( new Link\Route( __NAMESPACE__.'/Authenticator' ), new Link\Name( 'Authentifikator' ) )
         );
         Main::getDisplay()->addModuleNavigation(
+            new Link( new Link\Route( __NAMESPACE__.'/Authorization' ), new Link\Name( 'Berechtigung' ) )
+        );
+        Main::getDisplay()->addModuleNavigation(
             new Link( new Link\Route( __NAMESPACE__.'/Shutdown' ), new Link\Name( 'Betriebsstörung' ) )
         );
 
@@ -45,6 +49,11 @@ class Error implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Authorization',
+                'Frontend::frontendRoute'
+            )
+        );
+        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute( __NAMESPACE__.'/Shutdown',
                 'Frontend::frontendShutdown'
             )
@@ -59,6 +68,9 @@ class Error implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    /**
+     * @return IFrontendInterface
+     */
     public static function useFrontend()
     {
         // TODO: Implement useFrontend() method.

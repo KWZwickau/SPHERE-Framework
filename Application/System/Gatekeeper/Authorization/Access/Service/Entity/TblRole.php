@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\System\Gatekeeper\Authorization\Access\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
@@ -10,6 +11,7 @@ use SPHERE\System\Database\Fitting\Element;
 /**
  * @Entity
  * @Table(name="tblRole")
+ * @Cache(usage="READ_ONLY")
  */
 class TblRole extends Element
 {
@@ -49,11 +51,11 @@ class TblRole extends Element
     }
 
     /**
-     * @return bool|TblLevel
+     * @return bool|TblLevel[]
      */
     public function getTblLevelAll()
     {
 
-        return Access::useService()->getLevelById( $this->tblLevel );
+        return Access::useService()->getLevelAllByRole( $this );
     }
 }

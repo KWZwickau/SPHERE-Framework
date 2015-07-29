@@ -170,20 +170,20 @@ class Data
     }
 
     /**
-     * @param TblAccount $TblAccount
-     * @param TblRole    $TblRole
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
      *
      * @return bool
      */
-    public function removeAccountAuthorization( TblAccount $TblAccount, TblRole $TblRole )
+    public function removeAccountAuthorization( TblAccount $tblAccount, TblRole $tblRole )
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblAuthorization $Entity */
         $Entity = $Manager->getEntity( 'TblAccountRole' )
             ->findOneBy( array(
-                TblAuthorization::ATTR_TBL_ACCOUNT => $TblAccount->getId(),
-                TblAuthorization::SERVICE_TBL_ROLE => $TblRole->getId()
+                TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblAuthorization::SERVICE_TBL_ROLE => $tblRole->getId()
             ) );
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
@@ -194,20 +194,20 @@ class Data
     }
 
     /**
-     * @param TblAccount        $TblAccount
-     * @param TblIdentification $TblIdentification
+     * @param TblAccount        $tblAccount
+     * @param TblIdentification $tblIdentification
      *
      * @return bool
      */
-    public function removeAccountAuthentication( TblAccount $TblAccount, TblIdentification $TblIdentification )
+    public function removeAccountAuthentication( TblAccount $tblAccount, TblIdentification $tblIdentification )
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblAuthentication $Entity */
         $Entity = $Manager->getEntity( 'TblAccountIdentification' )
             ->findOneBy( array(
-                TblAuthentication::ATTR_TBL_ACCOUNT        => $TblAccount->getId(),
-                TblAuthentication::ATTR_TBL_IDENTIFICATION => $TblIdentification->getId()
+                TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
+                TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ) );
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
@@ -293,7 +293,7 @@ class Data
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|TblAccount[]
+     * @return bool|TblAuthorization[]
      */
     public function getAuthorizationAllByAccount( TblAccount $tblAccount )
     {
