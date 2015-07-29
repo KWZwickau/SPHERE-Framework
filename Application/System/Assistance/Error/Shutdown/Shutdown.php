@@ -1,14 +1,15 @@
 <?php
-namespace SPHERE\Application\System\Assistance\Error\Shutdown;
+namespace SPHERE\Application\System\Assistance\Error\Frontend;
 
-use SPHERE\Application\IModuleInterface;
+use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\System\Extension\Configuration;
 
 /**
  * Class Shutdown
  *
- * @package SPHERE\Application\System\Assistance\Error\Shutdown
+ * @package SPHERE\Application\System\Assistance\Error\Frontend
  */
-class Shutdown implements IModuleInterface
+class Shutdown extends Configuration implements IFrontendInterface
 {
 
 }
