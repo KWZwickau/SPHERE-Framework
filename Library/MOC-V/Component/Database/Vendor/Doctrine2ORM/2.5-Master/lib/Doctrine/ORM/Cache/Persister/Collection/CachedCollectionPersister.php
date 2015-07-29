@@ -22,18 +22,17 @@ namespace Doctrine\ORM\Cache\Persister\Collection;
 
 use Doctrine\ORM\Cache\CollectionCacheKey;
 use Doctrine\ORM\Cache\Persister\CachedPersister;
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\Persisters\Collection\CollectionPersister;
+use Doctrine\ORM\PersistentCollection;
 
 /**
  * Interface for second level cache collection persisters.
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 interface CachedCollectionPersister extends CachedPersister, CollectionPersister
 {
-
     /**
      * @return \Doctrine\ORM\Mapping\ClassMetadata
      */
@@ -52,7 +51,7 @@ interface CachedCollectionPersister extends CachedPersister, CollectionPersister
      *
      * @return \Doctrine\ORM\PersistentCollection|null
      */
-    public function loadCollectionCache( PersistentCollection $collection, CollectionCacheKey $key );
+    public function loadCollectionCache(PersistentCollection $collection, CollectionCacheKey $key);
 
     /**
      * Stores a collection into cache
@@ -62,5 +61,5 @@ interface CachedCollectionPersister extends CachedPersister, CollectionPersister
      *
      * @return void
      */
-    public function storeCollectionCache( CollectionCacheKey $key, $elements );
+    public function storeCollectionCache(CollectionCacheKey $key, $elements);
 }

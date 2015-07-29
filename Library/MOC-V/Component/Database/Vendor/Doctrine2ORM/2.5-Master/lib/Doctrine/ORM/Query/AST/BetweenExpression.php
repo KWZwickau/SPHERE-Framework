@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class BetweenExpression extends Node
 {
-
     /**
      * @var ArithmeticExpression
      */
@@ -56,9 +55,8 @@ class BetweenExpression extends Node
      * @param ArithmeticExpression $leftExpr
      * @param ArithmeticExpression $rightExpr
      */
-    public function __construct( $expr, $leftExpr, $rightExpr )
+    public function __construct($expr, $leftExpr, $rightExpr)
     {
-
         $this->expression = $expr;
         $this->leftBetweenExpression = $leftExpr;
         $this->rightBetweenExpression = $rightExpr;
@@ -67,9 +65,8 @@ class BetweenExpression extends Node
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkBetweenExpression( $this );
+        return $sqlWalker->walkBetweenExpression($this);
     }
 }

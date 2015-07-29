@@ -24,7 +24,7 @@ use Doctrine\ORM\Query\AST\Node;
 /**
  * Abstract Function Node.
  *
- *
+ * 
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -34,7 +34,6 @@ use Doctrine\ORM\Query\AST\Node;
  */
 abstract class FunctionNode extends Node
 {
-
     /**
      * @var string
      */
@@ -43,9 +42,8 @@ abstract class FunctionNode extends Node
     /**
      * @param string $name
      */
-    public function __construct( $name )
+    public function __construct($name)
     {
-
         $this->name = $name;
     }
 
@@ -54,17 +52,16 @@ abstract class FunctionNode extends Node
      *
      * @return string
      */
-    abstract public function getSql( \Doctrine\ORM\Query\SqlWalker $sqlWalker );
+    abstract public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker);
 
     /**
      * @param \Doctrine\ORM\Query\SqlWalker $sqlWalker
      *
      * @return string
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkFunction( $this );
+        return $sqlWalker->walkFunction($this);
     }
 
     /**
@@ -72,5 +69,5 @@ abstract class FunctionNode extends Node
      *
      * @return void
      */
-    abstract public function parse( \Doctrine\ORM\Query\Parser $parser );
+    abstract public function parse(\Doctrine\ORM\Query\Parser $parser);
 }

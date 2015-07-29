@@ -19,8 +19,8 @@
 
 namespace Doctrine\ORM\Query\Exec;
 
-use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Cache\QueryCacheProfile;
 
 /**
  * Base class for SQL statement executors.
@@ -29,11 +29,10 @@ use Doctrine\DBAL\Connection;
  * @license     http://www.opensource.org/licenses/mit-license.php MIT
  * @link        http://www.doctrine-project.org
  * @since       2.0
- * @todo        Rename: AbstractSQLExecutor
+ * @todo Rename: AbstractSQLExecutor
  */
 abstract class AbstractSqlExecutor
 {
-
     /**
      * @var array
      */
@@ -51,7 +50,6 @@ abstract class AbstractSqlExecutor
      */
     public function getSqlStatements()
     {
-
         return $this->_sqlStatements;
     }
 
@@ -60,9 +58,8 @@ abstract class AbstractSqlExecutor
      *
      * @return void
      */
-    public function setQueryCacheProfile( QueryCacheProfile $qcp )
+    public function setQueryCacheProfile(QueryCacheProfile $qcp)
     {
-
         $this->queryCacheProfile = $qcp;
     }
 
@@ -75,5 +72,5 @@ abstract class AbstractSqlExecutor
      *
      * @return \Doctrine\DBAL\Driver\Statement
      */
-    abstract public function execute( Connection $conn, array $params, array $types );
+    abstract public function execute(Connection $conn, array $params, array $types);
 }

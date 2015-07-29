@@ -23,7 +23,7 @@ namespace Doctrine\ORM\Query\AST;
  * NullIfExpression ::= "NULLIF" "(" ScalarExpression "," ScalarExpression ")"
  *
  * @since   2.1
- *
+ * 
  * @link    www.doctrine-project.org
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class NullIfExpression extends Node
 {
-
     /**
      * @var mixed
      */
@@ -47,19 +46,17 @@ class NullIfExpression extends Node
      * @param mixed $firstExpression
      * @param mixed $secondExpression
      */
-    public function __construct( $firstExpression, $secondExpression )
+    public function __construct($firstExpression, $secondExpression)
     {
-
-        $this->firstExpression = $firstExpression;
+        $this->firstExpression  = $firstExpression;
         $this->secondExpression = $secondExpression;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkNullIfExpression( $this );
+        return $sqlWalker->walkNullIfExpression($this);
     }
 }

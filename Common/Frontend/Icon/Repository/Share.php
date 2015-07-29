@@ -12,7 +12,7 @@ class Share implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-share-alt';
 
     /**
      * @return string

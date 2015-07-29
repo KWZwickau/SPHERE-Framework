@@ -24,11 +24,10 @@ namespace Doctrine\ORM\Query;
  * are empty. ﻿This class exists as convenience for creating tree walkers.
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since  2.0
+ * @since 2.0
  */
 abstract class TreeWalkerAdapter implements TreeWalker
 {
-
     /**
      * The original Query.
      *
@@ -53,9 +52,8 @@ abstract class TreeWalkerAdapter implements TreeWalker
     /**
      * {@inheritdoc}
      */
-    public function __construct( $query, $parserResult, array $queryComponents )
+    public function __construct($query, $parserResult, array $queryComponents)
     {
-
         $this->_query = $query;
         $this->_parserResult = $parserResult;
         $this->_queryComponents = $queryComponents;
@@ -66,8 +64,21 @@ abstract class TreeWalkerAdapter implements TreeWalker
      */
     public function getQueryComponents()
     {
-
         return $this->_queryComponents;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setQueryComponent($dqlAlias, array $queryComponent)
+    {
+        $requiredKeys = array('metadata', 'parent', 'relation', 'map', 'nestingLevel', 'token');
+
+        if (array_diff($requiredKeys, array_keys($queryComponent))) {
+            throw QueryException::invalidQueryComponent($dqlAlias);
+        }
+
+        $this->_queryComponents[$dqlAlias] = $queryComponent;
     }
 
     /**
@@ -75,352 +86,7 @@ abstract class TreeWalkerAdapter implements TreeWalker
      */
     protected function _getQueryComponents()
     {
-
         return $this->_queryComponents;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setQueryComponent( $dqlAlias, array $queryComponent )
-    {
-
-        $requiredKeys = array( 'metadata', 'parent', 'relation', 'map', 'nestingLevel', 'token' );
-
-        if (array_diff( $requiredKeys, array_keys( $queryComponent ) )) {
-            throw QueryException::invalidQueryComponent( $dqlAlias );
-        }
-
-        $this->_queryComponents[$dqlAlias] = $queryComponent;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSelectStatement( AST\SelectStatement $AST )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSelectClause( $selectClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkFromClause( $fromClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkFunction( $function )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkOrderByClause( $orderByClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkOrderByItem( $orderByItem )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkHavingClause( $havingClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkJoin( $join )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSelectExpression( $selectExpression )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkQuantifiedExpression( $qExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSubselect( $subselect )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSubselectFromClause( $subselectFromClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSimpleSelectClause( $simpleSelectClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSimpleSelectExpression( $simpleSelectExpression )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkAggregateExpression( $aggExpression )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkGroupByClause( $groupByClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkGroupByItem( $groupByItem )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkUpdateStatement( AST\UpdateStatement $AST )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkDeleteStatement( AST\DeleteStatement $AST )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkDeleteClause( AST\DeleteClause $deleteClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkUpdateClause( $updateClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkUpdateItem( $updateItem )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkWhereClause( $whereClause )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkConditionalExpression( $condExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkConditionalTerm( $condTerm )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkConditionalFactor( $factor )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkConditionalPrimary( $primary )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkExistsExpression( $existsExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkCollectionMemberExpression( $collMemberExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkEmptyCollectionComparisonExpression( $emptyCollCompExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkNullComparisonExpression( $nullCompExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkInExpression( $inExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    function walkInstanceOfExpression( $instanceOfExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkLiteral( $literal )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkBetweenExpression( $betweenExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkLikeExpression( $likeExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkStateFieldPathExpression( $stateFieldPathExpression )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkComparisonExpression( $compExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkInputParameter( $inputParam )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkArithmeticExpression( $arithmeticExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkArithmeticTerm( $term )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkStringPrimary( $stringPrimary )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkArithmeticFactor( $factor )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkSimpleArithmeticExpression( $simpleArithmeticExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkPathExpression( $pathExpr )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function walkResultVariable( $resultVariable )
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getExecutor( $AST )
-    {
     }
 
     /**
@@ -430,7 +96,6 @@ abstract class TreeWalkerAdapter implements TreeWalker
      */
     protected function _getQuery()
     {
-
         return $this->_query;
     }
 
@@ -441,7 +106,335 @@ abstract class TreeWalkerAdapter implements TreeWalker
      */
     protected function _getParserResult()
     {
-
         return $this->_parserResult;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSelectStatement(AST\SelectStatement $AST)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSelectClause($selectClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkFromClause($fromClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkFunction($function)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkOrderByClause($orderByClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkOrderByItem($orderByItem)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkHavingClause($havingClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkJoin($join)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSelectExpression($selectExpression)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkQuantifiedExpression($qExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSubselect($subselect)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSubselectFromClause($subselectFromClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSimpleSelectClause($simpleSelectClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSimpleSelectExpression($simpleSelectExpression)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkAggregateExpression($aggExpression)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkGroupByClause($groupByClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkGroupByItem($groupByItem)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkUpdateStatement(AST\UpdateStatement $AST)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkDeleteStatement(AST\DeleteStatement $AST)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkDeleteClause(AST\DeleteClause $deleteClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkUpdateClause($updateClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkUpdateItem($updateItem)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkWhereClause($whereClause)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkConditionalExpression($condExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkConditionalTerm($condTerm)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkConditionalFactor($factor)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkConditionalPrimary($primary)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkExistsExpression($existsExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkCollectionMemberExpression($collMemberExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkEmptyCollectionComparisonExpression($emptyCollCompExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkNullComparisonExpression($nullCompExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkInExpression($inExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    function walkInstanceOfExpression($instanceOfExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkLiteral($literal)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkBetweenExpression($betweenExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkLikeExpression($likeExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkStateFieldPathExpression($stateFieldPathExpression)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkComparisonExpression($compExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkInputParameter($inputParam)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkArithmeticExpression($arithmeticExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkArithmeticTerm($term)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkStringPrimary($stringPrimary)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkArithmeticFactor($factor)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkSimpleArithmeticExpression($simpleArithmeticExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkPathExpression($pathExpr)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function walkResultVariable($resultVariable)
+    {
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getExecutor($AST)
+    {
     }
 }

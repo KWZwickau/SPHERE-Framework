@@ -30,33 +30,28 @@ use Doctrine\ORM\Query\AST;
  * @author      Roman Borschel <roman@code-factory.org>
  * @link        www.doctrine-project.org
  * @since       2.0
- * @todo        This is exactly the same as SingleSelectExecutor. Unify in SingleStatementExecutor.
+ * @todo This is exactly the same as SingleSelectExecutor. Unify in SingleStatementExecutor.
  */
 class SingleTableDeleteUpdateExecutor extends AbstractSqlExecutor
 {
-
     /**
      * @param \Doctrine\ORM\Query\AST\Node  $AST
      * @param \Doctrine\ORM\Query\SqlWalker $sqlWalker
      */
-    public function __construct( AST\Node $AST, $sqlWalker )
+    public function __construct(AST\Node $AST, $sqlWalker)
     {
-
         if ($AST instanceof AST\UpdateStatement) {
-            $this->_sqlStatements = $sqlWalker->walkUpdateStatement( $AST );
-        } else {
-            if ($AST instanceof AST\DeleteStatement) {
-                $this->_sqlStatements = $sqlWalker->walkDeleteStatement( $AST );
-            }
+            $this->_sqlStatements = $sqlWalker->walkUpdateStatement($AST);
+        } else if ($AST instanceof AST\DeleteStatement) {
+            $this->_sqlStatements = $sqlWalker->walkDeleteStatement($AST);
         }
     }
 
     /**
      * {@inheritDoc}
      */
-    public function execute( Connection $conn, array $params, array $types )
+    public function execute(Connection $conn, array $params, array $types)
     {
-
-        return $conn->executeUpdate( $this->_sqlStatements, $params, $types );
+        return $conn->executeUpdate($this->_sqlStatements, $params, $types);
     }
 }

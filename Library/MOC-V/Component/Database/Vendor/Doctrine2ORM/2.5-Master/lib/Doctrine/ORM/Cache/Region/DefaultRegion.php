@@ -36,9 +36,6 @@ use Doctrine\ORM\Cache\Region;
  */
 class DefaultRegion implements Region
 {
-
-    const REGION_KEY_SEPARATOR = '_';
-
     /**
      * @var CacheAdapter
      */
@@ -59,12 +56,11 @@ class DefaultRegion implements Region
      * @param CacheAdapter $cache
      * @param integer      $lifetime
      */
-    public function __construct( $name, CacheAdapter $cache, $lifetime = 0 )
+    public function __construct($name, CacheAdapter $cache, $lifetime = 0)
     {
-
-        $this->cache = $cache;
-        $this->name = (string)$name;
-        $this->lifetime = (integer)$lifetime;
+        $this->cache    = $cache;
+        $this->name     = (string) $name;
+        $this->lifetime = (integer) $lifetime;
     }
 
     /**
@@ -72,7 +68,6 @@ class DefaultRegion implements Region
      */
     public function getName()
     {
-
         return $this->name;
     }
 
@@ -81,77 +76,70 @@ class DefaultRegion implements Region
      */
     public function getCache()
     {
-
         return $this->cache;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function contains( CacheKey $key )
+    public function contains(CacheKey $key)
     {
-
-        return $this->cache->contains( $this->getCacheEntryKey( $key ) );
-    }
-
-    /**
-     * @param CacheKey $key
-     *
-     * @return string
-     */
-    protected function getCacheEntryKey( CacheKey $key )
-    {
-
-        return $this->name.self::REGION_KEY_SEPARATOR.$key->hash;
+        return $this->cache->contains($this->name . '_' . $key->hash);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function get( CacheKey $key )
+    public function get(CacheKey $key)
     {
-
-        return $this->cache->fetch( $this->getCacheEntryKey( $key ) ) ?: null;
+        return $this->cache->fetch($this->name . '_' . $key->hash) ?: null;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getMultiple( CollectionCacheEntry $collection )
+    public function getMultiple(CollectionCacheEntry $collection)
     {
+        $keysToRetrieve = array();
 
-        $result = array();
-
-        foreach ($collection->identifiers as $key) {
-            $entryKey = $this->getCacheEntryKey( $key );
-            $entryValue = $this->cache->fetch( $entryKey );
-
-            if ($entryValue === false) {
-                return null;
-            }
-
-            $result[] = $entryValue;
+        foreach ($collection->identifiers as $index => $key) {
+            $keysToRetrieve[$index] = $this->name . '_' . $key->hash;
         }
 
-        return $result;
+        $items = array_filter(
+            array_map([$this->cache, 'fetch'], $keysToRetrieve),
+            function ($retrieved) {
+                return false !== $retrieved;
+            }
+        );
+
+        if (count($items) !== count($keysToRetrieve)) {
+            return null;
+        }
+
+        $returnableItems = array();
+
+        foreach ($keysToRetrieve as $index => $key) {
+            $returnableItems[$index] = $items[$key];
+        }
+
+        return $returnableItems;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function put( CacheKey $key, CacheEntry $entry, Lock $lock = null )
+    public function put(CacheKey $key, CacheEntry $entry, Lock $lock = null)
     {
-
-        return $this->cache->save( $this->getCacheEntryKey( $key ), $entry, $this->lifetime );
+        return $this->cache->save($this->name . '_' . $key->hash, $entry, $this->lifetime);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function evict( CacheKey $key )
+    public function evict(CacheKey $key)
     {
-
-        return $this->cache->delete( $this->getCacheEntryKey( $key ) );
+        return $this->cache->delete($this->name . '_' . $key->hash);
     }
 
     /**
@@ -159,12 +147,11 @@ class DefaultRegion implements Region
      */
     public function evictAll()
     {
-
-        if (!$this->cache instanceof ClearableCache) {
-            throw new \BadMethodCallException( sprintf(
+        if (! $this->cache instanceof ClearableCache) {
+            throw new \BadMethodCallException(sprintf(
                 'Clearing all cache entries is not supported by the supplied cache adapter of type %s',
-                get_class( $this->cache )
-            ) );
+                get_class($this->cache)
+            ));
         }
 
         return $this->cache->deleteAll();

@@ -2,6 +2,8 @@
 namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\System\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
@@ -69,10 +71,12 @@ class Display extends Extension implements ITemplateInterface
     public function addClusterNavigation( Link $Link )
     {
 
-        if ($Link->isActive()) {
-            $this->ClusterBreadcrumb = $Link->getName()->getValue();
+        if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+            if ($Link->isActive()) {
+                $this->ClusterBreadcrumb = $Link->getName()->getValue();
+            }
+            array_push( $this->ClusterNavigation, $Link );
         }
-        array_push( $this->ClusterNavigation, $Link );
         return $this;
     }
 
@@ -117,10 +121,12 @@ class Display extends Extension implements ITemplateInterface
         }
 
         if ($Branch === null || $Branch >= 3) {
-            if ($Link->isActive()) {
-                $this->ApplicationBreadcrumb = $Link->getName()->getValue();
+            if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+                if ($Link->isActive()) {
+                    $this->ApplicationBreadcrumb = $Link->getName()->getValue();
+                }
+                array_push( $this->ApplicationNavigation, $Link );
             }
-            array_push( $this->ApplicationNavigation, $Link );
         }
         return $this;
     }
@@ -166,10 +172,12 @@ class Display extends Extension implements ITemplateInterface
         }
 
         if ($Branch === null || $Branch >= 4) {
-            if ($Link->isActive()) {
-                $this->ModuleBreadcrumb = $Link->getName()->getValue();
+            if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+                if ($Link->isActive()) {
+                    $this->ModuleBreadcrumb = $Link->getName()->getValue();
+                }
+                array_push( $this->ModuleNavigation, $Link );
             }
-            array_push( $this->ModuleNavigation, $Link );
         }
         return $this;
     }
@@ -198,10 +206,12 @@ class Display extends Extension implements ITemplateInterface
     public function addServiceNavigation( Link $Link )
     {
 
-        if ($Link->isActive()) {
-            $this->ClusterBreadcrumb = $Link->getName()->getValue();
+        if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+            if ($Link->isActive()) {
+                $this->ClusterBreadcrumb = $Link->getName()->getValue();
+            }
+            array_push( $this->ServiceNavigation, $Link );
         }
-        array_push( $this->ServiceNavigation, $Link );
         return $this;
     }
 
@@ -275,6 +285,10 @@ class Display extends Extension implements ITemplateInterface
 
         $this->Template->setVariable( 'Content', implode( '', $this->Content ) );
         $this->Template->setVariable( 'PathBase', $this->getRequest()->getPathBase() );
+        $this->Template->setVariable( 'Consumer',
+            '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
+            .Consumer::useService()->getConsumerBySession()->getName()
+        );
 
         return $this->Template->getContent();
     }

@@ -12,7 +12,7 @@ class TileSmall implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-show-thumbnails';
 
     /**
      * @return string

@@ -28,7 +28,6 @@ namespace Doctrine\ORM\Cache;
  */
 class QueryCacheEntry implements CacheEntry
 {
-
     /**
      * READ-ONLY: Public only for performance reasons, it should be considered immutable.
      *
@@ -47,19 +46,17 @@ class QueryCacheEntry implements CacheEntry
      * @param array $result
      * @param integer $time
      */
-    public function __construct( $result, $time = null )
+    public function __construct($result, $time = null)
     {
-
         $this->result = $result;
-        $this->time = $time ?: time();
+        $this->time   = $time ?: time();
     }
 
     /**
      * @param array $values
      */
-    public static function __set_state( array $values )
+    public static function __set_state(array $values)
     {
-
-        return new self( $values['result'], $values['time'] );
+        return new self($values['result'], $values['time']);
     }
 }

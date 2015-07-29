@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class OrderByClause extends Node
 {
-
     /**
      * @var array
      */
@@ -39,18 +38,16 @@ class OrderByClause extends Node
     /**
      * @param array $orderByItems
      */
-    public function __construct( array $orderByItems )
+    public function __construct(array $orderByItems)
     {
-
         $this->orderByItems = $orderByItems;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkOrderByClause( $this );
+        return $sqlWalker->walkOrderByClause($this);
     }
 }

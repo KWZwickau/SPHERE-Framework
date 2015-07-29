@@ -20,11 +20,10 @@
 namespace Doctrine\ORM\Query;
 
 /**
- *
+ * 
  */
 class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
 {
-
     /**
      * @var TreeWalker[]
      */
@@ -42,9 +41,8 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     private $parserResult;
 
-    public function __construct( TreeWalkerChain $treeWalkerChain, $query, $parserResult )
+    public function __construct(TreeWalkerChain $treeWalkerChain, $query, $parserResult)
     {
-
         $this->treeWalkerChain = $treeWalkerChain;
         $this->query = $query;
         $this->parserResult = $parserResult;
@@ -55,8 +53,7 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     function rewind()
     {
-
-        return reset( $this->walkers );
+        return reset($this->walkers);
     }
 
     /**
@@ -64,17 +61,50 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     function current()
     {
-
-        return $this->offsetGet( key( $this->walkers ) );
+        return $this->offsetGet(key($this->walkers));
     }
 
     /**
      * {@inheritdoc}
      */
-    public function offsetGet( $offset )
+    function key()
     {
+        return key($this->walkers);
+    }
 
-        if ($this->offsetExists( $offset )) {
+    /**
+     * {@inheritdoc}
+     */
+    function next()
+    {
+        next($this->walkers);
+
+        return $this->offsetGet(key($this->walkers));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    function valid()
+    {
+        return key($this->walkers) !== null;
+    }
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetExists($offset)
+    {
+        return isset($this->walkers[$offset]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function offsetGet($offset)
+    {
+        if ($this->offsetExists($offset)) {
             return new $this->walkers[$offset](
                 $this->query,
                 $this->parserResult,
@@ -88,48 +118,9 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
     /**
      * {@inheritdoc}
      */
-    public function offsetExists( $offset )
+    public function offsetSet($offset, $value)
     {
-
-        return isset( $this->walkers[$offset] );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    function key()
-    {
-
-        return key( $this->walkers );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    function next()
-    {
-
-        next( $this->walkers );
-
-        return $this->offsetGet( key( $this->walkers ) );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    function valid()
-    {
-
-        return key( $this->walkers ) !== null;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function offsetSet( $offset, $value )
-    {
-
-        if (is_null( $offset )) {
+        if (is_null($offset)) {
             $this->walkers[] = $value;
         } else {
             $this->walkers[$offset] = $value;
@@ -139,11 +130,10 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
     /**
      * {@inheritdoc}
      */
-    public function offsetUnset( $offset )
+    public function offsetUnset($offset)
     {
-
-        if ($this->offsetExists( $offset )) {
-            unset( $this->walkers[$offset] );
+        if ($this->offsetExists($offset)) {
+            unset($this->walkers[$offset]);
         }
     }
 }

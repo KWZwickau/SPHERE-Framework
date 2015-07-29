@@ -40,6 +40,8 @@ use SPHERE\System\Extension\Extension;
 class Database extends Extension
 {
 
+    /** @var Manager[] $EntityManager */
+    private static $EntityManager = array();
     /** @var Identifier $Identifier */
     private $Identifier = null;
     /** @var array $Configuration */
@@ -97,6 +99,10 @@ class Database extends Extension
         // Sanatize Namespace
         $EntityNamespace = trim( str_replace( array( '/', '\\' ), '\\', $EntityNamespace ), '\\' ).'\\';
 
+        $Identifier = sha1( $EntityPath ).sha1( $EntityNamespace );
+        if (array_key_exists( $Identifier, self::$EntityManager )) {
+            return self::$EntityManager[$Identifier];
+        }
         $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration( array( $EntityPath ) );
         $MetadataConfiguration->setDefaultRepositoryClassName( '\SPHERE\System\Database\Fitting\Repository' );
         $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
@@ -116,21 +122,19 @@ class Database extends Extension
             }
         } else {
             if (function_exists( 'apc_fetch' )) {
-                $MetadataConfiguration->setQueryCacheImpl( new ApcCache() );
                 $MetadataConfiguration->setMetadataCacheImpl( new ApcCache() );
-                $MetadataConfiguration->setHydrationCacheImpl( new ApcCache() );
-                $ConnectionConfig->setResultCacheImpl( new ApcCache() );
             } else {
-                $MetadataConfiguration->setQueryCacheImpl( new ArrayCache() );
                 $MetadataConfiguration->setMetadataCacheImpl( new ArrayCache() );
-                $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
-                $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
             }
+            $MetadataConfiguration->setQueryCacheImpl( new ArrayCache() );
+            $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
+            $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
         }
         $ConnectionConfig->setSQLLogger( new Logger() );
-        return new Manager(
+        self::$EntityManager[$Identifier] = new Manager(
             EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ), $EntityNamespace
         );
+        return self::$EntityManager[$Identifier];
     }
 
     /**

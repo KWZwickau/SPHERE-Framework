@@ -821,10 +821,9 @@ in a central location.
     namespace MyDomain\Model;
     
     use Doctrine\ORM\EntityRepository;
-    use Doctrine\ORM\Mapping as ORM;
     
     /**
-     * @ORM\Entity(repositoryClass="MyDomain\Model\UserRepository")
+     * @entity(repositoryClass="MyDomain\Model\UserRepository")
      */
     class User
     {

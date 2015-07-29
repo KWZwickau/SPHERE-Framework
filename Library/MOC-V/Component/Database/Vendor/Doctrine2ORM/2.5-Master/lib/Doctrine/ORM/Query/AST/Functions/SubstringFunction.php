@@ -24,7 +24,7 @@ use Doctrine\ORM\Query\Lexer;
 /**
  * "SUBSTRING" "(" StringPrimary "," SimpleArithmeticExpression "," SimpleArithmeticExpression ")"
  *
- *
+ * 
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -34,7 +34,6 @@ use Doctrine\ORM\Query\Lexer;
  */
 class SubstringFunction extends FunctionNode
 {
-
     public $stringPrimary;
 
     /**
@@ -50,17 +49,16 @@ class SubstringFunction extends FunctionNode
     /**
      * @override
      */
-    public function getSql( \Doctrine\ORM\Query\SqlWalker $sqlWalker )
+    public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker)
     {
-
         $optionalSecondSimpleArithmeticExpression = null;
         if ($this->secondSimpleArithmeticExpression !== null) {
-            $optionalSecondSimpleArithmeticExpression = $sqlWalker->walkSimpleArithmeticExpression( $this->secondSimpleArithmeticExpression );
+            $optionalSecondSimpleArithmeticExpression = $sqlWalker->walkSimpleArithmeticExpression($this->secondSimpleArithmeticExpression);
         }
 
         return $sqlWalker->getConnection()->getDatabasePlatform()->getSubstringExpression(
-            $sqlWalker->walkStringPrimary( $this->stringPrimary ),
-            $sqlWalker->walkSimpleArithmeticExpression( $this->firstSimpleArithmeticExpression ),
+            $sqlWalker->walkStringPrimary($this->stringPrimary),
+            $sqlWalker->walkSimpleArithmeticExpression($this->firstSimpleArithmeticExpression),
             $optionalSecondSimpleArithmeticExpression
         );
     }
@@ -68,25 +66,24 @@ class SubstringFunction extends FunctionNode
     /**
      * @override
      */
-    public function parse( \Doctrine\ORM\Query\Parser $parser )
+    public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
-
-        $parser->match( Lexer::T_IDENTIFIER );
-        $parser->match( Lexer::T_OPEN_PARENTHESIS );
+        $parser->match(Lexer::T_IDENTIFIER);
+        $parser->match(Lexer::T_OPEN_PARENTHESIS);
 
         $this->stringPrimary = $parser->StringPrimary();
 
-        $parser->match( Lexer::T_COMMA );
+        $parser->match(Lexer::T_COMMA);
 
         $this->firstSimpleArithmeticExpression = $parser->SimpleArithmeticExpression();
 
         $lexer = $parser->getLexer();
-        if ($lexer->isNextToken( Lexer::T_COMMA )) {
-            $parser->match( Lexer::T_COMMA );
+        if ($lexer->isNextToken(Lexer::T_COMMA)) {
+            $parser->match(Lexer::T_COMMA);
 
             $this->secondSimpleArithmeticExpression = $parser->SimpleArithmeticExpression();
         }
 
-        $parser->match( Lexer::T_CLOSE_PARENTHESIS );
+        $parser->match(Lexer::T_CLOSE_PARENTHESIS);
     }
 }

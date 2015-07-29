@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class MappedSuperclass implements Annotation
 {
-
     /**
      * @var string
      */

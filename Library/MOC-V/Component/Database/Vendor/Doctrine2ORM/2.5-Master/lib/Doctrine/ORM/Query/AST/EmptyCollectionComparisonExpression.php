@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class EmptyCollectionComparisonExpression extends Node
 {
-
     /**
      * @var PathExpression
      */
@@ -44,18 +43,16 @@ class EmptyCollectionComparisonExpression extends Node
     /**
      * @param PathExpression $expression
      */
-    public function __construct( $expression )
+    public function __construct($expression)
     {
-
         $this->expression = $expression;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function dispatch( $sqlWalker )
+    public function dispatch($sqlWalker)
     {
-
-        return $sqlWalker->walkEmptyCollectionComparisonExpression( $this );
+        return $sqlWalker->walkEmptyCollectionComparisonExpression($this);
     }
 }

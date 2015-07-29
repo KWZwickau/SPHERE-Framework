@@ -21,13 +21,13 @@ namespace Doctrine\ORM\Query\AST\Functions;
 
 use Doctrine\ORM\Query\Lexer;
 use Doctrine\ORM\Query\Parser;
-use Doctrine\ORM\Query\QueryException;
 use Doctrine\ORM\Query\SqlWalker;
+use Doctrine\ORM\Query\QueryException;
 
 /**
  * "IDENTITY" "(" SingleValuedAssociationPathExpression {"," string} ")"
  *
- *
+ * 
  * @link    www.doctrine-project.org
  * @since   2.2
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -35,7 +35,6 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class IdentityFunction extends FunctionNode
 {
-
     /**
      * @var \Doctrine\ORM\Query\AST\PathExpression
      */
@@ -49,30 +48,29 @@ class IdentityFunction extends FunctionNode
     /**
      * {@inheritdoc}
      */
-    public function getSql( SqlWalker $sqlWalker )
+    public function getSql(SqlWalker $sqlWalker)
     {
-
-        $platform = $sqlWalker->getEntityManager()->getConnection()->getDatabasePlatform();
-        $quoteStrategy = $sqlWalker->getEntityManager()->getConfiguration()->getQuoteStrategy();
-        $dqlAlias = $this->pathExpression->identificationVariable;
-        $assocField = $this->pathExpression->field;
-        $qComp = $sqlWalker->getQueryComponent( $dqlAlias );
-        $class = $qComp['metadata'];
-        $assoc = $class->associationMappings[$assocField];
-        $targetEntity = $sqlWalker->getEntityManager()->getClassMetadata( $assoc['targetEntity'] );
-        $joinColumn = reset( $assoc['joinColumns'] );
+        $platform       = $sqlWalker->getEntityManager()->getConnection()->getDatabasePlatform();
+        $quoteStrategy  = $sqlWalker->getEntityManager()->getConfiguration()->getQuoteStrategy();
+        $dqlAlias       = $this->pathExpression->identificationVariable;
+        $assocField     = $this->pathExpression->field;
+        $qComp          = $sqlWalker->getQueryComponent($dqlAlias);
+        $class          = $qComp['metadata'];
+        $assoc          = $class->associationMappings[$assocField];
+        $targetEntity   = $sqlWalker->getEntityManager()->getClassMetadata($assoc['targetEntity']);
+        $joinColumn     = reset($assoc['joinColumns']);
 
         if ($this->fieldMapping !== null) {
-            if (!isset( $targetEntity->fieldMappings[$this->fieldMapping] )) {
-                throw new QueryException( sprintf( 'Undefined reference field mapping "%s"', $this->fieldMapping ) );
+            if ( ! isset($targetEntity->fieldMappings[$this->fieldMapping])) {
+                throw new QueryException(sprintf('Undefined reference field mapping "%s"', $this->fieldMapping));
             }
 
-            $field = $targetEntity->fieldMappings[$this->fieldMapping];
+            $field      = $targetEntity->fieldMappings[$this->fieldMapping];
             $joinColumn = null;
 
             foreach ($assoc['joinColumns'] as $mapping) {
 
-                if ($mapping['referencedColumnName'] === $field['columnName']) {
+                if($mapping['referencedColumnName'] === $field['columnName']) {
                     $joinColumn = $mapping;
 
                     break;
@@ -80,38 +78,36 @@ class IdentityFunction extends FunctionNode
             }
 
             if ($joinColumn === null) {
-                throw new QueryException( sprintf( 'Unable to resolve the reference field mapping "%s"',
-                    $this->fieldMapping ) );
+                throw new QueryException(sprintf('Unable to resolve the reference field mapping "%s"', $this->fieldMapping));
             }
         }
 
         // The table with the relation may be a subclass, so get the table name from the association definition
-        $tableName = $sqlWalker->getEntityManager()->getClassMetadata( $assoc['sourceEntity'] )->getTableName();
+        $tableName = $sqlWalker->getEntityManager()->getClassMetadata($assoc['sourceEntity'])->getTableName();
 
-        $tableAlias = $sqlWalker->getSQLTableAlias( $tableName, $dqlAlias );
-        $columnName = $quoteStrategy->getJoinColumnName( $joinColumn, $targetEntity, $platform );
+        $tableAlias = $sqlWalker->getSQLTableAlias($tableName, $dqlAlias);
+        $columnName  = $quoteStrategy->getJoinColumnName($joinColumn, $targetEntity, $platform);
 
-        return $tableAlias.'.'.$columnName;
+        return $tableAlias . '.' . $columnName;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function parse( Parser $parser )
+    public function parse(Parser $parser)
     {
-
-        $parser->match( Lexer::T_IDENTIFIER );
-        $parser->match( Lexer::T_OPEN_PARENTHESIS );
+        $parser->match(Lexer::T_IDENTIFIER);
+        $parser->match(Lexer::T_OPEN_PARENTHESIS);
 
         $this->pathExpression = $parser->SingleValuedAssociationPathExpression();
 
-        if ($parser->getLexer()->isNextToken( Lexer::T_COMMA )) {
-            $parser->match( Lexer::T_COMMA );
-            $parser->match( Lexer::T_STRING );
+        if ($parser->getLexer()->isNextToken(Lexer::T_COMMA)) {
+            $parser->match(Lexer::T_COMMA);
+            $parser->match(Lexer::T_STRING);
 
             $this->fieldMapping = $parser->getLexer()->token['value'];
         }
 
-        $parser->match( Lexer::T_CLOSE_PARENTHESIS );
+        $parser->match(Lexer::T_CLOSE_PARENTHESIS);
     }
 }

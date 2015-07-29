@@ -5,6 +5,11 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Panel
+ *
+ * @package SPHERE\Common\Frontend\Layout\Repository
+ */
 class Panel extends Extension implements ITemplateInterface
 {
 
@@ -56,5 +61,14 @@ class Panel extends Extension implements ITemplateInterface
     {
 
         return $this->Template->getContent();
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+
+        return '';
     }
 }

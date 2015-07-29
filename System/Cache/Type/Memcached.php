@@ -142,13 +142,13 @@ class Memcached implements ITypeInterface
     public function setConfiguration( $Configuration )
     {
 
-        $this->Host = $Configuration['Host'];
-        $this->Port = $Configuration['Port'];
+        $this->Host = (string)$Configuration['Host'];
+        $this->Port = (integer)$Configuration['Port'];
 
         if ($this->Host && $this->Port) {
             if (class_exists( '\Memcached', false ) && null === $this->Server) {
                 $this->Server = new \Memcached();
-                $this->Server->addServer( $this->Host, $this->Port );
+                $this->Server->addServer( $this->Host, (integer)$this->Port );
                 $this->Server->setOption( \Memcached::OPT_TCP_NODELAY, true );
             }
         }

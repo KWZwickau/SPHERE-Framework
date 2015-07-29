@@ -12,7 +12,7 @@ class Server implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-server';
 
     /**
      * @return string

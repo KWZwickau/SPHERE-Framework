@@ -12,7 +12,7 @@ class EyeOpen implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-eye-open';
 
     /**
      * @return string

@@ -29,7 +29,6 @@ use Doctrine\Common\Persistence\Event\LoadClassMetadataEventArgs as BaseLoadClas
  */
 class LoadClassMetadataEventArgs extends BaseLoadClassMetadataEventArgs
 {
-
     /**
      * Retrieve associated EntityManager.
      *
@@ -37,7 +36,6 @@ class LoadClassMetadataEventArgs extends BaseLoadClassMetadataEventArgs
      */
     public function getEntityManager()
     {
-
         return $this->getObjectManager();
     }
 }

@@ -23,16 +23,15 @@ namespace Doctrine\ORM\Query;
  * Encapsulates the resulting components from a DQL query parsing process that
  * can be serialized.
  *
- * @author        Guilherme Blanco <guilhermeblanco@hotmail.com>
- * @author        Janne Vanhala <jpvanhal@cc.hut.fi>
- * @author        Roman Borschel <roman@code-factory.org>
- * @license       http://www.opensource.org/licenses/mit-license.php MIT
- * @link          http://www.doctrine-project.org
- * @since         2.0
+ * @author      Guilherme Blanco <guilhermeblanco@hotmail.com>
+ * @author      Janne Vanhala <jpvanhal@cc.hut.fi>
+ * @author		Roman Borschel <roman@code-factory.org>
+ * @license     http://www.opensource.org/licenses/mit-license.php MIT
+ * @link        http://www.doctrine-project.org
+ * @since       2.0
  */
 class ParserResult
 {
-
     /**
      * The SQL executor used for executing the SQL.
      *
@@ -60,7 +59,6 @@ class ParserResult
      */
     public function __construct()
     {
-
         $this->_resultSetMapping = new ResultSetMapping;
     }
 
@@ -72,7 +70,6 @@ class ParserResult
      */
     public function getResultSetMapping()
     {
-
         return $this->_resultSetMapping;
     }
 
@@ -83,21 +80,9 @@ class ParserResult
      *
      * @return void
      */
-    public function setResultSetMapping( ResultSetMapping $rsm )
+    public function setResultSetMapping(ResultSetMapping $rsm)
     {
-
         $this->_resultSetMapping = $rsm;
-    }
-
-    /**
-     * Gets the SQL executor used by this ParserResult.
-     *
-     * @return \Doctrine\ORM\Query\Exec\AbstractSqlExecutor
-     */
-    public function getSqlExecutor()
-    {
-
-        return $this->_sqlExecutor;
     }
 
     /**
@@ -107,10 +92,19 @@ class ParserResult
      *
      * @return void
      */
-    public function setSqlExecutor( $executor )
+    public function setSqlExecutor($executor)
     {
-
         $this->_sqlExecutor = $executor;
+    }
+
+    /**
+     * Gets the SQL executor used by this ParserResult.
+     *
+     * @return \Doctrine\ORM\Query\Exec\AbstractSqlExecutor
+     */
+    public function getSqlExecutor()
+    {
+        return $this->_sqlExecutor;
     }
 
     /**
@@ -122,9 +116,8 @@ class ParserResult
      *
      * @return void
      */
-    public function addParameterMapping( $dqlPosition, $sqlPosition )
+    public function addParameterMapping($dqlPosition, $sqlPosition)
     {
-
         $this->_parameterMappings[$dqlPosition][] = $sqlPosition;
     }
 
@@ -135,7 +128,6 @@ class ParserResult
      */
     public function getParameterMappings()
     {
-
         return $this->_parameterMappings;
     }
 
@@ -146,9 +138,8 @@ class ParserResult
      *
      * @return array The positions of the corresponding SQL parameters.
      */
-    public function getSqlParameterPositions( $dqlPosition )
+    public function getSqlParameterPositions($dqlPosition)
     {
-
         return $this->_parameterMappings[$dqlPosition];
     }
 }

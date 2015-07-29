@@ -28,11 +28,10 @@ use Doctrine\ORM\Query\ResultSetMapping;
  * @since   2.4
  * @author  Lars Strojny <lars@strojny.net>
  *
- * @method Mapping\ClassMetadata getClassMetadata( $className )
+ * @method Mapping\ClassMetadata getClassMetadata($className)
  */
 interface EntityManagerInterface extends ObjectManager
 {
-
     /**
      * Returns the cache API for managing the second level cache regions or NULL if the cache is not enabled.
      *
@@ -84,7 +83,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @return mixed The non-empty value returned from the closure or true instead.
      */
-    public function transactional( $func );
+    public function transactional($func);
 
     /**
      * Commits a transaction on the underlying database connection.
@@ -107,7 +106,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @return Query
      */
-    public function createQuery( $dql = '' );
+    public function createQuery($dql = '');
 
     /**
      * Creates a Query from a named query.
@@ -116,7 +115,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @return Query
      */
-    public function createNamedQuery( $name );
+    public function createNamedQuery($name);
 
     /**
      * Creates a native SQL query.
@@ -126,7 +125,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @return NativeQuery
      */
-    public function createNativeQuery( $sql, ResultSetMapping $rsm );
+    public function createNativeQuery($sql, ResultSetMapping $rsm);
 
     /**
      * Creates a NativeQuery from a named native query.
@@ -135,7 +134,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @return NativeQuery
      */
-    public function createNamedNativeQuery( $name );
+    public function createNamedNativeQuery($name);
 
     /**
      * Create a QueryBuilder instance
@@ -155,7 +154,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @throws ORMException
      */
-    public function getReference( $entityName, $id );
+    public function getReference($entityName, $id);
 
     /**
      * Gets a partial reference to the entity identified by the given type and identifier
@@ -177,7 +176,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @return object The (partial) entity reference.
      */
-    public function getPartialReference( $entityName, $identifier );
+    public function getPartialReference($entityName, $identifier);
 
     /**
      * Closes the EntityManager. All entities that are currently managed
@@ -198,7 +197,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @throws \BadMethodCallException
      */
-    public function copy( $entity, $deep = false );
+    public function copy($entity, $deep = false);
 
     /**
      * Acquire a lock on the given entity.
@@ -212,7 +211,7 @@ interface EntityManagerInterface extends ObjectManager
      * @throws OptimisticLockException
      * @throws PessimisticLockException
      */
-    public function lock( $entity, $lockMode, $lockVersion = null );
+    public function lock($entity, $lockMode, $lockVersion = null);
 
     /**
      * Gets the EventManager used by the EntityManager.
@@ -243,18 +242,18 @@ interface EntityManagerInterface extends ObjectManager
     public function getUnitOfWork();
 
     /**
-     * Gets a hydrator for the given hydration mode.
-     *
-     * This method caches the hydrator instances which is used for all queries that don't
-     * selectively iterate over the result.
-     *
-     * @deprecated
-     *
-     * @param int $hydrationMode
-     *
-     * @return \Doctrine\ORM\Internal\Hydration\AbstractHydrator
-     */
-    public function getHydrator( $hydrationMode );
+    * Gets a hydrator for the given hydration mode.
+    *
+    * This method caches the hydrator instances which is used for all queries that don't
+    * selectively iterate over the result.
+    *
+    * @deprecated
+    *
+    * @param int $hydrationMode
+    *
+    * @return \Doctrine\ORM\Internal\Hydration\AbstractHydrator
+    */
+    public function getHydrator($hydrationMode);
 
     /**
      * Create a new instance for the given hydration mode.
@@ -265,7 +264,7 @@ interface EntityManagerInterface extends ObjectManager
      *
      * @throws ORMException
      */
-    public function newHydrator( $hydrationMode );
+    public function newHydrator($hydrationMode);
 
     /**
      * Gets the proxy factory used by the EntityManager to create entity proxies.

@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class DiscriminatorColumn implements Annotation
 {
-
     /**
      * @var string
      */

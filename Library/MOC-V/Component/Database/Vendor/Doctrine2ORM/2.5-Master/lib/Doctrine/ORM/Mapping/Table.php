@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class Table implements Annotation
 {
-
     /**
      * @var string
      */

@@ -25,11 +25,10 @@ use Doctrine\ORM\EntityManagerInterface;
  * This factory is used to create default repository objects for entities at runtime.
  *
  * @author Guilherme Blanco <guilhermeblanco@hotmail.com>
- * @since  2.4
+ * @since 2.4
  */
 final class DefaultRepositoryFactory implements RepositoryFactory
 {
-
     /**
      * The list of EntityRepository instances.
      *
@@ -40,16 +39,15 @@ final class DefaultRepositoryFactory implements RepositoryFactory
     /**
      * {@inheritdoc}
      */
-    public function getRepository( EntityManagerInterface $entityManager, $entityName )
+    public function getRepository(EntityManagerInterface $entityManager, $entityName)
     {
+        $repositoryHash = $entityManager->getClassMetadata($entityName)->getName() . spl_object_hash($entityManager);
 
-        $repositoryHash = $entityManager->getClassMetadata( $entityName )->getName().spl_object_hash( $entityManager );
-
-        if (isset( $this->repositoryList[$repositoryHash] )) {
+        if (isset($this->repositoryList[$repositoryHash])) {
             return $this->repositoryList[$repositoryHash];
         }
 
-        return $this->repositoryList[$repositoryHash] = $this->createRepository( $entityManager, $entityName );
+        return $this->repositoryList[$repositoryHash] = $this->createRepository($entityManager, $entityName);
     }
 
     /**
@@ -60,14 +58,13 @@ final class DefaultRepositoryFactory implements RepositoryFactory
      *
      * @return \Doctrine\Common\Persistence\ObjectRepository
      */
-    private function createRepository( EntityManagerInterface $entityManager, $entityName )
+    private function createRepository(EntityManagerInterface $entityManager, $entityName)
     {
-
         /* @var $metadata \Doctrine\ORM\Mapping\ClassMetadata */
-        $metadata = $entityManager->getClassMetadata( $entityName );
+        $metadata            = $entityManager->getClassMetadata($entityName);
         $repositoryClassName = $metadata->customRepositoryClassName
             ?: $entityManager->getConfiguration()->getDefaultRepositoryClassName();
 
-        return new $repositoryClassName( $entityManager, $metadata );
+        return new $repositoryClassName($entityManager, $metadata);
     }
 }

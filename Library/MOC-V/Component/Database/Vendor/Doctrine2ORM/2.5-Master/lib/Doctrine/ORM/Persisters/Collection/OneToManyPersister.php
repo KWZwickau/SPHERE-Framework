@@ -20,6 +20,7 @@
 namespace Doctrine\ORM\Persisters\Collection;
 
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\PersistentCollection;
 
 /**
@@ -32,13 +33,11 @@ use Doctrine\ORM\PersistentCollection;
  */
 class OneToManyPersister extends AbstractCollectionPersister
 {
-
     /**
      * {@inheritdoc}
      */
-    public function delete( PersistentCollection $collection )
+    public function delete(PersistentCollection $collection)
     {
-
         // This can never happen. One to many can only be inverse side.
         // For owning side one to many, it is required to have a join table,
         // then classifying it as a ManyToManyPersister.
@@ -48,9 +47,8 @@ class OneToManyPersister extends AbstractCollectionPersister
     /**
      * {@inheritdoc}
      */
-    public function update( PersistentCollection $collection )
+    public function update(PersistentCollection $collection)
     {
-
         // This can never happen. One to many can only be inverse side.
         // For owning side one to many, it is required to have a join table,
         // then classifying it as a ManyToManyPersister.
@@ -60,16 +58,15 @@ class OneToManyPersister extends AbstractCollectionPersister
     /**
      * {@inheritdoc}
      */
-    public function get( PersistentCollection $collection, $index )
+    public function get(PersistentCollection $collection, $index)
     {
-
         $mapping = $collection->getMapping();
 
-        if (!isset( $mapping['indexBy'] )) {
-            throw new \BadMethodCallException( "Selecting a collection by index is only supported on indexed collections." );
+        if ( ! isset($mapping['indexBy'])) {
+            throw new \BadMethodCallException("Selecting a collection by index is only supported on indexed collections.");
         }
 
-        $persister = $this->uow->getEntityPersister( $mapping['targetEntity'] );
+        $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
         return $persister->load(
             array(
@@ -87,107 +84,101 @@ class OneToManyPersister extends AbstractCollectionPersister
     /**
      * {@inheritdoc}
      */
-    public function count( PersistentCollection $collection )
+    public function count(PersistentCollection $collection)
     {
-
-        $mapping = $collection->getMapping();
-        $persister = $this->uow->getEntityPersister( $mapping['targetEntity'] );
+        $mapping   = $collection->getMapping();
+        $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
         // only works with single id identifier entities. Will throw an
         // exception in Entity Persisters if that is not the case for the
         // 'mappedBy' field.
-        $criteria = new Criteria( Criteria::expr()->eq( $mapping['mappedBy'], $collection->getOwner() ) );
+        $criteria = new Criteria(Criteria::expr()->eq($mapping['mappedBy'], $collection->getOwner()));
 
-        return $persister->count( $criteria );
+        return $persister->count($criteria);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function slice( PersistentCollection $collection, $offset, $length = null )
+    public function slice(PersistentCollection $collection, $offset, $length = null)
     {
+        $mapping   = $collection->getMapping();
+        $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
-        $mapping = $collection->getMapping();
-        $persister = $this->uow->getEntityPersister( $mapping['targetEntity'] );
-
-        return $persister->getOneToManyCollection( $mapping, $collection->getOwner(), $offset, $length );
+        return $persister->getOneToManyCollection($mapping, $collection->getOwner(), $offset, $length);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function containsKey( PersistentCollection $collection, $key )
+    public function containsKey(PersistentCollection $collection, $key)
     {
-
         $mapping = $collection->getMapping();
 
-        if (!isset( $mapping['indexBy'] )) {
-            throw new \BadMethodCallException( "Selecting a collection by index is only supported on indexed collections." );
+        if ( ! isset($mapping['indexBy'])) {
+            throw new \BadMethodCallException("Selecting a collection by index is only supported on indexed collections.");
         }
 
-        $persister = $this->uow->getEntityPersister( $mapping['targetEntity'] );
+        $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
         // only works with single id identifier entities. Will throw an
         // exception in Entity Persisters if that is not the case for the
         // 'mappedBy' field.
         $criteria = new Criteria();
 
-        $criteria->andWhere( Criteria::expr()->eq( $mapping['mappedBy'], $collection->getOwner() ) );
-        $criteria->andWhere( Criteria::expr()->eq( $mapping['indexBy'], $key ) );
+        $criteria->andWhere(Criteria::expr()->eq($mapping['mappedBy'], $collection->getOwner()));
+        $criteria->andWhere(Criteria::expr()->eq($mapping['indexBy'], $key));
 
-        return (bool)$persister->count( $criteria );
+        return (bool) $persister->count($criteria);
     }
 
-    /**
+     /**
      * {@inheritdoc}
      */
-    public function contains( PersistentCollection $collection, $element )
+    public function contains(PersistentCollection $collection, $element)
     {
-
-        if (!$this->isValidEntityState( $element )) {
+        if ( ! $this->isValidEntityState($element)) {
             return false;
         }
 
-        $mapping = $collection->getMapping();
-        $persister = $this->uow->getEntityPersister( $mapping['targetEntity'] );
+        $mapping   = $collection->getMapping();
+        $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
         // only works with single id identifier entities. Will throw an
         // exception in Entity Persisters if that is not the case for the
         // 'mappedBy' field.
-        $criteria = new Criteria( Criteria::expr()->eq( $mapping['mappedBy'], $collection->getOwner() ) );
+        $criteria = new Criteria(Criteria::expr()->eq($mapping['mappedBy'], $collection->getOwner()));
 
-        return $persister->exists( $element, $criteria );
+        return $persister->exists($element, $criteria);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function removeElement( PersistentCollection $collection, $element )
+    public function removeElement(PersistentCollection $collection, $element)
     {
-
         $mapping = $collection->getMapping();
 
-        if (!$mapping['orphanRemoval']) {
+        if ( ! $mapping['orphanRemoval']) {
             // no-op: this is not the owning side, therefore no operations should be applied
             return false;
         }
 
-        if (!$this->isValidEntityState( $element )) {
+        if ( ! $this->isValidEntityState($element)) {
             return false;
         }
 
         return $this
             ->uow
-            ->getEntityPersister( $mapping['targetEntity'] )
-            ->delete( $element );
+            ->getEntityPersister($mapping['targetEntity'])
+            ->delete($element);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function loadCriteria( PersistentCollection $collection, Criteria $criteria )
+    public function loadCriteria(PersistentCollection $collection, Criteria $criteria)
     {
-
-        throw new \BadMethodCallException( "Filtering a collection by Criteria is not supported by this CollectionPersister." );
+        throw new \BadMethodCallException("Filtering a collection by Criteria is not supported by this CollectionPersister.");
     }
 }

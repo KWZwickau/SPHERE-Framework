@@ -12,7 +12,7 @@ class MoneyEuro implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-euro';
 
     /**
      * @return string

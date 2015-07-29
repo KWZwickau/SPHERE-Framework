@@ -28,7 +28,7 @@ class Table extends Extension implements ITemplateInterface
     /**
      * @param TableHead  $TableHead
      * @param TableBody  $TableBody
-     * @param Title $TableTitle
+     * @param Title      $TableTitle
      * @param bool|array $Interactive
      * @param TableFoot  $TableFoot
      */

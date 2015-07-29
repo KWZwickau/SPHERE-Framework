@@ -27,7 +27,6 @@ namespace Doctrine\ORM\Cache\Persister;
  */
 interface CachedPersister
 {
-
     /**
      * Perform whatever processing is encapsulated here after completion of the transaction.
      */

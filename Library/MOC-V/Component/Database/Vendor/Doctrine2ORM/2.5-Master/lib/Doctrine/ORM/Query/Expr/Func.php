@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class Func
 {
-
     /**
      * @var string
      */
@@ -47,19 +46,17 @@ class Func
      * @param string $name
      * @param array  $arguments
      */
-    public function __construct( $name, $arguments )
+    public function __construct($name, $arguments)
     {
-
-        $this->name = $name;
-        $this->arguments = (array)$arguments;
+        $this->name         = $name;
+        $this->arguments    = (array) $arguments;
     }
 
     /**
-     * @return string
+     * @return string 
      */
     public function getName()
     {
-
         return $this->name;
     }
 
@@ -68,7 +65,6 @@ class Func
      */
     public function getArguments()
     {
-
         return $this->arguments;
     }
 
@@ -77,7 +73,6 @@ class Func
      */
     public function __toString()
     {
-
-        return $this->name.'('.implode( ', ', $this->arguments ).')';
+        return $this->name . '(' . implode(', ', $this->arguments) . ')';
     }
 }

@@ -32,7 +32,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class OnClearEventArgs extends \Doctrine\Common\EventArgs
 {
-
     /**
      * @var EntityManagerInterface
      */
@@ -49,10 +48,9 @@ class OnClearEventArgs extends \Doctrine\Common\EventArgs
      * @param EntityManagerInterface $em
      * @param string|null            $entityClass Optional entity class.
      */
-    public function __construct( EntityManagerInterface $em, $entityClass = null )
+    public function __construct(EntityManagerInterface $em, $entityClass = null)
     {
-
-        $this->em = $em;
+        $this->em          = $em;
         $this->entityClass = $entityClass;
     }
 
@@ -63,7 +61,6 @@ class OnClearEventArgs extends \Doctrine\Common\EventArgs
      */
     public function getEntityManager()
     {
-
         return $this->em;
     }
 
@@ -74,7 +71,6 @@ class OnClearEventArgs extends \Doctrine\Common\EventArgs
      */
     public function getEntityClass()
     {
-
         return $this->entityClass;
     }
 
@@ -85,7 +81,6 @@ class OnClearEventArgs extends \Doctrine\Common\EventArgs
      */
     public function clearsAllEntities()
     {
-
-        return ( $this->entityClass === null );
+        return ($this->entityClass === null);
     }
 }

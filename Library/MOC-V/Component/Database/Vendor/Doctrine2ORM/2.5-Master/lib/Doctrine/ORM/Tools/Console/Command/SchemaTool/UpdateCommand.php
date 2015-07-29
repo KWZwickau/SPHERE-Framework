@@ -19,10 +19,10 @@
 
 namespace Doctrine\ORM\Tools\Console\Command\SchemaTool;
 
-use Doctrine\ORM\Tools\SchemaTool;
-use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Doctrine\ORM\Tools\SchemaTool;
 
 /**
  * Command to generate the SQL needed to update the database schema to match
@@ -38,7 +38,6 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class UpdateCommand extends AbstractCommand
 {
-
     /**
      * @var string
      */
@@ -49,28 +48,28 @@ class UpdateCommand extends AbstractCommand
      */
     protected function configure()
     {
-
         $this
-            ->setName( $this->name )
-            ->setDescription(
-                'Executes (or dumps) the SQL needed to update the database schema to match the current mapping metadata.'
-            )
-            ->setDefinition( array(
-                new InputOption(
-                    'complete', null, InputOption::VALUE_NONE,
-                    'If defined, all assets of the database which are not relevant to the current metadata will be dropped.'
-                ),
-                new InputOption(
-                    'dump-sql', null, InputOption::VALUE_NONE,
-                    'Dumps the generated SQL statements to the screen (does not execute them).'
-                ),
-                new InputOption(
-                    'force', 'f', InputOption::VALUE_NONE,
-                    'Causes the generated SQL statements to be physically executed against your database.'
-                ),
-            ) );
+        ->setName($this->name)
+        ->setDescription(
+            'Executes (or dumps) the SQL needed to update the database schema to match the current mapping metadata.'
+        )
+        ->setDefinition(array(
+            new InputOption(
+                'complete', null, InputOption::VALUE_NONE,
+                'If defined, all assets of the database which are not relevant to the current metadata will be dropped.'
+            ),
 
-        $this->setHelp( <<<EOT
+            new InputOption(
+                'dump-sql', null, InputOption::VALUE_NONE,
+                'Dumps the generated SQL statements to the screen (does not execute them).'
+            ),
+            new InputOption(
+                'force', 'f', InputOption::VALUE_NONE,
+                'Causes the generated SQL statements to be physically executed against your database.'
+            ),
+        ));
+
+        $this->setHelp(<<<EOT
 The <info>%command.name%</info> command generates the SQL needed to
 synchronize the database schema with the current mapping metadata of the
 default entity manager.
@@ -106,60 +105,52 @@ EOT
     /**
      * {@inheritdoc}
      */
-    protected function executeSchemaCommand(
-        InputInterface $input,
-        OutputInterface $output,
-        SchemaTool $schemaTool,
-        array $metadatas
-    ) {
-
+    protected function executeSchemaCommand(InputInterface $input, OutputInterface $output, SchemaTool $schemaTool, array $metadatas)
+    {
         // Defining if update is complete or not (--complete not defined means $saveMode = true)
-        $saveMode = !$input->getOption( 'complete' );
+        $saveMode = ! $input->getOption('complete');
 
-        $sqls = $schemaTool->getUpdateSchemaSql( $metadatas, $saveMode );
+        $sqls = $schemaTool->getUpdateSchemaSql($metadatas, $saveMode);
 
-        if (0 === count( $sqls )) {
-            $output->writeln( 'Nothing to update - your database is already in sync with the current entity metadata.' );
+        if (0 === count($sqls)) {
+            $output->writeln('Nothing to update - your database is already in sync with the current entity metadata.');
 
             return 0;
         }
 
-        $dumpSql = true === $input->getOption( 'dump-sql' );
-        $force = true === $input->getOption( 'force' );
+        $dumpSql = true === $input->getOption('dump-sql');
+        $force   = true === $input->getOption('force');
 
         if ($dumpSql) {
-            $output->writeln( implode( ';'.PHP_EOL, $sqls ).';' );
+            $output->writeln(implode(';' . PHP_EOL, $sqls) . ';');
         }
 
         if ($force) {
-            if ($dumpSql) {
-                $output->writeln( '' );
-            }
-            $output->writeln( 'Updating database schema...' );
-            $schemaTool->updateSchema( $metadatas, $saveMode );
+        	if ($dumpSql) {
+                $output->writeln('');
+        	}
+            $output->writeln('Updating database schema...');
+            $schemaTool->updateSchema($metadatas, $saveMode);
 
-            $pluralization = ( 1 === count( $sqls ) ) ? 'query was' : 'queries were';
+            $pluralization = (1 === count($sqls)) ? 'query was' : 'queries were';
 
-            $output->writeln( sprintf( 'Database schema updated successfully! "<info>%s</info>" %s executed',
-                count( $sqls ), $pluralization ) );
+            $output->writeln(sprintf('Database schema updated successfully! "<info>%s</info>" %s executed', count($sqls), $pluralization));
         }
 
         if ($dumpSql || $force) {
             return 0;
         }
 
-        $output->writeln( '<comment>ATTENTION</comment>: This operation should not be executed in a production environment.' );
-        $output->writeln( '           Use the incremental update to detect changes during development and use' );
-        $output->writeln( '           the SQL DDL provided to manually update your database in production.' );
-        $output->writeln( '' );
+        $output->writeln('<comment>ATTENTION</comment>: This operation should not be executed in a production environment.');
+        $output->writeln('           Use the incremental update to detect changes during development and use');
+        $output->writeln('           the SQL DDL provided to manually update your database in production.');
+        $output->writeln('');
 
-        $output->writeln( sprintf( 'The Schema-Tool would execute <info>"%s"</info> queries to update the database.',
-            count( $sqls ) ) );
-        $output->writeln( 'Please run the operation by passing one - or both - of the following options:' );
+        $output->writeln(sprintf('The Schema-Tool would execute <info>"%s"</info> queries to update the database.', count($sqls)));
+        $output->writeln('Please run the operation by passing one - or both - of the following options:');
 
-        $output->writeln( sprintf( '    <info>%s --force</info> to execute the command', $this->getName() ) );
-        $output->writeln( sprintf( '    <info>%s --dump-sql</info> to dump the SQL statements to the screen',
-            $this->getName() ) );
+        $output->writeln(sprintf('    <info>%s --force</info> to execute the command', $this->getName()));
+        $output->writeln(sprintf('    <info>%s --dump-sql</info> to dump the SQL statements to the screen', $this->getName()));
 
         return 1;
     }

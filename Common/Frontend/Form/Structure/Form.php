@@ -66,37 +66,6 @@ class Form extends Extension implements IFormInterface
     }
 
     /**
-     * @return string
-     */
-    public function getContent()
-    {
-
-        $this->Template->setVariable( 'FormButtonList', $this->GridButtonList );
-        $this->Template->setVariable( 'GridGroupList', $this->GridGroupList );
-        $this->Template->setVariable( 'Hash', $this->getHash() );
-        return $this->Template->getContent();
-    }
-
-    /**
-     * @return string
-     */
-    public function getHash()
-    {
-
-        if (empty( $this->Hash )) {
-            $GroupList = $this->GridGroupList;
-            array_walk( $GroupList, function ( &$G ) {
-
-                if (is_object( $G )) {
-                    $G = serialize( $G );
-                }
-            } );
-            $this->Hash = sha1( json_encode( $GroupList ) );
-        }
-        return $this->Hash;
-    }
-
-    /**
      * @param string              $Name
      * @param string              $Message
      * @param IIconInterface|null $Icon
@@ -199,7 +168,39 @@ class Form extends Extension implements IFormInterface
      */
     public function __toString()
     {
+
         return $this->getContent();
+    }
+
+    /**
+     * @return string
+     */
+    public function getContent()
+    {
+
+        $this->Template->setVariable( 'FormButtonList', $this->GridButtonList );
+        $this->Template->setVariable( 'GridGroupList', $this->GridGroupList );
+        $this->Template->setVariable( 'Hash', $this->getHash() );
+        return $this->Template->getContent();
+    }
+
+    /**
+     * @return string
+     */
+    public function getHash()
+    {
+
+        if (empty( $this->Hash )) {
+            $GroupList = $this->GridGroupList;
+            array_walk( $GroupList, function ( &$G ) {
+
+                if (is_object( $G )) {
+                    $G = serialize( $G );
+                }
+            } );
+            $this->Hash = sha1( json_encode( $GroupList ) );
+        }
+        return $this->Hash;
     }
 
 

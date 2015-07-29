@@ -26,29 +26,27 @@ namespace Doctrine\ORM\Query\AST;
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
  */
-class SubselectIdentificationVariableDeclaration
+class SubselectIdentificationVariableDeclaration 
 {
-
     /**
      * @var PathExpression
      */
     public $associationPathExpression;
-
+    
     /**
      * @var string
      */
     public $aliasIdentificationVariable;
-
+    
     /**
      * Constructor.
-     *
+     * 
      * @param PathExpression $associationPathExpression
      * @param string         $aliasIdentificationVariable
      */
-    public function __construct( $associationPathExpression, $aliasIdentificationVariable )
+    public function __construct($associationPathExpression, $aliasIdentificationVariable)
     {
-
-        $this->associationPathExpression = $associationPathExpression;
+        $this->associationPathExpression   = $associationPathExpression;
         $this->aliasIdentificationVariable = $aliasIdentificationVariable;
     }
 }

@@ -12,7 +12,7 @@ class TileBig implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'halflings halflings-barcode';
+    private $Value = 'glyphicons glyphicons-show-big-thumbnails';
 
     /**
      * @return string

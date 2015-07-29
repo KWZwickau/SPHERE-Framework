@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 abstract class Node
 {
-
     /**
      * Double-dispatch method, supposed to dispatch back to the walker.
      *
@@ -42,10 +41,9 @@ abstract class Node
      *
      * @throws ASTException
      */
-    public function dispatch( $walker )
+    public function dispatch($walker)
     {
-
-        throw ASTException::noDispatchForNode( $this );
+        throw ASTException::noDispatchForNode($this);
     }
 
     /**
@@ -55,8 +53,7 @@ abstract class Node
      */
     public function __toString()
     {
-
-        return $this->dump( $this );
+        return $this->dump($this);
     }
 
     /**
@@ -64,46 +61,41 @@ abstract class Node
      *
      * @return string
      */
-    public function dump( $obj )
+    public function dump($obj)
     {
-
         static $ident = 0;
 
         $str = '';
 
         if ($obj instanceof Node) {
-            $str .= get_class( $obj ).'('.PHP_EOL;
-            $props = get_object_vars( $obj );
+            $str .= get_class($obj) . '(' . PHP_EOL;
+            $props = get_object_vars($obj);
 
             foreach ($props as $name => $prop) {
                 $ident += 4;
-                $str .= str_repeat( ' ', $ident ).'"'.$name.'": '
-                    .$this->dump( $prop ).','.PHP_EOL;
+                $str .= str_repeat(' ', $ident) . '"' . $name . '": '
+                      . $this->dump($prop) . ',' . PHP_EOL;
                 $ident -= 4;
             }
 
-            $str .= str_repeat( ' ', $ident ).')';
+            $str .= str_repeat(' ', $ident) . ')';
+        } else if (is_array($obj)) {
+            $ident += 4;
+            $str .= 'array(';
+            $some = false;
+
+            foreach ($obj as $k => $v) {
+                $str .= PHP_EOL . str_repeat(' ', $ident) . '"'
+                      . $k . '" => ' . $this->dump($v) . ',';
+                $some = true;
+            }
+
+            $ident -= 4;
+            $str .= ($some ? PHP_EOL . str_repeat(' ', $ident) : '') . ')';
+        } else if (is_object($obj)) {
+            $str .= 'instanceof(' . get_class($obj) . ')';
         } else {
-            if (is_array( $obj )) {
-                $ident += 4;
-                $str .= 'array(';
-                $some = false;
-
-                foreach ($obj as $k => $v) {
-                    $str .= PHP_EOL.str_repeat( ' ', $ident ).'"'
-                        .$k.'" => '.$this->dump( $v ).',';
-                    $some = true;
-                }
-
-                $ident -= 4;
-                $str .= ( $some ? PHP_EOL.str_repeat( ' ', $ident ) : '' ).')';
-            } else {
-                if (is_object( $obj )) {
-                    $str .= 'instanceof('.get_class( $obj ).')';
-                } else {
-                    $str .= var_export( $obj, true );
-                }
-            }
+            $str .= var_export($obj, true);
         }
 
         return $str;

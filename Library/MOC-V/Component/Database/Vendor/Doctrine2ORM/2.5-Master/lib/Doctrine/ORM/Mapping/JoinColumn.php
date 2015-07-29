@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class JoinColumn implements Annotation
 {
-
     /**
      * @var string
      */

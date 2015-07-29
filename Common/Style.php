@@ -25,7 +25,6 @@ class Style extends Extension
         $this->setSource( '/Library/Bootstrap.Glyphicons/1.9.0/glyphicons/web/html_css/css/glyphicons.css' );
         $this->setSource( '/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_filetypes/web/html_css/css/glyphicons-filetypes.css' );
         $this->setSource( '/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_social/web/html_css/css/glyphicons-social.css' );
-        $this->setSource( '/Common/Style/Glyphicons.css' );
 
         $this->setSource( '/Library/jQuery.Selecter/3.2.4/jquery.fs.selecter.min.css' );
         $this->setSource( '/Library/jQuery.Stepper/3.0.8/jquery.fs.stepper.css' );
@@ -41,7 +40,6 @@ class Style extends Extension
 
         $this->setSource( '/Common/Style/Correction.css' );
         $this->setSource( '/Common/Style/PhpInfo.css' );
-
 
     }
 

@@ -28,11 +28,10 @@ use Doctrine\ORM\Persisters\Entity\EntityPersister;
  * Interface for second level cache entity persisters.
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 interface CachedEntityPersister extends CachedPersister, EntityPersister
 {
-
     /**
      * @return \Doctrine\ORM\Cache\EntityHydrator
      */
@@ -41,8 +40,7 @@ interface CachedEntityPersister extends CachedPersister, EntityPersister
     /**
      * @param  object                             $entity
      * @param  \Doctrine\ORM\Cache\EntityCacheKey $key
-     *
      * @return boolean
      */
-    public function storeEntityCache( $entity, EntityCacheKey $key );
+    public function storeEntityCache($entity, EntityCacheKey $key);
 }
