@@ -1,0 +1,18 @@
+languages:
+  PHP: true
+exclude_paths:
+- "TestSuite/*"
+- "Documentation/*"
+- "Component/Router/Vendor/Symfony/*"
+- "Component/Database/Vendor/Doctrine2DBAL/*"
+- "Component/Database/Vendor/Doctrine2ORM/*"
+- "Component/Template/Vendor/Twig/*"
+- "Component/Template/Vendor/Smarty/*"
+- "Component/Documentation/Vendor/ApiGen/*"
+- "Component/Documentation/Vendor/Template/*"
+- "Component/Document/Vendor/PhpExcel/*"
+- "Component/Document/Vendor/DomPdf/*"
+- "Component/Document/Vendor/mPdf/*"
+- "Component/Mail/Vendor/EdenPhpMail/*"
+- "Core/HttpKernel/Vendor/Symfony/*"
+- "Core/FileSystem/Vendor/Symfony/*"
