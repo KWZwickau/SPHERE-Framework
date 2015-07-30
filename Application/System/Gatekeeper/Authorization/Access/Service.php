@@ -80,7 +80,7 @@ class Service extends Extension implements IServiceInterface
     public function hasAuthorization( $Route )
     {
 
-        // Sanatize Route
+        // Sanitize Route
         $Route = '/'.trim( $Route, '/' );
 
         // Cache
@@ -88,20 +88,13 @@ class Service extends Extension implements IServiceInterface
         if (in_array( $Route, self::$AuthorizationCache ) || in_array( $Route, self::$AuthorizationRequest )) {
             return true;
         }
-
         if (false === ( $tblRight = $this->getRightByName( $Route ) )) {
             // Access valid PUBLIC -> Access granted
             self::$AuthorizationRequest[] = $Route;
             return true;
         } else {
-            if (!array_key_exists( 'REST', $this->getRequest()->getParameterArray() )) {
-                // Resource is not protected -> Access granted
-                self::$AuthorizationRequest[] = $Route;
-                return true;
-            } else {
-                // REST MUST BE protected -> Access denied
-                return false;
-            }
+            // MUST BE protected -> Access denied
+            return false;
         }
     }
 
@@ -109,7 +102,7 @@ class Service extends Extension implements IServiceInterface
     {
 
         if (empty( self::$AuthorizationCache )) {
-            if (false !== ( $tblAccount = Account::useService()->getAccountById( 1 ) )) {
+            if (false !== ( $tblAccount = Account::useService()->getAccountById( 2 ) )) {
                 if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount( $tblAccount ) )) {
                     /** @var TblAuthorization $tblAuthorization */
                     foreach ($tblAuthorizationAll as $tblAuthorization) {

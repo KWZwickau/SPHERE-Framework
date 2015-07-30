@@ -56,8 +56,6 @@ class Frontend implements IFrontendInterface
 
         $Stage = new Stage( 'Test', 'Frontend' );
 
-        $Stage->getDebugger()->screenDump( $Stage->getGlobal()->POST );
-
         $Stage->setContent(
             ( new Form(
                 new FormGroup( array(

@@ -26,18 +26,18 @@ class Authentication implements IModuleInterface
             new Link\Name( 'Abmelden' ), new Link\Icon( new Off() )
         ) );
 
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__.'/Student' ),
-            new Link\Name( 'Schüler' ), new Link\Icon( new Lock() ) ),
-            new Link\Route( __NAMESPACE__ ) );
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__.'/Teacher' ),
-            new Link\Name( 'Lehrer' ), new Link\Icon( new Lock() ) ),
-            new Link\Route( __NAMESPACE__ ) );
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__.'/Management' ),
-            new Link\Name( 'Verwaltung' ), new Link\Icon( new Lock() ) ),
-            new Link\Route( __NAMESPACE__ ) );
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__.'/System' ),
-            new Link\Name( 'System' ), new Link\Icon( new Lock() ) ),
-            new Link\Route( __NAMESPACE__ ) );
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Student' ),
+            new Link\Name( 'Schüler' ), new Link\Icon( new Lock() ) )
+        );
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Teacher' ),
+            new Link\Name( 'Lehrer' ), new Link\Icon( new Lock() ) )
+        );
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Management' ),
+            new Link\Name( 'Verwaltung' ), new Link\Icon( new Lock() ) )
+        );
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/System' ),
+            new Link\Name( 'System' ), new Link\Icon( new Lock() ) )
+        );
 
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendIdentification'

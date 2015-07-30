@@ -2,8 +2,14 @@
 namespace SPHERE\Common;
 
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
+use SPHERE\Application\Billing\Billing;
+use SPHERE\Application\BillingSystem\BillingSystem;
+use SPHERE\Application\Company\Company;
 use SPHERE\Application\Dispatcher;
+use SPHERE\Application\Education\Education;
+use SPHERE\Application\People\People;
 use SPHERE\Application\System\System;
+use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Authenticator\Authenticator;
@@ -68,6 +74,12 @@ class Main extends Extension
              * Register Cluster
              */
             System::registerCluster();
+            People::registerCluster();
+            Company::registerCluster();
+            Education::registerCluster();
+            Billing::registerCluster();
+            Transfer::registerCluster();
+            BillingSystem::registerCluster();
             /**
              * Execute Request
              */
