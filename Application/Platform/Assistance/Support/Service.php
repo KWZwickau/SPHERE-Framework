@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Platform\Assistance\Support\Ticket;
+namespace SPHERE\Application\Platform\Assistance\Support;
 
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\IMessageInterface;
@@ -64,7 +64,7 @@ class Service
                 $Youtrack->createTicket( urldecode( $TicketSubject ), urldecode( $TicketMessage ) );
                 return new Success( 'Das Problem wurde erfolgreich dem Support mitgeteilt' );
             } catch( \Exception $E ) {
-                return new Danger( 'Das Problem konnte nicht Ã¼bertragen werden' );
+                return new Danger( 'Das Problem konnte nicht übertragen werden' );
             }
         }
     }

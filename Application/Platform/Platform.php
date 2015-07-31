@@ -24,9 +24,9 @@ class Platform implements IClusterInterface
         /**
          * Register Application
          */
-        Gatekeeper::registerApplication();
+//        Gatekeeper::registerApplication();
         Assistance::registerApplication();
-        System::registerApplication();
+//        System::registerApplication();
         /**
          * Register Navigation
          */

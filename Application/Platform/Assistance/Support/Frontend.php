@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Platform\Assistance\Support\Ticket;
+namespace SPHERE\Application\Platform\Assistance\Support;
 
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;

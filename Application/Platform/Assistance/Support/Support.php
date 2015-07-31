@@ -5,7 +5,6 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\Common\Window\Stage;
 
 /**
  * Class Support
@@ -21,22 +20,14 @@ class Support implements IModuleInterface
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Support' ) )
-        );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Ticket' ), new Link\Name( 'Ticket' ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Support' ) )
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute( __NAMESPACE__,
-                'Support::frontendSupport'
-            )
-        );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Ticket',
                 'Frontend::frontendTicket'
             )
                 ->setParameterDefault( 'TicketSubject', null )
@@ -52,20 +43,12 @@ class Support implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    /**
+     * @return Frontend
+     */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
-    }
 
-    /**
-     *
-     * @return Stage
-     */
-    public function frontendSupport()
-    {
-
-        $Stage = new Stage( 'Support', '' );
-
-        return $Stage;
+        return new Frontend();
     }
 }
