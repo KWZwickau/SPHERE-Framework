@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education\Graduation;
 
 use SPHERE\Application\Education\Graduation\Certificate\Certificate;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -12,6 +13,8 @@ class Graduation implements IApplicationInterface
 
     public static function registerApplication()
     {
+
+        Gradebook::registerModule();
         Certificate::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(

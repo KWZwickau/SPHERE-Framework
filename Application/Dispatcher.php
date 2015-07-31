@@ -3,7 +3,7 @@ namespace SPHERE\Application;
 
 use MOC\V\Component\Router\Component\IBridgeInterface;
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
-use SPHERE\Application\System\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 
 /**
  * Class Dispatcher
@@ -80,7 +80,7 @@ class Dispatcher
         if (in_array( $Path, self::$Router->getRouteList() )) {
             return self::$Router->getRoute( $Path );
         } else {
-            return self::$Router->getRoute( 'System/Assistance/Error/Authorization' );
+            return self::$Router->getRoute( 'Platform/Assistance/Error/Authorization' );
         }
     }
 }

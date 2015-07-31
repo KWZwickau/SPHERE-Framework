@@ -2,8 +2,8 @@
 namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
-use SPHERE\Application\System\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\System\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
@@ -120,7 +120,7 @@ class Display extends Extension implements ITemplateInterface
             $Branch = key( $Branch );
         }
 
-        if ($Branch === null || $Branch >= 3) {
+        if ($Branch === null || $Branch >= 2) {
             if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
                 if ($Link->isActive()) {
                     $this->ApplicationBreadcrumb = $Link->getName()->getValue();
@@ -171,7 +171,7 @@ class Display extends Extension implements ITemplateInterface
             $Branch = key( $Branch );
         }
 
-        if ($Branch === null || $Branch >= 4) {
+        if ($Branch === null || $Branch >= 3) {
             if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
                 if ($Link->isActive()) {
                     $this->ModuleBreadcrumb = $Link->getName()->getValue();

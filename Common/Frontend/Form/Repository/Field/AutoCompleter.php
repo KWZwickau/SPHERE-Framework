@@ -4,6 +4,7 @@ namespace SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class AutoCompleter
@@ -36,7 +37,7 @@ class AutoCompleter extends Field implements IFieldInterface
         if (count( $Data ) == 1 && !is_numeric( key( $Data ) )) {
             $Attribute = key( $Data );
             $Convert = array();
-            /** @var AbstractEntity $Entity */
+            /** @var Element $Entity */
             foreach ((array)$Data[$Attribute] as $Entity) {
                 if ($Entity) {
                     $Convert[$Entity->getId()] = $Entity->{'get'.$Attribute}();

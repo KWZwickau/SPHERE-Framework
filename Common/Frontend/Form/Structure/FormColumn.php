@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Common\Frontend\Form\Structure;
 
+use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\IStructureInterface;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\System\Extension\Extension;
@@ -28,7 +29,7 @@ class FormColumn extends Extension implements IStructureInterface
         if (!is_array( $Frontend )) {
             $Frontend = array( $Frontend );
         }
-        /** @var AbstractInput $Object */
+        /** @var IFieldInterface $Object */
         foreach ((array)$Frontend as $Index => $Object) {
             if (null !== $Object->getName()) {
                 $Frontend[$Object->getName()] = $Object;

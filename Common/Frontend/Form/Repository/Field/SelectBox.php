@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Template;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class SelectBox
@@ -40,7 +41,7 @@ class SelectBox extends Field implements IFieldInterface
                 $Attribute,
                 $Placeholder )
             ) {
-                /** @var AbstractEntity $Entity */
+                /** @var Element $Entity */
                 foreach ((array)$Data[$Attribute] as $Entity) {
                     if (is_object( $Entity )) {
                         if ($Entity->getId() === null) {
@@ -67,7 +68,7 @@ class SelectBox extends Field implements IFieldInterface
                     }
                 }
             } else {
-                /** @var AbstractEntity $Entity */
+                /** @var Element $Entity */
                 foreach ((array)$Data[$Attribute] as $Entity) {
                     if (is_object( $Entity )) {
                         if ($Entity->getId() === null) {

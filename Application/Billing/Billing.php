@@ -10,6 +10,7 @@ class Billing implements IClusterInterface
 
     public static function registerCluster()
     {
+
         Main::getDisplay()->addClusterNavigation(
             new Link( new Link\Route( __NAMESPACE__.'/Billing' ), new Link\Name( 'Fakturierung' ) )
         );

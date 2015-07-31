@@ -10,6 +10,7 @@ class People implements IClusterInterface
 
     public static function registerCluster()
     {
+
         Main::getDisplay()->addClusterNavigation(
             new Link( new Link\Route( __NAMESPACE__.'/Person' ), new Link\Name( 'Personen' ) )
         );

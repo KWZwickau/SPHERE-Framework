@@ -8,7 +8,8 @@ use SPHERE\Application\Company\Company;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Education\Education;
 use SPHERE\Application\People\People;
-use SPHERE\Application\System\System;
+use SPHERE\Application\Platform\Platform;
+use SPHERE\Application\Platform\System;
 use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Navigation\Link;
@@ -73,7 +74,7 @@ class Main extends Extension
             /**
              * Register Cluster
              */
-            System::registerCluster();
+            Platform::registerCluster();
             People::registerCluster();
             Company::registerCluster();
             Education::registerCluster();

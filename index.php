@@ -4,7 +4,6 @@ namespace SPHERE;
 use MOC\V\Core\AutoLoader\AutoLoader;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
-use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Setup: Php
@@ -17,7 +16,7 @@ session_start();
 session_write_close();
 set_time_limit( 240 );
 ob_implicit_flush();
-ini_set('memory_limit', '1024M');
+ini_set( 'memory_limit', '1024M' );
 
 /**
  * Setup: Loader
