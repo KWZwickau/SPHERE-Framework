@@ -81,9 +81,6 @@ class Service extends Extension implements IServiceInterface
         // Sanitize Route
         $Route = '/'.trim( $Route, '/' );
 
-        // TODO: Remove
-        return true;
-
         // Cache
         $this->hydrateAuthorization();
         if (in_array( $Route, self::$AuthorizationCache ) || in_array( $Route, self::$AuthorizationRequest )) {
@@ -103,8 +100,7 @@ class Service extends Extension implements IServiceInterface
     {
 
         if (empty( self::$AuthorizationCache )) {
-            // TODO: Account by Session
-            if (false !== ( $tblAccount = Account::useService()->getAccountById( 0 ) )) {
+            if (false !== ( $tblAccount = Account::useService()->getAccountBySession() )) {
                 if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount( $tblAccount ) )) {
                     /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
                     foreach ($tblAuthorizationAll as $tblAuthorization) {

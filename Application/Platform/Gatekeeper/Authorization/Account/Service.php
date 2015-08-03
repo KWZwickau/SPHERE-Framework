@@ -26,7 +26,7 @@ class Service implements IServiceInterface
 
     /** @var TblAccount[] $AccountByIdCache */
     private static $AccountByIdCache = array();
-    /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification[] $IdentificationByIdCache */
+    /** @var TblIdentification[] $IdentificationByIdCache */
     private static $IdentificationByIdCache = array();
     /** @var null|Binding */
     private $Binding = null;
@@ -57,7 +57,7 @@ class Service implements IServiceInterface
     {
 
         $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
-        if (!$doSimulation && $withData ) {
+        if (!$doSimulation && $withData) {
             ( new Data( $this->Binding ) )->setupDatabaseContent();
         }
         return $Protocol;
@@ -92,7 +92,7 @@ class Service implements IServiceInterface
     /**
      * @param integer $Id
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification
+     * @return bool|TblIdentification
      */
     public function getIdentificationById( $Id )
     {
@@ -107,7 +107,7 @@ class Service implements IServiceInterface
     /**
      * @param string $Name
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification
+     * @return bool|TblIdentification
      */
     public function getIdentificationByName( $Name )
     {
@@ -147,10 +147,10 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param IFormInterface                                                                                 $Form
-     * @param string                                                                                         $CredentialName
-     * @param string                                                                                         $CredentialLock
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification $tblIdentification
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
+     * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
      */
@@ -186,10 +186,10 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param string                                                                                         $Username
-     * @param string                                                                                         $Password
-     * @param bool                                                                                           $TokenString
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification $tblIdentification
+     * @param string            $Username
+     * @param string            $Password
+     * @param bool              $TokenString
+     * @param TblIdentification $tblIdentification
      *
      * @return null|bool
      */
@@ -228,9 +228,9 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param string                                                                                         $Username
-     * @param string                                                                                         $Password
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification $tblIdentification
+     * @param string            $Username
+     * @param string            $Password
+     * @param TblIdentification $tblIdentification
      *
      * @return bool|TblAccount
      */
@@ -254,11 +254,11 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param IFormInterface                                                                                 $Form
-     * @param string                                                                                         $CredentialName
-     * @param string                                                                                         $CredentialLock
-     * @param string                                                                                         $CredentialKey
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification $tblIdentification
+     * @param IFormInterface    $Form
+     * @param string            $CredentialName
+     * @param string            $CredentialLock
+     * @param string            $CredentialKey
+     * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
      */

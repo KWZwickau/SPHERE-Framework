@@ -31,9 +31,7 @@ class Frontend implements IFrontendInterface
     public function frontendWelcome()
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle( 'Willkommen' );
-        $Stage->setDescription( 'KREDA Professional' );
+        $Stage = new Stage( 'Willkommen', 'KREDA Professional' );
         $Stage->setMessage( date( 'd.m.Y - H:i:s' ) );
         return $Stage;
     }

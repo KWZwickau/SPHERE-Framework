@@ -1,0 +1,138 @@
+<?php
+namespace SPHERE\Application\Billing\Accounting\Account\Service\Entity;
+
+use SPHERE\Application\Billing\Accounting\Account\Account;
+use SPHERE\System\Database\Fitting\Element;
+
+/**
+ * @Entity
+ * @Table(name="tblAccount")
+ * @Cache(usage="NONSTRICT_READ_WRITE")
+ */
+class TblAccount extends Element
+{
+
+    const ATTR_IS_ACTIVE = 'IsActive';
+    const ATTR_TBL_ACCOUNT_TYPE = 'tblAccountType';
+    const ATTR_TBL_ACCOUNT_KEY = 'tblAccountKey';
+
+    /**
+     * @Column(type="string")
+     */
+    protected $Number;
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsActive;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblAccountType;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblAccountKey;
+
+    /**
+     * @return string
+     */
+    public function getNumber()
+    {
+
+        return $this->Number;
+    }
+
+    /**
+     * @param string $Number
+     */
+    public function setNumber( $Number )
+    {
+
+        $this->Number = $Number;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription( $Description )
+    {
+
+        $this->Description = $Description;
+    }
+
+    /**
+     * @return boolean $IsActive
+     */
+    public function getIsActive()
+    {
+
+        return $this->IsActive;
+    }
+
+    /**
+     * @param boolean $IsActive
+     */
+    public function setIsActive( $IsActive )
+    {
+
+        $this->IsActive = $IsActive;
+    }
+
+    /**
+     * @return bool|TblAccountType
+     */
+    public function getTblAccountType()
+    {
+
+        if ( null === $this->tblAccountType ) {
+            return false;
+        } else {
+            return Account::useService()->entityAccountTypeById( $this->tblAccountType );
+        }
+    }
+
+    /**
+     * @param null|TblAccountType $tblAccountType
+     */
+    public function setTblAccountType( TblAccountType $tblAccountType = null )
+    {
+
+        $this->tblAccountType = ( null === $tblAccountType ? null : $tblAccountType->getId() );
+    }
+
+    /**
+     * @return bool|TblAccountKey
+     */
+    public function getTblAccountKey()
+    {
+
+        if ( null === $this->tblAccountKey ) {
+            return false;
+        } else {
+            return Account::useService()->entityAccountKeyById( $this->tblAccountKey );
+        }
+    }
+
+    /**
+     * @param null|TblAccountKey $tblAccountKey
+     */
+    public function setTblAccountKey( tblAccountKey $tblAccountKey = null )
+    {
+
+        $this->tblAccountKey = ( null === $tblAccountKey ? null : $tblAccountKey->getId() );
+    }
+
+}

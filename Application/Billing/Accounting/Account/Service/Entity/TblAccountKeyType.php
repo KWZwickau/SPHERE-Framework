@@ -1,0 +1,61 @@
+<?php
+namespace SPHERE\Application\Billing\Accounting\Account\Service\Entity;
+
+use SPHERE\System\Database\Fitting\Element;
+
+/**
+ * @Entity
+ * @Table(name="tblAccountKeyType")
+ * @Cache(usage="NONSTRICT_READ_WRITE")
+ */
+class TblAccountKeyType extends Element
+{
+
+    /**
+     * @Column(type="string")
+     */
+    protected $Name;
+
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
+
+    /**
+     * @return string $Name
+     */
+    public function getName()
+    {
+
+        return $this->Name;
+    }
+
+    /**
+     * @param string $Name
+     */
+    public function setName( $Name )
+    {
+
+        $this->Name = $Name;
+    }
+
+    /**
+     * @return string $Description
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription( $Description )
+    {
+
+        $this->Description = $Description;
+    }
+
+
+}

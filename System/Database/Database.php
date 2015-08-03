@@ -44,8 +44,6 @@ class Database extends Extension
     private static $ConditionMemcached = null;
     /** @var null|bool $ConditionApc */
     private static $ConditionApc = null;
-    /** @var Manager[] $EntityManager */
-    private static $EntityManager = array();
     /** @var Identifier $Identifier */
     private $Identifier = null;
     /** @var array $Configuration */
@@ -100,7 +98,7 @@ class Database extends Extension
     public function getEntityManager( $EntityPath, $EntityNamespace )
     {
 
-        // Sanatize Namespace
+        // Sanitize Namespace
         $EntityNamespace = trim( str_replace( array( '/', '\\' ), '\\', $EntityNamespace ), '\\' ).'\\';
         $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration( array( $EntityPath ) );
         $MetadataConfiguration->setDefaultRepositoryClassName( '\SPHERE\System\Database\Fitting\Repository' );
