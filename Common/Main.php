@@ -1,9 +1,10 @@
 <?php
 namespace SPHERE\Common;
 
+use Doctrine\DBAL\Driver\PDOException;
+use Doctrine\DBAL\Exception\TableNotFoundException;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
 use SPHERE\Application\Billing\Billing;
-use SPHERE\Application\BillingSystem\BillingSystem;
 use SPHERE\Application\Company\Company;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Education\Education;
@@ -66,11 +67,11 @@ class Main extends Extension
     public function runPlatform()
     {
 
-        $this->getDebugger();
-        $this->setErrorHandler();
-        $this->setShutdownHandler();
-
         try {
+            $this->getDebugger();
+            $this->setErrorHandler();
+            $this->setShutdownHandler();
+
             /**
              * Register Cluster
              */
@@ -80,7 +81,6 @@ class Main extends Extension
             Education::registerCluster();
             Billing::registerCluster();
             Transfer::registerCluster();
-            BillingSystem::registerCluster();
             /**
              * Execute Request
              */
@@ -91,12 +91,23 @@ class Main extends Extension
                     )
                 );
             }
+        } catch( PDOException $Exception ) {
+            $this->runSelfHeal();
+        } catch( TableNotFoundException $Exception ) {
+            $this->runSelfHeal();
+        } catch( \PDOException $Exception ) {
+            $this->runSelfHeal();
         } catch( \ErrorException $Exception ) {
-            self::getDisplay()->setException( $Exception );
+            self::getDisplay()->setException( $Exception, 'Error' );
         } catch( \Exception $Exception ) {
-            self::getDisplay()->setException( $Exception );
+            self::getDisplay()->setException( $Exception, 'Exception' );
         }
-        echo self::getDisplay()->getContent();
+
+        try {
+            echo self::getDisplay()->getContent();
+        } catch( \Exception $Exception ) {
+            $this->runSelfHeal();
+        }
     }
 
     /**
@@ -122,19 +133,22 @@ class Main extends Extension
     {
 
         register_shutdown_function(
-            function ( Display $Display ) {
+            function () {
 
                 $Error = error_get_last();
                 if (!$Error) {
                     return;
                 }
+                $Display = new Display();
                 $Display->addServiceNavigation(
                     new Link( new Link\Route( '/' ), new Link\Name( 'Zurück zur Anwendung' ) )
                 );
                 $Display->setException(
-                    new \ErrorException( $Error['message'], 0, $Error['type'], $Error['file'], $Error['line'] )
+                    new \ErrorException( $Error['message'], 0, $Error['type'], $Error['file'], $Error['line'] ),
+                    'Shutdown'
                 );
-            }, self::getDisplay()
+                echo $Display->getContent( true );
+            }
         );
     }
 
@@ -160,5 +174,15 @@ class Main extends Extension
             }
         }
         return true;
+    }
+
+    private function runSelfHeal()
+    {
+
+        $Display = new Display();
+        $Display->setContent(
+            ( new System\Database\Database() )->frontendSetup( false )
+        );
+        echo $Display->getContent( true );
     }
 }

@@ -31,9 +31,9 @@ class Assistance implements IApplicationInterface
         Main::getDisplay()->addServiceNavigation(
             new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ), new Link\Icon( new Question() ) )
         );
-        Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ), new Link\Icon( new Question() ) )
-        );
+//        Main::getDisplay()->addApplicationNavigation(
+//            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ), new Link\Icon( new Question() ) )
+//        );
         /**
          * Register Route
          */

@@ -1,3 +1,10 @@
+/* HTML */
+
+.container hr,
+.container-fluid hr {
+    margin: 6px 0;
+}
+
 /* GLYPHICONS */
 
 .halflings {

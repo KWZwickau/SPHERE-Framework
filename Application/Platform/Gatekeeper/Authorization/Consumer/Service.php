@@ -21,7 +21,7 @@ class Service implements IServiceInterface
 
     /** @var TblConsumer[] $ConsumerByIdCache */
     private static $ConsumerByIdCache = array();
-    /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer[] $ConsumerByAcronymCache */
+    /** @var TblConsumer[] $ConsumerByAcronymCache */
     private static $ConsumerByAcronymCache = array();
     /** @var null|Binding */
     private $Binding = null;
@@ -43,15 +43,16 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param bool $Simulate
+     * @param bool $doSimulation
+     * @param bool $withData
      *
      * @return string
      */
-    public function setupService( $Simulate )
+    public function setupService( $doSimulation, $withData )
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
-        if (!$Simulate) {
+        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        if (!$doSimulation && $withData) {
             ( new Data( $this->Binding ) )->setupDatabaseContent();
         }
         return $Protocol;
@@ -86,7 +87,7 @@ class Service implements IServiceInterface
     /**
      * @param null|string $Session
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer
+     * @return bool|TblConsumer
      */
     public function getConsumerBySession( $Session = null )
     {
@@ -152,7 +153,7 @@ class Service implements IServiceInterface
     /**
      * @param string $Acronym
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer
+     * @return bool|TblConsumer
      */
     public function getConsumerByAcronym( $Acronym )
     {

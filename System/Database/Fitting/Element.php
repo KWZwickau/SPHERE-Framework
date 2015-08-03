@@ -21,7 +21,7 @@ use SPHERE\System\Extension\Extension;
  * @MappedSuperclass
  * @HasLifecycleCallbacks
  */
-class Element extends Extension
+abstract class Element extends Extension
 {
 
     /**
@@ -46,7 +46,7 @@ class Element extends Extension
     {
 
         if (empty( $this->EntityCreate )) {
-            $this->EntityCreate = new \DateTime();
+            $this->EntityCreate = new \DateTime( "now" );
         }
     }
 
@@ -56,7 +56,7 @@ class Element extends Extension
     final public function lifecycleUpdate()
     {
 
-        $this->EntityUpdate = new \DateTime();
+        $this->EntityUpdate = new \DateTime( "now" );
     }
 
     /**

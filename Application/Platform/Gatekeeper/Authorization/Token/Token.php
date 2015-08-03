@@ -18,7 +18,7 @@ class Token implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__ ),
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__ ),
             new Link\Name( 'Hardware-Token' ) ),
             new Link\Route( '/Platform/Gatekeeper/Authorization' )
         );
@@ -44,7 +44,7 @@ class Token implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'System', 'Gatekeeper', 'Token' ),
+        return new Service( new Identifier( 'Platform', 'Gatekeeper', 'Authorization', 'Token' ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

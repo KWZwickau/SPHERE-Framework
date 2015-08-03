@@ -5,13 +5,14 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -32,14 +33,8 @@ class Database extends Extension implements IModuleInterface
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addApplicationNavigation(
+        Main::getDisplay()->addModuleNavigation(
             new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Datenbank' ) )
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Setup/Simulation' ), new Link\Name( 'Setup - Simulation' ) )
-        );
-        Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Setup/Execution' ), new Link\Name( 'Setup - Durchführung' ) )
         );
         /**
          * Register Route
@@ -82,7 +77,7 @@ class Database extends Extension implements IModuleInterface
     {
 
         $Stage = new Stage( 'Database', 'Status' );
-
+        $this->menuButton( $Stage );
         $Configuration = parse_ini_file( __DIR__.'/../../../../System/Database/Configuration.ini', true );
         $Result = array();
         foreach ((array)$Configuration as $Service => $Parameter) {
@@ -143,6 +138,20 @@ class Database extends Extension implements IModuleInterface
         return $Stage;
     }
 
+    private function menuButton( Stage $Stage )
+    {
+
+        $Stage->addButton( new Standard( 'Status', new Link\Route( __NAMESPACE__ ), null,
+            array(), 'Datenbankverbindungen'
+        ) );
+        $Stage->addButton( new Standard( 'Simulation', new Link\Route( __NAMESPACE__.'/Setup/Simulation' ), null,
+            array(), 'Anzeige von Strukturänderungen'
+        ) );
+        $Stage->addButton( new Standard( 'Durchführung', new Link\Route( __NAMESPACE__.'/Setup/Execution' ), null,
+            array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
+        ) );
+    }
+
     /**
      * @param bool $Simulation
      *
@@ -152,32 +161,82 @@ class Database extends Extension implements IModuleInterface
     {
 
         $Stage = new Stage( 'Database', 'Setup' );
+        $this->menuButton( $Stage );
+        if ($Simulation) {
 
-        // Fetch Modules
-        $ClassList = get_declared_classes();
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $ClassList, function ( &$Class, $Index, $Simulation ) {
+            $ClassList = get_declared_classes();
+            array_walk( $ClassList, function ( &$Class ) {
 
-            $Inspection = new \ReflectionClass( $Class );
-            if ($Inspection->isInternal()) {
-                $Class = false;
-            } else {
-                if ($Inspection->implementsInterface( '\SPHERE\Application\IModuleInterface' )) {
-                    /** @var IModuleInterface $Class */
-                    $Class = $Inspection->newInstance();
-                    $Class = $Class->useService();
-                    /** @var IServiceInterface $Class */
-                    if ($Class instanceof IServiceInterface) {
-                        $Class = $Class->setupService( $Simulation );
+                $Inspection = new \ReflectionClass( $Class );
+                if ($Inspection->isInternal()) {
+                    $Class = false;
+                } else {
+                    if ($Inspection->implementsInterface( '\SPHERE\Application\IModuleInterface' )) {
+                        /** @var IModuleInterface $Class */
+                        $Class = $Inspection->newInstance();
+                        $Class = $Class->useService();
+                        /** @var IServiceInterface $Class */
+                        if ($Class instanceof IServiceInterface) {
+                            $Class = $Class->setupService( true, false );
+                        } else {
+                            $Class = false;
+                        }
                     } else {
                         $Class = false;
                     }
-                } else {
-                    $Class = false;
                 }
-            }
-        }, $Simulation );
-        $ClassList = array_filter( $ClassList );
+            } );
+            $ClassList = array_filter( $ClassList );
+
+        } else {
+            $ClassList = get_declared_classes();
+            array_walk( $ClassList, function ( &$Class ) {
+
+                $Inspection = new \ReflectionClass( $Class );
+                if ($Inspection->isInternal()) {
+                    $Class = false;
+                } else {
+                    if ($Inspection->implementsInterface( '\SPHERE\Application\IModuleInterface' )) {
+                        /** @var IModuleInterface $Class */
+                        $Class = $Inspection->newInstance();
+                        $Class = $Class->useService();
+                        /** @var IServiceInterface $Class */
+                        if ($Class instanceof IServiceInterface) {
+                            $Class = $Class->setupService( false, false );
+                        } else {
+                            $Class = false;
+                        }
+                    } else {
+                        $Class = false;
+                    }
+                }
+            } );
+            $ClassList = array_filter( $ClassList );
+
+            $DataList = get_declared_classes();
+            array_walk( $DataList, function ( &$Class ) {
+
+                $Inspection = new \ReflectionClass( $Class );
+                if ($Inspection->isInternal()) {
+                    $Class = false;
+                } else {
+                    if ($Inspection->implementsInterface( '\SPHERE\Application\IModuleInterface' )) {
+                        /** @var IModuleInterface $Class */
+                        $Class = $Inspection->newInstance();
+                        $Class = $Class->useService();
+                        /** @var IServiceInterface $Class */
+                        if ($Class instanceof IServiceInterface) {
+                            $Class = $Class->setupService( false, true );
+                        } else {
+                            $Class = false;
+                        }
+                    } else {
+                        $Class = false;
+                    }
+                }
+            } );
+        }
+
         $Stage->setContent( implode( $ClassList ) );
         return $Stage;
     }

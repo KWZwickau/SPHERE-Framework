@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\Common\Window\Stage;
 
 class Lesson implements IApplicationInterface
 {
@@ -22,6 +23,13 @@ class Lesson implements IApplicationInterface
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ) );
+    }
+
+    public function frontendDashboard()
+    {
+        $Stage = new Stage( 'Dashboard', 'Unterricht' );
+
+        return $Stage;
     }
 
 }

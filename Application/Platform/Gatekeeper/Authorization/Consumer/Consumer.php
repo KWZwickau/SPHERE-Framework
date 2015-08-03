@@ -18,7 +18,7 @@ class Consumer implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__ ),
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__ ),
             new Link\Name( 'Mandanten' ) ),
             new Link\Route( '/Platform/Gatekeeper/Authorization' )
         );
@@ -45,7 +45,7 @@ class Consumer implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'System', 'Gatekeeper', 'Consumer' ),
+        return new Service( new Identifier( 'Platform', 'Gatekeeper', 'Authorization', 'Consumer' ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

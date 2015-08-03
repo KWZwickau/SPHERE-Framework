@@ -10,7 +10,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Fitting\Binding;
@@ -56,15 +55,16 @@ class Service extends Extension implements IServiceInterface
     }
 
     /**
-     * @param bool $Simulate
+     * @param bool $doSimulation
+     * @param bool $withData
      *
      * @return string
      */
-    public function setupService( $Simulate )
+    public function setupService( $doSimulation, $withData )
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
-        if (!$Simulate) {
+        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        if (!$doSimulation && $withData) {
             ( new Data( $this->Binding ) )->setupDatabaseContent();
         }
         return $Protocol;
@@ -80,6 +80,9 @@ class Service extends Extension implements IServiceInterface
 
         // Sanitize Route
         $Route = '/'.trim( $Route, '/' );
+
+        // TODO: Remove
+        return true;
 
         // Cache
         $this->hydrateAuthorization();
@@ -100,7 +103,8 @@ class Service extends Extension implements IServiceInterface
     {
 
         if (empty( self::$AuthorizationCache )) {
-            if (false !== ( $tblAccount = Account::useService()->getAccountById( 2 ) )) {
+            // TODO: Account by Session
+            if (false !== ( $tblAccount = Account::useService()->getAccountById( 0 ) )) {
                 if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount( $tblAccount ) )) {
                     /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
                     foreach ($tblAuthorizationAll as $tblAuthorization) {

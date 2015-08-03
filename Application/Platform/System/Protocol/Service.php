@@ -39,14 +39,15 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param bool $Simulate
+     * @param bool $doSimulation
+     * @param bool $withData
      *
      * @return string
      */
-    public function setupService( $Simulate )
+    public function setupService( $doSimulation, $withData )
     {
 
-        return ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
+        return ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
     }
 
     /**

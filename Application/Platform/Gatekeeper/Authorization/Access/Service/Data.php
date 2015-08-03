@@ -45,6 +45,12 @@ class Data
 
         $tblPrivilege = $this->createPrivilege( 'Mandanten' );
         $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/Platform' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Consumer' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
 
@@ -54,6 +60,12 @@ class Data
 
         $tblPrivilege = $this->createPrivilege( 'Hardware-Token' );
         $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/Platform' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Token' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
 
@@ -63,6 +75,12 @@ class Data
 
         $tblPrivilege = $this->createPrivilege( 'Benutzerkonten' );
         $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/Platform' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Account' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
 
@@ -72,26 +90,20 @@ class Data
 
         $tblPrivilege = $this->createPrivilege( 'Rechteverwaltung' );
         $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/Platform' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-
-        $tblPrivilege = $this->createPrivilege( 'Rollen' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Role' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-
-        $tblPrivilege = $this->createPrivilege( 'Zugriffslevel' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Level' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-
-        $tblPrivilege = $this->createPrivilege( 'Privilegien' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Privilege' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-
-        $tblPrivilege = $this->createPrivilege( 'Rechte' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Right' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
 
@@ -99,8 +111,10 @@ class Data
         $tblLevel = $this->createLevel( 'Plattform' );
         $this->addRoleLevel( $tblRole, $tblLevel );
 
-        $tblPrivilege = $this->createPrivilege( 'Plattform' );
+        $tblPrivilege = $this->createPrivilege( 'System' );
         $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
+        $tblRight = $this->createRight( '/Platform' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/System' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/System/Cache' );

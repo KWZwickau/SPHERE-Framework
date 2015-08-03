@@ -37,7 +37,9 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 
 /**
@@ -55,6 +57,12 @@ class Frontend implements IFrontendInterface
     {
 
         $Stage = new Stage( 'Test', 'Frontend' );
+
+        $Stage->setMessage( 'Message: Red alert.Processor of a distant x-ray vision, lower the death!Make it so, chemical wind!Fantastic nanomachines, to the alpha quadrant.Boldly sonic showers lead to the understanding.The death is a ship-wide cosmonaut.Wobble nosily like a post-apocalyptic space suit.Cosmonauts are the emitters of the fantastic ionic cannon.Where is the strange teleporter?' );
+
+        $Stage->addButton(
+            new Standard( 'Link', new Route( __NAMESPACE__ ) )
+        );
 
         $Stage->setContent(
             ( new Form(

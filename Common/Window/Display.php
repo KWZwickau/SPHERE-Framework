@@ -262,9 +262,11 @@ class Display extends Extension implements ITemplateInterface
     }
 
     /**
+     * @param bool $NoConnection
+     *
      * @return string
      */
-    public function getContent()
+    public function getContent( $NoConnection = false )
     {
 
         $this->Template->setVariable( 'ManagerStyle', Style::getManager() );
@@ -285,11 +287,12 @@ class Display extends Extension implements ITemplateInterface
 
         $this->Template->setVariable( 'Content', implode( '', $this->Content ) );
         $this->Template->setVariable( 'PathBase', $this->getRequest()->getPathBase() );
-        $this->Template->setVariable( 'Consumer',
-            '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
-            .Consumer::useService()->getConsumerBySession()->getName()
-        );
-
+        if( !$NoConnection ) {
+            $this->Template->setVariable( 'Consumer',
+                '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
+                .Consumer::useService()->getConsumerBySession()->getName()
+            );
+        }
         return $this->Template->getContent();
     }
 

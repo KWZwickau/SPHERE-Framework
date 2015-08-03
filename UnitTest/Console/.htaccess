@@ -1,0 +1,10 @@
+# Internal Network Access
+
+	Allow from 192.168
+
+# Restrict Server PHP-File Access
+
+	<FilesMatch "(\.php|\.html)$">
+		Order Deny,Allow
+		Allow from All
+	</FilesMatch>

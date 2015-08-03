@@ -16,6 +16,7 @@ class Graduation implements IApplicationInterface
 
         Gradebook::registerModule();
         Certificate::registerModule();
+//        ScoreType::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Zensuren' ) )
@@ -31,7 +32,7 @@ class Graduation implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage( 'Dashboard' );
+        $Stage = new Stage( 'Dashboard', 'Zensuren' );
 
         return $Stage;
     }

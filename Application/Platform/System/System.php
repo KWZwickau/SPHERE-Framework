@@ -6,6 +6,8 @@ use SPHERE\Application\Platform\System\Cache\Cache;
 use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Test\Test;
+use SPHERE\Common\Frontend\Icon\Repository\Cog;
+use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
 /**
@@ -22,10 +24,15 @@ class System implements IApplicationInterface
         /**
          * Register Module
          */
-        Test::registerModule();
-        Cache::registerModule();
-        Database::registerModule();
         Protocol::registerModule();
-
+        Database::registerModule();
+        Cache::registerModule();
+        Test::registerModule();
+        /**
+         * Register Navigation
+         */
+        Main::getDisplay()->addApplicationNavigation(
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'System' ), new Link\Icon( new Cog() ) )
+        );
     }
 }

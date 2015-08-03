@@ -18,25 +18,9 @@ class Access implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__ ),
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__ ),
             new Link\Name( 'Rechteverwaltung' ) ),
             new Link\Route( '/Platform/Gatekeeper/Authorization' )
-        );
-        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Role' ),
-            new Link\Name( 'Rollen' ) ),
-            new Link\Route( __NAMESPACE__ )
-        );
-        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Level' ),
-            new Link\Name( 'Zugriffslevel' ) ),
-            new Link\Route( __NAMESPACE__ )
-        );
-        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Privilege' ),
-            new Link\Name( 'Privilegien' ) ),
-            new Link\Route( __NAMESPACE__ )
-        );
-        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Right' ),
-            new Link\Name( 'Rechte' ) ),
-            new Link\Route( __NAMESPACE__ )
         );
 
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
@@ -88,7 +72,7 @@ class Access implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'System', 'Gatekeeper', 'Access' ),
+        return new Service( new Identifier( 'Platform', 'Gatekeeper', 'Authorization', 'Access' ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

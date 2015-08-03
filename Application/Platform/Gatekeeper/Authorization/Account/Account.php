@@ -18,7 +18,7 @@ class Account implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addApplicationNavigation( new Link( new Link\Route( __NAMESPACE__ ),
+        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__ ),
             new Link\Name( 'Benutzerkonten' ) ),
             new Link\Route( '/Platform/Gatekeeper/Authorization' )
         );
@@ -43,7 +43,7 @@ class Account implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'System', 'Gatekeeper', 'Account' ),
+        return new Service( new Identifier( 'Platform', 'Gatekeeper', 'Authorization', 'Account' ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

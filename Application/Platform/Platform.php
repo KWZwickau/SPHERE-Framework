@@ -24,9 +24,9 @@ class Platform implements IClusterInterface
         /**
          * Register Application
          */
-//        Gatekeeper::registerApplication();
+        System::registerApplication();
+        Gatekeeper::registerApplication();
         Assistance::registerApplication();
-//        System::registerApplication();
         /**
          * Register Navigation
          */
@@ -47,7 +47,7 @@ class Platform implements IClusterInterface
     public function frontendPlatform()
     {
 
-        $Stage = new Stage( 'Systemeinstellungen' );
+        $Stage = new Stage( 'Plattform', 'Systemeinstellungen' );
 
         ob_start();
         phpinfo();

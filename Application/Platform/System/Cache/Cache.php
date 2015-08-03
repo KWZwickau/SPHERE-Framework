@@ -35,7 +35,7 @@ class Cache implements IModuleInterface
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addApplicationNavigation(
+        Main::getDisplay()->addModuleNavigation(
             new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Cache' ) )
         );
         /**

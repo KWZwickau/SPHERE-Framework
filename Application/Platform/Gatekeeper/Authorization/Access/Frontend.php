@@ -13,6 +13,10 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Tag;
+use SPHERE\Common\Frontend\Icon\Repository\TagList;
+use SPHERE\Common\Frontend\Icon\Repository\TileBig;
+use SPHERE\Common\Frontend\Icon\Repository\TileList;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -20,11 +24,13 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
@@ -43,7 +49,17 @@ class Frontend
     {
 
         $Stage = new Stage( 'Rechteverwaltung' );
+        $this->menuButton( $Stage );
         return $Stage;
+    }
+
+    private function menuButton( Stage $Stage )
+    {
+
+        $Stage->addButton( new Standard( 'Rollen', new Link\Route( __NAMESPACE__.'/Role' ), new TagList(), array(), 'Zusammenstellung von Berechtigungen' ) );
+        $Stage->addButton( new Standard( 'Zugriffslevel', new Link\Route( __NAMESPACE__.'/Level' ), new Tag(), array(), 'Gruppen von Privilegien' ) );
+        $Stage->addButton( new Standard( 'Privilegien', new Link\Route( __NAMESPACE__.'/Privilege' ), new TileBig(), array(), 'Gruppen von Rechten' ) );
+        $Stage->addButton( new Standard( 'Rechte', new Link\Route( __NAMESPACE__.'/Right' ), new TileList(), array(), 'Geschützte Routen' ) );
     }
 
     /**
@@ -55,6 +71,7 @@ class Frontend
     {
 
         $Stage = new Stage( 'Berechtigungen', 'Zugriffslevel' );
+        $this->menuButton( $Stage );
         $tblLevelAll = Access::useService()->getLevelAll();
         array_walk( $tblLevelAll, function ( TblLevel &$tblLevel ) {
 
@@ -111,6 +128,7 @@ class Frontend
     {
 
         $Stage = new Stage( 'Berechtigungen', 'Privilegien' );
+        $this->menuButton( $Stage );
         $tblPrivilegeAll = Access::useService()->getPrivilegeAll();
         array_walk( $tblPrivilegeAll, function ( TblPrivilege &$tblPrivilege ) {
 
@@ -167,6 +185,7 @@ class Frontend
     {
 
         $Stage = new Stage( 'Berechtigungen', 'Rechte' );
+        $this->menuButton( $Stage );
         $tblRightAll = Access::useService()->getRightAll();
         $Stage->setContent(
             ( $tblRightAll
@@ -199,6 +218,7 @@ class Frontend
     {
 
         $Stage = new Stage( 'Berechtigungen', 'Rollen' );
+        $this->menuButton( $Stage );
         $tblRoleAll = Access::useService()->getRoleAll();
         array_walk( $tblRoleAll, function ( TblRole &$tblRole ) {
 
@@ -258,6 +278,7 @@ class Frontend
     {
 
         $Stage = new Stage( 'Berechtigungen', 'Rolle' );
+        $this->menuButton( $Stage );
 
         $tblRole = Access::useService()->getRoleById( $Id );
         if ($tblRole && null !== $tblLevel && ( $tblLevel = Access::useService()->getLevelById( $tblLevel ) )) {
@@ -354,6 +375,7 @@ class Frontend
     {
 
         $Stage = new Stage( 'Berechtigungen', 'Zugriffslevel' );
+        $this->menuButton( $Stage );
 
         $tblLevel = Access::useService()->getLevelById( $Id );
         if ($tblLevel && null !== $tblPrivilege && ( $tblPrivilege = Access::useService()->getPrivilegeById( $tblPrivilege ) )) {
@@ -453,6 +475,7 @@ class Frontend
     {
 
         $Stage = new Stage( 'Berechtigungen', 'Privileg' );
+        $this->menuButton( $Stage );
 
         $tblPrivilege = Access::useService()->getPrivilegeById( $Id );
         if ($tblPrivilege && null !== $tblRight && ( $tblRight = Access::useService()->getRightById( $tblRight ) )) {

@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;
@@ -101,11 +102,6 @@ class Database extends Extension
 
         // Sanatize Namespace
         $EntityNamespace = trim( str_replace( array( '/', '\\' ), '\\', $EntityNamespace ), '\\' ).'\\';
-
-        $Identifier = sha1( $EntityPath ).sha1( $EntityNamespace );
-        if (array_key_exists( $Identifier, self::$EntityManager )) {
-            return self::$EntityManager[$Identifier];
-        }
         $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration( array( $EntityPath ) );
         $MetadataConfiguration->setDefaultRepositoryClassName( '\SPHERE\System\Database\Fitting\Repository' );
         $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
@@ -133,11 +129,10 @@ class Database extends Extension
             $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
             $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
         }
-        //$ConnectionConfig->setSQLLogger( new Logger() );
-        self::$EntityManager[$Identifier] = new Manager(
+        $ConnectionConfig->setSQLLogger( new Logger() );
+        return new Manager(
             EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ), $EntityNamespace
         );
-        return self::$EntityManager[$Identifier];
     }
 
     /**

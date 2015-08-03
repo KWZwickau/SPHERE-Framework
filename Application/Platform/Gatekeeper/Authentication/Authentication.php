@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authentication;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Off;
 use SPHERE\Common\Main;
@@ -19,24 +20,31 @@ class Authentication implements IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDisplay()->addServiceNavigation( new Link( new Link\Route( __NAMESPACE__ ),
-            new Link\Name( 'Anmelden' ), new Link\Icon( new Lock() )
-        ) );
-        Main::getDisplay()->addServiceNavigation( new Link( new Link\Route( __NAMESPACE__.'/Offline' ),
-            new Link\Name( 'Abmelden' ), new Link\Icon( new Off() )
-        ) );
+        if( Account::useService()->getAccountBySession() ) {
+            Main::getDisplay()->addServiceNavigation( new Link( new Link\Route( __NAMESPACE__.'/Offline' ),
+                new Link\Name( 'Abmelden' ), new Link\Icon( new Off() )
+            ) );
+        } else {
+            Main::getDisplay()->addServiceNavigation( new Link( new Link\Route( __NAMESPACE__ ),
+                new Link\Name( 'Anmelden' ), new Link\Icon( new Lock() )
+            ) );
+        }
 
         Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Student' ),
-                new Link\Name( 'Schüler' ), new Link\Icon( new Lock() ) )
+            new Link\Name( 'Schüler' ), new Link\Icon( new Lock() ) ),
+            new Link\Route( '/Platform/Gatekeeper/Authentication' )
         );
         Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Teacher' ),
-                new Link\Name( 'Lehrer' ), new Link\Icon( new Lock() ) )
+            new Link\Name( 'Lehrer' ), new Link\Icon( new Lock() ) ),
+            new Link\Route( '/Platform/Gatekeeper/Authentication' )
         );
         Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/Management' ),
-                new Link\Name( 'Verwaltung' ), new Link\Icon( new Lock() ) )
+            new Link\Name( 'Verwaltung' ), new Link\Icon( new Lock() ) ),
+            new Link\Route( '/Platform/Gatekeeper/Authentication' )
         );
         Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__.'/System' ),
-                new Link\Name( 'System' ), new Link\Icon( new Lock() ) )
+            new Link\Name( 'System' ), new Link\Icon( new Lock() ) ),
+            new Link\Route( '/Platform/Gatekeeper/Authentication' )
         );
 
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
@@ -101,6 +109,4 @@ class Authentication implements IModuleInterface
 
         return new Frontend();
     }
-
-
 }

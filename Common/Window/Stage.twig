@@ -3,23 +3,24 @@
         <h3>{{ StageTitle }}
             <small>{{ StageDescription }}</small>
         </h3>
-        <div class="row">
-            {% if StageMessage is not empty %}
-                <div class="col-lg-8 col-md-7 col-sm-6 col-xs-12 text-left">
-                    <div>{{ StageMessage }}</div>
+        {% if StageMessage is not empty %}
+            <div class="row">
+                <div class="col-xs-12">
+                    {{ StageMessage }}
                 </div>
-            {% endif %}
-            {% if StageMenu is not empty %}
-                <div class="col-lg-4 col-md-5 col-sm-6 visible-sm visible-md visible-lg text-right">
+            </div>
+            <hr/>
+        {% endif %}
+        {% if StageMenu is not empty %}
+            <div class="row">
+                <div class="col-xs-12">
                     <div class="btn-group">
                         {% for Button in StageMenu %}
                             {{ Button }}
                         {% endfor %}
                     </div>
                 </div>
-            {% endif %}
-        </div>
-        {% if (StageMessage is not empty) or (StageMenu is not empty) %}
+            </div>
             <hr/>
         {% endif %}
         {{ StageContent }}

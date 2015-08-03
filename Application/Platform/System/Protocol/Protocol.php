@@ -23,7 +23,7 @@ class Protocol implements IModuleInterface
         /**
          * Register Navigation
          */
-        Main::getDisplay()->addApplicationNavigation(
+        Main::getDisplay()->addModuleNavigation(
             new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Protokoll' ), new Link\Icon( new Listing() ) )
         );
         /**
@@ -79,7 +79,7 @@ class Protocol implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'System', 'Protocol' ),
+        return new Service( new Identifier( 'Platform', 'System', 'Protocol' ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
