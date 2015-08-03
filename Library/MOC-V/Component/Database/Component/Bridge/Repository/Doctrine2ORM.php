@@ -18,17 +18,17 @@ class Doctrine2ORM extends Doctrine2DBAL implements IBridgeInterface
     function __construct()
     {
 
-        AutoLoader::getNamespaceAutoLoader( 'Doctrine\ORM', __DIR__.'/../../../Vendor/Doctrine2ORM/2.5-Master/lib' );
+        AutoLoader::getNamespaceAutoLoader( 'Doctrine\ORM', __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/lib' );
         AutoLoader::getNamespaceAutoLoader( 'Doctrine\Common',
-            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5-Master/vendor/doctrine/cache/lib' );
+            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/cache/lib' );
         AutoLoader::getNamespaceAutoLoader( 'Doctrine\Common',
-            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5-Master/vendor/doctrine/annotations/lib' );
+            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/annotations/lib' );
         AutoLoader::getNamespaceAutoLoader( 'Doctrine\Common',
-            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5-Master/vendor/doctrine/lexer/lib' );
+            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/lexer/lib' );
         AutoLoader::getNamespaceAutoLoader( 'Doctrine\Common',
-            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5-Master/vendor/doctrine/collections/lib' );
+            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/collections/lib' );
         AutoLoader::getNamespaceAutoLoader( 'Doctrine\Instantiator',
-            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5-Master/vendor/doctrine/instantiator/src' );
+            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/instantiator/src' );
 
         parent::__construct();
     }
