@@ -25,6 +25,24 @@ class TwigCache implements ITypeInterface
     }
 
     /**
+     * @return bool
+     */
+    public function needConfiguration()
+    {
+
+        return false;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAvailable()
+    {
+
+        return true;
+    }
+
+    /**
      * @return integer
      */
     public function getHitCount()

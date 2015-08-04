@@ -4,13 +4,13 @@ namespace SPHERE\Application\Platform\System\Cache;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\System\Cache\Frontend\Status;
-use SPHERE\Common\Frontend\Icon\Repository\Flash;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\External;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -18,15 +18,17 @@ use SPHERE\System\Cache\Cache as CacheType;
 use SPHERE\System\Cache\Type\Apcu;
 use SPHERE\System\Cache\Type\ApcUser;
 use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Cache\Type\OpCache;
 use SPHERE\System\Cache\Type\TwigCache;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Cache
  *
  * @package SPHERE\Application\System\Platform\Cache
  */
-class Cache implements IModuleInterface
+class Cache extends Extension implements IModuleInterface
 {
 
     public static function registerModule()
@@ -71,6 +73,11 @@ class Cache implements IModuleInterface
 
         $Stage = new Stage( 'Cache', 'Status' );
 
+        $Stage->addButton( new Standard( 'Cache löschen', '/Platform/System/Cache', null, array( 'Clear' => true ),
+            'Cache leeren' ) );
+        $Stage->addButton( new External( 'phpMemcachedAdmin',
+            $this->getRequest()->getPathBase().'/UnitTest/Console/phpMemcachedAdmin-1.2.2' ) );
+
         if ($Clear) {
             ( new CacheType( new ApcUser() ) )->getCache()->clearCache();
             ( new CacheType( new Apcu() ) )->getCache()->clearCache();
@@ -92,6 +99,11 @@ class Cache implements IModuleInterface
                 ), new Title( 'APCu' ) ),
                 new LayoutGroup( new LayoutRow(
                     new LayoutColumn( new Status(
+                        ( new CacheType( new Memory() ) )->getCache()
+                    ) )
+                ), new Title( 'Memory' ) ),
+                new LayoutGroup( new LayoutRow(
+                    new LayoutColumn( new Status(
                         ( new CacheType( new OpCache() ) )->getCache()
                     ) )
                 ), new Title( 'Zend OpCache' ) ),
@@ -99,13 +111,7 @@ class Cache implements IModuleInterface
                     new LayoutColumn( new Status(
                         ( new CacheType( new TwigCache() ) )->getCache()
                     ) )
-                ), new Title( 'Twig' ) ),
-                new LayoutGroup( new LayoutRow(
-                    new LayoutColumn(
-                        new Primary( 'Clear', '/Platform/System/Cache', new Flash(),
-                            array( 'Clear' => true ), 'Cache leeren' )
-                    )
-                ) )
+                ), new Title( 'Twig' ) )
             ) )
         );
         return $Stage;

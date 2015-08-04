@@ -26,6 +26,27 @@ class ApcSma implements ITypeInterface
     }
 
     /**
+     * @return bool
+     */
+    public function needConfiguration()
+    {
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAvailable()
+    {
+
+        if (function_exists( 'apc_clear_cache' )) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return integer
      */
     public function getHitCount()

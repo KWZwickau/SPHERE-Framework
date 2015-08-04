@@ -22,8 +22,8 @@ class Gatekeeper implements IApplicationInterface
     {
 
         Authorization::registerModule();
-        Authentication::registerModule();
         MyAccount::registerModule();
+        Authentication::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link( new Link\Route( __NAMESPACE__.'/Authorization' ), new Link\Name( 'Berechtigungen' ),

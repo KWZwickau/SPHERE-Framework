@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\System\Database\Link;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
+
 /**
  * Class Identifier
  *
@@ -11,8 +13,6 @@ class Identifier
 
     /** @var string $Identifier */
     private $Identifier = null;
-    /** @var string $Configuration */
-    private $Configuration = null;
     /** @var string $Cluster */
     private $Cluster = '';
     /** @var string $Application */
@@ -34,22 +34,37 @@ class Identifier
     public function __construct( $Cluster, $Application, $Module = null, $Service = null, $Consumer = null )
     {
 
+        if ($Consumer !== null && is_object( $Consumer ) && $Consumer instanceof TblConsumer) {
+            $Consumer = $Consumer->getAcronym();
+        }
+
         $this->Cluster = $Cluster;
         $this->Application = $Application;
         $this->Module = $Module;
         $this->Service = $Service;
         $this->Consumer = $Consumer;
-        $this->Configuration = $Cluster.':'.$Application.( $Module === null ? '' : ':'.$Module ).( $Service === null ? '' : ':'.$Service ).( $Consumer === null ? '' : ':'.$Consumer );
-        $this->Identifier = sha1( $this->Configuration );
+        $this->Identifier = sha1( $this->getConfiguration( true ) );
     }
 
     /**
+     * @param bool $includeConsumer
+     *
      * @return string
      */
-    public function getConfiguration()
+    public function getConfiguration( $includeConsumer = true )
     {
-
-        return $this->Configuration;
+        if( $includeConsumer ) {
+            return $this->Cluster
+            .':'.$this->Application
+            .( $this->Module === null ? '' : ':'.$this->Module )
+            .( $this->Service === null ? '' : ':'.$this->Service )
+            .( $this->Consumer === null ? '' : ':'.$this->Consumer );
+        } else {
+            return $this->Cluster
+            .':'.$this->Application
+            .( $this->Module === null ? '' : ':'.$this->Module )
+            .( $this->Service === null ? '' : ':'.$this->Service );
+        }
     }
 
     /**

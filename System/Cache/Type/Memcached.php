@@ -1,22 +1,22 @@
 <?php
 namespace SPHERE\System\Cache\Type;
 
-use SPHERE\System\Cache\ITypeInterface;
+use SPHERE\System\Cache\IApiInterface;
 
 /**
  * Class Memcached
  *
  * @package SPHERE\System\Cache\Type
  */
-class Memcached implements ITypeInterface
+class Memcached implements IApiInterface
 {
 
     /** @var \Memcached $Status */
-    private $Server = null;
+    private static $Server = null;
     /** @var string $Host */
-    private $Host = '';
+    private static $Host = '';
     /** @var string $Port */
-    private $Port = '11211';
+    private static $Port = '11211';
     /** @var array $Status */
     private $Status = null;
 
@@ -26,9 +26,33 @@ class Memcached implements ITypeInterface
     public function clearCache()
     {
 
-        if (null !== $this->Server) {
-            $this->Server->flush();
+        if (null !== self::$Server) {
+            self::$Server->flush();
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function needConfiguration()
+    {
+
+        if (null !== self::$Server) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAvailable()
+    {
+
+        if (class_exists( '\Memcached', false )) {
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -37,7 +61,7 @@ class Memcached implements ITypeInterface
     public function getServer()
     {
 
-        return $this->Server;
+        return self::$Server;
     }
 
     /**
@@ -65,8 +89,8 @@ class Memcached implements ITypeInterface
     private function fetchStatus()
     {
 
-        if (null !== $this->Server && empty( $this->Status )) {
-            $this->Status = $this->Server->getStats();
+        if (null !== self::$Server && empty( $this->Status )) {
+            $this->Status = self::$Server->getStats();
         }
     }
 
@@ -76,7 +100,7 @@ class Memcached implements ITypeInterface
     public function getConnection()
     {
 
-        return $this->Host.':'.$this->Port;
+        return self::$Host.':'.self::$Port;
     }
 
     /**
@@ -142,15 +166,50 @@ class Memcached implements ITypeInterface
     public function setConfiguration( $Configuration )
     {
 
-        $this->Host = (string)$Configuration['Host'];
-        $this->Port = (integer)$Configuration['Port'];
+        self::$Host = (string)$Configuration['Host'];
+        self::$Port = (integer)$Configuration['Port'];
 
-        if ($this->Host && $this->Port) {
-            if (class_exists( '\Memcached', false ) && null === $this->Server) {
-                $this->Server = new \Memcached();
-                $this->Server->addServer( $this->Host, (integer)$this->Port );
-                $this->Server->setOption( \Memcached::OPT_TCP_NODELAY, true );
+        if (self::$Host && self::$Port) {
+            if (class_exists( '\Memcached', false ) && null === self::$Server) {
+                self::$Server = new \Memcached();
+                self::$Server->addServer( self::$Host, (integer)self::$Port );
+                self::$Server->setOption( \Memcached::OPT_TCP_NODELAY, true );
             }
         }
+    }
+
+    /**
+     * @param string   $Key
+     * @param mixed    $Value
+     * @param null|int $Timeout
+     *
+     * @return bool
+     */
+    public function setValue( $Key, $Value, $Timeout = null )
+    {
+
+        if (null !== self::$Server) {
+            self::$Server->set( $Key, $Value, ( !$Timeout ? null : time() + $Timeout ) );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param string $Key
+     *
+     * @return mixed|false
+     */
+    public function getValue( $Key )
+    {
+
+        if (null !== self::$Server) {
+            $Value = self::$Server->get( $Key );
+            // 0 = MEMCACHED_SUCCESS
+            if (self::$Server->getResultCode() == 0) {
+                return $Value;
+            }
+        }
+        return false;
     }
 }

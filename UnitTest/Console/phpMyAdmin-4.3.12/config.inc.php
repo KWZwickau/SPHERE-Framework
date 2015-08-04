@@ -22,6 +22,18 @@ $cfg['blowfish_secret'] = 'Uwiry%@t.röco<Ö=-u&:{qyn#<tj;wq5';
 $i = 0;
 
 /*
+ * DEV server
+ */
+$i++;
+/* Authentication type */
+$cfg['Servers'][$i]['auth_type'] = 'cookie';
+/* Server parameters */
+$cfg['Servers'][$i]['host'] = '192.168.33.115';
+$cfg['Servers'][$i]['connect_type'] = 'tcp';
+$cfg['Servers'][$i]['compress'] = false;
+$cfg['Servers'][$i]['AllowNoPassword'] = false;
+
+/*
  * 00 server
  */
 $i++;

@@ -15,6 +15,16 @@ interface ITypeInterface
     public function clearCache();
 
     /**
+     * @return bool
+     */
+    public function needConfiguration();
+
+    /**
+     * @return bool
+     */
+    public function isAvailable();
+
+    /**
      * @return integer
      */
     public function getHitCount();

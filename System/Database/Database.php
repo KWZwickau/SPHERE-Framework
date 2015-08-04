@@ -63,8 +63,8 @@ class Database extends Extension
         $Register = new Register();
         if (!$Register->hasConnection( $this->Identifier )) {
             $Configuration = parse_ini_file( __DIR__.'/Configuration.ini', true );
-            if (isset( $Configuration[$this->Identifier->getConfiguration()] )) {
-                $this->Configuration = $Configuration[$this->Identifier->getConfiguration()];
+            if (isset( $Configuration[$this->Identifier->getConfiguration( true )] )) {
+                $this->Configuration = $Configuration[$this->Identifier->getConfiguration( true )];
                 $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
                 $Register->addConnection(
                     $this->Identifier,
@@ -74,7 +74,7 @@ class Database extends Extension
                         $this->Configuration['Username'],
                         $this->Configuration['Password'],
                         empty( $this->Configuration['Database'] )
-                            ? str_replace( ':', '', $this->Identifier->getConfiguration() )
+                            ? str_replace( ':', '', $this->Identifier->getConfiguration( false ) )
                             : $this->Configuration['Database'],
                         $this->Configuration['Host'],
                         empty( $this->Configuration['Port'] )
@@ -83,7 +83,29 @@ class Database extends Extension
                     )
                 );
             } else {
-                throw new \Exception( __CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')' );
+                var_dump( $this->Identifier->getConfiguration( false ) );
+                if (isset( $Configuration[$this->Identifier->getConfiguration( false )] )) {
+                    $this->Configuration = $Configuration[$this->Identifier->getConfiguration( false )];
+                    $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
+                    $Register->addConnection(
+                        $this->Identifier,
+                        new Connection(
+                            $this->Identifier,
+                            new $Driver,
+                            $this->Configuration['Username'],
+                            $this->Configuration['Password'],
+                            empty( $this->Configuration['Database'] )
+                                ? str_replace( ':', '', $this->Identifier->getConfiguration( false ) )
+                                : $this->Configuration['Database'],
+                            $this->Configuration['Host'],
+                            empty( $this->Configuration['Port'] )
+                                ? null
+                                : $this->Configuration['Port']
+                        )
+                    );
+                } else {
+                    throw new \Exception( __CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')' );
+                }
             }
         }
     }

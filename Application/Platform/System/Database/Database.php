@@ -5,6 +5,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\Table;
 use SPHERE\Common\Frontend\Table\Structure\TableBody;
@@ -150,6 +151,7 @@ class Database extends Extension implements IModuleInterface
         $Stage->addButton( new Standard( 'Durchführung', new Link\Route( __NAMESPACE__.'/Setup/Execution' ), null,
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
         ) );
+        $Stage->addButton( new External( 'phpMyAdmin', $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12' ) );
     }
 
     /**

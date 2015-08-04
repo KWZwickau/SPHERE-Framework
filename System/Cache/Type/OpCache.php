@@ -28,6 +28,25 @@ class OpCache implements ITypeInterface
     }
 
     /**
+     * @return bool
+     */
+    public function needConfiguration()
+    {
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAvailable()
+    {
+        if (function_exists( 'opcache_reset' )) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @return integer
      */
     public function getHitCount()

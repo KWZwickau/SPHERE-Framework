@@ -30,12 +30,16 @@
             } );
 
             /**
-             * Tooltip
+             * Activate: Tooltip
              */
             $( '[data-toggle="tooltip"]' ).tooltip( {
                 container: 'body',
                 placement: 'auto top'
-            } )
+            } );
+            /**
+             * Activate: External Link
+             */
+            $( 'a[rel="external"]' ).attr( 'target', '_blank' );
         } );
         return this;
 

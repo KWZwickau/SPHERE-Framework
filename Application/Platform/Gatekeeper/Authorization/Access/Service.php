@@ -12,6 +12,9 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\IApiInterface;
+use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
@@ -101,26 +104,33 @@ class Service extends Extension implements IServiceInterface
 
         if (empty( self::$AuthorizationCache )) {
             if (false !== ( $tblAccount = Account::useService()->getAccountBySession() )) {
-                if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount( $tblAccount ) )) {
-                    /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
-                    foreach ($tblAuthorizationAll as $tblAuthorization) {
-                        $tblRole = $tblAuthorization->getServiceTblRole();
-                        $tblLevelAll = $tblRole->getTblLevelAll();
-                        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel */
-                        foreach ($tblLevelAll as $tblLevel) {
-                            $tblPrivilegeAll = $tblLevel->getTblPrivilegeAll();
-                            /** @var TblPrivilege $tblPrivilege */
-                            foreach ($tblPrivilegeAll as $tblPrivilege) {
-                                $tblRightAll = $tblPrivilege->getTblRightAll();
-                                /** @var TblRight $tblRight */
-                                foreach ($tblRightAll as $tblRight) {
-                                    if (!in_array( $tblRight->getRoute(), self::$AuthorizationCache )) {
-                                        array_push( self::$AuthorizationCache, $tblRight->getRoute() );
+                /** @var IApiInterface $Cache */
+                $Cache = ( new Cache( new Memcached() ) )->getCache();
+                if (!( $AuthorizationCache = $Cache->getValue( __METHOD__.'::'.$tblAccount->getId() ) )) {
+                    if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount( $tblAccount ) )) {
+                        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
+                        foreach ($tblAuthorizationAll as $tblAuthorization) {
+                            $tblRole = $tblAuthorization->getServiceTblRole();
+                            $tblLevelAll = $tblRole->getTblLevelAll();
+                            /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel */
+                            foreach ($tblLevelAll as $tblLevel) {
+                                $tblPrivilegeAll = $tblLevel->getTblPrivilegeAll();
+                                /** @var TblPrivilege $tblPrivilege */
+                                foreach ($tblPrivilegeAll as $tblPrivilege) {
+                                    $tblRightAll = $tblPrivilege->getTblRightAll();
+                                    /** @var TblRight $tblRight */
+                                    foreach ($tblRightAll as $tblRight) {
+                                        if (!in_array( $tblRight->getRoute(), self::$AuthorizationCache )) {
+                                            array_push( self::$AuthorizationCache, $tblRight->getRoute() );
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                    $Cache->setValue( __METHOD__.'::'.$tblAccount->getId(), self::$AuthorizationCache, 300 );
+                } else {
+                    self::$AuthorizationCache = $AuthorizationCache;
                 }
             }
         }

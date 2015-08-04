@@ -9,7 +9,12 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\IApiInterface;
+use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data
@@ -100,9 +105,15 @@ class Data
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Role' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Level' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Privilege' );
+        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
         $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Right' );
         $this->addPrivilegeRight( $tblPrivilege, $tblRight );
@@ -158,7 +169,7 @@ class Data
     /**
      * @param string $Name
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel
+     * @return TblLevel
      */
     public function createLevel( $Name )
     {
@@ -174,8 +185,8 @@ class Data
     }
 
     /**
-     * @param TblRole                                                                              $tblRole
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel
+     * @param TblRole  $tblRole
+     * @param TblLevel $tblLevel
      *
      * @return TblRoleLevel
      */
@@ -201,7 +212,7 @@ class Data
     /**
      * @param string $Name
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege
+     * @return TblPrivilege
      */
     public function createPrivilege( $Name )
     {
@@ -217,10 +228,10 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel     $tblLevel
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege $tblPrivilege
+     * @param TblLevel     $tblLevel
+     * @param TblPrivilege $tblPrivilege
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevelPrivilege
+     * @return TblLevelPrivilege
      */
     public function addLevelPrivilege( TblLevel $tblLevel, TblPrivilege $tblPrivilege )
     {
@@ -260,8 +271,8 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege $tblPrivilege
-     * @param TblRight                                                                                 $tblRight
+     * @param TblPrivilege $tblPrivilege
+     * @param TblRight     $tblRight
      *
      * @return TblPrivilegeRight
      */
@@ -285,8 +296,8 @@ class Data
     }
 
     /**
-     * @param TblRole                                                                              $tblRole
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel
+     * @param TblRole  $tblRole
+     * @param TblLevel $tblLevel
      *
      * @return bool
      */
@@ -309,8 +320,8 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege $tblPrivilege
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRight     $tblRight
+     * @param TblPrivilege                                                                         $tblPrivilege
+     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRight $tblRight
      *
      * @return bool
      */
@@ -318,7 +329,7 @@ class Data
     {
 
         $Manager = $this->Connection->getEntityManager();
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilegeRight $Entity */
+        /** @var TblPrivilegeRight $Entity */
         $Entity = $Manager->getEntity( 'TblPrivilegeRight' )
             ->findOneBy( array(
                 TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId(),
@@ -333,8 +344,8 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel     $tblLevel
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege $tblPrivilege
+     * @param TblLevel     $tblLevel
+     * @param TblPrivilege $tblPrivilege
      *
      * @return bool
      */
@@ -364,7 +375,12 @@ class Data
     public function getRightById( $Id )
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblRight', $Id );
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblRight', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        }
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -376,8 +392,13 @@ class Data
     public function getRightByName( $Name )
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblRight' )
-            ->findOneBy( array( TblRight::ATTR_ROUTE => $Name ) );
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memory() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Name ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntity( 'TblRight' )
+                ->findOneBy( array( TblRight::ATTR_ROUTE => $Name ) );
+            $Cache->setValue( __METHOD__.'::'.$Name, ( null === $Entity ? false : $Entity ), 300 );
+        }
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -387,26 +408,36 @@ class Data
     public function getRightAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRight' )->findAll();
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memory() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRight' )->findAll();
+            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
      * @param integer $Id
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel
+     * @return bool|TblLevel
      */
     public function getLevelById( $Id )
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblLevel', $Id );
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblLevel', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300 );
+        }
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @param string $Name
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel
+     * @return bool|TblLevel
      */
     public function getLevelByName( $Name )
     {
@@ -419,19 +450,24 @@ class Data
     /**
      * @param integer $Id
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege
+     * @return bool|TblPrivilege
      */
     public function getPrivilegeById( $Id )
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblPrivilege', $Id );
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblPrivilege', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300 );
+        }
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @param string $Name
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege
+     * @return bool|TblPrivilege
      */
     public function getPrivilegeByName( $Name )
     {
@@ -443,14 +479,14 @@ class Data
 
     /**
      *
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel
+     * @param TblLevel $tblLevel
      *
      * @return bool|TblLevelPrivilege[]
      */
     public function getPrivilegeAllByLevel( TblLevel $tblLevel )
     {
 
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevelPrivilege[] $EntityList */
+        /** @var TblLevelPrivilege[] $EntityList */
         $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblLevelPrivilege' )->findBy( array(
             TblLevelPrivilege::ATTR_TBL_LEVEL => $tblLevel->getId()
         ) );
@@ -463,7 +499,7 @@ class Data
 
     /**
      *
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege $tblPrivilege
+     * @param TblPrivilege $tblPrivilege
      *
      * @return bool|TblRight[]
      */
@@ -482,22 +518,32 @@ class Data
     }
 
     /**
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege[]
+     * @return bool|TblPrivilege[]
      */
     public function getPrivilegeAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblPrivilege' )->findAll();
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memory() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblPrivilege' )->findAll();
+            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel[]
+     * @return bool|TblLevel[]
      */
     public function getLevelAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblLevel' )->findAll();
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memory() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblLevel' )->findAll();
+            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -509,7 +555,12 @@ class Data
     public function getRoleById( $Id )
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblRole', $Id );
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblRole', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300 );
+        }
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -532,7 +583,12 @@ class Data
     public function getRoleAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRole' )->findAll();
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memory() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRole' )->findAll();
+            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -545,7 +601,7 @@ class Data
     public function getLevelAllByRole( TblRole $tblRole )
     {
 
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel[] $EntityList */
+        /** @var TblRoleLevel[] $EntityList */
         $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRoleLevel' )->findBy( array(
             TblRoleLevel::ATTR_TBL_ROLE => $tblRole->getId()
         ) );

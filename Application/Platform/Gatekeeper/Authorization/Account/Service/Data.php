@@ -78,7 +78,7 @@ class Data
      * @param null|TblToken    $tblToken
      * @param null|TblConsumer $tblConsumer
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount
+     * @return TblAccount
      */
     public function createAccount( $Username, $Password, $tblToken = null, $tblConsumer = null )
     {
@@ -135,10 +135,10 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
-     * @param TblRole                                                                                 $tblRole
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization
+     * @return TblAuthorization
      */
     public function addAccountAuthorization( TblAccount $tblAccount, TblRole $tblRole )
     {
@@ -170,8 +170,8 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole     $tblRole
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
      *
      * @return bool
      */
@@ -179,7 +179,7 @@ class Data
     {
 
         $Manager = $this->Connection->getEntityManager();
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $Entity */
+        /** @var TblAuthorization $Entity */
         $Entity = $Manager->getEntity( 'TblAccountRole' )
             ->findOneBy( array(
                 TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
@@ -194,8 +194,8 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
-     * @param TblIdentification                                                                       $tblIdentification
+     * @param TblAccount        $tblAccount
+     * @param TblIdentification $tblIdentification
      *
      * @return bool
      */
@@ -203,7 +203,7 @@ class Data
     {
 
         $Manager = $this->Connection->getEntityManager();
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication $Entity */
+        /** @var TblAuthentication $Entity */
         $Entity = $Manager->getEntity( 'TblAccountIdentification' )
             ->findOneBy( array(
                 TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
@@ -220,7 +220,7 @@ class Data
     /**
      * @param string $Username
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount
+     * @return bool|TblAccount
      */
     public function getAccountByUsername( $Username )
     {
@@ -233,7 +233,7 @@ class Data
     /**
      * @param integer $Id
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount
+     * @return bool|TblAccount
      */
     public function getAccountById( $Id )
     {
@@ -243,7 +243,7 @@ class Data
     }
 
     /**
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount[]|bool
+     * @return TblAccount[]|bool
      */
     public function getAccountAll()
     {
@@ -267,7 +267,7 @@ class Data
     /**
      * @param integer $Id
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession
+     * @return bool|TblSession
      */
     public function getSessionById( $Id )
     {
@@ -279,7 +279,7 @@ class Data
     /**
      * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken $tblToken
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount[]
+     * @return bool|TblAccount[]
      */
     public function getAccountAllByToken( TblToken $tblToken )
     {
@@ -293,7 +293,7 @@ class Data
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization[]
+     * @return bool|TblAuthorization[]
      */
     public function getAuthorizationAllByAccount( TblAccount $tblAccount )
     {
@@ -307,7 +307,7 @@ class Data
     /**
      * @param TblConsumer $tblConsumer
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount[]
+     * @return bool|TblAccount[]
      */
     public function getAccountAllByConsumer( TblConsumer $tblConsumer )
     {
@@ -323,7 +323,7 @@ class Data
      * @param string            $Password
      * @param TblIdentification $tblIdentification
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount
+     * @return bool|TblAccount
      */
     public function getAccountByCredential( $Username, $Password, TblIdentification $tblIdentification = null )
     {
@@ -352,7 +352,7 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
+     * @param TblAccount $tblAccount
      *
      * @return bool|TblSession[]
      */
@@ -366,11 +366,11 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
-     * @param null|string                                                                             $Session
-     * @param integer                                                                                 $Timeout
+     * @param TblAccount  $tblAccount
+     * @param null|string $Session
+     * @param integer     $Timeout
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession
+     * @return TblSession
      */
     public function createSession( TblAccount $tblAccount, $Session = null, $Timeout = 1800 )
     {
@@ -406,7 +406,7 @@ class Data
         }
 
         $Manager = $this->Connection->getEntityManager();
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession $Entity */
+        /** @var TblSession $Entity */
         $Entity = $Manager->getEntity( 'TblSession' )->findOneBy( array( TblSession::ATTR_SESSION => $Session ) );
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
@@ -417,7 +417,7 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
+     * @param TblAccount $tblAccount
      *
      * @return bool
      */
@@ -425,7 +425,7 @@ class Data
     {
 
         $Manager = $this->Connection->getEntityManager();
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $Entity */
+        /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById( 'TblAccount', $tblAccount->getId() );
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
@@ -436,8 +436,8 @@ class Data
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
-     * @param string                                                                                  $Password
+     * @param TblAccount $tblAccount
+     * @param string     $Password
      *
      * @return bool
      */
@@ -449,8 +449,8 @@ class Data
         }
         $Manager = $this->Connection->getEntityManager();
         /**
-         * @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $Protocol
-         * @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $Entity
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
          */
         $Entity = $Manager->getEntityById( 'TblAccount', $tblAccount->getId() );
         $Protocol = clone $Entity;
@@ -466,7 +466,7 @@ class Data
     /**
      * @param null|string $Session
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount
+     * @return bool|TblAccount
      */
     public function getAccountBySession( $Session = null )
     {
@@ -474,7 +474,7 @@ class Data
         if (null === $Session) {
             $Session = session_id();
         }
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession $Entity */
+        /** @var TblSession $Entity */
         $Entity = $this->Connection->getEntityManager()->getEntity( 'TblSession' )
             ->findOneBy( array( TblSession::ATTR_SESSION => $Session ) );
         if (null === $Entity) {
@@ -485,8 +485,8 @@ class Data
     }
 
     /**
-     * @param TblToken                                                                                $tblToken
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
+     * @param TblToken   $tblToken
+     * @param TblAccount $tblAccount
      *
      * @return bool
      */
@@ -498,8 +498,8 @@ class Data
         }
         $Manager = $this->Connection->getEntityManager();
         /**
-         * @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $Protocol
-         * @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $Entity
+         * @var TblAccount $Protocol
+         * @var TblAccount $Entity
          */
         $Entity = $Manager->getEntityById( 'TblAccount', $tblAccount->getId() );
         $Protocol = clone $Entity;
@@ -513,8 +513,8 @@ class Data
     }
 
     /**
-     * @param TblConsumer                                                                             $tblConsumer
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
+     * @param TblConsumer $tblConsumer
+     * @param TblAccount  $tblAccount
      *
      * @return bool
      */
@@ -525,7 +525,7 @@ class Data
             $tblAccount = $this->getAccountBySession();
         }
         $Manager = $this->Connection->getEntityManager();
-        /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $Entity */
+        /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById( 'TblAccount', $tblAccount->getId() );
         $Protocol = clone $Entity;
         if (null !== $Entity) {

@@ -6,6 +6,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\OptimisticLockException;
 use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
+use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\Type\Memcached;
 
 /**
  * Class Manager
@@ -77,6 +79,8 @@ class Manager
     {
 
         $this->EntityManager->flush();
+        // Clear distributed Cache-System (if possible)
+        ( new Cache( new Memcached() ) )->getCache()->clearCache();
         return $this;
     }
 
