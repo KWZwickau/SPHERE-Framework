@@ -80,16 +80,24 @@ class Search implements IApplicationInterface, IModuleInterface
         $Stage->setMessage( 'Bitte wählen Sie eine Personengruppe' );
 
         $Stage->addButton(
-            new Standard( 'Interessenten', __NAMESPACE__.'/Group', null, array( 'tblGroup' => 1 ), true )
+            new Standard( 'Interessenten', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
+                'tblGroup' => 1
+            ), true )
         );
         $Stage->addButton(
-            new Standard( 'Schüler', __NAMESPACE__.'/Group', null, array( 'tblGroup' => 1 ), true )
+            new Standard( 'Schüler', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
+                'tblGroup' => 1
+            ), true )
         );
         $Stage->addButton(
-            new Standard( 'Sorgeberechtigte', __NAMESPACE__.'/Group', null, array( 'tblGroup' => 1 ), true )
+            new Standard( 'Sorgeberechtigte', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
+                'tblGroup' => 1
+            ), true )
         );
         $Stage->addButton(
-            new Standard( 'Lehrer', __NAMESPACE__.'/Group', null, array( 'tblGroup' => 1 ), true )
+            new Standard( 'Lehrer', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
+                'tblGroup' => 1
+            ), true )
         );
 
         return $Stage;

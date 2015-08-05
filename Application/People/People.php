@@ -3,6 +3,8 @@ namespace SPHERE\Application\People;
 
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Meta\Meta;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Search\Search;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -16,9 +18,11 @@ class People implements IClusterInterface
 
         Group::registerApplication();
         Search::registerApplication();
+        Person::registerApplication();
+        Meta::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Search/Group' ), new Link\Name( 'Personen' ) )
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Personen' ) )
         );
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
