@@ -130,7 +130,7 @@ class Frontend implements IFrontendInterface
                     new Reset( 'Reset' )
                 )
             ) )
-            .new Layout(
+            .new Layout( array(
                 new LayoutGroup( array(
                     new LayoutRow( array(
 //                        new LayoutColumn( array(
@@ -180,8 +180,27 @@ class Frontend implements IFrontendInterface
                             , 6 ),
 
                     ) ),
-                ), new Title( 'Layout-Title' ) )
-            )
+                    new LayoutRow( array(
+                        new LayoutColumn( array(
+                            '<hr/>'
+                        ) ),
+
+                    ) ),
+
+                ), new Title( 'Layout-Title' ) ),
+                new LayoutGroup( array(
+                    new LayoutRow( array(
+                        new LayoutColumn( array(
+                            '<ul class="nav nav-tabs">
+                  <li role="presentation" class="active"><a href="#">Home</a></li>
+                  <li role="presentation"><a href="#">Profile</a></li>
+                  <li role="presentation"><a href="#">Messages</a></li>
+                </ul>'
+                        ), 3 ),
+                    ) ),
+
+                ), new Title( 'Layout Development' ) )
+            ) )
         );
 
         return $Stage;
