@@ -4,9 +4,22 @@ namespace SPHERE\Application\People\Search;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -72,33 +85,50 @@ class Search implements IApplicationInterface, IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
-    public function frontendGroup()
+    public function frontendGroup( $tblGroup = false )
     {
 
         $Stage = new Stage( 'Personensuche', 'nach Personengruppe' );
 
-        $Stage->setMessage( 'Bitte wählen Sie eine Personengruppe' );
+        $tblGroup = Group::useService()->getGroupById( $tblGroup );
 
-        $Stage->addButton(
-            new Standard( 'Interessenten', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
-                'tblGroup' => 1
-            ), true )
-        );
-        $Stage->addButton(
-            new Standard( 'Schüler', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
-                'tblGroup' => 1
-            ), true )
-        );
-        $Stage->addButton(
-            new Standard( 'Sorgeberechtigte', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
-                'tblGroup' => 1
-            ), true )
-        );
-        $Stage->addButton(
-            new Standard( 'Lehrer', new Link\Route( __NAMESPACE__.'/Group' ), null, array(
-                'tblGroup' => 1
-            ), true )
-        );
+        if ($tblGroup) {
+            $Stage->setMessage(
+                new PullClear( new Bold( $tblGroup->getName() ).' '.new Small( $tblGroup->getDescription() ) ).
+                new PullClear( new Danger( new Italic( nl2br( $tblGroup->getRemark() ) ) ) )
+            );
+        } else {
+            $Stage->setMessage( 'Bitte wählen Sie eine Personengruppe' );
+        }
+
+        $tblGroupAll = Group::useService()->getGroupAll();
+
+        /** @noinspection PhpUnusedParameterInspection */
+        array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
+
+            $Stage->addButton(
+                new Standard(
+                    $tblGroup->getName(),
+                    new Link\Route( __NAMESPACE__.'/Group' ), new Listing(),
+                    array(
+                        'tblGroup' => $tblGroup->getId()
+                    ), $tblGroup->getDescription() )
+            );
+        }, $Stage );
+
+        if ($tblGroup) {
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData( $tblGroupAll )
+                            )
+                        )
+                    )
+                )
+            );
+        }
 
         return $Stage;
     }

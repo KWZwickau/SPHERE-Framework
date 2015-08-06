@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Application\Platform\System\Database\Database;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Window\Navigation\Link;
 
@@ -20,7 +21,6 @@ class Authorization implements IModuleInterface
 
     public static function registerModule()
     {
-
         Consumer::registerModule();
         Token::registerModule();
         Account::registerModule();

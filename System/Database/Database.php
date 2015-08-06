@@ -83,7 +83,6 @@ class Database extends Extension
                     )
                 );
             } else {
-                var_dump( $this->Identifier->getConfiguration( false ) );
                 if (isset( $Configuration[$this->Identifier->getConfiguration( false )] )) {
                     $this->Configuration = $Configuration[$this->Identifier->getConfiguration( false )];
                     $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];

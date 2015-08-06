@@ -5,11 +5,11 @@ use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\System\Extension\Extension;
 
 /**
- * Class PullRight
+ * Class PullLeft
  *
  * @package SPHERE\Common\Frontend\Layout\Repository
  */
-class PullRight extends Extension implements ITemplateInterface
+class PullLeft extends Extension implements ITemplateInterface
 {
 
     /** @var string $Content */
@@ -39,7 +39,6 @@ class PullRight extends Extension implements ITemplateInterface
     public function getContent()
     {
 
-        return '<div class="pull-right">'.$this->Content.'</div>';
-        return '<div class="clearfix"><div class="pull-right">'.$this->Content.'</div></div>';
+        return '<div class="pull-left">'.$this->Content.'</div>';
     }
 }

@@ -129,38 +129,50 @@ class Form extends Extension implements IFormInterface
 
     /**
      * @param IButtonInterface $Button
+     *
+     * @return Form
      */
     public function appendFormButton( IButtonInterface $Button )
     {
 
         array_push( $this->GridButtonList, $Button );
+        return $this;
     }
 
     /**
      * @param IButtonInterface $Button
+     *
+     * @return Form
      */
     public function prependFormButton( IButtonInterface $Button )
     {
 
         array_unshift( $this->GridButtonList, $Button );
+        return $this;
     }
 
     /**
      * @param FormGroup $GridGroup
+     *
+     * @return Form
      */
     public function appendGridGroup( FormGroup $GridGroup )
     {
 
         array_push( $this->GridGroupList, $GridGroup );
+        return $this;
     }
 
     /**
      * @param FormGroup $GridGroup
+     *
+     * @return Form
      */
     public function prependGridGroup( FormGroup $GridGroup )
     {
 
         array_unshift( $this->GridGroupList, $GridGroup );
+        return $this;
     }
 
     /**

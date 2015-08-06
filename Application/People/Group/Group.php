@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Group;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
 use SPHERE\Common\Main;
@@ -36,11 +35,27 @@ class Group implements IApplicationInterface, IModuleInterface
     public static function registerModule()
     {
 
-        // TODO: Implement registerModule() method.
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'Frontend::frontendGroup'
+        )
+            ->setParameterDefault( 'Group', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Edit', __NAMESPACE__.'\Frontend::frontendEditGroup'
+        )
+            ->setParameterDefault( 'Id', null )
+            ->setParameterDefault( 'Group', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyGroup'
+        )
+            ->setParameterDefault( 'Id', null )
+            ->setParameterDefault( 'Confirm', false )
+        );
     }
 
     /**
-     * @return IServiceInterface
+     * @return Service
      */
     public static function useService()
     {

@@ -2,21 +2,22 @@
 
 .container hr,
 .container-fluid hr {
-    margin: 6px 0;
+    margin: 6px 0 10px 0;
+    border-top: 1px solid #E0E0E0;
 }
 
 /* GLYPHICONS */
 
 .halflings {
-    vertical-align: baseline;
+    vertical-align: text-top;
 }
 
 .glyphicon {
-    vertical-align: baseline;
+    vertical-align: text-top;
 }
 
 .glyphicons {
-    vertical-align: baseline;
+    vertical-align: text-top;
 }
 
 /* BOOTSTRAP */

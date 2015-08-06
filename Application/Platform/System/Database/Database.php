@@ -28,6 +28,9 @@ use SPHERE\System\Extension\Extension;
 class Database extends Extension implements IModuleInterface
 {
 
+    /** @var array $ServiceRegister */
+    private static $ServiceRegister = array();
+
     public static function registerModule()
     {
 
@@ -70,6 +73,18 @@ class Database extends Extension implements IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
+    /**
+     * Determines the order of the services that are created in the database if a dependency exists
+     *
+     * @param $__CLASS__
+     */
+    public static function registerService( $__CLASS__ )
+    {
+
+        if (!in_array( $__CLASS__, self::$ServiceRegister )) {
+            array_push( self::$ServiceRegister, trim( $__CLASS__, '\\' ) );
+        }
+    }
 
     /**
      * @return Stage
@@ -151,7 +166,8 @@ class Database extends Extension implements IModuleInterface
         $Stage->addButton( new Standard( 'Durchführung', new Link\Route( __NAMESPACE__.'/Setup/Execution' ), null,
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
         ) );
-        $Stage->addButton( new External( 'phpMyAdmin', $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12' ) );
+        $Stage->addButton( new External( 'phpMyAdmin',
+            $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12' ) );
     }
 
     /**
@@ -162,11 +178,15 @@ class Database extends Extension implements IModuleInterface
     public function frontendSetup( $Simulation = true )
     {
 
+        $ClassList = get_declared_classes();
+        self::$ServiceRegister = array_merge(
+            self::$ServiceRegister, array_diff( $ClassList, self::$ServiceRegister )
+        );
+
         $Stage = new Stage( 'Database', 'Setup' );
         $this->menuButton( $Stage );
         if ($Simulation) {
-
-            $ClassList = get_declared_classes();
+            $ClassList = self::$ServiceRegister;
             array_walk( $ClassList, function ( &$Class ) {
 
                 $Inspection = new \ReflectionClass( $Class );
@@ -191,7 +211,7 @@ class Database extends Extension implements IModuleInterface
             $ClassList = array_filter( $ClassList );
 
         } else {
-            $ClassList = get_declared_classes();
+            $ClassList = self::$ServiceRegister;
             array_walk( $ClassList, function ( &$Class ) {
 
                 $Inspection = new \ReflectionClass( $Class );
@@ -215,7 +235,7 @@ class Database extends Extension implements IModuleInterface
             } );
             $ClassList = array_filter( $ClassList );
 
-            $DataList = get_declared_classes();
+            $DataList = self::$ServiceRegister;
             array_walk( $DataList, function ( &$Class ) {
 
                 $Inspection = new \ReflectionClass( $Class );

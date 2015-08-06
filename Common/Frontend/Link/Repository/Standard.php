@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Frontend\Link\Repository;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Link\ILinkInterface;
 use SPHERE\System\Authenticator\Authenticator;
@@ -18,6 +19,8 @@ class Standard extends Extension implements ILinkInterface
 
     /** @var string $Name */
     protected $Name;
+    /** @var string $Path */
+    protected $Path;
     /** @var IBridgeInterface $Template */
     protected $Template = null;
 
@@ -32,6 +35,7 @@ class Standard extends Extension implements ILinkInterface
     {
 
         $this->Name = $Name;
+        $this->Path = $Path;
         $this->Template = $this->getTemplate( __DIR__.'/Link.twig' );
         $this->Template->setVariable( 'ElementName', $Name );
         $this->Template->setVariable( 'ElementType', 'default' );
@@ -40,11 +44,11 @@ class Standard extends Extension implements ILinkInterface
         }
         if (!empty( $Data )) {
             $Signature = ( new Authenticator( new Get() ) )->getAuthenticator();
-            $Data = '?'.http_build_query( $Signature->createSignature( $Data, $Path ) );
+            $Data = '?'.http_build_query( $Signature->createSignature( $Data, $this->Path ) );
         } else {
             $Data = '';
         }
-        $this->Template->setVariable( 'ElementPath', $Path.$Data );
+        $this->Template->setVariable( 'ElementPath', $this->Path.$Data );
         $this->Template->setVariable( 'UrlBase', $this->getRequest()->getUrlBase() );
         if ($ToolTip) {
             if (is_string( $ToolTip )) {
@@ -79,6 +83,10 @@ class Standard extends Extension implements ILinkInterface
     public function getContent()
     {
 
-        return $this->Template->getContent();
+        if (Access::useService()->hasAuthorization( $this->Path )) {
+            return $this->Template->getContent();
+        } else {
+            return '';
+        }
     }
 }

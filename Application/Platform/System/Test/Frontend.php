@@ -129,7 +129,7 @@ class Frontend implements IFrontendInterface
                     new Success( 'Success' ),
                     new Reset( 'Reset' )
                 )
-            ) )
+            ) )->setConfirm( 'Wirklich?' )
             .new Layout( array(
                 new LayoutGroup( array(
                     new LayoutRow( array(

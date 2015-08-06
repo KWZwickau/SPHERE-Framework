@@ -44,9 +44,9 @@ class Title extends Extension implements ITemplateInterface
     {
 
         if (empty( $this->Description )) {
-            return '<h4>'.$this->Title.'</h4>';
+            return '<h4>'.$this->Title.'</h4><hr/>';
         } else {
-            return '<h4>'.$this->Title.' <small>'.$this->Description.'</small></h4>';
+            return '<h4>'.$this->Title.' <small>'.$this->Description.'</small></h4><hr/>';
         }
     }
 }
