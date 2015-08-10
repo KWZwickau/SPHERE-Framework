@@ -106,21 +106,20 @@
 {% endif %}
 
 <div class="container-fluid">
-    {{ Content }}
+    <div class="row">
+        <div class="col-lg-offset-1 col-lg-10 col-xs-12">
+            {{ Content }}
+        </div>
+    </div>
 </div>
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-xs-12 small">
-            <div class="footer-copyright text-center small">
+        <div class="col-xs-12 small" style="border-top: 1px solid #E7E7E7;">
+            <div class="text-center small" style="padding: 5px;">
                 Mandant: {{ Consumer }}
                 <br/>
-                <br/>
-                Erstellt in {{ DebuggerRuntime }}
-                <br/>
-                {{ DebuggerHost }}
-                <br/>
-                © 2014 - {{ "now"|date("Y") }}
+                © 2014 - {{ "now"|date("Y") }} | Erstellt in {{ DebuggerRuntime }} | {{ DebuggerHost }}
                 <div class="text-left">
                     {{ DebuggerProtocol }}
                 </div>

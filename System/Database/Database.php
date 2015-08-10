@@ -148,7 +148,7 @@ class Database extends Extension
             $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
             $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
         }
-        $ConnectionConfig->setSQLLogger( new Logger() );
+        // $ConnectionConfig->setSQLLogger( new Logger() );
         return new Manager(
             EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ), $EntityNamespace
         );

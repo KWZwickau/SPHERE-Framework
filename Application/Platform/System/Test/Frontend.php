@@ -37,6 +37,8 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Navigation\Link\Route;
@@ -190,13 +192,11 @@ class Frontend implements IFrontendInterface
                 ), new Title( 'Layout-Title' ) ),
                 new LayoutGroup( array(
                     new LayoutRow( array(
-                        new LayoutColumn( array(
-                            '<ul class="nav nav-tabs">
-                  <li role="presentation" class="active"><a href="#">Home</a></li>
-                  <li role="presentation"><a href="#">Profile</a></li>
-                  <li role="presentation"><a href="#">Messages</a></li>
-                </ul>'
-                        ), 3 ),
+                        new LayoutColumn( new LayoutTabs( array(
+                            new LayoutTab( 'Name1', 0 ),
+                            new LayoutTab( 'Name2', 1 ),
+                            new LayoutTab( 'Name3', 2 ),
+                        ) ), 3 ),
                     ) ),
 
                 ), new Title( 'Layout Development' ) )
