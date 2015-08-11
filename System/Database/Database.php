@@ -25,7 +25,6 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;

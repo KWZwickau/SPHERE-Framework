@@ -24,6 +24,11 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\People\Meta\Common
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
@@ -36,7 +41,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendMeta( TblPerson $tblPerson = null, $Meta = array() )
     {
 
-        $Stage = new Stage( 'Allgemein', 'Grunddaten zur Person' );
+        $Stage = new Stage( 'Allgemeine Daten', 'zur Person' );
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
@@ -124,7 +129,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Bemerkungen'
                             ) ),
                     ) ),
-                ), new Title( 'Allgemeines' ) ),
+                ), new Title( 'Sonstiges' ) ),
             ), new Primary( 'Allgemeine Daten speichern' ) ) )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
         );
 

@@ -8,7 +8,7 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblPerson")
+ * @Table(name="tblSalutation")
  * @Cache(usage="NONSTRICT_READ_WRITE")
  */
 class TblSalutation extends Element

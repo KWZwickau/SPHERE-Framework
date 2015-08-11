@@ -13,7 +13,9 @@ use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Window\Display;
+use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Authenticator\Type\Post;
@@ -92,11 +94,11 @@ class Main extends Extension
                 );
             }
         } catch( PDOException $Exception ) {
-            $this->runSelfHeal();
+            $this->runSelfHeal( $Exception );
         } catch( TableNotFoundException $Exception ) {
-            $this->runSelfHeal();
+            $this->runSelfHeal( $Exception );
         } catch( \PDOException $Exception ) {
-            $this->runSelfHeal();
+            $this->runSelfHeal( $Exception );
         } catch( \ErrorException $Exception ) {
             self::getDisplay()->setException( $Exception, 'Error' );
         } catch( \Exception $Exception ) {
@@ -105,8 +107,9 @@ class Main extends Extension
 
         try {
             echo self::getDisplay()->getContent();
+            exit(0);
         } catch( \Exception $Exception ) {
-            $this->runSelfHeal();
+            $this->runSelfHeal( $Exception );
         }
     }
 
@@ -176,13 +179,22 @@ class Main extends Extension
         return true;
     }
 
-    private function runSelfHeal()
+    /**
+     * @param \Exception $Exception
+     */
+    private function runSelfHeal( \Exception $Exception = null )
     {
 
         $Display = new Display();
         $Display->setContent(
+            ( $Exception
+                ? new Error( $Exception->getCode(), $Exception->getMessage() )
+                : ''
+            ).
             ( new System\Database\Database() )->frontendSetup( false )
+            .( new Redirect( $this->getRequest()->getPathInfo(), 60 ) )
         );
         echo $Display->getContent( true );
+        exit( 0 );
     }
 }

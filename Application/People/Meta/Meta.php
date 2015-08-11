@@ -8,7 +8,19 @@ use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -63,7 +75,7 @@ class Meta implements IApplicationInterface
             switch (strtoupper( $tblGroup->getMetaTable() )) {
                 case 'COMMON':
                     $tblGroup = new LayoutTab( 'Allgemein', $tblGroup->getMetaTable() );
-                    if( !$TabActive ) {
+                    if (!$TabActive) {
                         $tblGroup->setActive();
                     }
                     break;
@@ -71,7 +83,7 @@ class Meta implements IApplicationInterface
                     $tblGroup = new LayoutTab( 'Interessent', $tblGroup->getMetaTable() );
                     break;
                 case 'STUDENT':
-                    $tblGroup = new LayoutTab( 'Schüler', $tblGroup->getMetaTable() );
+                    $tblGroup = new LayoutTab( 'Schülerakte', $tblGroup->getMetaTable() );
                     break;
                 case 'CUSTODY':
                     $tblGroup = new LayoutTab( 'Sorgeberechtigt', $tblGroup->getMetaTable() );
@@ -82,27 +94,60 @@ class Meta implements IApplicationInterface
         }, $TabActive );
         $tblGroupList = array_filter( $tblGroupList );
 
+        $tblSalutationAll = Person::useService()->getSalutationAll();
+        $BasicTable = ( new Form(
+            new FormGroup(
+                new FormRow( array(
+                    new FormColumn(
+                        new SelectBox( 'Person[Salutation]', 'Anrede', array( 'Salutation' => $tblSalutationAll ) )
+                        , 2 ),
+                    new FormColumn(
+                        new TextField( 'Person[Title]' )
+                        , 2 ),
+                    new FormColumn(
+                        new TextField( 'Person[FirstName]' )
+                        , 3 ),
+                    new FormColumn(
+                        new TextField( 'Person[SecondName]' )
+                        , 2 ),
+                    new FormColumn(
+                        new TextField( 'Person[LastName]' )
+                        , 3 ),
+                ) )
+            )
+        ) )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' );
+
         switch (strtoupper( $TabActive )) {
             case 'COMMON':
-                $Form = Common::useFrontend()->frontendMeta();
+                $MetaTable = Common::useFrontend()->frontendMeta();
                 break;
             case 'PROSPECT':
-                $Form = Prospect::useFrontend()->frontendMeta();
+                $MetaTable = Prospect::useFrontend()->frontendMeta();
                 break;
             case 'STUDENT':
-                $Form = Student::useFrontend()->frontendMeta();
+                $MetaTable = Student::useFrontend()->frontendMeta();
                 break;
             case 'CUSTODY':
-                $Form = Custody::useFrontend()->frontendMeta();
+                $MetaTable = Custody::useFrontend()->frontendMeta();
                 break;
             default:
-                $Form = new Danger( 'Ansicht nicht verfügbar', new Warning() );
+                $MetaTable = new Danger( 'Ansicht nicht verfügbar', new Warning() );
         }
 
         $Stage->setContent(
-            new Stage( 'Name' )
-            .new LayoutTabs( $tblGroupList )
-            .$Form
+            new Layout( array(
+                new LayoutGroup(
+                    new LayoutRow( new LayoutColumn( $BasicTable ) )
+                    , new Title( 'Name', 'der Person' )
+                ),
+                new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn( new LayoutTabs( $tblGroupList ) ) ),
+                    new LayoutRow( new LayoutColumn( $MetaTable ) ),
+                ), new Title( 'Metadaten', 'der Person' ) ),
+                new LayoutGroup(
+                    new LayoutRow( new LayoutColumn( $MetaTable ) )
+                ),
+            ) )
         );
         return $Stage;
     }

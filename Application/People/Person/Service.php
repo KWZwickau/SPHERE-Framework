@@ -3,11 +3,17 @@ namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Service\Data;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Person\Service\Setup;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\People\Person
+ */
 class Service implements IServiceInterface
 {
 
@@ -46,4 +52,12 @@ class Service implements IServiceInterface
         return $Protocol;
     }
 
+    /**
+     * @return bool|TblSalutation[]
+     */
+    public function getSalutationAll()
+    {
+
+        return ( new Data( $this->Binding ) )->getSalutationAll();
+    }
 }

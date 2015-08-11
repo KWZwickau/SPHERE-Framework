@@ -51,6 +51,10 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.stepper"
         );
         $this->setSource(
+            'jQuery.CountDown', '/Library/jQuery.CountDown/2.0.5/dist/jquery.countdown.min.js',
+            "'undefined' !== typeof jQuery.fn.countdown"
+        );
+        $this->setSource(
             'jQuery.CheckBox', '/Library/jQuery.iCheck/1.0.2/icheck.min.js',
             "'undefined' !== typeof jQuery.fn.iCheck"
         );
@@ -126,6 +130,9 @@ class Script extends Extension
         );
         $this->setModule(
             'ModSelect', array( 'Bootstrap.Select', 'Bootstrap', 'jQuery' )
+        );
+        $this->setModule(
+            'ModCountDown', array( 'jQuery.CountDown', 'Bootstrap', 'Moment.js', 'jQuery' )
         );
         $this->setModule(
             'ModCompleter', array( 'Twitter.Typeahead', 'Bootstrap', 'jQuery' )

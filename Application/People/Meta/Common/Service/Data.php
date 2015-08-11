@@ -3,6 +3,11 @@ namespace SPHERE\Application\People\Meta\Common\Service;
 
 use SPHERE\System\Database\Fitting\Binding;
 
+/**
+ * Class Data
+ *
+ * @package SPHERE\Application\People\Meta\Common\Service
+ */
 class Data
 {
 

@@ -3,6 +3,8 @@ namespace SPHERE\Application\Platform\System\Database;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -13,6 +15,7 @@ use SPHERE\Common\Frontend\Table\Structure\TableBody;
 use SPHERE\Common\Frontend\Table\Structure\TableColumn;
 use SPHERE\Common\Frontend\Table\Structure\TableHead;
 use SPHERE\Common\Frontend\Table\Structure\TableRow;
+use SPHERE\Common\Frontend\Text\ITextInterface;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Main;
@@ -103,34 +106,47 @@ class Database extends Extension implements IModuleInterface
         foreach ((array)$Configuration as $Service => $Parameter) {
             $Service = explode( ':', $Service );
 
-            try {
-                $Connection = new \SPHERE\System\Database\Database(
-                    new Identifier(
-                        $Service[0],
-                        $Service[1],
-                        ( isset( $Service[2] ) ? $Service[2] : null ),
-                        ( isset( $Service[3] ) ? $Service[3] : null ),
-                        ( isset( $Service[4] ) ? $Service[4] : null )
-                    )
-                );
-                $Status = new Success( 'Verbunden', new Ok() );
-            } catch( \Exception $E ) {
-                $Status = new Danger( 'Fehler', new Warning() );
+            // Force Consumer ?
+            if (!isset( $Service[4] ) && ( !isset( $Parameter['Consumer'] ) || $Parameter['Consumer'] )) {
+                $tblConsumerAll = Consumer::useService()->getConsumerAll();
+                /** @var TblConsumer $tblConsumer */
+                foreach ((array)$tblConsumerAll as $tblConsumer) {
+                    $Connection = null;
+                    $Service[4] = $tblConsumer->getAcronym();
+                    try {
+                        $Connection = new \SPHERE\System\Database\Database(
+                            new Identifier(
+                                $Service[0],
+                                $Service[1],
+                                ( isset( $Service[2] ) ? $Service[2] : null ),
+                                ( isset( $Service[3] ) ? $Service[3] : null ),
+                                ( isset( $Service[4] ) ? $Service[4] : null )
+                            )
+                        );
+                        $Status = new Success( 'Verbunden', new Ok() );
+                    } catch( \Exception $E ) {
+                        $Status = new Danger( 'Fehler', new Warning() );
+                    }
+                    $Result[] = $this->statusRow( $Status, $Service, $Parameter, $Connection );
+                }
+            } else {
+                $Connection = null;
+                try {
+                    $Connection = new \SPHERE\System\Database\Database(
+                        new Identifier(
+                            $Service[0],
+                            $Service[1],
+                            ( isset( $Service[2] ) ? $Service[2] : null ),
+                            ( isset( $Service[3] ) ? $Service[3] : null ),
+                            ( isset( $Service[4] ) ? $Service[4] : null )
+                        )
+                    );
+                    $Status = new Success( 'Verbunden', new Ok() );
+                } catch( \Exception $E ) {
+                    $Status = new Danger( 'Fehler', new Warning() );
+                }
+                $Result[] = $this->statusRow( $Status, $Service, $Parameter, $Connection );
             }
-
-            $Result[] = new TableRow( array(
-                new TableColumn( $Status ),
-                new TableColumn( $Service[0] ),
-                new TableColumn( $Service[1] ),
-                new TableColumn( ( isset( $Service[2] ) ? $Service[2] : null ) ),
-                new TableColumn( ( isset( $Service[3] ) ? $Service[3] : null ) ),
-                new TableColumn( ( isset( $Service[4] ) ? $Service[4] : null ) ),
-                new TableColumn( $Parameter['Driver'] ),
-                new TableColumn( $Parameter['Host'] ),
-                new TableColumn( ( isset( $Parameter['Port'] ) ? $Parameter['Port'] : 'Default' ) ),
-                new TableColumn( isset( $Connection ) ? $Connection->getDatabase() : '-NA-' )
-
-            ) );
         }
 
         $Stage->setContent(
@@ -175,6 +191,35 @@ class Database extends Extension implements IModuleInterface
         ) );
         $Stage->addButton( new External( 'phpMyAdmin',
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12' ) );
+    }
+
+    /**
+     * @param ITextInterface                        $Status
+     * @param array                                 $Service
+     * @param array                                 $Parameter
+     * @param \SPHERE\System\Database\Database|null $Connection
+     *
+     * @return TableRow
+     */
+    private function statusRow(
+        ITextInterface $Status,
+        $Service,
+        $Parameter,
+        \SPHERE\System\Database\Database $Connection = null
+    ) {
+
+        return new TableRow( array(
+            new TableColumn( $Status ),
+            new TableColumn( $Service[0] ),
+            new TableColumn( $Service[1] ),
+            new TableColumn( ( isset( $Service[2] ) ? $Service[2] : null ) ),
+            new TableColumn( ( isset( $Service[3] ) ? $Service[3] : null ) ),
+            new TableColumn( ( isset( $Service[4] ) ? $Service[4] : null ) ),
+            new TableColumn( $Parameter['Driver'] ),
+            new TableColumn( $Parameter['Host'] ),
+            new TableColumn( ( isset( $Parameter['Port'] ) ? $Parameter['Port'] : 'Default' ) ),
+            new TableColumn( isset( $Connection ) ? $Connection->getDatabase() : '-NA-' )
+        ) );
     }
 
     /**

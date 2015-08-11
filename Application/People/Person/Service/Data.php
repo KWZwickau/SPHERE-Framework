@@ -1,6 +1,10 @@
 <?php
 namespace SPHERE\Application\People\Person\Service;
 
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
+use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\IApiInterface;
+use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**
@@ -26,5 +30,20 @@ class Data
     public function setupDatabaseContent()
     {
 
+    }
+
+    /**
+     * @return bool|TblSalutation[]
+     */
+    public function getSalutationAll()
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memory() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblSalutation' )->findAll();
+            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        }
+        return ( empty( $EntityList ) ? false : $EntityList );
     }
 }

@@ -41,6 +41,15 @@ class TblGroup extends Element
     protected $MetaTable;
 
     /**
+     * @param $Name
+     */
+    function __construct( $Name )
+    {
+
+        $this->setName( $Name );
+    }
+
+    /**
      * @return string
      */
     public function getDescription()
