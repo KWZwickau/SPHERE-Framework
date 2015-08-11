@@ -4,6 +4,7 @@ namespace SPHERE\Application\Platform\System\Cache;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\System\Cache\Frontend\Status;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -58,6 +59,9 @@ class Cache extends Extension implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    /**
+     * @return IFrontendInterface
+     */
     public static function useFrontend()
     {
         // TODO: Implement useFrontend() method.

@@ -10,6 +10,11 @@ use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Platform\Assistance\Error
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
     /**

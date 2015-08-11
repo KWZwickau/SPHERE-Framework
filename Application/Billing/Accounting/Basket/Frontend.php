@@ -217,6 +217,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             );
 
+            /** @noinspection PhpUnusedParameterInspection */
             array_walk( $tblCommodityAllByBasket,
                 function ( TblCommodity &$tblCommodity, $Index, TblBasket $tblBasket ) {
 
@@ -233,6 +234,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ( !empty( $tblCommodityAll ) ) {
+            /** @noinspection PhpUnusedParameterInspection */
             array_walk( $tblCommodityAll, function ( TblCommodity $tblCommodity, $Index, TblBasket $tblBasket ) {
 
                 $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
@@ -583,6 +585,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ( !empty( $tblPersonAll ) ) {
+            /** @noinspection PhpUnusedParameterInspection */
             array_walk( $tblPersonAll, function ( TblPerson &$tblPerson, $Index, TblBasket $tblBasket ) {
 
                 $tblPerson->Option =

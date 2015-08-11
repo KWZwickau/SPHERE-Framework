@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Basket\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;

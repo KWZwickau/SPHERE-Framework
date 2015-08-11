@@ -8,6 +8,11 @@ use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class MyAccount
+ *
+ * @package SPHERE\Application\Platform\Gatekeeper\MyAccount
+ */
 class MyAccount implements IModuleInterface
 {
 

@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\Billing\Accounting\Account\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -129,7 +132,7 @@ class TblAccount extends Element
     /**
      * @param null|TblAccountKey $tblAccountKey
      */
-    public function setTblAccountKey( tblAccountKey $tblAccountKey = null )
+    public function setTblAccountKey( TblAccountKey $tblAccountKey = null )
     {
 
         $this->tblAccountKey = ( null === $tblAccountKey ? null : $tblAccountKey->getId() );

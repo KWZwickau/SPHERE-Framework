@@ -1,6 +1,10 @@
 <?php
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;

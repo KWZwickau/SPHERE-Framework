@@ -53,6 +53,9 @@ class Frontend
         return $Stage;
     }
 
+    /**
+     * @param Stage $Stage
+     */
     private function menuButton( Stage $Stage )
     {
 

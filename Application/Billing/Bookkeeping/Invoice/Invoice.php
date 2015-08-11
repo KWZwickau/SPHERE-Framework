@@ -3,7 +3,6 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;

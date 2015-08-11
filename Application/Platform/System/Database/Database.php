@@ -5,6 +5,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\Table;
@@ -68,6 +69,9 @@ class Database extends Extension implements IModuleInterface
         // TODO: Implement useService() method.
     }
 
+    /**
+     * @return IFrontendInterface
+     */
     public static function useFrontend()
     {
         // TODO: Implement useFrontend() method.
@@ -154,6 +158,9 @@ class Database extends Extension implements IModuleInterface
         return $Stage;
     }
 
+    /**
+     * @param Stage $Stage
+     */
     private function menuButton( Stage $Stage )
     {
 

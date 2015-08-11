@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\System\Database\Fitting\Element;
 

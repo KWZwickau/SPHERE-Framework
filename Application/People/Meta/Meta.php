@@ -16,6 +16,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Meta
+ *
+ * @package SPHERE\Application\People\Meta
+ */
 class Meta implements IApplicationInterface
 {
 
@@ -32,6 +37,11 @@ class Meta implements IApplicationInterface
         ) );
     }
 
+    /**
+     * @param bool|false $TabActive
+     *
+     * @return Stage
+     */
     public function frontendMeta( $TabActive = false )
     {
 

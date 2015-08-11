@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\Billing\Inventory\Commodity\Service\Entity;
 
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;

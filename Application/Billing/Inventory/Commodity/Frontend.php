@@ -298,6 +298,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 if ( !empty( $tblAccountAllByActiveState ) ) {
+                    /** @noinspection PhpUnusedParameterInspection */
                     array_walk( $tblAccountAllByActiveState, function ( TblAccount $tblAccountAllByActiveState, $Index, TblItem $tblItem ) {
 
                         $tblAccountAllByActiveState->Option =

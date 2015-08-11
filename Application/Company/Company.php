@@ -7,6 +7,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Company
+ *
+ * @package SPHERE\Application\Company
+ */
 class Company implements IClusterInterface
 {
 
@@ -23,6 +28,9 @@ class Company implements IClusterInterface
         ) );
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendDashboard()
     {
 

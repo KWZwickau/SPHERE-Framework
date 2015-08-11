@@ -17,7 +17,6 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceAcco
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoiceCommodity;
-use SPHERE\Application\System\Platform\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 
 class Data
@@ -255,10 +254,10 @@ class Data
                 $Entity->setServiceManagementAddress( $address[0] );
             }
 
-            $Manager->SaveEntity( $Entity );
+            $Manager->saveEntity( $Entity );
 
             $Entity->setNumber( (int)$Entity->getNumber() + $Entity->getId() );
-            $Manager->SaveEntity( $Entity );
+            $Manager->saveEntity( $Entity );
 
             Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(),
                 $Entity );
@@ -329,7 +328,7 @@ class Data
         $Entity->setItemQuantity( $tblBasketItem->getQuantity() );
         $Entity->setTblInvoice( $tblInvoice );
 
-        $this->Connection->getEntityManager()->SaveEntity( $Entity );
+        $this->Connection->getEntityManager()->saveEntity( $Entity );
         Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(),
             $Entity );
 
@@ -340,7 +339,7 @@ class Data
             $EntityItemAccount->setTblInvoiceItem( $Entity );
             $EntityItemAccount->setServiceBilling_Account( $tblItemAccount->getServiceBilling_Account() );
 
-            $this->Connection->getEntityManager()->SaveEntity( $EntityItemAccount );
+            $this->Connection->getEntityManager()->saveEntity( $EntityItemAccount );
             Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(),
                 $EntityItemAccount );
         }

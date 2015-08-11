@@ -5,6 +5,11 @@ use SPHERE\Application\IClusterInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class Transfer
+ *
+ * @package SPHERE\Application\Transfer
+ */
 class Transfer implements IClusterInterface
 {
 

@@ -14,7 +14,6 @@ use SPHERE\System\Cache\IApiInterface;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Data

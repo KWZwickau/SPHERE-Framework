@@ -5,6 +5,11 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Platform\Gatekeeper\MyAccount
+ */
 class Frontend implements IFrontendInterface
 {
     /**

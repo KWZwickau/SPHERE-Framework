@@ -3,6 +3,7 @@ namespace SPHERE\Application\Platform\System\Protocol;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -36,6 +37,9 @@ class Protocol implements IModuleInterface
         );
     }
 
+    /**
+     * @return IFrontendInterface
+     */
     public static function useFrontend()
     {
         // TODO: Implement useFrontend() method.

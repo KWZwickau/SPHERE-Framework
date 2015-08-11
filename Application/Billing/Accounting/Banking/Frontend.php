@@ -367,6 +367,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         if ( !empty( $tblCommodityAll ) ) {
+            /** @noinspection PhpUnusedParameterInspection */
             array_walk( $tblCommodityAll, function ( TblCommodity &$tblCommodity, $Index, TblDebtor $tblDebtor ) {
 
                 $tblReference = Banking::useService()->entityReferenceByDebtorAndCommodity( $tblDebtor, $tblCommodity );
