@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Inventory\Commodity;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -91,7 +92,7 @@ class Commodity implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Billing', 'Inventory', 'Commodity' ),
+        return new Service( new Identifier( 'Billing', 'Inventory', 'Commodity', null, Consumer::useService()->getConsumerBySession() ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

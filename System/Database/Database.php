@@ -78,7 +78,8 @@ class Database extends Extension
                         $this->Configuration['Host'],
                         empty( $this->Configuration['Port'] )
                             ? null
-                            : $this->Configuration['Port']
+                            : $this->Configuration['Port'],
+                        2
                     )
                 );
             } else {
@@ -98,7 +99,8 @@ class Database extends Extension
                             $this->Configuration['Host'],
                             empty( $this->Configuration['Port'] )
                                 ? null
-                                : $this->Configuration['Port']
+                                : $this->Configuration['Port'],
+                            2
                         )
                     );
                 } else {

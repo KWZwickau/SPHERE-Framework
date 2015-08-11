@@ -263,6 +263,7 @@ select[multiple].input-group.input-group-lg .twitter-typeahead .tt-hint {
 
 .twitter-typeahead .tt-input {
     z-index: 2;
+    background-color: #ffffff !important;
 }
 
 .twitter-typeahead .tt-input[disabled],

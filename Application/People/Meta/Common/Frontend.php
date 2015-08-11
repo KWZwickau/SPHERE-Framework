@@ -19,10 +19,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
+use SPHERE\Common\Frontend\Icon\Repository\Sheriff;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -40,6 +42,7 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendMeta( TblPerson $tblPerson = null, $Meta = array() )
     {
+        Debugger::screenDump( __METHOD__, $Meta );
 
         $Stage = new Stage( 'Allgemeine Daten', 'zur Person' );
 
@@ -112,7 +115,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
                                 TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
                                 TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
-                            ), new PersonParent()
+                            ), new Sheriff()
                             ), 3 ),
                         new FormColumn(
                             new TextArea( 'Meta[Information][AssistanceActivity]',

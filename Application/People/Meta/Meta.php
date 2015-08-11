@@ -9,6 +9,7 @@ use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -27,6 +28,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Meta
@@ -54,8 +56,9 @@ class Meta implements IApplicationInterface
      *
      * @return Stage
      */
-    public function frontendMeta( $TabActive = false )
+    public function frontendMeta( $TabActive = false, $tblPerson = null, $Person = array(), $Meta = array() )
     {
+        Debugger::screenDump( __METHOD__, $Person );
 
         $Stage = new Stage( 'Person', 'Datenblatt' );
 
@@ -102,33 +105,33 @@ class Meta implements IApplicationInterface
                         new SelectBox( 'Person[Salutation]', 'Anrede', array( 'Salutation' => $tblSalutationAll ) )
                         , 2 ),
                     new FormColumn(
-                        new TextField( 'Person[Title]' )
+                        new TextField( 'Person[Title]', 'Titel', 'Titel' )
                         , 2 ),
                     new FormColumn(
-                        new TextField( 'Person[FirstName]' )
+                        new TextField( 'Person[FirstName]', 'Vorname', 'Vorname' )
                         , 3 ),
                     new FormColumn(
-                        new TextField( 'Person[SecondName]' )
+                        new TextField( 'Person[SecondName]', 'Zweitname', 'Zweitname' )
                         , 2 ),
                     new FormColumn(
-                        new TextField( 'Person[LastName]' )
+                        new TextField( 'Person[LastName]', 'Nachname', 'Nachname' )
                         , 3 ),
                 ) )
-            )
+            ), new Primary( 'Grunddaten speichern' )
         ) )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' );
 
         switch (strtoupper( $TabActive )) {
             case 'COMMON':
-                $MetaTable = Common::useFrontend()->frontendMeta();
+                $MetaTable = Common::useFrontend()->frontendMeta( $tblPerson, $Meta );
                 break;
             case 'PROSPECT':
-                $MetaTable = Prospect::useFrontend()->frontendMeta();
+                $MetaTable = Prospect::useFrontend()->frontendMeta( $tblPerson, $Meta );
                 break;
             case 'STUDENT':
-                $MetaTable = Student::useFrontend()->frontendMeta();
+                $MetaTable = Student::useFrontend()->frontendMeta( $tblPerson, $Meta );
                 break;
             case 'CUSTODY':
-                $MetaTable = Custody::useFrontend()->frontendMeta();
+                $MetaTable = Custody::useFrontend()->frontendMeta( $tblPerson, $Meta );
                 break;
             default:
                 $MetaTable = new Danger( 'Ansicht nicht verfügbar', new Warning() );
@@ -144,9 +147,12 @@ class Meta implements IApplicationInterface
                     new LayoutRow( new LayoutColumn( new LayoutTabs( $tblGroupList ) ) ),
                     new LayoutRow( new LayoutColumn( $MetaTable ) ),
                 ), new Title( 'Metadaten', 'der Person' ) ),
-                new LayoutGroup(
-                    new LayoutRow( new LayoutColumn( $MetaTable ) )
-                ),
+                new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn( '' ) ),
+                ), new Title( 'Adressdaten', 'der Person' ) ),
+                new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn( '' ) ),
+                ), new Title( 'Kontaktdaten', 'der Person' ) ),
             ) )
         );
         return $Stage;

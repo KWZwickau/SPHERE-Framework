@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Accounting\Banking;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -94,7 +95,7 @@ class Banking implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Billing', 'Accounting', 'Banking' ),
+        return new Service( new Identifier( 'Billing', 'Accounting', 'Banking', null, Consumer::useService()->getConsumerBySession() ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

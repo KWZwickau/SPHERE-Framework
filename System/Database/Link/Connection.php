@@ -23,6 +23,10 @@ class Connection
      * @param string         $Database
      * @param string         $Host
      * @param null|int       $Port
+     *
+     * @param int            $Timeout
+     *
+     * @throws \Exception
      */
     final public function __construct(
         Identifier $Identifier,
@@ -31,7 +35,8 @@ class Connection
         $Password,
         $Database,
         $Host,
-        $Port = null
+        $Port = null,
+        $Timeout = 5
     ) {
 
         $Consumer = $Identifier->getConsumer();
@@ -39,7 +44,7 @@ class Connection
             $Username, $Password,
             $Database.( empty( $Consumer ) ? '' : '_'.$Consumer ),
             $Type->getIdentifier(),
-            $Host, $Port
+            $Host, $Port, $Timeout
         );
     }
 
@@ -60,19 +65,21 @@ class Connection
      * @param string   $Host
      * @param null|int $Port
      *
+     * @param int      $Timeout
+     *
      * @return Connection
      * @throws \Exception
      */
-    public function setConnection( $Username, $Password, $Database, $Driver, $Host, $Port )
+    public function setConnection( $Username, $Password, $Database, $Driver, $Host, $Port, $Timeout = 5 )
     {
 
         try {
-            $this->Connection = Database::getDatabase( $Username, $Password, $Database, $Driver, $Host, $Port );
+            $this->Connection = Database::getDatabase( $Username, $Password, $Database, $Driver, $Host, $Port, $Timeout );
         } catch( \Exception $E ) {
             try {
-                Database::getDatabase( $Username, $Password, null, $Driver, $Host, $Port )
+                Database::getDatabase( $Username, $Password, null, $Driver, $Host, $Port, $Timeout )
                     ->getSchemaManager()->createDatabase( $Database );
-                $this->Connection = Database::getDatabase( $Username, $Password, $Database, $Driver, $Host, $Port );
+                $this->Connection = Database::getDatabase( $Username, $Password, $Database, $Driver, $Host, $Port, $Timeout );
             } catch( \Exception $E ) {
                 throw new \Exception( $E->getMessage(), $E->getCode(), $E );
             }

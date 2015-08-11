@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -108,7 +109,7 @@ class Invoice implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Billing', 'Bookkeeping', 'Invoice' ),
+        return new Service( new Identifier( 'Billing', 'Bookkeeping', 'Invoice', null, Consumer::useService()->getConsumerBySession() ),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
