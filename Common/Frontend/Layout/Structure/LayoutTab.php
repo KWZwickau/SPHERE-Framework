@@ -7,6 +7,11 @@ use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class LayoutTab
+ *
+ * @package SPHERE\Common\Frontend\Layout\Structure
+ */
 class LayoutTab extends Extension implements ITemplateInterface
 {
 
@@ -14,8 +19,8 @@ class LayoutTab extends Extension implements ITemplateInterface
     private $Template = null;
 
     /**
-     * @param string $TabName
-     * @param int    $TabParameter
+     * @param string     $TabName
+     * @param int|string $TabParameter
      */
     public function __construct( $TabName, $TabParameter )
     {

@@ -6,6 +6,7 @@ use SPHERE\Common\Frontend\Form\IButtonInterface;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\System\Authenticator\Authenticator as Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Extension\Extension;
@@ -69,6 +70,8 @@ class Form extends Extension implements IFormInterface
      * @param string              $Name
      * @param string              $Message
      * @param IIconInterface|null $Icon
+     *
+     * @return Form
      */
     public function setError( $Name, $Message, IIconInterface $Icon = null )
     {
@@ -79,21 +82,33 @@ class Form extends Extension implements IFormInterface
             foreach ((array)$GridGroup->getFormRow() as $GridRow) {
                 /** @var FormColumn $GridCol */
                 foreach ((array)$GridRow->getFormColumn() as $GridCol) {
-                    /** @var IFieldInterface $GridElement */
+                    /** @var IFieldInterface|Panel $GridElement */
                     foreach ((array)$GridCol->getFrontend() as $GridElement) {
-                        if ($GridElement->getName() == $Name) {
-                            $GridElement->setError( $Message, $Icon );
+                        if( $GridElement instanceof Panel ) {
+                            foreach ((array)$GridElement->getElementList() as $PanelElement) {
+                                /** @var IFieldInterface $PanelElement */
+                                if ($PanelElement->getName() == $Name) {
+                                    $PanelElement->setError( $Message, $Icon );
+                                }
+                            }
+                        } else {
+                            if ($GridElement->getName() == $Name) {
+                                $GridElement->setError( $Message, $Icon );
+                            }
                         }
                     }
                 }
             }
         }
+        return $this;
     }
 
     /**
      * @param string              $Name
      * @param string              $Message
      * @param IIconInterface|null $Icon
+     *
+     * @return Form
      */
     public function setSuccess( $Name, $Message = '', IIconInterface $Icon = null )
     {
@@ -104,15 +119,25 @@ class Form extends Extension implements IFormInterface
             foreach ((array)$GridGroup->getFormRow() as $GridRow) {
                 /** @var FormColumn $GridCol */
                 foreach ((array)$GridRow->getFormColumn() as $GridCol) {
-                    /** @var IFieldInterface $GridElement */
+                    /** @var IFieldInterface|Panel $GridElement */
                     foreach ((array)$GridCol->getFrontend() as $GridElement) {
-                        if ($GridElement->getName() == $Name) {
-                            $GridElement->setSuccess( $Message, $Icon );
+                        if( $GridElement instanceof Panel ) {
+                            foreach ((array)$GridElement->getElementList() as $PanelElement) {
+                                /** @var IFieldInterface $PanelElement */
+                                if ($PanelElement->getName() == $Name) {
+                                    $PanelElement->setSuccess( $Message, $Icon );
+                                }
+                            }
+                        } else {
+                            if ($GridElement->getName() == $Name) {
+                                $GridElement->setSuccess( $Message, $Icon );
+                            }
                         }
                     }
                 }
             }
         }
+        return $this;
     }
 
     /**

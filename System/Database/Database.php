@@ -49,6 +49,8 @@ class Database extends Extension
     private $Configuration = array();
     /** @var array $Protocol */
     private $Protocol = array();
+    /** @var int $Timeout */
+    private $Timeout = 1;
 
     /**
      * @param Identifier $Identifier
@@ -79,7 +81,7 @@ class Database extends Extension
                         empty( $this->Configuration['Port'] )
                             ? null
                             : $this->Configuration['Port'],
-                        2
+                        $this->Timeout
                     )
                 );
             } else {
@@ -100,7 +102,7 @@ class Database extends Extension
                             empty( $this->Configuration['Port'] )
                                 ? null
                                 : $this->Configuration['Port'],
-                            2
+                            $this->Timeout
                         )
                     );
                 } else {

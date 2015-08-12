@@ -2,6 +2,7 @@
 namespace MOC\V\Component\Database\Component\Bridge\Repository;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Doctrine\DBAL\Statement;
 use MOC\V\Component\Database\Component\Bridge\Bridge;
@@ -63,8 +64,7 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
     ) {
 
         try {
-
-            $Parameter = array(
+            $Connection = DriverManager::getConnection( array(
                 'driver'        => $Driver->getDriver(),
                 'user'          => $Username->getUsername(),
                 'password'      => $Password->getPassword(),
@@ -72,40 +72,10 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
                 'dbname'        => $Database->getDatabase(),
                 'port'          => $Port->getPort(),
                 'driverOptions' => array(
-                    \PDO::ATTR_TIMEOUT => $Timeout
+                    \PDO::ATTR_TIMEOUT => $Timeout,
+                    \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
                 )
-            );
-            /**
-             * Copy from Doctrine\DBAL\DriverManager
-             */
-            $DriverMap = array(
-                'pdo_mysql'         => 'Doctrine\DBAL\Driver\PDOMySql\Driver',
-                'pdo_sqlite'        => 'Doctrine\DBAL\Driver\PDOSqlite\Driver',
-                'pdo_pgsql'         => 'Doctrine\DBAL\Driver\PDOPgSql\Driver',
-                'pdo_oci'           => 'Doctrine\DBAL\Driver\PDOOracle\Driver',
-                'oci8'              => 'Doctrine\DBAL\Driver\OCI8\Driver',
-                'ibm_db2'           => 'Doctrine\DBAL\Driver\IBMDB2\DB2Driver',
-                'pdo_sqlsrv'        => 'Doctrine\DBAL\Driver\PDOSqlsrv\Driver',
-                'mysqli'            => 'Doctrine\DBAL\Driver\Mysqli\Driver',
-                'drizzle_pdo_mysql' => 'Doctrine\DBAL\Driver\DrizzlePDOMySql\Driver',
-                'sqlanywhere'       => 'Doctrine\DBAL\Driver\SQLAnywhere\Driver',
-                'sqlsrv'            => 'Doctrine\DBAL\Driver\SQLSrv\Driver',
-            );
-
-            /**
-             * Best practise, but no Timeout
-             *
-             * $Connection = DriverManager::getConnection( array(
-             *   'driver'   => $Driver->getDriver(),
-             *   'user'     => $Username->getUsername(),
-             *   'password' => $Password->getPassword(),
-             *   'host'     => $Host->getHost(),
-             *   'dbname'   => $Database->getDatabase(),
-             *   'port'     => $Port->getPort()
-             * ) );
-             */
-            $Connection = new Connection( $Parameter, new $DriverMap[$Driver->getDriver()] );
-
+            ) );
         } catch
         ( \Exception $E ) {
             // @codeCoverageIgnoreStart

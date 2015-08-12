@@ -19,9 +19,10 @@ class Panel extends Extension implements ITemplateInterface
     const PANEL_TYPE_WARNING = 'panel-warning';
     const PANEL_TYPE_INFO = 'panel-info';
     const PANEL_TYPE_DANGER = 'panel-danger';
-
     /** @var IBridgeInterface $Template */
     private $Template = null;
+    /** @var string|array $Content */
+    private $Content = '';
 
     /**
      * @param string       $Title
@@ -34,15 +35,22 @@ class Panel extends Extension implements ITemplateInterface
 
         $this->Template = $this->getTemplate( __DIR__.'/Panel.twig' );
         $this->Template->setVariable( 'Title', $Title );
-        if (is_array( $Content )) {
-            $this->Template->setVariable( 'Content', array_shift( $Content ) );
-            $this->Template->setVariable( 'ContentList', $Content );
-        } else {
-            $this->Template->setVariable( 'Content', $Content );
-            $this->Template->setVariable( 'ContentList', array() );
-        }
+        $this->Content = $Content;
         $this->Template->setVariable( 'Footer', $Footer );
         $this->Template->setVariable( 'Type', $Type );
+    }
+
+    /**
+     * @return array
+     */
+    public function getElementList()
+    {
+
+        if (!is_array( $this->Content ) && is_string( $this->Content )) {
+            return (array)$this->Content;
+        } else {
+            return $this->Content;
+        }
     }
 
     /**
@@ -59,6 +67,14 @@ class Panel extends Extension implements ITemplateInterface
      */
     public function getContent()
     {
+
+        if (is_array( $this->Content )) {
+            $this->Template->setVariable( 'Content', array_shift( $this->Content ) );
+            $this->Template->setVariable( 'ContentList', $this->Content );
+        } else {
+            $this->Template->setVariable( 'Content', $this->Content );
+            $this->Template->setVariable( 'ContentList', array() );
+        }
 
         return $this->Template->getContent();
     }
