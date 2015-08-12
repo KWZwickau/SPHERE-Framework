@@ -10,21 +10,33 @@ use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
-use SPHERE\Common\Frontend\Icon\Repository\Warning;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
+use SPHERE\Common\Frontend\Icon\Repository\Conversation;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Tag;
+use SPHERE\Common\Frontend\Icon\Repository\TagList;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
-use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -58,29 +70,43 @@ class Meta implements IApplicationInterface
      */
     public function frontendMeta( $TabActive = false, $tblPerson = null, $Person = array(), $Meta = array() )
     {
-        Debugger::screenDump( __METHOD__, $Person );
 
-        $Stage = new Stage( 'Person', 'Datenblatt' );
+//        Debugger::screenDump( __METHOD__, func_get_args() );
+
+        $Stage = new Stage( 'Personen', 'Datenblatt' );
 
         // TODO: Group-List of Person
         $tblGroupList = Group::useService()->getGroupAll();
+        $MetaTabs = $tblGroupList;
 
         // Sort by Name
         usort( $tblGroupList, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
 
             return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
         } );
+        usort( $MetaTabs, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
+
+            return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
+        } );
+
+        // Create CheckBoxes
+        /** @noinspection PhpUnusedParameterInspection */
+        array_walk( $tblGroupList, function ( TblGroup &$tblGroup ) {
+
+            $tblGroup = new CheckBox(
+                    'Person[Group]['.$tblGroup->getId().']',
+                    $tblGroup->getName().' '.new Muted( new Small( $tblGroup->getDescription() ) ),
+                    $tblGroup->getId()
+                );
+        } );
 
         // Create Tabs
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblGroupList, function ( TblGroup &$tblGroup, $Index, $TabActive ) {
+        array_walk( $MetaTabs, function ( TblGroup &$tblGroup, $Index, $TabActive ) {
 
             switch (strtoupper( $tblGroup->getMetaTable() )) {
                 case 'COMMON':
                     $tblGroup = new LayoutTab( 'Allgemein', $tblGroup->getMetaTable() );
-                    if (!$TabActive) {
-                        $tblGroup->setActive();
-                    }
                     break;
                 case 'PROSPECT':
                     $tblGroup = new LayoutTab( 'Interessent', $tblGroup->getMetaTable() );
@@ -95,29 +121,36 @@ class Meta implements IApplicationInterface
                     $tblGroup = false;
             }
         }, $TabActive );
-        $tblGroupList = array_filter( $tblGroupList );
+        /** @var LayoutTab[] $MetaTabs */
+        $MetaTabs = array_filter( $MetaTabs );
+        // Folded ?
+        if (!$TabActive || $TabActive == '#') {
+            array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronRight().'&nbsp;', '#' ) );
+            $MetaTabs[0]->setActive();
+        } else {
+            array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronUp().'&nbsp;', '#' ) );
+        }
 
         $tblSalutationAll = Person::useService()->getSalutationAll();
         $BasicTable = ( new Form(
-            new FormGroup(
+            new FormGroup( array(
                 new FormRow( array(
                     new FormColumn(
-                        new SelectBox( 'Person[Salutation]', 'Anrede', array( 'Salutation' => $tblSalutationAll ) )
-                        , 2 ),
+                        new Panel( 'Anrede', array(
+                            new SelectBox( 'Person[Salutation]', 'Anrede', array( 'Salutation' => $tblSalutationAll ),
+                                new Conversation() ),
+                            new TextField( 'Person[Title]', 'Titel', 'Titel', new Conversation() ),
+                        ), Panel::PANEL_TYPE_INFO ), 4 ),
                     new FormColumn(
-                        new TextField( 'Person[Title]', 'Titel', 'Titel' )
-                        , 2 ),
+                        new Panel( 'Name', array(
+                            new TextField( 'Person[FirstName]', 'Vorname', 'Vorname' ),
+                            new TextField( 'Person[SecondName]', 'Zweitname', 'Zweitname' ),
+                            new TextField( 'Person[LastName]', 'Nachname', 'Nachname' ),
+                        ), Panel::PANEL_TYPE_INFO ), 4 ),
                     new FormColumn(
-                        new TextField( 'Person[FirstName]', 'Vorname', 'Vorname' )
-                        , 3 ),
-                    new FormColumn(
-                        new TextField( 'Person[SecondName]', 'Zweitname', 'Zweitname' )
-                        , 2 ),
-                    new FormColumn(
-                        new TextField( 'Person[LastName]', 'Nachname', 'Nachname' )
-                        , 3 ),
+                        new Panel( 'Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO ), 4 ),
                 ) )
-            ), new Primary( 'Grunddaten speichern' )
+            ) ), new Primary( 'Grunddaten speichern' )
         ) )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' );
 
         switch (strtoupper( $TabActive )) {
@@ -134,25 +167,40 @@ class Meta implements IApplicationInterface
                 $MetaTable = Custody::useFrontend()->frontendMeta( $tblPerson, $Meta );
                 break;
             default:
-                $MetaTable = new Danger( 'Ansicht nicht verfügbar', new Warning() );
+                $MetaTable = new Well( new Muted( 'Bitte wählen Sie eine Rubrik' ) );
         }
 
         $Stage->setContent(
             new Layout( array(
                 new LayoutGroup(
                     new LayoutRow( new LayoutColumn( $BasicTable ) )
-                    , new Title( 'Name', 'der Person' )
+                    , new Title( new \SPHERE\Common\Frontend\Icon\Repository\Person().' Name', 'der Person' )
                 ),
                 new LayoutGroup( array(
-                    new LayoutRow( new LayoutColumn( new LayoutTabs( $tblGroupList ) ) ),
+                    new LayoutRow( new LayoutColumn( new LayoutTabs( $MetaTabs ) ) ),
                     new LayoutRow( new LayoutColumn( $MetaTable ) ),
-                ), new Title( 'Metadaten', 'der Person' ) ),
+                ), new Title( new Tag().' Informationen', 'zur Person' ) ),
                 new LayoutGroup( array(
-                    new LayoutRow( new LayoutColumn( '' ) ),
-                ), new Title( 'Adressdaten', 'der Person' ) ),
+                    new LayoutRow( new LayoutColumn(
+                        new Warning( 'Keine Daten vorhanden' )
+                        .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
+                            new Plus() ) )
+                    ) ),
+                ), new Title( new TagList().' Adressdaten', 'der Person' ) ),
                 new LayoutGroup( array(
-                    new LayoutRow( new LayoutColumn( '' ) ),
-                ), new Title( 'Kontaktdaten', 'der Person' ) ),
+                    new LayoutRow( new LayoutColumn(
+                        new Warning( 'Keine Daten vorhanden' )
+                        .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
+                            new Plus() ) )
+                    ) ),
+                ), new Title( new TagList().' Kontaktdaten', 'der Person' ) ),
+                new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn(
+                        new Warning( 'Keine Daten vorhanden' )
+                        .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
+                            new Plus() ) )
+                    ) ),
+                ), new Title( new TagList().' Beziehungen', 'zu Personen' ) ),
             ) )
         );
         return $Stage;

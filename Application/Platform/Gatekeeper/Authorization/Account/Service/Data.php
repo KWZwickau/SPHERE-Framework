@@ -43,12 +43,32 @@ class Data
         $this->createIdentification( 'Management', 'Verwaltung' );
         $this->createIdentification( 'System', 'System' );
 
-        $tblToken = Token::useService()->getTokenById( 1 );
         $tblConsumer = Consumer::useService()->getConsumerById( 1 );
-        $tblAccount = $this->createAccount( 'System', 'System', $tblToken, $tblConsumer );
         $tblIdentification = $this->getIdentificationByName( 'System' );
-        $this->addAccountAuthentication( $tblAccount, $tblIdentification );
         $tblRole = Access::useService()->getRoleByName( 'Administrator' );
+
+        // System (Gerd)
+        $tblToken = Token::useService()->getTokenByIdentifier( 'ccccccdilkui' );
+        $tblAccount = $this->createAccount( 'System', 'System', $tblToken, $tblConsumer );
+        $this->addAccountAuthentication( $tblAccount, $tblIdentification );
+        $this->addAccountAuthorization( $tblAccount, $tblRole );
+
+        // System (Jens)
+        $tblToken = Token::useService()->getTokenByIdentifier( 'ccccccectjge' );
+        $tblAccount = $this->createAccount( 'Kmiezik', 'System', $tblToken, $tblConsumer );
+        $this->addAccountAuthentication( $tblAccount, $tblIdentification );
+        $this->addAccountAuthorization( $tblAccount, $tblRole );
+
+        // System (Sidney)
+        $tblToken = Token::useService()->getTokenByIdentifier( 'ccccccectjgt' );
+        $tblAccount = $this->createAccount( 'Rackel', 'System', $tblToken, $tblConsumer );
+        $this->addAccountAuthentication( $tblAccount, $tblIdentification );
+        $this->addAccountAuthorization( $tblAccount, $tblRole );
+
+        // System (Johannes)
+        $tblToken = Token::useService()->getTokenByIdentifier( 'ccccccectjgr' );
+        $tblAccount = $this->createAccount( 'Kauschke', 'System', $tblToken, $tblConsumer );
+        $this->addAccountAuthentication( $tblAccount, $tblIdentification );
         $this->addAccountAuthorization( $tblAccount, $tblRole );
     }
 

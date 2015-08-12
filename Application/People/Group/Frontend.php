@@ -12,6 +12,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -36,9 +37,19 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\People\Group
+ */
 class Frontend extends Extension implements IFrontendInterface
 {
 
+    /**
+     * @param array $Group
+     *
+     * @return Stage
+     */
     public function frontendGroup( $Group )
     {
 
@@ -112,6 +123,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     private function formGroup()
     {
 
@@ -127,7 +141,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ) ),
                 new FormRow( array(
                     new FormColumn( array(
-                        new TextArea( 'Group[Remark]', 'Bemerkungen', 'Bemerkungen' )
+                        new TextArea( 'Group[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
                     ) ),
                 ) )
             ) )

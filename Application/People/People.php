@@ -22,8 +22,8 @@ class People implements IClusterInterface
     {
 
         Person::registerApplication();
-        Group::registerApplication();
         Search::registerApplication();
+        Group::registerApplication();
         Meta::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(

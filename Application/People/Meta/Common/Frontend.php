@@ -10,21 +10,21 @@ use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
-use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Child;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
-use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Sheriff;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -42,13 +42,12 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendMeta( TblPerson $tblPerson = null, $Meta = array() )
     {
-        Debugger::screenDump( __METHOD__, $Meta );
 
-        $Stage = new Stage( 'Allgemeine Daten', 'zur Person' );
+        $Stage = new Stage();
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if ( !isset( $Global->POST['Meta'] ) ) {
+            if (!isset( $Global->POST['Meta'] )) {
                 /** @var TblCommon $tblCommon */
                 $tblCommon = Common::useService()->getCommonByPerson( $tblPerson );
                 $Global->POST['Meta']['Remark'] = $tblCommon->getRemark();
@@ -78,62 +77,50 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormGroup( array(
                     new FormRow( array(
                         new FormColumn(
-                            new DatePicker( 'Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
-                                new Calendar()
-                            ), 3 ),
+                            new Panel( 'Geburtsdaten', array(
+                                new DatePicker( 'Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
+                                    new Calendar() ),
+                                new AutoCompleter( 'Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort', array(),
+                                    new MapMarker() ),
+                                new SelectBox( 'Meta[BirthDates][Gender]', 'Geschlecht', array(
+                                    TblCommonBirthDates::VALUE_GENDER_NULL   => '',
+                                    TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
+                                    TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
+                                ), new Child() ),
+                                new AutoCompleter( 'Meta[BirthDates][Nationality]', 'Staatsangehörigkeit',
+                                    'Staatsangehörigkeit',
+                                    array(), new Nameplate()
+                                ),
+                            ), Panel::PANEL_TYPE_INFO ), 6 ),
                         new FormColumn(
-                            new AutoCompleter( 'Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
-                                array(), new MapMarker()
-                            ), 9 ),
+                            new Panel( 'Informationen', array(
+                                new AutoCompleter( 'Meta[Information][Denomination]', 'Konfession',
+                                    'Konfession',
+                                    array(), new TempleChurch()
+                                ),
+                                new SelectBox( 'Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
+                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
+                                    TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
+                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
+                                ), new Sheriff()
+                                ),
+                                new TextArea( 'Meta[Information][AssistanceActivity]',
+                                    'Mitarbeitsbereitschaft - Tätigkeiten',
+                                    'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
+                                ),
+                            ), Panel::PANEL_TYPE_INFO ), 6 ),
                     ) ),
-                    new FormRow( array(
-                        new FormColumn(
-                            new SelectBox( 'Meta[BirthDates][Gender]', 'Geschlecht', array(
-                                TblCommonBirthDates::VALUE_GENDER_NULL   => '',
-                                TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
-                                TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
-                            ), new PersonParent()
-                            ), 3 ),
-                        new FormColumn(
-                            new AutoCompleter( 'Meta[BirthDates][Nationality]', 'Staatsangehörigkeit',
-                                'Staatsangehörigkeit',
-                                array(), new Nameplate()
-                            ), 9 ),
-                    ) ),
-                ), new Title( 'Geburtsdaten' ) ),
+                ) ),
                 new FormGroup( array(
                     new FormRow( array(
                         new FormColumn(
-                            new AutoCompleter( 'Meta[Information][Denomination]', 'Konfession',
-                                'Konfession',
-                                array(), new TempleChurch()
-                            ) ),
+                            new Panel( 'Sonstiges', array(
+                                new TextArea( 'Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
+                            ), Panel::PANEL_TYPE_INFO ) ),
                     ) ),
-                    new FormRow( array(
-                        new FormColumn(
-                            new SelectBox( 'Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
-                                TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
-                                TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
-                                TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
-                            ), new Sheriff()
-                            ), 3 ),
-                        new FormColumn(
-                            new TextArea( 'Meta[Information][AssistanceActivity]',
-                                'Mitarbeitsbereitschaft - Tätigkeiten',
-                                'Mitarbeitsbereitschaft - Tätigkeiten'
-                            ), 9 ),
-                    ) ),
-                ), new Title( 'Informationen' ) ),
-                new FormGroup( array(
-                    new FormRow( array(
-                        new FormColumn(
-                            new TextArea( 'Meta[Common][Remark]',
-                                'Bemerkungen',
-                                'Bemerkungen'
-                            ) ),
-                    ) ),
-                ), new Title( 'Sonstiges' ) ),
-            ), new Primary( 'Allgemeine Daten speichern' ) ) )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
+                ) ),
+            ),
+                new Primary( 'Informationen speichern' ) ) )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert.' )
         );
 
         return $Stage;

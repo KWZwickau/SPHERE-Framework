@@ -32,6 +32,9 @@ class Data extends Extension
     {
 
         $this->createToken( 'ccccccdilkui', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
+        $this->createToken( 'ccccccectjge', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
+        $this->createToken( 'ccccccectjgt', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
+        $this->createToken( 'ccccccectjgr', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
     }
 
     /**
