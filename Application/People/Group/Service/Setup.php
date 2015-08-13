@@ -37,7 +37,8 @@ class Setup
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $this->setTableGroup( $Schema );
+        $tblGroup = $this->setTableGroup( $Schema );
+        $this->setTableMember( $Schema, $tblGroup );
         /**
          * Migration & Protocol
          */
@@ -48,26 +49,45 @@ class Setup
 
     /**
      * @param Schema $Schema
+     *
      * @return Table
      */
     private function setTableGroup( Schema &$Schema )
     {
+
         $Table = $this->Connection->createTable( $Schema, 'tblGroup' );
-        if ( !$this->Connection->hasColumn( 'tblGroup', 'Name' ) ) {
+        if (!$this->Connection->hasColumn( 'tblGroup', 'Name' )) {
             $Table->addColumn( 'Name', 'string' );
         }
-        if ( !$this->Connection->hasColumn( 'tblGroup', 'Description' ) ) {
+        if (!$this->Connection->hasColumn( 'tblGroup', 'Description' )) {
             $Table->addColumn( 'Description', 'string' );
         }
-        if ( !$this->Connection->hasColumn( 'tblGroup', 'Remark' ) ) {
+        if (!$this->Connection->hasColumn( 'tblGroup', 'Remark' )) {
             $Table->addColumn( 'Remark', 'text' );
         }
-        if ( !$this->Connection->hasColumn( 'tblGroup', 'IsLocked' ) ) {
+        if (!$this->Connection->hasColumn( 'tblGroup', 'IsLocked' )) {
             $Table->addColumn( 'IsLocked', 'boolean' );
         }
-        if ( !$this->Connection->hasColumn( 'tblGroup', 'MetaTable' ) ) {
+        if (!$this->Connection->hasColumn( 'tblGroup', 'MetaTable' )) {
             $Table->addColumn( 'MetaTable', 'string' );
         }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblGroup
+     *
+     * @return Table
+     */
+    private function setTableMember( Schema &$Schema, Table $tblGroup )
+    {
+
+        $Table = $this->Connection->createTable( $Schema, 'tblMember' );
+        if (!$this->Connection->hasColumn( 'tblMember', 'serviceTblPerson' )) {
+            $Table->addColumn( 'serviceTblPerson', 'bigint', array( 'notnull' => false ) );
+        }
+        $this->Connection->addForeignKey( $Table, $tblGroup );
         return $Table;
     }
 }

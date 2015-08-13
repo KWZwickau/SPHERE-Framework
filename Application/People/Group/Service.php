@@ -4,7 +4,9 @@ namespace SPHERE\Application\People\Group;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Service\Data;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Group\Service\Setup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -66,17 +68,6 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param string $Name
-     *
-     * @return bool|TblGroup
-     */
-    public function getGroupByName( $Name )
-    {
-
-        return ( new Data( $this->Binding ) )->getGroupByName( $Name );
-    }
-
-    /**
      * @param int $Id
      *
      * @return bool|TblGroup
@@ -109,7 +100,7 @@ class Service implements IServiceInterface
             $Form->setError( 'Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an' );
             $Error = true;
         } else {
-            if( $this->getGroupByName( $Group['Name'] ) ) {
+            if ($this->getGroupByName( $Group['Name'] )) {
                 $Form->setError( 'Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an' );
                 $Error = true;
             }
@@ -120,13 +111,24 @@ class Service implements IServiceInterface
                 $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success( 'Die Gruppe wurde erfolgreich erstellt' ).new Redirect( '/People/Group', 1 );
+                return new Success( 'Die Gruppe wurde erfolgreich erstellt' ).new Redirect( '/People/Group', 3 );
             } else {
                 return new Danger( 'Die Gruppe konnte nicht erstellt werden' ).new Redirect( '/People/Group', 10 );
             }
         }
 
         return $Form;
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByName( $Name )
+    {
+
+        return ( new Data( $this->Binding ) )->getGroupByName( $Name );
     }
 
     /**
@@ -153,7 +155,7 @@ class Service implements IServiceInterface
             $Error = true;
         } else {
             $tblGroupTwin = $this->getGroupByName( $Group['Name'] );
-            if( $tblGroupTwin && $tblGroupTwin->getId() != $tblGroup->getId() ) {
+            if ($tblGroupTwin && $tblGroupTwin->getId() != $tblGroup->getId()) {
                 $Form->setError( 'Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an' );
                 $Error = true;
             }
@@ -164,12 +166,62 @@ class Service implements IServiceInterface
                 $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success( 'Die Änderungen wurden erfolgreich gespeichert' ).new Redirect( '/People/Group', 1 );
+                return new Success( 'Die Änderungen wurden erfolgreich gespeichert' )
+                .new Redirect( '/People/Group', 3 );
             } else {
-                return new Danger( 'Die Änderungen konnte nicht gespeichert werden' ).new Redirect( '/People/Group', 10 );
+                return new Danger( 'Die Änderungen konnte nicht gespeichert werden' )
+                .new Redirect( '/People/Group', 10 );
             }
         }
 
         return $Form;
+    }
+
+    /**
+     *
+     * @param TblGroup $tblGroup
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByGroup( TblGroup $tblGroup )
+    {
+
+        return ( new Data( $this->Binding ) )->getPersonAllByGroup( $tblGroup );
+    }
+
+    /**
+     *
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAllByPerson( TblPerson $tblPerson )
+    {
+
+        return ( new Data( $this->Binding ) )->getGroupAllByPerson( $tblPerson );
+    }
+
+    /**
+     * @param TblGroup  $tblGroup
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function removeGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    {
+
+        return ( new Data( $this->Binding ) )->removeGroupPerson( $tblGroup, $tblPerson );
+    }
+
+    /**
+     * @param TblGroup  $tblGroup
+     * @param TblPerson $tblPerson
+     *
+     * @return TblMember
+     */
+    public function addGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    {
+
+        return ( new Data( $this->Binding ) )->addGroupPerson( $tblGroup, $tblPerson );
     }
 }

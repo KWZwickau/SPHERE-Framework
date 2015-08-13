@@ -50,25 +50,30 @@ class Frontend extends Extension implements IFrontendInterface
             if (!isset( $Global->POST['Meta'] )) {
                 /** @var TblCommon $tblCommon */
                 $tblCommon = Common::useService()->getCommonByPerson( $tblPerson );
-                $Global->POST['Meta']['Remark'] = $tblCommon->getRemark();
+                if( $tblCommon ) {
+                    $Global->POST['Meta']['Remark'] = $tblCommon->getRemark();
 
-                /** @var TblCommonBirthDates $tblCommonBirthDates */
-                $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
-                $Global->POST['Meta']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
-                $Global->POST['Meta']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace();
-                $Global->POST['Meta']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
-                $Global->POST['Meta']['BirthDates']['Nationality'] = $tblCommonBirthDates->getNationality();
-
-                /** @var TblCommonInformation $tblCommonInformation */
-                $tblCommonInformation = $tblCommon->getTblCommonInformation();
-                $Global->POST['Meta']['Title'] = $tblCommonInformation->getTitle();
-                $Global->POST['Meta']['First'] = $tblCommonInformation->getFirstName();
-                $Global->POST['Meta']['Middle'] = $tblPerson->getSecondName();
-                $Global->POST['Meta']['Last'] = $tblPerson->getLastName();
-                $Global->POST['Meta']['Type'] = $tblPerson->getTblPersonType()->getId();
-                $Global->POST['Meta']['Remark'] = $tblPerson->getRemark();
-                $Global->POST['Meta']['Denomination'] = $tblPerson->getDenomination();
-                $Global->savePost();
+                    /** @var TblCommonBirthDates $tblCommonBirthDates */
+                    $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
+                    if( $tblCommonBirthDates ) {
+                        $Global->POST['Meta']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
+                        $Global->POST['Meta']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace();
+                        $Global->POST['Meta']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
+                        $Global->POST['Meta']['BirthDates']['Nationality'] = $tblCommonBirthDates->getNationality();
+                    }
+                    /** @var TblCommonInformation $tblCommonInformation */
+                    $tblCommonInformation = $tblCommon->getTblCommonInformation();
+                    if( $tblCommonInformation ) {
+                        $Global->POST['Meta']['Title'] = $tblCommonInformation->getTitle();
+                        $Global->POST['Meta']['First'] = $tblCommonInformation->getFirstName();
+                        $Global->POST['Meta']['Middle'] = $tblPerson->getSecondName();
+                        $Global->POST['Meta']['Last'] = $tblPerson->getLastName();
+                        $Global->POST['Meta']['Type'] = $tblPerson->getTblPersonType()->getId();
+                        $Global->POST['Meta']['Remark'] = $tblPerson->getRemark();
+                        $Global->POST['Meta']['Denomination'] = $tblPerson->getDenomination();
+                    }
+                    $Global->savePost();
+                }
             }
         }
 

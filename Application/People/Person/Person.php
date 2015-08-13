@@ -4,10 +4,15 @@ namespace SPHERE\Application\People\Person;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Person
+ *
+ * @package SPHERE\Application\People\Person
+ */
 class Person implements IApplicationInterface, IModuleInterface
 {
 
@@ -20,7 +25,10 @@ class Person implements IApplicationInterface, IModuleInterface
 
     public static function registerModule()
     {
-        // TODO: Implement registerModule() method.
+
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'Frontend::frontendPerson'
+        ) );
     }
 
     /**
@@ -36,11 +44,12 @@ class Person implements IApplicationInterface, IModuleInterface
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 
 

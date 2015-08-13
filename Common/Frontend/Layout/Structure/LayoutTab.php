@@ -21,8 +21,9 @@ class LayoutTab extends Extension implements ITemplateInterface
     /**
      * @param string     $TabName
      * @param int|string $TabParameter
+     * @param array      $Data
      */
-    public function __construct( $TabName, $TabParameter )
+    public function __construct( $TabName, $TabParameter, $Data = array() )
     {
 
         $this->Template = $this->getTemplate( __DIR__.'/LayoutTab.twig' );
@@ -30,7 +31,7 @@ class LayoutTab extends Extension implements ITemplateInterface
         $this->Template->setVariable( 'TabName', $TabName );
         $this->Template->setVariable( 'TabParameter', '?'.http_build_query( ( new Authenticator( new Get() ) )
                 ->getAuthenticator()->createSignature(
-                    array( 'TabActive' => $TabParameter ), $this->getRequest()->getPathInfo()
+                    array_merge( array( 'TabActive' => $TabParameter ), $Data ), $this->getRequest()->getPathInfo()
                 ) )
         );
         $this->Template->setVariable( 'TabRoute', $this->getRequest()->getPathInfo() );

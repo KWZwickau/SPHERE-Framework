@@ -12,7 +12,7 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblPerson")
+ * @Table(name="tblMember")
  * @Cache(usage="NONSTRICT_READ_WRITE")
  */
 class TblMember extends Element

@@ -319,8 +319,8 @@ class Data
     }
 
     /**
-     * @param TblPrivilege                                                                         $tblPrivilege
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRight $tblRight
+     * @param TblPrivilege $tblPrivilege
+     * @param TblRight     $tblRight
      *
      * @return bool
      */

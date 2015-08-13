@@ -2,6 +2,8 @@
 namespace SPHERE\Application\People\Group\Service;
 
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Group\Service\Entity\TblMember;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 
@@ -131,5 +133,94 @@ class Data
         $Entity = $this->Connection->getEntityManager()->getEntity( 'TblGroup' )
             ->findOneBy( array( TblGroup::ATTR_NAME => $Name ) );
         return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     *
+     * @param TblGroup $tblGroup
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByGroup( TblGroup $tblGroup )
+    {
+
+        /** @var TblMember[] $EntityList */
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblMember' )->findBy( array(
+            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+        ) );
+        array_walk( $EntityList, function ( TblMember &$V ) {
+
+            $V = $V->getServiceTblPerson();
+        } );
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     *
+     * @param TblPerson $tblPerson
+     *
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAllByPerson( TblPerson $tblPerson )
+    {
+
+        /** @var TblMember[] $EntityList */
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblMember' )->findBy( array(
+            TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+        ) );
+        array_walk( $EntityList, function ( TblMember &$V ) {
+
+            $V = $V->getTblGroup();
+        } );
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblGroup     $tblGroup
+     * @param TblPerson $tblPerson
+     *
+     * @return TblMember
+     */
+    public function addGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblMember' )
+            ->findOneBy( array(
+                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+                TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ) );
+        if (null === $Entity) {
+            $Entity = new TblMember();
+            $Entity->setTblGroup( $tblGroup );
+            $Entity->setServiceTblPerson( $tblPerson );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblGroup     $tblGroup
+     * @param TblPerson $tblPerson
+     *
+     * @return bool
+     */
+    public function removeGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblMember $Entity */
+        $Entity = $Manager->getEntity( 'TblMember' )
+            ->findOneBy( array(
+                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+                TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ) );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
     }
 }

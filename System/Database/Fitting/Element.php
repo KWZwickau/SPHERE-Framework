@@ -95,4 +95,22 @@ abstract class Element extends Extension
 
         return $Array;
     }
+
+    /**
+     * @return \DateTime
+     */
+    public function getEntityCreate()
+    {
+
+        return $this->EntityCreate;
+    }
+
+    /**
+     * @return null|\DateTime
+     */
+    public function getEntityUpdate()
+    {
+
+        return $this->EntityUpdate;
+    }
 }

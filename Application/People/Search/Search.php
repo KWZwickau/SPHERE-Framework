@@ -6,6 +6,7 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -109,7 +110,7 @@ class Search implements IApplicationInterface, IModuleInterface
             $Stage->addButton(
                 new Standard(
                     $tblGroup->getName(),
-                    new Link\Route( __NAMESPACE__.'/Group' ), new Listing(),
+                    new Link\Route( __NAMESPACE__.'/Group' ), null,
                     array(
                         'tblGroup' => $tblGroup->getId()
                     ), $tblGroup->getDescription() )
@@ -117,12 +118,34 @@ class Search implements IApplicationInterface, IModuleInterface
         }, $Stage );
 
         if ($tblGroup) {
+
+            // TODO: Person-List
+
+            $tblPersonAll = Group::useService()->getPersonAllByGroup( $tblGroup );
+
+            array_walk( $tblPersonAll, function ( TblPerson &$tblPerson ) {
+
+                $tblPerson->Salutation = $tblPerson->getTblSalutation()->getSalutation();
+
+            } );
+
+//            Debugger::screenDump( $tblPersonAll );
+
             $Stage->setContent(
                 new Layout(
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new TableData( $tblGroupAll )
+                                new TableData( $tblPersonAll, null,
+                                    array(
+                                        'Id'           => '#',
+                                        'Salutation'   => 'Anrede',
+                                        'Title'        => 'Titel',
+                                        'FirstName'    => 'Vorname',
+                                        'SecondName'   => 'Zweitname',
+                                        'LastName'     => 'Nachname',
+                                        'EntityCreate' => 'Eingabedatum'
+                                    ) )
                             )
                         )
                     )
