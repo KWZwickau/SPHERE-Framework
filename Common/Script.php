@@ -55,6 +55,10 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.countdown"
         );
         $this->setSource(
+            'jQuery.Sisyphus', '/Library/jQuery.Sisyphus/1.1.2/sisyphus.min.js',
+            "'undefined' !== typeof jQuery.fn.sisyphus"
+        );
+        $this->setSource(
             'jQuery.CheckBox', '/Library/jQuery.iCheck/1.0.2/icheck.min.js',
             "'undefined' !== typeof jQuery.fn.iCheck"
         );
@@ -153,7 +157,7 @@ class Script extends Extension
             'ModSortable', array( 'jQuery.Ui', 'jQuery' )
         );
         $this->setModule(
-            'ModForm', array( 'jQuery.Mask', 'jQuery' )
+            'ModForm', array( 'jQuery.Sisyphus', 'jQuery.Mask', 'jQuery' )
         );
     }
 

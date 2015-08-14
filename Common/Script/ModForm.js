@@ -6,6 +6,7 @@
         var thisForm = this;
         // This is the easiest way to have default options.
         var settings = $.extend( {
+            saveDraftData: false,
             notifyChangedField: true,
             notifyChangedMessage: false
         }, options );
@@ -14,6 +15,13 @@
         var notifyFieldList = this.find( ':input:not(:button)' );
 
         // script goes here
+        /**
+         * Page-Leave Draft-Save: All
+         * @file ModForm.js
+         */
+        if( settings.saveDraftData ) {
+            thisForm.sisyphus();
+        }
 
         /**
          * Page-Leave Confirmation

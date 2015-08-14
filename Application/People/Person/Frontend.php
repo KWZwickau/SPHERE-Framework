@@ -34,9 +34,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Debugger;
@@ -68,6 +70,21 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage = new Stage( 'Personen', 'Datenblatt' );
+
+        $tblGroupAll = Group::useService()->getGroupAll();
+        /** @noinspection PhpUnusedParameterInspection */
+        array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
+
+            $Stage->addButton(
+                new Standard(
+                    $tblGroup->getName(),
+                    new Route( '/People/Search/Group' ), null,
+                    array(
+                        'tblGroup' => $tblGroup->getId()
+                    ), $tblGroup->getDescription() )
+            );
+        }, $Stage );
+
 
         if (!$tblPerson) {
 

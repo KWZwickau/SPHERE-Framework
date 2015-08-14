@@ -129,4 +129,13 @@ class TblPerson extends Element
 
         $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation->getId() );
     }
+
+    /**
+     * @return string
+     */
+    public function getSalutation()
+    {
+
+        return $this->getTblSalutation()->getSalutation();
+    }
 }

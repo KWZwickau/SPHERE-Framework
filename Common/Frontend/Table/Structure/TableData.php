@@ -94,8 +94,14 @@ class TableData extends Table
 
             array_walk( $Row, function ( &$Column, $Index, $Content ) {
 
+//                /**
+//                 * With Entity, use getter instead of property (if available)
+//                 */
+//                if (is_object( $Content[1] ) && method_exists( $Content[1], 'get'.substr( trim( $Index ), 2 ) )) {
+//                    $Column = $Content[1]->{'get'.substr( trim( $Index ), 2 )}();
+//                }
                 /**
-                 * With object, use getter instead of property (if available)
+                 * With Object, use getter instead of property (if available)
                  */
                 if (is_object( $Column ) && method_exists( $Content[1], 'get'.substr( trim( $Index ), 2 ) )) {
                     $Column = $Content[1]->{'get'.substr( trim( $Index ), 2 )}();

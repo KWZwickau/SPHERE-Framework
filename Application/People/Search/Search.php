@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Search
@@ -126,7 +127,6 @@ class Search implements IApplicationInterface, IModuleInterface
 
             array_walk( $tblPersonAll, function ( TblPerson &$tblPerson ) {
 
-                $tblPerson->Salutation = $tblPerson->getTblSalutation()->getSalutation();
                 $tblPerson->Option = new Standard( '', '/People/Person', new Pencil(), array( 'tblPerson' => $tblPerson->getId() ), 'Bearbeiten' );
             } );
 
