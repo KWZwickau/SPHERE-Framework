@@ -10,6 +10,30 @@ h4 {
     margin-top: 20px;
 }
 
+/* GRIDSTER */
+
+.gridster ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.gridster ul li {
+    overflow: hidden;
+    padding: 5px;
+}
+
+.gridster .gs-w {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.gridster .player {
+    border: 1px solid #ff0f00;
+    border-radius: 4px;
+}
+
 /* GLYPHICONS */
 
 .halflings {

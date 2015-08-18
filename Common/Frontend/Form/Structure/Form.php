@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Form\IButtonInterface;
 use SPHERE\Common\Frontend\Form\IFieldInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Form\Repository\Field;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\System\Authenticator\Authenticator as Authenticator;
@@ -84,14 +85,17 @@ class Form extends Extension implements IFormInterface
                 foreach ((array)$GridRow->getFormColumn() as $GridCol) {
                     /** @var IFieldInterface|Panel $GridElement */
                     foreach ((array)$GridCol->getFrontend() as $GridElement) {
-                        if( $GridElement instanceof Panel ) {
+                        if ($GridElement instanceof Panel) {
                             foreach ((array)$GridElement->getElementList() as $PanelElement) {
-                                /** @var IFieldInterface $PanelElement */
-                                if ($PanelElement->getName() == $Name) {
-                                    $PanelElement->setError( $Message, $Icon );
+                                if ($PanelElement instanceof Field) {
+                                    /** @var IFieldInterface $PanelElement */
+                                    if ($PanelElement->getName() == $Name) {
+                                        $PanelElement->setError( $Message, $Icon );
+                                    }
                                 }
                             }
-                        } else {
+                        }
+                        if ($GridElement instanceof Field) {
                             if ($GridElement->getName() == $Name) {
                                 $GridElement->setError( $Message, $Icon );
                             }
@@ -121,14 +125,17 @@ class Form extends Extension implements IFormInterface
                 foreach ((array)$GridRow->getFormColumn() as $GridCol) {
                     /** @var IFieldInterface|Panel $GridElement */
                     foreach ((array)$GridCol->getFrontend() as $GridElement) {
-                        if( $GridElement instanceof Panel ) {
+                        if ($GridElement instanceof Panel) {
                             foreach ((array)$GridElement->getElementList() as $PanelElement) {
-                                /** @var IFieldInterface $PanelElement */
-                                if ($PanelElement->getName() == $Name) {
-                                    $PanelElement->setSuccess( $Message, $Icon );
+                                if ($PanelElement instanceof Field) {
+                                    /** @var IFieldInterface $PanelElement */
+                                    if ($PanelElement->getName() == $Name) {
+                                        $PanelElement->setSuccess( $Message, $Icon );
+                                    }
                                 }
                             }
-                        } else {
+                        }
+                        if ($GridElement instanceof Field) {
                             if ($GridElement->getName() == $Name) {
                                 $GridElement->setSuccess( $Message, $Icon );
                             }

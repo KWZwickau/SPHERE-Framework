@@ -6,6 +6,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Fitting\Structure;
 
+/**
+ * Class Setup
+ *
+ * @package SPHERE\Application\Billing\Inventory\Commodity\Service
+ */
 class Setup
 {
 

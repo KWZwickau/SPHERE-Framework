@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Person;
 
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
+use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Data;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
@@ -68,12 +69,32 @@ class Service implements IServiceInterface
     }
 
     /**
+     * int
+     */
+    public function countPersonAll()
+    {
+
+        return count( $this->getPersonAll() );
+    }
+
+    /**
      * @return bool|TblPerson[]
      */
     public function getPersonAll()
     {
 
         return ( new Data( $this->Binding ) )->getPersonAll();
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return int
+     */
+    public function countPersonAllByGroup( TblGroup $tblGroup )
+    {
+
+        return Group::useService()->countPersonAllByGroup( $tblGroup );
     }
 
     /**
@@ -131,14 +152,27 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblSalutation
+     */
+    public function getSalutationById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getSalutationById( $Id );
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblPerson
      */
     public function getPersonById( $Id )
     {
-        return ( new Data( $this->Binding ) )->getPersonById($Id);
+
+        return ( new Data( $this->Binding ) )->getPersonById( $Id );
     }
+
     /**
      * @param IFormInterface $Form
      * @param TblPerson      $tblPerson
@@ -177,7 +211,7 @@ class Service implements IServiceInterface
                 if (isset( $Person['Group'] )) {
                     // Remove all Groups
                     $tblGroupList = Group::useService()->getGroupAllByPerson( $tblPerson );
-                    foreach( $tblGroupList as $tblGroup ) {
+                    foreach ($tblGroupList as $tblGroup) {
                         Group::useService()->removeGroupPerson( $tblGroup, $tblPerson );
                     }
                     // Add current Groups
@@ -189,7 +223,7 @@ class Service implements IServiceInterface
                 } else {
                     // Remove all Groups
                     $tblGroupList = Group::useService()->getGroupAllByPerson( $tblPerson );
-                    foreach( $tblGroupList as $tblGroup ) {
+                    foreach ($tblGroupList as $tblGroup) {
                         Group::useService()->removeGroupPerson( $tblGroup, $tblPerson );
                     }
                 }
@@ -204,16 +238,5 @@ class Service implements IServiceInterface
         }
 
         return $Form;
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblSalutation
-     */
-    public function getSalutationById( $Id )
-    {
-
-        return ( new Data( $this->Binding ) )->getSalutationById( $Id );
     }
 }

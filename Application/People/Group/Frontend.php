@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Group;
 
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Person\Person as PeoplePerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -78,7 +79,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
             $Footer .= new PullRight(
-                new Label( rand( 0, 1000 ).' Personen', Label::LABEL_TYPE_INFO )
+                new Label( PeoplePerson::useService()->countPersonAllByGroup( $tblGroup ).' Personen', Label::LABEL_TYPE_INFO )
             );
             $tblGroup = new LayoutColumn(
                 new Panel( $tblGroup->getName(), $Content, $Type, new PullClear( $Footer ) )

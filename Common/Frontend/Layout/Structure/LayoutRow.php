@@ -33,14 +33,14 @@ class LayoutRow extends Extension implements ILayoutInterface
     }
 
     /**
-     * @param LayoutColumn $layoutColumn
+     * @param LayoutColumn $LayoutColumn
      *
      * @return LayoutRow
      */
-    public function addColumn( LayoutColumn $layoutColumn )
+    public function addColumn( LayoutColumn $LayoutColumn )
     {
 
-        array_push( $this->LayoutColumn, $layoutColumn );
+        array_push( $this->LayoutColumn, $LayoutColumn );
         return $this;
     }
 

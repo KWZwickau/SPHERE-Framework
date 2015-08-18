@@ -8,7 +8,6 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
-use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\PullClear;
@@ -25,7 +24,6 @@ use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Search
@@ -127,7 +125,8 @@ class Search implements IApplicationInterface, IModuleInterface
 
             array_walk( $tblPersonAll, function ( TblPerson &$tblPerson ) {
 
-                $tblPerson->Option = new Standard( '', '/People/Person', new Pencil(), array( 'tblPerson' => $tblPerson->getId() ), 'Bearbeiten' );
+                $tblPerson->Option = new Standard( '', '/People/Person', new Pencil(),
+                    array( 'tblPerson' => $tblPerson->getId() ), 'Bearbeiten' );
             } );
 
 //            Debugger::screenDump( $tblPersonAll );
@@ -147,7 +146,7 @@ class Search implements IApplicationInterface, IModuleInterface
                                         'LastName'     => 'Nachname',
                                         'EntityCreate' => 'Eingabedatum',
                                         'EntityUpdate' => 'Letzte Änderung',
-                                        'Option' => 'Optionen',
+                                        'Option'       => 'Optionen',
                                     ) )
                             )
                         )

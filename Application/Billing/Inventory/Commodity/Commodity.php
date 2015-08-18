@@ -98,11 +98,11 @@ class Commodity implements IModuleInterface
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        return new Frontend();
     }
 
 }

@@ -63,6 +63,14 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.iCheck"
         );
         $this->setSource(
+            'jQuery.StorageApi', '/Library/jQuery.StorageApi/1.7.4/jquery.storageapi.min.js',
+            "'undefined' !== typeof jQuery.localStorage"
+        );
+        $this->setSource(
+            'jQuery.Gridster', '/Library/jQuery.Gridster/0.6.10/dist/jquery.gridster.with-extras.min.js',
+            "'undefined' !== typeof jQuery.fn.gridster"
+        );
+        $this->setSource(
             'jQuery.Mask', '/Library/jQuery.InputMask/3.1.63/dist/jquery.inputmask.bundle.min.js',
             "'undefined' !== typeof jQuery.fn.inputmask"
         );
@@ -152,6 +160,9 @@ class Script extends Extension
         );
         $this->setModule(
             'ModProgress', array( 'jQuery' )
+        );
+        $this->setModule(
+            'ModGrid', array( 'jQuery.Gridster', 'jQuery.StorageApi', 'jQuery' )
         );
         $this->setModule(
             'ModSortable', array( 'jQuery.Ui', 'jQuery' )

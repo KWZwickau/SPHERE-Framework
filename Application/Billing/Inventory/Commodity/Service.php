@@ -19,6 +19,11 @@ use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Billing\Inventory\Commodity
+ */
 class Service implements IServiceInterface
 {
 

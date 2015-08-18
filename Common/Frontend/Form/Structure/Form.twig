@@ -8,7 +8,7 @@
             {{ FormGroup.getFormTitle }}
         {% endif %}
         {% for FormRow in FormGroup.getFormRow %}
-            <div class="row">
+            <div class="row{% if(FormRow.IsSortable) %} {{ FormRow.IsSortable }}{% endif %}">
                 {% for FormColumn in FormRow.getFormColumn %}
                     <div class="col-md-{{ FormColumn.Size }}">
                         {% for GridElement in FormColumn.getFrontend %}
@@ -17,6 +17,22 @@
                     </div>
                 {% endfor %}
             </div>
+            {% if(FormRow.IsSortable) %}
+                <script>
+                    Client.Use( 'ModSortable', function()
+                    {
+                        jQuery( 'div.row.{{ FormRow.IsSortable }}' ).ModSortable( {
+                            containment: "parent",
+                            cursor: "move",
+                            forceHelperSize: true,
+                            forcePlaceholderSize: true,
+                            opacity: 0.5,
+                            tolerance: "pointer",
+                            cursorAt: {left: 5}
+                        } );
+                    } );
+                </script>
+            {% endif %}
         {% endfor %}
     {% endfor %}
     {% if( FormButtonList|length > 0) %}

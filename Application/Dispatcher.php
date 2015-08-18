@@ -16,6 +16,8 @@ class Dispatcher
     /** @var IBridgeInterface|null $Router */
     private static $Router = null;
 
+    private static $Widget = array();
+
     /**
      * @param IBridgeInterface|null $Router
      */
@@ -82,5 +84,46 @@ class Dispatcher
         } else {
             return self::$Router->getRoute( 'Platform/Assistance/Error/Authorization' );
         }
+    }
+
+    /**
+     * @param string $Location
+     * @param string $Content
+     * @param int    $Width
+     * @param int    $Height
+     */
+    public static function registerWidget( $Location, $Content, $Width = 2, $Height = 2 )
+    {
+
+        self::$Widget[$Location][] = array( $Content, $Width, $Height );
+    }
+
+    /**
+     * @param string $Location
+     *
+     * @return string
+     */
+    public static function fetchDashboard( $Location )
+    {
+
+        $Dashboard = '<div class="Location-'.$Location.' gridster"><ul style="list-style: none; display: none;">';
+        if (isset( self::$Widget[$Location] )) {
+            $Row = 1;
+            $Column = 1;
+            foreach ((array)self::$Widget[$Location] as $Index => $Widget) {
+                $Dashboard .= '<li id="Widget-'.$Index.'" '
+                    .'data-row="'.$Row.'" '
+                    .'data-col="'.$Column.'" '
+                    .'data-sizex="'.$Widget[1].'" '
+                    .'data-sizey="'.$Widget[2].'" '
+                    .'class="Widget">'.$Widget[0].'</li>';
+                if ($Column >= 8) {
+                    $Column = 1;
+                    $Row++;
+                }
+                $Column++;
+            }
+        }
+        return $Dashboard.'</div><script>Client.Use( "ModGrid", function() { jQuery( "div.Location-'.$Location.'.gridster ul" ).ModGrid({ storage: "Widget-'.$Location.'" }); } );</script>';
     }
 }

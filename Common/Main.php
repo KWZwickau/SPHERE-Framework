@@ -5,7 +5,7 @@ use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
 use SPHERE\Application\Billing\Billing;
-use SPHERE\Application\Company\Company;
+use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Education\Education;
 use SPHERE\Application\People\People;
@@ -79,7 +79,7 @@ class Main extends Extension
              */
             Platform::registerCluster();
             People::registerCluster();
-            Company::registerCluster();
+            Corporation::registerCluster();
             Education::registerCluster();
             Billing::registerCluster();
             Transfer::registerCluster();

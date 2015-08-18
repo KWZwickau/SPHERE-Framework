@@ -191,6 +191,18 @@ class Service implements IServiceInterface
 
     /**
      *
+     * @param TblGroup $tblGroup
+     *
+     * @return int
+     */
+    public function countPersonAllByGroup( TblGroup $tblGroup )
+    {
+
+        return ( new Data( $this->Binding ) )->countPersonAllByGroup( $tblGroup );
+    }
+
+    /**
+     *
      * @param TblPerson $tblPerson
      *
      * @return bool|TblGroup[]

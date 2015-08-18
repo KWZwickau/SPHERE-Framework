@@ -50,9 +50,9 @@ class Data
 
         $Manager = $this->Connection->getEntityManager();
 
-        if( $IsLocked ) {
+        if ($IsLocked) {
             $Entity = $Manager->getEntity( 'TblGroup' )->findOneBy( array(
-                TblGroup::ATTR_IS_LOCKED => $IsLocked,
+                TblGroup::ATTR_IS_LOCKED  => $IsLocked,
                 TblGroup::ATTR_META_TABLE => $MetaTable
             ) );
         } else {
@@ -139,6 +139,20 @@ class Data
      *
      * @param TblGroup $tblGroup
      *
+     * @return int
+     */
+    public function countPersonAllByGroup( TblGroup $tblGroup )
+    {
+
+        return $this->Connection->getEntityManager()->getEntity( 'TblMember' )->countBy( array(
+            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+        ) );
+    }
+
+    /**
+     *
+     * @param TblGroup $tblGroup
+     *
      * @return bool|TblPerson[]
      */
     public function getPersonAllByGroup( TblGroup $tblGroup )
@@ -176,7 +190,7 @@ class Data
     }
 
     /**
-     * @param TblGroup     $tblGroup
+     * @param TblGroup  $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return TblMember
@@ -201,7 +215,7 @@ class Data
     }
 
     /**
-     * @param TblGroup     $tblGroup
+     * @param TblGroup  $tblGroup
      * @param TblPerson $tblPerson
      *
      * @return bool

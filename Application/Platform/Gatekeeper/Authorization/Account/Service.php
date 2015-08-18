@@ -245,7 +245,7 @@ class Service implements IServiceInterface
      * @param null|string $Session
      * @param integer     $Timeout
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession
+     * @return Service\Entity\TblSession
      */
     private function createSession( TblAccount $tblAccount, $Session = null, $Timeout = 1800 )
     {
@@ -302,7 +302,7 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount[]|bool
+     * @return TblAccount[]|bool
      */
     public function getAccountAll()
     {
@@ -322,8 +322,8 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
-     * @param TblRole                                                                                 $tblRole
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
      *
      * @return bool
      */
@@ -348,7 +348,7 @@ class Service implements IServiceInterface
     /**
      * @param TblAccount $tblAccount
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization[]
+     * @return bool|TblAuthorization[]
      */
     public function getAuthorizationAllByAccount( TblAccount $tblAccount )
     {

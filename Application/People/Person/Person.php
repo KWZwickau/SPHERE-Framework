@@ -21,6 +21,11 @@ class Person implements IApplicationInterface, IModuleInterface
 
         self::registerModule();
 
+        Main::getDisplay()->addApplicationNavigation(
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Person anlegen' ),
+                new Link\Icon( new \SPHERE\Common\Frontend\Icon\Repository\Person() )
+            )
+        );
     }
 
     public static function registerModule()

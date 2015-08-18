@@ -1,0 +1,249 @@
+<?php
+namespace SPHERE\Application\Corporation\Company;
+
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
+use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Tag;
+use SPHERE\Common\Frontend\Icon\Repository\TagList;
+use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
+use SPHERE\Common\Window\Navigation\Link\Route;
+use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
+use SPHERE\System\Extension\Repository\Debugger;
+
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Corporation\Company
+ */
+class Frontend extends Extension implements IFrontendInterface
+{
+
+
+    /**
+     * @param bool|false $TabActive
+     *
+     * @param null|int   $tblCompany
+     * @param null|array $Company
+     * @param null|array $Meta
+     *
+     * @return Stage
+     */
+    public function frontendCompany( $TabActive = false, $tblCompany = null, $Company = null, $Meta = null )
+    {
+
+        Debugger::screenDump( __METHOD__, $TabActive, $tblCompany, $Company, $Meta );
+        if ($tblCompany) {
+            $tblCompany = Company::useService()->getCompanyById( $tblCompany );
+        }
+
+        $Stage = new Stage( 'Firmen', 'Datenblatt' );
+
+        $tblGroupAll = Group::useService()->getGroupAll();
+        if( $tblGroupAll ) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
+
+                $Stage->addButton(
+                    new Standard(
+                        $tblGroup->getName(),
+                        new Route( '/Corporation/Search/Group' ), null,
+                        array(
+                            'tblGroup' => $tblGroup->getId()
+                        ), $tblGroup->getDescription() )
+                );
+            }, $Stage );
+        }
+
+        if (!$tblCompany) {
+
+            $BasicTable = Company::useService()->createCompany(
+                $this->formCompany()
+                    ->appendFormButton( new Primary( 'Grunddaten anlegen' ) )
+                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' ),
+                $Company );
+
+            $Stage->setContent(
+                new Layout( array(
+                    new LayoutGroup(
+                        new LayoutRow( new LayoutColumn( $BasicTable ) ),
+                        new Title( new Building().' Grunddaten', 'der Firma' )
+                    ),
+                ) )
+            );
+
+        } else {
+
+            $Global = $this->getGlobal();
+            if (!isset( $Global->POST['Company'] )) {
+                $Global->POST['Company']['Name'] = $tblCompany->getName();
+                $tblGroupAll = Group::useService()->getGroupAllByCompany( $tblCompany );
+                if (!empty( $tblGroupAll )) {
+                    /** @var TblGroup $tblGroup */
+                    foreach ((array)$tblGroupAll as $tblGroup) {
+                        $Global->POST['Company']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                    }
+                }
+                $Global->savePost();
+            }
+
+            $BasicTable = Company::useService()->updateCompany(
+                $this->formCompany()
+                    ->appendFormButton( new Primary( 'Grunddaten speichern' ) )
+                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' ),
+                $tblCompany, $Company );
+
+            $MetaTabs = Group::useService()->getGroupAllByCompany( $tblCompany );
+            // Sort by Name
+            usort( $MetaTabs, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
+
+                return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
+            } );
+            // Create Tabs
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk( $MetaTabs, function ( TblGroup &$tblGroup, $Index, TblCompany $tblCompany ) {
+
+                switch (strtoupper( $tblGroup->getMetaTable() )) {
+//                    case 'COMMON':
+//                        $tblGroup = new LayoutTab( 'Allgemein', $tblGroup->getMetaTable(),
+//                            array( 'tblCompany' => $tblCompany->getId() )
+//                        );
+//                        break;
+                    default:
+                        $tblGroup = false;
+                }
+            }, $tblCompany );
+            /** @var LayoutTab[] $MetaTabs */
+            $MetaTabs = array_filter( $MetaTabs );
+            // Folded ?
+            if (!empty( $MetaTabs )) {
+                if (!$TabActive || $TabActive == '#') {
+                    array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronRight().'&nbsp;', '#',
+                        array( 'tblCompany' => $tblCompany->getId() )
+                    ) );
+                    $MetaTabs[0]->setActive();
+                } else {
+                    array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronUp().'&nbsp;', '#',
+                        array( 'tblCompany' => $tblCompany->getId() )
+                    ) );
+                }
+            }
+
+            switch (strtoupper( $TabActive )) {
+//                case 'COMMON':
+//                    $MetaTable = Common::useFrontend()->frontendMeta( $tblCompany, $Meta );
+//                    break;
+                default:
+                    if (!empty( $MetaTabs )) {
+                        $MetaTable = new Well( new Muted( 'Bitte wählen Sie eine Rubrik' ) );
+                    } else {
+                        $MetaTable = new Well( new Warning( 'Keine Informationen verfügbar' ) );
+                    }
+            }
+
+            $Stage->setContent(
+                new Layout( array(
+                    new LayoutGroup(
+                        new LayoutRow( new LayoutColumn( $BasicTable ) ),
+                        new Title( new Building().' Grunddaten', 'der Firma' )
+                    ),
+                    new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn( new LayoutTabs( $MetaTabs ) ) ),
+                        new LayoutRow( new LayoutColumn( $MetaTable ) ),
+                    ), new Title( new Tag().' Informationen', 'zur Firma' ) ),
+                    new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn(
+                            new Warning( 'Keine Daten vorhanden' )
+                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
+                                new Plus() ) )
+                        ) ),
+                    ), new Title( new TagList().' Adressdaten', 'der Firma' ) ),
+                    new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn(
+                            new Warning( 'Keine Daten vorhanden' )
+                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
+                                new Plus() ) )
+                        ) ),
+                    ), new Title( new TagList().' Kontaktdaten', 'der Firma' ) ),
+                    new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn(
+                            new Warning( 'Keine Daten vorhanden' )
+                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
+                                new Plus() ) )
+                        ) ),
+                    ), new Title( new TagList().' Beziehungen', 'zu Firmen' ) ),
+                ) )
+            );
+
+        }
+
+        return $Stage;
+    }
+
+    /**
+     * @return Form
+     */
+    private function formCompany()
+    {
+
+        $tblGroupList = Group::useService()->getGroupAll();
+        if( $tblGroupList ) {
+            // Sort by Name
+            usort( $tblGroupList, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
+
+                return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
+            } );
+            // Create CheckBoxes
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk( $tblGroupList, function ( TblGroup &$tblGroup ) {
+
+                $tblGroup = new CheckBox(
+                    'Company[Group]['.$tblGroup->getId().']',
+                    $tblGroup->getName().' '.new Muted( new Small( $tblGroup->getDescription() ) ),
+                    $tblGroup->getId()
+                );
+            } );
+        } else {
+            $tblGroupList = array( new Warning( 'Keine Gruppen vorhanden' ) );
+        }
+
+        return new Form(
+            new FormGroup( array(
+                new FormRow( array(
+                    new FormColumn(
+                        new Panel( 'Firmenname', array(
+                            new TextField( 'Company[Name]', 'Name', 'Name' ),
+                        ), Panel::PANEL_TYPE_INFO ), 8 ),
+                    new FormColumn(
+                        new Panel( 'Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO ), 4 ),
+                ) )
+            ) )
+        );
+    }
+}

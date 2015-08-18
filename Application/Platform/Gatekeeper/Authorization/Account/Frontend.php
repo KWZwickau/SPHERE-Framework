@@ -47,7 +47,7 @@ class Frontend
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
             $isSystem = Account::useService()->hasAuthorization(
-                $tblAccount, Access::useService()->getRoleByName( 'System' )
+                $tblAccount, Access::useService()->getRoleByName( 'Administrator' )
             );
         } else {
             $isSystem = false;

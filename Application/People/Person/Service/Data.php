@@ -90,7 +90,7 @@ class Data
      * @param string        $SecondName
      * @param string        $LastName
      *
-     * @return TblPerson
+     * @return bool
      */
     public function updatePerson(
         TblPerson $tblPerson,

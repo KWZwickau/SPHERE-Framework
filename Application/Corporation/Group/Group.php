@@ -1,0 +1,77 @@
+<?php
+namespace SPHERE\Application\Corporation\Group;
+
+use SPHERE\Application\IApplicationInterface;
+use SPHERE\Application\IModuleInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
+use SPHERE\Common\Main;
+use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Database\Link\Identifier;
+
+/**
+ * Class Group
+ *
+ * @package SPHERE\Application\Corporation\Group
+ */
+class Group implements IApplicationInterface, IModuleInterface
+{
+
+    public static function registerApplication()
+    {
+
+        self::registerModule();
+
+        /**
+         * Register Navigation
+         */
+        Main::getDisplay()->addApplicationNavigation(
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Firmengruppen' ),
+                new Link\Icon( new GroupIcon() )
+            )
+        );
+    }
+
+    public static function registerModule()
+    {
+
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'Frontend::frontendGroup'
+        )
+            ->setParameterDefault( 'Group', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Edit', __NAMESPACE__.'\Frontend::frontendEditGroup'
+        )
+            ->setParameterDefault( 'Id', null )
+            ->setParameterDefault( 'Group', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyGroup'
+        )
+            ->setParameterDefault( 'Id', null )
+            ->setParameterDefault( 'Confirm', false )
+        );
+    }
+
+    /**
+     * @return Service
+     */
+    public static function useService()
+    {
+
+        return new Service(
+            new Identifier( 'Corporation', 'Group', null, null, Consumer::useService()->getConsumerBySession() ),
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+        );
+    }
+
+    /**
+     * @return Frontend
+     */
+    public static function useFrontend()
+    {
+
+        return new Frontend();
+    }
+}
