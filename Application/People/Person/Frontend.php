@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\People\Person;
 
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -20,7 +23,6 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -41,7 +43,6 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -64,7 +65,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendPerson( $TabActive = false, $tblPerson = null, $Person = null, $Meta = null )
     {
 
-        Debugger::screenDump( __METHOD__, $TabActive, $tblPerson, $Person, $Meta );
         if ($tblPerson) {
             $tblPerson = Person::useService()->getPersonById( $tblPerson );
         }
@@ -84,7 +84,6 @@ class Frontend extends Extension implements IFrontendInterface
                     ), $tblGroup->getDescription() )
             );
         }, $Stage );
-
 
         if (!$tblPerson) {
 
@@ -212,23 +211,36 @@ class Frontend extends Extension implements IFrontendInterface
                     ), new Title( new Tag().' Informationen', 'zur Person' ) ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
-                            new Warning( 'Keine Daten vorhanden' )
-                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
-                                new Plus() ) )
+                            Address::useFrontend()->frontendLayoutPerson( $tblPerson )
+                            .new PullRight(
+                                new Standard( 'Adresse hinzufügen', '/People/Person/Address/Create', null,
+                                    array( 'tblPerson' => $tblPerson->getId() )
+                                )
+                            )
                         ) ),
                     ), new Title( new TagList().' Adressdaten', 'der Person' ) ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
-                            new Warning( 'Keine Daten vorhanden' )
-                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
-                                new Plus() ) )
+                            Phone::useFrontend()->frontendLayoutPerson( $tblPerson )
+                            .Mail::useFrontend()->frontendLayoutPerson( $tblPerson )
+                            .new PullRight(
+                                new Standard( 'Telefonnummer hinzufügen', '/People/Person/Phone/Create', null,
+                                    array( 'tblPerson' => $tblPerson->getId() )
+                                )
+                                .new Standard( 'E-Mail Adresse hinzufügen', '/People/Person/Mail/Create', null,
+                                    array( 'tblPerson' => $tblPerson->getId() )
+                                )
+                            )
                         ) ),
                     ), new Title( new TagList().' Kontaktdaten', 'der Person' ) ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
                             new Warning( 'Keine Daten vorhanden' )
-                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
-                                new Plus() ) )
+                            .new PullRight(
+                                new Standard( 'Beziehung hinzufügen', '/People/Person/Relationship/Create', null,
+                                    array( 'tblPerson' => $tblPerson->getId() )
+                                )
+                            )
                         ) ),
                     ), new Title( new TagList().' Beziehungen', 'zu Personen' ) ),
                 ) )

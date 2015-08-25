@@ -31,7 +31,7 @@ class Data
     {
 
         $this->createGroup( 'Allgemein', 'Personendaten', '', true, 'Common' );
-        $this->createGroup( 'Interresenten', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'Prospect' );
+        $this->createGroup( 'Interessenten', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'Prospect' );
         $this->createGroup( 'Schüler', 'Alle im System verfügbaren Schüler', '', true, 'Student' );
         $this->createGroup( 'Sorgeberechtigte', '', '', true, 'Custody' );
     }

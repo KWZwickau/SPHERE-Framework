@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\System\Extension\Extension;
 

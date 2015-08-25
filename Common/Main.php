@@ -4,7 +4,9 @@ namespace SPHERE\Common;
 use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
+use SPHERE\Application\Availability\Availability;
 use SPHERE\Application\Billing\Billing;
+use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Education\Education;
@@ -83,6 +85,8 @@ class Main extends Extension
             Education::registerCluster();
             Billing::registerCluster();
             Transfer::registerCluster();
+            Availability::registerCluster();
+            Contact::registerCluster();
             /**
              * Execute Request
              */

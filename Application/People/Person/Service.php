@@ -139,7 +139,7 @@ class Service implements IServiceInterface
                     }
                 }
                 return new Success( 'Die Person wurde erfolgreich erstellt' )
-                .new Redirect( '/People/Person', 3,
+                .new Redirect( '/People/Person', 1,
                     array( 'tblPerson' => $tblPerson->getId() )
                 );
             } else {
@@ -228,7 +228,7 @@ class Service implements IServiceInterface
                     }
                 }
                 return new Success( 'Die Person wurde erfolgreich aktualisiert' )
-                .new Redirect( '/People/Person', 3,
+                .new Redirect( '/People/Person', 1,
                     array( 'tblPerson' => $tblPerson->getId() )
                 );
             } else {

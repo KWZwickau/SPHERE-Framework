@@ -58,7 +58,7 @@ class System implements IApplicationInterface
                         </div>',
             'Gesamt: '.number_format( disk_total_space( __DIR__ ), 0, ',', '.' ),
             'Frei: '.number_format( disk_free_space( __DIR__ ), 0, ',', '.' )
-        ) ), 2, 1 );
+        ) ), 2, 2 );
 
         $free = shell_exec( 'free' );
         $free = (string)trim( $free );
@@ -75,7 +75,7 @@ class System implements IApplicationInterface
             </div>',
             'Gesamt: '.number_format( $mem[1], 0, ',', '.' ),
             'Frei: '.number_format( $mem[2], 0, ',', '.' )
-        ) ), 2, 1 );
+        ) ), 2, 2 );
 
         $load = sys_getloadavg();
 
@@ -86,7 +86,7 @@ class System implements IApplicationInterface
             </div>',
             'Genutzt: '.number_format( $load[0], 5, ',', '.' ),
             'Frei: '.number_format( 2 - $load[0], 5, ',', '.' )
-        ) ), 1, 1 );
+        ) ), 2, 2 );
 
         $Stage->setContent( Main::getDispatcher()->fetchDashboard( 'System' ) );
 

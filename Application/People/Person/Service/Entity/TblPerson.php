@@ -39,6 +39,50 @@ class TblPerson extends Element
     /**
      * @return string
      */
+    public function getFullName()
+    {
+
+        return $this->getSalutation()
+        .( $this->getTitle() ? ' '.$this->getTitle() : '' )
+        .( $this->getFirstName() ? ' '.$this->getFirstName() : '' )
+        .( $this->getSecondName() ? ' '.$this->getSecondName() : '' )
+        .( $this->getLastName() ? ' '.$this->getLastName() : '' );
+    }
+
+    /**
+     * @return string
+     */
+    public function getSalutation()
+    {
+
+        return $this->getTblSalutation()->getSalutation();
+    }
+
+    /**
+     * @return bool|TblSalutation
+     */
+    public function getTblSalutation()
+    {
+
+        if (null === $this->tblSalutation) {
+            return false;
+        } else {
+            return Person::useService()->getSalutationById( $this->tblSalutation );
+        }
+    }
+
+    /**
+     * @param null|TblSalutation $tblSalutation
+     */
+    public function setTblSalutation( TblSalutation $tblSalutation = null )
+    {
+
+        $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation->getId() );
+    }
+
+    /**
+     * @return string
+     */
     public function getTitle()
     {
 
@@ -106,36 +150,5 @@ class TblPerson extends Element
     {
 
         $this->LastName = $LastName;
-    }
-
-    /**
-     * @return bool|TblSalutation
-     */
-    public function getTblSalutation()
-    {
-
-        if (null === $this->tblSalutation) {
-            return false;
-        } else {
-            return Person::useService()->getSalutationById( $this->tblSalutation );
-        }
-    }
-
-    /**
-     * @param null|TblSalutation $tblSalutation
-     */
-    public function setTblSalutation( TblSalutation $tblSalutation = null )
-    {
-
-        $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation->getId() );
-    }
-
-    /**
-     * @return string
-     */
-    public function getSalutation()
-    {
-
-        return $this->getTblSalutation()->getSalutation();
     }
 }
