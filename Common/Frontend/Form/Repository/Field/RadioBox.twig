@@ -5,7 +5,7 @@
         <input id="{{ ElementHash }}" type="radio" name="{{ ElementName }}"
                value="{{ ElementValue }}" autocomplete="off" {{ ElementChecked }}/>
         {% if( ElementLabel is not empty ) %}
-            <label for="{{ ElementHash }}">{{ ElementLabel }}</label>
+            <label class="sphere-label" for="{{ ElementHash }}">{{ ElementLabel }}</label>
         {% endif %}
         {{ ElementFeedbackIcon }}
     </div>

@@ -6,6 +6,7 @@ use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Meta\Meta;
 use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Main;
@@ -27,6 +28,7 @@ class People implements IClusterInterface
         Person::registerApplication();
         Group::registerApplication();
         Meta::registerApplication();
+        Relationship::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Personen' ) )

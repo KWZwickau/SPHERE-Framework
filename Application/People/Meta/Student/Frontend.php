@@ -78,7 +78,7 @@ class Frontend implements IFrontendInterface
                                 'Ausstiegshaltestelle' ),
                             new TextArea( 'Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
                         ), Panel::PANEL_TYPE_INFO ), 3 ),
-                    new FormColumn(
+                    new FormColumn( array(
                         new Panel( 'Erlaubnis zur Nutzung des Schüler-Fotos', array(
                             new CheckBox( 'Meta[PicturePermission][Internal]', 'Schulschriften', 1 ),
                             new CheckBox( 'Meta[PicturePermission][External]', 'Veröffentlichungen', 1 ),
@@ -87,7 +87,20 @@ class Frontend implements IFrontendInterface
                             new CheckBox( 'Meta[PicturePermission][Press]', 'Druckpresse', 1 ),
                             new CheckBox( 'Meta[PicturePermission][Multimedia]', 'Ton/Video/Film', 1 ),
                             new CheckBox( 'Meta[PicturePermission][Promotion]', 'Werbung in eigener Sache', 1 ),
-                        ), Panel::PANEL_TYPE_INFO ), 3 ),
+                        ), Panel::PANEL_TYPE_INFO ),
+                        new Panel( 'Sonstiges', array(
+                            new DatePicker( 'Meta[Additional][BaptismDate]', 'Taufdatum', 'Taufdatum',
+                                new TempleChurch()
+                            ),
+                            new TextField( 'Meta[Additional][BaptismLocation]', 'Taufort', 'Taufort', new MapMarker() ),
+                            new TextField( 'Meta[Additional][Locker][Number]', 'Schließfachnummer', 'Schließfachnummer',
+                                new Lock() ),
+                            new TextField( 'Meta[Additional][Locker][Location]', 'Schließfach Standort',
+                                'Schließfach Standort', new MapMarker() ),
+                            new TextField( 'Meta[Additional][Locker][Key]', 'Schlüssel Nummer', 'Schlüssel Nummer',
+                                new Key() ),
+                        ), Panel::PANEL_TYPE_INFO ),
+                        ), 3 ),
                     new FormColumn(
                         new Panel( 'Integration', array(
                             new CheckBox( 'Meta[Integration][CoachingRequired]', 'Förderbedarf', 1 ),
@@ -121,21 +134,7 @@ class Frontend implements IFrontendInterface
                             new TextArea( 'Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
 
                         ), Panel::PANEL_TYPE_INFO ), 3 ),
-                    new FormColumn(
-                        new Panel( 'Sonstiges', array(
-                            new DatePicker( 'Meta[Additional][BaptismDate]', 'Taufdatum', 'Taufdatum',
-                                new TempleChurch()
-                            ),
-                            new TextField( 'Meta[Additional][BaptismLocation]', 'Taufort', 'Taufort', new MapMarker() ),
-                            new TextField( 'Meta[Additional][Locker][Number]', 'Schließfachnummer', 'Schließfachnummer',
-                                new Lock() ),
-                            new TextField( 'Meta[Additional][Locker][Location]', 'Schließfach Standort',
-                                'Schließfach Standort', new MapMarker() ),
-                            new TextField( 'Meta[Additional][Locker][Key]', 'Schlüssel Nummer', 'Schlüssel Nummer',
-                                new Key() ),
-                        ), Panel::PANEL_TYPE_INFO ), 3 ),
-                ), true
-                ),
+                ) ),
             ),
                 new Title( 'Termine' )
             ),

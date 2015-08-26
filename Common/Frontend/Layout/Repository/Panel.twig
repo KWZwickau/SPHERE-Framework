@@ -1,4 +1,4 @@
-<div class="panel {{ Type }}">
+<div {% if( Hash is not empty ) %}id="{{ Hash }}"{% endif %} class="panel {{ Type }}">
     {% if( Title|length > 0) %}
         <div class="panel-heading">
             <h6 class="panel-title">{{ Title }}</h6>
@@ -22,3 +22,19 @@
         </div>
     {% endif %}
 </div>
+<script type="text/javascript">
+    Client.Use( 'ModAlways', function()
+    {
+        {% if Filter is not empty %}
+        var Option = {
+            listClass: "list-group",
+            indexAsync: true,
+            page: {{ FilterSize }},
+            valueNames: [
+                'sphere-label'
+            ]
+        };
+        var PanelList = new List( "{{ Hash }}", Option );
+        {% endif %}
+    } );
+</script>

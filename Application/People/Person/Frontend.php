@@ -11,6 +11,7 @@ use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
@@ -56,18 +57,14 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param bool|false $TabActive
      *
-     * @param null|int   $tblPerson
+     * @param null|int   $Id
      * @param null|array $Person
      * @param null|array $Meta
      *
      * @return Stage
      */
-    public function frontendPerson( $TabActive = false, $tblPerson = null, $Person = null, $Meta = null )
+    public function frontendPerson( $TabActive = false, $Id = null, $Person = null, $Meta = null )
     {
-
-        if ($tblPerson) {
-            $tblPerson = Person::useService()->getPersonById( $tblPerson );
-        }
 
         $Stage = new Stage( 'Personen', 'Datenblatt' );
 
@@ -79,13 +76,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard(
                     $tblGroup->getName(),
                     new Route( '/People/Search/Group' ), null,
-                    array(
-                        'tblGroup' => $tblGroup->getId()
-                    ), $tblGroup->getDescription() )
+                    array(                        'Id' => $tblGroup->getId()                    ),
+                    $tblGroup->getDescription()
+                )
             );
         }, $Stage );
 
-        if (!$tblPerson) {
+        if (!$Id) {
 
             $BasicTable = Person::useService()->createPerson(
                 $this->formPerson()
@@ -103,6 +100,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
         } else {
+            $tblPerson = Person::useService()->getPersonById( $Id );
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Person'] )) {
@@ -140,22 +138,22 @@ class Frontend extends Extension implements IFrontendInterface
                 switch (strtoupper( $tblGroup->getMetaTable() )) {
                     case 'COMMON':
                         $tblGroup = new LayoutTab( 'Allgemein', $tblGroup->getMetaTable(),
-                            array( 'tblPerson' => $tblPerson->getId() )
+                            array( 'Id' => $tblPerson->getId() )
                         );
                         break;
                     case 'PROSPECT':
                         $tblGroup = new LayoutTab( 'Interessent', $tblGroup->getMetaTable(),
-                            array( 'tblPerson' => $tblPerson->getId() )
+                            array( 'Id' => $tblPerson->getId() )
                         );
                         break;
                     case 'STUDENT':
                         $tblGroup = new LayoutTab( 'Schülerakte', $tblGroup->getMetaTable(),
-                            array( 'tblPerson' => $tblPerson->getId() )
+                            array( 'Id' => $tblPerson->getId() )
                         );
                         break;
                     case 'CUSTODY':
                         $tblGroup = new LayoutTab( 'Sorgeberechtigt', $tblGroup->getMetaTable(),
-                            array( 'tblPerson' => $tblPerson->getId() )
+                            array( 'Id' => $tblPerson->getId() )
                         );
                         break;
                     default:
@@ -168,12 +166,12 @@ class Frontend extends Extension implements IFrontendInterface
             if (!empty( $MetaTabs )) {
                 if (!$TabActive || $TabActive == '#') {
                     array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronRight().'&nbsp;', '#',
-                        array( 'tblPerson' => $tblPerson->getId() )
+                        array( 'Id' => $tblPerson->getId() )
                     ) );
                     $MetaTabs[0]->setActive();
                 } else {
                     array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronUp().'&nbsp;', '#',
-                        array( 'tblPerson' => $tblPerson->getId() )
+                        array( 'Id' => $tblPerson->getId() )
                     ) );
                 }
             }
@@ -214,7 +212,7 @@ class Frontend extends Extension implements IFrontendInterface
                             Address::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .new PullRight(
                                 new Standard( 'Adresse hinzufügen', '/People/Person/Address/Create', null,
-                                    array( 'tblPerson' => $tblPerson->getId() )
+                                    array( 'Id' => $tblPerson->getId() )
                                 )
                             )
                         ) ),
@@ -225,20 +223,20 @@ class Frontend extends Extension implements IFrontendInterface
                             .Mail::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .new PullRight(
                                 new Standard( 'Telefonnummer hinzufügen', '/People/Person/Phone/Create', null,
-                                    array( 'tblPerson' => $tblPerson->getId() )
+                                    array( 'Id' => $tblPerson->getId() )
                                 )
                                 .new Standard( 'E-Mail Adresse hinzufügen', '/People/Person/Mail/Create', null,
-                                    array( 'tblPerson' => $tblPerson->getId() )
+                                    array( 'Id' => $tblPerson->getId() )
                                 )
                             )
                         ) ),
                     ), new Title( new TagList().' Kontaktdaten', 'der Person' ) ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
-                            new Warning( 'Keine Daten vorhanden' )
+                            Relationship::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .new PullRight(
                                 new Standard( 'Beziehung hinzufügen', '/People/Person/Relationship/Create', null,
-                                    array( 'tblPerson' => $tblPerson->getId() )
+                                    array( 'Id' => $tblPerson->getId() )
                                 )
                             )
                         ) ),

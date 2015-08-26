@@ -86,12 +86,12 @@ class Search implements IApplicationInterface, IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
-    public function frontendGroup( $tblGroup = false )
+    public function frontendGroup( $Id = false )
     {
 
         $Stage = new Stage( 'Personensuche', 'nach Personengruppe' );
 
-        $tblGroup = Group::useService()->getGroupById( $tblGroup );
+        $tblGroup = Group::useService()->getGroupById( $Id );
 
         if ($tblGroup) {
             $Stage->setMessage(
@@ -112,7 +112,7 @@ class Search implements IApplicationInterface, IModuleInterface
                     $tblGroup->getName(),
                     new Link\Route( __NAMESPACE__.'/Group' ), null,
                     array(
-                        'tblGroup' => $tblGroup->getId()
+                        'Id' => $tblGroup->getId()
                     ), $tblGroup->getDescription() )
             );
         }, $Stage );
@@ -126,7 +126,7 @@ class Search implements IApplicationInterface, IModuleInterface
             array_walk( $tblPersonAll, function ( TblPerson &$tblPerson ) {
 
                 $tblPerson->Option = new Standard( '', '/People/Person', new Pencil(),
-                    array( 'tblPerson' => $tblPerson->getId() ), 'Bearbeiten' );
+                    array( 'Id' => $tblPerson->getId() ), 'Bearbeiten' );
             } );
 
 //            Debugger::screenDump( $tblPersonAll );

@@ -27,7 +27,9 @@ class SelectBox extends Field implements IFieldInterface
         $Data = array(),
         IIconInterface $Icon = null
     ) {
-
+        if( empty( $Data ) ) {
+            $Data[0] = '-[ Nicht verfügbar ]-';
+        }
         $this->Name = $Name;
         $this->Template = $this->getTemplate( __DIR__.'/SelectBox.twig' );
         $this->Template->setVariable( 'ElementName', $Name );

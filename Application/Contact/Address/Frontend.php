@@ -42,7 +42,7 @@ class Frontend implements IFrontendInterface
 {
 
     /**
-     * @param int   $tblPerson
+     * @param int   $Id
      * @param array $Street
      * @param array $City
      * @param int   $State
@@ -50,13 +50,13 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreateToPerson( $tblPerson, $Street, $City, $State, $Type )
+    public function frontendCreateToPerson( $Id, $Street, $City, $State, $Type )
     {
 
         $Stage = new Stage( 'Adresse', 'Hinzufügen' );
         $Stage->setMessage( 'Eine Adresse zur gewählten Person hinzufügen' );
 
-        $tblPerson = Person::useService()->getPersonById( $tblPerson );
+        $tblPerson = Person::useService()->getPersonById( $Id );
 
         $Stage->setContent(
             new Layout( array(
@@ -67,7 +67,7 @@ class Frontend implements IFrontendInterface
                                 $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array( 'tblPerson' => $tblPerson->getId() )
+                                    array( 'Id' => $tblPerson->getId() )
                                 )
                             )
                         )
@@ -107,7 +107,7 @@ class Frontend implements IFrontendInterface
                 new FormRow( array(
                     new FormColumn(
                         new Panel( 'Straße', array(
-                            new SelectBox( 'Type[Type]', 'Typ', array( 'Name' => $tblType ), new TileBig() ),
+                            new SelectBox( 'Type[Type]', 'Typ', array( '{{ Name }} {{ Description }}' => $tblType ), new TileBig() ),
                             new AutoCompleter( 'Street[Name]', 'Name', 'Name',
                                 array( 'StreetName' => $tblAddress ), new MapMarker()
                             ),
@@ -141,7 +141,7 @@ class Frontend implements IFrontendInterface
     }
 
     /**
-     * @param int   $tblCompany
+     * @param int   $Id
      * @param array $Street
      * @param array $City
      * @param int   $State
@@ -149,12 +149,12 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreateToCompany( $tblCompany, $Street, $City, $State, $Type )
+    public function frontendCreateToCompany( $Id, $Street, $City, $State, $Type )
     {
 
         $Stage = new Stage( 'Adresse', 'Hinzufügen' );
 
-        $tblCompany = Company::useService()->getCompanyById( $tblCompany );
+        $tblCompany = Company::useService()->getCompanyById( $Id );
 
         $Stage->setContent(
             Address::useService()->createAddressToCompany(
@@ -217,10 +217,10 @@ class Frontend implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new MapMarker().' '.$tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_INFO,
+                        new MapMarker().' '.$tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_WARNING,
                         new Standard(
                             '', '/People/Person/Address/Edit', new Pencil(),
-                            array( 'tblToPerson' => $tblToPerson->getId() ),
+                            array( 'Id' => $tblToPerson->getId() ),
                             'Bearbeiten'
                         )
                         .new Standard(
@@ -228,7 +228,7 @@ class Frontend implements IFrontendInterface
                             array( 'Id' => $tblToPerson->getId() ), 'Löschen'
                         )
                     )
-                    , 4 );
+                    , 3 );
             } );
         } else {
             $tblAddressAll = array(
@@ -237,6 +237,22 @@ class Frontend implements IFrontendInterface
                 )
             );
         }
-        return new Layout( new LayoutGroup( new LayoutRow( $tblAddressAll ) ) );
+
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $tblAddress
+         */
+        foreach ($tblAddressAll as $tblAddress) {
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow( array() );
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn( $tblAddress );
+            $LayoutRowCount++;
+        }
+
+        return new Layout( new LayoutGroup( $LayoutRowList ) );
     }
 }

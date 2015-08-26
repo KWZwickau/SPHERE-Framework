@@ -194,11 +194,11 @@ class Service implements IServiceInterface
             ) {
                 return new Success( 'Die Adresse wurde erfolgreich hinzugefügt' )
                 .new Redirect( '/People/Person', 1,
-                    array( 'tblPerson' => $tblPerson->getId() ) );
+                    array( 'Id' => $tblPerson->getId() ) );
             } else {
                 return new Danger( 'Die Adresse konnte nicht hinzugefügt werden' )
                 .new Redirect( '/People/Person', 10,
-                    array( 'tblPerson' => $tblPerson->getId() ) );
+                    array( 'Id' => $tblPerson->getId() ) );
             }
         }
         return $Form;
@@ -298,7 +298,7 @@ class Service implements IServiceInterface
                 $Type['Remark'] )
             ) {
                 return new Success( 'Die Adresse wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/Contact/Address', 3 );
+                .new Redirect( '/Contact/Address', 1 );
             } else {
                 return new Danger( 'Die Adresse konnte nicht hinzugefügt werden' )
                 .new Redirect( '/Contact/Address', 10 );

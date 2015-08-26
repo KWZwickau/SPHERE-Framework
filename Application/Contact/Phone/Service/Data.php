@@ -91,6 +91,21 @@ class Data
     }
 
     /**
+     * @return bool|TblType[]
+     */
+    public function getTypeAll()
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $EntityList = $Cache->getValue( __METHOD__ ) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblType' )->findAll();
+            $Cache->setValue( __METHOD__, ( null === $EntityList ? false : $EntityList ), 500 );
+        }
+        return ( empty ( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblPhone
@@ -105,6 +120,38 @@ class Data
             $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
         }
         return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToPerson
+     */
+    public function getPhoneToPersonById( $Id )
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToPerson', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        }
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @return bool|TblPhone[]
+     */
+    public function getPhoneAll()
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $EntityList = $Cache->getValue( __METHOD__ ) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblPhone' )->findAll();
+            $Cache->setValue( __METHOD__, ( null === $EntityList ? false : $EntityList ), 500 );
+        }
+        return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
     /**
@@ -164,5 +211,101 @@ class Data
             $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
         }
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param TblPhone   $tblPhone
+     * @param TblType   $tblType
+     * @param string    $Remark
+     *
+     * @return TblToPerson
+     */
+    public function addPhoneToPerson( TblPerson $tblPerson, TblPhone $tblPhone, TblType $tblType, $Remark )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblToPerson' )
+            ->findOneBy( array(
+                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
+                TblToPerson::ATT_TBL_PHONE       => $tblPhone->getId(),
+                TblToPerson::ATT_TBL_TYPE       => $tblType->getId(),
+            ) );
+        if (null === $Entity) {
+            $Entity = new TblToPerson();
+            $Entity->setServiceTblPerson( $tblPerson );
+            $Entity->setTblPhone( $tblPhone );
+            $Entity->setTblType( $tblType );
+            $Entity->setRemark( $Remark );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function removePhoneToPerson( TblToPerson $tblToPerson )
+    {
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById( 'TblToPerson', $tblToPerson->getId() );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function removePhoneToCompany( TblToCompany $tblToCompany )
+    {
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblToCompany $Entity */
+        $Entity = $Manager->getEntityById( 'TblToCompany', $tblToCompany->getId() );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     * @param TblPhone   $tblPhone
+     * @param TblType   $tblType
+     * @param string    $Remark
+     *
+     * @return TblToCompany
+     */
+    public function addPhoneToCompany( TblCompany $tblCompany, TblPhone $tblPhone, TblType $tblType, $Remark )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity( 'TblToCompany' )
+            ->findOneBy( array(
+                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
+                TblToCompany::ATT_TBL_PHONE       => $tblPhone->getId(),
+                TblToCompany::ATT_TBL_TYPE       => $tblType->getId(),
+            ) );
+        if (null === $Entity) {
+            $Entity = new TblToCompany();
+            $Entity->setServiceTblCompany( $tblCompany );
+            $Entity->setTblPhone( $tblPhone );
+            $Entity->setTblType( $tblType );
+            $Entity->setRemark( $Remark );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        }
+        return $Entity;
     }
 }

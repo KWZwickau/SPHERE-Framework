@@ -151,10 +151,10 @@ class Service implements IServiceInterface
             if (( new Data( $this->Binding ) )->addMailToPerson( $tblPerson, $tblMail, $tblType, $Type['Remark'] )
             ) {
                 return new Success( 'Die E-Mail Adresse wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/People/Person', 1, array( 'tblPerson' => $tblPerson->getId() ) );
+                .new Redirect( '/People/Person', 1, array( 'Id' => $tblPerson->getId() ) );
             } else {
                 return new Danger( 'Die E-Mail Adresse konnte nicht hinzugefügt werden' )
-                .new Redirect( '/People/Person', 10, array( 'tblPerson' => $tblPerson->getId() ) );
+                .new Redirect( '/People/Person', 10, array( 'Id' => $tblPerson->getId() ) );
             }
         }
         return $Form;
@@ -214,11 +214,11 @@ class Service implements IServiceInterface
             ) {
                 return new Success( 'Die E-Mail Adresse wurde erfolgreich geändert' )
                 .new Redirect( '/People/Person', 1,
-                    array( 'tblPerson' => $tblToPerson->getServiceTblPerson()->getId() ) );
+                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() ) );
             } else {
                 return new Danger( 'Die E-Mail Adresse konnte nicht geändert werden' )
                 .new Redirect( '/People/Person', 10,
-                    array( 'tblPerson' => $tblToPerson->getServiceTblPerson()->getId() ) );
+                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() ) );
             }
         }
         return $Form;

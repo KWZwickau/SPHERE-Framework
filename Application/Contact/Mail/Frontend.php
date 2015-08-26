@@ -40,19 +40,19 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param int    $tblPerson
+     * @param int    $Id
      * @param string $Address
      * @param array  $Type
      *
      * @return Stage
      */
-    public function frontendCreateToPerson( $tblPerson, $Address, $Type )
+    public function frontendCreateToPerson( $Id, $Address, $Type )
     {
 
         $Stage = new Stage( 'E-Mail Adresse', 'Hinzufügen' );
         $Stage->setMessage( 'Eine E-Mail Adresse zur gewählten Person hinzufügen' );
 
-        $tblPerson = Person::useService()->getPersonById( $tblPerson );
+        $tblPerson = Person::useService()->getPersonById( $Id );
 
         $Stage->setContent(
             new Layout( array(
@@ -63,7 +63,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array( 'tblPerson' => $tblPerson->getId() )
+                                    array( 'Id' => $tblPerson->getId() )
                                 )
                             )
                         )
@@ -103,7 +103,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel( 'E-Mail Adresse',
                             array(
                                 new SelectBox( 'Type[Type]', 'Typ',
-                                    array( 'Name' => $tblTypeAll ), new TileBig()
+                                    array( '{{ Name }} {{ Description }}' => $tblTypeAll ), new TileBig()
                                 ),
                                 new AutoCompleter( 'Address', 'E-Mail Adresse', 'E-Mail Adresse',
                                     array( 'Address' => $tblMailAll ), new MailIcon()
@@ -121,19 +121,19 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param int    $tblToPerson
+     * @param int    $Id
      * @param string $Address
      * @param array  $Type
      *
      * @return Stage
      */
-    public function frontendUpdateToPerson( $tblToPerson, $Address, $Type )
+    public function frontendUpdateToPerson( $Id, $Address, $Type )
     {
 
         $Stage = new Stage( 'E-Mail Adresse', 'Bearbeiten' );
         $Stage->setMessage( 'Eine E-Mail Adresse zur gewählten Person ändern' );
 
-        $tblToPerson = Mail::useService()->getMailToPersonById( $tblToPerson );
+        $tblToPerson = Mail::useService()->getMailToPersonById( $Id );
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Address'] )) {
@@ -152,7 +152,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblToPerson->getServiceTblPerson()->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array( 'tblPerson' => $tblToPerson->getServiceTblPerson()->getId() )
+                                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() )
                                 )
                             )
                         )
@@ -195,11 +195,11 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new MailIcon().' '.$tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_INFO,
+                        new MailIcon().' '.$tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_WARNING,
 
                         new Standard(
                             '', '/People/Person/Mail/Edit', new Pencil(),
-                            array( 'tblToPerson' => $tblToPerson->getId() ),
+                            array( 'Id' => $tblToPerson->getId() ),
                             'Bearbeiten'
                         )
                         .new Standard(
@@ -207,7 +207,7 @@ class Frontend extends Extension implements IFrontendInterface
                             array( 'Id' => $tblToPerson->getId() ), 'Löschen'
                         )
                     )
-                    , 4 );
+                    , 3 );
             } );
         } else {
             $tblMailAll = array(
@@ -216,6 +216,22 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         }
-        return new Layout( new LayoutGroup( new LayoutRow( $tblMailAll ) ) );
+
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $tblMail
+         */
+        foreach ($tblMailAll as $tblMail) {
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow( array() );
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn( $tblMail );
+            $LayoutRowCount++;
+        }
+
+        return new Layout( new LayoutGroup( $LayoutRowList ) );
     }
 }

@@ -95,7 +95,7 @@ class Setup
 
         $Table = $this->Connection->createTable( $Schema, 'tblToPerson' );
         if (!$this->Connection->hasColumn( 'tblToPerson', 'Remark' )) {
-            $Table->addColumn( 'Remark', 'string' );
+            $Table->addColumn( 'Remark', 'text' );
         }
         if (!$this->Connection->hasColumn( 'tblToPerson', 'serviceTblPerson' )) {
             $Table->addColumn( 'serviceTblPerson', 'bigint', array( 'notnull' => false ) );
@@ -117,7 +117,7 @@ class Setup
 
         $Table = $this->Connection->createTable( $Schema, 'tblToCompany' );
         if (!$this->Connection->hasColumn( 'tblToCompany', 'Remark' )) {
-            $Table->addColumn( 'Remark', 'string' );
+            $Table->addColumn( 'Remark', 'text' );
         }
         if (!$this->Connection->hasColumn( 'tblToCompany', 'serviceTblCompany' )) {
             $Table->addColumn( 'serviceTblCompany', 'bigint', array( 'notnull' => false ) );

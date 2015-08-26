@@ -35,8 +35,12 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.ui"
         );
         $this->setSource(
-            'Moment.js', '/Library/Moment.Js/2.8.4/min/moment-with-locales.min.js',
+            'Moment.Js', '/Library/Moment.Js/2.8.4/min/moment-with-locales.min.js',
             "'undefined' !== typeof moment"
+        );
+        $this->setSource(
+            'List.Js', '/Library/List.Js/1.1.1/dist/list.js',
+            "'undefined' !== typeof List"
         );
         $this->setSource(
             'Bootstrap', '/Library/Bootstrap/3.3.5/dist/js/bootstrap.min.js',
@@ -122,7 +126,7 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways', array( 'Bootstrap', 'jQuery.Ui', 'jQuery' )
+            'ModAlways', array( 'List.Js', 'Bootstrap', 'jQuery.Ui', 'jQuery' )
         );
         $this->setModule(
             'ModTable',
@@ -135,7 +139,7 @@ class Script extends Extension
             )
         );
         $this->setModule(
-            'ModPicker', array( 'Bootstrap.DatetimePicker', 'Moment.js', 'jQuery' )
+            'ModPicker', array( 'Bootstrap.DatetimePicker', 'Moment.Js', 'jQuery' )
         );
         $this->setModule(
             'ModSelecter', array( 'jQuery.Selecter', 'jQuery' )
@@ -144,7 +148,7 @@ class Script extends Extension
             'ModSelect', array( 'Bootstrap.Select', 'Bootstrap', 'jQuery' )
         );
         $this->setModule(
-            'ModCountDown', array( 'jQuery.CountDown', 'Bootstrap', 'Moment.js', 'jQuery' )
+            'ModCountDown', array( 'jQuery.CountDown', 'Bootstrap', 'Moment.Js', 'jQuery' )
         );
         $this->setModule(
             'ModCompleter', array( 'Twitter.Typeahead', 'Bootstrap', 'jQuery' )
