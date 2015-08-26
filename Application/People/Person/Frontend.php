@@ -211,7 +211,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow( new LayoutColumn(
                             Address::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .new PullRight(
-                                new Standard( 'Adresse hinzufügen', '/People/Person/Address/Create', null,
+                                new Standard( 'Adresse hinzufügen', '/People/Person/Address/Create', new ChevronRight(),
                                     array( 'Id' => $tblPerson->getId() )
                                 )
                             )
@@ -222,10 +222,10 @@ class Frontend extends Extension implements IFrontendInterface
                             Phone::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .Mail::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .new PullRight(
-                                new Standard( 'Telefonnummer hinzufügen', '/People/Person/Phone/Create', null,
+                                new Standard( 'Telefonnummer hinzufügen', '/People/Person/Phone/Create', new ChevronRight(),
                                     array( 'Id' => $tblPerson->getId() )
                                 )
-                                .new Standard( 'E-Mail Adresse hinzufügen', '/People/Person/Mail/Create', null,
+                                .new Standard( 'E-Mail Adresse hinzufügen', '/People/Person/Mail/Create', new ChevronRight(),
                                     array( 'Id' => $tblPerson->getId() )
                                 )
                             )
@@ -235,7 +235,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow( new LayoutColumn(
                             Relationship::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .new PullRight(
-                                new Standard( 'Beziehung hinzufügen', '/People/Person/Relationship/Create', null,
+                                new Standard( 'Beziehung hinzufügen', '/People/Person/Relationship/Create', new ChevronRight(),
                                     array( 'Id' => $tblPerson->getId() )
                                 )
                             )

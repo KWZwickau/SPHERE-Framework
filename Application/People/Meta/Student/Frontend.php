@@ -16,7 +16,10 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Bus;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Clock;
+use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Heart;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
@@ -24,8 +27,10 @@ use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Medicine;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Shield;
 use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
+use SPHERE\Common\Frontend\Icon\Repository\StopSign;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -71,11 +76,11 @@ class Frontend implements IFrontendInterface
                         ), Panel::PANEL_TYPE_DANGER ), 3 ),
                     new FormColumn(
                         new Panel( 'Schulbeförderung', array(
-                            new TextField( 'Meta[Transport][Route]', 'Buslinie', 'Buslinie' ),
+                            new TextField( 'Meta[Transport][Route]', 'Buslinie', 'Buslinie', new Bus() ),
                             new TextField( 'Meta[Transport][Station][Entrance]', 'Einstiegshaltestelle',
-                                'Einstiegshaltestelle' ),
+                                'Einstiegshaltestelle', new StopSign() ),
                             new TextField( 'Meta[Transport][Station][Exit]', 'Ausstiegshaltestelle',
-                                'Ausstiegshaltestelle' ),
+                                'Ausstiegshaltestelle', new StopSign() ),
                             new TextArea( 'Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
                         ), Panel::PANEL_TYPE_INFO ), 3 ),
                     new FormColumn( array(
@@ -126,11 +131,11 @@ class Frontend implements IFrontendInterface
                                 'Förderbescheid SBA',
                                 new Calendar()
                             ),
-                            new SelectBox( 'Meta[Integration][3]', 'Förderschule', array() ),
-                            new SelectBox( 'Meta[Integration][3]', 'Schulbegleitung', array() ),
+                            new SelectBox( 'Meta[Integration][3]', 'Förderschule', array(), new Education() ),
+                            new SelectBox( 'Meta[Integration][3]', 'Schulbegleitung', array(), new Person() ),
                             new NumberField( 'Meta[Integration][3]', 'Stundenbedarf pro Woche',
-                                'Stundenbedarf pro Woche' ),
-                            new SelectBox( 'Meta[Integration][3]', 'Behandelnder Arzt', array() ),
+                                'Stundenbedarf pro Woche', new Clock() ),
+                            new SelectBox( 'Meta[Integration][3]', 'Behandelnder Arzt', array(), new Stethoscope() ),
                             new TextArea( 'Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
 
                         ), Panel::PANEL_TYPE_INFO ), 3 ),
