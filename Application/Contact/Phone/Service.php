@@ -171,6 +171,52 @@ class Service implements IServiceInterface
 
     /**
      * @param IFormInterface $Form
+     * @param TblCompany      $tblCompany
+     * @param string         $Number
+     * @param array          $Type
+     *
+     * @return IFormInterface|string
+     */
+    public function createPhoneToCompany(
+        IFormInterface $Form,
+        TblCompany $tblCompany,
+        $Number,
+        $Type
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Number) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Number ) && empty( $Number )) {
+            $Form->setError( 'Number', 'Bitte geben Sie eine gültige Telefonnummer an' );
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            $tblType = $this->getTypeById( $Type['Type'] );
+            $tblPhone = ( new Data( $this->Binding ) )->createPhone( $Number );
+
+            if (( new Data( $this->Binding ) )->addPhoneToCompany( $tblCompany, $tblPhone, $tblType, $Type['Remark'] )
+            ) {
+                return new Success( 'Die Telefonnummer wurde erfolgreich hinzugefügt' )
+                .new Redirect( '/Corporation/Company', 1, array( 'Id' => $tblCompany->getId() ) );
+            } else {
+                return new Danger( 'Die Telefonnummer konnte nicht hinzugefügt werden' )
+                .new Redirect( '/Corporation/Company', 10, array( 'Id' => $tblCompany->getId() ) );
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param IFormInterface $Form
      * @param TblToPerson    $tblToPerson
      * @param string         $Number
      * @param array          $Type
@@ -229,5 +275,39 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->getPhoneToPersonById( $Id );
+    }
+
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToCompany
+     */
+    public function getPhoneToCompanyById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getPhoneToCompanyById( $Id );
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function removePhoneToPerson( TblToPerson $tblToPerson )
+    {
+
+        return ( new Data( $this->Binding ) )->removePhoneToPerson( $tblToPerson );
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function removePhoneToCompany( TblToCompany $tblToCompany )
+    {
+
+        return ( new Data( $this->Binding ) )->removePhoneToCompany( $tblToCompany );
     }
 }

@@ -13,9 +13,12 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -25,9 +28,12 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -73,7 +79,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(
                         new LayoutColumn(
                             Relationship::useService()->createRelationshipToPerson(
-                                $this->formAddress()
+                                $this->formRelationship()
                                     ->appendFormButton( new Primary( 'Beziehungen hinzufügen' ) )
                                     ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
                                 , $tblPerson, $To, $Type
@@ -90,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Form
      */
-    private function formAddress()
+    private function formRelationship()
     {
 
         $tblTypeAll = Relationship::useService()->getTypeAll();
@@ -139,7 +145,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage( 'Beziehungen', 'Bearbeiten' );
         $Stage->setMessage( 'Eine Beziehungen zur gewählten Person ändern' );
 
-        $tblToPerson = Mail::useService()->getMailToPersonById( $Id );
+        $tblToPerson = Relationship::useService()->getRelationshipToPersonById( $Id );
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Address'] )) {
@@ -167,8 +173,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup( array(
                     new LayoutRow(
                         new LayoutColumn(
-                            Mail::useService()->updateMailToPerson(
-                                $this->formAddress()
+                            Relationship::useService()->updateMailToPerson(
+                                $this->formRelationship()
                                     ->appendFormButton( new Primary( 'Änderungen speichern' ) )
                                     ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
                                 , $tblToPerson, $Address, $Type
@@ -191,11 +197,16 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblRelationshipAll = Relationship::useService()->getPersonRelationshipAllByPerson( $tblPerson );
+
         if ($tblRelationshipAll !== false) {
-            array_walk( $tblRelationshipAll, function ( TblToPerson &$tblToPerson ) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk( $tblRelationshipAll, function ( TblToPerson &$tblToPerson, $Index, TblPerson $tblPerson ) {
 
                 $Panel = array(
-                    $tblToPerson->getServiceTblPersonTo()->getFullName()
+                    ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                        ? $tblToPerson->getServiceTblPersonTo()->getFullName()
+                        : $tblToPerson->getServiceTblPersonFrom()->getFullName()
+                    )
                 );
                 if ($tblToPerson->getRemark()) {
                     array_push( $Panel, new Muted( new Small( $tblToPerson->getRemark() ) ) );
@@ -203,20 +214,35 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        new Link().' '.$tblToPerson->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_WARNING,
+                        new Link().' '.$tblToPerson->getTblType()->getName(), $Panel,
+                        ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                            ? Panel::PANEL_TYPE_SUCCESS
+                            : Panel::PANEL_TYPE_DEFAULT
+                        ),
+                        ( $tblToPerson->getServiceTblPersonFrom()->getId() == $tblPerson->getId()
+                            ? new Standard(
+                                '', '/People/Person/Relationship/Edit', new Pencil(),
+                                array( 'Id' => $tblToPerson->getId() ),
+                                'Bearbeiten'
+                            )
+                            .new Standard(
+                                '', '/People/Person/Relationship/Destroy', new Remove(),
+                                array( 'Id' => $tblToPerson->getId() ), 'Löschen'
+                            )
+                            .new Standard(
+                                '', '/People/Person', new PersonIcon(),
+                                array( 'Id' => $tblToPerson->getServiceTblPersonTo()->getId() ), 'zur Person'
+                            )
+                            :
+                            new Standard(
+                                '', '/People/Person', new PersonIcon(),
+                                array( 'Id' => $tblToPerson->getServiceTblPersonFrom()->getId() ), 'zur Person'
+                            )
 
-                        new Standard(
-                            '', '/People/Person/Relationship/Edit', new Pencil(),
-                            array( 'Id' => $tblToPerson->getId() ),
-                            'Bearbeiten'
-                        )
-                        .new Standard(
-                            '', '/People/Person/Relationship/Destroy', new Remove(),
-                            array( 'Id' => $tblToPerson->getId() ), 'Löschen'
                         )
                     )
                     , 3 );
-            } );
+            }, $tblPerson );
         } else {
             $tblRelationshipAll = array(
                 new LayoutColumn(
@@ -241,5 +267,71 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return new Layout( new LayoutGroup( $LayoutRowList ) );
+    }
+
+    /**
+     * @param int  $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyToPerson( $Id, $Confirm = false )
+    {
+
+        $Stage = new Stage( 'Beziehung', 'Löschen' );
+        if ($Id) {
+            $tblToPerson = Relationship::useService()->getRelationshipToPersonById( $Id );
+            $tblPersonFrom = $tblToPerson->getServiceTblPersonFrom();
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout( new LayoutGroup( new LayoutRow( new LayoutColumn( array(
+                        new Panel( new PersonIcon().' Person',
+                            $tblPersonFrom->getFullName(),
+                            Panel::PANEL_TYPE_SUCCESS,
+                            new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                array( 'Id' => $tblPersonFrom->getId() )
+                            )
+                        ),
+                        new Panel( new Question().' Diese Beziehung wirklich löschen?', array(
+                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
+                            $tblToPerson->getServiceTblPersonTo()->getFullName(),
+                            new Muted( new Small( $tblToPerson->getRemark() ) )
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/People/Person/Relationship/Destroy', new Ok(),
+                                array( 'Id' => $Id, 'Confirm' => true )
+                            )
+                            .new Standard(
+                                'Nein', '/People/Person', new Disable(),
+                                array( 'Id' => $tblPersonFrom->getId() )
+                            )
+                        )
+                    ) ) ) ) )
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout( new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn( array(
+                            ( Relationship::useService()->removePersonRelationshipToPerson( $tblToPerson )
+                                ? new Success( 'Die Beziehung wurde gelöscht' )
+                                : new Danger( 'Die Beziehung konnte nicht gelöscht werden' )
+                            ),
+                            new Redirect( '/People/Person', 1, array( 'Id' => $tblPersonFrom->getId() ) )
+                        ) ) )
+                    ) ) )
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout( new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn( array(
+                        new Danger( 'Die Beziehung konnte nicht gefunden werden' ),
+                        new Redirect( '/People/Search/Group' )
+                    ) ) )
+                ) ) )
+            );
+        }
+        return $Stage;
     }
 }

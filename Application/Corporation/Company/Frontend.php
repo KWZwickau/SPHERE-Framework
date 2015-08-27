@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\Application\Corporation\Company;
 
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
+use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
@@ -12,14 +15,13 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
-use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -35,7 +37,6 @@ use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Frontend
@@ -49,24 +50,19 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param bool|false $TabActive
      *
-     * @param null|int   $tblCompany
+     * @param null|int   $Id
      * @param null|array $Company
      * @param null|array $Meta
      *
      * @return Stage
      */
-    public function frontendCompany( $TabActive = false, $tblCompany = null, $Company = null, $Meta = null )
+    public function frontendCompany( $TabActive = false, $Id = null, $Company = null, $Meta = null )
     {
-
-        Debugger::screenDump( __METHOD__, $TabActive, $tblCompany, $Company, $Meta );
-        if ($tblCompany) {
-            $tblCompany = Company::useService()->getCompanyById( $tblCompany );
-        }
 
         $Stage = new Stage( 'Firmen', 'Datenblatt' );
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if( $tblGroupAll ) {
+        if ($tblGroupAll) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
 
@@ -74,14 +70,14 @@ class Frontend extends Extension implements IFrontendInterface
                     new Standard(
                         $tblGroup->getName(),
                         new Route( '/Corporation/Search/Group' ), null,
-                        array(
-                            'tblGroup' => $tblGroup->getId()
-                        ), $tblGroup->getDescription() )
+                        array( 'Id' => $tblGroup->getId() ),
+                        $tblGroup->getDescription()
+                    )
                 );
             }, $Stage );
         }
 
-        if (!$tblCompany) {
+        if (!$Id) {
 
             $BasicTable = Company::useService()->createCompany(
                 $this->formCompany()
@@ -99,6 +95,7 @@ class Frontend extends Extension implements IFrontendInterface
             );
 
         } else {
+            $tblCompany = Company::useService()->getCompanyById( $Id );
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Company'] )) {
@@ -145,12 +142,12 @@ class Frontend extends Extension implements IFrontendInterface
             if (!empty( $MetaTabs )) {
                 if (!$TabActive || $TabActive == '#') {
                     array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronRight().'&nbsp;', '#',
-                        array( 'tblCompany' => $tblCompany->getId() )
+                        array( 'Id' => $tblCompany->getId() )
                     ) );
                     $MetaTabs[0]->setActive();
                 } else {
                     array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronUp().'&nbsp;', '#',
-                        array( 'tblCompany' => $tblCompany->getId() )
+                        array( 'Id' => $tblCompany->getId() )
                     ) );
                 }
             }
@@ -173,31 +170,39 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutRow( new LayoutColumn( $BasicTable ) ),
                         new Title( new Building().' Grunddaten', 'der Firma' )
                     ),
-                    new LayoutGroup( array(
-                        new LayoutRow( new LayoutColumn( new LayoutTabs( $MetaTabs ) ) ),
-                        new LayoutRow( new LayoutColumn( $MetaTable ) ),
-                    ), new Title( new Tag().' Informationen', 'zur Firma' ) ),
-                    new LayoutGroup( array(
-                        new LayoutRow( new LayoutColumn(
-                            new Warning( 'Keine Daten vorhanden' )
-                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
-                                new Plus() ) )
-                        ) ),
-                    ), new Title( new TagList().' Adressdaten', 'der Firma' ) ),
+//                    new LayoutGroup( array(
+//                        new LayoutRow( new LayoutColumn( new LayoutTabs( $MetaTabs ) ) ),
+//                        new LayoutRow( new LayoutColumn( $MetaTable ) ),
+//                    ), new Title( new Tag().' Informationen', 'zur Firma' ) ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
-                            new Warning( 'Keine Daten vorhanden' )
-                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
-                                new Plus() ) )
+                            Address::useFrontend()->frontendLayoutCompany( $tblCompany )
                         ) ),
-                    ), new Title( new TagList().' Kontaktdaten', 'der Firma' ) ),
+                    ), ( new Title( new TagList().' Adressdaten', 'der Firma' ) )
+                        ->addButton(
+                            new Standard( 'Adresse hinzufügen', '/Corporation/Company/Address/Create',
+                                new ChevronDown(), array( 'Id' => $tblCompany->getId() )
+                            )
+                        )
+                    ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
-                            new Warning( 'Keine Daten vorhanden' )
-                            .new PullRight( new \SPHERE\Common\Frontend\Link\Repository\Warning( 'Hinzufügen', '/',
-                                new Plus() ) )
+                            Phone::useFrontend()->frontendLayoutCompany( $tblCompany )
+                            .Mail::useFrontend()->frontendLayoutCompany( $tblCompany )
                         ) ),
-                    ), new Title( new TagList().' Beziehungen', 'zu Firmen' ) ),
+                    ), ( new Title( new TagList().' Kontaktdaten', 'der Firma' ) )
+                        ->addButton(
+                            new Standard( 'Telefonnummer hinzufügen', '/Corporation/Company/Phone/Create',
+                                new ChevronDown(), array( 'Id' => $tblCompany->getId() )
+                            )
+                        )
+                        ->addButton(
+                            new Standard( 'E-Mail Adresse hinzufügen', '/Corporation/Company/Mail/Create',
+                                new ChevronDown(), array( 'Id' => $tblCompany->getId() )
+                            )
+                        )
+                    ),
+
                 ) )
             );
 
@@ -213,7 +218,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblGroupList = Group::useService()->getGroupAll();
-        if( $tblGroupList ) {
+        if ($tblGroupList) {
             // Sort by Name
             usort( $tblGroupList, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
 

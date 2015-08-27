@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\Application\Corporation\Group;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Application\Corporation\Company\Company as CorporationCompany;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -79,7 +81,8 @@ class Frontend extends Extension implements IFrontendInterface
                     )
                 );
                 $Footer .= new PullRight(
-                    new Label( rand( 0, 10 ).' Firmen', Label::LABEL_TYPE_INFO )
+                    new Label( CorporationCompany::useService()->countCompanyAllByGroup( $tblGroup ).' Firmen',
+                        Label::LABEL_TYPE_INFO )
                 );
                 $tblGroup = new LayoutColumn(
                     new Panel( $tblGroup->getName(), $Content, $Type, new PullClear( $Footer ) )
@@ -205,76 +208,64 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param int  $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
     public function frontendDestroyGroup( $Id, $Confirm = false )
     {
 
-        $Stage = new Stage( 'Firmengruppen' );
-        $tblGroup = Group::useService()->getGroupById( $Id );
-
-        if ($tblGroup) {
+        $Stage = new Stage( 'Firmengruppe', 'Löschen' );
+        if ($Id) {
+            $tblGroup = Group::useService()->getGroupById( $Id );
             if (!$Confirm) {
                 $Stage->setContent(
-                    new Layout(
-                        new LayoutGroup( array(
-                            new LayoutRow(
-                                new LayoutColumn( array(
-                                    new Success( $tblGroup->getName().' '.$tblGroup->getDescription() ),
-                                    new Warning(
-                                        'Wollen Sie diese Gruppe wirklich löschen?',
-                                        new Question()
-                                    )
-                                ) )
-                            ),
-                            new LayoutRow(
-                                new LayoutColumn( array(
-                                    new \SPHERE\Common\Frontend\Link\Repository\Danger(
-                                        'Ja', '/Corporation/Group/Destroy', new Ok(),
-                                        array( 'Id' => $Id, 'Confirm' => true )
-                                    ),
-                                    new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                        'Nein', '/Corporation/Group', new Disable()
-                                    )
-                                ) )
+                    new Layout( new LayoutGroup( new LayoutRow( new LayoutColumn( array(
+                        new Panel( new Question().' Diese Gruppe wirklich löschen?', array(
+                            $tblGroup->getName().' '.$tblGroup->getDescription(),
+                            new Muted( new Small( $tblGroup->getRemark() ) )
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Corporation/Group/Destroy', new Ok(),
+                                array( 'Id' => $Id, 'Confirm' => true )
                             )
-                        ) )
-                    )
+                            .new Standard(
+                                'Nein', '/Corporation/Group', new Disable()
+                            )
+                        )
+                    ) ) ) ) )
                 );
             } else {
-                // TODO: Destroy
-                //Group::useService()->
-                $Stage->setContent(
-                    new Layout(
-                        new LayoutGroup( array(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Success(
-                                        'Die Gruppe wurde gelöscht'
-                                    )
-                                )
-                            ),
-                            new LayoutRow(
-                                new LayoutColumn( array(
-                                    new Redirect( '/Corporation/Group', 0 )
-                                ) )
-                            )
-                        ) )
-                    ) );
 
+                $tblCompanyAll = Group::useService()->getCompanyAllByGroup( $tblGroup );
+                /** @noinspection PhpUnusedParameterInspection */
+                array_walk( $tblCompanyAll, function( TblCompany $tblCompany, $Index, TblGroup $tblGroup ){
+                    Group::useService()->removeGroupCompany( $tblGroup, $tblCompany );
+                }, $tblGroup );
+
+                $Stage->setContent(
+                    new Layout( new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn( array(
+                            ( Group::useService()->destroyGroup( $tblGroup )
+                                ? new Success( 'Die Gruppe wurde gelöscht' )
+                                : new Danger( 'Die Gruppe konnte nicht gelöscht werden' )
+                            ),
+                            new Redirect( '/Corporation/Group', 1 )
+                        ) ) )
+                    ) ) )
+                );
             }
         } else {
-            // TODO: Error-Message
             $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Danger(
-                                    'Die Gruppe konnte nicht gefunden werden'
-                                )
-                            )
-                        ), new Title( 'Gruppe löschen' )
-                    )
-                )
+                new Layout( new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn( array(
+                        new Danger( 'Die Gruppe konnte nicht gefunden werden' ),
+                        new Redirect( '/Corporation/Group' )
+                    ) ) )
+                ) ) )
             );
         }
         return $Stage;

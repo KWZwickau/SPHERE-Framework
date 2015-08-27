@@ -40,7 +40,7 @@ class Corporation implements IClusterInterface
         if( $tblGroupAll ) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
-                $tblGroupAll[$tblGroup->getName()] = $tblGroup->getName().': '.count( Group::useService()->getCompanyAllByGroup( $tblGroup ) );
+                $tblGroupAll[$tblGroup->getName()] = $tblGroup->getName().': '.Group::useService()->countCompanyAllByGroup( $tblGroup );
                 $tblGroupAll[$Index] = false;
             }
             $tblGroupAll = array_filter( $tblGroupAll );

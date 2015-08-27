@@ -161,6 +161,54 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param TblCompany      $tblCompany
+     * @param string         $Address
+     * @param array          $Type
+     *
+     * @return IFormInterface|string
+     */
+    public function createMailToCompany(
+        IFormInterface $Form,
+        TblCompany $tblCompany,
+        $Address,
+        $Type
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Address) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        $Address = filter_var( $Address, FILTER_VALIDATE_EMAIL );
+
+        if (isset( $Address ) && empty( $Address )) {
+            $Form->setError( 'Address', 'Bitte geben Sie eine gültige E-Mail Adresse an' );
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            $tblType = $this->getTypeById( $Type['Type'] );
+            $tblMail = ( new Data( $this->Binding ) )->createMail( $Address );
+
+            if (( new Data( $this->Binding ) )->addMailToCompany( $tblCompany, $tblMail, $tblType, $Type['Remark'] )
+            ) {
+                return new Success( 'Die E-Mail Adresse wurde erfolgreich hinzugefügt' )
+                .new Redirect( '/Corporation/Company', 1, array( 'Id' => $tblCompany->getId() ) );
+            } else {
+                return new Danger( 'Die E-Mail Adresse konnte nicht hinzugefügt werden' )
+                .new Redirect( '/Corporation/Company', 10, array( 'Id' => $tblCompany->getId() ) );
+            }
+        }
+        return $Form;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblType
@@ -233,5 +281,39 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->getMailToPersonById( $Id );
+    }
+
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToCompany
+     */
+    public function getMailToCompanyById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getMailToCompanyById( $Id );
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function removeMailToPerson( TblToPerson $tblToPerson )
+    {
+
+        return ( new Data( $this->Binding ) )->removeMailToPerson( $tblToPerson );
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function removeMailToCompany( TblToCompany $tblToCompany )
+    {
+
+        return ( new Data( $this->Binding ) )->removeMailToCompany( $tblToCompany );
     }
 }

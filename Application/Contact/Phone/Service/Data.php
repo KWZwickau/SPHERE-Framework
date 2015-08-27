@@ -139,6 +139,23 @@ class Data
         return ( null === $Entity ? false : $Entity );
     }
 
+     /**
+     * @param integer $Id
+     *
+     * @return bool|TblToCompany
+     */
+    public function getPhoneToCompanyById( $Id )
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToCompany', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        }
+        return ( null === $Entity ? false : $Entity );
+    }
+
     /**
      * @return bool|TblPhone[]
      */

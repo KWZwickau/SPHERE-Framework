@@ -56,9 +56,11 @@ class Frontend extends Extension implements IFrontendInterface
             )
             .'<h2><small>Mögliche Ursachen</small></h2>'
             .new Danger( 'Sie haben nicht die benötigte Berechtigung um diese Adresse aufzurufen' )
+            .new Warning( 'Sie haben eine Anfrage mit Parametern (z.B. per Lesezeichen) über Tagesgrenzen hinweg an das System gestellt' )
             .new Warning( 'Die eingegebene Adresse steht im Program nicht zur Verfügung' )
             .'<h2><small>Mögliche Lösungen</small></h2>'
             .new Warning( 'Bitte ändern Sie keine Daten in der Adressleiste des Browsers und verwenden Sie nur die vom System erzeugten Anfragen' )
+            .new Success( 'Bitte führen Sie Anfragen (mit Parametern) an das System nicht über Tagesgrenzen hinweg aus' )
             .new Success( 'Die Anfrage und alle Parameter wurden aus Sicherheitsgründen verworfen' )
         );
 

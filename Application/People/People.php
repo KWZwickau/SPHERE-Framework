@@ -44,7 +44,7 @@ class People implements IClusterInterface
         if( $tblGroupAll ) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
-                $tblGroupAll[$tblGroup->getName()] = $tblGroup->getName().': '.count( Group::useService()->getPersonAllByGroup( $tblGroup ) );
+                $tblGroupAll[$tblGroup->getName()] = $tblGroup->getName().': '.Group::useService()->countPersonAllByGroup( $tblGroup );
                 $tblGroupAll[$Index] = false;
             }
             $tblGroupAll = array_filter( $tblGroupAll );

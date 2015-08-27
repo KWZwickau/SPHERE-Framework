@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Group;
 
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Person as PeoplePerson;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -56,51 +57,59 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage( 'Personengruppen' );
         $tblGroupAll = Group::useService()->getGroupAll();
-        array_walk( $tblGroupAll, function ( TblGroup &$tblGroup ) {
+        if ($tblGroupAll) {
+            array_walk( $tblGroupAll, function ( TblGroup &$tblGroup ) {
 
-            $Content = array(
-                ( $tblGroup->getDescription() ? new Small( new Muted( $tblGroup->getDescription() ) ) : false ),
-                ( $tblGroup->getRemark() ? nl2br( $tblGroup->getRemark() ) : false ),
-            );
-            $Content = array_filter( $Content );
-            $Type = ( $tblGroup->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT );
-            $Footer = new PullLeft(
-                new Standard( '', '/People/Group/Edit', new Edit(),
-                    array( 'Id' => $tblGroup->getId() ), 'Daten ändern'
-                )
-                .new Standard( '', '/People/Group/Manage', new Person(),
-                    array( 'Id' => $tblGroup->getId() ), 'Personen ändern'
-                )
-                .( $tblGroup->getIsLocked()
-                    ? ''
-                    : new Standard( '', '/People/Group/Destroy', new Remove(),
-                        array( 'Id' => $tblGroup->getId() ), 'Gruppe löschen'
+                $Content = array(
+                    ( $tblGroup->getDescription() ? new Small( new Muted( $tblGroup->getDescription() ) ) : false ),
+                    ( $tblGroup->getRemark() ? nl2br( $tblGroup->getRemark() ) : false ),
+                );
+                $Content = array_filter( $Content );
+                $Type = ( $tblGroup->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT );
+                $Footer = new PullLeft(
+                    new Standard( '', '/People/Group/Edit', new Edit(),
+                        array( 'Id' => $tblGroup->getId() ), 'Daten ändern'
                     )
-                )
-            );
-            $Footer .= new PullRight(
-                new Label( PeoplePerson::useService()->countPersonAllByGroup( $tblGroup ).' Personen', Label::LABEL_TYPE_INFO )
-            );
-            $tblGroup = new LayoutColumn(
-                new Panel( $tblGroup->getName(), $Content, $Type, new PullClear( $Footer ) )
-                , 4 );
-        } );
+                    .new Standard( '', '/People/Group/Manage', new Person(),
+                        array( 'Id' => $tblGroup->getId() ), 'Personen ändern'
+                    )
+                    .( $tblGroup->getIsLocked()
+                        ? ''
+                        : new Standard( '', '/People/Group/Destroy', new Remove(),
+                            array( 'Id' => $tblGroup->getId() ), 'Gruppe löschen'
+                        )
+                    )
+                );
+                $Footer .= new PullRight(
+                    new Label( PeoplePerson::useService()->countPersonAllByGroup( $tblGroup ).' Personen',
+                        Label::LABEL_TYPE_INFO )
+                );
+                $tblGroup = new LayoutColumn(
+                    new Panel( $tblGroup->getName(), $Content, $Type, new PullClear( $Footer ) )
+                    , 4 );
+            } );
 
-        $LayoutRowList = array();
-        $LayoutRowCount = 0;
-        $LayoutRow = null;
-        /**
-         * @var LayoutColumn $tblGroup
-         */
-        foreach ($tblGroupAll as $tblGroup) {
-            if ($LayoutRowCount % 3 == 0) {
-                $LayoutRow = new LayoutRow( array() );
-                $LayoutRowList[] = $LayoutRow;
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+            /**
+             * @var LayoutColumn $tblGroup
+             */
+            foreach ($tblGroupAll as $tblGroup) {
+                if ($LayoutRowCount % 3 == 0) {
+                    $LayoutRow = new LayoutRow( array() );
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn( $tblGroup );
+                $LayoutRowCount++;
             }
-            $LayoutRow->addColumn( $tblGroup );
-            $LayoutRowCount++;
+        } else {
+            $LayoutRowList = new LayoutRow(
+                new LayoutColumn(
+                    new Warning( 'Keine Gruppen vorhanden' )
+                    )
+            );
         }
-
         $Stage->setContent(
             new Layout( array(
                 new LayoutGroup(
@@ -134,7 +143,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup( array(
                 new FormRow( array(
                     new FormColumn( array(
-                        new TextField( 'Group[Name]', 'Gruppenname', 'Gruppenname' )
+                        new TextField( 'Group[Name]', 'Name', 'Name' )
                     ), 4 ),
                     new FormColumn( array(
                         new TextField( 'Group[Description]', 'Beschreibung', 'Beschreibung' )
@@ -199,76 +208,64 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param int  $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
     public function frontendDestroyGroup( $Id, $Confirm = false )
     {
 
-        $Stage = new Stage( 'Personengruppen' );
-        $tblGroup = Group::useService()->getGroupById( $Id );
-
-        if ($tblGroup) {
+        $Stage = new Stage( 'Personengruppe', 'Löschen' );
+        if ($Id) {
+            $tblGroup = Group::useService()->getGroupById( $Id );
             if (!$Confirm) {
                 $Stage->setContent(
-                    new Layout(
-                        new LayoutGroup( array(
-                            new LayoutRow(
-                                new LayoutColumn( array(
-                                    new Success( $tblGroup->getName().' '.$tblGroup->getDescription() ),
-                                    new Warning(
-                                        'Wollen Sie diese Gruppe wirklich löschen?',
-                                        new Question()
-                                    )
-                                ) )
-                            ),
-                            new LayoutRow(
-                                new LayoutColumn( array(
-                                    new \SPHERE\Common\Frontend\Link\Repository\Danger(
-                                        'Ja', '/People/Group/Destroy', new Ok(),
-                                        array( 'Id' => $Id, 'Confirm' => true )
-                                    ),
-                                    new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                        'Nein', '/People/Group', new Disable()
-                                    )
-                                ) )
+                    new Layout( new LayoutGroup( new LayoutRow( new LayoutColumn( array(
+                        new Panel( new Question().' Diese Gruppe wirklich löschen?', array(
+                            $tblGroup->getName().' '.$tblGroup->getDescription(),
+                            new Muted( new Small( $tblGroup->getRemark() ) )
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/People/Group/Destroy', new Ok(),
+                                array( 'Id' => $Id, 'Confirm' => true )
                             )
-                        ) )
-                    )
+                            .new Standard(
+                                'Nein', '/People/Group', new Disable()
+                            )
+                        )
+                    ) ) ) ) )
                 );
             } else {
-                // TODO: Destroy
-                //Group::useService()->
-                $Stage->setContent(
-                    new Layout(
-                        new LayoutGroup( array(
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    new Success(
-                                        'Die Gruppe wurde gelöscht'
-                                    )
-                                )
-                            ),
-                            new LayoutRow(
-                                new LayoutColumn( array(
-                                    new Redirect( '/People/Group', 0 )
-                                ) )
-                            )
-                        ) )
-                    ) );
 
+                $tblPersonAll = Group::useService()->getPersonAllByGroup( $tblGroup );
+                /** @noinspection PhpUnusedParameterInspection */
+                array_walk( $tblPersonAll, function( TblPerson $tblPerson, $Index, TblGroup $tblGroup ){
+                    Group::useService()->removeGroupPerson( $tblGroup, $tblPerson );
+                }, $tblGroup );
+
+                $Stage->setContent(
+                    new Layout( new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn( array(
+                            ( Group::useService()->destroyGroup( $tblGroup )
+                                ? new Success( 'Die Gruppe wurde gelöscht' )
+                                : new Danger( 'Die Gruppe konnte nicht gelöscht werden' )
+                            ),
+                            new Redirect( '/People/Group', 1 )
+                        ) ) )
+                    ) ) )
+                );
             }
         } else {
-            // TODO: Error-Message
             $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new Danger(
-                                    'Die Gruppe konnte nicht gefunden werden'
-                                )
-                            )
-                        ), new Title( 'Gruppe löschen' )
-                    )
-                )
+                new Layout( new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn( array(
+                        new Danger( 'Die Gruppe konnte nicht gefunden werden' ),
+                        new Redirect( '/People/Group' )
+                    ) ) )
+                ) ) )
             );
         }
         return $Stage;

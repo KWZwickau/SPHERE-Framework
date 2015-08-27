@@ -111,7 +111,7 @@ class Service implements IServiceInterface
                 $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success( 'Die Gruppe wurde erfolgreich erstellt' ).new Redirect( '/Corporation/Group', 3 );
+                return new Success( 'Die Gruppe wurde erfolgreich erstellt' ).new Redirect( '/Corporation/Group', 1 );
             } else {
                 return new Danger( 'Die Gruppe konnte nicht erstellt werden' ).new Redirect( '/Corporation/Group', 10 );
             }
@@ -167,7 +167,7 @@ class Service implements IServiceInterface
             )
             ) {
                 return new Success( 'Die Änderungen wurden erfolgreich gespeichert' )
-                .new Redirect( '/Corporation/Group', 3 );
+                .new Redirect( '/Corporation/Group', 1 );
             } else {
                 return new Danger( 'Die Änderungen konnte nicht gespeichert werden' )
                 .new Redirect( '/Corporation/Group', 10 );
@@ -191,6 +191,18 @@ class Service implements IServiceInterface
 
     /**
      *
+     * @param TblGroup $tblGroup
+     *
+     * @return int
+     */
+    public function countCompanyAllByGroup( TblGroup $tblGroup )
+    {
+
+        return ( new Data( $this->Binding ) )->countCompanyAllByGroup( $tblGroup );
+    }
+
+    /**
+     *
      * @param TblCompany $tblCompany
      *
      * @return bool|TblGroup[]
@@ -202,7 +214,7 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param TblGroup  $tblGroup
+     * @param TblGroup   $tblGroup
      * @param TblCompany $tblCompany
      *
      * @return bool
@@ -223,5 +235,16 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->addGroupCompany( $tblGroup, $tblCompany );
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool
+     */
+    public function destroyGroup( TblGroup $tblGroup )
+    {
+
+        return ( new Data( $this->Binding ) )->destroyGroup( $tblGroup );
     }
 }

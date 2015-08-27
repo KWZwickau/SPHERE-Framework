@@ -132,6 +132,23 @@ class Data
     }
 
     /**
+     * @param integer $Id
+     *
+     * @return bool|TblToCompany
+     */
+    public function getMailToCompanyById( $Id )
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToCompany', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        }
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @return bool|TblMail[]
      */
     public function getMailAll()

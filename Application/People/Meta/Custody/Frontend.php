@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Window\Stage;
 
 /**
@@ -39,24 +40,22 @@ class Frontend implements IFrontendInterface
             new FormGroup( array(
                 new FormRow( array(
                     new FormColumn(
-                        new AutoCompleter( 'Meta[Occupation]', 'Beruf', 'Beruf',
-                            array(), new MapMarker()
-                        ) ),
-                ) ),
-                new FormRow( array(
+                        new Panel( 'Berufliches', array(
+                            new AutoCompleter( 'Meta[Occupation]', 'Beruf', 'Beruf',
+                                array(), new MapMarker()
+                            ),
+                            new AutoCompleter( 'Meta[Employment]', 'Arbeitsstelle', 'Arbeitsstelle',
+                                array(), new Nameplate()
+                            ),
+                        ), Panel::PANEL_TYPE_INFO
+                        ), 6 ),
                     new FormColumn(
-                        new AutoCompleter( 'Meta[Employment]', 'Arbeitsstelle', 'Arbeitsstelle',
-                            array(), new Nameplate()
-                        ) ),
+                        new Panel( 'Sonstiges', array(
+                            new TextArea( 'Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
+                        ), Panel::PANEL_TYPE_INFO
+                        ), 6 ),
                 ) ),
-            ), new Title( 'Berufliches' ) ),
-            new FormGroup( array(
-                new FormRow( array(
-                    new FormColumn(
-                        new TextArea( 'Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
-                    ),
-                ) ),
-            ), new Title( 'Sonstiges' ) ),
+            ) ),
         ), new Primary( 'Informationen speichern' ) )
         )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert.' ) );
 

@@ -5,6 +5,7 @@ use SPHERE\Application\Corporation\Company\Service\Data;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Company\Service\Setup;
 use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -58,12 +59,32 @@ class Service implements IServiceInterface
     }
 
     /**
+     * int
+     */
+    public function countCompanyAll()
+    {
+
+        return count( $this->getCompanyAll() );
+    }
+
+    /**
      * @return bool|TblCompany[]
      */
     public function getCompanyAll()
     {
 
         return ( new Data( $this->Binding ) )->getCompanyAll();
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return int
+     */
+    public function countCompanyAllByGroup( TblGroup $tblGroup )
+    {
+
+        return Group::useService()->countCompanyAllByGroup( $tblGroup );
     }
 
     /**
@@ -102,7 +123,7 @@ class Service implements IServiceInterface
                 }
                 return new Success( 'Die Firma wurde erfolgreich erstellt' )
                 .new Redirect( '/Corporation/Company', 3,
-                    array( 'tblCompany' => $tblCompany->getId() )
+                    array( 'Id' => $tblCompany->getId() )
                 );
             } else {
                 return new Danger( 'Die Firma konnte nicht erstellt werden' )
@@ -172,8 +193,8 @@ class Service implements IServiceInterface
                     }
                 }
                 return new Success( 'Die Firma wurde erfolgreich aktualisiert' )
-                .new Redirect( '/Corporation/Company', 3,
-                    array( 'tblCompany' => $tblCompany->getId() )
+                .new Redirect( '/Corporation/Company', 1,
+                    array( 'Id' => $tblCompany->getId() )
                 );
             } else {
                 return new Danger( 'Die Firma konnte nicht aktualisiert werden' )

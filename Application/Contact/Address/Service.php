@@ -298,10 +298,12 @@ class Service implements IServiceInterface
                 $Type['Remark'] )
             ) {
                 return new Success( 'Die Adresse wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/Contact/Address', 1 );
+                .new Redirect( '/Corporation/Company', 1,
+                    array( 'Id' => $tblPerson->getId() ) );
             } else {
                 return new Danger( 'Die Adresse konnte nicht hinzugefügt werden' )
-                .new Redirect( '/Contact/Address', 10 );
+                .new Redirect( '/Corporation/Company', 10,
+                    array( 'Id' => $tblPerson->getId() ) );
             }
         }
         return $Form;
@@ -327,5 +329,50 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->getAddressAllByCompany( $tblCompany );
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToPerson
+     */
+    public function getAddressToPersonById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getAddressToPersonById( $Id );
+    }
+
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToCompany
+     */
+    public function getAddressToCompanyById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getAddressToCompanyById( $Id );
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function removeAddressToPerson( TblToPerson $tblToPerson )
+    {
+
+        return ( new Data( $this->Binding ) )->removeAddressToPerson( $tblToPerson );
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function removeAddressToCompany( TblToCompany $tblToCompany )
+    {
+
+        return ( new Data( $this->Binding ) )->removeAddressToCompany( $tblToCompany );
     }
 }

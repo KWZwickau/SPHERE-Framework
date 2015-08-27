@@ -153,9 +153,14 @@ class Data
         /** @var IApiInterface $Cache */
         $Cache = ( new Cache( new Memory() ) )->getCache();
         if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblToPerson' )->findBy( array(
-                TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
-            ) );
+            $EntityList = array_merge(
+                $this->Connection->getEntityManager()->getEntity( 'TblToPerson' )->findBy( array(
+                    TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
+                ) ),
+                $this->Connection->getEntityManager()->getEntity( 'TblToPerson' )->findBy( array(
+                    TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
+                ) )
+            );
             $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
         }
         return ( empty( $EntityList ) ? false : $EntityList );

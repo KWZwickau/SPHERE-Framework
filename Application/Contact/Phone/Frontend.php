@@ -1,7 +1,10 @@
 <?php
 namespace SPHERE\Application\Contact\Phone;
 
+use SPHERE\Application\Contact\Phone\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
+use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -12,11 +15,16 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
+use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -26,9 +34,12 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 
 /**
@@ -77,6 +88,54 @@ class Frontend implements IFrontendInterface
                                     ->appendFormButton( new Primary( 'Telefonnummer hinzufügen' ) )
                                     ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
                                 , $tblPerson, $Number, $Type
+                            )
+                        )
+                    )
+                ) ),
+            ) )
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param int    $Id
+     * @param string $Number
+     * @param array  $Type
+     *
+     * @return Stage
+     */
+    public function frontendCreateToCompany( $Id, $Number, $Type )
+    {
+
+        $Stage = new Stage( 'Telefonnummer', 'Hinzufügen' );
+        $Stage->setMessage( 'Eine Telefonnummer zur gewählten Firma hinzufügen' );
+
+        $tblCompany = Company::useService()->getCompanyById( $Id );
+
+        $Stage->setContent(
+            new Layout( array(
+                new LayoutGroup( array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel( new Building().' Firma',
+                                $tblCompany->getName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard( 'Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                    array( 'Id' => $tblCompany->getId() )
+                                )
+                            )
+                        )
+                    ),
+                ) ),
+                new LayoutGroup( array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Phone::useService()->createPhoneToCompany(
+                                $this->formNumber()
+                                    ->appendFormButton( new Primary( 'Telefonnummer hinzufügen' ) )
+                                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
+                                , $tblCompany, $Number, $Type
                             )
                         )
                     )
@@ -139,15 +198,20 @@ class Frontend implements IFrontendInterface
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        ( preg_match( '!Mobil!is', $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
-                            ? new PhoneMobil()
-                            : new PhoneIcon()
-                        )
-                        .' '.$tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
+                        ( preg_match( '!Fax!is',
+                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
+                            ? new PhoneFax()
+                            : ( preg_match( '!Mobil!is',
+                                $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
+                                ? new PhoneMobil()
+                                : new PhoneIcon()
+                            )
+                        ).' '.$tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
                         $Panel,
-                        ( preg_match( '!Notfall!is', $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
+                        ( preg_match( '!Notfall!is',
+                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
                             ? Panel::PANEL_TYPE_DANGER
-                            : Panel::PANEL_TYPE_WARNING
+                            : Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Standard(
                             '', '/People/Person/Phone/Edit', new Pencil(),
@@ -157,6 +221,144 @@ class Frontend implements IFrontendInterface
                         .new Standard(
                             '', '/People/Person/Phone/Destroy', new Remove(),
                             array( 'Id' => $tblToPerson->getId() ), 'Löschen'
+                        )
+                    )
+                    , 3 );
+            } );
+        } else {
+            $tblPhoneAll = array(
+                new LayoutColumn(
+                    new Warning( 'Keine Telefonnummern hinterlegt' )
+                )
+            );
+        }
+
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $tblPhone
+         */
+        foreach ($tblPhoneAll as $tblPhone) {
+            if ($LayoutRowCount % 4 == 0) {
+                $LayoutRow = new LayoutRow( array() );
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn( $tblPhone );
+            $LayoutRowCount++;
+        }
+
+        return new Layout( new LayoutGroup( $LayoutRowList ) );
+    }
+
+    /**
+     * @param int  $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyToPerson( $Id, $Confirm = false )
+    {
+
+        $Stage = new Stage( 'Telefonnummer', 'Löschen' );
+        if ($Id) {
+            $tblToPerson = Phone::useService()->getPhoneToPersonById( $Id );
+            $tblPerson = $tblToPerson->getServiceTblPerson();
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout( new LayoutGroup( new LayoutRow( new LayoutColumn( array(
+                        new Panel( new PersonIcon().' Person',
+                            $tblPerson->getFullName(),
+                            Panel::PANEL_TYPE_SUCCESS,
+                            new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                array( 'Id' => $tblPerson->getId() )
+                            )
+                        ),
+                        new Panel( new Question().' Diese Telefonnummer wirklich löschen?', array(
+                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
+                            $tblToPerson->getTblPhone()->getNumber(),
+                            new Muted( new Small( $tblToPerson->getRemark() ) )
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/People/Person/Phone/Destroy', new Ok(),
+                                array( 'Id' => $Id, 'Confirm' => true )
+                            )
+                            .new Standard(
+                                'Nein', '/People/Person', new Disable(),
+                                array( 'Id' => $tblPerson->getId() )
+                            )
+                        )
+                    ) ) ) ) )
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout( new LayoutGroup( array(
+                        new LayoutRow( new LayoutColumn( array(
+                            ( Phone::useService()->removePhoneToPerson( $tblToPerson )
+                                ? new Success( 'Die Telefonnummer wurde gelöscht' )
+                                : new Danger( 'Die Telefonnummer konnte nicht gelöscht werden' )
+                            ),
+                            new Redirect( '/People/Person', 1, array( 'Id' => $tblPerson->getId() ) )
+                        ) ) )
+                    ) ) )
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout( new LayoutGroup( array(
+                    new LayoutRow( new LayoutColumn( array(
+                        new Danger( 'Die Telefonnummer konnte nicht gefunden werden' ),
+                        new Redirect( '/People/Search/Group' )
+                    ) ) )
+                ) ) )
+            );
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param TblCompany $tblCompany
+     *
+     * @return Layout
+     */
+    public function frontendLayoutCompany( TblCompany $tblCompany )
+    {
+
+        $tblPhoneAll = Phone::useService()->getPhoneAllByCompany( $tblCompany );
+        if ($tblPhoneAll !== false) {
+            array_walk( $tblPhoneAll, function ( TblToCompany &$tblToCompany ) {
+
+                $Panel = array( $tblToCompany->getTblPhone()->getNumber() );
+                if ($tblToCompany->getRemark()) {
+                    array_push( $Panel, new Muted( new Small( $tblToCompany->getRemark() ) ) );
+                }
+
+                $tblToCompany = new LayoutColumn(
+                    new Panel(
+                        ( preg_match( '!Fax!is',
+                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription() )
+                            ? new PhoneFax()
+                            : ( preg_match( '!Mobil!is',
+                                $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription() )
+                                ? new PhoneMobil()
+                                : new PhoneIcon()
+                            )
+                        ).' '.$tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
+                        $Panel,
+                        ( preg_match( '!Notfall!is',
+                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription() )
+                            ? Panel::PANEL_TYPE_DANGER
+                            : Panel::PANEL_TYPE_SUCCESS
+                        ),
+                        new Standard(
+                            '', '/Corporation/Company/Phone/Edit', new Pencil(),
+                            array( 'Id' => $tblToCompany->getId() ),
+                            'Bearbeiten'
+                        )
+                        .new Standard(
+                            '', '/Corporation/Company/Phone/Destroy', new Remove(),
+                            array( 'Id' => $tblToCompany->getId() ), 'Löschen'
                         )
                     )
                     , 3 );

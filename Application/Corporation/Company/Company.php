@@ -23,7 +23,7 @@ class Company implements IApplicationInterface, IModuleInterface
         self::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Firma anlegen' ),
+            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Firma' ),
                 new Link\Icon( new Building() )
             )
         );
@@ -35,6 +35,54 @@ class Company implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendCompany'
         ) );
+
+                // Contact: Address
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Address/Create', 'SPHERE\Application\Contact\Address\Frontend::frontendCreateToCompany'
+        )
+            ->setParameterDefault( 'Street', null )
+            ->setParameterDefault( 'City', null )
+            ->setParameterDefault( 'State', null )
+            ->setParameterDefault( 'Type', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Address/Destroy', 'SPHERE\Application\Contact\Address\Frontend::frontendDestroyToCompany'
+        )
+            ->setParameterDefault( 'Id', null )
+            ->setParameterDefault( 'Confirm', false )
+        );
+        // Contact: Mail
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Mail/Create', 'SPHERE\Application\Contact\Mail\Frontend::frontendCreateToCompany'
+        )
+            ->setParameterDefault( 'Address', null )
+            ->setParameterDefault( 'Type', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Mail/Edit', 'SPHERE\Application\Contact\Mail\Frontend::frontendUpdateToCompany'
+        )
+            ->setParameterDefault( 'Address', null )
+            ->setParameterDefault( 'Type', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Mail/Destroy', 'SPHERE\Application\Contact\Mail\Frontend::frontendDestroyToCompany'
+        )
+            ->setParameterDefault( 'Id', null )
+            ->setParameterDefault( 'Confirm', false )
+        );
+        // Contact: Phone
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Phone/Create', 'SPHERE\Application\Contact\Phone\Frontend::frontendCreateToCompany'
+        )
+            ->setParameterDefault( 'Number', null )
+            ->setParameterDefault( 'Type', null )
+        );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Phone/Destroy', 'SPHERE\Application\Contact\Phone\Frontend::frontendDestroyToCompany'
+        )
+            ->setParameterDefault( 'Id', null )
+            ->setParameterDefault( 'Confirm', false )
+        );
     }
 
     /**

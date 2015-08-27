@@ -111,7 +111,7 @@ class Service implements IServiceInterface
                 $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success( 'Die Gruppe wurde erfolgreich erstellt' ).new Redirect( '/People/Group', 3 );
+                return new Success( 'Die Gruppe wurde erfolgreich erstellt' ).new Redirect( '/People/Group', 1 );
             } else {
                 return new Danger( 'Die Gruppe konnte nicht erstellt werden' ).new Redirect( '/People/Group', 10 );
             }
@@ -167,7 +167,7 @@ class Service implements IServiceInterface
             )
             ) {
                 return new Success( 'Die Änderungen wurden erfolgreich gespeichert' )
-                .new Redirect( '/People/Group', 3 );
+                .new Redirect( '/People/Group', 1 );
             } else {
                 return new Danger( 'Die Änderungen konnte nicht gespeichert werden' )
                 .new Redirect( '/People/Group', 10 );
@@ -235,5 +235,16 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->addGroupPerson( $tblGroup, $tblPerson );
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool
+     */
+    public function destroyGroup( TblGroup $tblGroup )
+    {
+
+        return ( new Data( $this->Binding ) )->destroyGroup( $tblGroup );
     }
 }

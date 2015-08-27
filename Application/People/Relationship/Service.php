@@ -5,6 +5,7 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Data;
+use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\People\Relationship\Service\Setup;
@@ -18,7 +19,6 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -99,14 +99,19 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (empty( $tblPersonTo )) {
-            $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie eine Person' ) )) ) );
+            $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie eine Person' ) ) ) ) );
             $Error = true;
+        } else {
+            $tblPersonTo = Person::useService()->getPersonById( $tblPersonTo );
+            if ( $tblPersonFrom->getId() == $tblPersonTo->getId() ) {
+                $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Eine Person kann nur mit einer anderen Person verknüpft werden' ) ) ) ) );
+                $Error = true;
+            }
         }
 
         if (!$Error) {
 
             $tblType = $this->getTypeById( $Type['Type'] );
-            $tblPersonTo = Person::useService()->getPersonById( $tblPersonTo );
 
             if (( new Data( $this->Binding ) )->addPersonRelationshipToPerson( $tblPersonFrom, $tblPersonTo, $tblType,
                 $Type['Remark'] )
@@ -139,5 +144,49 @@ class Service implements IServiceInterface
     {
 
         return ( new Data( $this->Binding ) )->getTypeAll();
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function removePersonRelationshipToPerson( TblToPerson $tblToPerson )
+    {
+
+        return ( new Data( $this->Binding ) )->removePersonRelationshipToPerson( $tblToPerson );
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function removeCompanyRelationshipToPerson( TblToCompany $tblToCompany )
+    {
+
+        return ( new Data( $this->Binding ) )->removeCompanyRelationshipToPerson( $tblToCompany );
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToPerson
+     */
+    public function getRelationshipToPersonById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getRelationshipToPersonById( $Id );
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToCompany
+     */
+    public function getRelationshipToCompanyById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getRelationshipToCompanyById( $Id );
     }
 }

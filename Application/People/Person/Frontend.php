@@ -20,6 +20,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
@@ -28,7 +29,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -69,18 +69,20 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage( 'Personen', 'Datenblatt' );
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
+        if ($tblGroupAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
 
-            $Stage->addButton(
-                new Standard(
-                    $tblGroup->getName(),
-                    new Route( '/People/Search/Group' ), null,
-                    array(                        'Id' => $tblGroup->getId()                    ),
-                    $tblGroup->getDescription()
-                )
-            );
-        }, $Stage );
+                $Stage->addButton(
+                    new Standard(
+                        $tblGroup->getName(),
+                        new Route( '/People/Search/Group' ), null,
+                        array( 'Id' => $tblGroup->getId() ),
+                        $tblGroup->getDescription()
+                    )
+                );
+            }, $Stage );
+        }
 
         if (!$Id) {
 
@@ -210,37 +212,42 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
                             Address::useFrontend()->frontendLayoutPerson( $tblPerson )
-                            .new PullRight(
-                                new Standard( 'Adresse hinzufügen', '/People/Person/Address/Create', new ChevronRight(),
-                                    array( 'Id' => $tblPerson->getId() )
-                                )
-                            )
                         ) ),
-                    ), new Title( new TagList().' Adressdaten', 'der Person' ) ),
+                    ), ( new Title( new TagList().' Adressdaten', 'der Person' ) )
+                        ->addButton(
+                            new Standard( 'Adresse hinzufügen', '/People/Person/Address/Create',
+                                new ChevronDown(), array( 'Id' => $tblPerson->getId() )
+                            )
+                        )
+                    ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
                             Phone::useFrontend()->frontendLayoutPerson( $tblPerson )
                             .Mail::useFrontend()->frontendLayoutPerson( $tblPerson )
-                            .new PullRight(
-                                new Standard( 'Telefonnummer hinzufügen', '/People/Person/Phone/Create', new ChevronRight(),
-                                    array( 'Id' => $tblPerson->getId() )
-                                )
-                                .new Standard( 'E-Mail Adresse hinzufügen', '/People/Person/Mail/Create', new ChevronRight(),
-                                    array( 'Id' => $tblPerson->getId() )
-                                )
-                            )
                         ) ),
-                    ), new Title( new TagList().' Kontaktdaten', 'der Person' ) ),
+                    ), ( new Title( new TagList().' Kontaktdaten', 'der Person' ) )
+                        ->addButton(
+                            new Standard( 'Telefonnummer hinzufügen', '/People/Person/Phone/Create',
+                                new ChevronDown(), array( 'Id' => $tblPerson->getId() )
+                            )
+                        )
+                        ->addButton(
+                            new Standard( 'E-Mail Adresse hinzufügen', '/People/Person/Mail/Create',
+                                new ChevronDown(), array( 'Id' => $tblPerson->getId() )
+                            )
+                        )
+                    ),
                     new LayoutGroup( array(
                         new LayoutRow( new LayoutColumn(
                             Relationship::useFrontend()->frontendLayoutPerson( $tblPerson )
-                            .new PullRight(
-                                new Standard( 'Beziehung hinzufügen', '/People/Person/Relationship/Create', new ChevronRight(),
-                                    array( 'Id' => $tblPerson->getId() )
-                                )
-                            )
                         ) ),
-                    ), new Title( new TagList().' Beziehungen', 'zu Personen' ) ),
+                    ), ( new Title( new TagList().' Beziehungen', 'zu Personen' ) )
+                        ->addButton(
+                            new Standard( 'Beziehung hinzufügen', '/People/Person/Relationship/Create',
+                                new ChevronDown(), array( 'Id' => $tblPerson->getId() )
+                            )
+                        )
+                    ),
                 ) )
             );
 
@@ -256,21 +263,26 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $tblGroupList = Group::useService()->getGroupAll();
-        // Sort by Name
-        usort( $tblGroupList, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
+        if ($tblGroupList) {
+            // Sort by Name
+            usort( $tblGroupList, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
 
-            return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
-        } );
-        // Create CheckBoxes
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblGroupList, function ( TblGroup &$tblGroup ) {
+                return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
+            } );
+            // Create CheckBoxes
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk( $tblGroupList, function ( TblGroup &$tblGroup ) {
 
-            $tblGroup = new CheckBox(
-                'Person[Group]['.$tblGroup->getId().']',
-                $tblGroup->getName().' '.new Muted( new Small( $tblGroup->getDescription() ) ),
-                $tblGroup->getId()
-            );
-        } );
+                $tblGroup = new CheckBox(
+                    'Person[Group]['.$tblGroup->getId().']',
+                    $tblGroup->getName().' '.new Muted( new Small( $tblGroup->getDescription() ) ),
+                    $tblGroup->getId()
+                );
+            } );
+        } else {
+            $tblGroupList = array( new Warning( 'Keine Gruppen vorhanden' ) );
+        }
+
         $tblSalutationAll = Person::useService()->getSalutationAll();
 
         return new Form(

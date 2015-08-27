@@ -46,9 +46,9 @@ class Data
 
         $Manager = $this->Connection->getEntityManager();
 
-        if( $IsLocked ) {
+        if ($IsLocked) {
             $Entity = $Manager->getEntity( 'TblGroup' )->findOneBy( array(
-                TblGroup::ATTR_IS_LOCKED => $IsLocked,
+                TblGroup::ATTR_IS_LOCKED  => $IsLocked,
                 TblGroup::ATTR_META_TABLE => $MetaTable
             ) );
         } else {
@@ -135,6 +135,20 @@ class Data
      *
      * @param TblGroup $tblGroup
      *
+     * @return int
+     */
+    public function countCompanyAllByGroup( TblGroup $tblGroup )
+    {
+
+        return $this->Connection->getEntityManager()->getEntity( 'TblMember' )->countBy( array(
+            TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
+        ) );
+    }
+
+    /**
+     *
+     * @param TblGroup $tblGroup
+     *
      * @return bool|TblCompany[]
      */
     public function getCompanyAllByGroup( TblGroup $tblGroup )
@@ -172,7 +186,7 @@ class Data
     }
 
     /**
-     * @param TblGroup     $tblGroup
+     * @param TblGroup   $tblGroup
      * @param TblCompany $tblCompany
      *
      * @return TblMember
@@ -197,7 +211,7 @@ class Data
     }
 
     /**
-     * @param TblGroup     $tblGroup
+     * @param TblGroup   $tblGroup
      * @param TblCompany $tblCompany
      *
      * @return bool
@@ -212,6 +226,25 @@ class Data
                 TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ) );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool
+     */
+    public function destroyGroup( TblGroup $tblGroup )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblMember $Entity */
+        $Entity = $Manager->getEntityById( 'TblGroup', $tblGroup->getId() );
         if (null !== $Entity) {
             Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
             $Manager->killEntity( $Entity );

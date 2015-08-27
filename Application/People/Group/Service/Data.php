@@ -237,4 +237,23 @@ class Data
         }
         return false;
     }
+
+    /**
+     * @param TblGroup $tblGroup
+     *
+     * @return bool
+     */
+    public function destroyGroup( TblGroup $tblGroup )
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblMember $Entity */
+        $Entity = $Manager->getEntityById( 'TblGroup', $tblGroup->getId() );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
 }

@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Corporation\Search;
 
-use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
@@ -47,6 +46,9 @@ class Search implements IApplicationInterface, IModuleInterface
                 new Link\Icon( new Info() )
             )
         );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'SPHERE\Application\Corporation\Corporation::frontendDashboard'
+        ) );
     }
 
     public static function registerModule()
@@ -87,12 +89,12 @@ class Search implements IApplicationInterface, IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
-    public function frontendGroup( $tblGroup = false )
+    public function frontendGroup( $Id = false )
     {
 
         $Stage = new Stage( 'Firmensuche', 'nach Firmengruppe' );
 
-        $tblGroup = Group::useService()->getGroupById( $tblGroup );
+        $tblGroup = Group::useService()->getGroupById( $Id );
 
         if ($tblGroup) {
             $Stage->setMessage(
@@ -113,7 +115,7 @@ class Search implements IApplicationInterface, IModuleInterface
                     $tblGroup->getName(),
                     new Link\Route( __NAMESPACE__.'/Group' ), null,
                     array(
-                        'tblGroup' => $tblGroup->getId()
+                        'Id' => $tblGroup->getId()
                     ), $tblGroup->getDescription() )
             );
         }, $Stage );
@@ -127,44 +129,28 @@ class Search implements IApplicationInterface, IModuleInterface
             array_walk( $tblCompanyAll, function ( TblCompany &$tblCompany ) {
 
                 $tblCompany->Option = new Standard( '', '/Corporation/Company', new Pencil(),
-                    array( 'tblCompany' => $tblCompany->getId() ), 'Bearbeiten' );
+                    array( 'Id' => $tblCompany->getId() ), 'Bearbeiten' );
             } );
 
 //            Debugger::screenDump( $tblCompanyAll );
 
-        } else {
-
-            $tblCompanyAll = Company::useService()->getCompanyAll();
-            if ($tblCompanyAll) {
-                array_walk( $tblCompanyAll, function ( TblCompany &$tblCompany ) {
-
-                    $tblCompany->Option = new Standard( '', '/Corporation/Company', new Pencil(),
-                        array( 'tblCompany' => $tblCompany->getId() ), 'Bearbeiten' );
-
-                    if ($tblCompany->fetchTblGroupAll()) {
-                        $tblCompany = false;
-                    }
-                } );
-                $tblCompanyAll = array_filter( $tblCompanyAll );
-            }
-        }
-
-        $Stage->setContent(
-            new Layout(
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
-                            new TableData( $tblCompanyAll, null,
-                                array(
-                                    'Id'     => '#',
-                                    'Name'   => 'Name',
-                                    'Option' => 'Optionen',
-                                ) )
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new TableData( $tblCompanyAll, null,
+                                    array(
+                                        'Id'     => '#',
+                                        'Name'   => 'Name',
+                                        'Option' => 'Optionen',
+                                    ) )
+                            )
                         )
                     )
                 )
-            )
-        );
+            );
+        }
 
         return $Stage;
     }

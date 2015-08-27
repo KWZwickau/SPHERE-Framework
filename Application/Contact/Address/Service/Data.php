@@ -324,6 +324,40 @@ class Data
     }
 
     /**
+     * @param integer $Id
+     *
+     * @return bool|TblToPerson
+     */
+    public function getAddressToPersonById( $Id )
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToPerson', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        }
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblToCompany
+     */
+    public function getAddressToCompanyById( $Id )
+    {
+
+        /** @var IApiInterface $Cache */
+        $Cache = ( new Cache( new Memcached() ) )->getCache();
+        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToCompany', $Id );
+            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        }
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @param TblCompany $tblCompany
      * @param TblAddress $tblAddress
      * @param TblType    $tblType
@@ -389,5 +423,41 @@ class Data
             $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
         }
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblToPerson $tblToPerson
+     *
+     * @return bool
+     */
+    public function removeAddressToPerson( TblToPerson $tblToPerson )
+    {
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblToPerson $Entity */
+        $Entity = $Manager->getEntityById( 'TblToPerson', $tblToPerson->getId() );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblToCompany $tblToCompany
+     *
+     * @return bool
+     */
+    public function removeAddressToCompany( TblToCompany $tblToCompany )
+    {
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblToCompany $Entity */
+        $Entity = $Manager->getEntityById( 'TblToCompany', $tblToCompany->getId() );
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
+            return true;
+        }
+        return false;
     }
 }

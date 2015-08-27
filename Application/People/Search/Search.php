@@ -46,6 +46,9 @@ class Search implements IApplicationInterface, IModuleInterface
                 new Link\Icon( new Info() )
             )
         );
+        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+            __NAMESPACE__, 'SPHERE\Application\People\People::frontendDashboard'
+        ) );
     }
 
     public static function registerModule()

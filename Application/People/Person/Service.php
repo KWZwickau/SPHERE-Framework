@@ -140,7 +140,7 @@ class Service implements IServiceInterface
                 }
                 return new Success( 'Die Person wurde erfolgreich erstellt' )
                 .new Redirect( '/People/Person', 1,
-                    array( 'tblPerson' => $tblPerson->getId() )
+                    array( 'Id' => $tblPerson->getId() )
                 );
             } else {
                 return new Danger( 'Die Person konnte nicht erstellt werden' )
@@ -229,7 +229,7 @@ class Service implements IServiceInterface
                 }
                 return new Success( 'Die Person wurde erfolgreich aktualisiert' )
                 .new Redirect( '/People/Person', 1,
-                    array( 'tblPerson' => $tblPerson->getId() )
+                    array( 'Id' => $tblPerson->getId() )
                 );
             } else {
                 return new Danger( 'Die Person konnte nicht aktualisiert werden' )

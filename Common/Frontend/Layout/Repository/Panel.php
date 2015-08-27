@@ -43,7 +43,7 @@ class Panel extends Extension implements ITemplateInterface
         $this->Template = $this->getTemplate( __DIR__.'/Panel.twig' );
         $this->Template->setVariable( 'Title', $Title );
         $this->Filter = $Filter;
-        $this->Content = $Content;
+        $this->Content = ( is_array( $Content ) ? array_filter( $Content ) : $Content );
         $this->Template->setVariable( 'Filter', $Filter );
         $this->Template->setVariable( 'Footer', $Footer );
         $this->Template->setVariable( 'Type', $Type );
