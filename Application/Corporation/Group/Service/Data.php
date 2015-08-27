@@ -1,9 +1,9 @@
 <?php
 namespace SPHERE\Application\Corporation\Group\Service;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 
@@ -30,6 +30,7 @@ class Data
     public function setupDatabaseContent()
     {
 
+        $this->createGroup( 'Schulen', '', '', true, 'SCHOOL' );
     }
 
     /**
@@ -132,6 +133,22 @@ class Data
     }
 
     /**
+     * @param string $MetaTable
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByMetaTable( $MetaTable )
+    {
+
+        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblGroup' )
+            ->findOneBy( array(
+                TblGroup::ATTR_META_TABLE => $MetaTable,
+                TblGroup::ATTR_IS_LOCKED  => true
+            ) );
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      *
      * @param TblGroup $tblGroup
      *
@@ -197,7 +214,7 @@ class Data
         $Manager = $this->Connection->getEntityManager();
         $Entity = $Manager->getEntity( 'TblMember' )
             ->findOneBy( array(
-                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP      => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ) );
         if (null === $Entity) {
@@ -223,7 +240,7 @@ class Data
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntity( 'TblMember' )
             ->findOneBy( array(
-                TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
+                TblMember::ATTR_TBL_GROUP      => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ) );
         if (null !== $Entity) {

@@ -1,12 +1,12 @@
 <?php
 namespace SPHERE\Application\Corporation\Group;
 
-use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Data;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
 use SPHERE\Application\Corporation\Group\Service\Setup;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -132,6 +132,17 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param string $MetaTable
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByMetaTable( $MetaTable )
+    {
+
+        return ( new Data( $this->Binding ) )->getGroupByMetaTable( $MetaTable );
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblGroup       $tblGroup
      * @param array          $Group
@@ -226,7 +237,7 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param TblGroup  $tblGroup
+     * @param TblGroup   $tblGroup
      * @param TblCompany $tblCompany
      *
      * @return TblMember

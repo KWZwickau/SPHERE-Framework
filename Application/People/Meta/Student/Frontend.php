@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -51,6 +53,11 @@ class Frontend implements IFrontendInterface
     {
 
         $Stage = new Stage();
+
+        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
+            Group::useService()->getGroupByMetaTable( 'SCHOOL' )
+        );
+        array_push( $tblCompanyAllSchool, new TblCompany() );
 
         $Stage->setContent( ( new Form( array(
             new FormGroup( array(
@@ -105,7 +112,7 @@ class Frontend implements IFrontendInterface
                             new TextField( 'Meta[Additional][Locker][Key]', 'Schlüssel Nummer', 'Schlüssel Nummer',
                                 new Key() ),
                         ), Panel::PANEL_TYPE_INFO ),
-                        ), 3 ),
+                    ), 3 ),
                     new FormColumn(
                         new Panel( 'Integration', array(
                             new CheckBox( 'Meta[Integration][CoachingRequired]', 'Förderbedarf', 1 ),
@@ -131,7 +138,9 @@ class Frontend implements IFrontendInterface
                                 'Förderbescheid SBA',
                                 new Calendar()
                             ),
-                            new SelectBox( 'Meta[Integration][3]', 'Förderschule', array(), new Education() ),
+                            new SelectBox( 'Meta[Integration][3]', 'Förderschule',
+                                array( 'Name' => $tblCompanyAllSchool ),
+                                new Education() ),
                             new SelectBox( 'Meta[Integration][3]', 'Schulbegleitung', array(), new Person() ),
                             new NumberField( 'Meta[Integration][3]', 'Stundenbedarf pro Woche',
                                 'Stundenbedarf pro Woche', new Clock() ),

@@ -55,7 +55,7 @@
             },
             resize: {
                 enabled: true,
-                max_size: [3, 3],
+                max_size: [3, 4],
                 stop: function( e, ui, $widget )
                 {
                     Storage.localStorage.set( 'ModGrid', selfApi.serialize() )

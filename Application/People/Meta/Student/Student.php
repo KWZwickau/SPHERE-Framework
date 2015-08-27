@@ -5,6 +5,11 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Student
+ *
+ * @package SPHERE\Application\People\Meta\Student
+ */
 class Student implements IModuleInterface
 {
 

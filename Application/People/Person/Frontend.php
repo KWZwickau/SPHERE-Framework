@@ -13,6 +13,7 @@ use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -292,7 +293,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel( 'Anrede', array(
                             new SelectBox( 'Person[Salutation]', 'Anrede', array( 'Salutation' => $tblSalutationAll ),
                                 new Conversation() ),
-                            new TextField( 'Person[Title]', 'Titel', 'Titel', new Conversation() ),
+                            new AutoCompleter( 'Person[Title]', 'Titel', 'Titel', array( 'Dipl.- Ing.' ) , new Conversation() ),
                         ), Panel::PANEL_TYPE_INFO ), 4 ),
                     new FormColumn(
                         new Panel( 'Name', array(

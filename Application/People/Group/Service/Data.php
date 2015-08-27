@@ -136,6 +136,22 @@ class Data
     }
 
     /**
+     * @param string $MetaTable
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByMetaTable( $MetaTable )
+    {
+
+        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblGroup' )
+            ->findOneBy( array(
+                TblGroup::ATTR_META_TABLE => $MetaTable,
+                TblGroup::ATTR_IS_LOCKED => true
+            ) );
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      *
      * @param TblGroup $tblGroup
      *
