@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
@@ -39,6 +40,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -68,6 +70,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage( 'Personen', 'Datenblatt' );
+        $Stage->setMessage( new Danger( new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.' ) );
 
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {

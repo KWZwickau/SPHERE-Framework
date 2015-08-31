@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People;
 
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -8,7 +9,18 @@ use SPHERE\Application\People\Meta\Meta;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
+use SPHERE\Common\Frontend\Layout\Repository\Badge;
+use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -44,7 +56,18 @@ class People implements IClusterInterface
         if( $tblGroupAll ) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
-                $tblGroupAll[$tblGroup->getName()] = $tblGroup->getName().': '.Group::useService()->countPersonAllByGroup( $tblGroup );
+                $tblGroupAll[$tblGroup->getName()] =
+                    new Layout( new LayoutGroup( new LayoutRow( array(
+                        new LayoutColumn(
+                            $tblGroup->getName()
+                            , 5 ),
+                        new LayoutColumn(
+                            new Muted( new Small( Group::useService()->countPersonAllByGroup( $tblGroup ).'&nbsp;Mitglieder' ) )
+                            , 4 ),
+                        new LayoutColumn(
+                            new Standard( '', '/People/Search/Group', new \SPHERE\Common\Frontend\Icon\Repository\Person(), array( 'Id'=> $tblGroup->getId() ), 'zur Gruppe' )
+                            , 3 )
+                    ) ) ) );
                 $tblGroupAll[$Index] = false;
             }
             $tblGroupAll = array_filter( $tblGroupAll );

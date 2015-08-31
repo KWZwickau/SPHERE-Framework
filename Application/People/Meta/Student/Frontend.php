@@ -91,15 +91,6 @@ class Frontend implements IFrontendInterface
                             new TextArea( 'Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
                         ), Panel::PANEL_TYPE_INFO ), 3 ),
                     new FormColumn( array(
-                        new Panel( 'Erlaubnis zur Nutzung des Schüler-Fotos', array(
-                            new CheckBox( 'Meta[PicturePermission][Internal]', 'Schulschriften', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][External]', 'Veröffentlichungen', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Internet]', 'Internetpräsenz', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Facebook]', 'Facebookseite', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Press]', 'Druckpresse', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Multimedia]', 'Ton/Video/Film', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Promotion]', 'Werbung in eigener Sache', 1 ),
-                        ), Panel::PANEL_TYPE_INFO ),
                         new Panel( 'Sonstiges', array(
                             new DatePicker( 'Meta[Additional][BaptismDate]', 'Taufdatum', 'Taufdatum',
                                 new TempleChurch()
@@ -113,8 +104,21 @@ class Frontend implements IFrontendInterface
                                 new Key() ),
                         ), Panel::PANEL_TYPE_INFO ),
                     ), 3 ),
+                    new FormColumn( array(
+                        new Panel( 'Erlaubnis zur Nutzung des Schüler-Fotos', array(
+                            new CheckBox( 'Meta[PicturePermission][Internal]', 'Schulschriften', 1 ),
+                            new CheckBox( 'Meta[PicturePermission][External]', 'Veröffentlichungen', 1 ),
+                            new CheckBox( 'Meta[PicturePermission][Internet]', 'Internetpräsenz', 1 ),
+                            new CheckBox( 'Meta[PicturePermission][Facebook]', 'Facebookseite', 1 ),
+                            new CheckBox( 'Meta[PicturePermission][Press]', 'Druckpresse', 1 ),
+                            new CheckBox( 'Meta[PicturePermission][Multimedia]', 'Ton/Video/Film', 1 ),
+                            new CheckBox( 'Meta[PicturePermission][Promotion]', 'Werbung in eigener Sache', 1 ),
+                        ), Panel::PANEL_TYPE_INFO ),
+                    ), 3 ),
+                ) ),
+                new FormRow( array(
                     new FormColumn(
-                        new Panel( 'Integration', array(
+                        new Panel( 'Integration 1', array(
                             new CheckBox( 'Meta[Integration][CoachingRequired]', 'Förderbedarf', 1 ),
                             new Aspect( 'Förderschwerpunkte:' ),
                             new CheckBox( 'Meta[Integration][PracticeModule][1]', 'Schwerpunkt A', 1 ),
@@ -126,6 +130,9 @@ class Frontend implements IFrontendInterface
                             new CheckBox( 'Meta[Integration][Disorder][3]', 'Störung C', 1 ),
                             new CheckBox( 'Meta[Integration][Disorder][4]', 'Störung D', 1 ),
                             new CheckBox( 'Meta[Integration][Disorder][5]', 'Störung E', 1 ),
+                        ), Panel::PANEL_TYPE_INFO ), 4 ),
+                    new FormColumn(
+                        new Panel( 'Integration 2', array(
                             new DatePicker( 'Meta[Integration][CoachingCounselDate]', 'Förderantrag Beratung',
                                 'Förderantrag Beratung',
                                 new Calendar()
@@ -137,7 +144,10 @@ class Frontend implements IFrontendInterface
                             new DatePicker( 'Meta[Integration][CoachingDecisionDate]', 'Förderbescheid SBA',
                                 'Förderbescheid SBA',
                                 new Calendar()
-                            ),
+                            )
+                        ), Panel::PANEL_TYPE_INFO ), 4 ),
+                    new FormColumn(
+                        new Panel( 'Integration 3', array(
                             new SelectBox( 'Meta[Integration][3]', 'Förderschule',
                                 array( 'Name' => $tblCompanyAllSchool ),
                                 new Education() ),
@@ -147,7 +157,7 @@ class Frontend implements IFrontendInterface
                             new SelectBox( 'Meta[Integration][3]', 'Behandelnder Arzt', array(), new Stethoscope() ),
                             new TextArea( 'Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
 
-                        ), Panel::PANEL_TYPE_INFO ), 3 ),
+                        ), Panel::PANEL_TYPE_INFO ), 4 ),
                 ) ),
             ),
                 new Title( 'Termine' )
