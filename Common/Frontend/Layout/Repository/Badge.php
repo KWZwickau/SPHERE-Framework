@@ -29,7 +29,7 @@ class Badge extends Extension implements ITemplateInterface
      * @param string $Content
      * @param string $Type
      */
-    public function __construct( $Content, $Type = Badge::BADGE_TYPE_DEFAULT )
+    public function __construct($Content, $Type = Badge::BADGE_TYPE_DEFAULT)
     {
 
         $this->Content = $Content;

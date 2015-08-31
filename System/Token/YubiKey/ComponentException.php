@@ -16,10 +16,10 @@ class ComponentException extends \Exception
      * @param int       $Code
      * @param Exception $Previous
      */
-    public function __construct( $Message = "", $Code = 0, Exception $Previous = null )
+    public function __construct($Message = "", $Code = 0, Exception $Previous = null)
     {
 
-        parent::__construct( $Message, $Code, $Previous );
+        parent::__construct($Message, $Code, $Previous);
     }
 
 }

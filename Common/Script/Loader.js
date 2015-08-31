@@ -3,12 +3,12 @@ var Client = (function()
     'use strict';
     var useDelay = 5;
     var useConfig = {};
-    var setModule = function( Module, Depending )
+    var setModule = function(Module, Depending)
     {
         useConfig[Module] = {
             Depending: Depending,
             Source: window.location.pathname.slice(
-                0, window.location.pathname.search( '/' )
+                0, window.location.pathname.search('/')
             ) + '/Common/Script/' + Module + '.js',
             /**
              * @return {boolean}
@@ -20,18 +20,18 @@ var Client = (function()
             isUsed: false,
             isLoaded: false,
             Retry: 0,
-            isReady: function( Callback )
+            isReady: function(Callback)
             {
                 var dependingModule, dependingSize = this.Depending.length - 1;
                 for (dependingSize; 0 <= dependingSize; dependingSize--) {
                     dependingModule = this.Depending[dependingSize];
                     if (useConfig[dependingModule].Test()) {
                         if (!useConfig[dependingModule].isReady()) {
-                            loadModule( dependingModule );
+                            loadModule(dependingModule);
                             return false;
                         }
                     } else {
-                        loadModule( dependingModule );
+                        loadModule(dependingModule);
                         return false;
                     }
                 }
@@ -40,17 +40,17 @@ var Client = (function()
                     return true;
                 }
                 if ('undefined' !== typeof Callback) {
-                    loadModule( Module, Callback );
+                    loadModule(Module, Callback);
                 }
                 return false;
             }
         };
     };
-    var setSource = function( Module, Source, Test )
+    var setSource = function(Module, Source, Test)
     {
-        defineSource( Module, [], Source, Test );
+        defineSource(Module, [], Source, Test);
     };
-    var defineSource = function( Module, Depending, Source, Test )
+    var defineSource = function(Module, Depending, Source, Test)
     {
         useConfig[Module] = {
             Depending: Depending,
@@ -59,7 +59,7 @@ var Client = (function()
             isUsed: false,
             isLoaded: false,
             Retry: 0,
-            isReady: function( Callback )
+            isReady: function(Callback)
             {
                 var dependingModule;
                 var dependingSize = this.Depending.length - 1;
@@ -67,11 +67,11 @@ var Client = (function()
                     dependingModule = this.Depending[dependingSize];
                     if (useConfig[dependingModule].Test()) {
                         if (!useConfig[dependingModule].isReady()) {
-                            loadModule( dependingModule );
+                            loadModule(dependingModule);
                             return false;
                         }
                     } else {
-                        loadModule( dependingModule );
+                        loadModule(dependingModule);
                         return false;
                     }
                 }
@@ -80,47 +80,47 @@ var Client = (function()
                     return true;
                 } else {
                     if ('undefined' !== typeof Callback) {
-                        loadModule( Module, Callback );
+                        loadModule(Module, Callback);
                     }
                     return false;
                 }
             }
         };
     };
-    var loadScript = function( Source )
+    var loadScript = function(Source)
     {
-        var htmlElement = document.createElement( "script" );
+        var htmlElement = document.createElement("script");
         htmlElement.src = Source;
-        document.body.appendChild( htmlElement );
+        document.body.appendChild(htmlElement);
     };
-    var loadModule = function( Module )
+    var loadModule = function(Module)
     {
         if (!useConfig[Module].isUsed) {
-            loadScript( useConfig[Module].Source );
+            loadScript(useConfig[Module].Source);
             useConfig[Module].isUsed = true;
         }
     };
-    var waitModule = function( Module, Callback )
+    var waitModule = function(Module, Callback)
     {
-        if (useConfig[Module].isReady( Callback )) {
+        if (useConfig[Module].isReady(Callback)) {
             return Callback();
         } else {
             if (1000 < useConfig[Module].Retry) {
                 if (console && console.log) {
-                    console.log( 'Unable to load ' + Module )
+                    console.log('Unable to load ' + Module)
                 }
                 return false;
             } else {
                 useConfig[Module].Retry++;
             }
-            window.setTimeout( function()
+            window.setTimeout(function()
             {
-                waitModule( Module, Callback );
-            }, useDelay );
+                waitModule(Module, Callback);
+            }, useDelay);
         }
         return null;
     };
-    var setUse = function setUse( Module, Callback )
+    var setUse = function setUse(Module, Callback)
     {
         if ('function' !== typeof Callback) {
             //noinspection AssignmentToFunctionParameterJS
@@ -128,7 +128,7 @@ var Client = (function()
             {
             };
         }
-        return waitModule( Module, Callback );
+        return waitModule(Module, Callback);
     };
     return {
         Module: setModule,

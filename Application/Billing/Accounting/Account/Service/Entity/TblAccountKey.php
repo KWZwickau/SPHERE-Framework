@@ -54,7 +54,7 @@ class TblAccountKey extends Element
     /**
      * @param \DateTime $ValidFrom
      */
-    public function setValidFrom( $ValidFrom )
+    public function setValidFrom($ValidFrom)
     {
 
         $this->ValidFrom = $ValidFrom;
@@ -72,7 +72,7 @@ class TblAccountKey extends Element
     /**
      * @param string $Value
      */
-    public function setValue( $Value )
+    public function setValue($Value)
     {
 
         $this->Value = $Value;
@@ -90,7 +90,7 @@ class TblAccountKey extends Element
     /**
      * @param \DateTime $ValidTo
      */
-    public function setValidTo( $ValidTo )
+    public function setValidTo($ValidTo)
     {
 
         $this->ValidTo = $ValidTo;
@@ -108,7 +108,7 @@ class TblAccountKey extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;
@@ -126,7 +126,7 @@ class TblAccountKey extends Element
     /**
      * @param integer $Code
      */
-    public function setCode( $Code )
+    public function setCode($Code)
     {
 
         $this->Code = $Code;
@@ -138,17 +138,17 @@ class TblAccountKey extends Element
     public function getTableAccountKey()
     {
 
-        if ( null === $this->tblAccountKeyType ) {
+        if (null === $this->tblAccountKeyType) {
             return false;
         } else {
-            return Account::useService()->entityAccountKeyTypeById( $this->tblAccountKeyType );
+            return Account::useService()->entityAccountKeyTypeById($this->tblAccountKeyType);
         }
     }
 
     /**
      * @param bool|TblAccountKeyType $tblAccountKeyType
      */
-    public function setTableAccountKeyType( TblAccountKeyType $tblAccountKeyType = null )
+    public function setTableAccountKeyType(TblAccountKeyType $tblAccountKeyType = null)
     {
 
         $this->tblAccountKeyType = ( null === $tblAccountKeyType ? null : $tblAccountKeyType->getId() );

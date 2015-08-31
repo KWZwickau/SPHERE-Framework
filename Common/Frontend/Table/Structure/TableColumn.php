@@ -24,18 +24,18 @@ class TableColumn extends Extension implements ITemplateInterface
      * @param int    $Size
      * @param string $Width
      */
-    public function __construct( $Content, $Size = 1, $Width = 'auto' )
+    public function __construct($Content, $Size = 1, $Width = 'auto')
     {
 
-        if (is_object( $Content ) && $Content instanceof \DateTime) {
-            $Content = $Content->format( 'd.m.Y H:i:s' );
+        if (is_object($Content) && $Content instanceof \DateTime) {
+            $Content = $Content->format('d.m.Y H:i:s');
         }
         /**
          * Remove "small" from child tables
          */
         $Content = preg_replace(
             '!<table(.*?)class="(.*?)\ssmall"(.*?)>!is',
-            '<table${1}class="${2}"${3}>', $Content );
+            '<table${1}class="${2}"${3}>', $Content);
         $this->Content = $Content;
         $this->Size = $Size;
         $this->Width = $Width;

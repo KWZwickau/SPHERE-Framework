@@ -48,14 +48,14 @@ class TblToPerson extends Element
         if (null === $this->serviceTblPersonFrom) {
             return false;
         } else {
-            return Person::useService()->getPersonById( $this->serviceTblPersonFrom );
+            return Person::useService()->getPersonById($this->serviceTblPersonFrom);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServiceTblPersonFrom( TblPerson $tblPerson = null )
+    public function setServiceTblPersonFrom(TblPerson $tblPerson = null)
     {
 
         $this->serviceTblPersonFrom = ( null === $tblPerson ? null : $tblPerson->getId() );
@@ -70,14 +70,14 @@ class TblToPerson extends Element
         if (null === $this->serviceTblPersonTo) {
             return false;
         } else {
-            return Person::useService()->getPersonById( $this->serviceTblPersonTo );
+            return Person::useService()->getPersonById($this->serviceTblPersonTo);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServiceTblPersonTo( TblPerson $tblPerson = null )
+    public function setServiceTblPersonTo(TblPerson $tblPerson = null)
     {
 
         $this->serviceTblPersonTo = ( null === $tblPerson ? null : $tblPerson->getId() );
@@ -95,7 +95,7 @@ class TblToPerson extends Element
     /**
      * @param string $Remark
      */
-    public function setRemark( $Remark )
+    public function setRemark($Remark)
     {
 
         $this->Remark = $Remark;
@@ -110,14 +110,14 @@ class TblToPerson extends Element
         if (null === $this->tblType) {
             return false;
         } else {
-            return Relationship::useService()->getTypeById( $this->tblType );
+            return Relationship::useService()->getTypeById($this->tblType);
         }
     }
 
     /**
      * @param null|TblType $tblType
      */
-    public function setTblType( TblType $tblType = null )
+    public function setTblType(TblType $tblType = null)
     {
 
         $this->tblType = ( null === $tblType ? null : $tblType->getId() );

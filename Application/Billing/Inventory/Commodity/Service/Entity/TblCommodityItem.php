@@ -44,11 +44,11 @@ class TblCommodityItem extends Element
         $tblItem = $this->getTblItem();
         $quantity = $this->getQuantity();
         $result = 0.00;
-        if ( $tblItem && $tblItem->getPrice() > 0 && $quantity > 0 ) {
-            $result = sprintf( "%01.4f", $tblItem->getPrice() * $quantity );
+        if ($tblItem && $tblItem->getPrice() > 0 && $quantity > 0) {
+            $result = sprintf("%01.4f", $tblItem->getPrice() * $quantity);
         }
 
-        return str_replace( '.', ',', $result )." €";
+        return str_replace('.', ',', $result)." €";
     }
 
     /**
@@ -63,7 +63,7 @@ class TblCommodityItem extends Element
     /**
      * @param (type="decimal", precision=14, scale=4) $Quantity
      */
-    public function setQuantity( $Quantity )
+    public function setQuantity($Quantity)
     {
 
         $this->Quantity = $Quantity;
@@ -75,17 +75,17 @@ class TblCommodityItem extends Element
     public function getTblCommodity()
     {
 
-        if ( null === $this->tblCommodity ) {
+        if (null === $this->tblCommodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById( $this->tblCommodity );
+            return Commodity::useService()->entityCommodityById($this->tblCommodity);
         }
     }
 
     /**
      * @param null|TblCommodity $tblCommodity
      */
-    public function setTblCommodity( TblCommodity $tblCommodity = null )
+    public function setTblCommodity(TblCommodity $tblCommodity = null)
     {
 
         $this->tblCommodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
@@ -97,17 +97,17 @@ class TblCommodityItem extends Element
     public function getTblItem()
     {
 
-        if ( null === $this->tblItem ) {
+        if (null === $this->tblItem) {
             return false;
         } else {
-            return Item::useService()->entityItemById( $this->tblItem );
+            return Item::useService()->entityItemById($this->tblItem);
         }
     }
 
     /**
      * @param null|TblItem $tblItem
      */
-    public function setTblItem( TblItem $tblItem = null )
+    public function setTblItem(TblItem $tblItem = null)
     {
 
         $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );

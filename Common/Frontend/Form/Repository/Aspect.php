@@ -21,7 +21,7 @@ class Aspect extends Extension implements ITemplateInterface
      * @param string $Title
      * @param string $Description
      */
-    public function __construct( $Title, $Description = '' )
+    public function __construct($Title, $Description = '')
     {
 
         $this->Title = $Title;

@@ -1,48 +1,48 @@
-(function( $ )
+(function($)
 {
     'use strict';
     $.fn.ModAlways = function()
     {
-        $( document ).ready( function()
+        $(document).ready(function()
         {
             /**
              * Autocomplete Attribute OFF
              */
-            $( 'form' ).attr( 'autocomplete', 'off' );
-            $( 'input[type="password"]' ).attr( 'autocomplete', 'off' );
-            $( 'input[type="text"]' ).attr( 'autocomplete', 'off' );
-            $( 'input[type="number"]' ).attr( 'autocomplete', 'off' );
+            $('form').attr('autocomplete', 'off');
+            $('input[type="password"]').attr('autocomplete', 'off');
+            $('input[type="text"]').attr('autocomplete', 'off');
+            $('input[type="number"]').attr('autocomplete', 'off');
 
             //noinspection FunctionWithInconsistentReturnsJS
             /**
              * Page-Leave Confirmation-Handler
              * @file ModAlways.js, ModForm.js
              */
-            $( window ).on( 'beforeunload', function()
+            $(window).on('beforeunload', function()
             {
-                var closingEvent = $.Event( 'browser:page:unload' );
+                var closingEvent = $.Event('browser:page:unload');
                 // let other modules determine whether to prevent closing
-                $( window ).trigger( closingEvent );
+                $(window).trigger(closingEvent);
                 if (closingEvent.isDefaultPrevented()) {
                     // closingEvent.message is optional
                     return closingEvent.message || 'Warnung: Die Daten wurden noch nicht gespeichert.';
                 }
-            } );
+            });
 
             /**
              * Activate: Tooltip
              */
-            $( '[data-toggle="tooltip"]' ).tooltip( {
+            $('[data-toggle="tooltip"]').tooltip({
                 container: 'body',
                 placement: 'auto top'
-            } );
+            });
             /**
              * Activate: External Link
              */
-            $( 'a[rel="external"]' ).attr( 'target', '_blank' );
-        } );
+            $('a[rel="external"]').attr('target', '_blank');
+        });
         return this;
 
     };
 
-}( jQuery ));
+}(jQuery));

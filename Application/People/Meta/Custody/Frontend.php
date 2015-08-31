@@ -5,7 +5,6 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
-use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -31,33 +30,33 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendMeta( TblPerson $tblPerson = null, $Meta = array() )
+    public function frontendMeta(TblPerson $tblPerson = null, $Meta = array())
     {
 
         $Stage = new Stage();
 
-        $Stage->setContent( ( new Form( array(
-            new FormGroup( array(
-                new FormRow( array(
+        $Stage->setContent((new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
                     new FormColumn(
-                        new Panel( 'Berufliches', array(
-                            new AutoCompleter( 'Meta[Occupation]', 'Beruf', 'Beruf',
+                        new Panel('Berufliches', array(
+                            new AutoCompleter('Meta[Occupation]', 'Beruf', 'Beruf',
                                 array(), new MapMarker()
                             ),
-                            new AutoCompleter( 'Meta[Employment]', 'Arbeitsstelle', 'Arbeitsstelle',
+                            new AutoCompleter('Meta[Employment]', 'Arbeitsstelle', 'Arbeitsstelle',
                                 array(), new Nameplate()
                             ),
                         ), Panel::PANEL_TYPE_INFO
-                        ), 6 ),
+                        ), 6),
                     new FormColumn(
-                        new Panel( 'Sonstiges', array(
-                            new TextArea( 'Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
+                        new Panel('Sonstiges', array(
+                            new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
                         ), Panel::PANEL_TYPE_INFO
-                        ), 6 ),
-                ) ),
-            ) ),
-        ), new Primary( 'Informationen speichern' ) )
-        )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert.' ) );
+                        ), 6),
+                )),
+            )),
+        ), new Primary('Informationen speichern'))
+        )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'));
 
         return $Stage;
     }

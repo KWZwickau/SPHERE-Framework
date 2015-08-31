@@ -13,7 +13,6 @@ use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -49,123 +48,155 @@ class Frontend implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendMeta( TblPerson $tblPerson = null, $Meta = array() )
+    public function frontendMeta(TblPerson $tblPerson = null, $Meta = array())
     {
 
         $Stage = new Stage();
 
         $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
-            Group::useService()->getGroupByMetaTable( 'SCHOOL' )
+            Group::useService()->getGroupByMetaTable('SCHOOL')
         );
-        array_push( $tblCompanyAllSchool, new TblCompany() );
+        array_push($tblCompanyAllSchool, new TblCompany());
 
-        $Stage->setContent( ( new Form( array(
-            new FormGroup( array(
-                new FormRow( array(
+        $Stage->setContent((new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
                     new FormColumn(
-                        new Panel( new Hospital().' Krankenakte', array(
-                            new TextArea( 'Meta[MedicalRecord][Disease]', 'Krankheiten / Allergien',
-                                'Krankheiten / Allergien', new Heart() ),
-                            new TextArea( 'Meta[MedicalRecord][Medication]', 'Mediakamente', 'Mediakamente',
-                                new Medicine() ),
-                            new SelectBox( 'Meta[MedicalRecord][AttendingDoctor]', 'Behandelnder Arzt', array(),
-                                new Stethoscope() ),
-                            new SelectBox( 'Meta[MedicalRecord][InsuranceState]', 'Versicherungsstatus', array(
+                        new Panel(new Hospital().' Krankenakte', array(
+                            new TextArea('Meta[MedicalRecord][Disease]', 'Krankheiten / Allergien',
+                                'Krankheiten / Allergien', new Heart()),
+                            new TextArea('Meta[MedicalRecord][Medication]', 'Mediakamente', 'Mediakamente',
+                                new Medicine()),
+                            new SelectBox('Meta[MedicalRecord][AttendingDoctor]', 'Behandelnder Arzt', array(),
+                                new Stethoscope()),
+                            new SelectBox('Meta[MedicalRecord][InsuranceState]', 'Versicherungsstatus', array(
                                 0 => '',
                                 1 => 'Pflicht',
                                 2 => 'Freiwillig',
                                 3 => 'Privat',
                                 4 => 'Familie Vater',
                                 5 => 'Familie Mutter',
-                            ), new Lock() ),
-                            new AutoCompleter( 'Meta[MedicalRecord][Insurance]', 'Krankenkasse', 'Krankenkasse',
-                                array(), new Shield() ),
-                        ), Panel::PANEL_TYPE_DANGER ), 3 ),
+                            ), new Lock()),
+                            new AutoCompleter('Meta[MedicalRecord][Insurance]', 'Krankenkasse', 'Krankenkasse',
+                                array(), new Shield()),
+                        ), Panel::PANEL_TYPE_DANGER), 3),
                     new FormColumn(
-                        new Panel( 'Schulbeförderung', array(
-                            new TextField( 'Meta[Transport][Route]', 'Buslinie', 'Buslinie', new Bus() ),
-                            new TextField( 'Meta[Transport][Station][Entrance]', 'Einstiegshaltestelle',
-                                'Einstiegshaltestelle', new StopSign() ),
-                            new TextField( 'Meta[Transport][Station][Exit]', 'Ausstiegshaltestelle',
-                                'Ausstiegshaltestelle', new StopSign() ),
-                            new TextArea( 'Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
-                        ), Panel::PANEL_TYPE_INFO ), 3 ),
-                    new FormColumn( array(
-                        new Panel( 'Sonstiges', array(
-                            new DatePicker( 'Meta[Additional][BaptismDate]', 'Taufdatum', 'Taufdatum',
+                        new Panel('Schulbeförderung', array(
+                            new TextField('Meta[Transport][Route]', 'Buslinie', 'Buslinie', new Bus()),
+                            new TextField('Meta[Transport][Station][Entrance]', 'Einstiegshaltestelle',
+                                'Einstiegshaltestelle', new StopSign()),
+                            new TextField('Meta[Transport][Station][Exit]', 'Ausstiegshaltestelle',
+                                'Ausstiegshaltestelle', new StopSign()),
+                            new TextArea('Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        ), Panel::PANEL_TYPE_INFO), 3),
+                    new FormColumn(array(
+                        new Panel('Sonstiges', array(
+                            new DatePicker('Meta[Additional][BaptismDate]', 'Taufdatum', 'Taufdatum',
                                 new TempleChurch()
                             ),
-                            new TextField( 'Meta[Additional][BaptismLocation]', 'Taufort', 'Taufort', new MapMarker() ),
-                            new TextField( 'Meta[Additional][Locker][Number]', 'Schließfachnummer', 'Schließfachnummer',
-                                new Lock() ),
-                            new TextField( 'Meta[Additional][Locker][Location]', 'Schließfach Standort',
-                                'Schließfach Standort', new MapMarker() ),
-                            new TextField( 'Meta[Additional][Locker][Key]', 'Schlüssel Nummer', 'Schlüssel Nummer',
-                                new Key() ),
-                        ), Panel::PANEL_TYPE_INFO ),
-                    ), 3 ),
-                    new FormColumn( array(
-                        new Panel( 'Erlaubnis zur Nutzung des Schüler-Fotos', array(
-                            new CheckBox( 'Meta[PicturePermission][Internal]', 'Schulschriften', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][External]', 'Veröffentlichungen', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Internet]', 'Internetpräsenz', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Facebook]', 'Facebookseite', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Press]', 'Druckpresse', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Multimedia]', 'Ton/Video/Film', 1 ),
-                            new CheckBox( 'Meta[PicturePermission][Promotion]', 'Werbung in eigener Sache', 1 ),
-                        ), Panel::PANEL_TYPE_INFO ),
-                    ), 3 ),
-                ) ),
-                new FormRow( array(
+                            new TextField('Meta[Additional][BaptismLocation]', 'Taufort', 'Taufort', new MapMarker()),
+                            new TextField('Meta[Additional][Locker][Number]', 'Schließfachnummer', 'Schließfachnummer',
+                                new Lock()),
+                            new TextField('Meta[Additional][Locker][Location]', 'Schließfach Standort',
+                                'Schließfach Standort', new MapMarker()),
+                            new TextField('Meta[Additional][Locker][Key]', 'Schlüssel Nummer', 'Schlüssel Nummer',
+                                new Key()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 3),
+                    new FormColumn(array(
+                        new Panel('Erlaubnis zur Nutzung des Schüler-Fotos', array(
+                            new CheckBox('Meta[PicturePermission][Internal]', 'Schulschriften', 1),
+                            new CheckBox('Meta[PicturePermission][External]', 'Veröffentlichungen', 1),
+                            new CheckBox('Meta[PicturePermission][Internet]', 'Internetpräsenz', 1),
+                            new CheckBox('Meta[PicturePermission][Facebook]', 'Facebookseite', 1),
+                            new CheckBox('Meta[PicturePermission][Press]', 'Druckpresse', 1),
+                            new CheckBox('Meta[PicturePermission][Multimedia]', 'Ton/Video/Film', 1),
+                            new CheckBox('Meta[PicturePermission][Promotion]', 'Werbung in eigener Sache', 1),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 3),
+                )),
+                new FormRow(array(
                     new FormColumn(
-                        new Panel( 'Integration 1', array(
-                            new CheckBox( 'Meta[Integration][CoachingRequired]', 'Förderbedarf', 1 ),
-                            new Aspect( 'Förderschwerpunkte:' ),
-                            new CheckBox( 'Meta[Integration][PracticeModule][1]', 'Schwerpunkt A', 1 ),
-                            new CheckBox( 'Meta[Integration][PracticeModule][2]', 'Schwerpunkt B', 1 ),
-                            new CheckBox( 'Meta[Integration][PracticeModule][3]', 'Schwerpunkt C', 1 ),
-                            new Aspect( 'Teilleistungsstörungen:' ),
-                            new CheckBox( 'Meta[Integration][Disorder][1]', 'Störung A', 1 ),
-                            new CheckBox( 'Meta[Integration][Disorder][2]', 'Störung B', 1 ),
-                            new CheckBox( 'Meta[Integration][Disorder][3]', 'Störung C', 1 ),
-                            new CheckBox( 'Meta[Integration][Disorder][4]', 'Störung D', 1 ),
-                            new CheckBox( 'Meta[Integration][Disorder][5]', 'Störung E', 1 ),
-                        ), Panel::PANEL_TYPE_INFO ), 4 ),
+                        new Panel('Integration 1', array(
+                            new CheckBox('Meta[Integration][CoachingRequired]', 'Förderbedarf', 1),
+                            new Aspect('Förderschwerpunkte:'),
+                            new CheckBox('Meta[Integration][PracticeModule][1]', 'Schwerpunkt A', 1),
+                            new CheckBox('Meta[Integration][PracticeModule][2]', 'Schwerpunkt B', 1),
+                            new CheckBox('Meta[Integration][PracticeModule][3]', 'Schwerpunkt C', 1),
+                            new Aspect('Teilleistungsstörungen:'),
+                            new CheckBox('Meta[Integration][Disorder][1]', 'Störung A', 1),
+                            new CheckBox('Meta[Integration][Disorder][2]', 'Störung B', 1),
+                            new CheckBox('Meta[Integration][Disorder][3]', 'Störung C', 1),
+                            new CheckBox('Meta[Integration][Disorder][4]', 'Störung D', 1),
+                            new CheckBox('Meta[Integration][Disorder][5]', 'Störung E', 1),
+                        ), Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
-                        new Panel( 'Integration 2', array(
-                            new DatePicker( 'Meta[Integration][CoachingCounselDate]', 'Förderantrag Beratung',
+                        new Panel('Integration 2', array(
+                            new DatePicker('Meta[Integration][CoachingCounselDate]', 'Förderantrag Beratung',
                                 'Förderantrag Beratung',
                                 new Calendar()
                             ),
-                            new DatePicker( 'Meta[Integration][CoachingRequestDate]', 'Förderantrag',
+                            new DatePicker('Meta[Integration][CoachingRequestDate]', 'Förderantrag',
                                 'Förderantrag',
                                 new Calendar()
                             ),
-                            new DatePicker( 'Meta[Integration][CoachingDecisionDate]', 'Förderbescheid SBA',
+                            new DatePicker('Meta[Integration][CoachingDecisionDate]', 'Förderbescheid SBA',
                                 'Förderbescheid SBA',
                                 new Calendar()
                             )
-                        ), Panel::PANEL_TYPE_INFO ), 4 ),
+                        ), Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
-                        new Panel( 'Integration 3', array(
-                            new SelectBox( 'Meta[Integration][3]', 'Förderschule',
-                                array( 'Name' => $tblCompanyAllSchool ),
-                                new Education() ),
-                            new SelectBox( 'Meta[Integration][3]', 'Schulbegleitung', array(), new Person() ),
-                            new NumberField( 'Meta[Integration][3]', 'Stundenbedarf pro Woche',
-                                'Stundenbedarf pro Woche', new Clock() ),
-                            new SelectBox( 'Meta[Integration][3]', 'Behandelnder Arzt', array(), new Stethoscope() ),
-                            new TextArea( 'Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() ),
+                        new Panel('Integration 3', array(
+                            new SelectBox('Meta[Integration][3]', 'Förderschule',
+                                array('Name' => $tblCompanyAllSchool),
+                                new Education()),
+                            new SelectBox('Meta[Integration][3]', 'Schulbegleitung', array(), new Person()),
+                            new NumberField('Meta[Integration][3]', 'Stundenbedarf pro Woche',
+                                'Stundenbedarf pro Woche', new Clock()),
+                            new TextArea('Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
 
-                        ), Panel::PANEL_TYPE_INFO ), 4 ),
-                ) ),
-            ),
-                new Title( 'Termine' )
-            ),
+                        ), Panel::PANEL_TYPE_INFO), 4),
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Panel('Ersteinschulung', array(
+                            new SelectBox('Meta[Transfer][1]', 'Schule',
+                                array('Name' => $tblCompanyAllSchool)),
+                            new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
+                            new TextArea('Meta[Transfer][1]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
+                        new Panel('Schülertransfer - Aufnahme', array(
+                            new SelectBox('Meta[Transfer][0]', 'Letzte Schulart', array()),
+                            new SelectBox('Meta[Transfer][1]', 'Abgebende Schule',
+                                array('Name' => $tblCompanyAllSchool)),
+                            new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
+                        new Panel('Schülertransfer - Aufnahme', array(
+                            new SelectBox('Meta[Transfer][0]', 'Letzte Schulart', array()),
+                            new SelectBox('Meta[Transfer][1]', 'Abgebende Schule',
+                                array('Name' => $tblCompanyAllSchool)),
+                            new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                )),
+                new FormRow(array(
+
+                    new FormColumn(array(
+                        new Panel('Schülertransfer - Schulverlauf', array(
+                            new TextArea('Meta[Transfer][1]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ) ),
+                )),
+
+            )),
         ),
-            new Primary( 'Informationen speichern' )
+            new Primary('Informationen speichern')
         )
-        )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert.' ) );
+        )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'));
 
         return $Stage;
     }

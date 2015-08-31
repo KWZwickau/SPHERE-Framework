@@ -3,8 +3,6 @@ namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\Common\Frontend\Text\Repository\Muted;
-use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -37,16 +35,16 @@ class Panel extends Extension implements ITemplateInterface
      * @param null|string  $Footer
      * @param bool         $Filter
      */
-    public function __construct( $Title, $Content, $Type = Panel::PANEL_TYPE_DEFAULT, $Footer = null, $Filter = false )
+    public function __construct($Title, $Content, $Type = Panel::PANEL_TYPE_DEFAULT, $Footer = null, $Filter = false)
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/Panel.twig' );
-        $this->Template->setVariable( 'Title', $Title );
+        $this->Template = $this->getTemplate(__DIR__.'/Panel.twig');
+        $this->Template->setVariable('Title', $Title);
         $this->Filter = $Filter;
-        $this->Content = ( is_array( $Content ) ? array_filter( $Content ) : $Content );
-        $this->Template->setVariable( 'Filter', $Filter );
-        $this->Template->setVariable( 'Footer', $Footer );
-        $this->Template->setVariable( 'Type', $Type );
+        $this->Content = ( is_array($Content) ? array_filter($Content) : $Content );
+        $this->Template->setVariable('Filter', $Filter);
+        $this->Template->setVariable('Footer', $Footer);
+        $this->Template->setVariable('Type', $Type);
     }
 
     /**
@@ -55,7 +53,7 @@ class Panel extends Extension implements ITemplateInterface
     public function getElementList()
     {
 
-        if (!is_array( $this->Content ) && is_string( $this->Content )) {
+        if (!is_array($this->Content) && is_string($this->Content)) {
             return (array)$this->Content;
         } else {
             return $this->Content;
@@ -77,26 +75,26 @@ class Panel extends Extension implements ITemplateInterface
     public function getContent()
     {
 
-        if (is_array( $this->Content )) {
+        if (is_array($this->Content)) {
             if ($this->Filter) {
-                $this->Template->setVariable( 'Hash', $this->getHash() );
-                if (!is_numeric( $this->Filter )) {
+                $this->Template->setVariable('Hash', $this->getHash());
+                if (!is_numeric($this->Filter)) {
                     $this->Filter = 50;
                 }
-                $this->Template->setVariable( 'FilterSize', $this->Filter );
-                array_unshift( $this->Content,
+                $this->Template->setVariable('FilterSize', $this->Filter);
+                array_unshift($this->Content,
                     '<input type="text" class="form-control search" name="PanelSearch" placeholder="Filtern">'
-                    .( $this->Filter < count( $this->Content )
-                        ? new PullRight( new Label( $this->Filter.' von '.count( $this->Content ).' Einträgen' ) )
-                        : new PullRight( new Label( count( $this->Content ).' Einträge' ) )
+                    .( $this->Filter < count($this->Content)
+                        ? new PullRight(new Label($this->Filter.' von '.count($this->Content).' Einträgen'))
+                        : new PullRight(new Label(count($this->Content).' Einträge'))
                     )
                 );
             }
-            $this->Template->setVariable( 'Content', array_shift( $this->Content ) );
-            $this->Template->setVariable( 'ContentList', $this->Content );
+            $this->Template->setVariable('Content', array_shift($this->Content));
+            $this->Template->setVariable('ContentList', $this->Content);
         } else {
-            $this->Template->setVariable( 'Content', $this->Content );
-            $this->Template->setVariable( 'ContentList', array() );
+            $this->Template->setVariable('Content', $this->Content);
+            $this->Template->setVariable('ContentList', array());
         }
         return $this->Template->getContent();
     }
@@ -109,13 +107,13 @@ class Panel extends Extension implements ITemplateInterface
 
         if (empty( $this->Hash )) {
             $Content = $this->Content;
-            array_walk( $Content, function ( &$G ) {
+            array_walk($Content, function (&$G) {
 
-                if (is_object( $G )) {
-                    $G = serialize( $G );
+                if (is_object($G)) {
+                    $G = serialize($G);
                 }
-            } );
-            $this->Hash = sha1( json_encode( $Content ) );
+            });
+            $this->Hash = sha1(json_encode($Content));
         }
         return $this->Hash;
     }
@@ -126,6 +124,6 @@ class Panel extends Extension implements ITemplateInterface
     public function getName()
     {
 
-        return sha1( print_r( $this->Content, true ) );
+        return sha1(print_r($this->Content, true));
     }
 }

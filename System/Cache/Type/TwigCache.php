@@ -19,7 +19,7 @@ class TwigCache implements ITypeInterface
     public function clearCache()
     {
 
-        $E = new \Twig_Environment( null, array( 'cache' => realpath( __DIR__.self::$Cache ) ) );
+        $E = new \Twig_Environment(null, array('cache' => realpath(__DIR__.self::$Cache)));
         $E->clearCacheFiles();
         $E->clearTemplateCache();
     }
@@ -75,7 +75,7 @@ class TwigCache implements ITypeInterface
     public function getAvailableSize()
     {
 
-        return ( disk_total_space( __DIR__ ) );
+        return ( disk_total_space(__DIR__) );
     }
 
     /**
@@ -84,7 +84,7 @@ class TwigCache implements ITypeInterface
     public function getFreeSize()
     {
 
-        return ( disk_free_space( __DIR__ ) );
+        return ( disk_free_space(__DIR__) );
     }
 
     /**
@@ -94,10 +94,10 @@ class TwigCache implements ITypeInterface
     {
 
         $Total = 0;
-        $Path = realpath( __DIR__.self::$Cache );
+        $Path = realpath(__DIR__.self::$Cache);
         if ($Path !== false) {
-            foreach (new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( $Path,
-                \FilesystemIterator::SKIP_DOTS ) ) as $Object) {
+            foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($Path,
+                \FilesystemIterator::SKIP_DOTS)) as $Object) {
                 $Total += $Object->getSize() * 1024;
             }
         }
@@ -116,7 +116,7 @@ class TwigCache implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
     }

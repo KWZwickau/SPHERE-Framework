@@ -46,7 +46,7 @@ abstract class Element extends Extension
     {
 
         if (empty( $this->EntityCreate )) {
-            $this->EntityCreate = new \DateTime( "now" );
+            $this->EntityCreate = new \DateTime("now");
         }
     }
 
@@ -56,7 +56,7 @@ abstract class Element extends Extension
     final public function lifecycleUpdate()
     {
 
-        $this->EntityUpdate = new \DateTime( "now" );
+        $this->EntityUpdate = new \DateTime("now");
     }
 
     /**
@@ -71,7 +71,7 @@ abstract class Element extends Extension
     /**
      * @param integer $Id
      */
-    final public function setId( $Id )
+    final public function setId($Id)
     {
 
         $this->Id = $Id;
@@ -83,15 +83,15 @@ abstract class Element extends Extension
     final public function __toArray()
     {
 
-        $Array = get_object_vars( $this );
-        array_walk( $Array, function ( &$V ) {
+        $Array = get_object_vars($this);
+        array_walk($Array, function (&$V) {
 
-            if (is_object( $V )) {
+            if (is_object($V)) {
                 if ($V instanceof \DateTime) {
-                    $V = $V->format( 'd.m.Y H:i:s' );
+                    $V = $V->format('d.m.Y H:i:s');
                 }
             }
-        } );
+        });
 
         return $Array;
     }

@@ -23,27 +23,27 @@ class Debugger
     {
 
         if (!self::$Timestamp) {
-            self::$Timestamp = microtime( true );
+            self::$Timestamp = microtime(true);
         }
         if (!self::$TimeGap) {
-            self::$TimeGap = microtime( true );
+            self::$TimeGap = microtime(true);
         }
     }
 
     /**
      * @param $__METHOD__
      */
-    final public static function addMethodCall( $__METHOD__ )
+    final public static function addMethodCall($__METHOD__)
     {
 
-        self::addProtocol( self::splitNamespace( $__METHOD__ ) );
+        self::addProtocol(self::splitNamespace($__METHOD__));
     }
 
     /**
      * @param string $Message
      * @param string $Icon
      */
-    final public static function addProtocol( $Message, $Icon = 'time' )
+    final public static function addProtocol($Message, $Icon = 'time')
     {
 
         $TimeGap = self::getTimeGap() - self::$TimeGap;
@@ -76,7 +76,7 @@ class Debugger
     final public static function getTimeGap()
     {
 
-        return ( microtime( true ) - self::$Timestamp );
+        return ( microtime(true) - self::$Timestamp );
     }
 
     /**
@@ -85,7 +85,7 @@ class Debugger
     final public static function getRuntime()
     {
 
-        return round( self::getTimeGap() * 1000, 0 ).'ms';
+        return round(self::getTimeGap() * 1000, 0).'ms';
     }
 
     /**
@@ -93,20 +93,20 @@ class Debugger
      *
      * @return string
      */
-    final private static function splitNamespace( $Value )
+    final private static function splitNamespace($Value)
     {
 
-        return str_replace( array( '\\', '/' ), array( '\\&shy;', '/&shy;' ), $Value );
+        return str_replace(array('\\', '/'), array('\\&shy;', '/&shy;'), $Value);
     }
 
     /**
      * @param $__FILE__
      * @param $__LINE__
      */
-    final public static function addFileLine( $__FILE__, $__LINE__ )
+    final public static function addFileLine($__FILE__, $__LINE__)
     {
 
-        self::addProtocol( $__FILE__.' : '.$__LINE__, 'file' );
+        self::addProtocol($__FILE__.' : '.$__LINE__, 'file');
     }
 
     /**
@@ -116,10 +116,10 @@ class Debugger
     {
 
         if (!empty( self::$Protocol )) {
-            self::addProtocol( 'Done #'.count( self::$Protocol ) );
+            self::addProtocol('Done #'.count(self::$Protocol));
         }
-        krsort( self::$Protocol );
-        return implode( '', self::$Protocol );
+        krsort(self::$Protocol);
+        return implode('', self::$Protocol);
     }
 
     /**
@@ -127,13 +127,13 @@ class Debugger
      *
      * @param mixed $Content
      */
-    final public static function screenDump( $Content )
+    final public static function screenDump($Content)
     {
 
         print '<pre>';
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
-            var_dump( $Dump );
+            var_dump($Dump);
         }
         print '</pre>';
     }
@@ -143,14 +143,14 @@ class Debugger
      *
      * @param mixed $Content
      */
-    final public static function protocolDump( $Content )
+    final public static function protocolDump($Content)
     {
 
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
             ob_start();
-            var_dump( $Dump );
-            self::addProtocol( ob_get_clean() );
+            var_dump($Dump);
+            self::addProtocol(ob_get_clean());
         }
     }
 }

@@ -22,7 +22,7 @@ class OpCache implements ITypeInterface
     public function clearCache()
     {
 
-        if (function_exists( 'opcache_reset' )) {
+        if (function_exists('opcache_reset')) {
             opcache_reset();
         }
     }
@@ -32,6 +32,7 @@ class OpCache implements ITypeInterface
      */
     public function needConfiguration()
     {
+
         return true;
     }
 
@@ -40,7 +41,8 @@ class OpCache implements ITypeInterface
      */
     public function isAvailable()
     {
-        if (function_exists( 'opcache_reset' )) {
+
+        if (function_exists('opcache_reset')) {
             return true;
         }
         return false;
@@ -130,13 +132,13 @@ class OpCache implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
-        if (function_exists( 'opcache_get_status' )) {
+        if (function_exists('opcache_get_status')) {
             $this->Status = opcache_get_status();
         }
-        if (function_exists( 'opcache_get_configuration' )) {
+        if (function_exists('opcache_get_configuration')) {
             $this->Config = opcache_get_configuration();
         }
     }

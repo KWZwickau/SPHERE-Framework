@@ -56,7 +56,7 @@ class TblAddress extends Element
     /**
      * @param string $StreetName
      */
-    public function setStreetName( $StreetName )
+    public function setStreetName($StreetName)
     {
 
         $this->StreetName = $StreetName;
@@ -74,7 +74,7 @@ class TblAddress extends Element
     /**
      * @param string $StreetNumber
      */
-    public function setStreetNumber( $StreetNumber )
+    public function setStreetNumber($StreetNumber)
     {
 
         $this->StreetNumber = $StreetNumber;
@@ -92,7 +92,7 @@ class TblAddress extends Element
     /**
      * @param string $PostOfficeBox
      */
-    public function setPostOfficeBox( $PostOfficeBox )
+    public function setPostOfficeBox($PostOfficeBox)
     {
 
         $this->PostOfficeBox = $PostOfficeBox;
@@ -107,14 +107,14 @@ class TblAddress extends Element
         if (null === $this->tblCity) {
             return false;
         } else {
-            return Address::useService()->getCityById( $this->tblCity );
+            return Address::useService()->getCityById($this->tblCity);
         }
     }
 
     /**
      * @param null|TblCity $tblCity
      */
-    public function setTblCity( TblCity $tblCity = null )
+    public function setTblCity(TblCity $tblCity = null)
     {
 
         $this->tblCity = ( null === $tblCity ? null : $tblCity->getId() );
@@ -129,14 +129,14 @@ class TblAddress extends Element
         if (null === $this->tblState) {
             return false;
         } else {
-            return Address::useService()->getStateById( $this->tblState );
+            return Address::useService()->getStateById($this->tblState);
         }
     }
 
     /**
      * @param null|TblState $tblState
      */
-    public function setTblState( TblState $tblState = null )
+    public function setTblState(TblState $tblState = null)
     {
 
         $this->tblState = ( null === $tblState ? null : $tblState->getId() );
@@ -148,6 +148,6 @@ class TblAddress extends Element
     public function getLayout()
     {
 
-        return new LayoutAddress( $this );
+        return new LayoutAddress($this);
     }
 }

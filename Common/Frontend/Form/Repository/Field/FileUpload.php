@@ -35,16 +35,16 @@ class FileUpload extends Field implements IFieldInterface
     ) {
 
         $this->Name = $Name;
-        $this->Template = $this->getTemplate( __DIR__.'/FileUpload.twig' );
-        $this->Template->setVariable( 'ElementName', $Name );
-        $this->Template->setVariable( 'ElementLabel', $Label );
-        $this->Template->setVariable( 'ElementPlaceholder', $Placeholder );
+        $this->Template = $this->getTemplate(__DIR__.'/FileUpload.twig');
+        $this->Template->setVariable('ElementName', $Name);
+        $this->Template->setVariable('ElementLabel', $Label);
+        $this->Template->setVariable('ElementPlaceholder', $Placeholder);
         if (null !== $Icon) {
-            $this->Template->setVariable( 'ElementIcon', $Icon );
+            $this->Template->setVariable('ElementIcon', $Icon);
         }
-        $this->setPostValue( $this->Template, $Name, 'ElementValue' );
-        if (is_array( $Option )) {
-            $this->Template->setVariable( 'ElementOption', json_encode( $Option ) );
+        $this->setPostValue($this->Template, $Name, 'ElementValue');
+        if (is_array($Option)) {
+            $this->Template->setVariable('ElementOption', json_encode($Option));
         }
     }
 

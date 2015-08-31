@@ -68,7 +68,7 @@ class TblProtocol extends Element
     /**
      * @param string $ProtocolDatabase
      */
-    public function setProtocolDatabase( $ProtocolDatabase )
+    public function setProtocolDatabase($ProtocolDatabase)
     {
 
         $this->ProtocolDatabase = $ProtocolDatabase;
@@ -86,7 +86,7 @@ class TblProtocol extends Element
     /**
      * @param integer $ProtocolTimestamp
      */
-    public function setProtocolTimestamp( $ProtocolTimestamp )
+    public function setProtocolTimestamp($ProtocolTimestamp)
     {
 
         $this->ProtocolTimestamp = $ProtocolTimestamp;
@@ -101,14 +101,14 @@ class TblProtocol extends Element
         if (null === $this->serviceTblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById( $this->serviceTblAccount );
+            return Account::useService()->getAccountById($this->serviceTblAccount);
         }
     }
 
     /**
      * @param null|\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount $tblAccount
      */
-    public function setServiceTblAccount( TblAccount $tblAccount = null )
+    public function setServiceTblAccount(TblAccount $tblAccount = null)
     {
 
         $this->serviceTblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
@@ -126,7 +126,7 @@ class TblProtocol extends Element
     /**
      * @param string $AccountUsername
      */
-    public function setAccountUsername( $AccountUsername )
+    public function setAccountUsername($AccountUsername)
     {
 
         $this->AccountUsername = $AccountUsername;
@@ -141,7 +141,7 @@ class TblProtocol extends Element
         if (null === $this->serviceTblConsumer) {
             return false;
         } else {
-            return Consumer::useService()->getConsumerById( $this->serviceTblConsumer );
+            return Consumer::useService()->getConsumerById($this->serviceTblConsumer);
         }
     }
 
@@ -167,7 +167,7 @@ class TblProtocol extends Element
     /**
      * @param string $ConsumerName
      */
-    public function setConsumerName( $ConsumerName )
+    public function setConsumerName($ConsumerName)
     {
 
         $this->ConsumerName = $ConsumerName;
@@ -185,7 +185,7 @@ class TblProtocol extends Element
     /**
      * @param string $ConsumerAcronym
      */
-    public function setConsumerAcronym( $ConsumerAcronym )
+    public function setConsumerAcronym($ConsumerAcronym)
     {
 
         $this->ConsumerAcronym = $ConsumerAcronym;
@@ -203,7 +203,7 @@ class TblProtocol extends Element
     /**
      * @param string $EntityFrom
      */
-    public function setEntityFrom( $EntityFrom )
+    public function setEntityFrom($EntityFrom)
     {
 
         $this->EntityFrom = $EntityFrom;
@@ -221,7 +221,7 @@ class TblProtocol extends Element
     /**
      * @param string $EntityTo
      */
-    public function setEntityTo( $EntityTo )
+    public function setEntityTo($EntityTo)
     {
 
         $this->EntityTo = $EntityTo;

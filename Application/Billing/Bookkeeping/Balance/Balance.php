@@ -29,12 +29,12 @@ class Balance implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendBalance'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Payment',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Payment',
                 __NAMESPACE__.'\Frontend::frontendPayment'
             )
         );
@@ -46,7 +46,8 @@ class Balance implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Billing', 'Bookkeeping', 'Balance', null, Consumer::useService()->getConsumerBySession() ),
+        return new Service(new Identifier('Billing', 'Bookkeeping', 'Balance', null,
+            Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

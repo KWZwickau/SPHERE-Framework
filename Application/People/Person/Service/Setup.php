@@ -19,7 +19,7 @@ class Setup
     /**
      * @param Structure $Connection
      */
-    function __construct( Structure $Connection )
+    function __construct(Structure $Connection)
     {
 
         $this->Connection = $Connection;
@@ -30,21 +30,21 @@ class Setup
      *
      * @return string
      */
-    public function setupDatabaseSchema( $Simulate = true )
+    public function setupDatabaseSchema($Simulate = true)
     {
 
         /**
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $tblSalutation = $this->setTableSalutation( $Schema );
-        $this->setTablePerson( $Schema, $tblSalutation );
+        $tblSalutation = $this->setTableSalutation($Schema);
+        $this->setTablePerson($Schema, $tblSalutation);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol( __CLASS__ );
-        $this->Connection->setMigration( $Schema, $Simulate );
-        return $this->Connection->getProtocol( $Simulate );
+        $this->Connection->addProtocol(__CLASS__);
+        $this->Connection->setMigration($Schema, $Simulate);
+        return $this->Connection->getProtocol($Simulate);
     }
 
     /**
@@ -52,15 +52,15 @@ class Setup
      *
      * @return Table
      */
-    private function setTableSalutation( Schema &$Schema )
+    private function setTableSalutation(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblSalutation' );
-        if (!$this->Connection->hasColumn( 'tblSalutation', 'Salutation' )) {
-            $Table->addColumn( 'Salutation', 'string' );
+        $Table = $this->Connection->createTable($Schema, 'tblSalutation');
+        if (!$this->Connection->hasColumn('tblSalutation', 'Salutation')) {
+            $Table->addColumn('Salutation', 'string');
         }
-        if (!$this->Connection->hasColumn( 'tblSalutation', 'IsLocked' )) {
-            $Table->addColumn( 'IsLocked', 'boolean' );
+        if (!$this->Connection->hasColumn('tblSalutation', 'IsLocked')) {
+            $Table->addColumn('IsLocked', 'boolean');
         }
         return $Table;
     }
@@ -71,23 +71,23 @@ class Setup
      *
      * @return Table
      */
-    private function setTablePerson( Schema &$Schema, Table $tblSalutation )
+    private function setTablePerson(Schema &$Schema, Table $tblSalutation)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblPerson' );
-        if (!$this->Connection->hasColumn( 'tblPerson', 'Title' )) {
-            $Table->addColumn( 'Title', 'string' );
+        $Table = $this->Connection->createTable($Schema, 'tblPerson');
+        if (!$this->Connection->hasColumn('tblPerson', 'Title')) {
+            $Table->addColumn('Title', 'string');
         }
-        if (!$this->Connection->hasColumn( 'tblPerson', 'FirstName' )) {
-            $Table->addColumn( 'FirstName', 'string' );
+        if (!$this->Connection->hasColumn('tblPerson', 'FirstName')) {
+            $Table->addColumn('FirstName', 'string');
         }
-        if (!$this->Connection->hasColumn( 'tblPerson', 'SecondName' )) {
-            $Table->addColumn( 'SecondName', 'string' );
+        if (!$this->Connection->hasColumn('tblPerson', 'SecondName')) {
+            $Table->addColumn('SecondName', 'string');
         }
-        if (!$this->Connection->hasColumn( 'tblPerson', 'LastName' )) {
-            $Table->addColumn( 'LastName', 'string' );
+        if (!$this->Connection->hasColumn('tblPerson', 'LastName')) {
+            $Table->addColumn('LastName', 'string');
         }
-        $this->Connection->addForeignKey( $Table, $tblSalutation );
+        $this->Connection->addForeignKey($Table, $tblSalutation);
         return $Table;
     }
 }

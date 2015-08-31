@@ -1,4 +1,4 @@
-(function( $ )
+(function($)
 {
     'use strict';
     $.fn.ModCheckBox = function(
@@ -17,4 +17,4 @@
 
     };
 
-}( jQuery ));
+}(jQuery));

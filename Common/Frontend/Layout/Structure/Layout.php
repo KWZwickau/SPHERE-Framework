@@ -21,14 +21,14 @@ class Layout extends Extension implements ILayoutInterface
     /**
      * @param LayoutGroup|LayoutGroup[] $LayoutGroup
      */
-    public function __construct( $LayoutGroup )
+    public function __construct($LayoutGroup)
     {
 
-        if (!is_array( $LayoutGroup )) {
-            $LayoutGroup = array( $LayoutGroup );
+        if (!is_array($LayoutGroup)) {
+            $LayoutGroup = array($LayoutGroup);
         }
         $this->LayoutGroup = $LayoutGroup;
-        $this->Template = $this->getTemplate( __DIR__.'/Layout.twig' );
+        $this->Template = $this->getTemplate(__DIR__.'/Layout.twig');
     }
 
     /**
@@ -46,7 +46,7 @@ class Layout extends Extension implements ILayoutInterface
     public function getContent()
     {
 
-        $this->Template->setVariable( 'Layout', $this->LayoutGroup );
+        $this->Template->setVariable('Layout', $this->LayoutGroup);
         return $this->Template->getContent();
     }
 }

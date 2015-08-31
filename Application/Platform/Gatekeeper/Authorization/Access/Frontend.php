@@ -48,21 +48,25 @@ class Frontend
     public function frontendWelcome()
     {
 
-        $Stage = new Stage( 'Rechteverwaltung' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Rechteverwaltung');
+        $this->menuButton($Stage);
         return $Stage;
     }
 
     /**
      * @param Stage $Stage
      */
-    private function menuButton( Stage $Stage )
+    private function menuButton(Stage $Stage)
     {
 
-        $Stage->addButton( new Standard( 'Rollen', new Link\Route( __NAMESPACE__.'/Role' ), new TagList(), array(), 'Zusammenstellung von Berechtigungen' ) );
-        $Stage->addButton( new Standard( 'Zugriffslevel', new Link\Route( __NAMESPACE__.'/Level' ), new Tag(), array(), 'Gruppen von Privilegien' ) );
-        $Stage->addButton( new Standard( 'Privilegien', new Link\Route( __NAMESPACE__.'/Privilege' ), new TileBig(), array(), 'Gruppen von Rechten' ) );
-        $Stage->addButton( new Standard( 'Rechte', new Link\Route( __NAMESPACE__.'/Right' ), new TileList(), array(), 'Geschützte Routen' ) );
+        $Stage->addButton(new Standard('Rollen', new Link\Route(__NAMESPACE__.'/Role'), new TagList(), array(),
+            'Zusammenstellung von Berechtigungen'));
+        $Stage->addButton(new Standard('Zugriffslevel', new Link\Route(__NAMESPACE__.'/Level'), new Tag(), array(),
+            'Gruppen von Privilegien'));
+        $Stage->addButton(new Standard('Privilegien', new Link\Route(__NAMESPACE__.'/Privilege'), new TileBig(),
+            array(), 'Gruppen von Rechten'));
+        $Stage->addButton(new Standard('Rechte', new Link\Route(__NAMESPACE__.'/Right'), new TileList(), array(),
+            'Geschützte Routen'));
     }
 
     /**
@@ -70,52 +74,52 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendLevel( $Name )
+    public function frontendLevel($Name)
     {
 
-        $Stage = new Stage( 'Berechtigungen', 'Zugriffslevel' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Berechtigungen', 'Zugriffslevel');
+        $this->menuButton($Stage);
         $tblLevelAll = Access::useService()->getLevelAll();
-        array_walk( $tblLevelAll, function ( TblLevel &$tblLevel ) {
+        array_walk($tblLevelAll, function (TblLevel &$tblLevel) {
 
-            $tblPrivilege = Access::useService()->getPrivilegeAllByLevel( $tblLevel );
+            $tblPrivilege = Access::useService()->getPrivilegeAllByLevel($tblLevel);
             if (empty( $tblPrivilege )) {
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblLevel->Option = new Warning( 'Keine Privilegien vergeben' )
-                    .new PullRight( new Danger( 'Privilegien hinzufügen',
+                $tblLevel->Option = new Warning('Keine Privilegien vergeben')
+                    .new PullRight(new Danger('Privilegien hinzufügen',
                         '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
-                        null, array( 'Id' => $tblLevel->getId() )
-                    ) );
+                        null, array('Id' => $tblLevel->getId())
+                    ));
             } else {
-                array_walk( $tblPrivilege, function ( TblPrivilege &$tblPrivilege ) {
+                array_walk($tblPrivilege, function (TblPrivilege &$tblPrivilege) {
 
                     $tblPrivilege = $tblPrivilege->getName();
-                } );
-                array_unshift( $tblPrivilege, '' );
+                });
+                array_unshift($tblPrivilege, '');
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblLevel->Option = new Panel( 'Privilegien', $tblPrivilege )
-                    .new PullRight( new Danger( 'Privilegien bearbeiten',
+                $tblLevel->Option = new Panel('Privilegien', $tblPrivilege)
+                    .new PullRight(new Danger('Privilegien bearbeiten',
                         '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
-                        null, array( 'Id' => $tblLevel->getId() )
-                    ) );
+                        null, array('Id' => $tblLevel->getId())
+                    ));
             }
-        } );
+        });
         $Stage->setContent(
             ( $tblLevelAll
-                ? new TableData( $tblLevelAll, new Title( 'Bestehende Zugriffslevel' ), array(
+                ? new TableData($tblLevelAll, new Title('Bestehende Zugriffslevel'), array(
                     'Name'   => 'Name',
                     'Option' => 'Optionen'
-                ) )
-                : new Warning( 'Keine Zugriffslevel vorhanden' )
+                ))
+                : new Warning('Keine Zugriffslevel vorhanden')
             )
             .Access::useService()->createLevel(
-                new Form( new FormGroup(
+                new Form(new FormGroup(
                         new FormRow(
                             new FormColumn(
-                                new TextField( 'Name', 'Name', 'Name' )
+                                new TextField('Name', 'Name', 'Name')
                             )
-                        ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Zugriffslevel anlegen' ) )
-                    , new Primary( 'Hinzufügen' )
+                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Zugriffslevel anlegen'))
+                    , new Primary('Hinzufügen')
                 ), $Name
             )
         );
@@ -127,52 +131,52 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendPrivilege( $Name )
+    public function frontendPrivilege($Name)
     {
 
-        $Stage = new Stage( 'Berechtigungen', 'Privilegien' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Berechtigungen', 'Privilegien');
+        $this->menuButton($Stage);
         $tblPrivilegeAll = Access::useService()->getPrivilegeAll();
-        array_walk( $tblPrivilegeAll, function ( TblPrivilege &$tblPrivilege ) {
+        array_walk($tblPrivilegeAll, function (TblPrivilege &$tblPrivilege) {
 
-            $tblRight = Access::useService()->getRightAllByPrivilege( $tblPrivilege );
+            $tblRight = Access::useService()->getRightAllByPrivilege($tblPrivilege);
             if (empty( $tblRight )) {
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblPrivilege->Option = new Warning( 'Keine Rechte vergeben' )
-                    .new PullRight( new Danger( 'Rechte hinzufügen',
+                $tblPrivilege->Option = new Warning('Keine Rechte vergeben')
+                    .new PullRight(new Danger('Rechte hinzufügen',
                         '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
-                        null, array( 'Id' => $tblPrivilege->getId() )
-                    ) );
+                        null, array('Id' => $tblPrivilege->getId())
+                    ));
             } else {
-                array_walk( $tblRight, function ( TblRight &$tblRight ) {
+                array_walk($tblRight, function (TblRight &$tblRight) {
 
                     $tblRight = $tblRight->getRoute();
-                } );
-                array_unshift( $tblRight, '' );
+                });
+                array_unshift($tblRight, '');
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblPrivilege->Option = new Panel( 'Rechte (Routen)', $tblRight )
-                    .new PullRight( new Danger( 'Rechte bearbeiten',
+                $tblPrivilege->Option = new Panel('Rechte (Routen)', $tblRight)
+                    .new PullRight(new Danger('Rechte bearbeiten',
                         '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
-                        null, array( 'Id' => $tblPrivilege->getId() )
-                    ) );
+                        null, array('Id' => $tblPrivilege->getId())
+                    ));
             }
-        } );
+        });
         $Stage->setContent(
             ( $tblPrivilegeAll
-                ? new TableData( $tblPrivilegeAll, new Title( 'Bestehende Privilegien' ), array(
+                ? new TableData($tblPrivilegeAll, new Title('Bestehende Privilegien'), array(
                     'Name'   => 'Name',
                     'Option' => 'Optionen'
-                ) )
-                : new Warning( 'Keine Privilegien vorhanden' )
+                ))
+                : new Warning('Keine Privilegien vorhanden')
             )
             .Access::useService()->createPrivilege(
-                new Form( new FormGroup(
+                new Form(new FormGroup(
                         new FormRow(
                             new FormColumn(
-                                new TextField( 'Name', 'Name', 'Name' )
+                                new TextField('Name', 'Name', 'Name')
                             )
-                        ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Privileg anlegen' ) )
-                    , new Primary( 'Hinzufügen' )
+                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Privileg anlegen'))
+                    , new Primary('Hinzufügen')
                 ), $Name
             )
         );
@@ -184,28 +188,28 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendRight( $Name )
+    public function frontendRight($Name)
     {
 
-        $Stage = new Stage( 'Berechtigungen', 'Rechte' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Berechtigungen', 'Rechte');
+        $this->menuButton($Stage);
         $tblRightAll = Access::useService()->getRightAll();
         $Stage->setContent(
             ( $tblRightAll
-                ? new TableData( $tblRightAll, new Title( 'Bestehende Rechte', 'Routen' ), array(
+                ? new TableData($tblRightAll, new Title('Bestehende Rechte', 'Routen'), array(
                     'Route' => 'Name'
-                ) )
-                : new Warning( 'Keine Routen vorhanden' )
+                ))
+                : new Warning('Keine Routen vorhanden')
             )
             .Access::useService()->createRight(
                 new Form(
                     new FormGroup(
                         new FormRow(
                             new FormColumn(
-                                new TextField( 'Name', 'Name', 'Name' )
+                                new TextField('Name', 'Name', 'Name')
                             )
-                        ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Recht anlegen', 'Route' ) )
-                    , new Primary( 'Hinzufügen' )
+                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Recht anlegen', 'Route'))
+                    , new Primary('Hinzufügen')
                 ), $Name
             )
         );
@@ -217,53 +221,53 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendRole( $Name )
+    public function frontendRole($Name)
     {
 
-        $Stage = new Stage( 'Berechtigungen', 'Rollen' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Berechtigungen', 'Rollen');
+        $this->menuButton($Stage);
         $tblRoleAll = Access::useService()->getRoleAll();
-        array_walk( $tblRoleAll, function ( TblRole &$tblRole ) {
+        array_walk($tblRoleAll, function (TblRole &$tblRole) {
 
-            $tblLevel = Access::useService()->getLevelAllByRole( $tblRole );
+            $tblLevel = Access::useService()->getLevelAllByRole($tblRole);
 
             if (empty( $tblLevel )) {
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblRole->Option = new Warning( 'Keine Zugriffslevel vergeben' )
-                    .new PullRight( new Danger( 'Zugriffslevel hinzufügen',
+                $tblRole->Option = new Warning('Keine Zugriffslevel vergeben')
+                    .new PullRight(new Danger('Zugriffslevel hinzufügen',
                         '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
-                        null, array( 'Id' => $tblRole->getId() )
-                    ) );
+                        null, array('Id' => $tblRole->getId())
+                    ));
             } else {
-                array_walk( $tblLevel, function ( TblLevel &$tblLevel ) {
+                array_walk($tblLevel, function (TblLevel &$tblLevel) {
 
                     $tblLevel = $tblLevel->getName();
-                } );
-                array_unshift( $tblLevel, '' );
+                });
+                array_unshift($tblLevel, '');
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblRole->Option = new Panel( 'Zugriffslevel', $tblLevel )
-                    .new PullRight( new Danger( 'Zugriffslevel bearbeiten',
+                $tblRole->Option = new Panel('Zugriffslevel', $tblLevel)
+                    .new PullRight(new Danger('Zugriffslevel bearbeiten',
                         '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
-                        null, array( 'Id' => $tblRole->getId() )
-                    ) );
+                        null, array('Id' => $tblRole->getId())
+                    ));
             }
-        } );
+        });
         $Stage->setContent(
             ( $tblRoleAll
-                ? new TableData( $tblRoleAll, new Title( 'Bestehende Rollen' ), array(
+                ? new TableData($tblRoleAll, new Title('Bestehende Rollen'), array(
                     'Name'   => 'Name',
                     'Option' => 'Optionen'
-                ) )
-                : new Warning( 'Keine Rollen vorhanden' )
+                ))
+                : new Warning('Keine Rollen vorhanden')
             )
             .Access::useService()->createRole(
-                new Form( new FormGroup(
+                new Form(new FormGroup(
                         new FormRow(
                             new FormColumn(
-                                new TextField( 'Name', 'Name', 'Name' )
+                                new TextField('Name', 'Name', 'Name')
                             )
-                        ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Rolle anlegen' ) )
-                    , new Primary( 'Hinzufügen' )
+                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Rolle anlegen'))
+                    , new Primary('Hinzufügen')
                 ), $Name
             )
         );
@@ -277,89 +281,89 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendRoleGrantLevel( $Id, $tblLevel, $Remove = null )
+    public function frontendRoleGrantLevel($Id, $tblLevel, $Remove = null)
     {
 
-        $Stage = new Stage( 'Berechtigungen', 'Rolle' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Berechtigungen', 'Rolle');
+        $this->menuButton($Stage);
 
-        $tblRole = Access::useService()->getRoleById( $Id );
-        if ($tblRole && null !== $tblLevel && ( $tblLevel = Access::useService()->getLevelById( $tblLevel ) )) {
+        $tblRole = Access::useService()->getRoleById($Id);
+        if ($tblRole && null !== $tblLevel && ( $tblLevel = Access::useService()->getLevelById($tblLevel) )) {
             if ($Remove) {
-                Access::useService()->removeRoleLevel( $tblRole, $tblLevel );
+                Access::useService()->removeRoleLevel($tblRole, $tblLevel);
                 $Stage->setContent(
-                    new Redirect( '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', 0, array( 'Id' => $Id ) )
+                    new Redirect('/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', 0, array('Id' => $Id))
                 );
                 return $Stage;
             } else {
-                Access::useService()->addRoleLevel( $tblRole, $tblLevel );
+                Access::useService()->addRoleLevel($tblRole, $tblLevel);
                 $Stage->setContent(
-                    new Redirect( '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', 0, array( 'Id' => $Id ) )
+                    new Redirect('/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', 0, array('Id' => $Id))
                 );
                 return $Stage;
             }
         }
-        $tblAccessList = Access::useService()->getLevelAllByRole( $tblRole );
+        $tblAccessList = Access::useService()->getLevelAllByRole($tblRole);
         if (!$tblAccessList) {
             $tblAccessList = array();
         }
 
-        $tblAccessListAvailable = array_udiff( Access::useService()->getLevelAll(), $tblAccessList,
-            function ( TblLevel $ObjectA, TblLevel $ObjectB ) {
+        $tblAccessListAvailable = array_udiff(Access::useService()->getLevelAll(), $tblAccessList,
+            function (TblLevel $ObjectA, TblLevel $ObjectB) {
 
                 return $ObjectA->getId() - $ObjectB->getId();
             }
         );
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblAccessListAvailable, function ( TblLevel &$Entity, $Index, $Id ) {
+        array_walk($tblAccessListAvailable, function (TblLevel &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Success( 'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Plus(),
+                new Success('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Plus(),
                     array(
                         'Id'       => $Id,
                         'tblLevel' => $Entity->getId()
-                    ) )
+                    ))
             );
-        }, $Id );
+        }, $Id);
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblAccessList, function ( TblLevel &$Entity, $Index, $Id ) {
+        array_walk($tblAccessList, function (TblLevel &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Danger( 'Entfernen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Minus(), array(
+                new Danger('Entfernen', '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel', new Minus(), array(
                     'Id'       => $Id,
                     'tblLevel' => $Entity->getId(),
                     'Remove'   => true
-                ) )
+                ))
             );
-        }, $Id );
+        }, $Id);
 
         $Stage->setContent(
-            new Info( $tblRole->getName() )
+            new Info($tblRole->getName())
             .
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow( array(
-                        new LayoutColumn( array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title( 'Zugriffslevel', 'Zugewiesen' ),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Zugewiesen'),
                             ( empty( $tblAccessList )
-                                ? new Warning( 'Keine Zugriffslevel vergeben' )
-                                : new TableData( $tblAccessList, null,
-                                    array( 'Name' => 'Name', 'Option' => 'Optionen' ) )
+                                ? new Warning('Keine Zugriffslevel vergeben')
+                                : new TableData($tblAccessList, null,
+                                    array('Name' => 'Name', 'Option' => 'Optionen'))
                             )
-                        ), 6 ),
-                        new LayoutColumn( array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title( 'Zugriffslevel', 'Verfügbar' ),
+                        ), 6),
+                        new LayoutColumn(array(
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Zugriffslevel', 'Verfügbar'),
                             ( empty( $tblAccessListAvailable )
-                                ? new Info( 'Keine weiteren Zugriffslevel verfügbar' )
-                                : new TableData( $tblAccessListAvailable, null,
-                                    array( 'Name' => 'Name', 'Option' => 'Optionen' ) )
+                                ? new Info('Keine weiteren Zugriffslevel verfügbar')
+                                : new TableData($tblAccessListAvailable, null,
+                                    array('Name' => 'Name', 'Option' => 'Optionen'))
                             )
-                        ), 6 )
-                    ) )
+                        ), 6)
+                    ))
                 )
             )
         );
@@ -374,92 +378,92 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendLevelGrantPrivilege( $Id, $tblPrivilege, $Remove = null )
+    public function frontendLevelGrantPrivilege($Id, $tblPrivilege, $Remove = null)
     {
 
-        $Stage = new Stage( 'Berechtigungen', 'Zugriffslevel' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Berechtigungen', 'Zugriffslevel');
+        $this->menuButton($Stage);
 
-        $tblLevel = Access::useService()->getLevelById( $Id );
-        if ($tblLevel && null !== $tblPrivilege && ( $tblPrivilege = Access::useService()->getPrivilegeById( $tblPrivilege ) )) {
+        $tblLevel = Access::useService()->getLevelById($Id);
+        if ($tblLevel && null !== $tblPrivilege && ( $tblPrivilege = Access::useService()->getPrivilegeById($tblPrivilege) )) {
             if ($Remove) {
-                Access::useService()->removeLevelPrivilege( $tblLevel, $tblPrivilege );
+                Access::useService()->removeLevelPrivilege($tblLevel, $tblPrivilege);
                 $Stage->setContent(
-                    new Redirect( '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', 0,
-                        array( 'Id' => $Id ) )
+                    new Redirect('/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', 0,
+                        array('Id' => $Id))
                 );
                 return $Stage;
             } else {
-                Access::useService()->addLevelPrivilege( $tblLevel, $tblPrivilege );
+                Access::useService()->addLevelPrivilege($tblLevel, $tblPrivilege);
                 $Stage->setContent(
-                    new Redirect( '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', 0,
-                        array( 'Id' => $Id ) )
+                    new Redirect('/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', 0,
+                        array('Id' => $Id))
                 );
                 return $Stage;
             }
         }
-        $tblAccessList = Access::useService()->getPrivilegeAllByLevel( $tblLevel );
+        $tblAccessList = Access::useService()->getPrivilegeAllByLevel($tblLevel);
         if (!$tblAccessList) {
             $tblAccessList = array();
         }
 
-        $tblAccessListAvailable = array_udiff( Access::useService()->getPrivilegeAll(), $tblAccessList,
-            function ( TblPrivilege $ObjectA, TblPrivilege $ObjectB ) {
+        $tblAccessListAvailable = array_udiff(Access::useService()->getPrivilegeAll(), $tblAccessList,
+            function (TblPrivilege $ObjectA, TblPrivilege $ObjectB) {
 
                 return $ObjectA->getId() - $ObjectB->getId();
             }
         );
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblAccessListAvailable, function ( TblPrivilege &$Entity, $Index, $Id ) {
+        array_walk($tblAccessListAvailable, function (TblPrivilege &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Success( 'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Plus(),
+                new Success('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Plus(),
                     array(
                         'Id'           => $Id,
                         'tblPrivilege' => $Entity->getId()
-                    ) )
+                    ))
             );
-        }, $Id );
+        }, $Id);
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblAccessList, function ( TblPrivilege &$Entity, $Index, $Id ) {
+        array_walk($tblAccessList, function (TblPrivilege &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Danger( 'Entfernen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Minus(),
+                new Danger('Entfernen', '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege', new Minus(),
                     array(
                         'Id'           => $Id,
                         'tblPrivilege' => $Entity->getId(),
                         'Remove'       => true
-                    ) )
+                    ))
             );
-        }, $Id );
+        }, $Id);
 
         $Stage->setContent(
-            new Info( $tblLevel->getName() )
+            new Info($tblLevel->getName())
             .
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow( array(
-                        new LayoutColumn( array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title( 'Privilegien', 'Zugewiesen' ),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Privilegien', 'Zugewiesen'),
                             ( empty( $tblAccessList )
-                                ? new Warning( 'Keine Privilegien vergeben' )
-                                : new TableData( $tblAccessList, null,
-                                    array( 'Name' => 'Name', 'Option' => 'Optionen' ) )
+                                ? new Warning('Keine Privilegien vergeben')
+                                : new TableData($tblAccessList, null,
+                                    array('Name' => 'Name', 'Option' => 'Optionen'))
                             )
-                        ), 6 ),
-                        new LayoutColumn( array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title( 'Privilegien', 'Verfügbar' ),
+                        ), 6),
+                        new LayoutColumn(array(
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Privilegien', 'Verfügbar'),
                             ( empty( $tblAccessListAvailable )
-                                ? new Info( 'Keine weiteren Privilegien verfügbar' )
-                                : new TableData( $tblAccessListAvailable, null,
-                                    array( 'Name' => 'Name', 'Option' => 'Optionen' ) )
+                                ? new Info('Keine weiteren Privilegien verfügbar')
+                                : new TableData($tblAccessListAvailable, null,
+                                    array('Name' => 'Name', 'Option' => 'Optionen'))
                             )
-                        ), 6 )
-                    ) )
+                        ), 6)
+                    ))
                 )
             )
         );
@@ -474,92 +478,92 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendPrivilegeGrantRight( $Id, $tblRight, $Remove = null )
+    public function frontendPrivilegeGrantRight($Id, $tblRight, $Remove = null)
     {
 
-        $Stage = new Stage( 'Berechtigungen', 'Privileg' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Berechtigungen', 'Privileg');
+        $this->menuButton($Stage);
 
-        $tblPrivilege = Access::useService()->getPrivilegeById( $Id );
-        if ($tblPrivilege && null !== $tblRight && ( $tblRight = Access::useService()->getRightById( $tblRight ) )) {
+        $tblPrivilege = Access::useService()->getPrivilegeById($Id);
+        if ($tblPrivilege && null !== $tblRight && ( $tblRight = Access::useService()->getRightById($tblRight) )) {
             if ($Remove) {
-                Access::useService()->removePrivilegeRight( $tblPrivilege, $tblRight );
+                Access::useService()->removePrivilegeRight($tblPrivilege, $tblRight);
                 $Stage->setContent(
-                    new Redirect( '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', 0,
-                        array( 'Id' => $Id ) )
+                    new Redirect('/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', 0,
+                        array('Id' => $Id))
                 );
                 return $Stage;
             } else {
-                Access::useService()->addPrivilegeRight( $tblPrivilege, $tblRight );
+                Access::useService()->addPrivilegeRight($tblPrivilege, $tblRight);
                 $Stage->setContent(
-                    new Redirect( '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', 0,
-                        array( 'Id' => $Id ) )
+                    new Redirect('/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', 0,
+                        array('Id' => $Id))
                 );
                 return $Stage;
             }
         }
-        $tblAccessList = Access::useService()->getRightAllByPrivilege( $tblPrivilege );
+        $tblAccessList = Access::useService()->getRightAllByPrivilege($tblPrivilege);
         if (!$tblAccessList) {
             $tblAccessList = array();
         }
 
-        $tblAccessListAvailable = array_udiff( Access::useService()->getRightAll(), $tblAccessList,
-            function ( TblRight $ObjectA, TblRight $ObjectB ) {
+        $tblAccessListAvailable = array_udiff(Access::useService()->getRightAll(), $tblAccessList,
+            function (TblRight $ObjectA, TblRight $ObjectB) {
 
                 return $ObjectA->getId() - $ObjectB->getId();
             }
         );
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblAccessListAvailable, function ( TblRight &$Entity, $Index, $Id ) {
+        array_walk($tblAccessListAvailable, function (TblRight &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Success( 'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Plus(),
+                new Success('Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Plus(),
                     array(
                         'Id'       => $Id,
                         'tblRight' => $Entity->getId()
-                    ) )
+                    ))
             );
-        }, $Id );
+        }, $Id);
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblAccessList, function ( TblRight &$Entity, $Index, $Id ) {
+        array_walk($tblAccessList, function (TblRight &$Entity, $Index, $Id) {
 
             /** @noinspection PhpUndefinedFieldInspection */
             $Entity->Option = new PullRight(
-                new Danger( 'Entfernen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Minus(),
+                new Danger('Entfernen', '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight', new Minus(),
                     array(
                         'Id'       => $Id,
                         'tblRight' => $Entity->getId(),
                         'Remove'   => true
-                    ) )
+                    ))
             );
-        }, $Id );
+        }, $Id);
 
         $Stage->setContent(
-            new Info( $tblPrivilege->getName() )
+            new Info($tblPrivilege->getName())
             .
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow( array(
-                        new LayoutColumn( array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title( 'Rechte', 'Zugewiesen' ),
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Zugewiesen'),
                             ( empty( $tblAccessList )
-                                ? new Warning( 'Keine Rechte vergeben' )
-                                : new TableData( $tblAccessList, null,
-                                    array( 'Route' => 'Route', 'Option' => 'Optionen' ) )
+                                ? new Warning('Keine Rechte vergeben')
+                                : new TableData($tblAccessList, null,
+                                    array('Route' => 'Route', 'Option' => 'Optionen'))
                             )
-                        ), 6 ),
-                        new LayoutColumn( array(
-                            new \SPHERE\Common\Frontend\Layout\Repository\Title( 'Rechte', 'Verfügbar' ),
+                        ), 6),
+                        new LayoutColumn(array(
+                            new \SPHERE\Common\Frontend\Layout\Repository\Title('Rechte', 'Verfügbar'),
                             ( empty( $tblAccessListAvailable )
-                                ? new Info( 'Keine weiteren Rechte verfügbar' )
-                                : new TableData( $tblAccessListAvailable, null,
-                                    array( 'Route' => 'Route', 'Option' => 'Optionen' ) )
+                                ? new Info('Keine weiteren Rechte verfügbar')
+                                : new TableData($tblAccessListAvailable, null,
+                                    array('Route' => 'Route', 'Option' => 'Optionen'))
                             )
-                        ), 6 )
-                    ) )
+                        ), 6)
+                    ))
                 )
             )
         );

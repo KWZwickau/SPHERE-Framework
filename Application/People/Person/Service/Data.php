@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Person\Service;
 
-use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -25,7 +24,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -34,8 +33,8 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->createSalutation( 'Herr', true );
-        $this->createSalutation( 'Frau', true );
+        $this->createSalutation('Herr', true);
+        $this->createSalutation('Frau', true);
     }
 
     /**
@@ -44,16 +43,16 @@ class Data
      *
      * @return TblSalutation
      */
-    public function createSalutation( $Salutation, $IsLocked = false )
+    public function createSalutation($Salutation, $IsLocked = false)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblSalutation' )->findOneBy( array( TblSalutation::ATTR_SALUTATION => $Salutation ) );
+        $Entity = $Manager->getEntity('TblSalutation')->findOneBy(array(TblSalutation::ATTR_SALUTATION => $Salutation));
         if (null === $Entity) {
-            $Entity = new TblSalutation( $Salutation );
-            $Entity->setIsLocked( $IsLocked );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblSalutation($Salutation);
+            $Entity->setIsLocked($IsLocked);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -67,18 +66,18 @@ class Data
      *
      * @return TblPerson
      */
-    public function createPerson( TblSalutation $tblSalutation, $Title, $FirstName, $SecondName, $LastName )
+    public function createPerson(TblSalutation $tblSalutation, $Title, $FirstName, $SecondName, $LastName)
     {
 
         $Manager = $this->Connection->getEntityManager();
         $Entity = new TblPerson();
-        $Entity->setTblSalutation( $tblSalutation );
-        $Entity->setTitle( $Title );
-        $Entity->setFirstName( $FirstName );
-        $Entity->setSecondName( $SecondName );
-        $Entity->setLastName( $LastName );
-        $Manager->saveEntity( $Entity );
-        Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        $Entity->setTblSalutation($tblSalutation);
+        $Entity->setTitle($Title);
+        $Entity->setFirstName($FirstName);
+        $Entity->setSecondName($SecondName);
+        $Entity->setLastName($LastName);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         return $Entity;
     }
 
@@ -103,16 +102,16 @@ class Data
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblPerson $Entity */
-        $Entity = $Manager->getEntityById( 'TblPerson', $tblPerson->getId() );
+        $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setTblSalutation( $tblSalutation );
-            $Entity->setTitle( $Title );
-            $Entity->setFirstName( $FirstName );
-            $Entity->setSecondName( $SecondName );
-            $Entity->setLastName( $LastName );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createUpdateEntry( $this->Connection->getDatabase(), $Protocol, $Entity );
+            $Entity->setTblSalutation($tblSalutation);
+            $Entity->setTitle($Title);
+            $Entity->setFirstName($FirstName);
+            $Entity->setSecondName($SecondName);
+            $Entity->setLastName($LastName);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -125,10 +124,10 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblSalutation' )->findAll();
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblSalutation')->findAll();
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -140,10 +139,10 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblPerson' )->findAll();
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblPerson')->findAll();
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -153,14 +152,14 @@ class Data
      *
      * @return bool|TblPerson
      */
-    public function getPersonById( $Id )
+    public function getPersonById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblPerson', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblPerson', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -170,14 +169,14 @@ class Data
      *
      * @return bool|TblSalutation
      */
-    public function getSalutationById( $Id )
+    public function getSalutationById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblSalutation', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblSalutation', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
         }
         return ( null === $Entity ? false : $Entity );
     }

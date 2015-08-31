@@ -57,42 +57,42 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreateToPerson( $Id, $Number, $Type )
+    public function frontendCreateToPerson($Id, $Number, $Type)
     {
 
-        $Stage = new Stage( 'Telefonnummer', 'Hinzufügen' );
-        $Stage->setMessage( 'Eine Telefonnummer zur gewählten Person hinzufügen' );
+        $Stage = new Stage('Telefonnummer', 'Hinzufügen');
+        $Stage->setMessage('Eine Telefonnummer zur gewählten Person hinzufügen');
 
-        $tblPerson = Person::useService()->getPersonById( $Id );
+        $tblPerson = Person::useService()->getPersonById($Id);
 
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
+            new Layout(array(
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel( new PersonIcon().' Person',
+                            new Panel(new PersonIcon().' Person',
                                 $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
-                                new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array( 'Id' => $tblPerson->getId() )
+                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                    array('Id' => $tblPerson->getId())
                                 )
                             )
                         )
                     ),
-                ) ),
-                new LayoutGroup( array(
+                )),
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
                             Phone::useService()->createPhoneToPerson(
                                 $this->formNumber()
-                                    ->appendFormButton( new Primary( 'Telefonnummer hinzufügen' ) )
-                                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
+                                    ->appendFormButton(new Primary('Telefonnummer hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblPerson, $Number, $Type
                             )
                         )
                     )
-                ) ),
-            ) )
+                )),
+            ))
         );
 
         return $Stage;
@@ -105,42 +105,42 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreateToCompany( $Id, $Number, $Type )
+    public function frontendCreateToCompany($Id, $Number, $Type)
     {
 
-        $Stage = new Stage( 'Telefonnummer', 'Hinzufügen' );
-        $Stage->setMessage( 'Eine Telefonnummer zur gewählten Firma hinzufügen' );
+        $Stage = new Stage('Telefonnummer', 'Hinzufügen');
+        $Stage->setMessage('Eine Telefonnummer zur gewählten Firma hinzufügen');
 
-        $tblCompany = Company::useService()->getCompanyById( $Id );
+        $tblCompany = Company::useService()->getCompanyById($Id);
 
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
+            new Layout(array(
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel( new Building().' Firma',
+                            new Panel(new Building().' Firma',
                                 $tblCompany->getName(),
                                 Panel::PANEL_TYPE_SUCCESS,
-                                new Standard( 'Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array( 'Id' => $tblCompany->getId() )
+                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                    array('Id' => $tblCompany->getId())
                                 )
                             )
                         )
                     ),
-                ) ),
-                new LayoutGroup( array(
+                )),
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
                             Phone::useService()->createPhoneToCompany(
                                 $this->formNumber()
-                                    ->appendFormButton( new Primary( 'Telefonnummer hinzufügen' ) )
-                                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
+                                    ->appendFormButton(new Primary('Telefonnummer hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblCompany, $Number, $Type
                             )
                         )
                     )
-                ) ),
-            ) )
+                )),
+            ))
         );
 
         return $Stage;
@@ -156,26 +156,26 @@ class Frontend implements IFrontendInterface
         $tblTypeAll = Phone::useService()->getTypeAll();
 
         return new Form(
-            new FormGroup( array(
-                new FormRow( array(
+            new FormGroup(array(
+                new FormRow(array(
                     new FormColumn(
-                        new Panel( 'Telefonnummer',
+                        new Panel('Telefonnummer',
                             array(
-                                new SelectBox( 'Type[Type]', 'Typ',
-                                    array( '{{ Name }} {{ Description }}' => $tblTypeAll ), new TileBig()
+                                new SelectBox('Type[Type]', 'Typ',
+                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ),
-                                new AutoCompleter( 'Number', 'Telefonnummer', 'Telefonnummer',
-                                    array( 'Number' => $tblPhoneAll ), new PhoneIcon()
+                                new AutoCompleter('Number', 'Telefonnummer', 'Telefonnummer',
+                                    array('Number' => $tblPhoneAll), new PhoneIcon()
                                 )
                             ), Panel::PANEL_TYPE_INFO
-                        ), 6 ),
+                        ), 6),
                     new FormColumn(
-                        new Panel( 'Sonstiges',
-                            new TextArea( 'Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
+                        new Panel('Sonstiges',
+                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
                             , Panel::PANEL_TYPE_INFO
-                        ), 6 ),
-                ) ),
-            ) )
+                        ), 6),
+                )),
+            ))
         );
     }
 
@@ -184,51 +184,51 @@ class Frontend implements IFrontendInterface
      *
      * @return Layout
      */
-    public function frontendLayoutPerson( TblPerson $tblPerson )
+    public function frontendLayoutPerson(TblPerson $tblPerson)
     {
 
-        $tblPhoneAll = Phone::useService()->getPhoneAllByPerson( $tblPerson );
+        $tblPhoneAll = Phone::useService()->getPhoneAllByPerson($tblPerson);
         if ($tblPhoneAll !== false) {
-            array_walk( $tblPhoneAll, function ( TblToPerson &$tblToPerson ) {
+            array_walk($tblPhoneAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array( $tblToPerson->getTblPhone()->getNumber() );
+                $Panel = array($tblToPerson->getTblPhone()->getNumber());
                 if ($tblToPerson->getRemark()) {
-                    array_push( $Panel, new Muted( new Small( $tblToPerson->getRemark() ) ) );
+                    array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
 
                 $tblToPerson = new LayoutColumn(
                     new Panel(
-                        ( preg_match( '!Fax!is',
-                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
+                        ( preg_match('!Fax!is',
+                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription())
                             ? new PhoneFax()
-                            : ( preg_match( '!Mobil!is',
-                                $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
+                            : ( preg_match('!Mobil!is',
+                                $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription())
                                 ? new PhoneMobil()
                                 : new PhoneIcon()
                             )
                         ).' '.$tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
                         $Panel,
-                        ( preg_match( '!Notfall!is',
-                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription() )
+                        ( preg_match('!Notfall!is',
+                            $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription())
                             ? Panel::PANEL_TYPE_DANGER
                             : Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Standard(
                             '', '/People/Person/Phone/Edit', new Pencil(),
-                            array( 'Id' => $tblToPerson->getId() ),
+                            array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
                         .new Standard(
                             '', '/People/Person/Phone/Destroy', new Remove(),
-                            array( 'Id' => $tblToPerson->getId() ), 'Löschen'
+                            array('Id' => $tblToPerson->getId()), 'Löschen'
                         )
                     )
-                    , 3 );
-            } );
+                    , 3);
+            });
         } else {
             $tblPhoneAll = array(
                 new LayoutColumn(
-                    new Warning( 'Keine Telefonnummern hinterlegt' )
+                    new Warning('Keine Telefonnummern hinterlegt')
                 )
             );
         }
@@ -241,14 +241,14 @@ class Frontend implements IFrontendInterface
          */
         foreach ($tblPhoneAll as $tblPhone) {
             if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow( array() );
+                $LayoutRow = new LayoutRow(array());
                 $LayoutRowList[] = $LayoutRow;
             }
-            $LayoutRow->addColumn( $tblPhone );
+            $LayoutRow->addColumn($tblPhone);
             $LayoutRowCount++;
         }
 
-        return new Layout( new LayoutGroup( $LayoutRowList ) );
+        return new Layout(new LayoutGroup($LayoutRowList));
     }
 
     /**
@@ -257,61 +257,61 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendDestroyToPerson( $Id, $Confirm = false )
+    public function frontendDestroyToPerson($Id, $Confirm = false)
     {
 
-        $Stage = new Stage( 'Telefonnummer', 'Löschen' );
+        $Stage = new Stage('Telefonnummer', 'Löschen');
         if ($Id) {
-            $tblToPerson = Phone::useService()->getPhoneToPersonById( $Id );
+            $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
             if (!$Confirm) {
                 $Stage->setContent(
-                    new Layout( new LayoutGroup( new LayoutRow( new LayoutColumn( array(
-                        new Panel( new PersonIcon().' Person',
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new PersonIcon().' Person',
                             $tblPerson->getFullName(),
                             Panel::PANEL_TYPE_SUCCESS,
-                            new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                array( 'Id' => $tblPerson->getId() )
+                            new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                array('Id' => $tblPerson->getId())
                             )
                         ),
-                        new Panel( new Question().' Diese Telefonnummer wirklich löschen?', array(
+                        new Panel(new Question().' Diese Telefonnummer wirklich löschen?', array(
                             $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
                             $tblToPerson->getTblPhone()->getNumber(),
-                            new Muted( new Small( $tblToPerson->getRemark() ) )
+                            new Muted(new Small($tblToPerson->getRemark()))
                         ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/People/Person/Phone/Destroy', new Ok(),
-                                array( 'Id' => $Id, 'Confirm' => true )
+                                array('Id' => $Id, 'Confirm' => true)
                             )
                             .new Standard(
                                 'Nein', '/People/Person', new Disable(),
-                                array( 'Id' => $tblPerson->getId() )
+                                array('Id' => $tblPerson->getId())
                             )
                         )
-                    ) ) ) ) )
+                    )))))
                 );
             } else {
                 $Stage->setContent(
-                    new Layout( new LayoutGroup( array(
-                        new LayoutRow( new LayoutColumn( array(
-                            ( Phone::useService()->removePhoneToPerson( $tblToPerson )
-                                ? new Success( 'Die Telefonnummer wurde gelöscht' )
-                                : new Danger( 'Die Telefonnummer konnte nicht gelöscht werden' )
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            ( Phone::useService()->removePhoneToPerson($tblToPerson)
+                                ? new Success('Die Telefonnummer wurde gelöscht')
+                                : new Danger('Die Telefonnummer konnte nicht gelöscht werden')
                             ),
-                            new Redirect( '/People/Person', 1, array( 'Id' => $tblPerson->getId() ) )
-                        ) ) )
-                    ) ) )
+                            new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()))
+                        )))
+                    )))
                 );
             }
         } else {
             $Stage->setContent(
-                new Layout( new LayoutGroup( array(
-                    new LayoutRow( new LayoutColumn( array(
-                        new Danger( 'Die Telefonnummer konnte nicht gefunden werden' ),
-                        new Redirect( '/People/Search/Group' )
-                    ) ) )
-                ) ) )
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger('Die Telefonnummer konnte nicht gefunden werden'),
+                        new Redirect('/People/Search/Group')
+                    )))
+                )))
             );
         }
         return $Stage;
@@ -322,51 +322,51 @@ class Frontend implements IFrontendInterface
      *
      * @return Layout
      */
-    public function frontendLayoutCompany( TblCompany $tblCompany )
+    public function frontendLayoutCompany(TblCompany $tblCompany)
     {
 
-        $tblPhoneAll = Phone::useService()->getPhoneAllByCompany( $tblCompany );
+        $tblPhoneAll = Phone::useService()->getPhoneAllByCompany($tblCompany);
         if ($tblPhoneAll !== false) {
-            array_walk( $tblPhoneAll, function ( TblToCompany &$tblToCompany ) {
+            array_walk($tblPhoneAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array( $tblToCompany->getTblPhone()->getNumber() );
+                $Panel = array($tblToCompany->getTblPhone()->getNumber());
                 if ($tblToCompany->getRemark()) {
-                    array_push( $Panel, new Muted( new Small( $tblToCompany->getRemark() ) ) );
+                    array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }
 
                 $tblToCompany = new LayoutColumn(
                     new Panel(
-                        ( preg_match( '!Fax!is',
-                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription() )
+                        ( preg_match('!Fax!is',
+                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription())
                             ? new PhoneFax()
-                            : ( preg_match( '!Mobil!is',
-                                $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription() )
+                            : ( preg_match('!Mobil!is',
+                                $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription())
                                 ? new PhoneMobil()
                                 : new PhoneIcon()
                             )
                         ).' '.$tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
                         $Panel,
-                        ( preg_match( '!Notfall!is',
-                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription() )
+                        ( preg_match('!Notfall!is',
+                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription())
                             ? Panel::PANEL_TYPE_DANGER
                             : Panel::PANEL_TYPE_SUCCESS
                         ),
                         new Standard(
                             '', '/Corporation/Company/Phone/Edit', new Pencil(),
-                            array( 'Id' => $tblToCompany->getId() ),
+                            array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )
                         .new Standard(
                             '', '/Corporation/Company/Phone/Destroy', new Remove(),
-                            array( 'Id' => $tblToCompany->getId() ), 'Löschen'
+                            array('Id' => $tblToCompany->getId()), 'Löschen'
                         )
                     )
-                    , 3 );
-            } );
+                    , 3);
+            });
         } else {
             $tblPhoneAll = array(
                 new LayoutColumn(
-                    new Warning( 'Keine Telefonnummern hinterlegt' )
+                    new Warning('Keine Telefonnummern hinterlegt')
                 )
             );
         }
@@ -379,13 +379,13 @@ class Frontend implements IFrontendInterface
          */
         foreach ($tblPhoneAll as $tblPhone) {
             if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow( array() );
+                $LayoutRow = new LayoutRow(array());
                 $LayoutRowList[] = $LayoutRow;
             }
-            $LayoutRow->addColumn( $tblPhone );
+            $LayoutRow->addColumn($tblPhone);
             $LayoutRowCount++;
         }
 
-        return new Layout( new LayoutGroup( $LayoutRowList ) );
+        return new Layout(new LayoutGroup($LayoutRowList));
     }
 }

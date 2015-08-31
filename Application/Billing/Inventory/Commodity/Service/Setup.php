@@ -20,7 +20,7 @@ class Setup
     /**
      * @param Structure $Connection
      */
-    function __construct( Structure $Connection )
+    function __construct(Structure $Connection)
     {
 
         $this->Connection = $Connection;
@@ -31,16 +31,16 @@ class Setup
      *
      * @return string
      */
-    public function setupDatabaseSchema( $Simulate = true )
+    public function setupDatabaseSchema($Simulate = true)
     {
 
         /**
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $tblCommodityType = $this->setTableCommodityType( $Schema );
-        $this->setTableCommodity( $Schema, $tblCommodityType );
-        $this->setTableCommodityItem( $Schema );
+        $tblCommodityType = $this->setTableCommodityType($Schema);
+        $this->setTableCommodity($Schema, $tblCommodityType);
+        $this->setTableCommodityItem($Schema);
 //        $tblItem = $this->setTableItem( $Schema );
 //        $this->setTableCommodityItem( $Schema, $tblCommodity, $tblItem );
 //        $this->setTableItemAccount( $Schema, $tblItem );
@@ -48,9 +48,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol( __CLASS__ );
-        $this->Connection->setMigration( $Schema, $Simulate );
-        return $this->Connection->getProtocol( $Simulate );
+        $this->Connection->addProtocol(__CLASS__);
+        $this->Connection->setMigration($Schema, $Simulate);
+        return $this->Connection->getProtocol($Simulate);
     }
 
     /**
@@ -58,35 +58,35 @@ class Setup
      *
      * @return Table
      */
-    private function setTableCommodityType( Schema &$Schema )
+    private function setTableCommodityType(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblCommodityType' );
-        if ( !$this->Connection->hasColumn( 'tblCommodityType', 'Name' ) ) {
-            $Table->addColumn( 'Name', 'string' );
+        $Table = $this->Connection->createTable($Schema, 'tblCommodityType');
+        if (!$this->Connection->hasColumn('tblCommodityType', 'Name')) {
+            $Table->addColumn('Name', 'string');
         }
         return $Table;
     }
 
     /**
      * @param Schema $Schema
-     * @param Table $tblCommodityType
+     * @param Table  $tblCommodityType
      *
      * @return Table
      */
-    private function setTableCommodity( Schema &$Schema, Table $tblCommodityType )
+    private function setTableCommodity(Schema &$Schema, Table $tblCommodityType)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblCommodity' );
+        $Table = $this->Connection->createTable($Schema, 'tblCommodity');
 
-        if ( !$this->Connection->hasColumn( 'tblCommodity', 'Name' ) ) {
-            $Table->addColumn( 'Name', 'string' );
+        if (!$this->Connection->hasColumn('tblCommodity', 'Name')) {
+            $Table->addColumn('Name', 'string');
         }
-        if ( !$this->Connection->hasColumn( 'tblCommodity', 'Description' ) ) {
-            $Table->addColumn( 'Description', 'string' );
+        if (!$this->Connection->hasColumn('tblCommodity', 'Description')) {
+            $Table->addColumn('Description', 'string');
         }
 
-        $this->Connection->addForeignKey( $Table, $tblCommodityType );
+        $this->Connection->addForeignKey($Table, $tblCommodityType);
 
         return $Table;
     }
@@ -96,22 +96,20 @@ class Setup
      *
      * @return Table
      */
-    private function setTableCommodityItem( Schema &$Schema )
+    private function setTableCommodityItem(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblCommodityItem' );
+        $Table = $this->Connection->createTable($Schema, 'tblCommodityItem');
 
-        if ( !$this->Connection->hasColumn( 'tblCommodityItem', 'Quantity' ) ) {
-            $Table->addColumn( 'Quantity', 'decimal', array( 'precision' => 14, 'scale' => 4 ) );
+        if (!$this->Connection->hasColumn('tblCommodityItem', 'Quantity')) {
+            $Table->addColumn('Quantity', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if ( !$this->Connection->hasColumn( 'tblCommodityItem', 'tblItem' ) ) {
-            $Table->addColumn( 'tblItem', 'bigint' );
+        if (!$this->Connection->hasColumn('tblCommodityItem', 'tblItem')) {
+            $Table->addColumn('tblItem', 'bigint');
         }
-        if ( !$this->Connection->hasColumn( 'tblCommodityItem', 'tblCommodity' ) ) {
-            $Table->addColumn( 'tblCommodity', 'bigint' );
+        if (!$this->Connection->hasColumn('tblCommodityItem', 'tblCommodity')) {
+            $Table->addColumn('tblCommodity', 'bigint');
         }
-
-
 
         return $Table;
     }

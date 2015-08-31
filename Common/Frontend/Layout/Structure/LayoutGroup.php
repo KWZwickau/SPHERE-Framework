@@ -22,11 +22,11 @@ class LayoutGroup extends Extension implements ILayoutInterface
      * @param LayoutRow|LayoutRow[] $LayoutRow
      * @param Title                 $LayoutTitle
      */
-    public function __construct( $LayoutRow, Title $LayoutTitle = null )
+    public function __construct($LayoutRow, Title $LayoutTitle = null)
     {
 
-        if (!is_array( $LayoutRow )) {
-            $LayoutRow = array( $LayoutRow );
+        if (!is_array($LayoutRow)) {
+            $LayoutRow = array($LayoutRow);
         }
         $this->LayoutRow = $LayoutRow;
         $this->LayoutTitle = $LayoutTitle;

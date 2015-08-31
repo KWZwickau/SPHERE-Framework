@@ -18,11 +18,11 @@ class TableBody extends Extension implements ITableInterface
     /**
      * @param TableRow|TableRow[] $TableRow
      */
-    public function __construct( $TableRow )
+    public function __construct($TableRow)
     {
 
-        if (!is_array( $TableRow )) {
-            $TableRow = array( $TableRow );
+        if (!is_array($TableRow)) {
+            $TableRow = array($TableRow);
         }
         $this->TableRow = $TableRow;
     }

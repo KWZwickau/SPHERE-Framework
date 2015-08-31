@@ -35,54 +35,54 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Artikel' );
-        $Stage->setDescription( 'Übersicht' );
+        $Stage->setTitle('Artikel');
+        $Stage->setDescription('Übersicht');
         // ToDo
         $Stage->setMessage(
             'Zeigt alle verfügbaren Artikel an. <br>
             Artikel sind Preise für erbrachte Dienste, die Abhängigkeiten zugewiesen bekommen können. <br />
             Somit werden bei Rechnungen nur die Artikel berechnet, <br />
-            die <b>keine</b> oder die <b>zutreffenden</b> Abhängigkeiten für die einzelne Person besitzen.' );
+            die <b>keine</b> oder die <b>zutreffenden</b> Abhängigkeiten für die einzelne Person besitzen.');
         $Stage->addButton(
-            new Primary( 'Artikel anlegen', '/Billing/Inventory/Item/Create', new Plus() )
+            new Primary('Artikel anlegen', '/Billing/Inventory/Item/Create', new Plus())
         );
 
         $tblItemAll = Item::useService()->entityItemAll();
 
-        if ( !empty( $tblItemAll ) ) {
-            array_walk( $tblItemAll, function ( TblItem $tblItem ) {
+        if (!empty( $tblItemAll )) {
+            array_walk($tblItemAll, function (TblItem $tblItem) {
 
                 $tblItem->PriceString = $tblItem->getPriceString();
-                if ( Commodity::useService()->entityCommodityItemAllByItem( $tblItem ) ) {
+                if (Commodity::useService()->entityCommodityItemAllByItem($tblItem)) {
                     $tblItem->Option =
-                        ( new Primary( 'Bearbeiten', '/Billing/Inventory/Item/Edit',
+                        (new Primary('Bearbeiten', '/Billing/Inventory/Item/Edit',
                             new Edit(), array(
                                 'Id' => $tblItem->getId()
-                            ) ) )->__toString().
-                        ( new Primary( 'FIBU-Konten auswählen', '/Billing/Inventory/Item/Account/Select',
+                            )))->__toString().
+                        (new Primary('FIBU-Konten auswählen', '/Billing/Inventory/Item/Account/Select',
                             new Listing(), array(
                                 'Id' => $tblItem->getId()
-                            ) ) )->__toString();
+                            )))->__toString();
                 } else {
                     $tblItem->Option =
-                        ( new Primary( 'Bearbeiten', '/Billing/Inventory/Item/Edit',
+                        (new Primary('Bearbeiten', '/Billing/Inventory/Item/Edit',
                             new Edit(), array(
                                 'Id' => $tblItem->getId()
-                            ) ) )->__toString().
-                        ( new Primary( 'FIBU-Konten auswählen', '/Billing/Inventory/Item/Account/Select',
+                            )))->__toString().
+                        (new Primary('FIBU-Konten auswählen', '/Billing/Inventory/Item/Account/Select',
                             new Listing(), array(
                                 'Id' => $tblItem->getId()
-                            ) ) )->__toString().
-                        ( new Danger( 'Löschen', '/Billing/Inventory/Item/Delete',
+                            )))->__toString().
+                        (new Danger('Löschen', '/Billing/Inventory/Item/Delete',
                             new Remove(), array(
                                 'Id' => $tblItem->getId()
-                            ) ) )->__toString();
+                            )))->__toString();
                 }
-            } );
+            });
         }
 
         $Stage->setContent(
-            new TableData( $tblItemAll, null,
+            new TableData($tblItemAll, null,
                 array(
                     'Name'        => 'Name',
                     'Description' => 'Beschreibung',
@@ -100,12 +100,12 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendItemCreate( $Item )
+    public function frontendItemCreate($Item)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Artikel' );
-        $Stage->setDescription( 'Hinzufügen' );
+        $Stage->setTitle('Artikel');
+        $Stage->setDescription('Hinzufügen');
         $Stage->setMessage(
             '<b>Hinweis:</b> <br>
             Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
@@ -114,37 +114,37 @@ class Frontend extends Extension implements IFrontendInterface
             Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
             Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
             <b>Und</b> verknüpft.
-        ' );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Inventory//Item',
+        ');
+        $Stage->addButton(new Primary('Zurück', '/Billing/Inventory//Item',
             new ChevronLeft()
-        ) );
+        ));
 
 //        $tblCourseAll = Management::serviceCourse()->entityCourseAll();   //todo
 //        array_unshift( $tblCourseAll, new TblCourse( '' ) );
 //        $tblChildRankAll = Management::serviceStudent()->entityChildRankAll();
 //        array_unshift( $tblChildRankAll, new TblChildRank( '' ) );
 
-        $Stage->setContent( Item::useService()->executeCreateItem(
-            new Form( array(
-                new FormGroup( array(
-                    new FormRow( array(
+        $Stage->setContent(Item::useService()->executeCreateItem(
+            new Form(array(
+                new FormGroup(array(
+                    new FormRow(array(
                         new FormColumn(
-                            new TextField( 'Item[Name]', 'Name', 'Name', new Conversation()
-                            ), 6 ),
+                            new TextField('Item[Name]', 'Name', 'Name', new Conversation()
+                            ), 6),
                         new FormColumn(
-                            new TextField( 'Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
-                            ), 6 )
-                    ) ),
-                    new FormRow( array(
+                            new TextField('Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
+                            ), 6)
+                    )),
+                    new FormRow(array(
                         new FormColumn(
-                            new TextField( 'Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
-                            ), 6 )
-                    ) ),
-                    new FormRow( array(
+                            new TextField('Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
+                            ), 6)
+                    )),
+                    new FormRow(array(
                         new FormColumn(
-                            new TextField( 'Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                            ), 12 )
-                    ) ),
+                            new TextField('Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
+                            ), 12)
+                    )),
 //                    new FormRow( array(       //todo
 //                        new FormColumn(
 //                            new SelectBox( 'Item[Course]', 'Bedingung Bildungsgang',
@@ -157,7 +157,8 @@ class Frontend extends Extension implements IFrontendInterface
 //                                ) )
 //                            , 6 )
 //                    ) )
-                ) ) ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary( 'Hinzufügen' ) ), $Item ) );
+                ))
+            ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen')), $Item));
 
         return $Stage;
     }
@@ -167,15 +168,15 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendItemDelete( $Id )
+    public function frontendItemDelete($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Artikel' );
-        $Stage->setDescription( 'Entfernen' );
+        $Stage->setTitle('Artikel');
+        $Stage->setDescription('Entfernen');
 
-        $tblItem = Item::useService()->entityItemById( $Id );
-        $Stage->setContent( Item::useService()->executeDeleteItem( $tblItem ) );
+        $tblItem = Item::useService()->entityItemById($Id);
+        $Stage->setContent(Item::useService()->executeDeleteItem($tblItem));
 
         return $Stage;
     }
@@ -186,12 +187,12 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendItemEdit( $Id, $Item )
+    public function frontendItemEdit($Id, $Item)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Artikel' );
-        $Stage->setDescription( 'Bearbeiten' );
+        $Stage->setTitle('Artikel');
+        $Stage->setDescription('Bearbeiten');
         $Stage->setMessage(
             '<b>Hinweis:</b> <br>
             Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
@@ -200,29 +201,29 @@ class Frontend extends Extension implements IFrontendInterface
             Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
             Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
             <b>Und</b> verknüpft.
-        ' );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Inventory//Item',
+        ');
+        $Stage->addButton(new Primary('Zurück', '/Billing/Inventory//Item',
             new ChevronLeft()
-        ) );
+        ));
 
 //        $tblCourseAll = Management::serviceCourse()->entityCourseAll();   //todo
 //        array_unshift( $tblCourseAll, new TblCourse( '' ) );
 //        $tblChildRankAll = Management::serviceStudent()->entityChildRankAll();
 //        array_unshift( $tblChildRankAll, new TblChildRank( '' ) );
 
-        if ( empty( $Id ) ) {
-            $Stage->setContent( new Warning( 'Die Daten konnten nicht abgerufen werden' ) );
+        if (empty( $Id )) {
+            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
-            $tblItem = Item::useService()->entityItemById( $Id );
-            if ( empty( $tblItem ) ) {
-                $Stage->setContent( new Warning( 'Der Artikel konnte nicht abgerufen werden' ) );
+            $tblItem = Item::useService()->entityItemById($Id);
+            if (empty( $tblItem )) {
+                $Stage->setContent(new Warning('Der Artikel konnte nicht abgerufen werden'));
             } else {
 
                 $Global = $this->getGlobal();
-                if ( !isset( $Global->POST['Item'] ) ) {
+                if (!isset( $Global->POST['Item'] )) {
                     $Global->POST['Item']['Name'] = $tblItem->getName();
                     $Global->POST['Item']['Description'] = $tblItem->getDescription();
-                    $Global->POST['Item']['Price'] = str_replace( '.', ',', $tblItem->getPrice() );
+                    $Global->POST['Item']['Price'] = str_replace('.', ',', $tblItem->getPrice());
                     $Global->POST['Item']['CostUnit'] = $tblItem->getCostUnit();
 //                    if ( $tblItem->getServiceManagementCourse() ) {
 //                        $Global->POST['Item']['Course'] = $tblItem->getServiceManagementCourse()->getId();
@@ -233,27 +234,28 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
-                $Stage->setContent( Item::useService()->executeEditItem(
-                    new Form( array(
-                        new FormGroup( array(
-                            new FormRow( array(
+                $Stage->setContent(Item::useService()->executeEditItem(
+                    new Form(array(
+                        new FormGroup(array(
+                            new FormRow(array(
                                 new FormColumn(
-                                    new TextField( 'Item[Name]', 'Name', 'Name', new Conversation()
-                                    ), 6 ),
+                                    new TextField('Item[Name]', 'Name', 'Name', new Conversation()
+                                    ), 6),
                                 new FormColumn(
-                                    new TextField( 'Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
-                                    ), 6 )
-                            ) ),
-                            new FormRow( array(
+                                    new TextField('Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
+                                    ), 6)
+                            )),
+                            new FormRow(array(
                                 new FormColumn(
-                                    new TextField( 'Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
-                                    ), 6 )
-                            ) ),
-                            new FormRow( array(
+                                    new TextField('Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
+                                    ), 6)
+                            )),
+                            new FormRow(array(
                                 new FormColumn(
-                                    new TextField( 'Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                                    ), 12 )
-                            ) ),
+                                    new TextField('Item[Description]', 'Beschreibung', 'Beschreibung',
+                                        new Conversation()
+                                    ), 12)
+                            )),
 //                            new FormRow( array(   //todo
 //                                new FormColumn(
 //                                    new SelectBox( 'Item[Course]', 'Bedingung Bildungsgang',
@@ -266,8 +268,9 @@ class Frontend extends Extension implements IFrontendInterface
 //                                        ) )
 //                                    , 6 )
 //                            ) )
-                        ) ) ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary( 'Änderungen speichern' )
-                    ), $tblItem, $Item ) );
+                        ))
+                    ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern')
+                    ), $tblItem, $Item));
             }
         }
 

@@ -20,7 +20,7 @@ class ApcSma implements ITypeInterface
     public function clearCache()
     {
 
-        if (function_exists( 'apc_clear_cache' )) {
+        if (function_exists('apc_clear_cache')) {
             apc_clear_cache();
         }
     }
@@ -40,7 +40,7 @@ class ApcSma implements ITypeInterface
     public function isAvailable()
     {
 
-        if (function_exists( 'apc_clear_cache' )) {
+        if (function_exists('apc_clear_cache')) {
             return true;
         }
         return false;
@@ -120,11 +120,11 @@ class ApcSma implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
-        if (function_exists( 'apc_sma_info' )) {
-            $this->Status = apc_sma_info( true );
+        if (function_exists('apc_sma_info')) {
+            $this->Status = apc_sma_info(true);
         }
     }
 }

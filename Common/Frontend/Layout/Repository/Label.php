@@ -29,7 +29,7 @@ class Label extends Extension implements ITemplateInterface
      * @param string $Content
      * @param string $Type
      */
-    public function __construct( $Content, $Type = Label::LABEL_TYPE_DEFAULT )
+    public function __construct($Content, $Type = Label::LABEL_TYPE_DEFAULT)
     {
 
         $this->Content = $Content;

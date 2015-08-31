@@ -28,12 +28,12 @@ class Frontend implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendTicket( $TicketSubject, $TicketMessage )
+    public function frontendTicket($TicketSubject, $TicketMessage)
     {
 
-        $Stage = new Stage( 'Support', 'Ticket erstellen' );
-        $Stage->setContent( ( new Service() )->executeCreateTicket(
-            new Form( array(
+        $Stage = new Stage('Support', 'Ticket erstellen');
+        $Stage->setContent((new Service())->executeCreateTicket(
+            new Form(array(
                 new FormGroup(
                     new FormRow(
                         new FormColumn(
@@ -41,9 +41,9 @@ class Frontend implements IFrontendInterface
                                 'TicketSubject', 'Thema', 'Thema'
                             )
                         )
-                    ), new Title( 'Problembeschreibung' )
+                    ), new Title('Problembeschreibung')
                 ),
-                new FormGroup( array(
+                new FormGroup(array(
                         new FormRow(
                             new FormColumn(
                                 new TextArea(
@@ -52,20 +52,20 @@ class Frontend implements IFrontendInterface
                             )
                         ),
                         new FormRow(
-                            new FormColumn( array(
+                            new FormColumn(array(
                                 new Warning(
                                     'Bitte teilen Sie uns so genau wie möglich mit wie es zu diesem Problem kam'
                                 ),
                                 new Danger(
                                     'Sollte Ihr Problem bereits gemeldet worden sein, eröffnen Sie bitte kein neues Ticket'
                                 )
-                            ) )
+                            ))
                         )
                     )
                 )
-            ), new Primary( 'Ticket eröffnen' )
+            ), new Primary('Ticket eröffnen')
             ), $TicketSubject, $TicketMessage
-        ) );
+        ));
         return $Stage;
     }
 }

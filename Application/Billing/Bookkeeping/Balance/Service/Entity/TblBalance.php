@@ -39,7 +39,7 @@ class TblBalance extends Element
     /**
      * @param TblDebtor $serviceBilling_Banking
      */
-    public function setServiceBillingBanking( TblDebtor $serviceBilling_Banking = null )
+    public function setServiceBillingBanking(TblDebtor $serviceBilling_Banking = null)
     {
 
         $this->serviceBilling_Banking = ( null === $serviceBilling_Banking ? null : $serviceBilling_Banking->getId() );
@@ -51,17 +51,17 @@ class TblBalance extends Element
     public function getServiceBillingBilling()
     {
 
-        if ( null === $this->serviceBilling_Banking ) {
+        if (null === $this->serviceBilling_Banking) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById( $this->serviceBilling_Banking );
+            return Banking::useService()->entityDebtorById($this->serviceBilling_Banking);
         }
     }
 
     /**
      * @param null|TblInvoice $serviceBilling_Invoice
      */
-    public function setServiceBillingInvoice( TblInvoice $serviceBilling_Invoice = null )
+    public function setServiceBillingInvoice(TblInvoice $serviceBilling_Invoice = null)
     {
 
         $this->serviceBilling_Invoice = ( null === $serviceBilling_Invoice ? null : $serviceBilling_Invoice->getId() );
@@ -73,10 +73,10 @@ class TblBalance extends Element
     public function getServiceBillingInvoice()
     {
 
-        if ( null === $this->serviceBilling_Invoice ) {
+        if (null === $this->serviceBilling_Invoice) {
             return false;
         } else {
-            return Invoice::useService()->entityInvoiceById( $this->serviceBilling_Invoice );
+            return Invoice::useService()->entityInvoiceById($this->serviceBilling_Invoice);
         }
     }
 
@@ -86,13 +86,13 @@ class TblBalance extends Element
     public function getExportDate()
     {
 
-        if ( null === $this->ExportDate ) {
+        if (null === $this->ExportDate) {
             return false;
         }
         /** @var \DateTime $ExportDate */
         $ExportDate = $this->ExportDate;
-        if ( $ExportDate instanceof \DateTime ) {
-            return $ExportDate->format( 'd.m.Y' );
+        if ($ExportDate instanceof \DateTime) {
+            return $ExportDate->format('d.m.Y');
         } else {
             return (string)$ExportDate;
         }
@@ -101,7 +101,7 @@ class TblBalance extends Element
     /**
      * @param \DateTime $ExportDate
      */
-    public function setExportDate( \DateTime $ExportDate )
+    public function setExportDate(\DateTime $ExportDate)
     {
 
         $this->ExportDate = $ExportDate;

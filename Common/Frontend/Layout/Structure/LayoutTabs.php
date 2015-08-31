@@ -19,11 +19,11 @@ class LayoutTabs extends Extension implements ITemplateInterface
     /**
      * @param LayoutTab[] $TabList
      */
-    public function __construct( $TabList )
+    public function __construct($TabList)
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/LayoutTabs.twig' );
-        $this->Template->setVariable( 'TabList', implode( '', $TabList ) );
+        $this->Template = $this->getTemplate(__DIR__.'/LayoutTabs.twig');
+        $this->Template->setVariable('TabList', implode('', $TabList));
     }
 
     /**

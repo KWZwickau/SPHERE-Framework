@@ -29,7 +29,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -41,110 +41,110 @@ class Data
         /**
          * Administrator
          */
-        $tblRole = $this->createRole( 'Administrator' );
+        $tblRole = $this->createRole('Administrator');
 
         // Mandanten
-        $tblLevel = $this->createLevel( 'Mandanten' );
-        $this->addRoleLevel( $tblRole, $tblLevel );
+        $tblLevel = $this->createLevel('Mandanten');
+        $this->addRoleLevel($tblRole, $tblLevel);
 
-        $tblPrivilege = $this->createPrivilege( 'Mandanten' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
-        $tblRight = $this->createRight( '/Platform' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Consumer' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblPrivilege = $this->createPrivilege('Mandanten');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Consumer');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         // Hardware-Token
-        $tblLevel = $this->createLevel( 'Hardware-Token' );
-        $this->addRoleLevel( $tblRole, $tblLevel );
+        $tblLevel = $this->createLevel('Hardware-Token');
+        $this->addRoleLevel($tblRole, $tblLevel);
 
-        $tblPrivilege = $this->createPrivilege( 'Hardware-Token' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
-        $tblRight = $this->createRight( '/Platform' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Token' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblPrivilege = $this->createPrivilege('Hardware-Token');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Token');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         // Benutzerkonten
-        $tblLevel = $this->createLevel( 'Benutzerkonten' );
-        $this->addRoleLevel( $tblRole, $tblLevel );
+        $tblLevel = $this->createLevel('Benutzerkonten');
+        $this->addRoleLevel($tblRole, $tblLevel);
 
-        $tblPrivilege = $this->createPrivilege( 'Benutzerkonten' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
-        $tblRight = $this->createRight( '/Platform' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Account' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblPrivilege = $this->createPrivilege('Benutzerkonten');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Account');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         // Rechteverwaltung
-        $tblLevel = $this->createLevel( 'Rechteverwaltung' );
-        $this->addRoleLevel( $tblRole, $tblLevel );
+        $tblLevel = $this->createLevel('Rechteverwaltung');
+        $this->addRoleLevel($tblRole, $tblLevel);
 
-        $tblPrivilege = $this->createPrivilege( 'Rechteverwaltung' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
-        $tblRight = $this->createRight( '/Platform' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Role' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Level' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Privilege' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/Gatekeeper/Authorization/Access/Right' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblPrivilege = $this->createPrivilege('Rechteverwaltung');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Role');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Level');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Privilege');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Right');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         // Plattform
-        $tblLevel = $this->createLevel( 'Plattform' );
-        $this->addRoleLevel( $tblRole, $tblLevel );
+        $tblLevel = $this->createLevel('Plattform');
+        $this->addRoleLevel($tblRole, $tblLevel);
 
-        $tblPrivilege = $this->createPrivilege( 'System' );
-        $this->addLevelPrivilege( $tblLevel, $tblPrivilege );
-        $tblRight = $this->createRight( '/Platform' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/System' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/System/Cache' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/System/Database' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/System/Database/Setup/Simulation' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/System/Database/Setup/Execution' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
-        $tblRight = $this->createRight( '/Platform/System/Protocol' );
-        $this->addPrivilegeRight( $tblPrivilege, $tblRight );
+        $tblPrivilege = $this->createPrivilege('System');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Cache');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Database');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Database/Setup/Simulation');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Database/Setup/Execution');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Protocol');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         /**
          * Schüler / Eltern
          */
-        $tblRole = $this->createRole( 'Schüler / Eltern' );
+        $tblRole = $this->createRole('Schüler / Eltern');
 
-        $tblLevel = $this->createLevel( 'Zensuren' );
-        $this->addRoleLevel( $tblRole, $tblLevel );
+        $tblLevel = $this->createLevel('Zensuren');
+        $this->addRoleLevel($tblRole, $tblLevel);
     }
 
     /**
@@ -152,15 +152,15 @@ class Data
      *
      * @return TblRole
      */
-    public function createRole( $Name )
+    public function createRole($Name)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblRole' )->findOneBy( array( TblRole::ATTR_NAME => $Name ) );
+        $Entity = $Manager->getEntity('TblRole')->findOneBy(array(TblRole::ATTR_NAME => $Name));
         if (null === $Entity) {
-            $Entity = new TblRole( $Name );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblRole($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -170,15 +170,15 @@ class Data
      *
      * @return TblLevel
      */
-    public function createLevel( $Name )
+    public function createLevel($Name)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblLevel' )->findOneBy( array( TblLevel::ATTR_NAME => $Name ) );
+        $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(TblLevel::ATTR_NAME => $Name));
         if (null === $Entity) {
-            $Entity = new TblLevel( $Name );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblLevel($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -189,21 +189,21 @@ class Data
      *
      * @return TblRoleLevel
      */
-    public function addRoleLevel( TblRole $tblRole, TblLevel $tblLevel )
+    public function addRoleLevel(TblRole $tblRole, TblLevel $tblLevel)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblRoleLevel' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblRoleLevel')
+            ->findOneBy(array(
                 TblRoleLevel::ATTR_TBL_ROLE  => $tblRole->getId(),
                 TblRoleLevel::ATTR_TBL_LEVEL => $tblLevel->getId()
-            ) );
+            ));
         if (null === $Entity) {
             $Entity = new TblRoleLevel();
-            $Entity->setTblRole( $tblRole );
-            $Entity->setTblLevel( $tblLevel );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setTblRole($tblRole);
+            $Entity->setTblLevel($tblLevel);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -213,15 +213,15 @@ class Data
      *
      * @return TblPrivilege
      */
-    public function createPrivilege( $Name )
+    public function createPrivilege($Name)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblPrivilege' )->findOneBy( array( TblPrivilege::ATTR_NAME => $Name ) );
+        $Entity = $Manager->getEntity('TblPrivilege')->findOneBy(array(TblPrivilege::ATTR_NAME => $Name));
         if (null === $Entity) {
-            $Entity = new TblPrivilege( $Name );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblPrivilege($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -232,21 +232,21 @@ class Data
      *
      * @return TblLevelPrivilege
      */
-    public function addLevelPrivilege( TblLevel $tblLevel, TblPrivilege $tblPrivilege )
+    public function addLevelPrivilege(TblLevel $tblLevel, TblPrivilege $tblPrivilege)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblLevelPrivilege' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblLevelPrivilege')
+            ->findOneBy(array(
                 TblLevelPrivilege::ATTR_TBL_LEVEL     => $tblLevel->getId(),
                 TblLevelPrivilege::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
-            ) );
+            ));
         if (null === $Entity) {
             $Entity = new TblLevelPrivilege();
-            $Entity->setTblLevel( $tblLevel );
-            $Entity->setTblPrivilege( $tblPrivilege );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setTblLevel($tblLevel);
+            $Entity->setTblPrivilege($tblPrivilege);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -256,15 +256,15 @@ class Data
      *
      * @return TblRight
      */
-    public function createRight( $Route )
+    public function createRight($Route)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblRight' )->findOneBy( array( TblRight::ATTR_ROUTE => $Route ) );
+        $Entity = $Manager->getEntity('TblRight')->findOneBy(array(TblRight::ATTR_ROUTE => $Route));
         if (null === $Entity) {
-            $Entity = new TblRight( $Route );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblRight($Route);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -275,21 +275,21 @@ class Data
      *
      * @return TblPrivilegeRight
      */
-    public function addPrivilegeRight( TblPrivilege $tblPrivilege, TblRight $tblRight )
+    public function addPrivilegeRight(TblPrivilege $tblPrivilege, TblRight $tblRight)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblPrivilegeRight' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblPrivilegeRight')
+            ->findOneBy(array(
                 TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId(),
                 TblPrivilegeRight::ATTR_TBL_RIGHT     => $tblRight->getId()
-            ) );
+            ));
         if (null === $Entity) {
             $Entity = new TblPrivilegeRight();
-            $Entity->setTblPrivilege( $tblPrivilege );
-            $Entity->setTblRight( $tblRight );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setTblPrivilege($tblPrivilege);
+            $Entity->setTblRight($tblRight);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -300,19 +300,19 @@ class Data
      *
      * @return bool
      */
-    public function removeRoleLevel( TblRole $tblRole, TblLevel $tblLevel )
+    public function removeRoleLevel(TblRole $tblRole, TblLevel $tblLevel)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblRoleLevel $Entity */
-        $Entity = $Manager->getEntity( 'TblRoleLevel' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblRoleLevel')
+            ->findOneBy(array(
                 TblRoleLevel::ATTR_TBL_ROLE  => $tblRole->getId(),
                 TblRoleLevel::ATTR_TBL_LEVEL => $tblLevel->getId()
-            ) );
+            ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -324,19 +324,19 @@ class Data
      *
      * @return bool
      */
-    public function removePrivilegeRight( TblPrivilege $tblPrivilege, TblRight $tblRight )
+    public function removePrivilegeRight(TblPrivilege $tblPrivilege, TblRight $tblRight)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblPrivilegeRight $Entity */
-        $Entity = $Manager->getEntity( 'TblPrivilegeRight' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblPrivilegeRight')
+            ->findOneBy(array(
                 TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId(),
                 TblPrivilegeRight::ATTR_TBL_RIGHT     => $tblRight->getId()
-            ) );
+            ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -348,19 +348,19 @@ class Data
      *
      * @return bool
      */
-    public function removeLevelPrivilege( TblLevel $tblLevel, TblPrivilege $tblPrivilege )
+    public function removeLevelPrivilege(TblLevel $tblLevel, TblPrivilege $tblPrivilege)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblLevelPrivilege $Entity */
-        $Entity = $Manager->getEntity( 'TblLevelPrivilege' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblLevelPrivilege')
+            ->findOneBy(array(
                 TblLevelPrivilege::ATTR_TBL_LEVEL     => $tblLevel->getId(),
                 TblLevelPrivilege::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
-            ) );
+            ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -371,14 +371,14 @@ class Data
      *
      * @return bool|TblRight
      */
-    public function getRightById( $Id )
+    public function getRightById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblRight', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblRight', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -388,15 +388,15 @@ class Data
      *
      * @return bool|TblRight
      */
-    public function getRightByName( $Name )
+    public function getRightByName($Name)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Name ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntity( 'TblRight' )
-                ->findOneBy( array( TblRight::ATTR_ROUTE => $Name ) );
-            $Cache->setValue( __METHOD__.'::'.$Name, ( null === $Entity ? false : $Entity ), 300 );
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Name) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntity('TblRight')
+                ->findOneBy(array(TblRight::ATTR_ROUTE => $Name));
+            $Cache->setValue(__METHOD__.'::'.$Name, ( null === $Entity ? false : $Entity ), 300);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -408,10 +408,10 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRight' )->findAll();
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblRight')->findAll();
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -421,14 +421,14 @@ class Data
      *
      * @return bool|TblLevel
      */
-    public function getLevelById( $Id )
+    public function getLevelById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblLevel', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblLevel', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -438,11 +438,11 @@ class Data
      *
      * @return bool|TblLevel
      */
-    public function getLevelByName( $Name )
+    public function getLevelByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblLevel' )
-            ->findOneBy( array( TblLevel::ATTR_NAME => $Name ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblLevel')
+            ->findOneBy(array(TblLevel::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -451,14 +451,14 @@ class Data
      *
      * @return bool|TblPrivilege
      */
-    public function getPrivilegeById( $Id )
+    public function getPrivilegeById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblPrivilege', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblPrivilege', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -468,11 +468,11 @@ class Data
      *
      * @return bool|TblPrivilege
      */
-    public function getPrivilegeByName( $Name )
+    public function getPrivilegeByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblPrivilege' )
-            ->findOneBy( array( TblPrivilege::ATTR_NAME => $Name ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblPrivilege')
+            ->findOneBy(array(TblPrivilege::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -482,17 +482,17 @@ class Data
      *
      * @return bool|TblLevelPrivilege[]
      */
-    public function getPrivilegeAllByLevel( TblLevel $tblLevel )
+    public function getPrivilegeAllByLevel(TblLevel $tblLevel)
     {
 
         /** @var TblLevelPrivilege[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblLevelPrivilege' )->findBy( array(
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblLevelPrivilege')->findBy(array(
             TblLevelPrivilege::ATTR_TBL_LEVEL => $tblLevel->getId()
-        ) );
-        array_walk( $EntityList, function ( TblLevelPrivilege &$V ) {
+        ));
+        array_walk($EntityList, function (TblLevelPrivilege &$V) {
 
             $V = $V->getTblPrivilege();
-        } );
+        });
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -502,17 +502,17 @@ class Data
      *
      * @return bool|TblRight[]
      */
-    public function getRightAllByPrivilege( TblPrivilege $tblPrivilege )
+    public function getRightAllByPrivilege(TblPrivilege $tblPrivilege)
     {
 
         /** @var TblPrivilegeRight[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblPrivilegeRight' )->findBy( array(
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblPrivilegeRight')->findBy(array(
             TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
-        ) );
-        array_walk( $EntityList, function ( TblPrivilegeRight &$V ) {
+        ));
+        array_walk($EntityList, function (TblPrivilegeRight &$V) {
 
             $V = $V->getTblRight();
-        } );
+        });
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -523,10 +523,10 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblPrivilege' )->findAll();
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblPrivilege')->findAll();
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -538,10 +538,10 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblLevel' )->findAll();
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblLevel')->findAll();
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -551,14 +551,14 @@ class Data
      *
      * @return bool|TblRole
      */
-    public function getRoleById( $Id )
+    public function getRoleById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblRole', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblRole', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -568,11 +568,11 @@ class Data
      *
      * @return bool|TblRole
      */
-    public function getRoleByName( $Name )
+    public function getRoleByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblRole' )
-            ->findOneBy( array( TblRole::ATTR_NAME => $Name ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblRole')
+            ->findOneBy(array(TblRole::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -583,10 +583,10 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRole' )->findAll();
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblRole')->findAll();
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -597,17 +597,17 @@ class Data
      *
      * @return bool|TblRoleLevel[]
      */
-    public function getLevelAllByRole( TblRole $tblRole )
+    public function getLevelAllByRole(TblRole $tblRole)
     {
 
         /** @var TblRoleLevel[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblRoleLevel' )->findBy( array(
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblRoleLevel')->findBy(array(
             TblRoleLevel::ATTR_TBL_ROLE => $tblRole->getId()
-        ) );
-        array_walk( $EntityList, function ( TblRoleLevel &$V ) {
+        ));
+        array_walk($EntityList, function (TblRoleLevel &$V) {
 
             $V = $V->getTblLevel();
-        } );
+        });
         return ( null === $EntityList ? false : $EntityList );
     }
 }

@@ -27,24 +27,25 @@ class Corporation implements IClusterInterface
         Group::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Firmen' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmen'))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
 
         $tblCompanyAll = Company::useService()->getCompanyAll();
-        Main::getDispatcher()->registerWidget( 'Firmen', new Panel( 'Anzahl an Firmen', 'Insgesamt: '.count( $tblCompanyAll ) ) );
+        Main::getDispatcher()->registerWidget('Firmen',
+            new Panel('Anzahl an Firmen', 'Insgesamt: '.count($tblCompanyAll)));
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if( $tblGroupAll ) {
+        if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
-                $tblGroupAll[$tblGroup->getName()] = $tblGroup->getName().': '.Group::useService()->countCompanyAllByGroup( $tblGroup );
+                $tblGroupAll[$tblGroup->getName()] = $tblGroup->getName().': '.Group::useService()->countCompanyAllByGroup($tblGroup);
                 $tblGroupAll[$Index] = false;
             }
-            $tblGroupAll = array_filter( $tblGroupAll );
-            Main::getDispatcher()->registerWidget( 'Firmen', new Panel( 'Firmen in Gruppen', $tblGroupAll ), 2, 2 );
+            $tblGroupAll = array_filter($tblGroupAll);
+            Main::getDispatcher()->registerWidget('Firmen', new Panel('Firmen in Gruppen', $tblGroupAll), 2, 2);
         }
     }
 
@@ -54,9 +55,9 @@ class Corporation implements IClusterInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage( 'Dashboard', 'Firmen' );
+        $Stage = new Stage('Dashboard', 'Firmen');
 
-        $Stage->setContent( Main::getDispatcher()->fetchDashboard( 'Firmen' ) );
+        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Firmen'));
 
         return $Stage;
     }

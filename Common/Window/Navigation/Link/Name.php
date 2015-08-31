@@ -16,13 +16,13 @@ class Name extends Extension
     /** @var string $Value */
     private $Value = '';
 
-    public function __construct( $Value )
+    public function __construct($Value)
     {
 
-        if (preg_match( $this->Pattern, $Value )) {
+        if (preg_match($this->Pattern, $Value)) {
             $this->Value = $Value;
         } else {
-            throw new \Exception( __CLASS__.' > Pattern mismatch: ('.$Value.') ['.$this->Pattern.']' );
+            throw new \Exception(__CLASS__.' > Pattern mismatch: ('.$Value.') ['.$this->Pattern.']');
         }
     }
 

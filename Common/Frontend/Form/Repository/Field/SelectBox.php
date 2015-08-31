@@ -27,41 +27,42 @@ class SelectBox extends Field implements IFieldInterface
         $Data = array(),
         IIconInterface $Icon = null
     ) {
-        if( empty( $Data ) ) {
+
+        if (empty( $Data )) {
             $Data[0] = '-[ Nicht verfügbar ]-';
         }
         $this->Name = $Name;
-        $this->Template = $this->getTemplate( __DIR__.'/SelectBox.twig' );
-        $this->Template->setVariable( 'ElementName', $Name );
-        $this->Template->setVariable( 'ElementLabel', $Label );
+        $this->Template = $this->getTemplate(__DIR__.'/SelectBox.twig');
+        $this->Template->setVariable('ElementName', $Name);
+        $this->Template->setVariable('ElementLabel', $Label);
         // Data is Entity-List ?
-        if (count( $Data ) == 1 && !is_numeric( key( $Data ) )) {
-            $Attribute = key( $Data );
+        if (count($Data) == 1 && !is_numeric(key($Data))) {
+            $Attribute = key($Data);
             $Convert = array();
             // Attribute is Twig-Template ?
-            if (preg_match_all( '/\{\%\s*(.*)\s*\%\}|\{\{(?!%)\s*((?:[^\s])*)\s*(?<!%)\}\}/i',
+            if (preg_match_all('/\{\%\s*(.*)\s*\%\}|\{\{(?!%)\s*((?:[^\s])*)\s*(?<!%)\}\}/i',
                 $Attribute,
-                $Placeholder )
+                $Placeholder)
             ) {
                 /** @var Element $Entity */
                 foreach ((array)$Data[$Attribute] as $Entity) {
-                    if (is_object( $Entity )) {
+                    if (is_object($Entity)) {
                         if ($Entity->getId() === null) {
-                            $Entity->setId( 0 );
+                            $Entity->setId(0);
                         }
-                        $Template = Template::getTwigTemplateString( $Attribute );
+                        $Template = Template::getTwigTemplateString($Attribute);
                         foreach ((array)$Placeholder[2] as $Variable) {
-                            $Chain = explode( '.', $Variable );
-                            if (count( $Chain ) > 1) {
-                                $Template->setVariable( $Chain[0], $Entity->{'get'.$Chain[0]}() );
+                            $Chain = explode('.', $Variable);
+                            if (count($Chain) > 1) {
+                                $Template->setVariable($Chain[0], $Entity->{'get'.$Chain[0]}());
                             } else {
-                                if (method_exists( $Entity, 'get'.$Variable )) {
-                                    $Template->setVariable( $Variable, $Entity->{'get'.$Variable}() );
+                                if (method_exists($Entity, 'get'.$Variable)) {
+                                    $Template->setVariable($Variable, $Entity->{'get'.$Variable}());
                                 } else {
-                                    if (property_exists( $Entity, $Variable )) {
-                                        $Template->setVariable( $Variable, $Entity->{$Variable} );
+                                    if (property_exists($Entity, $Variable)) {
+                                        $Template->setVariable($Variable, $Entity->{$Variable});
                                     } else {
-                                        $Template->setVariable( $Variable, null );
+                                        $Template->setVariable($Variable, null);
                                     }
                                 }
                             }
@@ -72,11 +73,11 @@ class SelectBox extends Field implements IFieldInterface
             } else {
                 /** @var Element $Entity */
                 foreach ((array)$Data[$Attribute] as $Entity) {
-                    if (is_object( $Entity )) {
+                    if (is_object($Entity)) {
                         if ($Entity->getId() === null) {
-                            $Entity->setId( 0 );
+                            $Entity->setId(0);
                         }
-                        if (method_exists( $Entity, 'get'.$Attribute )) {
+                        if (method_exists($Entity, 'get'.$Attribute)) {
                             $Convert[$Entity->getId()] = $Entity->{'get'.$Attribute}();
                         } else {
                             $Convert[$Entity->getId()] = $Entity->{$Attribute};
@@ -84,20 +85,20 @@ class SelectBox extends Field implements IFieldInterface
                     }
                 }
             }
-            if (array_key_exists( 0, $Convert )) {
+            if (array_key_exists(0, $Convert)) {
                 $Convert[0] = '-[ Nicht ausgewählt ]-';
             }
-            asort( $Convert );
-            $this->Template->setVariable( 'ElementData', $Convert );
+            asort($Convert);
+            $this->Template->setVariable('ElementData', $Convert);
         } else {
-            if (array_key_exists( 0, $Data )) {
+            if (array_key_exists(0, $Data)) {
                 $Data[0] = '-[ Nicht ausgewählt ]-';
             }
-            asort( $Data );
-            $this->Template->setVariable( 'ElementData', $Data );
+            asort($Data);
+            $this->Template->setVariable('ElementData', $Data);
         }
         if (null !== $Icon) {
-            $this->Template->setVariable( 'ElementIcon', $Icon );
+            $this->Template->setVariable('ElementIcon', $Icon);
         }
     }
 

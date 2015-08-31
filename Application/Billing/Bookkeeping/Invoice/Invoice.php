@@ -32,74 +32,74 @@ class Invoice implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendInvoiceList'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed',
                 __NAMESPACE__.'\Frontend::frontendInvoiceIsNotConfirmedList'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed/Edit',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Edit',
                 __NAMESPACE__.'\Frontend::frontendInvoiceEdit'
-            )->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'Data', null )
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('Data', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Show',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Show',
                 __NAMESPACE__.'\Frontend::frontendInvoiceShow'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Confirm',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Confirm',
                 __NAMESPACE__.'\Frontend::frontendInvoiceConfirm'
-            )->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'Data', null )
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('Data', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Cancel',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Cancel',
                 __NAMESPACE__.'\Frontend::frontendInvoiceCancel'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Pay',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Pay',
                 __NAMESPACE__.'\Frontend::frontendInvoicePay'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed/Item/Edit',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Item/Edit',
                 __NAMESPACE__.'\Frontend::frontendInvoiceItemEdit'
-            )->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'InvoiceItem', null )
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('InvoiceItem', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed/Item/Remove',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Item/Remove',
                 __NAMESPACE__.'\Frontend::frontendInvoiceItemRemove'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed/Address/Select',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Address/Select',
                 __NAMESPACE__.'\Frontend::frontendInvoiceAddressSelect'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed/Address/Change',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Address/Change',
                 __NAMESPACE__.'\Frontend::frontendInvoiceAddressChange'
-            )->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'AddressId', null )
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('AddressId', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed/Payment/Type/Select',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Payment/Type/Select',
                 __NAMESPACE__.'\Frontend::frontendInvoicePaymentTypeSelect'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/IsNotConfirmed/Payment/Type/Change',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Payment/Type/Change',
                 __NAMESPACE__.'\Frontend::frontendInvoicePaymentTypeChange'
-            )->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'PaymentTypeId', null )
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('PaymentTypeId', null)
         );
     }
 
@@ -109,7 +109,8 @@ class Invoice implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Billing', 'Bookkeeping', 'Invoice', null, Consumer::useService()->getConsumerBySession() ),
+        return new Service(new Identifier('Billing', 'Bookkeeping', 'Invoice', null,
+            Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

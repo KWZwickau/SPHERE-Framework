@@ -60,7 +60,7 @@ class TblItem extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;
@@ -78,7 +78,7 @@ class TblItem extends Element
     /**
      * @param (type="decimal", precision=14, scale=4) $Price
      */
-    public function setPrice( $Price )
+    public function setPrice($Price)
     {
 
         $this->Price = $Price;
@@ -90,8 +90,8 @@ class TblItem extends Element
     public function getPriceString()
     {
 
-        $result = sprintf( "%01.4f", $this->Price );
-        return str_replace( '.', ',', $result )." €";
+        $result = sprintf("%01.4f", $this->Price);
+        return str_replace('.', ',', $result)." €";
     }
 
     /**
@@ -106,7 +106,7 @@ class TblItem extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
@@ -124,7 +124,7 @@ class TblItem extends Element
     /**
      * @param string $CostUnit
      */
-    public function setCostUnit( $CostUnit )
+    public function setCostUnit($CostUnit)
     {
 
         $this->CostUnit = $CostUnit;
@@ -136,17 +136,17 @@ class TblItem extends Element
     public function getServiceManagementCourse()
     {
 
-        if ( null === $this->serviceManagement_Course ) {
+        if (null === $this->serviceManagement_Course) {
             return false;
         } else {
-            return Management::serviceCourse()->entityCourseById( $this->serviceManagement_Course );    // todo
+            return Management::serviceCourse()->entityCourseById($this->serviceManagement_Course);    // todo
         }
     }
 
     /**
      * @param null|TblCourse $tblCourse
      */
-    public function setServiceManagementCourse( TblCourse $tblCourse = null )
+    public function setServiceManagementCourse(TblCourse $tblCourse = null)
     {
 
         $this->serviceManagement_Course = ( null === $tblCourse ? null : $tblCourse->getId() );
@@ -158,17 +158,17 @@ class TblItem extends Element
     public function getServiceManagementStudentChildRank()
     {
 
-        if ( null === $this->serviceManagement_Student_ChildRank ) {
+        if (null === $this->serviceManagement_Student_ChildRank) {
             return false;
         } else {
-            return Management::serviceStudent()->entityChildRankById( $this->serviceManagement_Student_ChildRank ); // todo
+            return Management::serviceStudent()->entityChildRankById($this->serviceManagement_Student_ChildRank); // todo
         }
     }
 
     /**
      * @param null|TblChildRank $tblChildRank
      */
-    public function setServiceManagementStudentChildRank( TblChildRank $tblChildRank = null )
+    public function setServiceManagementStudentChildRank(TblChildRank $tblChildRank = null)
     {
 
         $this->serviceManagement_Student_ChildRank = ( null === $tblChildRank ? null : $tblChildRank->getId() );

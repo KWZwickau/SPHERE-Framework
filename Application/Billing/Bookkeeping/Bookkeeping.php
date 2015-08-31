@@ -21,13 +21,13 @@ class Bookkeeping implements IApplicationInterface
         Balance::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Buchungen' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Buchungen'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Invoice' ), new Link\Name( 'Rechnungen' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Invoice'), new Link\Name('Rechnungen'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Balance' ), new Link\Name( 'Offene Posten' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Balance'), new Link\Name('Offene Posten'))
         );
 
     }

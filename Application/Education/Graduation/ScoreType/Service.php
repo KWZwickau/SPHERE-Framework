@@ -35,11 +35,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -48,12 +48,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $Simulate, $withData )
+    public function setupService($Simulate, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($Simulate);
         if (!$Simulate && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -63,22 +63,22 @@ class Service implements IServiceInterface
      *
      * @return bool|TblScoreType
      */
-    public function getScoreTypeById( $Id )
+    public function getScoreTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getScoreTypeById( $Id );
+        return (new Data($this->Binding))->getScoreTypeById($Id);
     }
 
-    public function setTblScoreType( $Name, $Short )
+    public function setTblScoreType($Name, $Short)
     {
 
-        return ( new Data( $this->Binding ) )->createScoreType( $Name, $Short );
+        return (new Data($this->Binding))->createScoreType($Name, $Short);
     }
 
     public function getScoreTypeAll()
     {
 
-        return ( new Data( $this->Binding ) )->getScoreTypeAll();
+        return (new Data($this->Binding))->getScoreTypeAll();
     }
 
     /**
@@ -86,19 +86,19 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function removeScoreType( TblScoreType $tblScoreType )
+    public function removeScoreType(TblScoreType $tblScoreType)
     {
 
         if (null === $tblScoreType) {
             return '';
         }
 
-        if (( new Data( $this->Binding ) )->removeScoreTypeByEntity( $tblScoreType )) {
-            return new Success( 'Der Zensurentyp wurde erfolgreich gelöscht' )
-            .new Redirect( '/Education/Graduation/ScoreType', 0 );
+        if ((new Data($this->Binding))->removeScoreTypeByEntity($tblScoreType)) {
+            return new Success('Der Zensurentyp wurde erfolgreich gelöscht')
+            .new Redirect('/Education/Graduation/ScoreType', 0);
         } else {
-            return new Danger( 'Der Zensurentyp konnte nicht gelöscht werden' )
-            .new Redirect( '/Education/Graduation/ScoreType', 2 );
+            return new Danger('Der Zensurentyp konnte nicht gelöscht werden')
+            .new Redirect('/Education/Graduation/ScoreType', 2);
         }
     }
 
@@ -108,7 +108,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function setScoreType( IFormInterface &$Stage = null, $ScoreType )
+    public function setScoreType(IFormInterface &$Stage = null, $ScoreType)
     {
 
         /**
@@ -119,18 +119,18 @@ class Service implements IServiceInterface
         }
         $Error = false;
         if (isset( $ScoreType['Name'] ) && empty( $ScoreType['Name'] )) {
-            $Stage->setError( 'ScoreType[Name]', 'Bitte geben sie einen Zenzurentypnamen an' );
+            $Stage->setError('ScoreType[Name]', 'Bitte geben sie einen Zenzurentypnamen an');
             $Error = true;
         }
         if (isset( $ScoreType['Short'] ) && empty( $ScoreType['Short'] )) {
-            $Stage->setError( 'ScoreType[Short]', 'Bitte geben sie eine Abkürzung an' );
+            $Stage->setError('ScoreType[Short]', 'Bitte geben sie eine Abkürzung an');
             $Error = true;
         }
 
         if (!$Error) {
-            ( new Data( $this->Binding ) )->createScoreType( $ScoreType['Name'], $ScoreType['Short'] );
-            return new Stage( 'Das Konto ist erfasst worden' )
-            .new Redirect( '/Education/Graduation/ScoreType', 0 );
+            (new Data($this->Binding))->createScoreType($ScoreType['Name'], $ScoreType['Short']);
+            return new Stage('Das Konto ist erfasst worden')
+            .new Redirect('/Education/Graduation/ScoreType', 0);
         }
 
         return $Stage;

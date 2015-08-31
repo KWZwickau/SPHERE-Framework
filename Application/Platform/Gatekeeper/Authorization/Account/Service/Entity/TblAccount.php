@@ -43,7 +43,7 @@ class TblAccount extends Element
     /**
      * @param string $Username
      */
-    function __construct( $Username )
+    function __construct($Username)
     {
 
         $this->Username = $Username;
@@ -61,7 +61,7 @@ class TblAccount extends Element
     /**
      * @param string $Password
      */
-    public function setPassword( $Password )
+    public function setPassword($Password)
     {
 
         $this->Password = $Password;
@@ -79,7 +79,7 @@ class TblAccount extends Element
     /**
      * @param string $Username
      */
-    public function setUsername( $Username )
+    public function setUsername($Username)
     {
 
         $this->Username = $Username;
@@ -94,14 +94,14 @@ class TblAccount extends Element
         if (null === $this->serviceTblConsumer) {
             return false;
         } else {
-            return Consumer::useService()->getConsumerById( $this->serviceTblConsumer );
+            return Consumer::useService()->getConsumerById($this->serviceTblConsumer);
         }
     }
 
     /**
      * @param null|TblConsumer $tblConsumer
      */
-    public function setServiceTblConsumer( TblConsumer $tblConsumer = null )
+    public function setServiceTblConsumer(TblConsumer $tblConsumer = null)
     {
 
         $this->serviceTblConsumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );
@@ -116,14 +116,14 @@ class TblAccount extends Element
         if (null === $this->serviceTblToken) {
             return false;
         } else {
-            return Token::useService()->getTokenById( $this->serviceTblToken );
+            return Token::useService()->getTokenById($this->serviceTblToken);
         }
     }
 
     /**
      * @param null|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken $tblToken
      */
-    public function setServiceTblToken( TblToken $tblToken = null )
+    public function setServiceTblToken(TblToken $tblToken = null)
     {
 
         $this->serviceTblToken = ( null === $tblToken ? null : $tblToken->getId() );

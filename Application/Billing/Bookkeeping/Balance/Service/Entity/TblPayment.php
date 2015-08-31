@@ -35,7 +35,7 @@ class TblPayment extends Element
     /**
      * @param null|TblBalance $tblBalance
      */
-    public function setTblBalance( $tblBalance = null )
+    public function setTblBalance($tblBalance = null)
     {
 
         $this->tblBalance = ( null === $tblBalance ? null : $tblBalance->getId() );
@@ -47,10 +47,10 @@ class TblPayment extends Element
     public function getTblBalance()
     {
 
-        if ( null === $this->tblBalance ) {
+        if (null === $this->tblBalance) {
             return false;
         } else {
-            return Balance::useService()->entityBalanceById( $this->tblBalance );
+            return Balance::useService()->entityBalanceById($this->tblBalance);
         }
     }
 
@@ -60,13 +60,13 @@ class TblPayment extends Element
     public function getDate()
     {
 
-        if ( null === $this->Date ) {
+        if (null === $this->Date) {
             return false;
         }
         /** @var \DateTime $Date */
         $Date = $this->Date;
-        if ( $Date instanceof \DateTime ) {
-            return $Date->format( 'd.m.Y' );
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
         } else {
             return (string)$Date;
         }
@@ -75,7 +75,7 @@ class TblPayment extends Element
     /**
      * @param \DateTime $Date
      */
-    public function setDate( \DateTime $Date )
+    public function setDate(\DateTime $Date)
     {
 
         $this->Date = $Date;
@@ -84,7 +84,7 @@ class TblPayment extends Element
     /**
      * @param $Value
      */
-    public function setValue( $Value )
+    public function setValue($Value)
     {
 
         $this->Value = $Value;
@@ -105,7 +105,7 @@ class TblPayment extends Element
     public function getValueString()
     {
 
-        $result = sprintf( "%01.2f", $this->Value );
-        return str_replace( '.', ',', $result )." €";
+        $result = sprintf("%01.2f", $this->Value);
+        return str_replace('.', ',', $result)." €";
     }
 }

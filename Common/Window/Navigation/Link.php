@@ -32,26 +32,26 @@ class Link extends Extension
      * @param Icon|null $Icon
      * @param bool      $Active
      */
-    function __construct( Route $Route, Name $Name, Icon $Icon = null, $Active = false )
+    function __construct(Route $Route, Name $Name, Icon $Icon = null, $Active = false)
     {
 
         $this->Route = $Route;
         $this->Name = $Name;
         $this->Icon = $Icon;
-        $this->Active = $Active || $this->getActive( $Route );
+        $this->Active = $Active || $this->getActive($Route);
 
-        $this->Template = $this->getTemplate( __DIR__.'/Link.twig' );
-        $this->Template->setVariable( 'Route', $Route->getValue() );
-        $this->Template->setVariable( 'Name', $Name->getValue() );
+        $this->Template = $this->getTemplate(__DIR__.'/Link.twig');
+        $this->Template->setVariable('Route', $Route->getValue());
+        $this->Template->setVariable('Name', $Name->getValue());
         if (null === $Icon) {
-            $this->Template->setVariable( 'Icon', '' );
+            $this->Template->setVariable('Icon', '');
         } else {
-            $this->Template->setVariable( 'Icon', $Icon->getValue() );
+            $this->Template->setVariable('Icon', $Icon->getValue());
         }
         if ($this->Active) {
-            $this->Template->setVariable( 'ActiveClass', 'active' );
+            $this->Template->setVariable('ActiveClass', 'active');
         } else {
-            $this->Template->setVariable( 'ActiveClass', '' );
+            $this->Template->setVariable('ActiveClass', '');
         }
     }
 
@@ -60,10 +60,10 @@ class Link extends Extension
      *
      * @return bool
      */
-    private function getActive( Route $Route )
+    private function getActive(Route $Route)
     {
 
-        return 0 === strpos( $this->getRequest()->getUrlBase().$this->getRequest()->getPathInfo(), $Route->getValue() );
+        return 0 === strpos($this->getRequest()->getUrlBase().$this->getRequest()->getPathInfo(), $Route->getValue());
     }
 
     /**

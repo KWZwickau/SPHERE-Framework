@@ -49,7 +49,7 @@ class TblCommon extends Element
     /**
      * @param string $Remark
      */
-    public function setRemark( $Remark )
+    public function setRemark($Remark)
     {
 
         $this->Remark = $Remark;
@@ -64,14 +64,14 @@ class TblCommon extends Element
         if (null === $this->tblCommonBirthDates) {
             return false;
         } else {
-            return Common::useService()->getCommonBirthDatesById( $this->tblCommonBirthDates );
+            return Common::useService()->getCommonBirthDatesById($this->tblCommonBirthDates);
         }
     }
 
     /**
      * @param null|TblCommonBirthDates $tblCommonBirthDates
      */
-    public function setTblCommonBirthDates( TblCommonBirthDates $tblCommonBirthDates = null )
+    public function setTblCommonBirthDates(TblCommonBirthDates $tblCommonBirthDates = null)
     {
 
         $this->tblCommonBirthDates = ( null === $tblCommonBirthDates ? null : $tblCommonBirthDates->getId() );
@@ -86,14 +86,14 @@ class TblCommon extends Element
         if (null === $this->tblCommonInformation) {
             return false;
         } else {
-            return Common::useService()->getCommonInformationById( $this->tblCommonInformation );
+            return Common::useService()->getCommonInformationById($this->tblCommonInformation);
         }
     }
 
     /**
      * @param null|TblCommonInformation $tblCommonInformation
      */
-    public function setTblCommonInformation( TblCommonInformation $tblCommonInformation = null )
+    public function setTblCommonInformation(TblCommonInformation $tblCommonInformation = null)
     {
 
         $this->tblCommonInformation = ( null === $tblCommonInformation ? null : $tblCommonInformation->getId() );
@@ -108,14 +108,14 @@ class TblCommon extends Element
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById( $this->serviceTblPerson );
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServiceTblPerson( TblPerson $tblPerson = null )
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );

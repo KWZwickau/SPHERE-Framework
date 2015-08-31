@@ -14,9 +14,9 @@
         </div>
         {% if(LayoutRow.IsSortable) %}
             <script>
-                Client.Use( 'ModSortable', function()
+                Client.Use('ModSortable', function()
                 {
-                    jQuery( 'div.row.{{ LayoutRow.IsSortable }}' ).ModSortable( {
+                    jQuery('div.row.{{ LayoutRow.IsSortable }}').ModSortable({
                         containment: "parent",
                         cursor: "move",
                         forceHelperSize: true,
@@ -24,8 +24,8 @@
                         opacity: 0.5,
                         tolerance: "pointer",
                         cursorAt: {left: 5}
-                    } );
-                } );
+                    });
+                });
             </script>
         {% endif %}
     {% endfor %}

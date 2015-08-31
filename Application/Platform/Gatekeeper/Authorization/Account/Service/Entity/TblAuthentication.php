@@ -37,14 +37,14 @@ class TblAuthentication extends Element
         if (null === $this->tblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById( $this->tblAccount );
+            return Account::useService()->getAccountById($this->tblAccount);
         }
     }
 
     /**
      * @param null|TblAccount $tblAccount
      */
-    public function setTblAccount( TblAccount $tblAccount = null )
+    public function setTblAccount(TblAccount $tblAccount = null)
     {
 
         $this->tblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
@@ -59,14 +59,14 @@ class TblAuthentication extends Element
         if (null === $this->tblIdentification) {
             return false;
         } else {
-            return Account::useService()->getIdentificationById( $this->tblIdentification );
+            return Account::useService()->getIdentificationById($this->tblIdentification);
         }
     }
 
     /**
      * @param null|TblIdentification $tblIdentification
      */
-    public function setTblIdentification( TblIdentification $tblIdentification = null )
+    public function setTblIdentification(TblIdentification $tblIdentification = null)
     {
 
         $this->tblIdentification = ( null === $tblIdentification ? null : $tblIdentification->getId() );

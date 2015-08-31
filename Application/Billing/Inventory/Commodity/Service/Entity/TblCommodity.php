@@ -38,17 +38,17 @@ class TblCommodity extends Element
     public function getTblCommodityType()
     {
 
-        if ( null === $this->tblCommodityType ) {
+        if (null === $this->tblCommodityType) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityTypeById( $this->tblCommodityType );
+            return Commodity::useService()->entityCommodityTypeById($this->tblCommodityType);
         }
     }
 
     /**
      * @param null|TblCommodityType $tblCommodityType
      */
-    public function setTblCommodityType( TblCommodityType $tblCommodityType = null )
+    public function setTblCommodityType(TblCommodityType $tblCommodityType = null)
     {
 
         $this->tblCommodityType = ( null === $tblCommodityType ? null : $tblCommodityType->getId() );
@@ -66,7 +66,7 @@ class TblCommodity extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
@@ -84,7 +84,7 @@ class TblCommodity extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;

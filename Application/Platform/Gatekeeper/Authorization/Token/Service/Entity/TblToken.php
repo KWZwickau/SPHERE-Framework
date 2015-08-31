@@ -37,7 +37,7 @@ class TblToken extends Element
     /**
      * @param string $Identifier
      */
-    function __construct( $Identifier )
+    function __construct($Identifier)
     {
 
         $this->Identifier = $Identifier;
@@ -55,7 +55,7 @@ class TblToken extends Element
     /**
      * @param string $Identifier
      */
-    public function setIdentifier( $Identifier )
+    public function setIdentifier($Identifier)
     {
 
         $this->Identifier = $Identifier;
@@ -70,13 +70,13 @@ class TblToken extends Element
         if ($this->Serial === null) {
             return null;
         }
-        return str_pad( $this->Serial, 8, '0', STR_PAD_LEFT );
+        return str_pad($this->Serial, 8, '0', STR_PAD_LEFT);
     }
 
     /**
      * @param string $Serial
      */
-    public function setSerial( $Serial )
+    public function setSerial($Serial)
     {
 
         $this->Serial = $Serial;
@@ -91,14 +91,14 @@ class TblToken extends Element
         if (null === $this->serviceTblConsumer) {
             return false;
         } else {
-            return Consumer::useService()->getConsumerById( $this->serviceTblConsumer );
+            return Consumer::useService()->getConsumerById($this->serviceTblConsumer);
         }
     }
 
     /**
      * @param null|TblConsumer $tblConsumer
      */
-    public function setServiceTblConsumer( TblConsumer $tblConsumer = null )
+    public function setServiceTblConsumer(TblConsumer $tblConsumer = null)
     {
 
         $this->serviceTblConsumer = ( null === $tblConsumer ? null : $tblConsumer->getId() );

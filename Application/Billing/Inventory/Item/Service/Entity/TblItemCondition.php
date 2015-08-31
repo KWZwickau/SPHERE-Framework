@@ -31,17 +31,17 @@ class TblItemCondition extends Element
     public function getServiceManagementStudent()
     {
 
-        if ( null === $this->serviceManagement_Student ) {
+        if (null === $this->serviceManagement_Student) {
             return false;
         } else {
-            return Management::serviceStudent()->entityStudentByNumber( $this->serviceManagement_Student ); //todo
+            return Management::serviceStudent()->entityStudentByNumber($this->serviceManagement_Student); //todo
         }
     }
 
     /**
      * @param TblStudent $tblStudent
      */
-    public function setServiceManagementStudent( TblStudent $tblStudent = null )
+    public function setServiceManagementStudent(TblStudent $tblStudent = null)
     {
 
         $this->serviceManagement_Student = ( null === $tblStudent ? null : $tblStudent->getStudentNumber() );
@@ -53,17 +53,17 @@ class TblItemCondition extends Element
     public function getTblItem()
     {
 
-        if ( null === $this->tblItem ) {
+        if (null === $this->tblItem) {
             return false;
         } else {
-            return Commodity::useService()->entityItemById( $this->tblItem );
+            return Commodity::useService()->entityItemById($this->tblItem);
         }
     }
 
     /**
      * @param null|TblItem $tblItem
      */
-    public function setTblItem( TblItem $tblItem = null )
+    public function setTblItem(TblItem $tblItem = null)
     {
 
         $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );

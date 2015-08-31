@@ -27,7 +27,7 @@ class TblSalutation extends Element
     /**
      * @param string $Salutation
      */
-    function __construct( $Salutation )
+    function __construct($Salutation)
     {
 
         $this->Salutation = $Salutation;
@@ -45,7 +45,7 @@ class TblSalutation extends Element
     /**
      * @param string $Salutation
      */
-    public function setSalutation( $Salutation )
+    public function setSalutation($Salutation)
     {
 
         $this->Salutation = $Salutation;
@@ -63,7 +63,7 @@ class TblSalutation extends Element
     /**
      * @param bool $IsLocked
      */
-    public function setIsLocked( $IsLocked )
+    public function setIsLocked($IsLocked)
     {
 
         $this->IsLocked = (bool)$IsLocked;

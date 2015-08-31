@@ -20,7 +20,7 @@ class ApcUser implements ITypeInterface
     public function clearCache()
     {
 
-        if (function_exists( 'apc_clear_cache' )) {
+        if (function_exists('apc_clear_cache')) {
             apc_clear_cache();
         }
     }
@@ -40,7 +40,7 @@ class ApcUser implements ITypeInterface
     public function isAvailable()
     {
 
-        if (function_exists( 'apc_clear_cache' )) {
+        if (function_exists('apc_clear_cache')) {
             return true;
         }
         return false;
@@ -124,11 +124,11 @@ class ApcUser implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
-        if (function_exists( 'apc_cache_info' )) {
-            $this->Status = apc_cache_info( 'user', true );
+        if (function_exists('apc_cache_info')) {
+            $this->Status = apc_cache_info('user', true);
         }
     }
 }

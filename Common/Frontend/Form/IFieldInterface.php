@@ -21,11 +21,11 @@ interface IFieldInterface extends ITemplateInterface
      * @param string         $Message
      * @param IIconInterface $Icon
      */
-    public function setSuccess( $Message, IIconInterface $Icon = null );
+    public function setSuccess($Message, IIconInterface $Icon = null);
 
     /**
      * @param string         $Message
      * @param IIconInterface $Icon
      */
-    public function setError( $Message, IIconInterface $Icon = null );
+    public function setError($Message, IIconInterface $Icon = null);
 }

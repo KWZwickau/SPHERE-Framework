@@ -39,7 +39,7 @@ class TblType extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;
@@ -57,7 +57,7 @@ class TblType extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;

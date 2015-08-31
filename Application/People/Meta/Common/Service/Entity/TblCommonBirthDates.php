@@ -47,7 +47,7 @@ class TblCommonBirthDates extends Element
     /**
      * @param mixed $Birthday
      */
-    public function setBirthday( \DateTime $Birthday )
+    public function setBirthday(\DateTime $Birthday)
     {
 
         $this->Birthday = $Birthday;
@@ -65,7 +65,7 @@ class TblCommonBirthDates extends Element
     /**
      * @param mixed $Birthplace
      */
-    public function setBirthplace( $Birthplace )
+    public function setBirthplace($Birthplace)
     {
 
         $this->Birthplace = $Birthplace;
@@ -83,7 +83,7 @@ class TblCommonBirthDates extends Element
     /**
      * @param mixed $Nationality
      */
-    public function setNationality( $Nationality )
+    public function setNationality($Nationality)
     {
 
         $this->Nationality = $Nationality;
@@ -101,7 +101,7 @@ class TblCommonBirthDates extends Element
     /**
      * @param mixed $Gender
      */
-    public function setGender( $Gender )
+    public function setGender($Gender)
     {
 
         $this->Gender = $Gender;

@@ -17,10 +17,10 @@ class Register
      *
      * @return Register
      */
-    public function addConnection( Identifier $Identifier, Connection $Connection )
+    public function addConnection(Identifier $Identifier, Connection $Connection)
     {
 
-        if (!$this->hasConnection( $Identifier )) {
+        if (!$this->hasConnection($Identifier)) {
             self::$Register[$Identifier->getIdentifier()] = $Connection;
         }
         return $this;
@@ -31,7 +31,7 @@ class Register
      *
      * @return bool
      */
-    public function hasConnection( Identifier $Identifier )
+    public function hasConnection(Identifier $Identifier)
     {
 
         return isset( self::$Register[$Identifier->getIdentifier()] );
@@ -43,13 +43,13 @@ class Register
      * @return Connection
      * @throws \Exception
      */
-    public function getConnection( Identifier $Identifier )
+    public function getConnection(Identifier $Identifier)
     {
 
-        if ($this->hasConnection( $Identifier )) {
+        if ($this->hasConnection($Identifier)) {
             return self::$Register[$Identifier->getIdentifier()];
         } else {
-            throw new \Exception( __CLASS__.' > Connection not available: ('.$Identifier->getIdentifier().') ['.$Identifier->getConfiguration( true ).']' );
+            throw new \Exception(__CLASS__.' > Connection not available: ('.$Identifier->getIdentifier().') ['.$Identifier->getConfiguration(true).']');
         }
     }
 }

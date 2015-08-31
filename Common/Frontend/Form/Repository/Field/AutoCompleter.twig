@@ -17,10 +17,10 @@
     {{ ElementFeedbackMessage }}
 </div>
 <script type="text/javascript">
-    Client.Use( 'ModCompleter', function()
+    Client.Use('ModCompleter', function()
     {
-        jQuery( 'input[name="{{ ElementName }}"]' ).ModCompleter( {
+        jQuery('input[name="{{ ElementName }}"]').ModCompleter({
             data: {{ ElementData|json_encode }}
-        } );
-    } );
+        });
+    });
 </script>

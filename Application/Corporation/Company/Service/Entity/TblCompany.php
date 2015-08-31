@@ -33,7 +33,7 @@ class TblCompany extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
@@ -45,6 +45,6 @@ class TblCompany extends Element
     public function fetchTblGroupAll()
     {
 
-        return Group::useService()->getGroupAllByCompany( $this );
+        return Group::useService()->getGroupAllByCompany($this);
     }
 }

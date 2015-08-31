@@ -29,29 +29,29 @@ class External extends Extension implements ILinkInterface
      * @param array          $Data
      * @param bool|string    $ToolTip
      */
-    public function __construct( $Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = true )
+    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = true)
     {
 
         $this->Name = $Name;
-        $this->Template = $this->getTemplate( __DIR__.'/External.twig' );
-        $this->Template->setVariable( 'ElementName', $Name );
-        $this->Template->setVariable( 'ElementType', 'default' );
+        $this->Template = $this->getTemplate(__DIR__.'/External.twig');
+        $this->Template->setVariable('ElementName', $Name);
+        $this->Template->setVariable('ElementType', 'default');
         if (null === $Icon) {
             $Icon = new Extern();
         }
-        $this->Template->setVariable( 'ElementIcon', $Icon );
+        $this->Template->setVariable('ElementIcon', $Icon);
         if (!empty( $Data )) {
-            $Signature = ( new Authenticator( new Get() ) )->getAuthenticator();
-            $Data = '?'.http_build_query( $Signature->createSignature( $Data, $Path ) );
+            $Signature = (new Authenticator(new Get()))->getAuthenticator();
+            $Data = '?'.http_build_query($Signature->createSignature($Data, $Path));
         } else {
             $Data = '';
         }
-        $this->Template->setVariable( 'ElementPath', $Path.$Data );
+        $this->Template->setVariable('ElementPath', $Path.$Data);
         if ($ToolTip) {
-            if (is_string( $ToolTip )) {
-                $this->Template->setVariable( 'ElementToolTip', $ToolTip );
+            if (is_string($ToolTip)) {
+                $this->Template->setVariable('ElementToolTip', $ToolTip);
             } else {
-                $this->Template->setVariable( 'ElementToolTip', $Path );
+                $this->Template->setVariable('ElementToolTip', $Path);
             }
         }
     }

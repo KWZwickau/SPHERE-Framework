@@ -39,14 +39,14 @@ class TblAuthorization extends Element
         if (null === $this->tblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById( $this->tblAccount );
+            return Account::useService()->getAccountById($this->tblAccount);
         }
     }
 
     /**
      * @param null|TblAccount $tblAccount
      */
-    public function setTblAccount( TblAccount $tblAccount = null )
+    public function setTblAccount(TblAccount $tblAccount = null)
     {
 
         $this->tblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
@@ -61,14 +61,14 @@ class TblAuthorization extends Element
         if (null === $this->serviceTblRole) {
             return false;
         } else {
-            return Access::useService()->getRoleById( $this->serviceTblRole );
+            return Access::useService()->getRoleById($this->serviceTblRole);
         }
     }
 
     /**
      * @param null|\SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole $tblRole
      */
-    public function setServiceTblRole( TblRole $tblRole = null )
+    public function setServiceTblRole(TblRole $tblRole = null)
     {
 
         $this->serviceTblRole = ( null === $tblRole ? null : $tblRole->getId() );

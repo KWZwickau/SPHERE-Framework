@@ -42,17 +42,17 @@ class YubiKey implements ITypeInterface
      * @throws BadOTPException
      * @return bool|KeyValue
      */
-    final public function parseKey( $Value )
+    final public function parseKey($Value)
     {
 
-        if (!preg_match( "/^((.*)".$this->KeyDelimiter.")?".
+        if (!preg_match("/^((.*)".$this->KeyDelimiter.")?".
             "(([cbdefghijklnrtuvCBDEFGHIJKLNRTUV]{0,16})".
             "([cbdefghijklnrtuvCBDEFGHIJKLNRTUV]{32}))$/",
-            $Value, $Part )
+            $Value, $Part)
         ) {
             throw new BadOTPException();
         }
-        return new KeyValue( $Part[3] );
+        return new KeyValue($Part[3]);
     }
 
     /**
@@ -63,18 +63,18 @@ class YubiKey implements ITypeInterface
      * @throws ComponentException
      * @throws ReplayedOTPException
      */
-    final public function verifyKey( KeyValue $Key )
+    final public function verifyKey(KeyValue $Key)
     {
 
-        $Parameter = $this->createParameter( $Key );
-        $Query = $this->createSignature( $Parameter );
+        $Parameter = $this->createParameter($Key);
+        $Query = $this->createSignature($Parameter);
 
         $QueryList = array();
         foreach ((array)$this->YubiApiEndpoint as $YubiApiEndpoint) {
             $QueryList[] = 'http://'.$YubiApiEndpoint."?".$Query;
         }
 
-        $Proxy = ( new Proxy( new Http() ) )->getProxy();
+        $Proxy = (new Proxy(new Http()))->getProxy();
         $Option = array(
             CURLOPT_PROXY        => $Proxy->getHost(),
             CURLOPT_PROXYPORT    => $Proxy->getPort(),
@@ -84,19 +84,19 @@ class YubiKey implements ITypeInterface
             ),
             CURLOPT_TIMEOUT      => $this->YubiApiTimeout
         );
-        $Option = array_filter( $Option );
+        $Option = array_filter($Option);
 
-        $Result = $this->getRequest( $QueryList, $Option );
+        $Result = $this->getRequest($QueryList, $Option);
 
         $Decision = array();
         foreach ((array)$Result as $Response) {
-            if (preg_match( "/status=([a-zA-Z0-9_]+)/", $Response, $Status )) {
+            if (preg_match("/status=([a-zA-Z0-9_]+)/", $Response, $Status)) {
                 /**
                  * Case 1.
                  * OTP or Nonce values doesn't match - ignore response.
                  */
-                if (!preg_match( "/otp=".$Key->getKeyOTP()."/", $Response ) ||
-                    !preg_match( "/nonce=".$Key->getKeyNOnce()."/", $Response )
+                if (!preg_match("/otp=".$Key->getKeyOTP()."/", $Response) ||
+                    !preg_match("/nonce=".$Key->getKeyNOnce()."/", $Response)
                 ) {
                     continue;
                 } /**
@@ -105,7 +105,7 @@ class YubiKey implements ITypeInterface
                  * Return if status=OK or status=REPLAYED_OTP.
                  */
                 elseif (null !== $this->YubiApiKey) {
-                    if ($this->checkSignature( $Response, $Status[1] )) {
+                    if ($this->checkSignature($Response, $Status[1])) {
                         $Decision[] = 1;
                     } else {
                         $Decision[] = 0;
@@ -120,13 +120,13 @@ class YubiKey implements ITypeInterface
                             $Decision[] = 1;
                             break;
                         case 'BAD_OTP':
-                            throw new BadOTPException( $Status[1] );
+                            throw new BadOTPException($Status[1]);
                             break;
                         case 'REPLAYED_OTP':
                             $Decision[] = 0;
                             break;
                         default:
-                            throw new ComponentException( $Status[1] );
+                            throw new ComponentException($Status[1]);
                     }
                 }
             }
@@ -134,7 +134,7 @@ class YubiKey implements ITypeInterface
         /**
          *
          */
-        $Decision = array_sum( $Decision ) / ( count( $Decision ) > 0 ? count( $Decision ) : 1 );
+        $Decision = array_sum($Decision) / ( count($Decision) > 0 ? count($Decision) : 1 );
 
         if ($Decision > 0.5) {
             return true;
@@ -150,7 +150,7 @@ class YubiKey implements ITypeInterface
      *
      * @return string
      */
-    private function createParameter( KeyValue $KeyValue )
+    private function createParameter(KeyValue $KeyValue)
     {
 
         $Parameter = array(
@@ -158,13 +158,13 @@ class YubiKey implements ITypeInterface
             'otp'   => $KeyValue->getKeyOTP(),
             'nonce' => $this->createNOnce()
         );
-        $KeyValue->setKeyNOnce( $Parameter['nonce'] );
-        ksort( $Parameter );
+        $KeyValue->setKeyNOnce($Parameter['nonce']);
+        ksort($Parameter);
         $Query = '';
         foreach ($Parameter as $Key => $Value) {
             $Query .= "&".$Key."=".$Value;
         }
-        return ltrim( $Query, "&" );
+        return ltrim($Query, "&");
     }
 
     /**
@@ -173,7 +173,7 @@ class YubiKey implements ITypeInterface
     private function createNOnce()
     {
 
-        return md5( uniqid( rand() ) );
+        return md5(uniqid(rand()));
     }
 
     /**
@@ -181,12 +181,12 @@ class YubiKey implements ITypeInterface
      *
      * @return string
      */
-    private function createSignature( $Parameter )
+    private function createSignature($Parameter)
     {
 
         if (null !== $this->YubiApiKey) {
-            $Signature = base64_encode( hash_hmac( 'sha1', $Parameter, $this->YubiApiKey, true ) );
-            $Signature = preg_replace( '/\+/', '%2B', $Signature );
+            $Signature = base64_encode(hash_hmac('sha1', $Parameter, $this->YubiApiKey, true));
+            $Signature = preg_replace('/\+/', '%2B', $Signature);
             $Parameter .= '&h='.$Signature;
         }
         return $Parameter;
@@ -198,7 +198,7 @@ class YubiKey implements ITypeInterface
      *
      * @return array
      */
-    public function getRequest( $UrlRequestList, $CurlOptionList = array() )
+    public function getRequest($UrlRequestList, $CurlOptionList = array())
     {
 
         $CurlHandleList = array();
@@ -208,32 +208,32 @@ class YubiKey implements ITypeInterface
          * Setup
          */
         foreach ((array)$UrlRequestList as $Identifier => $UrlRequest) {
-            $CurlHandleList[$Identifier] = curl_init( $UrlRequest );
-            curl_setopt( $CurlHandleList[$Identifier], CURLOPT_USERAGENT, "KREDA YubiKey" );
-            curl_setopt( $CurlHandleList[$Identifier], CURLOPT_RETURNTRANSFER, 1 );
-            curl_setopt( $CurlHandleList[$Identifier], CURLOPT_VERBOSE, true );
-            curl_setopt( $CurlHandleList[$Identifier], CURLOPT_HEADER, false );
-            curl_setopt( $CurlHandleList[$Identifier], CURLOPT_FAILONERROR, true );
+            $CurlHandleList[$Identifier] = curl_init($UrlRequest);
+            curl_setopt($CurlHandleList[$Identifier], CURLOPT_USERAGENT, "KREDA YubiKey");
+            curl_setopt($CurlHandleList[$Identifier], CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($CurlHandleList[$Identifier], CURLOPT_VERBOSE, true);
+            curl_setopt($CurlHandleList[$Identifier], CURLOPT_HEADER, false);
+            curl_setopt($CurlHandleList[$Identifier], CURLOPT_FAILONERROR, true);
             if (!empty( $CurlOptionList )) {
-                curl_setopt_array( $CurlHandleList[$Identifier], $CurlOptionList );
+                curl_setopt_array($CurlHandleList[$Identifier], $CurlOptionList);
             }
-            curl_multi_add_handle( $CurlHandler, $CurlHandleList[$Identifier] );
+            curl_multi_add_handle($CurlHandler, $CurlHandleList[$Identifier]);
         }
         /**
          * Execute
          */
         $IsRunning = null;
         do {
-            curl_multi_exec( $CurlHandler, $IsRunning );
+            curl_multi_exec($CurlHandler, $IsRunning);
         } while ($IsRunning > 0);
         /**
          * Collect
          */
         foreach ($CurlHandleList as $Identifier => $CurlHandle) {
-            $ResultData[$Identifier] = curl_multi_getcontent( $CurlHandle );
-            curl_multi_remove_handle( $CurlHandler, $CurlHandle );
+            $ResultData[$Identifier] = curl_multi_getcontent($CurlHandle);
+            curl_multi_remove_handle($CurlHandler, $CurlHandle);
         }
-        curl_multi_close( $CurlHandler );
+        curl_multi_close($CurlHandler);
 
         return $ResultData;
     }
@@ -244,14 +244,14 @@ class YubiKey implements ITypeInterface
      *
      * @return bool
      */
-    private function checkSignature( $Result, $Status )
+    private function checkSignature($Result, $Status)
     {
 
         $Response = array();
-        $ResultLineList = explode( "\r\n", trim( $Result ) );
+        $ResultLineList = explode("\r\n", trim($Result));
         foreach ($ResultLineList as $ResultLine) {
-            $ResultLine = preg_replace( '/=/', '#', $ResultLine, 1 );
-            $PartList = explode( "#", $ResultLine );
+            $ResultLine = preg_replace('/=/', '#', $ResultLine, 1);
+            $PartList = explode("#", $ResultLine);
             $Response[$PartList[0]] = $PartList[1];
         }
 
@@ -266,11 +266,11 @@ class YubiKey implements ITypeInterface
             'timeout',
             'timestamp'
         );
-        sort( $ApiParameterList );
+        sort($ApiParameterList);
 
         $Query = null;
         foreach ($ApiParameterList as $Parameter) {
-            if (array_key_exists( $Parameter, $Response )) {
+            if (array_key_exists($Parameter, $Response)) {
                 if ($Query) {
                     $Query = $Query.'&';
                 }
@@ -278,7 +278,7 @@ class YubiKey implements ITypeInterface
             }
         }
 
-        $Signature = base64_encode( hash_hmac( 'sha1', utf8_encode( $Query ), $this->YubiApiKey, true ) );
+        $Signature = base64_encode(hash_hmac('sha1', utf8_encode($Query), $this->YubiApiKey, true));
 
         if ($Response['h'] == $Signature) {
             if ($Status == 'REPLAYED_OTP') {
@@ -294,12 +294,12 @@ class YubiKey implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
         $this->YubiApiId = $Configuration['ApiId'];
         if (null !== $Configuration['ApiKey']) {
-            $this->YubiApiKey = base64_decode( $Configuration['ApiKey'] );
+            $this->YubiApiKey = base64_decode($Configuration['ApiKey']);
         }
     }
 

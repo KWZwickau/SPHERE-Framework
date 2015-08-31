@@ -21,11 +21,11 @@ class Title extends Extension implements ITemplateInterface
      * @param string $Title
      * @param string $Description
      */
-    public function __construct( $Title, $Description = '' )
+    public function __construct($Title, $Description = '')
     {
 
-        $this->Title = strip_tags( $Title );
-        $this->Description = strip_tags( $Description );
+        $this->Title = strip_tags($Title);
+        $this->Description = strip_tags($Description);
     }
 
     /**

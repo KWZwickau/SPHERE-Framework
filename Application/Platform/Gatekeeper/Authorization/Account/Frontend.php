@@ -42,12 +42,12 @@ class Frontend
     public static function frontendAccount()
     {
 
-        $Stage = new Stage( 'Benutzerkonnten' );
+        $Stage = new Stage('Benutzerkonnten');
 
         $tblAccount = Account::useService()->getAccountBySession();
         if ($tblAccount) {
             $isSystem = Account::useService()->hasAuthorization(
-                $tblAccount, Access::useService()->getRoleByName( 'Administrator' )
+                $tblAccount, Access::useService()->getRoleByName('Administrator')
             );
         } else {
             $isSystem = false;
@@ -55,19 +55,19 @@ class Frontend
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         // Token
         $tblTokenAll = Token::useService()->getTokenAll();
-        array_walk( $tblTokenAll, function ( TblToken &$tblToken ) {
+        array_walk($tblTokenAll, function (TblToken &$tblToken) {
 
-            if (Account::useService()->getAccountAllByToken( $tblToken )) {
+            if (Account::useService()->getAccountAllByToken($tblToken)) {
                 $tblToken = false;
             } else {
-                $tblToken = new RadioBox( 'Account[Token]',
-                    implode( ' ', str_split( $tblToken->getSerial(), 4 ) ), $tblToken->getId() );
+                $tblToken = new RadioBox('Account[Token]',
+                    implode(' ', str_split($tblToken->getSerial(), 4)), $tblToken->getId());
             }
-        } );
-        $tblTokenAll = array_filter( $tblTokenAll );
-        array_unshift( $tblTokenAll,
-            new RadioBox( 'Account[Token]',
-                new \SPHERE\Common\Frontend\Text\Repository\Danger( 'KEIN Hardware-Token' ),
+        });
+        $tblTokenAll = array_filter($tblTokenAll);
+        array_unshift($tblTokenAll,
+            new RadioBox('Account[Token]',
+                new \SPHERE\Common\Frontend\Text\Repository\Danger('KEIN Hardware-Token'),
                 null
             )
         );
@@ -75,7 +75,7 @@ class Frontend
         // Identification
         $tblIdentificationAll = Account::useService()->getIdentificationAll();
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblIdentificationAll, function ( TblIdentification &$tblIdentification, $Index, $isSystem ) {
+        array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification, $Index, $isSystem) {
 
             if ($tblIdentification->getName() == 'System' && !$isSystem) {
                 $tblIdentification = false;
@@ -84,76 +84,76 @@ class Frontend
                     'Account[Identification]', $tblIdentification->getDescription(), $tblIdentification->getId()
                 );
             }
-        }, $isSystem );
-        $tblIdentificationAll = array_filter( $tblIdentificationAll );
+        }, $isSystem);
+        $tblIdentificationAll = array_filter($tblIdentificationAll);
 
         // Role
         $tblRoleAll = Access::useService()->getRoleAll();
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblRoleAll, function ( TblRole &$tblRole, $Index, $isSystem ) {
+        array_walk($tblRoleAll, function (TblRole &$tblRole, $Index, $isSystem) {
 
             if ($tblRole->getName() == 'Administrator' && !$isSystem) {
                 $tblRole = false;
             } else {
-                $tblRole = new CheckBox( 'Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
-                    $tblRole->getId() );
+                $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
+                    $tblRole->getId());
             }
-        }, $isSystem );
-        $tblRoleAll = array_filter( $tblRoleAll );
+        }, $isSystem);
+        $tblRoleAll = array_filter($tblRoleAll);
 
         // Account
         $tblAccountAll = Account::useService()->getAccountAll();
-        array_walk( $tblAccountAll, function ( TblAccount &$tblAccount ) {
+        array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $tblAccount->Option = new Danger( 'Löschen',
+            $tblAccount->Option = new Danger('Löschen',
                 '/Platform/Gatekeeper/Authorization/Account/Destroy',
-                new Remove(), array( 'Id' => $tblAccount->getId() ), 'Löschen'
+                new Remove(), array('Id' => $tblAccount->getId()), 'Löschen'
             );
-        } );
+        });
 
         $Stage->setContent(
             ( $tblAccountAll
-                ? new TableData( $tblAccountAll, new Title( 'Bestehende Benutzerkonnten' ), array(
+                ? new TableData($tblAccountAll, new Title('Bestehende Benutzerkonnten'), array(
                     'Username' => 'Benutzername',
 //                    'Option' => 'Optionen'
-                ) )
-                : new Warning( 'Keine Benutzerkonnten vorhanden' )
+                ))
+                : new Warning('Keine Benutzerkonnten vorhanden')
             )
             //.Account::useService()->createAccount(
-            .new Form( array(
-                new FormGroup( array(
-                    new FormRow( array(
+            .new Form(array(
+                new FormGroup(array(
+                    new FormRow(array(
                         new FormColumn(
-                            ( new TextField( 'Account[Name]', 'Benutzername', 'Benutzername', new Person() ) )
-                                ->setPrefixValue( $tblConsumer->getAcronym() )
-                            , 4 ),
+                            (new TextField('Account[Name]', 'Benutzername', 'Benutzername', new Person()))
+                                ->setPrefixValue($tblConsumer->getAcronym())
+                            , 4),
                         new FormColumn(
                             new PasswordField(
                                 'Account[Password]', 'Passwort', 'Passwort', new Lock()
-                            ), 4 ),
+                            ), 4),
                         new FormColumn(
                             new PasswordField(
                                 'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
                                 new Repeat()
-                            ), 4 ),
-                    ) ),
-                ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Benutzerkonnto anlegen' ) ),
-                new FormGroup( array(
-                    new FormRow( array(
-                        new FormColumn( array(
-                            new Panel( 'Authentifizierungstyp', $tblIdentificationAll )
-                        ), 4 ),
-                        new FormColumn( array(
-                            new Panel( 'Berechtigungsstufe', $tblRoleAll )
-                        ), 4 ),
-                        new FormColumn( array(
-                            new Panel( 'Hardware-Token', $tblTokenAll )
-                        ), 4 ),
-                    ) )
+                            ), 4),
+                    )),
+                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Benutzerkonnto anlegen')),
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(array(
+                            new Panel('Authentifizierungstyp', $tblIdentificationAll)
+                        ), 4),
+                        new FormColumn(array(
+                            new Panel('Berechtigungsstufe', $tblRoleAll)
+                        ), 4),
+                        new FormColumn(array(
+                            new Panel('Hardware-Token', $tblTokenAll)
+                        ), 4),
+                    ))
 
-                ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Berechtigungen zuweisen' ) ),
-            ), new Primary( 'Hinzufügen' ) )
+                ), new \SPHERE\Common\Frontend\Form\Repository\Title('Berechtigungen zuweisen')),
+            ), new Primary('Hinzufügen'))
         );
         return $Stage;
     }

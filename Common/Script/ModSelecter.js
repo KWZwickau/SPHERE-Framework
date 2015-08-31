@@ -1,17 +1,17 @@
-(function( $ )
+(function($)
 {
     'use strict';
-    $.fn.ModSelecter = function( options )
+    $.fn.ModSelecter = function(options)
     {
 
         // This is the easiest way to have default options.
-        var settings = $.extend( {
+        var settings = $.extend({
             // These are the defaults.
-        }, options );
+        }, options);
 
-        this.selecter( settings );
+        this.selecter(settings);
         return this;
 
     };
 
-}( jQuery ));
+}(jQuery));

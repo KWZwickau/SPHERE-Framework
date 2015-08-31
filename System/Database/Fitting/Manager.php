@@ -26,7 +26,7 @@ class Manager
      * @param EntityManager $EntityManager
      * @param string        $Namespace
      */
-    final function __construct( EntityManager $EntityManager, $Namespace )
+    final function __construct(EntityManager $EntityManager, $Namespace)
     {
 
         $this->EntityManager = $EntityManager;
@@ -38,10 +38,10 @@ class Manager
      *
      * @return Repository
      */
-    final public function getEntity( $ClassName )
+    final public function getEntity($ClassName)
     {
 
-        return $this->EntityManager->getRepository( $this->Namespace.$ClassName );
+        return $this->EntityManager->getRepository($this->Namespace.$ClassName);
     }
 
     /**
@@ -53,10 +53,10 @@ class Manager
      * @throws TransactionRequiredException
      * @return Entity
      */
-    final public function getEntityById( $ClassName, $Id )
+    final public function getEntityById($ClassName, $Id)
     {
 
-        return $this->EntityManager->find( $this->Namespace.$ClassName, $Id );
+        return $this->EntityManager->find($this->Namespace.$ClassName, $Id);
     }
 
     /**
@@ -64,10 +64,10 @@ class Manager
      *
      * @return EntityManager
      */
-    final public function killEntity( $Entity )
+    final public function killEntity($Entity)
     {
 
-        $this->EntityManager->remove( $Entity );
+        $this->EntityManager->remove($Entity);
         $this->flushCache();
         return $this;
     }
@@ -80,7 +80,7 @@ class Manager
 
         $this->EntityManager->flush();
         // Clear distributed Cache-System (if possible)
-        ( new Cache( new Memcached() ) )->getCache()->clearCache();
+        (new Cache(new Memcached()))->getCache()->clearCache();
         return $this;
     }
 
@@ -89,10 +89,10 @@ class Manager
      *
      * @return EntityManager
      */
-    final public function saveEntity( $Entity )
+    final public function saveEntity($Entity)
     {
 
-        $this->EntityManager->persist( $Entity );
+        $this->EntityManager->persist($Entity);
         $this->flushCache();
         return $this;
     }
@@ -104,10 +104,10 @@ class Manager
      *
      * @return EntityManager
      */
-    final public function bulkSaveEntity( $Entity )
+    final public function bulkSaveEntity($Entity)
     {
 
-        $this->EntityManager->persist( $Entity );
+        $this->EntityManager->persist($Entity);
         return $this;
     }
 
@@ -118,10 +118,10 @@ class Manager
      *
      * @return EntityManager
      */
-    final public function bulkKillEntity( $Entity )
+    final public function bulkKillEntity($Entity)
     {
 
-        $this->EntityManager->remove( $Entity );
+        $this->EntityManager->remove($Entity);
         return $this;
     }
 }

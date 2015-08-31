@@ -24,11 +24,11 @@ class Listing extends Extension implements ITemplateInterface
     /**
      * @param array $TextList
      */
-    public function __construct( $TextList = array() )
+    public function __construct($TextList = array())
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/Listing.twig' );
-        $this->Template->setVariable( 'TextList', $TextList );
+        $this->Template = $this->getTemplate(__DIR__.'/Listing.twig');
+        $this->Template->setVariable('TextList', $TextList);
     }
 
     /**
@@ -37,10 +37,10 @@ class Listing extends Extension implements ITemplateInterface
      *
      * @return $this
      */
-    public function addLinkList( $Title, $Target )
+    public function addLinkList($Title, $Target)
     {
 
-        $this->LinkList[] = array( 'Target' => $Target, 'Title' => $Title );
+        $this->LinkList[] = array('Target' => $Target, 'Title' => $Title);
         return $this;
     }
 
@@ -59,8 +59,8 @@ class Listing extends Extension implements ITemplateInterface
     public function getContent()
     {
 
-        $this->Template->setVariable( 'LinkList', $this->LinkList );
-        $this->Template->setVariable( 'ContentList', $this->ContentList );
+        $this->Template->setVariable('LinkList', $this->LinkList);
+        $this->Template->setVariable('ContentList', $this->ContentList);
 
         return $this->Template->getContent();
     }

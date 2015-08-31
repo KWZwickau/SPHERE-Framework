@@ -59,7 +59,7 @@ class YouTrack extends Extension implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
         if (isset( $Configuration['Host'] )) {
@@ -98,7 +98,7 @@ class YouTrack extends Extension implements ITypeInterface
             if (!isset( $Content[1] )) {
                 $Content[2] = '';
             }
-            switch (strtoupper( $Content[2] )) {
+            switch (strtoupper($Content[2])) {
                 case 'ERFASST': {
                     $Label = 'label-primary';
                     break;
@@ -123,19 +123,19 @@ class YouTrack extends Extension implements ITypeInterface
             $Issues[$Index] = new Info(
                 '<strong>'.$Content[0].'</strong>'
                 .'<div class="pull-right label '.$Label.'"><samp>'.$Content[2].'</samp></div>'
-                .'<hr/><small>'.nl2br( $Content[1] ).'</small>'
+                .'<hr/><small>'.nl2br($Content[1]).'</small>'
             );
         }
         if (empty( $Issues )) {
-            $Issues[0] = new Info( 'Keine Supportanfragen vorhanden' );
+            $Issues[0] = new Info('Keine Supportanfragen vorhanden');
         }
-        krsort( $Issues );
+        krsort($Issues);
         return new FormGroup(
             new FormRow(
                 new FormColumn(
                     $Issues
                 )
-            ), new Title( 'Tickets', 'Aktuelle Anfragen' )
+            ), new Title('Tickets', 'Aktuelle Anfragen')
         );
     }
 
@@ -147,22 +147,22 @@ class YouTrack extends Extension implements ITypeInterface
 
         $this->ticketLogin();
         $CurlHandler = curl_init();
-        curl_setopt( $CurlHandler, CURLOPT_URL,
-            $this->Host.'/rest/issue/byproject/KREDA?filter='.urlencode( 'Status: -GelÃ¶st Ersteller: KREDA-Support' )
+        curl_setopt($CurlHandler, CURLOPT_URL,
+            $this->Host.'/rest/issue/byproject/KREDA?filter='.urlencode('Status: -GelÃ¶st Ersteller: KREDA-Support')
         );
-        curl_setopt( $CurlHandler, CURLOPT_HEADER, false );
-        curl_setopt( $CurlHandler, CURLOPT_VERBOSE, false );
-        curl_setopt( $CurlHandler, CURLOPT_COOKIE, $this->Cookie );
-        curl_setopt( $CurlHandler, CURLOPT_RETURNTRANSFER, 1 );
+        curl_setopt($CurlHandler, CURLOPT_HEADER, false);
+        curl_setopt($CurlHandler, CURLOPT_VERBOSE, false);
+        curl_setopt($CurlHandler, CURLOPT_COOKIE, $this->Cookie);
+        curl_setopt($CurlHandler, CURLOPT_RETURNTRANSFER, 1);
 
-        $Response = curl_exec( $CurlHandler );
-        curl_close( $CurlHandler );
+        $Response = curl_exec($CurlHandler);
+        curl_close($CurlHandler);
 
-        $Response = simplexml_load_string( $Response );
+        $Response = simplexml_load_string($Response);
 
-        $Summary = $Response->xpath( '//issues/issue/field[@name="summary"]' );
-        $Description = $Response->xpath( '//issues/issue/field[@name="description"]' );
-        $Status = $Response->xpath( '//issues/issue/field[@name="State"]' );
+        $Summary = $Response->xpath('//issues/issue/field[@name="summary"]');
+        $Description = $Response->xpath('//issues/issue/field[@name="description"]');
+        $Status = $Response->xpath('//issues/issue/field[@name="State"]');
 
         $Issues = array();
         /**
@@ -171,7 +171,7 @@ class YouTrack extends Extension implements ITypeInterface
         $Run = 0;
         foreach ($Summary as $Title) {
             foreach ($Title->children() as $Value) {
-                $Issues[$Run] = array( (string)$Value );
+                $Issues[$Run] = array((string)$Value);
             }
             $Run++;
         }
@@ -181,7 +181,7 @@ class YouTrack extends Extension implements ITypeInterface
         $Run = 0;
         foreach ($Description as $Message) {
             foreach ($Message->children() as $Value) {
-                array_push( $Issues[$Run], (string)$Value );
+                array_push($Issues[$Run], (string)$Value);
             }
             $Run++;
         }
@@ -191,7 +191,7 @@ class YouTrack extends Extension implements ITypeInterface
         $Run = 0;
         foreach ($Status as $Message) {
             foreach ($Message->children() as $Value) {
-                array_push( $Issues[$Run], (string)$Value );
+                array_push($Issues[$Run], (string)$Value);
             }
             $Run++;
         }
@@ -206,23 +206,23 @@ class YouTrack extends Extension implements ITypeInterface
     {
 
         $CurlHandler = curl_init();
-        curl_setopt( $CurlHandler, CURLOPT_URL, $this->Host.'/rest/user/login' );
-        curl_setopt( $CurlHandler, CURLOPT_POST, true );
-        curl_setopt( $CurlHandler, CURLOPT_POSTFIELDS,
-            'login='.$this->Username.'&password='.$this->Password );
-        curl_setopt( $CurlHandler, CURLOPT_HEADER, false );
-        curl_setopt( $CurlHandler, CURLOPT_HEADERFUNCTION, array( $this, 'ticketHeader' ) );
-        curl_setopt( $CurlHandler, CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $CurlHandler, CURLOPT_TIMEOUT, 2 );
+        curl_setopt($CurlHandler, CURLOPT_URL, $this->Host.'/rest/user/login');
+        curl_setopt($CurlHandler, CURLOPT_POST, true);
+        curl_setopt($CurlHandler, CURLOPT_POSTFIELDS,
+            'login='.$this->Username.'&password='.$this->Password);
+        curl_setopt($CurlHandler, CURLOPT_HEADER, false);
+        curl_setopt($CurlHandler, CURLOPT_HEADERFUNCTION, array($this, 'ticketHeader'));
+        curl_setopt($CurlHandler, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($CurlHandler, CURLOPT_TIMEOUT, 2);
 
-        $Response = curl_exec( $CurlHandler );
-        $Response = simplexml_load_string( $Response );
+        $Response = curl_exec($CurlHandler);
+        $Response = simplexml_load_string($Response);
 
         if (false === $Response || $Response != 'ok') {
             throw new \Exception();
         }
 
-        curl_close( $CurlHandler );
+        curl_close($CurlHandler);
     }
 
     /**
@@ -232,33 +232,33 @@ class YouTrack extends Extension implements ITypeInterface
      * @throws \Exception
      * @return array
      */
-    public function createTicket( $Summary, $Description )
+    public function createTicket($Summary, $Description)
     {
 
         $Markdown = $this->getMarkdownify();
-        $Markdown->setKeepHTML( false );
-        $Summary = $Markdown->parseString( $Summary );
-        $Description = $Markdown->parseString( $Description );
+        $Markdown->setKeepHTML(false);
+        $Summary = $Markdown->parseString($Summary);
+        $Description = $Markdown->parseString($Description);
 
         $this->ticketLogin();
         $CurlHandler = curl_init();
-        curl_setopt( $CurlHandler, CURLOPT_URL,
-            $this->Host.'/rest/issue?project=KREDA&summary='.urlencode( $Summary ).'&description='.urlencode( $Description )
+        curl_setopt($CurlHandler, CURLOPT_URL,
+            $this->Host.'/rest/issue?project=KREDA&summary='.urlencode($Summary).'&description='.urlencode($Description)
         );
-        curl_setopt( $CurlHandler, CURLOPT_HEADER, false );
-        curl_setopt( $CurlHandler, CURLOPT_VERBOSE, false );
-        curl_setopt( $CurlHandler, CURLOPT_PUT, true );
-        curl_setopt( $CurlHandler, CURLOPT_COOKIE, $this->Cookie );
-        curl_setopt( $CurlHandler, CURLOPT_RETURNTRANSFER, true );
-        curl_setopt( $CurlHandler, CURLOPT_TIMEOUT, 2 );
+        curl_setopt($CurlHandler, CURLOPT_HEADER, false);
+        curl_setopt($CurlHandler, CURLOPT_VERBOSE, false);
+        curl_setopt($CurlHandler, CURLOPT_PUT, true);
+        curl_setopt($CurlHandler, CURLOPT_COOKIE, $this->Cookie);
+        curl_setopt($CurlHandler, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($CurlHandler, CURLOPT_TIMEOUT, 2);
 
-        $Response = curl_exec( $CurlHandler );
+        $Response = curl_exec($CurlHandler);
 
         if (false === $Response) {
             throw new \Exception();
         }
 
-        curl_close( $CurlHandler );
+        curl_close($CurlHandler);
     }
 
     /** @noinspection PhpUnusedPrivateMethodInspection */
@@ -274,16 +274,16 @@ class YouTrack extends Extension implements ITypeInterface
         $String
     ) {
 
-        $Length = strlen( $String );
-        if (!strncmp( $String, "Set-Cookie:", 11 )) {
-            $CookieValue = trim( substr( $String, 11, -1 ) );
-            $this->Cookie = explode( "\n", $CookieValue );
-            $this->Cookie = explode( '=', $this->Cookie[0] );
-            $CookieName = trim( array_shift( $this->Cookie ) );
-            $this->CookieList[$CookieName] = trim( implode( '=', $this->Cookie ) );
+        $Length = strlen($String);
+        if (!strncmp($String, "Set-Cookie:", 11)) {
+            $CookieValue = trim(substr($String, 11, -1));
+            $this->Cookie = explode("\n", $CookieValue);
+            $this->Cookie = explode('=', $this->Cookie[0]);
+            $CookieName = trim(array_shift($this->Cookie));
+            $this->CookieList[$CookieName] = trim(implode('=', $this->Cookie));
         }
         $this->Cookie = "";
-        if (trim( $String ) == "") {
+        if (trim($String) == "") {
             foreach ($this->CookieList as $Key => $Value) {
                 $this->Cookie .= "$Key=$Value; ";
             }

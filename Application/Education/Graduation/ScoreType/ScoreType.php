@@ -21,20 +21,20 @@ class ScoreType implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Zensuren Typen' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Zensuren Typen'))
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__, __NAMESPACE__.'\Frontend::frontendScoreType' )
-                ->setParameterDefault( 'ScoreType', null )
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendScoreType')
+                ->setParameterDefault('ScoreType', null)
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Remove',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Remove',
                 __NAMESPACE__.'\Frontend::frontendScoreTypeRemove'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
     }
 
@@ -44,7 +44,8 @@ class ScoreType implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Education', 'Graduation', 'ScoreType', null, Consumer::useService()->getConsumerBySession() ),
+        return new Service(new Identifier('Education', 'Graduation', 'ScoreType', null,
+            Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

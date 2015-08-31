@@ -19,7 +19,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -36,13 +36,13 @@ class Data
      *
      * @return bool|TblCommon
      */
-    public function getCommonByPerson( TblPerson $tblPerson )
+    public function getCommonByPerson(TblPerson $tblPerson)
     {
 
         /** @var TblCommon $Entity */
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblCommon' )->findOneBy( array(
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblCommon')->findOneBy(array(
             TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ) );
+        ));
         return ( null === $Entity ? false : $Entity );
     }
 }

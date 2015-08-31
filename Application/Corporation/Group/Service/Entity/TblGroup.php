@@ -43,10 +43,10 @@ class TblGroup extends Element
     /**
      * @param $Name
      */
-    function __construct( $Name )
+    function __construct($Name)
     {
 
-        $this->setName( $Name );
+        $this->setName($Name);
     }
 
     /**
@@ -61,7 +61,7 @@ class TblGroup extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;
@@ -79,7 +79,7 @@ class TblGroup extends Element
     /**
      * @param string $Remark
      */
-    public function setRemark( $Remark )
+    public function setRemark($Remark)
     {
 
         $this->Remark = $Remark;
@@ -97,7 +97,7 @@ class TblGroup extends Element
     /**
      * @param bool $IsLocked
      */
-    public function setIsLocked( $IsLocked )
+    public function setIsLocked($IsLocked)
     {
 
         $this->IsLocked = (bool)$IsLocked;
@@ -115,7 +115,7 @@ class TblGroup extends Element
     /**
      * @param string $MetaTable
      */
-    public function setMetaTable( $MetaTable )
+    public function setMetaTable($MetaTable)
     {
 
         $this->MetaTable = $MetaTable;
@@ -133,7 +133,7 @@ class TblGroup extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;

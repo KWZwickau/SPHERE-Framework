@@ -18,7 +18,7 @@ class Well extends Extension implements ITemplateInterface
     /**
      * @param string $Content
      */
-    public function __construct( $Content )
+    public function __construct($Content)
     {
 
         $this->Content = $Content;

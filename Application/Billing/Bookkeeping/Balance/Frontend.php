@@ -22,54 +22,54 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Posten' );
-        $Stage->setDescription( 'Offen' );
+        $Stage->setTitle('Posten');
+        $Stage->setDescription('Offen');
 
-        $invoiceAllByIsConfirmedState = Invoice::useService()->entityInvoiceAllByIsConfirmedState( true );
-        $invoiceAllByIsVoidState = Invoice::useService()->entityInvoiceAllByIsVoidState( true );
-        $invoiceAllByIsPaidState = Invoice::useService()->entityInvoiceAllByIsPaidState( true );
+        $invoiceAllByIsConfirmedState = Invoice::useService()->entityInvoiceAllByIsConfirmedState(true);
+        $invoiceAllByIsVoidState = Invoice::useService()->entityInvoiceAllByIsVoidState(true);
+        $invoiceAllByIsPaidState = Invoice::useService()->entityInvoiceAllByIsPaidState(true);
         $invoiceHasFullPaymentAll = Balance::useService()->entityInvoiceHasFullPaymentAll();
 
-        if ( $invoiceAllByIsConfirmedState && $invoiceAllByIsVoidState ) {
-            $invoiceAllByIsConfirmedState = array_udiff( $invoiceAllByIsConfirmedState, $invoiceAllByIsVoidState,
-                function ( TblInvoice $invoiceA, TblInvoice $invoiceB ) {
+        if ($invoiceAllByIsConfirmedState && $invoiceAllByIsVoidState) {
+            $invoiceAllByIsConfirmedState = array_udiff($invoiceAllByIsConfirmedState, $invoiceAllByIsVoidState,
+                function (TblInvoice $invoiceA, TblInvoice $invoiceB) {
 
                     return $invoiceA->getId() - $invoiceB->getId();
-                } );
+                });
         }
-        if ( $invoiceAllByIsConfirmedState && $invoiceAllByIsPaidState ) {
-            $invoiceAllByIsConfirmedState = array_udiff( $invoiceAllByIsConfirmedState, $invoiceAllByIsPaidState,
-                function ( TblInvoice $invoiceA, TblInvoice $invoiceB ) {
+        if ($invoiceAllByIsConfirmedState && $invoiceAllByIsPaidState) {
+            $invoiceAllByIsConfirmedState = array_udiff($invoiceAllByIsConfirmedState, $invoiceAllByIsPaidState,
+                function (TblInvoice $invoiceA, TblInvoice $invoiceB) {
 
                     return $invoiceA->getId() - $invoiceB->getId();
-                } );
+                });
         }
-        if ( $invoiceAllByIsConfirmedState && $invoiceHasFullPaymentAll ) {
-            $invoiceAllByIsConfirmedState = array_udiff( $invoiceAllByIsConfirmedState, $invoiceHasFullPaymentAll,
-                function ( TblInvoice $invoiceA, TblInvoice $invoiceB ) {
+        if ($invoiceAllByIsConfirmedState && $invoiceHasFullPaymentAll) {
+            $invoiceAllByIsConfirmedState = array_udiff($invoiceAllByIsConfirmedState, $invoiceHasFullPaymentAll,
+                function (TblInvoice $invoiceA, TblInvoice $invoiceB) {
 
                     return $invoiceA->getId() - $invoiceB->getId();
-                } );
+                });
         }
-        if ( !empty( $invoiceAllByIsConfirmedState ) ) {
+        if (!empty( $invoiceAllByIsConfirmedState )) {
             /** @var TblInvoice $invoiceByIsConfirmedState */
-            foreach ( $invoiceAllByIsConfirmedState as $invoiceByIsConfirmedState ) {
-                $tblBalance = Balance::useService()->entityBalanceByInvoice( $invoiceByIsConfirmedState );
-                $AdditionInvoice = Invoice::useService()->sumPriceItemAllStringByInvoice( $invoiceByIsConfirmedState );
-                $AdditionPayment = Balance::useService()->sumPriceItemStringByBalance( $tblBalance );
+            foreach ($invoiceAllByIsConfirmedState as $invoiceByIsConfirmedState) {
+                $tblBalance = Balance::useService()->entityBalanceByInvoice($invoiceByIsConfirmedState);
+                $AdditionInvoice = Invoice::useService()->sumPriceItemAllStringByInvoice($invoiceByIsConfirmedState);
+                $AdditionPayment = Balance::useService()->sumPriceItemStringByBalance($tblBalance);
 
                 $invoiceByIsConfirmedState->FullName = $invoiceByIsConfirmedState->getDebtorFullName();
                 $invoiceByIsConfirmedState->PaidPayment = $AdditionPayment;
                 $invoiceByIsConfirmedState->PaidInvoice = $AdditionInvoice;
-                $invoiceByIsConfirmedState->Option = new Primary( 'Bezahlt', '/Billing/Bookkeeping/Invoice/Pay',
+                $invoiceByIsConfirmedState->Option = new Primary('Bezahlt', '/Billing/Bookkeeping/Invoice/Pay',
                     new Ok(), array(
                         'Id' => $invoiceByIsConfirmedState->getId()
-                    ) );
+                    ));
             }
         }
 
         $Stage->setContent(
-            new TableData( $invoiceAllByIsConfirmedState, null,
+            new TableData($invoiceAllByIsConfirmedState, null,
                 array(
                     'Number'       => 'Nummer',
                     'InvoiceDate'  => 'Rechnungsdatum',
@@ -93,27 +93,26 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Zahlungen' );
-        $Stage->setDescription( 'Importierte' );
+        $Stage->setTitle('Zahlungen');
+        $Stage->setDescription('Importierte');
 
         $paymentList = Balance::useService()->entityPaymentAll();
-        if ( $paymentList ) {
-            array_walk( $paymentList, function ( TblPayment &$tblPayment ) {
+        if ($paymentList) {
+            array_walk($paymentList, function (TblPayment &$tblPayment) {
 
                 $tblInvoice = $tblPayment->getTblBalance()->getServiceBillingInvoice();
-                if ( $tblInvoice ) {
+                if ($tblInvoice) {
                     $tblPayment->InvoiceNumber = $tblInvoice->getNumber();
                     $tblPayment->InvoiceDate = $tblInvoice->getInvoiceDate();
                     $tblPayment->DebtorFullName = $tblInvoice->getDebtorFullName();
                     $tblPayment->DebtorNumber = $tblInvoice->getDebtorNumber();
                     $tblPayment->ValueString = $tblPayment->getValueString();
                 }
-            } );
+            });
         }
 
-
         $Stage->setContent(
-            new TableData( $paymentList, null,
+            new TableData($paymentList, null,
                 array(
                     'InvoiceNumber'  => 'Rechnungs-Nr.',
                     'InvoiceDate'    => 'Rechnungsdatum',

@@ -1,18 +1,18 @@
-(function( $ )
+(function($)
 {
     'use strict';
-    $.fn.ModGrid = function( options )
+    $.fn.ModGrid = function(options)
     {
         var selfElement = this;
         // Basic jQuery handler to prevent event propagation
-        var preventClick = function( e )
+        var preventClick = function(e)
         {
             e.stopPropagation();
             e.preventDefault();
         };
 
         // This is the easiest way to have default options.
-        var settings = $.extend( {
+        var settings = $.extend({
             widget_selector: 'li.Widget',
             widget_base_dimensions: ['auto', 100],
             widget_margins: [15, 15],
@@ -25,10 +25,10 @@
 //            helper: 'clone',
             storage: 'Default',
 
-            serialize_params: function( Widget, Grid )
+            serialize_params: function(Widget, Grid)
             {
                 return {
-                    id: $( Widget ).attr( 'id' ),
+                    id: $(Widget).attr('id'),
                     col: Grid.col,
                     row: Grid.row,
                     size_x: Grid.size_x,
@@ -36,58 +36,58 @@
                 };
             },
             draggable: {
-                start: function( event, ui )
+                start: function(event, ui)
                 {
                     // Stop event from propagating down the tree on the capture phase
-                    ui.$player[0].addEventListener( 'click', preventClick, true );
+                    ui.$player[0].addEventListener('click', preventClick, true);
                 },
-                stop: function( e, ui, $widget )
+                stop: function(e, ui, $widget)
                 {
-                    Storage.localStorage.set( 'ModGrid', selfApi.serialize() )
+                    Storage.localStorage.set('ModGrid', selfApi.serialize())
 
                     // Stop event from propagating down the tree on the capture phase
                     var player = ui.$player;
-                    setTimeout( function()
+                    setTimeout(function()
                     {
-                        player[0].removeEventListener( 'click', preventClick, true );
-                    } );
+                        player[0].removeEventListener('click', preventClick, true);
+                    });
                 }
             },
             resize: {
                 enabled: true,
                 max_size: [3, 4],
-                stop: function( e, ui, $widget )
+                stop: function(e, ui, $widget)
                 {
-                    Storage.localStorage.set( 'ModGrid', selfApi.serialize() )
+                    Storage.localStorage.set('ModGrid', selfApi.serialize())
                 }
             }
-        }, options );
+        }, options);
 
-        var Storage = $.initNamespaceStorage( settings.storage );
-        if (!Storage.localStorage.isEmpty( 'ModGrid' )) {
-            var Position = Storage.localStorage.get( 'ModGrid' );
-            $.each( Position, function( Index, Value )
+        var Storage = $.initNamespaceStorage(settings.storage);
+        if (!Storage.localStorage.isEmpty('ModGrid')) {
+            var Position = Storage.localStorage.get('ModGrid');
+            $.each(Position, function(Index, Value)
             {
                 var Widget;
 
                 Widget = "#";
                 Widget = Widget + Value.id;
 
-                $( Widget ).attr( {
+                $(Widget).attr({
                     "data-col": Value.col,
                     "data-row": Value.row,
                     "data-sizex": Value.size_x,
                     "data-sizey": Value.size_y
-                } );
-            } );
+                });
+            });
         }
         selfElement.show();
 
-        var selfGrid = selfElement.gridster( settings );
-        var selfApi = selfGrid.data( 'gridster' );
-        this.css( {'width': $( window ).width()} );
+        var selfGrid = selfElement.gridster(settings);
+        var selfApi = selfGrid.data('gridster');
+        this.css({'width': $(window).width()});
 
         return this;
     };
 
-}( jQuery ));
+}(jQuery));

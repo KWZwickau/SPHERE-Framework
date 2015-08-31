@@ -22,11 +22,11 @@ class LayoutRow extends Extension implements ILayoutInterface
      * @param LayoutColumn|LayoutColumn[] $LayoutColumn
      * @param bool                        $IsSortable
      */
-    public function __construct( $LayoutColumn, $IsSortable = false )
+    public function __construct($LayoutColumn, $IsSortable = false)
     {
 
-        if (!is_array( $LayoutColumn )) {
-            $LayoutColumn = array( $LayoutColumn );
+        if (!is_array($LayoutColumn)) {
+            $LayoutColumn = array($LayoutColumn);
         }
         $this->LayoutColumn = $LayoutColumn;
         $this->IsSortable = $IsSortable;
@@ -37,10 +37,10 @@ class LayoutRow extends Extension implements ILayoutInterface
      *
      * @return LayoutRow
      */
-    public function addColumn( LayoutColumn $LayoutColumn )
+    public function addColumn(LayoutColumn $LayoutColumn)
     {
 
-        array_push( $this->LayoutColumn, $LayoutColumn );
+        array_push($this->LayoutColumn, $LayoutColumn);
         return $this;
     }
 

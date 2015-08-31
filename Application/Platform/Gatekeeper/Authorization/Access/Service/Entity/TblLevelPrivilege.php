@@ -37,14 +37,14 @@ class TblLevelPrivilege extends Element
         if (null === $this->tblPrivilege) {
             return false;
         } else {
-            return Access::useService()->getPrivilegeById( $this->tblPrivilege );
+            return Access::useService()->getPrivilegeById($this->tblPrivilege);
         }
     }
 
     /**
      * @param null|TblPrivilege $tblPrivilege
      */
-    public function setTblPrivilege( TblPrivilege $tblPrivilege = null )
+    public function setTblPrivilege(TblPrivilege $tblPrivilege = null)
     {
 
         $this->tblPrivilege = ( null === $tblPrivilege ? null : $tblPrivilege->getId() );
@@ -59,14 +59,14 @@ class TblLevelPrivilege extends Element
         if (null === $this->tblLevel) {
             return false;
         } else {
-            return Access::useService()->getLevelById( $this->tblLevel );
+            return Access::useService()->getLevelById($this->tblLevel);
         }
     }
 
     /**
      * @param null|TblLevel $tblLevel
      */
-    public function setTblLevel( TblLevel $tblLevel = null )
+    public function setTblLevel(TblLevel $tblLevel = null)
     {
 
         $this->tblLevel = ( null === $tblLevel ? null : $tblLevel->getId() );

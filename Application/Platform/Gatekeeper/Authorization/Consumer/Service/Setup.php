@@ -19,7 +19,7 @@ class Setup
     /**
      * @param Structure $Connection
      */
-    function __construct( Structure $Connection )
+    function __construct(Structure $Connection)
     {
 
         $this->Connection = $Connection;
@@ -30,20 +30,20 @@ class Setup
      *
      * @return string
      */
-    public function setupDatabaseSchema( $Simulate = true )
+    public function setupDatabaseSchema($Simulate = true)
     {
 
         /**
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $this->setTableConsumer( $Schema );
+        $this->setTableConsumer($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol( __CLASS__ );
-        $this->Connection->setMigration( $Schema, $Simulate );
-        return $this->Connection->getProtocol( $Simulate );
+        $this->Connection->addProtocol(__CLASS__);
+        $this->Connection->setMigration($Schema, $Simulate);
+        return $this->Connection->getProtocol($Simulate);
     }
 
     /**
@@ -51,18 +51,18 @@ class Setup
      *
      * @return Table
      */
-    private function setTableConsumer( Schema &$Schema )
+    private function setTableConsumer(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblConsumer' );
-        if (!$this->Connection->hasColumn( 'tblConsumer', 'Acronym' )) {
-            $Table->addColumn( 'Acronym', 'string' );
+        $Table = $this->Connection->createTable($Schema, 'tblConsumer');
+        if (!$this->Connection->hasColumn('tblConsumer', 'Acronym')) {
+            $Table->addColumn('Acronym', 'string');
         }
-        if (!$this->Connection->hasIndex( $Table, array( 'Acronym' ) )) {
-            $Table->addUniqueIndex( array( 'Acronym' ) );
+        if (!$this->Connection->hasIndex($Table, array('Acronym'))) {
+            $Table->addUniqueIndex(array('Acronym'));
         }
-        if (!$this->Connection->hasColumn( 'tblConsumer', 'Name' )) {
-            $Table->addColumn( 'Name', 'string' );
+        if (!$this->Connection->hasColumn('tblConsumer', 'Name')) {
+            $Table->addColumn('Name', 'string');
         }
 
         return $Table;

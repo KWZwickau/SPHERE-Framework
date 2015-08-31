@@ -17,9 +17,9 @@
     {{ ElementFeedbackMessage }}
 </div>
 <script type="text/javascript">
-    Client.Use( 'ModUpload', function()
+    Client.Use('ModUpload', function()
         {
-            jQuery( 'input[type="file"][name="{{ ElementName }}"]' ).ModUpload( {{ ElementOption }} );
+            jQuery('input[type="file"][name="{{ ElementName }}"]').ModUpload({{ ElementOption }});
         }
     );
 </script>

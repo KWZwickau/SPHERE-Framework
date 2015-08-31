@@ -31,30 +31,30 @@ class Standard extends Extension implements ILinkInterface
      * @param array          $Data
      * @param bool|string    $ToolTip
      */
-    public function __construct( $Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false )
+    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false)
     {
 
         $this->Name = $Name;
         $this->Path = $Path;
-        $this->Template = $this->getTemplate( __DIR__.'/Link.twig' );
-        $this->Template->setVariable( 'ElementName', $Name );
-        $this->Template->setVariable( 'ElementType', 'default' );
+        $this->Template = $this->getTemplate(__DIR__.'/Link.twig');
+        $this->Template->setVariable('ElementName', $Name);
+        $this->Template->setVariable('ElementType', 'default');
         if (null !== $Icon) {
-            $this->Template->setVariable( 'ElementIcon', $Icon );
+            $this->Template->setVariable('ElementIcon', $Icon);
         }
         if (!empty( $Data )) {
-            $Signature = ( new Authenticator( new Get() ) )->getAuthenticator();
-            $Data = '?'.http_build_query( $Signature->createSignature( $Data, $this->Path ) );
+            $Signature = (new Authenticator(new Get()))->getAuthenticator();
+            $Data = '?'.http_build_query($Signature->createSignature($Data, $this->Path));
         } else {
             $Data = '';
         }
-        $this->Template->setVariable( 'ElementPath', $this->Path.$Data );
-        $this->Template->setVariable( 'UrlBase', $this->getRequest()->getUrlBase() );
+        $this->Template->setVariable('ElementPath', $this->Path.$Data);
+        $this->Template->setVariable('UrlBase', $this->getRequest()->getUrlBase());
         if ($ToolTip) {
-            if (is_string( $ToolTip )) {
-                $this->Template->setVariable( 'ElementToolTip', $ToolTip );
+            if (is_string($ToolTip)) {
+                $this->Template->setVariable('ElementToolTip', $ToolTip);
             } else {
-                $this->Template->setVariable( 'ElementToolTip', $Name );
+                $this->Template->setVariable('ElementToolTip', $Name);
             }
         }
     }
@@ -83,7 +83,7 @@ class Standard extends Extension implements ILinkInterface
     public function getContent()
     {
 
-        if (Access::useService()->hasAuthorization( $this->Path )) {
+        if (Access::useService()->hasAuthorization($this->Path)) {
             return $this->Template->getContent();
         } else {
             return '';

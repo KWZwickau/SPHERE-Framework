@@ -18,7 +18,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -27,10 +27,11 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->actionCreateKeyType( 'U', 'Umsatzsteuer' );
-        $this->actionCreateKey( '01.01.2007', '19', '01.01.2030', 'Mehrwertsteuer', '3', $this->entityAccountKeyTypeById( '1' ) );
-        $this->actionCreateType( 'Erlöskonto', 'Dient zum erfassen des Erlöses' );
-        $this->actionCreateType( 'Umsatzsteuer', 'Dient zum erfassen der Umsatzsteuer' );
+        $this->actionCreateKeyType('U', 'Umsatzsteuer');
+        $this->actionCreateKey('01.01.2007', '19', '01.01.2030', 'Mehrwertsteuer', '3',
+            $this->entityAccountKeyTypeById('1'));
+        $this->actionCreateType('Erlöskonto', 'Dient zum erfassen des Erlöses');
+        $this->actionCreateType('Umsatzsteuer', 'Dient zum erfassen der Umsatzsteuer');
     }
 
     /**
@@ -38,32 +39,34 @@ class Data
      *
      * @return bool|TblAccountType
      */
-    public function entityAccountTypeById( $Id )
+    public function entityAccountTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblAccountType', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblAccountType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @param $Id
+     *
      * @return bool|TblAccountKey
      */
-    public function entityAccountKeyById( $Id )
+    public function entityAccountKeyById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblAccountKey', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblAccountKey', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @param $Id
+     *
      * @return bool|TblAccountKeyType
      */
-    public function entityAccountKeyTypeById( $Id )
+    public function entityAccountKeyTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblAccountKeyType', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblAccountKeyType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -73,25 +76,26 @@ class Data
      * @param $isActive
      * @param $Key
      * @param $Type
+     *
      * @return TblAccount
      */
-    public function actionAddAccount( $Number, $Description, $isActive, TblAccountKey $Key, TblAccountType $Type )
+    public function actionAddAccount($Number, $Description, $isActive, TblAccountKey $Key, TblAccountType $Type)
     {
 
         $Manager = $this->Connection->getEntityManager();
 
         $Entity = new TblAccount();
 
-        $Entity->setDescription( $Description );
-        $Entity->setIsActive( $isActive );
-        $Entity->setNumber( $Number );
-        $Entity->setTblAccountKey( $Key );
-        $Entity->setTblAccountType( $Type );
+        $Entity->setDescription($Description);
+        $Entity->setIsActive($isActive);
+        $Entity->setNumber($Number);
+        $Entity->setTblAccountKey($Key);
+        $Entity->setTblAccountType($Type);
 
-        $Manager->saveEntity( $Entity );
+        $Manager->saveEntity($Entity);
 
-        Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(),
-            $Entity );
+        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            $Entity);
 
         return $Entity;
     }
@@ -102,7 +106,7 @@ class Data
     public function entityKeyValueAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblAccountKey' )->findAll();
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblAccountKey')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -112,64 +116,76 @@ class Data
     public function entityTypeValueAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblAccountType' )->findAll();
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblAccountType')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @param $Name
      * @param $Description
+     *
      * @return TblAccountKeyType|null|object
      */
-    public function actionCreateKeyType( $Name, $Description )
+    public function actionCreateKeyType($Name, $Description)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblAccountKeyType' )->findOneBy( array( 'Name' => $Name, 'Description' => $Description ) );
-        if ( null === $Entity ) {
+        $Entity = $Manager->getEntity('TblAccountKeyType')->findOneBy(array(
+            'Name'        => $Name,
+            'Description' => $Description
+        ));
+        if (null === $Entity) {
             $Entity = new TblAccountKeyType();
-            $Entity->setName( $Name );
-            $Entity->setDescription( $Description );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(),
-                $Entity );
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+                $Entity);
         }
         return $Entity;
     }
 
     /**
-     * @param $ValidFrom
-     * @param $Value
-     * @param $ValidTo
-     * @param $Description
-     * @param $Code
+     * @param                   $ValidFrom
+     * @param                   $Value
+     * @param                   $ValidTo
+     * @param                   $Description
+     * @param                   $Code
      * @param TblAccountKeyType $tblAccountKeyType
+     *
      * @return TblAccountKey|null|object
      */
-    public function actionCreateKey( $ValidFrom, $Value, $ValidTo, $Description, $Code, TblAccountKeyType $tblAccountKeyType )
-    {
+    public function actionCreateKey(
+        $ValidFrom,
+        $Value,
+        $ValidTo,
+        $Description,
+        $Code,
+        TblAccountKeyType $tblAccountKeyType
+    ) {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblAccountKey' )->findOneBy( array(
-            'ValidFrom'         => new \DateTime( $ValidFrom ),
+        $Entity = $Manager->getEntity('TblAccountKey')->findOneBy(array(
+            'ValidFrom'         => new \DateTime($ValidFrom),
             'Value'             => $Value,
-            'ValidTo'           => new \DateTime( $ValidTo ),
+            'ValidTo'           => new \DateTime($ValidTo),
             'Description'       => $Description,
             'Code'              => $Code,
-            'tblAccountKeyType' => $tblAccountKeyType->getId() ) );
+            'tblAccountKeyType' => $tblAccountKeyType->getId()
+        ));
 
-        if ( null === $Entity ) {
+        if (null === $Entity) {
             $Entity = new TblAccountKey();
-            $Entity->setValidFrom( new \DateTime( $ValidFrom ) );
-            $Entity->setValue( $Value );
-            $Entity->setValidTo( new \DateTime( $ValidTo ) );
-            $Entity->setDescription( $Description );
-            $Entity->setCode( $Code );
-            $Entity->setTableAccountKeyType( $tblAccountKeyType );
+            $Entity->setValidFrom(new \DateTime($ValidFrom));
+            $Entity->setValue($Value);
+            $Entity->setValidTo(new \DateTime($ValidTo));
+            $Entity->setDescription($Description);
+            $Entity->setCode($Code);
+            $Entity->setTableAccountKeyType($tblAccountKeyType);
 
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(),
-                $Entity );
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+                $Entity);
         }
         return $Entity;
     }
@@ -177,32 +193,37 @@ class Data
     /**
      * @param $Name
      * @param $Description
+     *
      * @return TblAccountType|null|object
      */
-    public function actionCreateType( $Name, $Description )
+    public function actionCreateType($Name, $Description)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblAccountType' )->findOneBy( array( 'Name' => $Name, 'Description' => $Description ) );
-        if ( null === $Entity ) {
+        $Entity = $Manager->getEntity('TblAccountType')->findOneBy(array(
+            'Name'        => $Name,
+            'Description' => $Description
+        ));
+        if (null === $Entity) {
             $Entity = new TblAccountType();
-            $Entity->setName( $Name );
-            $Entity->setDescription( $Description );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(),
-                $Entity );
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+                $Entity);
         }
         return $Entity;
     }
 
     /**
      * @param $Id
+     *
      * @return bool|TblAccount
      */
-    public function entityAccountById( $Id )
+    public function entityAccountById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblAccount', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblAccount', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -211,12 +232,12 @@ class Data
      *
      * @return bool|TblAccount[]
      */
-    public function entityAccountAllByActiveState( $IsActive = true )
+    public function entityAccountAllByActiveState($IsActive = true)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblAccount' )->findBy( array(
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblAccount')->findBy(array(
             TblAccount::ATTR_IS_ACTIVE => $IsActive
-        ) );
+        ));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -226,17 +247,18 @@ class Data
     public function entityAccountAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblAccount' )->findAll();
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblAccount')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
-     * @param TblAccount $tblAccount
-     * @param $Description
-     * @param $Number
-     * @param $IsActive
-     * @param TblAccountKey $tblAccountKey
+     * @param TblAccount     $tblAccount
+     * @param                $Description
+     * @param                $Number
+     * @param                $IsActive
+     * @param TblAccountKey  $tblAccountKey
      * @param TblAccountType $tblAccountType
+     *
      * @return bool
      */
     public function actionEditAccount(
@@ -246,25 +268,24 @@ class Data
         $IsActive,
         TblAccountKey $tblAccountKey,
         TblAccountType $tblAccountType
-    )
-    {
+    ) {
 
         $Manager = $this->Connection->getEntityManager();
 
         /** @var TblAccount $Entity */
-        $Entity = $Manager->getEntityById( 'TblAccount', $tblAccount->getId() );
+        $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
-        if ( null !== $Entity ) {
-            $Entity->setDescription( $Description );
-            $Entity->setNumber( $Number );
-            $Entity->setIsActive( $IsActive );
-            $Entity->setTblAccountKey( $tblAccountKey );
-            $Entity->setTblAccountType( $tblAccountType );
+        if (null !== $Entity) {
+            $Entity->setDescription($Description);
+            $Entity->setNumber($Number);
+            $Entity->setIsActive($IsActive);
+            $Entity->setTblAccountKey($tblAccountKey);
+            $Entity->setTblAccountType($tblAccountType);
 
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createUpdateEntry( $this->Connection->getDatabase(),
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
                 $Protocol,
-                $Entity );
+                $Entity);
             return true;
         }
         return false;
@@ -272,23 +293,24 @@ class Data
 
     /**
      * @param $Id
+     *
      * @return bool
      */
-    public function actionActivateAccount( $Id )
+    public function actionActivateAccount($Id)
     {
 
         $Manager = $this->Connection->getEntityManager();
 
         /** @var TblAccount $Entity */
-        $Entity = $Manager->getEntityById( 'TblAccount', $Id );
+        $Entity = $Manager->getEntityById('TblAccount', $Id);
         $Protocol = clone $Entity;
-        if ( null !== $Entity ) {
-            $Entity->setIsActive( '1' );
+        if (null !== $Entity) {
+            $Entity->setIsActive('1');
 
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createUpdateEntry( $this->Connection->getDatabase(),
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
                 $Protocol,
-                $Entity );
+                $Entity);
             return true;
         }
         return false;
@@ -296,23 +318,24 @@ class Data
 
     /**
      * @param $Id
+     *
      * @return bool
      */
-    public function actionDeactivateAccount( $Id )
+    public function actionDeactivateAccount($Id)
     {
 
         $Manager = $this->Connection->getEntityManager();
 
         /** @var TblAccount $Entity */
-        $Entity = $Manager->getEntityById( 'TblAccount', $Id );
+        $Entity = $Manager->getEntityById('TblAccount', $Id);
         $Protocol = clone $Entity;
-        if ( null !== $Entity ) {
-            $Entity->setIsActive( '0' );
+        if (null !== $Entity) {
+            $Entity->setIsActive('0');
 
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createUpdateEntry( $this->Connection->getDatabase(),
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
                 $Protocol,
-                $Entity );
+                $Entity);
             return true;
         }
         return false;
@@ -324,7 +347,7 @@ class Data
     public function entityAccountKeyAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblAccountKey' )->findAll();
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblAccountKey')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -334,7 +357,7 @@ class Data
     public function entityAccountTypeAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblAccountType' )->findAll();
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblAccountType')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 }

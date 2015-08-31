@@ -36,21 +36,21 @@ class Thumbnail extends Extension implements ITemplateInterface
         $Type = self::THUMBNAIL_TYPE_DEFAULT
     ) {
 
-        if (!is_array( $ButtonList )) {
-            $ButtonList = array( $ButtonList );
+        if (!is_array($ButtonList)) {
+            $ButtonList = array($ButtonList);
         }
 
-        $this->Template = $this->getTemplate( __DIR__.'/Thumbnail.twig' );
-        $this->Template->setVariable( 'File', $File->getLocation() );
+        $this->Template = $this->getTemplate(__DIR__.'/Thumbnail.twig');
+        $this->Template->setVariable('File', $File->getLocation());
 
-        $Size = getimagesize( $File->getRealPath() );
+        $Size = getimagesize($File->getRealPath());
 
-        $this->Template->setVariable( 'Height', $Size[1] );
+        $this->Template->setVariable('Height', $Size[1]);
 
-        $this->Template->setVariable( 'Type', $Type );
-        $this->Template->setVariable( 'Title', $Title );
-        $this->Template->setVariable( 'Description', $Description );
-        $this->Template->setVariable( 'ButtonList', $ButtonList );
+        $this->Template->setVariable('Type', $Type);
+        $this->Template->setVariable('Title', $Title);
+        $this->Template->setVariable('Description', $Description);
+        $this->Template->setVariable('ButtonList', $ButtonList);
         $this->File = $File;
     }
 

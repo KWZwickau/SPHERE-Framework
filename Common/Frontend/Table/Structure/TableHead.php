@@ -18,11 +18,11 @@ class TableHead extends Extension implements ITableInterface
     /**
      * @param null|TableRow|TableRow[] $TableRow
      */
-    public function __construct( $TableRow = null )
+    public function __construct($TableRow = null)
     {
 
-        if (null !== $TableRow && !is_array( $TableRow )) {
-            $TableRow = array( $TableRow );
+        if (null !== $TableRow && !is_array($TableRow)) {
+            $TableRow = array($TableRow);
         } elseif (null === $TableRow) {
             $TableRow = array();
         }

@@ -55,42 +55,42 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreateToPerson( $Id, $Address, $Type )
+    public function frontendCreateToPerson($Id, $Address, $Type)
     {
 
-        $Stage = new Stage( 'E-Mail Adresse', 'Hinzufügen' );
-        $Stage->setMessage( 'Eine E-Mail Adresse zur gewählten Person hinzufügen' );
+        $Stage = new Stage('E-Mail Adresse', 'Hinzufügen');
+        $Stage->setMessage('Eine E-Mail Adresse zur gewählten Person hinzufügen');
 
-        $tblPerson = Person::useService()->getPersonById( $Id );
+        $tblPerson = Person::useService()->getPersonById($Id);
 
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
+            new Layout(array(
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel( new PersonIcon().' Person',
+                            new Panel(new PersonIcon().' Person',
                                 $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
-                                new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array( 'Id' => $tblPerson->getId() )
+                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                    array('Id' => $tblPerson->getId())
                                 )
                             )
                         )
                     ),
-                ) ),
-                new LayoutGroup( array(
+                )),
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
                             Mail::useService()->createMailToPerson(
                                 $this->formAddress()
-                                    ->appendFormButton( new Primary( 'E-Mail Adresse hinzufügen' ) )
-                                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
+                                    ->appendFormButton(new Primary('E-Mail Adresse hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblPerson, $Address, $Type
                             )
                         )
                     )
-                ) ),
-            ) )
+                )),
+            ))
         );
 
         return $Stage;
@@ -103,42 +103,42 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCreateToCompany( $Id, $Address, $Type )
+    public function frontendCreateToCompany($Id, $Address, $Type)
     {
 
-        $Stage = new Stage( 'E-Mail Adresse', 'Hinzufügen' );
-        $Stage->setMessage( 'Eine E-Mail Adresse zur gewählten Firma hinzufügen' );
+        $Stage = new Stage('E-Mail Adresse', 'Hinzufügen');
+        $Stage->setMessage('Eine E-Mail Adresse zur gewählten Firma hinzufügen');
 
-        $tblCompany = Company::useService()->getCompanyById( $Id );
+        $tblCompany = Company::useService()->getCompanyById($Id);
 
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
+            new Layout(array(
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel( new PersonIcon().' Firma',
+                            new Panel(new PersonIcon().' Firma',
                                 $tblCompany->getName(),
                                 Panel::PANEL_TYPE_SUCCESS,
-                                new Standard( 'Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
-                                    array( 'Id' => $tblCompany->getId() )
+                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                    array('Id' => $tblCompany->getId())
                                 )
                             )
                         )
                     ),
-                ) ),
-                new LayoutGroup( array(
+                )),
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
                             Mail::useService()->createMailToCompany(
                                 $this->formAddress()
-                                    ->appendFormButton( new Primary( 'E-Mail Adresse hinzufügen' ) )
-                                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
+                                    ->appendFormButton(new Primary('E-Mail Adresse hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblCompany, $Address, $Type
                             )
                         )
                     )
-                ) ),
-            ) )
+                )),
+            ))
         );
 
         return $Stage;
@@ -154,26 +154,26 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTypeAll = Mail::useService()->getTypeAll();
 
         return new Form(
-            new FormGroup( array(
-                new FormRow( array(
+            new FormGroup(array(
+                new FormRow(array(
                     new FormColumn(
-                        new Panel( 'E-Mail Adresse',
+                        new Panel('E-Mail Adresse',
                             array(
-                                new SelectBox( 'Type[Type]', 'Typ',
-                                    array( '{{ Name }} {{ Description }}' => $tblTypeAll ), new TileBig()
+                                new SelectBox('Type[Type]', 'Typ',
+                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ),
-                                new AutoCompleter( 'Address', 'E-Mail Adresse', 'E-Mail Adresse',
-                                    array( 'Address' => $tblMailAll ), new MailIcon()
+                                new AutoCompleter('Address', 'E-Mail Adresse', 'E-Mail Adresse',
+                                    array('Address' => $tblMailAll), new MailIcon()
                                 )
                             ), Panel::PANEL_TYPE_INFO
-                        ), 6 ),
+                        ), 6),
                     new FormColumn(
-                        new Panel( 'Sonstiges',
-                            new TextArea( 'Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
+                        new Panel('Sonstiges',
+                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
                             , Panel::PANEL_TYPE_INFO
-                        ), 6 ),
-                ) ),
-            ) )
+                        ), 6),
+                )),
+            ))
         );
     }
 
@@ -184,13 +184,13 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendUpdateToPerson( $Id, $Address, $Type )
+    public function frontendUpdateToPerson($Id, $Address, $Type)
     {
 
-        $Stage = new Stage( 'E-Mail Adresse', 'Bearbeiten' );
-        $Stage->setMessage( 'Eine E-Mail Adresse zur gewählten Person ändern' );
+        $Stage = new Stage('E-Mail Adresse', 'Bearbeiten');
+        $Stage->setMessage('Eine E-Mail Adresse zur gewählten Person ändern');
 
-        $tblToPerson = Mail::useService()->getMailToPersonById( $Id );
+        $tblToPerson = Mail::useService()->getMailToPersonById($Id);
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Address'] )) {
@@ -201,33 +201,33 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
+            new Layout(array(
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel( new PersonIcon().' Person',
+                            new Panel(new PersonIcon().' Person',
                                 $tblToPerson->getServiceTblPerson()->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
-                                new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() )
+                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
                                 )
                             )
                         )
                     ),
-                ) ),
-                new LayoutGroup( array(
+                )),
+                new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
                             Mail::useService()->updateMailToPerson(
                                 $this->formAddress()
-                                    ->appendFormButton( new Primary( 'Änderungen speichern' ) )
-                                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' )
+                                    ->appendFormButton(new Primary('Änderungen speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblToPerson, $Address, $Type
                             )
                         )
                     )
-                ) ),
-            ) )
+                )),
+            ))
         );
 
         return $Stage;
@@ -238,16 +238,16 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Layout
      */
-    public function frontendLayoutPerson( TblPerson $tblPerson )
+    public function frontendLayoutPerson(TblPerson $tblPerson)
     {
 
-        $tblMailAll = Mail::useService()->getMailAllByPerson( $tblPerson );
+        $tblMailAll = Mail::useService()->getMailAllByPerson($tblPerson);
         if ($tblMailAll !== false) {
-            array_walk( $tblMailAll, function ( TblToPerson &$tblToPerson ) {
+            array_walk($tblMailAll, function (TblToPerson &$tblToPerson) {
 
-                $Panel = array( $tblToPerson->getTblMail()->getAddress() );
+                $Panel = array($tblToPerson->getTblMail()->getAddress());
                 if ($tblToPerson->getRemark()) {
-                    array_push( $Panel, new Muted( new Small( $tblToPerson->getRemark() ) ) );
+                    array_push($Panel, new Muted(new Small($tblToPerson->getRemark())));
                 }
 
                 $tblToPerson = new LayoutColumn(
@@ -256,20 +256,20 @@ class Frontend extends Extension implements IFrontendInterface
 
                         new Standard(
                             '', '/People/Person/Mail/Edit', new Pencil(),
-                            array( 'Id' => $tblToPerson->getId() ),
+                            array('Id' => $tblToPerson->getId()),
                             'Bearbeiten'
                         )
                         .new Standard(
                             '', '/People/Person/Mail/Destroy', new Remove(),
-                            array( 'Id' => $tblToPerson->getId() ), 'Löschen'
+                            array('Id' => $tblToPerson->getId()), 'Löschen'
                         )
                     )
-                    , 3 );
-            } );
+                    , 3);
+            });
         } else {
             $tblMailAll = array(
                 new LayoutColumn(
-                    new Warning( 'Keine E-Mail Adressen hinterlegt' )
+                    new Warning('Keine E-Mail Adressen hinterlegt')
                 )
             );
         }
@@ -282,14 +282,14 @@ class Frontend extends Extension implements IFrontendInterface
          */
         foreach ($tblMailAll as $tblMail) {
             if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow( array() );
+                $LayoutRow = new LayoutRow(array());
                 $LayoutRowList[] = $LayoutRow;
             }
-            $LayoutRow->addColumn( $tblMail );
+            $LayoutRow->addColumn($tblMail);
             $LayoutRowCount++;
         }
 
-        return new Layout( new LayoutGroup( $LayoutRowList ) );
+        return new Layout(new LayoutGroup($LayoutRowList));
     }
 
     /**
@@ -298,61 +298,61 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendDestroyToPerson( $Id, $Confirm = false )
+    public function frontendDestroyToPerson($Id, $Confirm = false)
     {
 
-        $Stage = new Stage( 'E-Mail Adresse', 'Löschen' );
+        $Stage = new Stage('E-Mail Adresse', 'Löschen');
         if ($Id) {
-            $tblToPerson = Mail::useService()->getMailToPersonById( $Id );
+            $tblToPerson = Mail::useService()->getMailToPersonById($Id);
             $tblPerson = $tblToPerson->getServiceTblPerson();
             if (!$Confirm) {
                 $Stage->setContent(
-                    new Layout( new LayoutGroup( new LayoutRow( new LayoutColumn( array(
-                        new Panel( new PersonIcon().' Person',
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new PersonIcon().' Person',
                             $tblPerson->getFullName(),
                             Panel::PANEL_TYPE_SUCCESS,
-                            new Standard( 'Zurück zur Person', '/People/Person', new ChevronLeft(),
-                                array( 'Id' => $tblPerson->getId() )
+                            new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                array('Id' => $tblPerson->getId())
                             )
                         ),
-                        new Panel( new Question().' Diese E-Mail Adresse wirklich löschen?', array(
+                        new Panel(new Question().' Diese E-Mail Adresse wirklich löschen?', array(
                             $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
                             $tblToPerson->getTblMail()->getAddress(),
-                            new Muted( new Small( $tblToPerson->getRemark() ) )
+                            new Muted(new Small($tblToPerson->getRemark()))
                         ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
                                 'Ja', '/People/Person/Mail/Destroy', new Ok(),
-                                array( 'Id' => $Id, 'Confirm' => true )
+                                array('Id' => $Id, 'Confirm' => true)
                             )
                             .new Standard(
                                 'Nein', '/People/Person', new Disable(),
-                                array( 'Id' => $tblPerson->getId() )
+                                array('Id' => $tblPerson->getId())
                             )
                         )
-                    ) ) ) ) )
+                    )))))
                 );
             } else {
                 $Stage->setContent(
-                    new Layout( new LayoutGroup( array(
-                        new LayoutRow( new LayoutColumn( array(
-                            ( Mail::useService()->removeMailToPerson( $tblToPerson )
-                                ? new Success( 'Die E-Mail Adresse wurde gelöscht' )
-                                : new Danger( 'Die E-Mail Adresse konnte nicht gelöscht werden' )
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            ( Mail::useService()->removeMailToPerson($tblToPerson)
+                                ? new Success('Die E-Mail Adresse wurde gelöscht')
+                                : new Danger('Die E-Mail Adresse konnte nicht gelöscht werden')
                             ),
-                            new Redirect( '/People/Person', 1, array( 'Id' => $tblPerson->getId() ) )
-                        ) ) )
-                    ) ) )
+                            new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()))
+                        )))
+                    )))
                 );
             }
         } else {
             $Stage->setContent(
-                new Layout( new LayoutGroup( array(
-                    new LayoutRow( new LayoutColumn( array(
-                        new Danger( 'Die E-Mail Adresse konnte nicht gefunden werden' ),
-                        new Redirect( '/People/Search/Group' )
-                    ) ) )
-                ) ) )
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger('Die E-Mail Adresse konnte nicht gefunden werden'),
+                        new Redirect('/People/Search/Group')
+                    )))
+                )))
             );
         }
         return $Stage;
@@ -363,16 +363,16 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Layout
      */
-    public function frontendLayoutCompany( TblCompany $tblCompany )
+    public function frontendLayoutCompany(TblCompany $tblCompany)
     {
 
-        $tblMailAll = Mail::useService()->getMailAllByCompany( $tblCompany );
+        $tblMailAll = Mail::useService()->getMailAllByCompany($tblCompany);
         if ($tblMailAll !== false) {
-            array_walk( $tblMailAll, function ( TblToCompany &$tblToCompany ) {
+            array_walk($tblMailAll, function (TblToCompany &$tblToCompany) {
 
-                $Panel = array( $tblToCompany->getTblMail()->getAddress() );
+                $Panel = array($tblToCompany->getTblMail()->getAddress());
                 if ($tblToCompany->getRemark()) {
-                    array_push( $Panel, new Muted( new Small( $tblToCompany->getRemark() ) ) );
+                    array_push($Panel, new Muted(new Small($tblToCompany->getRemark())));
                 }
 
                 $tblToCompany = new LayoutColumn(
@@ -381,20 +381,20 @@ class Frontend extends Extension implements IFrontendInterface
 
                         new Standard(
                             '', '/Corporation/Company/Mail/Edit', new Pencil(),
-                            array( 'Id' => $tblToCompany->getId() ),
+                            array('Id' => $tblToCompany->getId()),
                             'Bearbeiten'
                         )
                         .new Standard(
                             '', '/Corporation/Company/Mail/Destroy', new Remove(),
-                            array( 'Id' => $tblToCompany->getId() ), 'Löschen'
+                            array('Id' => $tblToCompany->getId()), 'Löschen'
                         )
                     )
-                    , 3 );
-            } );
+                    , 3);
+            });
         } else {
             $tblMailAll = array(
                 new LayoutColumn(
-                    new Warning( 'Keine E-Mail Adressen hinterlegt' )
+                    new Warning('Keine E-Mail Adressen hinterlegt')
                 )
             );
         }
@@ -407,13 +407,13 @@ class Frontend extends Extension implements IFrontendInterface
          */
         foreach ($tblMailAll as $tblMail) {
             if ($LayoutRowCount % 4 == 0) {
-                $LayoutRow = new LayoutRow( array() );
+                $LayoutRow = new LayoutRow(array());
                 $LayoutRowList[] = $LayoutRow;
             }
-            $LayoutRow->addColumn( $tblMail );
+            $LayoutRow->addColumn($tblMail);
             $LayoutRowCount++;
         }
 
-        return new Layout( new LayoutGroup( $LayoutRowList ) );
+        return new Layout(new LayoutGroup($LayoutRowList));
     }
 }

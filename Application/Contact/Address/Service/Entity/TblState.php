@@ -25,10 +25,10 @@ class TblState extends Element
     /**
      * @param $Name
      */
-    function __construct( $Name )
+    function __construct($Name)
     {
 
-        $this->setName( $Name );
+        $this->setName($Name);
     }
 
     /**
@@ -43,7 +43,7 @@ class TblState extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;

@@ -20,7 +20,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -29,7 +29,7 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->createConsumer( 'DEMO', 'Mandant' );
+        $this->createConsumer('DEMO', 'Mandant');
     }
 
     /**
@@ -38,17 +38,17 @@ class Data
      *
      * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer
      */
-    public function createConsumer( $Acronym, $Name )
+    public function createConsumer($Acronym, $Name)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblConsumer' )
-            ->findOneBy( array( TblConsumer::ATTR_ACRONYM => $Acronym ) );
+        $Entity = $Manager->getEntity('TblConsumer')
+            ->findOneBy(array(TblConsumer::ATTR_ACRONYM => $Acronym));
         if (null === $Entity) {
-            $Entity = new TblConsumer( $Acronym );
-            $Entity->setName( $Name );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblConsumer($Acronym);
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -58,11 +58,11 @@ class Data
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerByName( $Name )
+    public function getConsumerByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblConsumer' )
-            ->findOneBy( array( TblConsumer::ATTR_NAME => $Name ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblConsumer')
+            ->findOneBy(array(TblConsumer::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -71,11 +71,11 @@ class Data
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerByAcronym( $Acronym )
+    public function getConsumerByAcronym($Acronym)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblConsumer' )
-            ->findOneBy( array( TblConsumer::ATTR_ACRONYM => $Acronym ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblConsumer')
+            ->findOneBy(array(TblConsumer::ATTR_ACRONYM => $Acronym));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -84,10 +84,10 @@ class Data
      *
      * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer
      */
-    public function getConsumerById( $Id )
+    public function getConsumerById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblConsumer', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblConsumer', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -97,7 +97,7 @@ class Data
     public function getConsumerAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblConsumer' )->findAll();
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblConsumer')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -106,10 +106,10 @@ class Data
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerBySession( $Session = null )
+    public function getConsumerBySession($Session = null)
     {
 
-        if (false !== ( $tblAccount = Account::useService()->getAccountBySession( $Session ) )) {
+        if (false !== ( $tblAccount = Account::useService()->getAccountBySession($Session) )) {
             return $tblAccount->getServiceTblConsumer();
         } else {
             return false;

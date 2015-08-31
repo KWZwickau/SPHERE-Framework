@@ -26,7 +26,7 @@ class TblRole extends Element
     /**
      * @param string $Name
      */
-    function __construct( $Name )
+    function __construct($Name)
     {
 
         $this->Name = $Name;
@@ -44,7 +44,7 @@ class TblRole extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
@@ -56,6 +56,6 @@ class TblRole extends Element
     public function getTblLevelAll()
     {
 
-        return Access::useService()->getLevelAllByRole( $this );
+        return Access::useService()->getLevelAllByRole($this);
     }
 }

@@ -21,28 +21,28 @@ class Error extends Extension implements ITemplateInterface
      * @param integer|string $Code
      * @param null           $Message
      */
-    function __construct( $Code, $Message = null )
+    function __construct($Code, $Message = null)
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/Error.twig' );
+        $this->Template = $this->getTemplate(__DIR__.'/Error.twig');
 
-        $this->Template->setVariable( 'ErrorCode', $Code );
+        $this->Template->setVariable('ErrorCode', $Code);
         if (null === $Message) {
             switch ($Code) {
                 case 404:
-                    $this->Template->setVariable( 'ErrorMessage',
-                        'Die angeforderte Ressource konnte nicht gefunden werden' );
+                    $this->Template->setVariable('ErrorMessage',
+                        'Die angeforderte Ressource konnte nicht gefunden werden');
                     break;
                 default:
-                    $this->Template->setVariable( 'ErrorMessage', '' );
+                    $this->Template->setVariable('ErrorMessage', '');
             }
         } else {
-            $this->Template->setVariable( 'ErrorMessage', $Message );
-            $this->Template->setVariable( 'ErrorMenu', array(
-                    new Primary( 'Fehlerbericht senden', '/System/Assistance/Support/Ticket', null,
+            $this->Template->setVariable('ErrorMessage', $Message);
+            $this->Template->setVariable('ErrorMenu', array(
+                    new Primary('Fehlerbericht senden', '/System/Assistance/Support/Ticket', null,
                         array(
-                            'TicketSubject' => urlencode( $Code ),
-                            'TicketMessage' => urlencode( $Message )
+                            'TicketSubject' => urlencode($Code),
+                            'TicketMessage' => urlencode($Message)
                         )
                     )
                 )

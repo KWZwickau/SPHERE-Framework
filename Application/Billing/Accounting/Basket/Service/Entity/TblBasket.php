@@ -27,7 +27,7 @@ class TblBasket extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
@@ -48,13 +48,13 @@ class TblBasket extends Element
     public function getCreateDate()
     {
 
-        if ( null === $this->CreateDate ) {
+        if (null === $this->CreateDate) {
             return false;
         }
         /** @var \DateTime $CreateDate */
         $CreateDate = $this->CreateDate;
-        if ( $CreateDate instanceof \DateTime ) {
-            return $CreateDate->format( 'd.m.Y H:i:s' );
+        if ($CreateDate instanceof \DateTime) {
+            return $CreateDate->format('d.m.Y H:i:s');
         } else {
             return (string)$CreateDate;
         }
@@ -63,7 +63,7 @@ class TblBasket extends Element
     /**
      * @param \DateTime $CreateDate
      */
-    public function setCreateDate( \DateTime $CreateDate )
+    public function setCreateDate(\DateTime $CreateDate)
     {
 
         $this->CreateDate = $CreateDate;

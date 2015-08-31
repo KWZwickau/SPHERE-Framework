@@ -42,34 +42,34 @@ class Search implements IApplicationInterface, IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Personensuche' ),
-                new Link\Icon( new Info() )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personensuche'),
+                new Link\Icon(new Info())
             )
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'SPHERE\Application\People\People::frontendDashboard'
-        ) );
+        ));
     }
 
     public static function registerModule()
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Group' ), new Link\Name( 'Nach Personengruppe' ),
-                new Link\Icon( new Info() )
+            new Link(new Link\Route(__NAMESPACE__.'/Group'), new Link\Name('Nach Personengruppe'),
+                new Link\Icon(new Info())
             )
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Group', __CLASS__.'::frontendGroup'
-        ) );
+        ));
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Attribute' ), new Link\Name( 'Nach Eigenschaften' ),
-                new Link\Icon( new Info() )
+            new Link(new Link\Route(__NAMESPACE__.'/Attribute'), new Link\Name('Nach Eigenschaften'),
+                new Link\Icon(new Info())
             )
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Attribute', __CLASS__.'::frontendAttribute'
-        ) );
+        ));
 
     }
 
@@ -89,48 +89,48 @@ class Search implements IApplicationInterface, IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
-    public function frontendGroup( $Id = false )
+    public function frontendGroup($Id = false)
     {
 
-        $Stage = new Stage( 'Personensuche', 'nach Personengruppe' );
+        $Stage = new Stage('Personensuche', 'nach Personengruppe');
 
-        $tblGroup = Group::useService()->getGroupById( $Id );
+        $tblGroup = Group::useService()->getGroupById($Id);
 
         if ($tblGroup) {
             $Stage->setMessage(
-                new PullClear( new Bold( $tblGroup->getName() ).' '.new Small( $tblGroup->getDescription() ) ).
-                new PullClear( new Danger( new Italic( nl2br( $tblGroup->getRemark() ) ) ) )
+                new PullClear(new Bold($tblGroup->getName()).' '.new Small($tblGroup->getDescription())).
+                new PullClear(new Danger(new Italic(nl2br($tblGroup->getRemark()))))
             );
         } else {
-            $Stage->setMessage( 'Bitte wählen Sie eine Personengruppe' );
+            $Stage->setMessage('Bitte wählen Sie eine Personengruppe');
         }
 
         $tblGroupAll = Group::useService()->getGroupAll();
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
+        array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
             $Stage->addButton(
                 new Standard(
                     $tblGroup->getName(),
-                    new Link\Route( __NAMESPACE__.'/Group' ), null,
+                    new Link\Route(__NAMESPACE__.'/Group'), null,
                     array(
                         'Id' => $tblGroup->getId()
-                    ), $tblGroup->getDescription() )
+                    ), $tblGroup->getDescription())
             );
-        }, $Stage );
+        }, $Stage);
 
         if ($tblGroup) {
 
             // TODO: Person-List
 
-            $tblPersonAll = Group::useService()->getPersonAllByGroup( $tblGroup );
+            $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
 
-            array_walk( $tblPersonAll, function ( TblPerson &$tblPerson ) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-                $tblPerson->Option = new Standard( '', '/People/Person', new Pencil(),
-                    array( 'Id' => $tblPerson->getId() ), 'Bearbeiten' );
-            } );
+                $tblPerson->Option = new Standard('', '/People/Person', new Pencil(),
+                    array('Id' => $tblPerson->getId()), 'Bearbeiten');
+            });
 
 //            Debugger::screenDump( $tblPersonAll );
 
@@ -139,7 +139,7 @@ class Search implements IApplicationInterface, IModuleInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new TableData( $tblPersonAll, null,
+                                new TableData($tblPersonAll, null,
                                     array(
                                         'Id'           => '#',
                                         'Salutation'   => 'Anrede',
@@ -150,7 +150,7 @@ class Search implements IApplicationInterface, IModuleInterface
                                         'EntityCreate' => 'Eingabedatum',
                                         'EntityUpdate' => 'Letzte Änderung',
                                         'Option'       => 'Optionen',
-                                    ) )
+                                    ))
                             )
                         )
                     )

@@ -33,15 +33,15 @@ class Stage extends Extension implements ITemplateInterface
      * @param null|string $Title
      * @param null|string $Description
      */
-    function __construct( $Title = null, $Description = null )
+    function __construct($Title = null, $Description = null)
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/Stage.twig' );
+        $this->Template = $this->getTemplate(__DIR__.'/Stage.twig');
         if (null !== $Title) {
-            $this->setTitle( $Title );
+            $this->setTitle($Title);
         }
         if (null !== $Description) {
-            $this->setDescription( $Description );
+            $this->setDescription($Description);
         }
     }
 
@@ -50,7 +50,7 @@ class Stage extends Extension implements ITemplateInterface
      *
      * @return Stage
      */
-    public function setTitle( $Value )
+    public function setTitle($Value)
     {
 
         $this->Title = $Value;
@@ -62,7 +62,7 @@ class Stage extends Extension implements ITemplateInterface
      *
      * @return Stage
      */
-    public function setDescription( $Value )
+    public function setDescription($Value)
     {
 
         $this->Description = $Value;
@@ -74,10 +74,10 @@ class Stage extends Extension implements ITemplateInterface
      *
      * @return Stage
      */
-    public function setMessage( $Message )
+    public function setMessage($Message)
     {
 
-        $this->Message = new Muted( $Message );
+        $this->Message = new Muted($Message);
         return $this;
     }
 
@@ -86,7 +86,7 @@ class Stage extends Extension implements ITemplateInterface
      *
      * @return Stage
      */
-    public function addButton( ILinkInterface $Button )
+    public function addButton(ILinkInterface $Button)
     {
 
         $this->Menu[] = $Button->__toString();
@@ -108,11 +108,11 @@ class Stage extends Extension implements ITemplateInterface
     public function getContent()
     {
 
-        $this->Template->setVariable( 'StageTitle', $this->Title );
-        $this->Template->setVariable( 'StageDescription', $this->Description );
-        $this->Template->setVariable( 'StageMessage', $this->Message );
-        $this->Template->setVariable( 'StageContent', $this->Content );
-        $this->Template->setVariable( 'StageMenu', $this->Menu );
+        $this->Template->setVariable('StageTitle', $this->Title);
+        $this->Template->setVariable('StageDescription', $this->Description);
+        $this->Template->setVariable('StageMessage', $this->Message);
+        $this->Template->setVariable('StageContent', $this->Content);
+        $this->Template->setVariable('StageMenu', $this->Menu);
 
         return $this->Template->getContent();
     }
@@ -122,7 +122,7 @@ class Stage extends Extension implements ITemplateInterface
      *
      * @return Stage
      */
-    public function setContent( $Content )
+    public function setContent($Content)
     {
 
         $this->Content = $Content;

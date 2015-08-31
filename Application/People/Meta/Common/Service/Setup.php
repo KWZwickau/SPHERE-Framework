@@ -19,7 +19,7 @@ class Setup
     /**
      * @param Structure $Connection
      */
-    function __construct( Structure $Connection )
+    function __construct(Structure $Connection)
     {
 
         $this->Connection = $Connection;
@@ -30,22 +30,22 @@ class Setup
      *
      * @return string
      */
-    public function setupDatabaseSchema( $Simulate = true )
+    public function setupDatabaseSchema($Simulate = true)
     {
 
         /**
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $tblCommonBirthDates = $this->setTableCommonBirthDates( $Schema );
-        $tblCommonInformation = $this->setTableCommonInformation( $Schema );
-        $this->setTableCommon( $Schema, $tblCommonBirthDates, $tblCommonInformation );
+        $tblCommonBirthDates = $this->setTableCommonBirthDates($Schema);
+        $tblCommonInformation = $this->setTableCommonInformation($Schema);
+        $this->setTableCommon($Schema, $tblCommonBirthDates, $tblCommonInformation);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol( __CLASS__ );
-        $this->Connection->setMigration( $Schema, $Simulate );
-        return $this->Connection->getProtocol( $Simulate );
+        $this->Connection->addProtocol(__CLASS__);
+        $this->Connection->setMigration($Schema, $Simulate);
+        return $this->Connection->getProtocol($Simulate);
     }
 
     /**
@@ -53,21 +53,21 @@ class Setup
      *
      * @return Table
      */
-    private function setTableCommonBirthDates( Schema &$Schema )
+    private function setTableCommonBirthDates(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblCommonBirthDates' );
-        if (!$this->Connection->hasColumn( 'tblCommonBirthDates', 'Birthday' )) {
-            $Table->addColumn( 'Birthday', 'datetime' );
+        $Table = $this->Connection->createTable($Schema, 'tblCommonBirthDates');
+        if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Birthday')) {
+            $Table->addColumn('Birthday', 'datetime');
         }
-        if (!$this->Connection->hasColumn( 'tblCommonBirthDates', 'Birthplace' )) {
-            $Table->addColumn( 'Birthplace', 'string' );
+        if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Birthplace')) {
+            $Table->addColumn('Birthplace', 'string');
         }
-        if (!$this->Connection->hasColumn( 'tblCommonBirthDates', 'Nationality' )) {
-            $Table->addColumn( 'Nationality', 'string' );
+        if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Nationality')) {
+            $Table->addColumn('Nationality', 'string');
         }
-        if (!$this->Connection->hasColumn( 'tblCommonBirthDates', 'Gender' )) {
-            $Table->addColumn( 'Gender', 'smallint' );
+        if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Gender')) {
+            $Table->addColumn('Gender', 'smallint');
         }
         return $Table;
     }
@@ -77,18 +77,18 @@ class Setup
      *
      * @return Table
      */
-    private function setTableCommonInformation( Schema &$Schema )
+    private function setTableCommonInformation(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblCommonInformation' );
-        if (!$this->Connection->hasColumn( 'tblCommonInformation', 'Denomination' )) {
-            $Table->addColumn( 'Denomination', 'string' );
+        $Table = $this->Connection->createTable($Schema, 'tblCommonInformation');
+        if (!$this->Connection->hasColumn('tblCommonInformation', 'Denomination')) {
+            $Table->addColumn('Denomination', 'string');
         }
-        if (!$this->Connection->hasColumn( 'tblCommonInformation', 'AssistanceActivity' )) {
-            $Table->addColumn( 'AssistanceActivity', 'text' );
+        if (!$this->Connection->hasColumn('tblCommonInformation', 'AssistanceActivity')) {
+            $Table->addColumn('AssistanceActivity', 'text');
         }
-        if (!$this->Connection->hasColumn( 'tblCommonInformation', 'IsAssistance' )) {
-            $Table->addColumn( 'IsAssistance', 'boolean' );
+        if (!$this->Connection->hasColumn('tblCommonInformation', 'IsAssistance')) {
+            $Table->addColumn('IsAssistance', 'boolean');
         }
         return $Table;
     }
@@ -100,18 +100,18 @@ class Setup
      *
      * @return Table
      */
-    private function setTableCommon( Schema &$Schema, Table $tblCommonBirthDates, Table $tblCommonInformation )
+    private function setTableCommon(Schema &$Schema, Table $tblCommonBirthDates, Table $tblCommonInformation)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblCommon' );
-        if (!$this->Connection->hasColumn( 'tblCommon', 'serviceTblPerson' )) {
-            $Table->addColumn( 'serviceTblPerson', 'bigint', array( 'notnull' => false ) );
+        $Table = $this->Connection->createTable($Schema, 'tblCommon');
+        if (!$this->Connection->hasColumn('tblCommon', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn( 'tblCommon', 'Remark' )) {
-            $Table->addColumn( 'Remark', 'text' );
+        if (!$this->Connection->hasColumn('tblCommon', 'Remark')) {
+            $Table->addColumn('Remark', 'text');
         }
-        $this->Connection->addForeignKey( $Table, $tblCommonBirthDates );
-        $this->Connection->addForeignKey( $Table, $tblCommonInformation );
+        $this->Connection->addForeignKey($Table, $tblCommonBirthDates);
+        $this->Connection->addForeignKey($Table, $tblCommonInformation);
         return $Table;
     }
 }

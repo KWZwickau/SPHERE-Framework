@@ -38,11 +38,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -51,12 +51,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -66,10 +66,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblMail
      */
-    public function getMailById( $Id )
+    public function getMailById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getMailById( $Id );
+        return (new Data($this->Binding))->getMailById($Id);
     }
 
     /**
@@ -78,7 +78,7 @@ class Service implements IServiceInterface
     public function getMailAll()
     {
 
-        return ( new Data( $this->Binding ) )->getMailAll();
+        return (new Data($this->Binding))->getMailAll();
     }
 
     /**
@@ -87,7 +87,7 @@ class Service implements IServiceInterface
     public function getTypeAll()
     {
 
-        return ( new Data( $this->Binding ) )->getTypeAll();
+        return (new Data($this->Binding))->getTypeAll();
     }
 
     /**
@@ -95,10 +95,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson[]
      */
-    public function getMailAllByPerson( TblPerson $tblPerson )
+    public function getMailAllByPerson(TblPerson $tblPerson)
     {
 
-        return ( new Data( $this->Binding ) )->getMailAllByPerson( $tblPerson );
+        return (new Data($this->Binding))->getMailAllByPerson($tblPerson);
     }
 
     /**
@@ -106,10 +106,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToCompany[]
      */
-    public function getMailAllByCompany( TblCompany $tblCompany )
+    public function getMailAllByCompany(TblCompany $tblCompany)
     {
 
-        return ( new Data( $this->Binding ) )->getMailAllByCompany( $tblCompany );
+        return (new Data($this->Binding))->getMailAllByCompany($tblCompany);
     }
 
     /**
@@ -136,25 +136,25 @@ class Service implements IServiceInterface
 
         $Error = false;
 
-        $Address = filter_var( $Address, FILTER_VALIDATE_EMAIL );
+        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
 
         if (isset( $Address ) && empty( $Address )) {
-            $Form->setError( 'Address', 'Bitte geben Sie eine gültige E-Mail Adresse an' );
+            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblMail = ( new Data( $this->Binding ) )->createMail( $Address );
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblMail = (new Data($this->Binding))->createMail($Address);
 
-            if (( new Data( $this->Binding ) )->addMailToPerson( $tblPerson, $tblMail, $tblType, $Type['Remark'] )
+            if ((new Data($this->Binding))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
             ) {
-                return new Success( 'Die E-Mail Adresse wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/People/Person', 1, array( 'Id' => $tblPerson->getId() ) );
+                return new Success('Die E-Mail Adresse wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger( 'Die E-Mail Adresse konnte nicht hinzugefügt werden' )
-                .new Redirect( '/People/Person', 10, array( 'Id' => $tblPerson->getId() ) );
+                return new Danger('Die E-Mail Adresse konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', 10, array('Id' => $tblPerson->getId()));
             }
         }
         return $Form;
@@ -162,7 +162,7 @@ class Service implements IServiceInterface
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany      $tblCompany
+     * @param TblCompany     $tblCompany
      * @param string         $Address
      * @param array          $Type
      *
@@ -184,25 +184,25 @@ class Service implements IServiceInterface
 
         $Error = false;
 
-        $Address = filter_var( $Address, FILTER_VALIDATE_EMAIL );
+        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
 
         if (isset( $Address ) && empty( $Address )) {
-            $Form->setError( 'Address', 'Bitte geben Sie eine gültige E-Mail Adresse an' );
+            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblMail = ( new Data( $this->Binding ) )->createMail( $Address );
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblMail = (new Data($this->Binding))->createMail($Address);
 
-            if (( new Data( $this->Binding ) )->addMailToCompany( $tblCompany, $tblMail, $tblType, $Type['Remark'] )
+            if ((new Data($this->Binding))->addMailToCompany($tblCompany, $tblMail, $tblType, $Type['Remark'])
             ) {
-                return new Success( 'Die E-Mail Adresse wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/Corporation/Company', 1, array( 'Id' => $tblCompany->getId() ) );
+                return new Success('Die E-Mail Adresse wurde erfolgreich hinzugefügt')
+                .new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()));
             } else {
-                return new Danger( 'Die E-Mail Adresse konnte nicht hinzugefügt werden' )
-                .new Redirect( '/Corporation/Company', 10, array( 'Id' => $tblCompany->getId() ) );
+                return new Danger('Die E-Mail Adresse konnte nicht hinzugefügt werden')
+                .new Redirect('/Corporation/Company', 10, array('Id' => $tblCompany->getId()));
             }
         }
         return $Form;
@@ -213,10 +213,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblType
      */
-    public function getTypeById( $Id )
+    public function getTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getTypeById( $Id );
+        return (new Data($this->Binding))->getTypeById($Id);
     }
 
     /**
@@ -243,30 +243,30 @@ class Service implements IServiceInterface
 
         $Error = false;
 
-        $Address = filter_var( $Address, FILTER_VALIDATE_EMAIL );
+        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
 
         if (isset( $Address ) && empty( $Address )) {
-            $Form->setError( 'Address', 'Bitte geben Sie eine gültige E-Mail Adresse an' );
+            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblMail = ( new Data( $this->Binding ) )->createMail( $Address );
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblMail = (new Data($this->Binding))->createMail($Address);
             // Remove current
-            ( new Data( $this->Binding ) )->removeMailToPerson( $tblToPerson );
+            (new Data($this->Binding))->removeMailToPerson($tblToPerson);
             // Add new
-            if (( new Data( $this->Binding ) )->addMailToPerson( $tblToPerson->getServiceTblPerson(), $tblMail,
-                $tblType, $Type['Remark'] )
+            if ((new Data($this->Binding))->addMailToPerson($tblToPerson->getServiceTblPerson(), $tblMail,
+                $tblType, $Type['Remark'])
             ) {
-                return new Success( 'Die E-Mail Adresse wurde erfolgreich geändert' )
-                .new Redirect( '/People/Person', 1,
-                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() ) );
+                return new Success('Die E-Mail Adresse wurde erfolgreich geändert')
+                .new Redirect('/People/Person', 1,
+                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             } else {
-                return new Danger( 'Die E-Mail Adresse konnte nicht geändert werden' )
-                .new Redirect( '/People/Person', 10,
-                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() ) );
+                return new Danger('Die E-Mail Adresse konnte nicht geändert werden')
+                .new Redirect('/People/Person', 10,
+                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             }
         }
         return $Form;
@@ -277,10 +277,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson
      */
-    public function getMailToPersonById( $Id )
+    public function getMailToPersonById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getMailToPersonById( $Id );
+        return (new Data($this->Binding))->getMailToPersonById($Id);
     }
 
 
@@ -289,10 +289,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToCompany
      */
-    public function getMailToCompanyById( $Id )
+    public function getMailToCompanyById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getMailToCompanyById( $Id );
+        return (new Data($this->Binding))->getMailToCompanyById($Id);
     }
 
     /**
@@ -300,10 +300,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removeMailToPerson( TblToPerson $tblToPerson )
+    public function removeMailToPerson(TblToPerson $tblToPerson)
     {
 
-        return ( new Data( $this->Binding ) )->removeMailToPerson( $tblToPerson );
+        return (new Data($this->Binding))->removeMailToPerson($tblToPerson);
     }
 
     /**
@@ -311,9 +311,9 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removeMailToCompany( TblToCompany $tblToCompany )
+    public function removeMailToCompany(TblToCompany $tblToCompany)
     {
 
-        return ( new Data( $this->Binding ) )->removeMailToCompany( $tblToCompany );
+        return (new Data($this->Binding))->removeMailToCompany($tblToCompany);
     }
 }

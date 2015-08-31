@@ -26,8 +26,8 @@ class Group implements IApplicationInterface, IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Personengruppen' ),
-                new Link\Icon( new GroupIcon() )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personengruppen'),
+                new Link\Icon(new GroupIcon())
             )
         );
     }
@@ -35,22 +35,22 @@ class Group implements IApplicationInterface, IModuleInterface
     public static function registerModule()
     {
 
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendGroup'
         )
-            ->setParameterDefault( 'Group', null )
+            ->setParameterDefault('Group', null)
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Edit', __NAMESPACE__.'\Frontend::frontendEditGroup'
         )
-            ->setParameterDefault( 'Id', null )
-            ->setParameterDefault( 'Group', null )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('Group', null)
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyGroup'
         )
-            ->setParameterDefault( 'Id', null )
-            ->setParameterDefault( 'Confirm', false )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('Confirm', false)
         );
     }
 
@@ -61,7 +61,7 @@ class Group implements IApplicationInterface, IModuleInterface
     {
 
         return new Service(
-            new Identifier( 'People', 'Group', null, null, Consumer::useService()->getConsumerBySession() ),
+            new Identifier('People', 'Group', null, null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

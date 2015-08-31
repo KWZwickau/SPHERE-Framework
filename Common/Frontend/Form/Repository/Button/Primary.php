@@ -23,15 +23,15 @@ class Primary extends Extension implements IButtonInterface
      * @param string         $Name
      * @param IIconInterface $Icon
      */
-    public function __construct( $Name, IIconInterface $Icon = null )
+    public function __construct($Name, IIconInterface $Icon = null)
     {
 
         $this->Name = $Name;
-        $this->Template = $this->getTemplate( __DIR__.'/Submit.twig' );
-        $this->Template->setVariable( 'Name', $Name );
-        $this->Template->setVariable( 'Type', 'primary' );
+        $this->Template = $this->getTemplate(__DIR__.'/Submit.twig');
+        $this->Template->setVariable('Name', $Name);
+        $this->Template->setVariable('Type', 'primary');
         if (null !== $Icon) {
-            $this->Template->setVariable( 'Icon', $Icon );
+            $this->Template->setVariable('Icon', $Icon);
         }
     }
 

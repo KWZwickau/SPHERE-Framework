@@ -57,15 +57,15 @@ class Database extends Extension
      *
      * @throws \Exception
      */
-    function __construct( Identifier $Identifier )
+    function __construct(Identifier $Identifier)
     {
 
         $this->Identifier = $Identifier;
         $Register = new Register();
-        if (!$Register->hasConnection( $this->Identifier )) {
-            $Configuration = parse_ini_file( __DIR__.'/Configuration.ini', true );
-            if (isset( $Configuration[$this->Identifier->getConfiguration( true )] )) {
-                $this->Configuration = $Configuration[$this->Identifier->getConfiguration( true )];
+        if (!$Register->hasConnection($this->Identifier)) {
+            $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
+            if (isset( $Configuration[$this->Identifier->getConfiguration(true)] )) {
+                $this->Configuration = $Configuration[$this->Identifier->getConfiguration(true)];
                 $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
                 $Register->addConnection(
                     $this->Identifier,
@@ -75,7 +75,7 @@ class Database extends Extension
                         $this->Configuration['Username'],
                         $this->Configuration['Password'],
                         empty( $this->Configuration['Database'] )
-                            ? str_replace( ':', '', $this->Identifier->getConfiguration( false ) )
+                            ? str_replace(':', '', $this->Identifier->getConfiguration(false))
                             : $this->Configuration['Database'],
                         $this->Configuration['Host'],
                         empty( $this->Configuration['Port'] )
@@ -85,8 +85,8 @@ class Database extends Extension
                     )
                 );
             } else {
-                if (isset( $Configuration[$this->Identifier->getConfiguration( false )] )) {
-                    $this->Configuration = $Configuration[$this->Identifier->getConfiguration( false )];
+                if (isset( $Configuration[$this->Identifier->getConfiguration(false)] )) {
+                    $this->Configuration = $Configuration[$this->Identifier->getConfiguration(false)];
                     $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
                     $Register->addConnection(
                         $this->Identifier,
@@ -96,7 +96,7 @@ class Database extends Extension
                             $this->Configuration['Username'],
                             $this->Configuration['Password'],
                             empty( $this->Configuration['Database'] )
-                                ? str_replace( ':', '', $this->Identifier->getConfiguration( false ) )
+                                ? str_replace(':', '', $this->Identifier->getConfiguration(false))
                                 : $this->Configuration['Database'],
                             $this->Configuration['Host'],
                             empty( $this->Configuration['Port'] )
@@ -106,7 +106,7 @@ class Database extends Extension
                         )
                     );
                 } else {
-                    throw new \Exception( __CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')' );
+                    throw new \Exception(__CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')');
                 }
             }
         }
@@ -119,41 +119,41 @@ class Database extends Extension
      * @return Manager
      * @throws ORMException
      */
-    public function getEntityManager( $EntityPath, $EntityNamespace )
+    public function getEntityManager($EntityPath, $EntityNamespace)
     {
 
         // Sanitize Namespace
-        $EntityNamespace = trim( str_replace( array( '/', '\\' ), '\\', $EntityNamespace ), '\\' ).'\\';
-        $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration( array( $EntityPath ) );
-        $MetadataConfiguration->setDefaultRepositoryClassName( '\SPHERE\System\Database\Fitting\Repository' );
+        $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
+        $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
+        $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
         $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
-        if (self::$ConditionMemcached || self::$ConditionMemcached = class_exists( '\Memcached', false )) {
+        if (self::$ConditionMemcached || self::$ConditionMemcached = class_exists('\Memcached', false)) {
             /** @var Memcached $CacheDriver */
-            $CacheDriver = ( new Cache( new Memcached() ) )->getCache();
+            $CacheDriver = (new Cache(new Memcached()))->getCache();
             $Cache = new MemcachedCache();
-            $Cache->setMemcached( $CacheDriver->getServer() );
-            $Cache->setNamespace( $EntityPath );
-            $ConnectionConfig->setResultCacheImpl( $Cache );
-            $MetadataConfiguration->setQueryCacheImpl( $Cache );
-            $MetadataConfiguration->setHydrationCacheImpl( $Cache );
-            if (self::$ConditionApc || self::$ConditionApc = function_exists( 'apc_fetch' )) {
-                $MetadataConfiguration->setMetadataCacheImpl( new ApcCache() );
+            $Cache->setMemcached($CacheDriver->getServer());
+            $Cache->setNamespace($EntityPath);
+            $ConnectionConfig->setResultCacheImpl($Cache);
+            $MetadataConfiguration->setQueryCacheImpl($Cache);
+            $MetadataConfiguration->setHydrationCacheImpl($Cache);
+            if (self::$ConditionApc || self::$ConditionApc = function_exists('apc_fetch')) {
+                $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
             } else {
-                $MetadataConfiguration->setMetadataCacheImpl( new ArrayCache() );
+                $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
             }
         } else {
-            if (self::$ConditionApc || self::$ConditionApc = function_exists( 'apc_fetch' )) {
-                $MetadataConfiguration->setMetadataCacheImpl( new ApcCache() );
+            if (self::$ConditionApc || self::$ConditionApc = function_exists('apc_fetch')) {
+                $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
             } else {
-                $MetadataConfiguration->setMetadataCacheImpl( new ArrayCache() );
+                $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
             }
-            $MetadataConfiguration->setQueryCacheImpl( new ArrayCache() );
-            $MetadataConfiguration->setHydrationCacheImpl( new ArrayCache() );
-            $ConnectionConfig->setResultCacheImpl( new ArrayCache() );
+            $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
+            $MetadataConfiguration->setHydrationCacheImpl(new ArrayCache());
+            $ConnectionConfig->setResultCacheImpl(new ArrayCache());
         }
         // $ConnectionConfig->setSQLLogger( new Logger() );
         return new Manager(
-            EntityManager::create( $this->getConnection()->getConnection(), $MetadataConfiguration ), $EntityNamespace
+            EntityManager::create($this->getConnection()->getConnection(), $MetadataConfiguration), $EntityNamespace
         );
     }
 
@@ -164,7 +164,7 @@ class Database extends Extension
     public function getConnection()
     {
 
-        return ( new Register() )->getConnection( $this->Identifier )->getConnection();
+        return (new Register())->getConnection($this->Identifier)->getConnection();
     }
 
     /**
@@ -172,10 +172,10 @@ class Database extends Extension
      *
      * @return int The number of affected rows
      */
-    public function setStatement( $Statement )
+    public function setStatement($Statement)
     {
 
-        return $this->getConnection()->prepareStatement( $Statement )->executeWrite();
+        return $this->getConnection()->prepareStatement($Statement)->executeWrite();
     }
 
     /**
@@ -183,10 +183,10 @@ class Database extends Extension
      *
      * @return array
      */
-    public function getStatement( $Statement )
+    public function getStatement($Statement)
     {
 
-        return $this->getConnection()->prepareStatement( $Statement )->executeRead();
+        return $this->getConnection()->prepareStatement($Statement)->executeRead();
     }
 
     /**
@@ -214,10 +214,10 @@ class Database extends Extension
      *
      * @return bool
      */
-    public function hasView( $ViewName )
+    public function hasView($ViewName)
     {
 
-        return in_array( $ViewName, $this->getSchemaManager()->listViews() );
+        return in_array($ViewName, $this->getSchemaManager()->listViews());
     }
 
     /**
@@ -244,11 +244,11 @@ class Database extends Extension
      *
      * @return bool
      */
-    public function hasColumn( $TableName, $ColumnName )
+    public function hasColumn($TableName, $ColumnName)
     {
 
-        return in_array( strtolower( $ColumnName ),
-            array_keys( $this->getSchemaManager()->listTableColumns( $TableName ) ) );
+        return in_array(strtolower($ColumnName),
+            array_keys($this->getSchemaManager()->listTableColumns($TableName)));
     }
 
     /**
@@ -257,10 +257,10 @@ class Database extends Extension
      *
      * @return bool
      */
-    public function hasIndex( Table $Table, $ColumnList )
+    public function hasIndex(Table $Table, $ColumnList)
     {
 
-        if ($Table->columnsAreIndexed( $ColumnList )) {
+        if ($Table->columnsAreIndexed($ColumnList)) {
             return true;
         } else {
             return false;
@@ -272,16 +272,16 @@ class Database extends Extension
      *
      * @return bool
      */
-    public function hasTable( $TableName )
+    public function hasTable($TableName)
     {
 
-        return in_array( $TableName, $this->getSchemaManager()->listTableNames() );
+        return in_array($TableName, $this->getSchemaManager()->listTableNames());
     }
 
     /**
      * @param string $Item
      */
-    public function addProtocol( $Item )
+    public function addProtocol($Item)
     {
 
         if (empty( $this->Protocol )) {
@@ -297,26 +297,26 @@ class Database extends Extension
      *
      * @return string
      */
-    public function getProtocol( $Simulate = false )
+    public function getProtocol($Simulate = false)
     {
 
-        if (count( $this->Protocol ) == 1) {
+        if (count($this->Protocol) == 1) {
             $Protocol = new Success(
-                new Layout( new LayoutGroup( new LayoutRow( array(
-                    new LayoutColumn( new Ok().'&nbsp'.implode( '', $this->Protocol ), 9 ),
-                    new LayoutColumn( new Off().'&nbsp;Kein Update notwendig', 3 )
-                ) ) ) )
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(new Ok().'&nbsp'.implode('', $this->Protocol), 9),
+                    new LayoutColumn(new Off().'&nbsp;Kein Update notwendig', 3)
+                ))))
             );
         } else {
             $Protocol = new Info(
-                new Layout( new LayoutGroup( new LayoutRow( array(
-                    new LayoutColumn( new Flash().'&nbsp;'.implode( '', $this->Protocol ), 9 ),
+                new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(new Flash().'&nbsp;'.implode('', $this->Protocol), 9),
                     new LayoutColumn(
                         ( $Simulate
                             ? new Warning().'&nbsp;Update notwendig'
                             : new Ok().'&nbsp;Update durchgeführt'
-                        ), 3 )
-                ) ) ) )
+                        ), 3)
+                ))))
             );
         }
         $this->Protocol = array();

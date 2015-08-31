@@ -30,28 +30,28 @@ class Error implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Fehlermeldungen' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Fehlermeldungen'))
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 'Error::frontendError'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Authenticator',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Authenticator',
                 __NAMESPACE__.'\Frontend::frontendAuthenticator'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Authorization',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Authorization',
                 __NAMESPACE__.'\Frontend::frontendRoute'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Shutdown',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Shutdown',
                 __NAMESPACE__.'\Frontend::frontendShutdown'
             )
         );
@@ -79,34 +79,34 @@ class Error implements IModuleInterface
      *
      * @return Stage
      */
-    public function frontendError( $Type = null )
+    public function frontendError($Type = null)
     {
 
-        $Stage = new Stage( 'Fehlermeldungen', 'Bitte wählen Sie ein Thema' );
+        $Stage = new Stage('Fehlermeldungen', 'Bitte wählen Sie ein Thema');
         $Stage->setContent(
             new Layout(
                 new LayoutGroup(
-                    new LayoutRow( array(
+                    new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel( 'Inhalt', array(
-                                new Standard( 'Betriebsstörung', new Link\Route( __NAMESPACE__ ), null,
-                                    array( 'Type' => ( new Link\Route( __NAMESPACE__.'/Shutdown' ) )->getValue() )
+                            new Panel('Inhalt', array(
+                                new Standard('Betriebsstörung', new Link\Route(__NAMESPACE__), null,
+                                    array('Type' => (new Link\Route(__NAMESPACE__.'/Shutdown'))->getValue())
                                 ),
-                                new Standard( 'Berechtigung', new Link\Route( __NAMESPACE__ ), null,
-                                    array( 'Type' => ( new Link\Route( __NAMESPACE__.'/Authorization' ) )->getValue() )
+                                new Standard('Berechtigung', new Link\Route(__NAMESPACE__), null,
+                                    array('Type' => (new Link\Route(__NAMESPACE__.'/Authorization'))->getValue())
                                 ),
-                                new Standard( 'Authentifikator', new Link\Route( __NAMESPACE__ ), null,
-                                    array( 'Type' => ( new Link\Route( __NAMESPACE__.'/Authenticator' ) )->getValue() )
+                                new Standard('Authentifikator', new Link\Route(__NAMESPACE__), null,
+                                    array('Type' => (new Link\Route(__NAMESPACE__.'/Authenticator'))->getValue())
                                 ),
-                            ) )
-                            , 2 ),
+                            ))
+                            , 2),
                         new LayoutColumn(
                             ( $Type
-                                ? new Well( Main::getDispatcher()->fetchRoute( $Type ) )
-                                : new Info( 'Bitte wählen Sie einen Inhalt' )
+                                ? new Well(Main::getDispatcher()->fetchRoute($Type))
+                                : new Info('Bitte wählen Sie einen Inhalt')
                             )
-                            , 10 ),
-                    ) )
+                            , 10),
+                    ))
                 )
             )
         );

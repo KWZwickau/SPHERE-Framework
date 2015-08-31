@@ -21,13 +21,13 @@ class Test implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Frontend-Test' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Frontend-Test'))
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendPlatform'
             )
         );

@@ -75,7 +75,7 @@ class TblDebtor extends Element
     /**
      * @param integer $LeadTimeFirst
      */
-    public function setLeadTimeFirst( $LeadTimeFirst )
+    public function setLeadTimeFirst($LeadTimeFirst)
     {
 
         $this->LeadTimeFirst = $LeadTimeFirst;
@@ -93,7 +93,7 @@ class TblDebtor extends Element
     /**
      * @param integer $LeadTimeFollow
      */
-    public function setLeadTimeFollow( $LeadTimeFollow )
+    public function setLeadTimeFollow($LeadTimeFollow)
     {
 
         $this->LeadTimeFollow = $LeadTimeFollow;
@@ -111,7 +111,7 @@ class TblDebtor extends Element
     /**
      * @param string $DebtorNumber
      */
-    public function setDebtorNumber( $DebtorNumber )
+    public function setDebtorNumber($DebtorNumber)
     {
 
         $this->DebtorNumber = $DebtorNumber;
@@ -123,17 +123,17 @@ class TblDebtor extends Element
     public function getServiceManagementPerson()
     {
 
-        if ( null === $this->ServiceManagementPerson ) {
+        if (null === $this->ServiceManagementPerson) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById( $this->ServiceManagementPerson ); //todo
+            return Management::servicePerson()->entityPersonById($this->ServiceManagementPerson); //todo
         }
     }
 
     /**
      * @param null|TblPerson $ServiceManagementPerson
      */
-    public function setServiceManagementPerson( TblPerson $ServiceManagementPerson )
+    public function setServiceManagementPerson(TblPerson $ServiceManagementPerson)
     {
 
         $this->ServiceManagementPerson = ( null === $ServiceManagementPerson ? null : $ServiceManagementPerson->getId() );//todo
@@ -151,7 +151,7 @@ class TblDebtor extends Element
     /**
      * @param string $BankName
      */
-    public function setBankName( $BankName )
+    public function setBankName($BankName)
     {
 
         $this->BankName = $BankName;
@@ -169,10 +169,10 @@ class TblDebtor extends Element
     /**
      * @param string $IBAN
      */
-    public function setIBAN( $IBAN )
+    public function setIBAN($IBAN)
     {
 
-        $this->IBAN = strtoupper( substr( str_replace( ' ', '', $IBAN ), 0, 34 ) );
+        $this->IBAN = strtoupper(substr(str_replace(' ', '', $IBAN), 0, 34));
     }
 
     /**
@@ -187,10 +187,10 @@ class TblDebtor extends Element
     /**
      * @param string $BIC
      */
-    public function setBIC( $BIC )
+    public function setBIC($BIC)
     {
 
-        $this->BIC = strtoupper( substr( str_replace( ' ', '', $BIC ), 0, 11 ) );
+        $this->BIC = strtoupper(substr(str_replace(' ', '', $BIC), 0, 11));
     }
 
     /**
@@ -205,7 +205,7 @@ class TblDebtor extends Element
     /**
      * @param string $Owner
      */
-    public function setOwner( $Owner )
+    public function setOwner($Owner)
     {
 
         $this->Owner = $Owner;
@@ -223,7 +223,7 @@ class TblDebtor extends Element
     /**
      * @param string $CashSign
      */
-    public function setCashSign( $CashSign )
+    public function setCashSign($CashSign)
     {
 
         $this->CashSign = $CashSign;
@@ -241,7 +241,7 @@ class TblDebtor extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;
@@ -253,17 +253,17 @@ class TblDebtor extends Element
     public function getPaymentType()
     {
 
-        if ( null === $this->tblPaymentType ) {
+        if (null === $this->tblPaymentType) {
             return false;
         } else {
-            return Banking::useService()->entityPaymentTypeById( $this->tblPaymentType );
+            return Banking::useService()->entityPaymentTypeById($this->tblPaymentType);
         }
     }
 
     /**
      * @param TblPaymentType $PaymentType
      */
-    public function setPaymentType( TblPaymentType $PaymentType )
+    public function setPaymentType(TblPaymentType $PaymentType)
     {
 
         $this->tblPaymentType = ( null === $PaymentType ? null : $PaymentType->getId() );

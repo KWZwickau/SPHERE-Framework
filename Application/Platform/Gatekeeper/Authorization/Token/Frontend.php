@@ -28,17 +28,17 @@ class Frontend
      *
      * @return Stage
      */
-    public function frontendYubiKey( $CredentialKey )
+    public function frontendYubiKey($CredentialKey)
     {
 
-        $Stage = new Stage( 'Hardware-Token', 'YubiKey' );
+        $Stage = new Stage('Hardware-Token', 'YubiKey');
         $tblTokenAll = Token::useService()->getTokenAll();
 
-        array_walk( $tblTokenAll, function ( TblToken &$tblToken ) {
+        array_walk($tblTokenAll, function (TblToken &$tblToken) {
 
             /** @noinspection PhpUndefinedFieldInspection */
-            $tblToken->Name = strtoupper( $tblToken->getIdentifier() );
-            strtoupper( $tblToken->getIdentifier() );
+            $tblToken->Name = strtoupper($tblToken->getIdentifier());
+            strtoupper($tblToken->getIdentifier());
             if ($tblToken->getSerial() % 2 != 0) {
                 /** @noinspection PhpUndefinedFieldInspection */
                 $tblToken->Number = '0'.$tblToken->getSerial();
@@ -47,30 +47,30 @@ class Frontend
                 $tblToken->Number = $tblToken->getSerial();
             }
             /** @noinspection PhpUndefinedFieldInspection */
-            $tblToken->Number = substr( $tblToken->Number, 0, 4 ).' '.substr( $tblToken->Number, 4, 4 );
+            $tblToken->Number = substr($tblToken->Number, 0, 4).' '.substr($tblToken->Number, 4, 4);
             /** @noinspection PhpUndefinedFieldInspection */
-            $tblToken->Option = new Danger( 'Löschen',
+            $tblToken->Option = new Danger('Löschen',
                 '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
-                new Remove(), array( 'Id' => $tblToken->getId() ), 'Löschen'
+                new Remove(), array('Id' => $tblToken->getId()), 'Löschen'
             );
-        } );
+        });
         $Stage->setContent(
             ( $tblTokenAll
-                ? new TableData( $tblTokenAll, new Title( 'Bestehende Hardware-Token' ), array(
+                ? new TableData($tblTokenAll, new Title('Bestehende Hardware-Token'), array(
                     'Name'   => 'Name',
                     'Number' => 'Seriennummer',
 //                    'Option' => 'Optionen'
-                ) )
-                : new Warning( 'Keine Hardware-Token vorhanden' )
+                ))
+                : new Warning('Keine Hardware-Token vorhanden')
             )
             .Token::useService()->createToken(
-                new Form( new FormGroup(
+                new Form(new FormGroup(
                         new FormRow(
                             new FormColumn(
-                                new PasswordField( 'CredentialKey', 'YubiKey', 'YubiKey' )
+                                new PasswordField('CredentialKey', 'YubiKey', 'YubiKey')
                             )
-                        ), new \SPHERE\Common\Frontend\Form\Repository\Title( 'Hardware-Token anlegen' ) )
-                    , new Primary( 'Hinzufügen' )
+                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Hardware-Token anlegen'))
+                    , new Primary('Hinzufügen')
                 ), $CredentialKey
             )
         );

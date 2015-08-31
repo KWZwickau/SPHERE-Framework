@@ -126,7 +126,7 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways', array( 'List.Js', 'Bootstrap', 'jQuery.Ui', 'jQuery' )
+            'ModAlways', array('List.Js', 'Bootstrap', 'jQuery.Ui', 'jQuery')
         );
         $this->setModule(
             'ModTable',
@@ -139,40 +139,40 @@ class Script extends Extension
             )
         );
         $this->setModule(
-            'ModPicker', array( 'Bootstrap.DatetimePicker', 'Moment.Js', 'jQuery' )
+            'ModPicker', array('Bootstrap.DatetimePicker', 'Moment.Js', 'jQuery')
         );
         $this->setModule(
-            'ModSelecter', array( 'jQuery.Selecter', 'jQuery' )
+            'ModSelecter', array('jQuery.Selecter', 'jQuery')
         );
         $this->setModule(
-            'ModSelect', array( 'Bootstrap.Select', 'Bootstrap', 'jQuery' )
+            'ModSelect', array('Bootstrap.Select', 'Bootstrap', 'jQuery')
         );
         $this->setModule(
-            'ModCountDown', array( 'jQuery.CountDown', 'Bootstrap', 'Moment.Js', 'jQuery' )
+            'ModCountDown', array('jQuery.CountDown', 'Bootstrap', 'Moment.Js', 'jQuery')
         );
         $this->setModule(
-            'ModCompleter', array( 'Twitter.Typeahead', 'Bootstrap', 'jQuery' )
+            'ModCompleter', array('Twitter.Typeahead', 'Bootstrap', 'jQuery')
         );
         $this->setModule(
-            'ModUpload', array( 'Bootstrap.FileInput', 'Bootstrap', 'jQuery' )
+            'ModUpload', array('Bootstrap.FileInput', 'Bootstrap', 'jQuery')
         );
         $this->setModule(
-            'ModCheckBox', array( 'jQuery.CheckBox', 'jQuery' )
+            'ModCheckBox', array('jQuery.CheckBox', 'jQuery')
         );
         $this->setModule(
-            'ModMathJax', array( 'MathJax', 'jQuery' )
+            'ModMathJax', array('MathJax', 'jQuery')
         );
         $this->setModule(
-            'ModProgress', array( 'jQuery' )
+            'ModProgress', array('jQuery')
         );
         $this->setModule(
-            'ModGrid', array( 'jQuery.Gridster', 'jQuery.StorageApi', 'jQuery' )
+            'ModGrid', array('jQuery.Gridster', 'jQuery.StorageApi', 'jQuery')
         );
         $this->setModule(
-            'ModSortable', array( 'jQuery.Ui', 'jQuery' )
+            'ModSortable', array('jQuery.Ui', 'jQuery')
         );
         $this->setModule(
-            'ModForm', array( 'jQuery.Sisyphus', 'jQuery.Mask', 'jQuery' )
+            'ModForm', array('jQuery.Sisyphus', 'jQuery.Mask', 'jQuery')
         );
     }
 
@@ -181,11 +181,11 @@ class Script extends Extension
      * @param string $Location
      * @param string $Test
      */
-    public function setSource( $Alias, $Location, $Test )
+    public function setSource($Alias, $Location, $Test)
     {
 
         $PathBase = $this->getRequest()->getPathBase();
-        if (!in_array( $Alias, self::$SourceList )) {
+        if (!in_array($Alias, self::$SourceList)) {
             self::$SourceList[$Alias] = "Client.Source('".$Alias."','".$PathBase.$Location."',function(){return ".$Test.";});";
         }
     }
@@ -194,11 +194,11 @@ class Script extends Extension
      * @param string $Alias
      * @param array  $Dependencies
      */
-    public function setModule( $Alias, $Dependencies = array() )
+    public function setModule($Alias, $Dependencies = array())
     {
 
-        if (!in_array( $Alias, self::$ModuleList )) {
-            self::$ModuleList[$Alias] = "Client.Module('".$Alias."',".json_encode( $Dependencies ).");";
+        if (!in_array($Alias, self::$ModuleList)) {
+            self::$ModuleList[$Alias] = "Client.Module('".$Alias."',".json_encode($Dependencies).");";
         }
     }
 
@@ -218,8 +218,8 @@ class Script extends Extension
     {
 
         return '<script type="text/javascript">'
-        .implode( "\n", self::$SourceList )."\n"
-        .implode( "\n", self::$ModuleList )."\n"
+        .implode("\n", self::$SourceList)."\n"
+        .implode("\n", self::$ModuleList)."\n"
         .'</script>';
     }
 

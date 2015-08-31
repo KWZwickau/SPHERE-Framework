@@ -24,13 +24,13 @@ class RadioBox extends Field implements IFieldInterface
     ) {
 
         $this->Name = $Name;
-        $this->Template = $this->getTemplate( __DIR__.'/RadioBox.twig' );
-        $this->Template->setVariable( 'ElementName', $Name );
-        $this->Template->setVariable( 'ElementLabel', $Label );
-        $this->Template->setVariable( 'ElementValue', $Value );
-        $this->Template->setVariable( 'ElementHash', sha1( $Name.$Label.$Value.( new \DateTime() )->getTimestamp() ) );
-        if ($this->isChecked( $this->getName(), $Value )) {
-            $this->Template->setVariable( 'ElementChecked', 'checked="checked"' );
+        $this->Template = $this->getTemplate(__DIR__.'/RadioBox.twig');
+        $this->Template->setVariable('ElementName', $Name);
+        $this->Template->setVariable('ElementLabel', $Label);
+        $this->Template->setVariable('ElementValue', $Value);
+        $this->Template->setVariable('ElementHash', sha1($Name.$Label.$Value.(new \DateTime())->getTimestamp()));
+        if ($this->isChecked($this->getName(), $Value)) {
+            $this->Template->setVariable('ElementChecked', 'checked="checked"');
         }
     }
 

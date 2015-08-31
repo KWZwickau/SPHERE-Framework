@@ -70,18 +70,19 @@ class Connection
      * @return Connection
      * @throws \Exception
      */
-    public function setConnection( $Username, $Password, $Database, $Driver, $Host, $Port, $Timeout = 5 )
+    public function setConnection($Username, $Password, $Database, $Driver, $Host, $Port, $Timeout = 5)
     {
 
         try {
-            $this->Connection = Database::getDatabase( $Username, $Password, $Database, $Driver, $Host, $Port, $Timeout );
-        } catch( \Exception $E ) {
+            $this->Connection = Database::getDatabase($Username, $Password, $Database, $Driver, $Host, $Port, $Timeout);
+        } catch (\Exception $E) {
             try {
-                Database::getDatabase( $Username, $Password, null, $Driver, $Host, $Port, $Timeout )
-                    ->getSchemaManager()->createDatabase( $Database );
-                $this->Connection = Database::getDatabase( $Username, $Password, $Database, $Driver, $Host, $Port, $Timeout );
-            } catch( \Exception $E ) {
-                throw new \Exception( $E->getMessage(), $E->getCode(), $E );
+                Database::getDatabase($Username, $Password, null, $Driver, $Host, $Port, $Timeout)
+                    ->getSchemaManager()->createDatabase($Database);
+                $this->Connection = Database::getDatabase($Username, $Password, $Database, $Driver, $Host, $Port,
+                    $Timeout);
+            } catch (\Exception $E) {
+                throw new \Exception($E->getMessage(), $E->getCode(), $E);
             }
         }
         return $this;

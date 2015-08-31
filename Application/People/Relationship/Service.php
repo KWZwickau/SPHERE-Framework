@@ -40,11 +40,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -53,12 +53,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -68,10 +68,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson( TblPerson $tblPerson )
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
-        return ( new Data( $this->Binding ) )->getPersonRelationshipAllByPerson( $tblPerson );
+        return (new Data($this->Binding))->getPersonRelationshipAllByPerson($tblPerson);
     }
 
     /**
@@ -99,28 +99,28 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (empty( $tblPersonTo )) {
-            $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie eine Person' ) ) ) ) );
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Person')))));
             $Error = true;
         } else {
-            $tblPersonTo = Person::useService()->getPersonById( $tblPersonTo );
-            if ( $tblPersonFrom->getId() == $tblPersonTo->getId() ) {
-                $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Eine Person kann nur mit einer anderen Person verknüpft werden' ) ) ) ) );
+            $tblPersonTo = Person::useService()->getPersonById($tblPersonTo);
+            if ($tblPersonFrom->getId() == $tblPersonTo->getId()) {
+                $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Eine Person kann nur mit einer anderen Person verknüpft werden')))));
                 $Error = true;
             }
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
+            $tblType = $this->getTypeById($Type['Type']);
 
-            if (( new Data( $this->Binding ) )->addPersonRelationshipToPerson( $tblPersonFrom, $tblPersonTo, $tblType,
-                $Type['Remark'] )
+            if ((new Data($this->Binding))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
+                $Type['Remark'])
             ) {
-                return new Success( 'Die Beziehung wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/People/Person', 1, array( 'Id' => $tblPersonFrom->getId() ) );
+                return new Success('Die Beziehung wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', 1, array('Id' => $tblPersonFrom->getId()));
             } else {
-                return new Danger( 'Die Beziehung konnte nicht hinzugefügt werden' )
-                .new Redirect( '/People/Person', 10, array( 'Id' => $tblPersonFrom->getId() ) );
+                return new Danger('Die Beziehung konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', 10, array('Id' => $tblPersonFrom->getId()));
             }
         }
         return $Form;
@@ -131,10 +131,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblType
      */
-    public function getTypeById( $Id )
+    public function getTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getTypeById( $Id );
+        return (new Data($this->Binding))->getTypeById($Id);
     }
 
     /**
@@ -143,7 +143,7 @@ class Service implements IServiceInterface
     public function getTypeAll()
     {
 
-        return ( new Data( $this->Binding ) )->getTypeAll();
+        return (new Data($this->Binding))->getTypeAll();
     }
 
     /**
@@ -151,10 +151,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removePersonRelationshipToPerson( TblToPerson $tblToPerson )
+    public function removePersonRelationshipToPerson(TblToPerson $tblToPerson)
     {
 
-        return ( new Data( $this->Binding ) )->removePersonRelationshipToPerson( $tblToPerson );
+        return (new Data($this->Binding))->removePersonRelationshipToPerson($tblToPerson);
     }
 
     /**
@@ -162,10 +162,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removeCompanyRelationshipToPerson( TblToCompany $tblToCompany )
+    public function removeCompanyRelationshipToPerson(TblToCompany $tblToCompany)
     {
 
-        return ( new Data( $this->Binding ) )->removeCompanyRelationshipToPerson( $tblToCompany );
+        return (new Data($this->Binding))->removeCompanyRelationshipToPerson($tblToCompany);
     }
 
     /**
@@ -173,10 +173,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson
      */
-    public function getRelationshipToPersonById( $Id )
+    public function getRelationshipToPersonById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getRelationshipToPersonById( $Id );
+        return (new Data($this->Binding))->getRelationshipToPersonById($Id);
     }
 
     /**
@@ -184,9 +184,9 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToCompany
      */
-    public function getRelationshipToCompanyById( $Id )
+    public function getRelationshipToCompanyById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getRelationshipToCompanyById( $Id );
+        return (new Data($this->Binding))->getRelationshipToCompanyById($Id);
     }
 }

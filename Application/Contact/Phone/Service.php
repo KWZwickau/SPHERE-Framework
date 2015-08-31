@@ -38,11 +38,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -51,12 +51,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -66,10 +66,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblType
      */
-    public function getTypeById( $Id )
+    public function getTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getTypeById( $Id );
+        return (new Data($this->Binding))->getTypeById($Id);
     }
 
     /**
@@ -77,10 +77,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblPhone
      */
-    public function getPhoneById( $Id )
+    public function getPhoneById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getPhoneById( $Id );
+        return (new Data($this->Binding))->getPhoneById($Id);
     }
 
     /**
@@ -89,7 +89,7 @@ class Service implements IServiceInterface
     public function getPhoneAll()
     {
 
-        return ( new Data( $this->Binding ) )->getPhoneAll();
+        return (new Data($this->Binding))->getPhoneAll();
     }
 
     /**
@@ -98,7 +98,7 @@ class Service implements IServiceInterface
     public function getTypeAll()
     {
 
-        return ( new Data( $this->Binding ) )->getTypeAll();
+        return (new Data($this->Binding))->getTypeAll();
     }
 
     /**
@@ -106,10 +106,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson[]
      */
-    public function getPhoneAllByPerson( TblPerson $tblPerson )
+    public function getPhoneAllByPerson(TblPerson $tblPerson)
     {
 
-        return ( new Data( $this->Binding ) )->getPhoneAllByPerson( $tblPerson );
+        return (new Data($this->Binding))->getPhoneAllByPerson($tblPerson);
     }
 
     /**
@@ -117,10 +117,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToCompany[]
      */
-    public function getPhoneAllByCompany( TblCompany $tblCompany )
+    public function getPhoneAllByCompany(TblCompany $tblCompany)
     {
 
-        return ( new Data( $this->Binding ) )->getPhoneAllByCompany( $tblCompany );
+        return (new Data($this->Binding))->getPhoneAllByCompany($tblCompany);
     }
 
     /**
@@ -148,22 +148,22 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Number ) && empty( $Number )) {
-            $Form->setError( 'Number', 'Bitte geben Sie eine gültige Telefonnummer an' );
+            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblPhone = ( new Data( $this->Binding ) )->createPhone( $Number );
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblPhone = (new Data($this->Binding))->createPhone($Number);
 
-            if (( new Data( $this->Binding ) )->addPhoneToPerson( $tblPerson, $tblPhone, $tblType, $Type['Remark'] )
+            if ((new Data($this->Binding))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
             ) {
-                return new Success( 'Die Telefonnummer wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/People/Person', 1, array( 'Id' => $tblPerson->getId() ) );
+                return new Success('Die Telefonnummer wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger( 'Die Telefonnummer konnte nicht hinzugefügt werden' )
-                .new Redirect( '/People/Person', 10, array( 'Id' => $tblPerson->getId() ) );
+                return new Danger('Die Telefonnummer konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', 10, array('Id' => $tblPerson->getId()));
             }
         }
         return $Form;
@@ -171,7 +171,7 @@ class Service implements IServiceInterface
 
     /**
      * @param IFormInterface $Form
-     * @param TblCompany      $tblCompany
+     * @param TblCompany     $tblCompany
      * @param string         $Number
      * @param array          $Type
      *
@@ -194,22 +194,22 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Number ) && empty( $Number )) {
-            $Form->setError( 'Number', 'Bitte geben Sie eine gültige Telefonnummer an' );
+            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblPhone = ( new Data( $this->Binding ) )->createPhone( $Number );
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblPhone = (new Data($this->Binding))->createPhone($Number);
 
-            if (( new Data( $this->Binding ) )->addPhoneToCompany( $tblCompany, $tblPhone, $tblType, $Type['Remark'] )
+            if ((new Data($this->Binding))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
             ) {
-                return new Success( 'Die Telefonnummer wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/Corporation/Company', 1, array( 'Id' => $tblCompany->getId() ) );
+                return new Success('Die Telefonnummer wurde erfolgreich hinzugefügt')
+                .new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()));
             } else {
-                return new Danger( 'Die Telefonnummer konnte nicht hinzugefügt werden' )
-                .new Redirect( '/Corporation/Company', 10, array( 'Id' => $tblCompany->getId() ) );
+                return new Danger('Die Telefonnummer konnte nicht hinzugefügt werden')
+                .new Redirect('/Corporation/Company', 10, array('Id' => $tblCompany->getId()));
             }
         }
         return $Form;
@@ -240,27 +240,27 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Number ) && empty( $Number )) {
-            $Form->setError( 'Number', 'Bitte geben Sie eine gültige Telefonnummer an' );
+            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblPhone = ( new Data( $this->Binding ) )->createPhone( $Number );
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblPhone = (new Data($this->Binding))->createPhone($Number);
             // Remove current
-            ( new Data( $this->Binding ) )->removePhoneToPerson( $tblToPerson );
+            (new Data($this->Binding))->removePhoneToPerson($tblToPerson);
             // Add new
-            if (( new Data( $this->Binding ) )->addPhoneToPerson( $tblToPerson->getServiceTblPerson(), $tblPhone,
-                $tblType, $Type['Remark'] )
+            if ((new Data($this->Binding))->addPhoneToPerson($tblToPerson->getServiceTblPerson(), $tblPhone,
+                $tblType, $Type['Remark'])
             ) {
-                return new Success( 'Die Telefonnummer wurde erfolgreich geändert' )
-                .new Redirect( '/People/Person', 1,
-                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() ) );
+                return new Success('Die Telefonnummer wurde erfolgreich geändert')
+                .new Redirect('/People/Person', 1,
+                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             } else {
-                return new Danger( 'Die Telefonnummer konnte nicht geändert werden' )
-                .new Redirect( '/People/Person', 10,
-                    array( 'Id' => $tblToPerson->getServiceTblPerson()->getId() ) );
+                return new Danger('Die Telefonnummer konnte nicht geändert werden')
+                .new Redirect('/People/Person', 10,
+                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
             }
         }
         return $Form;
@@ -271,10 +271,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson
      */
-    public function getPhoneToPersonById( $Id )
+    public function getPhoneToPersonById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getPhoneToPersonById( $Id );
+        return (new Data($this->Binding))->getPhoneToPersonById($Id);
     }
 
 
@@ -283,10 +283,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToCompany
      */
-    public function getPhoneToCompanyById( $Id )
+    public function getPhoneToCompanyById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getPhoneToCompanyById( $Id );
+        return (new Data($this->Binding))->getPhoneToCompanyById($Id);
     }
 
     /**
@@ -294,10 +294,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removePhoneToPerson( TblToPerson $tblToPerson )
+    public function removePhoneToPerson(TblToPerson $tblToPerson)
     {
 
-        return ( new Data( $this->Binding ) )->removePhoneToPerson( $tblToPerson );
+        return (new Data($this->Binding))->removePhoneToPerson($tblToPerson);
     }
 
     /**
@@ -305,9 +305,9 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removePhoneToCompany( TblToCompany $tblToCompany )
+    public function removePhoneToCompany(TblToCompany $tblToCompany)
     {
 
-        return ( new Data( $this->Binding ) )->removePhoneToCompany( $tblToCompany );
+        return (new Data($this->Binding))->removePhoneToCompany($tblToCompany);
     }
 }

@@ -22,7 +22,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -38,25 +38,25 @@ class Data
      *
      * @return object
      */
-    private static function fixObject( $object )
+    private static function fixObject($object)
     {
 
-        if (!is_object( $object ) && gettype( $object ) == 'object') {
+        if (!is_object($object) && gettype($object) == 'object') {
             // preg_replace_callback handler. Needed to calculate new key-length.
             $fix_key = create_function(
                 '$matches',
                 'return ":" . strlen( $matches[1] ) . ":\"" . $matches[1] . "\"";'
             );
             // 1. Serialize the object to a string.
-            $dump = serialize( $object );
+            $dump = serialize($object);
             // 2. Change class-type to 'stdClass'.
-            preg_match( '/^O:\d+:"[^"]++"/', $dump, $match );
-            $dump = preg_replace( '/^O:\d+:"[^"]++"/', 'O:8:"stdClass"', $dump );
+            preg_match('/^O:\d+:"[^"]++"/', $dump, $match);
+            $dump = preg_replace('/^O:\d+:"[^"]++"/', 'O:8:"stdClass"', $dump);
             // 3. Make private and protected properties public.
-            $dump = preg_replace_callback( '/:\d+:"\0.*?\0([^"]+)"/', $fix_key, $dump );
+            $dump = preg_replace_callback('/:\d+:"\0.*?\0([^"]+)"/', $fix_key, $dump);
             // 4. Unserialize the modified object again.
-            $dump = unserialize( $dump );
-            $dump->ERROR = new Danger( "Structure mismatch!<br/>".$match[0]."<br/>Please delete this Item" );
+            $dump = unserialize($dump);
+            $dump->ERROR = new Danger("Structure mismatch!<br/>".$match[0]."<br/>Please delete this Item");
             return $dump;
         } else {
             return $object;
@@ -69,7 +69,7 @@ class Data
     public function getProtocolAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblProtocol' )->findAll();
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblProtocol')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -93,9 +93,9 @@ class Data
         // Skip if nothing changed
         if (null !== $FromEntity && null !== $ToEntity) {
             $From = $FromEntity->__toArray();
-            sort( $From );
+            sort($From);
             $To = $ToEntity->__toArray();
-            sort( $To );
+            sort($To);
             if ($From === $To) {
                 return false;
             }
@@ -104,21 +104,21 @@ class Data
         $Manager = $this->Connection->getEntityManager();
 
         $Entity = new TblProtocol();
-        $Entity->setProtocolDatabase( $DatabaseName );
-        $Entity->setProtocolTimestamp( time() );
+        $Entity->setProtocolDatabase($DatabaseName);
+        $Entity->setProtocolTimestamp(time());
         if ($tblAccount) {
-            $Entity->setServiceTblAccount( $tblAccount );
-            $Entity->setAccountUsername( $tblAccount->getUsername() );
+            $Entity->setServiceTblAccount($tblAccount);
+            $Entity->setAccountUsername($tblAccount->getUsername());
         }
         if ($tblConsumer) {
-            $Entity->setServiceTblConsumer( $tblConsumer );
-            $Entity->setConsumerName( $tblConsumer->getName() );
-            $Entity->setConsumerAcronym( $tblConsumer->getAcronym() );
+            $Entity->setServiceTblConsumer($tblConsumer);
+            $Entity->setConsumerName($tblConsumer->getName());
+            $Entity->setConsumerAcronym($tblConsumer->getAcronym());
         }
-        $Entity->setEntityFrom( ( $FromEntity ? serialize( $FromEntity ) : null ) );
-        $Entity->setEntityTo( ( $ToEntity ? serialize( $ToEntity ) : null ) );
+        $Entity->setEntityFrom(( $FromEntity ? serialize($FromEntity) : null ));
+        $Entity->setEntityTo(( $ToEntity ? serialize($ToEntity) : null ));
 
-        $Manager->saveEntity( $Entity );
+        $Manager->saveEntity($Entity);
 
         return $Entity;
     }

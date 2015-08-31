@@ -26,7 +26,7 @@ class TblLevel extends Element
     /**
      * @param string $Name
      */
-    function __construct( $Name )
+    function __construct($Name)
     {
 
         $this->Name = $Name;
@@ -44,7 +44,7 @@ class TblLevel extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
@@ -56,6 +56,6 @@ class TblLevel extends Element
     public function getTblPrivilegeAll()
     {
 
-        return Access::useService()->getPrivilegeAllByLevel( $this );
+        return Access::useService()->getPrivilegeAllByLevel($this);
     }
 }

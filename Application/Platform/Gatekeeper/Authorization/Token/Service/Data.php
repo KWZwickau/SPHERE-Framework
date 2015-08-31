@@ -22,7 +22,7 @@ class Data extends Extension
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -31,10 +31,10 @@ class Data extends Extension
     public function setupDatabaseContent()
     {
 
-        $this->createToken( 'ccccccdilkui', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
-        $this->createToken( 'ccccccectjge', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
-        $this->createToken( 'ccccccectjgt', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
-        $this->createToken( 'ccccccectjgr', Consumer::useService()->getConsumerByAcronym( 'DEMO' ) );
+        $this->createToken('ccccccdilkui', Consumer::useService()->getConsumerByAcronym('DEMO'));
+        $this->createToken('ccccccectjge', Consumer::useService()->getConsumerByAcronym('DEMO'));
+        $this->createToken('ccccccectjgt', Consumer::useService()->getConsumerByAcronym('DEMO'));
+        $this->createToken('ccccccectjgr', Consumer::useService()->getConsumerByAcronym('DEMO'));
     }
 
     /**
@@ -43,17 +43,17 @@ class Data extends Extension
      *
      * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken
      */
-    public function createToken( $Identifier, TblConsumer $tblConsumer = null )
+    public function createToken($Identifier, TblConsumer $tblConsumer = null)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblToken' )->findOneBy( array( TblToken::ATTR_IDENTIFIER => $Identifier ) );
+        $Entity = $Manager->getEntity('TblToken')->findOneBy(array(TblToken::ATTR_IDENTIFIER => $Identifier));
         if (null === $Entity) {
-            $Entity = new TblToken( $Identifier );
-            $Entity->setSerial( $this->getModHex( $Identifier )->getSerialNumber() );
-            $Entity->setServiceTblConsumer( $tblConsumer );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblToken($Identifier);
+            $Entity->setSerial($this->getModHex($Identifier)->getSerialNumber());
+            $Entity->setServiceTblConsumer($tblConsumer);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -63,11 +63,11 @@ class Data extends Extension
      *
      * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken
      */
-    public function getTokenByIdentifier( $Identifier )
+    public function getTokenByIdentifier($Identifier)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblToken' )
-            ->findOneBy( array( TblToken::ATTR_IDENTIFIER => $Identifier ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblToken')
+            ->findOneBy(array(TblToken::ATTR_IDENTIFIER => $Identifier));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -77,7 +77,7 @@ class Data extends Extension
     public function getTokenAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblToken' )->findAll();
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToken')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -86,10 +86,10 @@ class Data extends Extension
      *
      * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken
      */
-    public function getTokenById( $Id )
+    public function getTokenById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToken', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToken', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -98,26 +98,26 @@ class Data extends Extension
      *
      * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken[]
      */
-    public function getTokenAllByConsumer( TblConsumer $tblConsumer )
+    public function getTokenAllByConsumer(TblConsumer $tblConsumer)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblToken' )->findBy( array(
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToken')->findBy(array(
             TblToken::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
-        ) );
+        ));
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
      * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken $tblToken
      */
-    public function destroyToken( TblToken $tblToken )
+    public function destroyToken(TblToken $tblToken)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntityById( 'TblToken', $tblToken->getId() );
+        $Entity = $Manager->getEntityById('TblToken', $tblToken->getId());
         if (null !== $Entity) {
-            $Manager->killEntity( $Entity );
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
         }
     }
 }

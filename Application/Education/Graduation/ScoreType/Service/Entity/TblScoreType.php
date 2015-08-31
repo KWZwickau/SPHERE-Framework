@@ -14,6 +14,7 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblScoreType extends Element
 {
+
     const ATTR_NAME = 'Name';
 
     /**
@@ -37,11 +38,12 @@ class TblScoreType extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
     }
+
     /**
      * @return string
      */
@@ -54,7 +56,7 @@ class TblScoreType extends Element
     /**
      * @param string $Short
      */
-    public function setShort( $Short )
+    public function setShort($Short)
     {
 
         $this->Short = $Short;

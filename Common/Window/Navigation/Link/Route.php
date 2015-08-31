@@ -16,17 +16,17 @@ class Route extends Extension
     /** @var string $Value */
     private $Value = '';
 
-    public function __construct( $Value )
+    public function __construct($Value)
     {
 
         // Map Route to FileSystem
-        $Value = str_replace( array( '/', '//', '\\', '\\\\' ), '/', $Value );
-        $Value = str_replace( 'SPHERE/Application', '', $Value );
+        $Value = str_replace(array('/', '//', '\\', '\\\\'), '/', $Value);
+        $Value = str_replace('SPHERE/Application', '', $Value);
 
-        if (preg_match( $this->Pattern, $Value )) {
+        if (preg_match($this->Pattern, $Value)) {
             $this->Value = $this->getRequest()->getUrlBase().$Value;
         } else {
-            throw new \Exception( __CLASS__.' > Pattern mismatch: ('.$Value.') ['.$this->Pattern.']' );
+            throw new \Exception(__CLASS__.' > Pattern mismatch: ('.$Value.') ['.$this->Pattern.']');
         }
     }
 

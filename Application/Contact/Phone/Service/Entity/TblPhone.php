@@ -34,7 +34,7 @@ class TblPhone extends Element
     /**
      * @param string $Number
      */
-    public function setNumber( $Number )
+    public function setNumber($Number)
     {
 
         $this->Number = $Number;

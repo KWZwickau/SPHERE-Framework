@@ -39,7 +39,7 @@ class TblBasketCommodity extends Element
     /**
      * @param null|TblBasket $tblBasket
      */
-    public function setTblBasket( $tblBasket = null )
+    public function setTblBasket($tblBasket = null)
     {
 
         $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
@@ -51,10 +51,10 @@ class TblBasketCommodity extends Element
     public function getTblBasket()
     {
 
-        if ( null === $this->tblBasket ) {
+        if (null === $this->tblBasket) {
             return false;
         } else {
-            return Basket::useService()->entityBasketById( $this->tblBasket );
+            return Basket::useService()->entityBasketById($this->tblBasket);
         }
     }
 
@@ -64,17 +64,17 @@ class TblBasketCommodity extends Element
     public function getServiceManagementPerson()
     {
 
-        if ( null === $this->serviceManagement_Person ) {
+        if (null === $this->serviceManagement_Person) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById( $this->serviceManagement_Person );
+            return Management::servicePerson()->entityPersonById($this->serviceManagement_Person);
         }
     }
 
     /**
      * @param TblPerson $tblPerson
      */
-    public function setServiceManagementPerson( TblPerson $tblPerson = null )
+    public function setServiceManagementPerson(TblPerson $tblPerson = null)
     {
 
         $this->serviceManagement_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
@@ -83,7 +83,7 @@ class TblBasketCommodity extends Element
     /**
      * @param null|TblCommodity $tblCommodity
      */
-    public function setServiceBillingCommodity( $tblCommodity = null )
+    public function setServiceBillingCommodity($tblCommodity = null)
     {
 
         $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
@@ -95,10 +95,10 @@ class TblBasketCommodity extends Element
     public function getServiceBillingCommodity()
     {
 
-        if ( null === $this->serviceBilling_Commodity ) {
+        if (null === $this->serviceBilling_Commodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById( $this->serviceBilling_Commodity );
+            return Commodity::useService()->entityCommodityById($this->serviceBilling_Commodity);
         }
     }
 }

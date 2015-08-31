@@ -59,11 +59,11 @@ class TblInvoiceItem extends Element
     {
 
         $result = 0.00;
-        if ( $this->ItemPrice > 0 && $this->ItemQuantity > 0 ) {
-            $result = sprintf( "%01.4f", $this->ItemPrice * $this->ItemQuantity );
+        if ($this->ItemPrice > 0 && $this->ItemQuantity > 0) {
+            $result = sprintf("%01.4f", $this->ItemPrice * $this->ItemQuantity);
         }
 
-        return str_replace( '.', ',', $result )." €";
+        return str_replace('.', ',', $result)." €";
     }
 
     /**
@@ -72,8 +72,8 @@ class TblInvoiceItem extends Element
     public function getPriceString()
     {
 
-        $result = sprintf( "%01.4f", $this->ItemPrice );
-        return str_replace( '.', ',', $result )." €";
+        $result = sprintf("%01.4f", $this->ItemPrice);
+        return str_replace('.', ',', $result)." €";
     }
 
     /**
@@ -88,7 +88,7 @@ class TblInvoiceItem extends Element
     /**
      * @param string $CommodityDescription
      */
-    public function setCommodityDescription( $CommodityDescription )
+    public function setCommodityDescription($CommodityDescription)
     {
 
         $this->CommodityDescription = $CommodityDescription;
@@ -106,7 +106,7 @@ class TblInvoiceItem extends Element
     /**
      * @param string $CommodityName
      */
-    public function  setCommodityName( $CommodityName )
+    public function  setCommodityName($CommodityName)
     {
 
         $this->CommodityName = $CommodityName;
@@ -124,7 +124,7 @@ class TblInvoiceItem extends Element
     /**
      * @param string $ItemDescription
      */
-    public function setItemDescription( $ItemDescription )
+    public function setItemDescription($ItemDescription)
     {
 
         $this->ItemDescription = $ItemDescription;
@@ -142,7 +142,7 @@ class TblInvoiceItem extends Element
     /**
      * @param string $ItemName
      */
-    public function  setItemName( $ItemName )
+    public function  setItemName($ItemName)
     {
 
         $this->ItemName = $ItemName;
@@ -160,7 +160,7 @@ class TblInvoiceItem extends Element
     /**
      * @param (type="decimal", precision=14, scale=4) $ItemPrice
      */
-    public function setItemPrice( $ItemPrice )
+    public function setItemPrice($ItemPrice)
     {
 
         $this->ItemPrice = $ItemPrice;
@@ -178,7 +178,7 @@ class TblInvoiceItem extends Element
     /**
      * @param (type="decimal", precision=14, scale=4) $ItemQuantity
      */
-    public function setItemQuantity( $ItemQuantity )
+    public function setItemQuantity($ItemQuantity)
     {
 
         $this->ItemQuantity = $ItemQuantity;
@@ -190,17 +190,17 @@ class TblInvoiceItem extends Element
     public function getTblInvoice()
     {
 
-        if ( null === $this->tblInvoice ) {
+        if (null === $this->tblInvoice) {
             return false;
         } else {
-            return Invoice::useService()->entityInvoiceById( $this->tblInvoice );
+            return Invoice::useService()->entityInvoiceById($this->tblInvoice);
         }
     }
 
     /**
      * @param null|TblInvoice $tblInvoice
      */
-    public function setTblInvoice( TblInvoice $tblInvoice = null )
+    public function setTblInvoice(TblInvoice $tblInvoice = null)
     {
 
         $this->tblInvoice = ( null === $tblInvoice ? null : $tblInvoice->getId() );

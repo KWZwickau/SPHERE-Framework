@@ -13,7 +13,7 @@ class Post extends Extension implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
         $this->Secret = $Configuration['Secret'];
@@ -35,7 +35,7 @@ class Post extends Extension implements ITypeInterface
     {
 
         $Global = $this->getGlobal();
-        array_walk_recursive( $Global->POST, array( $this, 'preventXSS' ) );
+        array_walk_recursive($Global->POST, array($this, 'preventXSS'));
         $Global->savePost();
 
         return true;
@@ -47,7 +47,7 @@ class Post extends Extension implements ITypeInterface
      *
      * @return array
      */
-    public function createSignature( $Data, $Location = null )
+    public function createSignature($Data, $Location = null)
     {
         // TODO: Implement createSignature() method.
     }
@@ -56,9 +56,9 @@ class Post extends Extension implements ITypeInterface
     /**
      * @param $Value
      */
-    private function preventXSS( &$Value )
+    private function preventXSS(&$Value)
     {
 
-        $Value = strip_tags( $Value );
+        $Value = strip_tags($Value);
     }
 }

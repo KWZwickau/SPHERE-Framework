@@ -44,7 +44,7 @@ class Display extends Extension implements ITemplateInterface
     function __construct()
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/Display.twig' );
+        $this->Template = $this->getTemplate(__DIR__.'/Display.twig');
     }
 
     /**
@@ -52,13 +52,13 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function setClusterNavigation( Link $Link = null )
+    public function setClusterNavigation(Link $Link = null)
     {
 
         if (null === $Link) {
             $this->ClusterNavigation = array();
         } else {
-            $this->ClusterNavigation = array( $Link );
+            $this->ClusterNavigation = array($Link);
         }
         return $this;
     }
@@ -68,14 +68,14 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function addClusterNavigation( Link $Link )
+    public function addClusterNavigation(Link $Link)
     {
 
-        if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+        if (Access::useService()->hasAuthorization($Link->getRoute()->getValue())) {
             if ($Link->isActive()) {
                 $this->ClusterBreadcrumb = $Link->getName()->getValue();
             }
-            array_push( $this->ClusterNavigation, $Link );
+            array_push($this->ClusterNavigation, $Link);
         }
         return $this;
     }
@@ -85,13 +85,13 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function setApplicationNavigation( Link $Link = null )
+    public function setApplicationNavigation(Link $Link = null)
     {
 
         if (null === $Link) {
             $this->ApplicationNavigation = array();
         } else {
-            $this->ApplicationNavigation = array( $Link );
+            $this->ApplicationNavigation = array($Link);
         }
         return $this;
     }
@@ -102,30 +102,30 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function addApplicationNavigation( Link $Link, Link\Route $Restriction = null )
+    public function addApplicationNavigation(Link $Link, Link\Route $Restriction = null)
     {
 
         // Is Link applicable?
         if ($Restriction !== null) {
-            if (0 !== strpos( $this->getRequest()->getPathInfo(), $Restriction->getValue() )) {
+            if (0 !== strpos($this->getRequest()->getPathInfo(), $Restriction->getValue())) {
                 return $this;
             }
         }
         // Is Link suitable?
-        $Target = explode( '/', $Link->getRoute()->getValue() );
-        $Current = explode( '/', $this->getRequest()->getPathInfo() );
-        $Branch = array_diff_assoc( $Target, $Current );
+        $Target = explode('/', $Link->getRoute()->getValue());
+        $Current = explode('/', $this->getRequest()->getPathInfo());
+        $Branch = array_diff_assoc($Target, $Current);
         if ($Branch !== null) {
-            reset( $Branch );
-            $Branch = key( $Branch );
+            reset($Branch);
+            $Branch = key($Branch);
         }
 
         if ($Branch === null || $Branch >= 2) {
-            if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+            if (Access::useService()->hasAuthorization($Link->getRoute()->getValue())) {
                 if ($Link->isActive()) {
                     $this->ApplicationBreadcrumb = $Link->getName()->getValue();
                 }
-                array_push( $this->ApplicationNavigation, $Link );
+                array_push($this->ApplicationNavigation, $Link);
             }
         }
         return $this;
@@ -136,13 +136,13 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function setModuleNavigation( Link $Link = null )
+    public function setModuleNavigation(Link $Link = null)
     {
 
         if (null === $Link) {
             $this->ModuleNavigation = array();
         } else {
-            $this->ModuleNavigation = array( $Link );
+            $this->ModuleNavigation = array($Link);
         }
         return $this;
     }
@@ -153,30 +153,30 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function addModuleNavigation( Link $Link, Link\Route $Restriction = null )
+    public function addModuleNavigation(Link $Link, Link\Route $Restriction = null)
     {
 
         // Is Link applicable?
         if ($Restriction !== null) {
-            if (0 !== strpos( $this->getRequest()->getPathInfo(), $Restriction->getValue() )) {
+            if (0 !== strpos($this->getRequest()->getPathInfo(), $Restriction->getValue())) {
                 return $this;
             }
         }
         // Is Link suitable?
-        $Target = explode( '/', $Link->getRoute()->getValue() );
-        $Current = explode( '/', $this->getRequest()->getPathInfo() );
-        $Branch = array_diff_assoc( $Target, $Current );
+        $Target = explode('/', $Link->getRoute()->getValue());
+        $Current = explode('/', $this->getRequest()->getPathInfo());
+        $Branch = array_diff_assoc($Target, $Current);
         if ($Branch !== null) {
-            reset( $Branch );
-            $Branch = key( $Branch );
+            reset($Branch);
+            $Branch = key($Branch);
         }
 
         if ($Branch === null || $Branch >= 3) {
-            if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+            if (Access::useService()->hasAuthorization($Link->getRoute()->getValue())) {
                 if ($Link->isActive()) {
                     $this->ModuleBreadcrumb = $Link->getName()->getValue();
                 }
-                array_push( $this->ModuleNavigation, $Link );
+                array_push($this->ModuleNavigation, $Link);
             }
         }
         return $this;
@@ -187,13 +187,13 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function setServiceNavigation( Link $Link = null )
+    public function setServiceNavigation(Link $Link = null)
     {
 
         if (null === $Link) {
             $this->ServiceNavigation = array();
         } else {
-            $this->ServiceNavigation = array( $Link );
+            $this->ServiceNavigation = array($Link);
         }
         return $this;
     }
@@ -203,14 +203,14 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function addServiceNavigation( Link $Link )
+    public function addServiceNavigation(Link $Link)
     {
 
-        if (Access::useService()->hasAuthorization( $Link->getRoute()->getValue() )) {
+        if (Access::useService()->hasAuthorization($Link->getRoute()->getValue())) {
             if ($Link->isActive()) {
                 $this->ClusterBreadcrumb = $Link->getName()->getValue();
             }
-            array_push( $this->ServiceNavigation, $Link );
+            array_push($this->ServiceNavigation, $Link);
         }
         return $this;
     }
@@ -221,22 +221,22 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function setException( \Exception $Exception, $Name = 'Error' )
+    public function setException(\Exception $Exception, $Name = 'Error')
     {
 
         $TraceList = '';
         foreach ((array)$Exception->getTrace() as $Index => $Trace) {
-            $TraceList .= nl2br( '<br/><samp class="text-info">'
+            $TraceList .= nl2br('<br/><samp class="text-info">'
                 .( isset( $Trace['type'] ) && isset( $Trace['function'] ) ? '<br/>Method: '.$Trace['type'].$Trace['function'] : '<br/>Method: ' )
                 .( isset( $Trace['class'] ) ? '<br/>Class: '.$Trace['class'] : '<br/>Class: ' )
                 .( isset( $Trace['file'] ) ? '<br/>File: '.$Trace['file'] : '<br/>File: ' )
                 .( isset( $Trace['line'] ) ? '<br/>Line: '.$Trace['line'] : '<br/>Line: ' )
-                .'</samp>' );
+                .'</samp>');
         }
-        $Hit = '<samp class="text-danger"><p class="h6">'.nl2br( $Exception->getMessage() ).'</p><br/>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
-        $this->addContent( new Error(
+        $Hit = '<samp class="text-danger"><p class="h6">'.nl2br($Exception->getMessage()).'</p><br/>File: '.$Exception->getFile().'<br/>Line: '.$Exception->getLine().'</samp>'.$TraceList;
+        $this->addContent(new Error(
             $Exception->getCode() == 0 ? $Name : $Exception->getCode(), $Hit
-        ) );
+        ));
         return $this;
     }
 
@@ -245,10 +245,10 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function addContent( $Content )
+    public function addContent($Content)
     {
 
-        array_push( $this->Content, $Content );
+        array_push($this->Content, $Content);
         return $this;
     }
 
@@ -266,29 +266,29 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return string
      */
-    public function getContent( $NoConnection = false )
+    public function getContent($NoConnection = false)
     {
 
-        $this->Template->setVariable( 'ManagerStyle', Style::getManager() );
-        $this->Template->setVariable( 'ManagerScript', Script::getManager() );
+        $this->Template->setVariable('ManagerStyle', Style::getManager());
+        $this->Template->setVariable('ManagerScript', Script::getManager());
 
-        $this->Template->setVariable( 'NavigationCluster', implode( '', $this->ClusterNavigation ) );
-        $this->Template->setVariable( 'BreadcrumbCluster', $this->ClusterBreadcrumb );
-        $this->Template->setVariable( 'NavigationApplication', implode( '', $this->ApplicationNavigation ) );
-        $this->Template->setVariable( 'BreadcrumbApplication', $this->ApplicationBreadcrumb );
-        $this->Template->setVariable( 'NavigationModule', implode( '', $this->ModuleNavigation ) );
-        $this->Template->setVariable( 'BreadcrumbModule', $this->ModuleBreadcrumb );
-        $this->Template->setVariable( 'NavigationService', implode( '', $this->ServiceNavigation ) );
+        $this->Template->setVariable('NavigationCluster', implode('', $this->ClusterNavigation));
+        $this->Template->setVariable('BreadcrumbCluster', $this->ClusterBreadcrumb);
+        $this->Template->setVariable('NavigationApplication', implode('', $this->ApplicationNavigation));
+        $this->Template->setVariable('BreadcrumbApplication', $this->ApplicationBreadcrumb);
+        $this->Template->setVariable('NavigationModule', implode('', $this->ModuleNavigation));
+        $this->Template->setVariable('BreadcrumbModule', $this->ModuleBreadcrumb);
+        $this->Template->setVariable('NavigationService', implode('', $this->ServiceNavigation));
 
         $Debug = $this->getDebugger();
-        $this->Template->setVariable( 'DebuggerProtocol', $Debug->getProtocol() );
-        $this->Template->setVariable( 'DebuggerHost', gethostname() );
-        $this->Template->setVariable( 'DebuggerRuntime', $Debug->getRuntime() );
+        $this->Template->setVariable('DebuggerProtocol', $Debug->getProtocol());
+        $this->Template->setVariable('DebuggerHost', gethostname());
+        $this->Template->setVariable('DebuggerRuntime', $Debug->getRuntime());
 
-        $this->Template->setVariable( 'Content', implode( '', $this->Content ) );
-        $this->Template->setVariable( 'PathBase', $this->getRequest()->getPathBase() );
-        if( !$NoConnection ) {
-            $this->Template->setVariable( 'Consumer',
+        $this->Template->setVariable('Content', implode('', $this->Content));
+        $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());
+        if (!$NoConnection) {
+            $this->Template->setVariable('Consumer',
                 '['.Consumer::useService()->getConsumerBySession()->getAcronym().'] '
                 .Consumer::useService()->getConsumerBySession()->getName()
             );
@@ -301,10 +301,10 @@ class Display extends Extension implements ITemplateInterface
      *
      * @return Display
      */
-    public function setContent( $Content )
+    public function setContent($Content)
     {
 
-        $this->Content = array( $Content );
+        $this->Content = array($Content);
         return $this;
     }
 }

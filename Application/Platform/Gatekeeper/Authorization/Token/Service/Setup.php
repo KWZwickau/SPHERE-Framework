@@ -20,7 +20,7 @@ class Setup
     /**
      * @param Structure $Connection
      */
-    function __construct( Structure $Connection )
+    function __construct(Structure $Connection)
     {
 
         $this->Connection = $Connection;
@@ -31,20 +31,20 @@ class Setup
      *
      * @return string
      */
-    public function setupDatabaseSchema( $Simulate = true )
+    public function setupDatabaseSchema($Simulate = true)
     {
 
         /**
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $this->setTableToken( $Schema );
+        $this->setTableToken($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol( __CLASS__ );
-        $this->Connection->setMigration( $Schema, $Simulate );
-        return $this->Connection->getProtocol( $Simulate );
+        $this->Connection->addProtocol(__CLASS__);
+        $this->Connection->setMigration($Schema, $Simulate);
+        return $this->Connection->getProtocol($Simulate);
     }
 
     /**
@@ -53,30 +53,30 @@ class Setup
      * @return Table
      * @throws SchemaException
      */
-    private function setTableToken( Schema &$Schema )
+    private function setTableToken(Schema &$Schema)
     {
 
         /**
          * Install
          */
-        $Table = $this->Connection->createTable( $Schema, 'tblToken' );
+        $Table = $this->Connection->createTable($Schema, 'tblToken');
         /**
          * Upgrade
          */
-        if (!$this->Connection->hasColumn( 'tblToken', 'Identifier' )) {
-            $Table->addColumn( 'Identifier', 'string' );
+        if (!$this->Connection->hasColumn('tblToken', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
         }
-        if (!$this->Connection->hasIndex( $Table, array( 'Identifier' ) )) {
-            $Table->addUniqueIndex( array( 'Identifier' ) );
+        if (!$this->Connection->hasIndex($Table, array('Identifier'))) {
+            $Table->addUniqueIndex(array('Identifier'));
         }
-        if (!$this->Connection->hasColumn( 'tblToken', 'Serial' )) {
-            $Table->addColumn( 'Serial', 'string', array( 'notnull' => false ) );
+        if (!$this->Connection->hasColumn('tblToken', 'Serial')) {
+            $Table->addColumn('Serial', 'string', array('notnull' => false));
         }
-        if (!$this->Connection->hasIndex( $Table, array( 'Serial' ) )) {
-            $Table->addUniqueIndex( array( 'Serial' ) );
+        if (!$this->Connection->hasIndex($Table, array('Serial'))) {
+            $Table->addUniqueIndex(array('Serial'));
         }
-        if (!$this->Connection->hasColumn( 'tblToken', 'serviceTblConsumer' )) {
-            $Table->addColumn( 'serviceTblConsumer', 'bigint', array( 'notnull' => false ) );
+        if (!$this->Connection->hasColumn('tblToken', 'serviceTblConsumer')) {
+            $Table->addColumn('serviceTblConsumer', 'bigint', array('notnull' => false));
         }
 
         return $Table;
@@ -89,6 +89,6 @@ class Setup
     public function getTableToken()
     {
 
-        return $this->Connection->getSchema()->getTable( 'tblToken' );
+        return $this->Connection->getSchema()->getTable('tblToken');
     }
 }

@@ -21,14 +21,14 @@ class Success extends Extension implements IMessageInterface
      * @param string         $Content
      * @param IIconInterface $Icon
      */
-    public function __construct( $Content, IIconInterface $Icon = null )
+    public function __construct($Content, IIconInterface $Icon = null)
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/Message.twig' );
-        $this->Template->setVariable( 'Type', 'success' );
-        $this->Template->setVariable( 'Content', $Content );
+        $this->Template = $this->getTemplate(__DIR__.'/Message.twig');
+        $this->Template->setVariable('Type', 'success');
+        $this->Template->setVariable('Content', $Content);
         if (null !== $Icon) {
-            $this->Template->setVariable( 'Icon', $Icon );
+            $this->Template->setVariable('Icon', $Icon);
         }
     }
 

@@ -1,11 +1,11 @@
-(function( $ )
+(function($)
 {
     'use strict';
-    $.fn.ModTable = function( options )
+    $.fn.ModTable = function(options)
     {
 
         // This is the easiest way to have default options.
-        var settings = $.extend( {
+        var settings = $.extend({
             // These are the defaults.
             "language": {
                 "sEmptyTable": "Keine Daten in der Tabelle vorhanden",
@@ -39,11 +39,11 @@
             stateSave: true,
             responsive: true,
             autoWidth: false
-        }, options );
+        }, options);
 
-        this.DataTable( settings );
+        this.DataTable(settings);
         return this;
 
     };
 
-}( jQuery ));
+}(jQuery));

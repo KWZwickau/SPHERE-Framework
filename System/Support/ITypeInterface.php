@@ -32,7 +32,7 @@ interface ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration );
+    public function setConfiguration($Configuration);
 
     /**
      * @param string $Summary
@@ -41,5 +41,5 @@ interface ITypeInterface
      * @throws \Exception
      * @return array
      */
-    public function createTicket( $Summary, $Description );
+    public function createTicket($Summary, $Description);
 }

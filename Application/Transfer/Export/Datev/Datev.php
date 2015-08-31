@@ -19,7 +19,7 @@ class Datev implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Rechnungen' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Rechnungen'))
         );
     }
 

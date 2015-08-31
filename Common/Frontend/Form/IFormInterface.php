@@ -17,24 +17,24 @@ interface IFormInterface extends IStructureInterface
      * @param string              $Message
      * @param IIconInterface|null $Icon
      */
-    public function setSuccess( $Name, $Message = '', IIconInterface $Icon = null );
+    public function setSuccess($Name, $Message = '', IIconInterface $Icon = null);
 
     /**
      * @param string              $Name
      * @param string              $Message
      * @param IIconInterface|null $Icon
      */
-    public function setError( $Name, $Message, IIconInterface $Icon = null );
+    public function setError($Name, $Message, IIconInterface $Icon = null);
 
     /**
      * @param FormGroup $GridGroup
      */
-    public function appendGridGroup( FormGroup $GridGroup );
+    public function appendGridGroup(FormGroup $GridGroup);
 
     /**
      * @param FormGroup $GridGroup
      */
-    public function prependGridGroup( FormGroup $GridGroup );
+    public function prependGridGroup(FormGroup $GridGroup);
 
     /**
      * @return string

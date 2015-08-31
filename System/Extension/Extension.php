@@ -30,10 +30,10 @@ class Extension
      *
      * @return ModHex
      */
-    public function getModHex( $String )
+    public function getModHex($String)
     {
 
-        return ModHex::withString( $String );
+        return ModHex::withString($String);
     }
 
     /**
@@ -50,10 +50,10 @@ class Extension
      *
      * @return \MOC\V\Component\Template\Component\IBridgeInterface
      */
-    public function getTemplate( $Location )
+    public function getTemplate($Location)
     {
 
-        return Template::getTemplate( $Location );
+        return Template::getTemplate($Location);
     }
 
     /**
@@ -62,7 +62,7 @@ class Extension
     public function getGlobal()
     {
 
-        return new SuperGlobal( $_GET, $_POST, $_SESSION );
+        return new SuperGlobal($_GET, $_POST, $_SESSION);
     }
 
     /**

@@ -22,10 +22,10 @@ class Structure
     /**
      * @param Identifier $Identifier
      */
-    function __construct( Identifier $Identifier )
+    function __construct(Identifier $Identifier)
     {
 
-        $this->Database = new Database( $Identifier );
+        $this->Database = new Database($Identifier);
     }
 
     /**
@@ -44,21 +44,21 @@ class Structure
      * @return DBALTable
      * @throws \Doctrine\DBAL\Schema\SchemaException
      */
-    public function createTable( DBALSchema &$Schema, $Name )
+    public function createTable(DBALSchema &$Schema, $Name)
     {
 
-        if (!$this->Database->hasTable( $Name )) {
-            $Table = $Schema->createTable( $Name );
-            $Column = $Table->addColumn( 'Id', 'bigint' );
-            $Column->setAutoincrement( true );
-            $Table->setPrimaryKey( array( 'Id' ) );
+        if (!$this->Database->hasTable($Name)) {
+            $Table = $Schema->createTable($Name);
+            $Column = $Table->addColumn('Id', 'bigint');
+            $Column->setAutoincrement(true);
+            $Table->setPrimaryKey(array('Id'));
         }
-        $Table = $Schema->getTable( $Name );
-        if (!$this->Database->hasColumn( $Name, 'EntityCreate' )) {
-            $Table->addColumn( 'EntityCreate', 'datetime', array( 'notnull' => false ) );
+        $Table = $Schema->getTable($Name);
+        if (!$this->Database->hasColumn($Name, 'EntityCreate')) {
+            $Table->addColumn('EntityCreate', 'datetime', array('notnull' => false));
         }
-        if (!$this->Database->hasColumn( $Name, 'EntityUpdate' )) {
-            $Table->addColumn( 'EntityUpdate', 'datetime', array( 'notnull' => false ) );
+        if (!$this->Database->hasColumn($Name, 'EntityUpdate')) {
+            $Table->addColumn('EntityUpdate', 'datetime', array('notnull' => false));
         }
         return $Table;
     }
@@ -67,13 +67,13 @@ class Structure
      * @param DBALTable $KeyTarget Foreign Key (Column: KeySource Name)
      * @param DBALTable $KeySource Foreign Data (Column: Id)
      */
-    public function addForeignKey( DBALTable &$KeyTarget, DBALTable $KeySource )
+    public function addForeignKey(DBALTable &$KeyTarget, DBALTable $KeySource)
     {
 
-        if (!$this->Database->hasColumn( $KeyTarget->getName(), $KeySource->getName() )) {
-            $KeyTarget->addColumn( $KeySource->getName(), 'bigint' );
+        if (!$this->Database->hasColumn($KeyTarget->getName(), $KeySource->getName())) {
+            $KeyTarget->addColumn($KeySource->getName(), 'bigint');
             if ($this->Database->getPlatform()->supportsForeignKeyConstraints()) {
-                $KeyTarget->addForeignKeyConstraint( $KeySource, array( $KeySource->getName() ), array( 'Id' ) );
+                $KeyTarget->addForeignKeyConstraint($KeySource, array($KeySource->getName()), array('Id'));
             }
         }
     }
@@ -82,17 +82,17 @@ class Structure
      * @param DBALSchema $Schema
      * @param bool       $Simulate
      */
-    public function setMigration( DBALSchema &$Schema, $Simulate = true )
+    public function setMigration(DBALSchema &$Schema, $Simulate = true)
     {
 
-        $Statement = $this->Database->getSchema()->getMigrateToSql( $Schema,
+        $Statement = $this->Database->getSchema()->getMigrateToSql($Schema,
             $this->Database->getPlatform()
         );
         if (!empty( $Statement )) {
             foreach ((array)$Statement as $Query) {
-                $this->Database->addProtocol( $Query );
+                $this->Database->addProtocol($Query);
                 if (!$Simulate) {
-                    $this->Database->setStatement( $Query );
+                    $this->Database->setStatement($Query);
                 }
             }
         }
@@ -103,10 +103,10 @@ class Structure
      *
      * @return bool
      */
-    public function hasView( $ViewName )
+    public function hasView($ViewName)
     {
 
-        return $this->Database->hasView( $ViewName );
+        return $this->Database->hasView($ViewName);
     }
 
     /**
@@ -133,10 +133,10 @@ class Structure
      *
      * @return bool
      */
-    public function hasColumn( $TableName, $ColumnName )
+    public function hasColumn($TableName, $ColumnName)
     {
 
-        return $this->Database->hasColumn( $TableName, $ColumnName );
+        return $this->Database->hasColumn($TableName, $ColumnName);
     }
 
     /**
@@ -145,10 +145,10 @@ class Structure
      *
      * @return bool
      */
-    public function hasIndex( DBALTable $Table, $ColumnList )
+    public function hasIndex(DBALTable $Table, $ColumnList)
     {
 
-        return $this->Database->hasIndex( $Table, $ColumnList );
+        return $this->Database->hasIndex($Table, $ColumnList);
     }
 
     /**
@@ -156,19 +156,19 @@ class Structure
      *
      * @return bool
      */
-    public function hasTable( $TableName )
+    public function hasTable($TableName)
     {
 
-        return $this->Database->hasTable( $TableName );
+        return $this->Database->hasTable($TableName);
     }
 
     /**
      * @param string $Item
      */
-    public function addProtocol( $Item )
+    public function addProtocol($Item)
     {
 
-        $this->Database->addProtocol( $Item );
+        $this->Database->addProtocol($Item);
     }
 
 
@@ -177,9 +177,9 @@ class Structure
      *
      * @return string
      */
-    public function getProtocol( $Simulate = false )
+    public function getProtocol($Simulate = false)
     {
 
-        return $this->Database->getProtocol( $Simulate );
+        return $this->Database->getProtocol($Simulate);
     }
 }

@@ -35,11 +35,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -48,12 +48,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -64,7 +64,7 @@ class Service implements IServiceInterface
     public function getGroupAll()
     {
 
-        return ( new Data( $this->Binding ) )->getGroupAll();
+        return (new Data($this->Binding))->getGroupAll();
     }
 
     /**
@@ -72,10 +72,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblGroup
      */
-    public function getGroupById( $Id )
+    public function getGroupById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getGroupById( $Id );
+        return (new Data($this->Binding))->getGroupById($Id);
     }
 
     /**
@@ -84,7 +84,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|Redirect
      */
-    public function createGroup( IFormInterface $Form = null, $Group )
+    public function createGroup(IFormInterface $Form = null, $Group)
     {
 
         /**
@@ -97,23 +97,23 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Group['Name'] ) && empty( $Group['Name'] )) {
-            $Form->setError( 'Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an' );
+            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an');
             $Error = true;
         } else {
-            if ($this->getGroupByName( $Group['Name'] )) {
-                $Form->setError( 'Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an' );
+            if ($this->getGroupByName($Group['Name'])) {
+                $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
         }
 
         if (!$Error) {
-            if (( new Data( $this->Binding ) )->createGroup(
+            if ((new Data($this->Binding))->createGroup(
                 $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success( 'Die Gruppe wurde erfolgreich erstellt' ).new Redirect( '/People/Group', 1 );
+                return new Success('Die Gruppe wurde erfolgreich erstellt').new Redirect('/People/Group', 1);
             } else {
-                return new Danger( 'Die Gruppe konnte nicht erstellt werden' ).new Redirect( '/People/Group', 10 );
+                return new Danger('Die Gruppe konnte nicht erstellt werden').new Redirect('/People/Group', 10);
             }
         }
 
@@ -125,10 +125,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblGroup
      */
-    public function getGroupByName( $Name )
+    public function getGroupByName($Name)
     {
 
-        return ( new Data( $this->Binding ) )->getGroupByName( $Name );
+        return (new Data($this->Binding))->getGroupByName($Name);
     }
 
     /**
@@ -138,7 +138,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|Redirect
      */
-    public function updateGroup( IFormInterface $Form = null, TblGroup $tblGroup, $Group )
+    public function updateGroup(IFormInterface $Form = null, TblGroup $tblGroup, $Group)
     {
 
         /**
@@ -151,26 +151,26 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Group['Name'] ) && empty( $Group['Name'] )) {
-            $Form->setError( 'Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an' );
+            $Form->setError('Group[Name]', 'Bitte geben Sie einen Namen für die Gruppe an');
             $Error = true;
         } else {
-            $tblGroupTwin = $this->getGroupByName( $Group['Name'] );
+            $tblGroupTwin = $this->getGroupByName($Group['Name']);
             if ($tblGroupTwin && $tblGroupTwin->getId() != $tblGroup->getId()) {
-                $Form->setError( 'Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an' );
+                $Form->setError('Group[Name]', 'Bitte geben Sie einen eineindeutigen Namen für die Gruppe an');
                 $Error = true;
             }
         }
 
         if (!$Error) {
-            if (( new Data( $this->Binding ) )->updateGroup(
+            if ((new Data($this->Binding))->updateGroup(
                 $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
-                return new Success( 'Die Änderungen wurden erfolgreich gespeichert' )
-                .new Redirect( '/People/Group', 1 );
+                return new Success('Die Änderungen wurden erfolgreich gespeichert')
+                .new Redirect('/People/Group', 1);
             } else {
-                return new Danger( 'Die Änderungen konnte nicht gespeichert werden' )
-                .new Redirect( '/People/Group', 10 );
+                return new Danger('Die Änderungen konnte nicht gespeichert werden')
+                .new Redirect('/People/Group', 10);
             }
         }
 
@@ -183,10 +183,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblPerson[]
      */
-    public function getPersonAllByGroup( TblGroup $tblGroup )
+    public function getPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        return ( new Data( $this->Binding ) )->getPersonAllByGroup( $tblGroup );
+        return (new Data($this->Binding))->getPersonAllByGroup($tblGroup);
     }
 
     /**
@@ -195,10 +195,10 @@ class Service implements IServiceInterface
      *
      * @return int
      */
-    public function countPersonAllByGroup( TblGroup $tblGroup )
+    public function countPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        return ( new Data( $this->Binding ) )->countPersonAllByGroup( $tblGroup );
+        return (new Data($this->Binding))->countPersonAllByGroup($tblGroup);
     }
 
     /**
@@ -207,10 +207,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblGroup[]
      */
-    public function getGroupAllByPerson( TblPerson $tblPerson )
+    public function getGroupAllByPerson(TblPerson $tblPerson)
     {
 
-        return ( new Data( $this->Binding ) )->getGroupAllByPerson( $tblPerson );
+        return (new Data($this->Binding))->getGroupAllByPerson($tblPerson);
     }
 
     /**
@@ -219,10 +219,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removeGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    public function removeGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
-        return ( new Data( $this->Binding ) )->removeGroupPerson( $tblGroup, $tblPerson );
+        return (new Data($this->Binding))->removeGroupPerson($tblGroup, $tblPerson);
     }
 
     /**
@@ -231,10 +231,10 @@ class Service implements IServiceInterface
      *
      * @return TblMember
      */
-    public function addGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    public function addGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
-        return ( new Data( $this->Binding ) )->addGroupPerson( $tblGroup, $tblPerson );
+        return (new Data($this->Binding))->addGroupPerson($tblGroup, $tblPerson);
     }
 
     /**
@@ -242,9 +242,9 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function destroyGroup( TblGroup $tblGroup )
+    public function destroyGroup(TblGroup $tblGroup)
     {
 
-        return ( new Data( $this->Binding ) )->destroyGroup( $tblGroup );
+        return (new Data($this->Binding))->destroyGroup($tblGroup);
     }
 }

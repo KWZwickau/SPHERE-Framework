@@ -34,17 +34,17 @@ class TblInvoiceAccount extends Element
     public function getTblInvoiceItem()
     {
 
-        if ( null === $this->tblInvoiceItem ) {
+        if (null === $this->tblInvoiceItem) {
             return false;
         } else {
-            return Basket::useService()->entityBasketItemById( $this->tblInvoiceItem );
+            return Basket::useService()->entityBasketItemById($this->tblInvoiceItem);
         }
     }
 
     /**
      * @param null|TblInvoiceItem $tblInvoiceItem
      */
-    public function setTblInvoiceItem( TblInvoiceItem $tblInvoiceItem = null )
+    public function setTblInvoiceItem(TblInvoiceItem $tblInvoiceItem = null)
     {
 
         $this->tblInvoiceItem = ( null === $tblInvoiceItem ? null : $tblInvoiceItem->getId() );
@@ -56,17 +56,17 @@ class TblInvoiceAccount extends Element
     public function getServiceBilling_Account()
     {
 
-        if ( null === $this->serviceBilling_Account ) {
+        if (null === $this->serviceBilling_Account) {
             return false;
         } else {
-            return Account::useService()->entityAccountById( $this->serviceBilling_Account );
+            return Account::useService()->entityAccountById($this->serviceBilling_Account);
         }
     }
 
     /**
      * @param TblAccount $tblAccount
      */
-    public function setServiceBilling_Account( TblAccount $tblAccount = null )
+    public function setServiceBilling_Account(TblAccount $tblAccount = null)
     {
 
         $this->serviceBilling_Account = ( null === $tblAccount ? null : $tblAccount->getId() );

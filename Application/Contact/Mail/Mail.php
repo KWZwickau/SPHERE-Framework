@@ -32,7 +32,7 @@ class Mail implements IApplicationInterface, IModuleInterface
     {
 
         return new Service(
-            new Identifier( 'Contact', 'Mail', null, null, Consumer::useService()->getConsumerBySession() ),
+            new Identifier('Contact', 'Mail', null, null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

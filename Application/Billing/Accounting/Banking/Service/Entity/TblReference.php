@@ -55,7 +55,7 @@ class TblReference extends Element
     /**
      * @param string $Reference
      */
-    public function setReference( $Reference )
+    public function setReference($Reference)
     {
 
         $this->Reference = $Reference;
@@ -73,7 +73,7 @@ class TblReference extends Element
     /**
      * @param boolean $IsVoid
      */
-    public function setIsVoid( $IsVoid )
+    public function setIsVoid($IsVoid)
     {
 
         $this->IsVoid = $IsVoid;
@@ -85,13 +85,13 @@ class TblReference extends Element
     public function getReferenceDate()
     {
 
-        if ( null === $this->ReferenceDate ) {
+        if (null === $this->ReferenceDate) {
             return false;
         }
         /** @var \DateTime $ReferenceDate */
         $ReferenceDate = $this->ReferenceDate;
-        if ( $ReferenceDate instanceof \DateTime ) {
-            return $ReferenceDate->format( 'd.m.Y' );
+        if ($ReferenceDate instanceof \DateTime) {
+            return $ReferenceDate->format('d.m.Y');
         } else {
             return (string)$ReferenceDate;
         }
@@ -100,7 +100,7 @@ class TblReference extends Element
     /**
      * @param \DateTime $ReferenceDate
      */
-    public function setReferenceDate( \DateTime $ReferenceDate )
+    public function setReferenceDate(\DateTime $ReferenceDate)
     {
 
         $this->ReferenceDate = $ReferenceDate;
@@ -112,17 +112,17 @@ class TblReference extends Element
     public function getServiceBillingBanking()
     {
 
-        if ( null === $this->tblDebtor ) {
+        if (null === $this->tblDebtor) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById( $this->tblDebtor );
+            return Banking::useService()->entityDebtorById($this->tblDebtor);
         }
     }
 
     /**
      * @param null|TblDebtor $serviceTblDebtor
      */
-    public function setServiceTblDebtor( TblDebtor $serviceTblDebtor )
+    public function setServiceTblDebtor(TblDebtor $serviceTblDebtor)
     {
 
         $this->tblDebtor = ( null === $serviceTblDebtor ? null : $serviceTblDebtor->getId() );
@@ -134,17 +134,17 @@ class TblReference extends Element
     public function getServiceBillingCommodity()
     {
 
-        if ( null === $this->serviceBilling_Commodity ) {
+        if (null === $this->serviceBilling_Commodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById( $this->serviceBilling_Commodity );
+            return Commodity::useService()->entityCommodityById($this->serviceBilling_Commodity);
         }
     }
 
     /**
      * @param null|TblCommodity $tblCommodity
      */
-    public function setServiceBillingCommodity( TblCommodity $tblCommodity )
+    public function setServiceBillingCommodity(TblCommodity $tblCommodity)
     {
 
         $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );

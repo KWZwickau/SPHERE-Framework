@@ -31,11 +31,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -44,10 +44,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        return ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        return (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
     }
 
     /**
@@ -56,7 +56,7 @@ class Service implements IServiceInterface
     public function getProtocolAll()
     {
 
-        return ( new Data( $this->Binding ) )->getProtocolAll();
+        return (new Data($this->Binding))->getProtocolAll();
     }
 
     /**
@@ -77,7 +77,7 @@ class Service implements IServiceInterface
             $tblConsumer = null;
         }
 
-        return ( new Data( $this->Binding ) )->createProtocolEntry(
+        return (new Data($this->Binding))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),
@@ -106,7 +106,7 @@ class Service implements IServiceInterface
             $tblConsumer = null;
         }
 
-        return ( new Data( $this->Binding ) )->createProtocolEntry(
+        return (new Data($this->Binding))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),
@@ -133,7 +133,7 @@ class Service implements IServiceInterface
             $tblConsumer = null;
         }
 
-        return ( new Data( $this->Binding ) )->createProtocolEntry(
+        return (new Data($this->Binding))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),

@@ -1,21 +1,21 @@
-(function( $ )
+(function($)
 {
     'use strict';
-    $.fn.ModUpload = function( options )
+    $.fn.ModUpload = function(options)
     {
 
         // This is the easiest way to have default options.
-        var settings = $.extend( {
+        var settings = $.extend({
             // These are the defaults.
             'showUpload': false,
             'previewFileType': 'any',
             'browseLabel': 'Durchsuchen',
             'maxFilesNum': 1
-        }, options );
+        }, options);
 
-        this.fileinput( settings );
+        this.fileinput(settings);
         return this;
 
     };
 
-}( jQuery ));
+}(jQuery));

@@ -18,16 +18,17 @@ class Lesson implements IApplicationInterface
         Division::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Unterricht' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Unterricht'))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
     }
 
     public function frontendDashboard()
     {
-        $Stage = new Stage( 'Dashboard', 'Unterricht' );
+
+        $Stage = new Stage('Dashboard', 'Unterricht');
 
         return $Stage;
     }

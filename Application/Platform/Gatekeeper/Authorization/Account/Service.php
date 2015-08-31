@@ -40,11 +40,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -53,12 +53,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -68,10 +68,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccount
      */
-    public function getAccountBySession( $Session = null )
+    public function getAccountBySession($Session = null)
     {
 
-        return ( new Data( $this->Binding ) )->getAccountBySession( $Session );
+        return (new Data($this->Binding))->getAccountBySession($Session);
     }
 
     /**
@@ -79,13 +79,13 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccount
      */
-    public function getAccountById( $Id )
+    public function getAccountById($Id)
     {
 
-        if (array_key_exists( $Id, self::$AccountByIdCache )) {
+        if (array_key_exists($Id, self::$AccountByIdCache)) {
             return self::$AccountByIdCache[$Id];
         }
-        self::$AccountByIdCache[$Id] = ( new Data( $this->Binding ) )->getAccountById( $Id );
+        self::$AccountByIdCache[$Id] = (new Data($this->Binding))->getAccountById($Id);
         return self::$AccountByIdCache[$Id];
     }
 
@@ -94,13 +94,13 @@ class Service implements IServiceInterface
      *
      * @return bool|TblIdentification
      */
-    public function getIdentificationById( $Id )
+    public function getIdentificationById($Id)
     {
 
-        if (array_key_exists( $Id, self::$IdentificationByIdCache )) {
+        if (array_key_exists($Id, self::$IdentificationByIdCache)) {
             return self::$IdentificationByIdCache[$Id];
         }
-        self::$IdentificationByIdCache[$Id] = ( new Data( $this->Binding ) )->getIdentificationById( $Id );
+        self::$IdentificationByIdCache[$Id] = (new Data($this->Binding))->getIdentificationById($Id);
         return self::$IdentificationByIdCache[$Id];
     }
 
@@ -109,10 +109,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblIdentification
      */
-    public function getIdentificationByName( $Name )
+    public function getIdentificationByName($Name)
     {
 
-        return ( new Data( $this->Binding ) )->getIdentificationByName( $Name );
+        return (new Data($this->Binding))->getIdentificationByName($Name);
     }
 
     /**
@@ -121,7 +121,7 @@ class Service implements IServiceInterface
     public function getIdentificationAll()
     {
 
-        return ( new Data( $this->Binding ) )->getIdentificationAll();
+        return (new Data($this->Binding))->getIdentificationAll();
     }
 
     /**
@@ -130,18 +130,18 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function destroySession( Redirect $Redirect, $Session = null )
+    public function destroySession(Redirect $Redirect, $Session = null)
     {
 
-        ( new Data( $this->Binding ) )->destroySession( $Session );
+        (new Data($this->Binding))->destroySession($Session);
         if (!headers_sent()) {
             // Destroy Cookie
             $params = session_get_cookie_params();
-            setcookie( session_name(), '', 0, $params['path'], $params['domain'], $params['secure'],
-                isset( $params['httponly'] ) );
+            setcookie(session_name(), '', 0, $params['path'], $params['domain'], $params['secure'],
+                isset( $params['httponly'] ));
             session_start();
             // Generate New Id
-            session_regenerate_id( true );
+            session_regenerate_id(true);
         }
         return $Redirect;
     }
@@ -161,24 +161,24 @@ class Service implements IServiceInterface
         TblIdentification $tblIdentification
     ) {
 
-        switch ($this->isCredentialValid( $CredentialName, $CredentialLock, false, $tblIdentification )) {
+        switch ($this->isCredentialValid($CredentialName, $CredentialLock, false, $tblIdentification)) {
             case false: {
                 if (null !== $CredentialName && empty( $CredentialName )) {
-                    $Form->setError( 'CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein' );
+                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
                 if (null !== $CredentialName && !empty( $CredentialName )) {
-                    $Form->setError( 'CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein' );
+                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
                 if (null !== $CredentialLock && empty( $CredentialLock )) {
-                    $Form->setError( 'CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein' );
+                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 if (null !== $CredentialLock && !empty( $CredentialLock )) {
-                    $Form->setError( 'CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein' );
+                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 break;
             }
             case true: {
-                return new Redirect( '/', 0 );
+                return new Redirect('/', 0);
                 break;
             }
         }
@@ -193,25 +193,25 @@ class Service implements IServiceInterface
      *
      * @return null|bool
      */
-    private function isCredentialValid( $Username, $Password, $TokenString, TblIdentification $tblIdentification )
+    private function isCredentialValid($Username, $Password, $TokenString, TblIdentification $tblIdentification)
     {
 
-        if (false === ( $tblAccount = $this->getAccountByCredential( $Username, $Password, $tblIdentification ) )) {
+        if (false === ( $tblAccount = $this->getAccountByCredential($Username, $Password, $tblIdentification) )) {
             return false;
         } else {
             if (false === $TokenString) {
                 session_regenerate_id();
-                $this->createSession( $tblAccount, session_id() );
+                $this->createSession($tblAccount, session_id());
                 return true;
             } else {
                 try {
-                    if (Token::useService()->isTokenValid( $TokenString )) {
+                    if (Token::useService()->isTokenValid($TokenString)) {
                         if (false === ( $Token = $tblAccount->getServiceTblToken() )) {
                             return null;
                         } else {
-                            if ($Token->getIdentifier() == substr( $TokenString, 0, 12 )) {
+                            if ($Token->getIdentifier() == substr($TokenString, 0, 12)) {
                                 session_regenerate_id();
-                                $this->createSession( $tblAccount, session_id() );
+                                $this->createSession($tblAccount, session_id());
                                 return true;
                             } else {
                                 return null;
@@ -220,7 +220,7 @@ class Service implements IServiceInterface
                     } else {
                         return null;
                     }
-                } catch( \Exception $E ) {
+                } catch (\Exception $E) {
                     return null;
                 }
             }
@@ -234,10 +234,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccount
      */
-    public function getAccountByCredential( $Username, $Password, TblIdentification $tblIdentification = null )
+    public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
     {
 
-        return ( new Data( $this->Binding ) )->getAccountByCredential( $Username, $Password, $tblIdentification );
+        return (new Data($this->Binding))->getAccountByCredential($Username, $Password, $tblIdentification);
     }
 
     /**
@@ -247,10 +247,10 @@ class Service implements IServiceInterface
      *
      * @return Service\Entity\TblSession
      */
-    private function createSession( TblAccount $tblAccount, $Session = null, $Timeout = 1800 )
+    private function createSession(TblAccount $tblAccount, $Session = null, $Timeout = 1800)
     {
 
-        return ( new Data( $this->Binding ) )->createSession( $tblAccount, $Session, $Timeout );
+        return (new Data($this->Binding))->createSession($tblAccount, $Session, $Timeout);
     }
 
     /**
@@ -270,31 +270,31 @@ class Service implements IServiceInterface
         TblIdentification $tblIdentification
     ) {
 
-        switch ($this->isCredentialValid( $CredentialName, $CredentialLock, $CredentialKey, $tblIdentification )) {
+        switch ($this->isCredentialValid($CredentialName, $CredentialLock, $CredentialKey, $tblIdentification)) {
             case false: {
                 if (null !== $CredentialName && empty( $CredentialName )) {
-                    $Form->setError( 'CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein' );
+                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
                 if (null !== $CredentialName && !empty( $CredentialName )) {
-                    $Form->setError( 'CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein' );
+                    $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
                 if (null !== $CredentialLock && empty( $CredentialLock )) {
-                    $Form->setError( 'CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein' );
+                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 if (null !== $CredentialLock && !empty( $CredentialLock )) {
-                    $Form->setError( 'CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein' );
+                    $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 break;
             }
             case null: {
-                $Form->setSuccess( 'CredentialName', '' );
-                $Form->setSuccess( 'CredentialLock', '' );
-                $Form->setError( 'CredentialKey', 'Der von Ihnen angegebene YubiKey ist nicht gültig.'
-                    .'<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen' );
+                $Form->setSuccess('CredentialName', '');
+                $Form->setSuccess('CredentialLock', '');
+                $Form->setError('CredentialKey', 'Der von Ihnen angegebene YubiKey ist nicht gültig.'
+                    .'<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen');
                 break;
             }
             case true: {
-                return new Redirect( '/', 0 );
+                return new Redirect('/', 0);
                 break;
             }
         }
@@ -307,7 +307,7 @@ class Service implements IServiceInterface
     public function getAccountAll()
     {
 
-        return ( new Data( $this->Binding ) )->getAccountAll();
+        return (new Data($this->Binding))->getAccountAll();
     }
 
     /**
@@ -315,10 +315,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccount[]
      */
-    public function getAccountAllByToken( TblToken $tblToken )
+    public function getAccountAllByToken(TblToken $tblToken)
     {
 
-        return ( new Data( $this->Binding ) )->getAccountAllByToken( $tblToken );
+        return (new Data($this->Binding))->getAccountAllByToken($tblToken);
     }
 
     /**
@@ -327,18 +327,18 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function hasAuthorization( TblAccount $tblAccount, TblRole $tblRole )
+    public function hasAuthorization(TblAccount $tblAccount, TblRole $tblRole)
     {
 
-        $tblAuthorization = $this->getAuthorizationAllByAccount( $tblAccount );
+        $tblAuthorization = $this->getAuthorizationAllByAccount($tblAccount);
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblAuthorization, function ( TblAuthorization &$tblAuthorization, $Index, TblRole $tblRole ) {
+        array_walk($tblAuthorization, function (TblAuthorization &$tblAuthorization, $Index, TblRole $tblRole) {
 
             if ($tblAuthorization->getServiceTblRole()->getId() != $tblRole->getId()) {
                 $tblAuthorization = false;
             }
-        }, $tblRole );
-        $tblAuthorization = array_filter( $tblAuthorization );
+        }, $tblRole);
+        $tblAuthorization = array_filter($tblAuthorization);
         if (!empty( $tblAuthorization )) {
             return true;
         }
@@ -350,9 +350,9 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAuthorization[]
      */
-    public function getAuthorizationAllByAccount( TblAccount $tblAccount )
+    public function getAuthorizationAllByAccount(TblAccount $tblAccount)
     {
 
-        return ( new Data( $this->Binding ) )->getAuthorizationAllByAccount( $tblAccount );
+        return (new Data($this->Binding))->getAuthorizationAllByAccount($tblAccount);
     }
 }

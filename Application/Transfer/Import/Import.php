@@ -25,38 +25,38 @@ class Import implements IApplicationInterface
         FuxSchool::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Daten importieren' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
 
-        Main::getDispatcher()->registerWidget( 'Import',
+        Main::getDispatcher()->registerWidget('Import',
             new Thumbnail(
-                FileSystem::getFileLoader( '/Common/Style/Resource/fuxschool.gif' ),
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
                 'FuxSchool', 'Schülerdaten',
-                new Standard( '', '/Sphere/Transfer/Import/FuxSchool/Student', new Upload(), array(), 'Upload' )
+                new Standard('', '/Sphere/Transfer/Import/FuxSchool/Student', new Upload(), array(), 'Upload')
             ), 2, 2
         );
-        Main::getDispatcher()->registerWidget( 'Transfer',
+        Main::getDispatcher()->registerWidget('Transfer',
             new Thumbnail(
-                FileSystem::getFileLoader( '/Common/Style/Resource/fuxschool.gif' ),
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
                 'FuxSchool', 'Schülerdaten',
-                new Standard( '', '/Sphere/Transfer/Import/FuxSchool/Student', new Upload(), array(), 'Upload' )
+                new Standard('', '/Sphere/Transfer/Import/FuxSchool/Student', new Upload(), array(), 'Upload')
             ), 2, 2
         );
-        Main::getDispatcher()->registerWidget( 'Import',
+        Main::getDispatcher()->registerWidget('Import',
             new Thumbnail(
-                FileSystem::getFileLoader( '/Common/Style/Resource/fuxschool.gif' ),
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
                 'FuxSchool', 'Klassendaten',
-                new Standard( '', '/Sphere/Transfer/Import/FuxSchool/Division', new Upload(), array(), 'Upload' )
+                new Standard('', '/Sphere/Transfer/Import/FuxSchool/Division', new Upload(), array(), 'Upload')
             ), 2, 2
         );
-        Main::getDispatcher()->registerWidget( 'Transfer',
+        Main::getDispatcher()->registerWidget('Transfer',
             new Thumbnail(
-                FileSystem::getFileLoader( '/Common/Style/Resource/fuxschool.gif' ),
+                FileSystem::getFileLoader('/Common/Style/Resource/fuxschool.gif'),
                 'FuxSchool', 'Klassendaten',
-                new Standard( '', '/Sphere/Transfer/Import/FuxSchool/Division', new Upload(), array(), 'Upload' )
+                new Standard('', '/Sphere/Transfer/Import/FuxSchool/Division', new Upload(), array(), 'Upload')
             ), 2, 2
         );
     }
@@ -67,9 +67,9 @@ class Import implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage( 'Dashboard', 'Import' );
+        $Stage = new Stage('Dashboard', 'Import');
 
-        $Stage->setContent( Main::getDispatcher()->fetchDashboard( 'Import' ) );
+        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Import'));
 
         return $Stage;
     }

@@ -28,11 +28,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -41,12 +41,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $Simulate, $withData )
+    public function setupService($Simulate, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($Simulate);
         if (!$Simulate && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -56,10 +56,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblPayment[]
      */
-    public function checkPaymentFromDebtorExistsByDebtor( TblDebtor $tblDebtor )
+    public function checkPaymentFromDebtorExistsByDebtor(TblDebtor $tblDebtor)
     {
 
-        return ( new Data( $this->Binding ) )->checkPaymentFromDebtorExistsByDebtor( $tblDebtor );
+        return (new Data($this->Binding))->checkPaymentFromDebtorExistsByDebtor($tblDebtor);
     }
 
     /**
@@ -67,10 +67,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBalance
      */
-    public function entityBalanceByInvoice( TblInvoice $tblInvoice )
+    public function entityBalanceByInvoice(TblInvoice $tblInvoice)
     {
 
-        return ( new Data( $this->Binding ) )->entityBalanceByInvoice( $tblInvoice );
+        return (new Data($this->Binding))->entityBalanceByInvoice($tblInvoice);
     }
 
     /**
@@ -78,10 +78,10 @@ class Service implements IServiceInterface
      *
      * @return float
      */
-    public function sumPriceItemByBalance( TblBalance $tblBalance )
+    public function sumPriceItemByBalance(TblBalance $tblBalance)
     {
 
-        return ( new Data( $this->Binding ) )->sumPriceItemByBalance( $tblBalance );
+        return (new Data($this->Binding))->sumPriceItemByBalance($tblBalance);
     }
 
     /**
@@ -89,14 +89,14 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function sumPriceItemStringByBalance( TblBalance $tblBalance )
+    public function sumPriceItemStringByBalance(TblBalance $tblBalance)
     {
 
-        return ( new Data( $this->Binding ) )->sumPriceItemStringByBalance( $tblBalance );
+        return (new Data($this->Binding))->sumPriceItemStringByBalance($tblBalance);
     }
 
     /**
-     * @param TblDebtor $serviceBilling_Banking
+     * @param TblDebtor  $serviceBilling_Banking
      * @param TblInvoice $serviceBilling_Invoice
      * @param            $ExportDate
      *
@@ -108,8 +108,8 @@ class Service implements IServiceInterface
         $ExportDate
     ) {
 
-        return ( new Data( $this->Binding ) )->actionCreateBalance( $serviceBilling_Banking, $serviceBilling_Invoice,
-            $ExportDate );
+        return (new Data($this->Binding))->actionCreateBalance($serviceBilling_Banking, $serviceBilling_Invoice,
+            $ExportDate);
     }
 
     /**
@@ -118,7 +118,7 @@ class Service implements IServiceInterface
     public function entityInvoiceHasFullPaymentAll()
     {
 
-        return ( new Data( $this->Binding ) )->entityInvoiceHasFullPaymentAll();
+        return (new Data($this->Binding))->entityInvoiceHasFullPaymentAll();
     }
 
     /**
@@ -127,7 +127,7 @@ class Service implements IServiceInterface
     public function entityPaymentAll()
     {
 
-        return ( new Data( $this->Binding ) )->entityPaymentAll();
+        return (new Data($this->Binding))->entityPaymentAll();
     }
 
     /**
@@ -135,9 +135,9 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBalance
      */
-    public function entityBalanceById( $Id )
+    public function entityBalanceById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityBalanceById( $Id );
+        return (new Data($this->Binding))->entityBalanceById($Id);
     }
 }

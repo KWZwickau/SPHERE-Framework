@@ -39,13 +39,13 @@ class Cache extends Extension implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Cache' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Cache'))
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 'Cache::frontendCache'
             )
         );
@@ -72,51 +72,51 @@ class Cache extends Extension implements IModuleInterface
      *
      * @return Stage
      */
-    public function frontendCache( $Clear = false )
+    public function frontendCache($Clear = false)
     {
 
-        $Stage = new Stage( 'Cache', 'Status' );
+        $Stage = new Stage('Cache', 'Status');
 
-        $Stage->addButton( new Standard( 'Cache löschen', '/Platform/System/Cache', null, array( 'Clear' => true ),
-            'Cache leeren' ) );
-        $Stage->addButton( new External( 'phpMemcachedAdmin',
-            $this->getRequest()->getPathBase().'/UnitTest/Console/phpMemcachedAdmin-1.2.2' ) );
+        $Stage->addButton(new Standard('Cache löschen', '/Platform/System/Cache', null, array('Clear' => true),
+            'Cache leeren'));
+        $Stage->addButton(new External('phpMemcachedAdmin',
+            $this->getRequest()->getPathBase().'/UnitTest/Console/phpMemcachedAdmin-1.2.2'));
 
         if ($Clear) {
-            ( new CacheType( new ApcUser() ) )->getCache()->clearCache();
-            ( new CacheType( new Apcu() ) )->getCache()->clearCache();
-            ( new CacheType( new Memcached() ) )->getCache()->clearCache();
-            ( new CacheType( new OpCache() ) )->getCache()->clearCache();
-            ( new CacheType( new TwigCache() ) )->getCache()->clearCache();
+            (new CacheType(new ApcUser()))->getCache()->clearCache();
+            (new CacheType(new Apcu()))->getCache()->clearCache();
+            (new CacheType(new Memcached()))->getCache()->clearCache();
+            (new CacheType(new OpCache()))->getCache()->clearCache();
+            (new CacheType(new TwigCache()))->getCache()->clearCache();
         }
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( new LayoutRow(
-                    new LayoutColumn( new Status(
-                        ( new CacheType( new Memcached() ) )->getCache()
-                    ) )
-                ), new Title( 'Memcached' ) ),
-                new LayoutGroup( new LayoutRow(
-                    new LayoutColumn( new Status(
-                        ( new CacheType( new Apcu() ) )->getCache()
-                    ) )
-                ), new Title( 'APCu' ) ),
-                new LayoutGroup( new LayoutRow(
-                    new LayoutColumn( new Status(
-                        ( new CacheType( new Memory() ) )->getCache()
-                    ) )
-                ), new Title( 'Memory' ) ),
-                new LayoutGroup( new LayoutRow(
-                    new LayoutColumn( new Status(
-                        ( new CacheType( new OpCache() ) )->getCache()
-                    ) )
-                ), new Title( 'Zend OpCache' ) ),
-                new LayoutGroup( new LayoutRow(
-                    new LayoutColumn( new Status(
-                        ( new CacheType( new TwigCache() ) )->getCache()
-                    ) )
-                ), new Title( 'Twig' ) )
-            ) )
+            new Layout(array(
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Status(
+                        (new CacheType(new Memcached()))->getCache()
+                    ))
+                ), new Title('Memcached')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Status(
+                        (new CacheType(new Apcu()))->getCache()
+                    ))
+                ), new Title('APCu')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Status(
+                        (new CacheType(new Memory()))->getCache()
+                    ))
+                ), new Title('Memory')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Status(
+                        (new CacheType(new OpCache()))->getCache()
+                    ))
+                ), new Title('Zend OpCache')),
+                new LayoutGroup(new LayoutRow(
+                    new LayoutColumn(new Status(
+                        (new CacheType(new TwigCache()))->getCache()
+                    ))
+                ), new Title('Twig'))
+            ))
         );
         return $Stage;
     }

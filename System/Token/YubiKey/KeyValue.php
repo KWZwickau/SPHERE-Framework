@@ -17,7 +17,7 @@ class KeyValue
     /**
      * @param string $KeyOTP
      */
-    function __construct( $KeyOTP )
+    function __construct($KeyOTP)
     {
 
         $this->KeyOTP = $KeyOTP;
@@ -44,7 +44,7 @@ class KeyValue
     /**
      * @param string $KeyNOnce
      */
-    public function setKeyNOnce( $KeyNOnce )
+    public function setKeyNOnce($KeyNOnce)
     {
 
         $this->KeyNOnce = $KeyNOnce;

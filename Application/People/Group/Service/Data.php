@@ -21,7 +21,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -30,10 +30,10 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->createGroup( 'Allgemein', 'Personendaten', '', true, 'Common' );
-        $this->createGroup( 'Interessenten', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'Prospect' );
-        $this->createGroup( 'Schüler', 'Alle im System verfügbaren Schüler', '', true, 'Student' );
-        $this->createGroup( 'Sorgeberechtigte', '', '', true, 'Custody' );
+        $this->createGroup('Allgemein', 'Personendaten', '', true, 'Common');
+        $this->createGroup('Interessenten', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'Prospect');
+        $this->createGroup('Schüler', 'Alle im System verfügbaren Schüler', '', true, 'Student');
+        $this->createGroup('Sorgeberechtigte', '', '', true, 'Custody');
     }
 
     /**
@@ -45,30 +45,30 @@ class Data
      *
      * @return TblGroup
      */
-    public function createGroup( $Name, $Description, $Remark, $IsLocked = false, $MetaTable = '' )
+    public function createGroup($Name, $Description, $Remark, $IsLocked = false, $MetaTable = '')
     {
 
         $Manager = $this->Connection->getEntityManager();
 
         if ($IsLocked) {
-            $Entity = $Manager->getEntity( 'TblGroup' )->findOneBy( array(
+            $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
                 TblGroup::ATTR_IS_LOCKED  => $IsLocked,
                 TblGroup::ATTR_META_TABLE => $MetaTable
-            ) );
+            ));
         } else {
-            $Entity = $Manager->getEntity( 'TblGroup' )->findOneBy( array(
+            $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
                 TblGroup::ATTR_NAME => $Name
-            ) );
+            ));
         }
 
         if (null === $Entity) {
-            $Entity = new TblGroup( $Name );
-            $Entity->setDescription( $Description );
-            $Entity->setRemark( $Remark );
-            $Entity->setIsLocked( $IsLocked );
-            $Entity->setMetaTable( $MetaTable );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity = new TblGroup($Name);
+            $Entity->setDescription($Description);
+            $Entity->setRemark($Remark);
+            $Entity->setIsLocked($IsLocked);
+            $Entity->setMetaTable($MetaTable);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
 
         return $Entity;
@@ -82,19 +82,19 @@ class Data
      *
      * @return bool
      */
-    public function updateGroup( TblGroup $tblGroup, $Name, $Description, $Remark )
+    public function updateGroup(TblGroup $tblGroup, $Name, $Description, $Remark)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var null|TblGroup $Entity */
-        $Entity = $Manager->getEntityById( 'TblGroup', $tblGroup->getId() );
+        $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setName( $Name );
-            $Entity->setDescription( $Description );
-            $Entity->setRemark( $Remark );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createUpdateEntry( $this->Connection->getDatabase(), $Protocol, $Entity );
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -106,7 +106,7 @@ class Data
     public function getGroupAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblGroup' )->findAll();
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')->findAll();
         return ( empty( $Entity ) ? false : $Entity );
     }
 
@@ -115,10 +115,10 @@ class Data
      *
      * @return bool|TblGroup
      */
-    public function getGroupById( $Id )
+    public function getGroupById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblGroup', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblGroup', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -127,11 +127,11 @@ class Data
      *
      * @return bool|TblGroup
      */
-    public function getGroupByName( $Name )
+    public function getGroupByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblGroup' )
-            ->findOneBy( array( TblGroup::ATTR_NAME => $Name ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')
+            ->findOneBy(array(TblGroup::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -140,14 +140,14 @@ class Data
      *
      * @return bool|TblGroup
      */
-    public function getGroupByMetaTable( $MetaTable )
+    public function getGroupByMetaTable($MetaTable)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblGroup' )
-            ->findOneBy( array(
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')
+            ->findOneBy(array(
                 TblGroup::ATTR_META_TABLE => $MetaTable,
-                TblGroup::ATTR_IS_LOCKED => true
-            ) );
+                TblGroup::ATTR_IS_LOCKED  => true
+            ));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -157,12 +157,12 @@ class Data
      *
      * @return int
      */
-    public function countPersonAllByGroup( TblGroup $tblGroup )
+    public function countPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        return $this->Connection->getEntityManager()->getEntity( 'TblMember' )->countBy( array(
+        return $this->Connection->getEntityManager()->getEntity('TblMember')->countBy(array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-        ) );
+        ));
     }
 
     /**
@@ -171,17 +171,17 @@ class Data
      *
      * @return bool|TblPerson[]
      */
-    public function getPersonAllByGroup( TblGroup $tblGroup )
+    public function getPersonAllByGroup(TblGroup $tblGroup)
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblMember' )->findBy( array(
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblMember')->findBy(array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
-        ) );
-        array_walk( $EntityList, function ( TblMember &$V ) {
+        ));
+        array_walk($EntityList, function (TblMember &$V) {
 
             $V = $V->getServiceTblPerson();
-        } );
+        });
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -191,17 +191,17 @@ class Data
      *
      * @return bool|TblGroup[]
      */
-    public function getGroupAllByPerson( TblPerson $tblPerson )
+    public function getGroupAllByPerson(TblPerson $tblPerson)
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblMember' )->findBy( array(
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblMember')->findBy(array(
             TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
-        ) );
-        array_walk( $EntityList, function ( TblMember &$V ) {
+        ));
+        array_walk($EntityList, function (TblMember &$V) {
 
             $V = $V->getTblGroup();
-        } );
+        });
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -211,21 +211,21 @@ class Data
      *
      * @return TblMember
      */
-    public function addGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    public function addGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblMember' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblMember')
+            ->findOneBy(array(
                 TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ) );
+            ));
         if (null === $Entity) {
             $Entity = new TblMember();
-            $Entity->setTblGroup( $tblGroup );
-            $Entity->setServiceTblPerson( $tblPerson );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setTblGroup($tblGroup);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -236,19 +236,19 @@ class Data
      *
      * @return bool
      */
-    public function removeGroupPerson( TblGroup $tblGroup, TblPerson $tblPerson )
+    public function removeGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblMember $Entity */
-        $Entity = $Manager->getEntity( 'TblMember' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblMember')
+            ->findOneBy(array(
                 TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ) );
+            ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -259,15 +259,15 @@ class Data
      *
      * @return bool
      */
-    public function destroyGroup( TblGroup $tblGroup )
+    public function destroyGroup(TblGroup $tblGroup)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblMember $Entity */
-        $Entity = $Manager->getEntityById( 'TblGroup', $tblGroup->getId() );
+        $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;

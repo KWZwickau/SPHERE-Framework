@@ -18,7 +18,7 @@ class SuperGlobal
      * @param $POST
      * @param $SESSION
      */
-    public function __construct( $GET, $POST, $SESSION )
+    public function __construct($GET, $POST, $SESSION)
     {
 
         $this->GET = $GET;

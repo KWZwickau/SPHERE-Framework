@@ -21,20 +21,18 @@ class Inventory implements IApplicationInterface
         Item::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Inventar' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Inventar'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Commodity' ), new Link\Name( 'Leistungen' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Commodity'), new Link\Name('Leistungen'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Item' ), new Link\Name( 'Artikel' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Item'), new Link\Name('Artikel'))
         );
 
-
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Inventory', __CLASS__.'::frontendWelcome'
-        ) );
-
+        ));
 
     }
 

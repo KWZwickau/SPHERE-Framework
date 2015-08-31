@@ -21,7 +21,7 @@ class ModHex
      *
      * @param string $String
      */
-    private function __construct( $String )
+    private function __construct($String)
     {
 
         $this->String = $String;
@@ -32,10 +32,10 @@ class ModHex
      *
      * @return ModHex
      */
-    final public static function withString( $String )
+    final public static function withString($String)
     {
 
-        return new ModHex( $String );
+        return new ModHex($String);
     }
 
     /**
@@ -45,10 +45,10 @@ class ModHex
     {
 
         $String = $this->getIdentifier();
-        $String = ( ( strlen( $String ) % 2 ) == 1 ? 'c'.$String : $String );
-        $String = base64_encode( $this->decodeString( $String ) );
-        $String = $this->convertBase64ToHex( $String );
-        return gmp_strval( gmp_init( $String, 16 ) );
+        $String = ( ( strlen($String) % 2 ) == 1 ? 'c'.$String : $String );
+        $String = base64_encode($this->decodeString($String));
+        $String = $this->convertBase64ToHex($String);
+        return gmp_strval(gmp_init($String, 16));
     }
 
     /**
@@ -57,7 +57,7 @@ class ModHex
     final public function getIdentifier()
     {
 
-        return substr( $this->String, 0, 12 );
+        return substr($this->String, 0, 12);
     }
 
     /**
@@ -65,21 +65,21 @@ class ModHex
      *
      * @return bool|string
      */
-    final private function decodeString( $String )
+    final private function decodeString($String)
     {
 
-        $Length = strlen( $String );
+        $Length = strlen($String);
         $Decoded = "";
         if ($Length % 2 != 0) {
             return false;
         }
         for ($Run = 0; $Run < $Length; $Run = $Run + 2) {
-            $High = strpos( self::$Key, $String[$Run] );
-            $Low = strpos( self::$Key, $String[$Run + 1] );
+            $High = strpos(self::$Key, $String[$Run]);
+            $Low = strpos(self::$Key, $String[$Run + 1]);
             if ($High === false || $Low === false) {
                 return false;
             }
-            $Decoded .= chr( ( $High << 4 ) | $Low );
+            $Decoded .= chr(( $High << 4 ) | $Low);
         }
         return $Decoded;
     }
@@ -89,15 +89,15 @@ class ModHex
      *
      * @return string
      */
-    final private function convertBase64ToHex( $String )
+    final private function convertBase64ToHex($String)
     {
 
         $Return = '';
-        $Convert = base64_decode( $String );
-        $CharList = str_split( $Convert );
-        $Length = count( $CharList );
+        $Convert = base64_decode($String);
+        $CharList = str_split($Convert);
+        $Length = count($CharList);
         for ($Run = 0; $Run < $Length; $Run++) {
-            $Return .= sprintf( "%02x", ord( $CharList[$Run] ) );
+            $Return .= sprintf("%02x", ord($CharList[$Run]));
         }
         return $Return;
     }

@@ -28,14 +28,14 @@ class Service implements IServiceInterface
      * Define Database Connection
      *
      * @param Identifier $Identifier
-     * @param string $EntityPath
-     * @param string $EntityNamespace
+     * @param string     $EntityPath
+     * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -44,12 +44,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $Simulate, $withData )
+    public function setupService($Simulate, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($Simulate);
         if (!$Simulate && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -60,7 +60,7 @@ class Service implements IServiceInterface
     public function getAccountAll()
     {
 
-        return ( new Data( $this->Binding ) )->entityAccountAll();
+        return (new Data($this->Binding))->entityAccountAll();
     }
 
     /**
@@ -68,10 +68,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function setFibuActivate( $Id )
+    public function setFibuActivate($Id)
     {
 
-        return ( new Data( $this->Binding ) )->actionActivateAccount( $Id );
+        return (new Data($this->Binding))->actionActivateAccount($Id);
     }
 
     /**
@@ -79,10 +79,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function setFibuDeactivate( $Id )
+    public function setFibuDeactivate($Id)
     {
 
-        return ( new Data( $this->Binding ) )->actionDeactivateAccount( $Id );
+        return (new Data($this->Binding))->actionDeactivateAccount($Id);
     }
 
     /**
@@ -91,7 +91,7 @@ class Service implements IServiceInterface
     public function entityKeyValueAll()
     {
 
-        return ( new Data( $this->Binding ) )->entityKeyValueAll();
+        return (new Data($this->Binding))->entityKeyValueAll();
     }
 
     /**
@@ -100,7 +100,7 @@ class Service implements IServiceInterface
     public function entityTypeValueAll()
     {
 
-        return ( new Data( $this->Binding ) )->entityTypeValueAll();
+        return (new Data($this->Binding))->entityTypeValueAll();
     }
 
     /**
@@ -108,10 +108,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccountType
      */
-    public function entityAccountTypeById( $Id )
+    public function entityAccountTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityAccountTypeById( $Id );
+        return (new Data($this->Binding))->entityAccountTypeById($Id);
     }
 
     /**
@@ -119,10 +119,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccountKey
      */
-    public function entityAccountKeyById( $Id )
+    public function entityAccountKeyById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityAccountKeyById( $Id );
+        return (new Data($this->Binding))->entityAccountKeyById($Id);
     }
 
     /**
@@ -130,10 +130,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccountKeyType
      */
-    public function entityAccountKeyTypeById( $Id )
+    public function entityAccountKeyTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityAccountKeyTypeById( $Id );
+        return (new Data($this->Binding))->entityAccountKeyTypeById($Id);
     }
 
     /**
@@ -141,10 +141,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccount
      */
-    public function entityAccountById( $Id )
+    public function entityAccountById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityAccountById( $Id );
+        return (new Data($this->Binding))->entityAccountById($Id);
     }
 
     /**
@@ -152,47 +152,47 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAccount[]
      */
-    public function entityAccountAllByActiveState( $IsActive = true )
+    public function entityAccountAllByActiveState($IsActive = true)
     {
 
-        return ( new Data( $this->Binding ) )->entityAccountAllByActiveState( $IsActive );
+        return (new Data($this->Binding))->entityAccountAllByActiveState($IsActive);
     }
 
     /**
      * @param IFormInterface $Stage
-     * @param $Account
+     * @param                $Account
      *
      * @return IFormInterface|string
      */
-    public function executeAddAccount( IFormInterface &$Stage = null, $Account )
+    public function executeAddAccount(IFormInterface &$Stage = null, $Account)
     {
 
         /**
          * Skip to Frontend
          */
-        if ( null === $Account ) {
+        if (null === $Account) {
             return $Stage;
         }
         $Error = false;
-        if ( isset( $Account['Description'] ) && empty( $Account['Description'] ) ) {
-            $Stage->setError( 'Account[Description]', 'Bitte geben sie eine Beschreibung an' );
+        if (isset( $Account['Description'] ) && empty( $Account['Description'] )) {
+            $Stage->setError('Account[Description]', 'Bitte geben sie eine Beschreibung an');
             $Error = true;
         }
-        if ( isset( $Account['Number'] ) && empty( $Account['Number'] ) ) {
-            $Stage->setError( 'Account[Number]', 'Bitte geben sie die Nummer an' );
+        if (isset( $Account['Number'] ) && empty( $Account['Number'] )) {
+            $Stage->setError('Account[Number]', 'Bitte geben sie die Nummer an');
             $Error = true;
         }
         $Account['IsActive'] = 1;
 
-        if ( !$Error ) {
-            ( new Data( $this->Binding ) )->actionAddAccount(
+        if (!$Error) {
+            (new Data($this->Binding))->actionAddAccount(
                 $Account['Number'],
                 $Account['Description'],
                 $Account['IsActive'],
-                ( new Data( $this->Binding ) )->entityAccountKeyById( $Account['Key'] ),
-                ( new Data( $this->Binding ) )->entityAccountTypeById( $Account['Type'] ) );
-            return new Success( 'Das Konto ist erfasst worden' )
-            .new Redirect( '/Billing/Accounting/Account', 2 );
+                (new Data($this->Binding))->entityAccountKeyById($Account['Key']),
+                (new Data($this->Binding))->entityAccountTypeById($Account['Type']));
+            return new Success('Das Konto ist erfasst worden')
+            .new Redirect('/Billing/Accounting/Account', 2);
         }
         return $Stage;
     }

@@ -44,7 +44,7 @@ class TblCity extends Element
     /**
      * @param string $Code
      */
-    public function setCode( $Code )
+    public function setCode($Code)
     {
 
         $this->Code = $Code;
@@ -62,10 +62,10 @@ class TblCity extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
-        $this->Name = trim( $Name );
+        $this->Name = trim($Name);
     }
 
     /**
@@ -80,9 +80,9 @@ class TblCity extends Element
     /**
      * @param string $District
      */
-    public function setDistrict( $District )
+    public function setDistrict($District)
     {
 
-        $this->District = trim( $District );
+        $this->District = trim($District);
     }
 }

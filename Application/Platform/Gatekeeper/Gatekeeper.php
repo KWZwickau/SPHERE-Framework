@@ -26,12 +26,12 @@ class Gatekeeper implements IApplicationInterface
         Authentication::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Authorization' ), new Link\Name( 'Berechtigungen' ),
-                new Link\Icon( new PersonKey() ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Authorization'), new Link\Name('Berechtigungen'),
+                new Link\Icon(new PersonKey()))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Authorization', __CLASS__.'::frontendWelcome'
-        ) );
+        ));
     }
 
     /**
@@ -40,7 +40,7 @@ class Gatekeeper implements IApplicationInterface
     public function frontendWelcome()
     {
 
-        $Stage = new Stage( 'Berechtigungen' );
+        $Stage = new Stage('Berechtigungen');
         return $Stage;
     }
 }

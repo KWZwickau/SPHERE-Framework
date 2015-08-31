@@ -29,24 +29,24 @@ class Account implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendAccountFibu'
-            )->setParameterDefault( 'Account', null )
+            )->setParameterDefault('Account', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'\Create',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Create',
                 __NAMESPACE__.'\Frontend::frontendAccountCreate'
-            )->setParameterDefault( 'Account', null )
+            )->setParameterDefault('Account', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'\Activate',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Activate',
                 __NAMESPACE__.'\Frontend::frontendAccountFibuActivate'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'\Deactivate',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'\Deactivate',
                 __NAMESPACE__.'\Frontend::frontendAccountFibuDeactivate'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
     }
 
@@ -56,7 +56,8 @@ class Account implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Billing', 'Accounting', 'Account', null, Consumer::useService()->getConsumerBySession() ),
+        return new Service(new Identifier('Billing', 'Accounting', 'Account', null,
+            Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

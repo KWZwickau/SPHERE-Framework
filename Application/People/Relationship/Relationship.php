@@ -32,7 +32,7 @@ class Relationship implements IApplicationInterface, IModuleInterface
     {
 
         return new Service(
-            new Identifier( 'People', 'Relationship', null, null, Consumer::useService()->getConsumerBySession() ),
+            new Identifier('People', 'Relationship', null, null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

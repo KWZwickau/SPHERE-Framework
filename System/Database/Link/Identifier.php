@@ -31,10 +31,10 @@ class Identifier
      * @param string      $Service
      * @param string|null $Consumer
      */
-    public function __construct( $Cluster, $Application, $Module = null, $Service = null, $Consumer = null )
+    public function __construct($Cluster, $Application, $Module = null, $Service = null, $Consumer = null)
     {
 
-        if ($Consumer !== null && is_object( $Consumer ) && $Consumer instanceof TblConsumer) {
+        if ($Consumer !== null && is_object($Consumer) && $Consumer instanceof TblConsumer) {
             $Consumer = $Consumer->getAcronym();
         }
 
@@ -43,7 +43,7 @@ class Identifier
         $this->Module = $Module;
         $this->Service = $Service;
         $this->Consumer = $Consumer;
-        $this->Identifier = sha1( $this->getConfiguration( true ) );
+        $this->Identifier = sha1($this->getConfiguration(true));
     }
 
     /**
@@ -51,9 +51,10 @@ class Identifier
      *
      * @return string
      */
-    public function getConfiguration( $includeConsumer = true )
+    public function getConfiguration($includeConsumer = true)
     {
-        if( $includeConsumer ) {
+
+        if ($includeConsumer) {
             return $this->Cluster
             .':'.$this->Application
             .( $this->Module === null ? '' : ':'.$this->Module )

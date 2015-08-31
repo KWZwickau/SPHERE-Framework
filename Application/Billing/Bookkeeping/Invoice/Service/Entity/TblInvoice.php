@@ -4,9 +4,9 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -101,7 +101,7 @@ class TblInvoice extends Element
     /**
      * @param boolean $IsPaymentDateModified
      */
-    public function setIsPaymentDateModified( $IsPaymentDateModified )
+    public function setIsPaymentDateModified($IsPaymentDateModified)
     {
 
         $this->IsPaymentDateModified = $IsPaymentDateModified;
@@ -122,7 +122,7 @@ class TblInvoice extends Element
     public function getIsConfirmed()
     {
 
-        return ( Balance::useService()->entityBalanceByInvoice( $this ) === false ? false : true );
+        return ( Balance::useService()->entityBalanceByInvoice($this) === false ? false : true );
     }
 
     /**
@@ -137,7 +137,7 @@ class TblInvoice extends Element
     /**
      * @param boolean $IsPaid
      */
-    public function setIsPaid( $IsPaid )
+    public function setIsPaid($IsPaid)
     {
 
         $this->IsPaid = $IsPaid;
@@ -155,7 +155,7 @@ class TblInvoice extends Element
     /**
      * @param string $Number
      */
-    public function setNumber( $Number )
+    public function setNumber($Number)
     {
 
         $this->Number = $Number;
@@ -164,7 +164,7 @@ class TblInvoice extends Element
     /**
      * @param string $BasketName
      */
-    public function setBasketName( $BasketName )
+    public function setBasketName($BasketName)
     {
 
         $this->BasketName = $BasketName;
@@ -191,7 +191,7 @@ class TblInvoice extends Element
     /**
      * @param boolean $IsVoid
      */
-    public function setIsVoid( $IsVoid )
+    public function setIsVoid($IsVoid)
     {
 
         $this->IsVoid = $IsVoid;
@@ -203,13 +203,13 @@ class TblInvoice extends Element
     public function getInvoiceDate()
     {
 
-        if ( null === $this->InvoiceDate ) {
+        if (null === $this->InvoiceDate) {
             return false;
         }
         /** @var \DateTime $InvoiceDate */
         $InvoiceDate = $this->InvoiceDate;
-        if ( $InvoiceDate instanceof \DateTime ) {
-            return $InvoiceDate->format( 'd.m.Y' );
+        if ($InvoiceDate instanceof \DateTime) {
+            return $InvoiceDate->format('d.m.Y');
         } else {
             return (string)$InvoiceDate;
         }
@@ -218,7 +218,7 @@ class TblInvoice extends Element
     /**
      * @param \DateTime $InvoiceDate
      */
-    public function setInvoiceDate( \DateTime $InvoiceDate )
+    public function setInvoiceDate(\DateTime $InvoiceDate)
     {
 
         $this->InvoiceDate = $InvoiceDate;
@@ -230,13 +230,13 @@ class TblInvoice extends Element
     public function getPaymentDate()
     {
 
-        if ( null === $this->PaymentDate ) {
+        if (null === $this->PaymentDate) {
             return false;
         }
         /** @var \DateTime $PaymentDate */
         $PaymentDate = $this->PaymentDate;
-        if ( $PaymentDate instanceof \DateTime ) {
-            return $PaymentDate->format( 'd.m.Y' );
+        if ($PaymentDate instanceof \DateTime) {
+            return $PaymentDate->format('d.m.Y');
         } else {
             return (string)$PaymentDate;
         }
@@ -245,7 +245,7 @@ class TblInvoice extends Element
     /**
      * @param \DateTime $PaymentDate
      */
-    public function setPaymentDate( \DateTime $PaymentDate )
+    public function setPaymentDate(\DateTime $PaymentDate)
     {
 
         $this->PaymentDate = $PaymentDate;
@@ -263,7 +263,7 @@ class TblInvoice extends Element
     /**
      * @param (type="decimal", precision=14, scale=4) $Price
      */
-    public function setDiscount( $Discount )
+    public function setDiscount($Discount)
     {
 
         $this->Discount = $Discount;
@@ -281,7 +281,7 @@ class TblInvoice extends Element
     /**
      * @param string $PersonFirstName
      */
-    public function setDebtorFirstName( $PersonFirstName )
+    public function setDebtorFirstName($PersonFirstName)
     {
 
         $this->DebtorFirstName = $PersonFirstName;
@@ -299,7 +299,7 @@ class TblInvoice extends Element
     /**
      * @param string $PersonLastName
      */
-    public function setDebtorLastName( $PersonLastName )
+    public function setDebtorLastName($PersonLastName)
     {
 
         $this->DebtorLastName = $PersonLastName;
@@ -317,7 +317,7 @@ class TblInvoice extends Element
     /**
      * @param string $PersonSalutation
      */
-    public function setDebtorSalutation( $PersonSalutation )
+    public function setDebtorSalutation($PersonSalutation)
     {
 
         $this->DebtorSalutation = $PersonSalutation;
@@ -326,7 +326,7 @@ class TblInvoice extends Element
     /**
      * @param string $DebtorNumber
      */
-    public function setDebtorNumber( $DebtorNumber )
+    public function setDebtorNumber($DebtorNumber)
     {
 
         $this->DebtorNumber = $DebtorNumber;
@@ -356,17 +356,17 @@ class TblInvoice extends Element
     public function getServiceManagementAddress()
     {
 
-        if ( null === $this->serviceManagement_Address ) {
+        if (null === $this->serviceManagement_Address) {
             return false;
         } else {
-            return Management::serviceAddress()->entityAddressById( $this->serviceManagement_Address );
+            return Management::serviceAddress()->entityAddressById($this->serviceManagement_Address);
         }
     }
 
     /**
      * @param TblAddress $tblAddress
      */
-    public function setServiceManagementAddress( TblAddress $tblAddress = null )
+    public function setServiceManagementAddress(TblAddress $tblAddress = null)
     {
 
         $this->serviceManagement_Address = ( null === $tblAddress ? null : $tblAddress->getId() );
@@ -378,17 +378,17 @@ class TblInvoice extends Element
     public function getServiceManagementPerson()
     {
 
-        if ( null === $this->serviceManagement_Person ) {
+        if (null === $this->serviceManagement_Person) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById( $this->serviceManagement_Person );
+            return Management::servicePerson()->entityPersonById($this->serviceManagement_Person);
         }
     }
 
     /**
      * @param TblPerson $tblPerson
      */
-    public function setServiceManagementPerson( TblPerson $tblPerson = null )
+    public function setServiceManagementPerson(TblPerson $tblPerson = null)
     {
 
         $this->serviceManagement_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
@@ -400,17 +400,17 @@ class TblInvoice extends Element
     public function getServiceBillingBankingPaymentType()
     {
 
-        if ( null === $this->serviceBilling_Banking_Payment_Type ) {
+        if (null === $this->serviceBilling_Banking_Payment_Type) {
             return false;
         } else {
-            return Banking::useService()->entityPaymentTypeById( $this->serviceBilling_Banking_Payment_Type );
+            return Banking::useService()->entityPaymentTypeById($this->serviceBilling_Banking_Payment_Type);
         }
     }
 
     /**
      * @param TblPaymentType $tblPaymentType
      */
-    public function setServiceBillingBankingPaymentType( TblPaymentType $tblPaymentType = null )
+    public function setServiceBillingBankingPaymentType(TblPaymentType $tblPaymentType = null)
     {
 
         $this->serviceBilling_Banking_Payment_Type = ( null === $tblPaymentType ? null : $tblPaymentType->getId() );

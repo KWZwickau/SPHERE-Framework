@@ -23,25 +23,25 @@ class Service
      *
      * @return IMessageInterface|IFormInterface
      */
-    public function executeCreateTicket( IFormInterface &$Form, $TicketSubject, $TicketMessage )
+    public function executeCreateTicket(IFormInterface &$Form, $TicketSubject, $TicketMessage)
     {
 
         $Error = false;
         if (empty( $TicketSubject ) && null !== $TicketSubject) {
-            $Form->setError( 'TicketSubject', 'Bitte geben Sie ein Thema ein' );
+            $Form->setError('TicketSubject', 'Bitte geben Sie ein Thema ein');
             $Error = true;
         } elseif (null === $TicketSubject) {
             $Error = true;
         } else {
-            $Form->setSuccess( 'TicketSubject', '' );
+            $Form->setSuccess('TicketSubject', '');
         }
         if (empty( $TicketMessage ) && null !== $TicketMessage) {
-            $Form->setError( 'TicketMessage', 'Bitte geben Sie ein Mitteilung ein' );
+            $Form->setError('TicketMessage', 'Bitte geben Sie ein Mitteilung ein');
             $Error = true;
         } elseif (null === $TicketMessage) {
             $Error = true;
         } else {
-            $Form->setSuccess( 'TicketMessage', '' );
+            $Form->setSuccess('TicketMessage', '');
         }
 
         if ($Error) {
@@ -49,22 +49,22 @@ class Service
              * Nothing to do
              */
             try {
-                $Youtrack = ( new Support( new YouTrack() ) )->getSupport();
-                $Form->prependGridGroup( $Youtrack->ticketCurrent() );
+                $Youtrack = (new Support(new YouTrack()))->getSupport();
+                $Form->prependGridGroup($Youtrack->ticketCurrent());
                 return $Form;
-            } catch( \Exception $E ) {
-                return new Danger( 'Das Support-System konnte nicht geladen werden' );
+            } catch (\Exception $E) {
+                return new Danger('Das Support-System konnte nicht geladen werden');
             }
         } else {
             /**
              * Submit Ticket
              */
             try {
-                $Youtrack = ( new Support( new YouTrack() ) )->getSupport();
-                $Youtrack->createTicket( urldecode( $TicketSubject ), urldecode( $TicketMessage ) );
-                return new Success( 'Das Problem wurde erfolgreich dem Support mitgeteilt' );
-            } catch( \Exception $E ) {
-                return new Danger( 'Das Problem konnte nicht übertragen werden' );
+                $Youtrack = (new Support(new YouTrack()))->getSupport();
+                $Youtrack->createTicket(urldecode($TicketSubject), urldecode($TicketMessage));
+                return new Success('Das Problem wurde erfolgreich dem Support mitgeteilt');
+            } catch (\Exception $E) {
+                return new Danger('Das Problem konnte nicht übertragen werden');
             }
         }
     }

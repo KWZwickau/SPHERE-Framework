@@ -46,7 +46,7 @@ class Main extends Extension
             self::$Display = new Display();
         }
         if (self::getDispatcher() === null) {
-            self::$Dispatcher = new Dispatcher( new UniversalRouter() );
+            self::$Dispatcher = new Dispatcher(new UniversalRouter());
         }
     }
 
@@ -97,23 +97,23 @@ class Main extends Extension
                     )
                 );
             }
-        } catch( PDOException $Exception ) {
-            $this->runSelfHeal( $Exception );
-        } catch( TableNotFoundException $Exception ) {
-            $this->runSelfHeal( $Exception );
-        } catch( \PDOException $Exception ) {
-            $this->runSelfHeal( $Exception );
-        } catch( \ErrorException $Exception ) {
-            self::getDisplay()->setException( $Exception, 'Error' );
-        } catch( \Exception $Exception ) {
-            self::getDisplay()->setException( $Exception, 'Exception' );
+        } catch (PDOException $Exception) {
+            $this->runSelfHeal($Exception);
+        } catch (TableNotFoundException $Exception) {
+            $this->runSelfHeal($Exception);
+        } catch (\PDOException $Exception) {
+            $this->runSelfHeal($Exception);
+        } catch (\ErrorException $Exception) {
+            self::getDisplay()->setException($Exception, 'Error');
+        } catch (\Exception $Exception) {
+            self::getDisplay()->setException($Exception, 'Exception');
         }
 
         try {
             echo self::getDisplay()->getContent();
-            exit(0);
-        } catch( \Exception $Exception ) {
-            $this->runSelfHeal( $Exception );
+            exit( 0 );
+        } catch (\Exception $Exception) {
+            $this->runSelfHeal($Exception);
         }
     }
 
@@ -124,10 +124,10 @@ class Main extends Extension
     {
 
         set_error_handler(
-            function ( $Code, $Message, $File, $Line ) {
+            function ($Code, $Message, $File, $Line) {
 
-                if (!preg_match( '!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message )) {
-                    throw new \ErrorException( $Message, 0, $Code, $File, $Line );
+                if (!preg_match('!apc_store.*?was.*?on.*?gc-list.*?for!is', $Message)) {
+                    throw new \ErrorException($Message, 0, $Code, $File, $Line);
                 }
             }, E_ALL
         );
@@ -148,13 +148,13 @@ class Main extends Extension
                 }
                 $Display = new Display();
                 $Display->addServiceNavigation(
-                    new Link( new Link\Route( '/' ), new Link\Name( 'Zurück zur Anwendung' ) )
+                    new Link(new Link\Route('/'), new Link\Name('Zurück zur Anwendung'))
                 );
                 $Display->setException(
-                    new \ErrorException( $Error['message'], 0, $Error['type'], $Error['file'], $Error['line'] ),
+                    new \ErrorException($Error['message'], 0, $Error['type'], $Error['file'], $Error['line']),
                     'Shutdown'
                 );
-                echo $Display->getContent( true );
+                echo $Display->getContent(true);
             }
         );
     }
@@ -165,18 +165,18 @@ class Main extends Extension
     private function runAuthenticator()
     {
 
-        if (!array_key_exists( 'REST', $this->getRequest()->getParameterArray() )) {
-            $Get = ( new Authenticator( new Get() ) )->getAuthenticator();
-            $Post = ( new Authenticator( new Post() ) )->getAuthenticator();
+        if (!array_key_exists('REST', $this->getRequest()->getParameterArray())) {
+            $Get = (new Authenticator(new Get()))->getAuthenticator();
+            $Post = (new Authenticator(new Post()))->getAuthenticator();
             if (!( $Get->validateSignature() && $Post->validateSignature() )) {
                 self::getDisplay()->setClusterNavigation();
                 self::getDisplay()->setApplicationNavigation();
                 self::getDisplay()->setModuleNavigation();
-                self::getDisplay()->setServiceNavigation( new Link(
-                    new Link\Route( '/' ),
-                    new Link\Name( 'Zurück zur Anwendung' )
-                ) );
-                self::getDisplay()->setContent( Dispatcher::fetchRoute( 'System/Assistance/Error/Authenticator' ) );
+                self::getDisplay()->setServiceNavigation(new Link(
+                    new Link\Route('/'),
+                    new Link\Name('Zurück zur Anwendung')
+                ));
+                self::getDisplay()->setContent(Dispatcher::fetchRoute('System/Assistance/Error/Authenticator'));
                 return false;
             }
         }
@@ -186,19 +186,19 @@ class Main extends Extension
     /**
      * @param \Exception $Exception
      */
-    private function runSelfHeal( \Exception $Exception = null )
+    private function runSelfHeal(\Exception $Exception = null)
     {
 
         $Display = new Display();
         $Display->setContent(
             ( $Exception
-                ? new Error( $Exception->getCode(), $Exception->getMessage() )
+                ? new Error($Exception->getCode(), $Exception->getMessage())
                 : ''
             ).
-            ( new System\Database\Database() )->frontendSetup( false )
-            .( new Redirect( $this->getRequest()->getPathInfo(), 60 ) )
+            (new System\Database\Database())->frontendSetup(false)
+            .(new Redirect($this->getRequest()->getPathInfo(), 60))
         );
-        echo $Display->getContent( true );
+        echo $Display->getContent(true);
         exit( 0 );
     }
 }

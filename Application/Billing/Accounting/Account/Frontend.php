@@ -34,38 +34,38 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'FIBU-Konten' );
-        $Stage->setDescription( 'Übersicht' );
-        $Stage->setMessage( 'Zeigt die verfügbaren Finanzbuchhaltungskonten an' );
+        $Stage->setTitle('FIBU-Konten');
+        $Stage->setDescription('Übersicht');
+        $Stage->setMessage('Zeigt die verfügbaren Finanzbuchhaltungskonten an');
         $Stage->addButton(
-            new Primary( 'FIBU-Konto anlegen', '/Billing/Accounting/Account/Create', new Plus() )
+            new Primary('FIBU-Konto anlegen', '/Billing/Accounting/Account/Create', new Plus())
         );
 
         $tblAccountAll = Account::useService()->getAccountAll();
 
-        if ( !empty( $tblAccountAll ) ) {
-            array_walk( $tblAccountAll, function ( TblAccount $tblAccount ) {
+        if (!empty( $tblAccountAll )) {
+            array_walk($tblAccountAll, function (TblAccount $tblAccount) {
 
                 $tblAccount->Taxes = $tblAccount->getTblAccountKey()->getValue();
                 $tblAccount->Code = $tblAccount->getTblAccountKey()->getCode();
                 $tblAccount->Typ = $tblAccount->getTblAccountType()->getName();
-                if ( $tblAccount->getIsActive() === true ) {
+                if ($tblAccount->getIsActive() === true) {
                     $tblAccount->Option =
-                        ( new Danger( 'Deaktivieren', '/Billing/Accounting/Account/Deactivate',
+                        (new Danger('Deaktivieren', '/Billing/Accounting/Account/Deactivate',
                             new Disable(), array(
                                 'Id' => $tblAccount->getId()
-                            ) ) )->__toString();
+                            )))->__toString();
                 } else {
                     $tblAccount->Option =
-                        ( new Primary( 'Aktivieren', '/Billing/Accounting/Account/Activate',
+                        (new Primary('Aktivieren', '/Billing/Accounting/Account/Activate',
                             new Ok(), array(
                                 'Id' => $tblAccount->getId()
-                            ) ) )->__toString();
+                            )))->__toString();
                 }
-            } );
+            });
         }
         $Stage->setContent(
-            new TableData( $tblAccountAll, null,
+            new TableData($tblAccountAll, null,
                 array(
                     'Number'      => 'Kennziffer',
                     'Description' => 'Beschreibung',
@@ -82,21 +82,22 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $Id
+     *
      * @return Stage
      */
-    public function frontendAccountFibuActivate( $Id )
+    public function frontendAccountFibuActivate($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Aktivierung' );
+        $Stage->setTitle('Aktivierung');
 
-        if ( Account::useService()->setFibuActivate( $Id ) ) {
+        if (Account::useService()->setFibuActivate($Id)) {
 
-            $Stage->setContent( new Redirect( '/Billing/Accounting/Account', 0 ) );
+            $Stage->setContent(new Redirect('/Billing/Accounting/Account', 0));
 
         } else {
 
-            $Stage->setContent( new Warning( 'Ihr Konto konnte nicht Aktiviert werden' ) );
+            $Stage->setContent(new Warning('Ihr Konto konnte nicht Aktiviert werden'));
         }
 
         return $Stage;
@@ -104,65 +105,66 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $Id
+     *
      * @return Stage
      */
-    public function frontendAccountFibuDeactivate( $Id )
+    public function frontendAccountFibuDeactivate($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Deaktivierung' );
+        $Stage->setTitle('Deaktivierung');
 
-        if ( Account::useService()->setFibuDeactivate( $Id ) ) {
-            $Stage->setContent( new Redirect( '/Billing/Accounting/Account', 0 ) );
+        if (Account::useService()->setFibuDeactivate($Id)) {
+            $Stage->setContent(new Redirect('/Billing/Accounting/Account', 0));
         } else {
-            $Stage->setContent( new Warning( 'Ihr Konto konnte nicht Deaktiviert werden' ) );
+            $Stage->setContent(new Warning('Ihr Konto konnte nicht Deaktiviert werden'));
         }
-
 
         return $Stage;
     }
 
     /**
      * @param $Account
+     *
      * @return Stage
      */
-    public function frontendAccountCreate( $Account )
+    public function frontendAccountCreate($Account)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'FIBU-Konto' );
-        $Stage->setDescription( 'Hinzufügen' );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Accounting/Account', new ChevronLeft() ) );
+        $Stage->setTitle('FIBU-Konto');
+        $Stage->setDescription('Hinzufügen');
+        $Stage->addButton(new Primary('Zurück', '/Billing/Accounting/Account', new ChevronLeft()));
 
         $tblAccountKey = Account::useService()->entityKeyValueAll();
         $tblAccountType = Account::useService()->entityTypeValueAll();
 
-        $Stage->setContent( Account::useService()->executeAddAccount(
-            new Form( array(
-                new FormGroup( array(
-                    new FormRow( array(
+        $Stage->setContent(Account::useService()->executeAddAccount(
+            new Form(array(
+                new FormGroup(array(
+                    new FormRow(array(
                         new FormColumn(
-                            new TextField( 'Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()
-                            ), 6 ),
+                            new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()
+                            ), 6),
                         new FormColumn(
-                            new TextField( 'Account[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
+                            new TextField('Account[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
                             ), 6
                         )
-                    ) ),
-                    new FormRow( array(
+                    )),
+                    new FormRow(array(
                         new FormColumn(
-                            new SelectBox( 'Account[Key]', 'Mehrwertsteuer',
-                                array( 'Value' => $tblAccountKey )
+                            new SelectBox('Account[Key]', 'Mehrwertsteuer',
+                                array('Value' => $tblAccountKey)
                             ), 6
                         ),
                         new FormColumn(
-                            new SelectBox( 'Account[Type]', 'Typ',
-                                array( 'Name' => $tblAccountType )
+                            new SelectBox('Account[Type]', 'Typ',
+                                array('Name' => $tblAccountType)
                             ), 6
                         )
-                    ) )
-                ) )
-            ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary( 'Hinzufügen' ) ), $Account )
+                    ))
+                ))
+            ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen')), $Account)
         );
 
         return $Stage;

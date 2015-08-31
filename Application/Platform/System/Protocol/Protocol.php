@@ -25,13 +25,13 @@ class Protocol implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Protokoll' ), new Link\Icon( new Listing() ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Protokoll'), new Link\Icon(new Listing()))
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 'Protocol::frontendProtocol'
             )
         );
@@ -51,10 +51,10 @@ class Protocol implements IModuleInterface
     public function frontendProtocol()
     {
 
-        $Stage = new Stage( 'Protokoll', 'Aktivitäten' );
+        $Stage = new Stage('Protokoll', 'Aktivitäten');
 
         $Stage->setContent(
-            new TableData( $this->useService()->getProtocolAll(), null,
+            new TableData($this->useService()->getProtocolAll(), null,
                 array(
                     'Id'     => '#',
                     'Editor' => 'Editor',
@@ -63,12 +63,12 @@ class Protocol implements IModuleInterface
                 ),
                 array(
                     "order"      => array(
-                        array( 0, 'desc' )
+                        array(0, 'desc')
                     ),
                     "columnDefs" => array(
-                        array( "orderable" => false, "targets" => 1 ),
-                        array( "orderable" => false, "targets" => 2 ),
-                        array( "orderable" => false, "targets" => 3 )
+                        array("orderable" => false, "targets" => 1),
+                        array("orderable" => false, "targets" => 2),
+                        array("orderable" => false, "targets" => 3)
                     )
                 )
             )
@@ -83,7 +83,7 @@ class Protocol implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Platform', 'System', 'Protocol' ),
+        return new Service(new Identifier('Platform', 'System', 'Protocol'),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

@@ -36,38 +36,38 @@ class TableVertical extends Extension implements ITemplateInterface
         $ColumnDefinition = array()
     ) {
 
-        if (!is_array( $DataList )) {
-            $DataList = array( $DataList );
+        if (!is_array($DataList)) {
+            $DataList = array($DataList);
         }
 
         /** @var TableRow[] $DataList */
-        array_walk( $DataList, function ( &$Row ) {
+        array_walk($DataList, function (&$Row) {
 
-            array_walk( $Row, function ( &$Column, $Index ) {
+            array_walk($Row, function (&$Column, $Index) {
 
-                if (!is_object( $Column ) || !$Column instanceof TableColumn) {
+                if (!is_object($Column) || !$Column instanceof TableColumn) {
                     if ($Index == 0) {
-                        $Column = new TableColumn( $Column, 1, '1%' );
+                        $Column = new TableColumn($Column, 1, '1%');
                     } else {
-                        $Column = new TableColumn( $Column );
+                        $Column = new TableColumn($Column);
                     }
                 }
-            } );
+            });
             // Convert to Array
-            if (is_object( $Row )) {
+            if (is_object($Row)) {
                 /** @var Object $Row */
-                $Row = array_filter( $Row->__toArray() );
+                $Row = array_filter($Row->__toArray());
             } else {
-                $Row = array_filter( $Row );
+                $Row = array_filter($Row);
             }
             /** @noinspection PhpParamsInspection */
-            $Row = new TableRow( $Row );
-        } );
+            $Row = new TableRow($Row);
+        });
 
-        $this->TableRow = array( new TableBody( $DataList ) );
+        $this->TableRow = array(new TableBody($DataList));
 
-        $this->Template = $this->getTemplate( __DIR__.'/TableVertical.twig' );
-        $this->Template->setVariable( 'TableTitle', $TableTitle );
+        $this->Template = $this->getTemplate(__DIR__.'/TableVertical.twig');
+        $this->Template->setVariable('TableTitle', $TableTitle);
     }
 
     /**
@@ -85,7 +85,7 @@ class TableVertical extends Extension implements ITemplateInterface
     public function getContent()
     {
 
-        $this->Template->setVariable( 'BodyList', $this->TableRow );
+        $this->Template->setVariable('BodyList', $this->TableRow);
         return $this->Template->getContent();
     }
 
@@ -97,27 +97,27 @@ class TableVertical extends Extension implements ITemplateInterface
 
         if (empty( $this->Hash )) {
             $HeadList = $this->TableHead;
-            array_walk( $HeadList, function ( &$H ) {
+            array_walk($HeadList, function (&$H) {
 
-                if (is_object( $H )) {
-                    $H = serialize( $H );
+                if (is_object($H)) {
+                    $H = serialize($H);
                 }
-            } );
+            });
             $BodyList = $this->TableBody;
-            array_walk( $BodyList, function ( &$H ) {
+            array_walk($BodyList, function (&$H) {
 
-                if (is_object( $H )) {
-                    $H = serialize( $H );
+                if (is_object($H)) {
+                    $H = serialize($H);
                 }
-            } );
+            });
             $FootList = $this->TableFoot;
-            array_walk( $FootList, function ( &$H ) {
+            array_walk($FootList, function (&$H) {
 
-                if (is_object( $H )) {
-                    $H = serialize( $H );
+                if (is_object($H)) {
+                    $H = serialize($H);
                 }
-            } );
-            $this->Hash = sha1( json_encode( $HeadList ).json_encode( $BodyList ).json_encode( $FootList ) );
+            });
+            $this->Hash = sha1(json_encode($HeadList).json_encode($BodyList).json_encode($FootList));
         }
         return $this->Hash;
     }
@@ -125,55 +125,55 @@ class TableVertical extends Extension implements ITemplateInterface
     /**
      * @param TableHead $TableHead
      */
-    public function appendHead( TableHead $TableHead )
+    public function appendHead(TableHead $TableHead)
     {
 
-        array_push( $this->TableHead, $TableHead );
+        array_push($this->TableHead, $TableHead);
     }
 
     /**
      * @param TableHead $TableHead
      */
-    public function prependHead( TableHead $TableHead )
+    public function prependHead(TableHead $TableHead)
     {
 
-        array_unshift( $this->TableHead, $TableHead );
+        array_unshift($this->TableHead, $TableHead);
     }
 
     /**
      * @param TableBody $TableBody
      */
-    public function appendBody( TableBody $TableBody )
+    public function appendBody(TableBody $TableBody)
     {
 
-        array_push( $this->TableBody, $TableBody );
+        array_push($this->TableBody, $TableBody);
     }
 
     /**
      * @param TableBody $TableBody
      */
-    public function prependBody( TableBody $TableBody )
+    public function prependBody(TableBody $TableBody)
     {
 
-        array_unshift( $this->TableBody, $TableBody );
+        array_unshift($this->TableBody, $TableBody);
     }
 
     /**
      * @param TableFoot $TableFoot
      */
-    public function appendFoot( TableFoot $TableFoot )
+    public function appendFoot(TableFoot $TableFoot)
     {
 
-        array_push( $this->TableFoot, $TableFoot );
+        array_push($this->TableFoot, $TableFoot);
     }
 
     /**
      * @param TableFoot $TableFoot
      */
-    public function prependFoot( TableFoot $TableFoot )
+    public function prependFoot(TableFoot $TableFoot)
     {
 
-        array_unshift( $this->TableFoot, $TableFoot );
+        array_unshift($this->TableFoot, $TableFoot);
     }
 
     /**

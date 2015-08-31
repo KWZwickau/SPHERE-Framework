@@ -19,18 +19,18 @@ class Status extends Extension implements ITemplateInterface
     /**
      * @param ITypeInterface $Cache
      */
-    function __construct( ITypeInterface $Cache )
+    function __construct(ITypeInterface $Cache)
     {
 
-        $Rate = $this->getTemplate( __DIR__.'/Rate.twig' );
-        $Rate->setVariable( 'CountHits', $Cache->getHitCount() );
-        $Rate->setVariable( 'CountMisses', $Cache->getMissCount() );
+        $Rate = $this->getTemplate(__DIR__.'/Rate.twig');
+        $Rate->setVariable('CountHits', $Cache->getHitCount());
+        $Rate->setVariable('CountMisses', $Cache->getMissCount());
 
-        $Memory = $this->getTemplate( __DIR__.'/Memory.twig' );
-        $Memory->setVariable( 'SizeAvailable', $Cache->getAvailableSize() );
-        $Memory->setVariable( 'SizeUsed', $Cache->getUsedSize() );
-        $Memory->setVariable( 'SizeFree', $Cache->getFreeSize() );
-        $Memory->setVariable( 'SizeWasted', $Cache->getWastedSize() );
+        $Memory = $this->getTemplate(__DIR__.'/Memory.twig');
+        $Memory->setVariable('SizeAvailable', $Cache->getAvailableSize());
+        $Memory->setVariable('SizeUsed', $Cache->getUsedSize());
+        $Memory->setVariable('SizeFree', $Cache->getFreeSize());
+        $Memory->setVariable('SizeWasted', $Cache->getWastedSize());
 
         $this->Stage = $Rate->getContent().$Memory->getContent();
     }

@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People;
 
-use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
@@ -9,11 +8,7 @@ use SPHERE\Application\People\Meta\Meta;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Search;
-use SPHERE\Common\Frontend\Layout\Repository\Badge;
-use SPHERE\Common\Frontend\Layout\Repository\Label;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
-use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -43,35 +38,38 @@ class People implements IClusterInterface
         Relationship::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Personen' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personen'))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
 
         $tblPersonAll = Person::useService()->getPersonAll();
-        Main::getDispatcher()->registerWidget( 'Personen', new Panel( 'Anzahl an Personen', 'Insgesamt: '.count( $tblPersonAll ) ) );
+        Main::getDispatcher()->registerWidget('Personen',
+            new Panel('Anzahl an Personen', 'Insgesamt: '.count($tblPersonAll)));
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if( $tblGroupAll ) {
+        if ($tblGroupAll) {
             /** @var TblGroup $tblGroup */
             foreach ((array)$tblGroupAll as $Index => $tblGroup) {
                 $tblGroupAll[$tblGroup->getName()] =
-                    new Layout( new LayoutGroup( new LayoutRow( array(
+                    new Layout(new LayoutGroup(new LayoutRow(array(
                         new LayoutColumn(
                             $tblGroup->getName()
-                            , 5 ),
+                            , 5),
                         new LayoutColumn(
-                            new Muted( new Small( Group::useService()->countPersonAllByGroup( $tblGroup ).'&nbsp;Mitglieder' ) )
-                            , 4 ),
+                            new Muted(new Small(Group::useService()->countPersonAllByGroup($tblGroup).'&nbsp;Mitglieder'))
+                            , 4),
                         new LayoutColumn(
-                            new Standard( '', '/People/Search/Group', new \SPHERE\Common\Frontend\Icon\Repository\Person(), array( 'Id'=> $tblGroup->getId() ), 'zur Gruppe' )
-                            , 3 )
-                    ) ) ) );
+                            new Standard('', '/People/Search/Group',
+                                new \SPHERE\Common\Frontend\Icon\Repository\Person(), array('Id' => $tblGroup->getId()),
+                                'zur Gruppe')
+                            , 3)
+                    ))));
                 $tblGroupAll[$Index] = false;
             }
-            $tblGroupAll = array_filter( $tblGroupAll );
-            Main::getDispatcher()->registerWidget( 'Personen', new Panel( 'Personen in Gruppen', $tblGroupAll ), 2, 2 );
+            $tblGroupAll = array_filter($tblGroupAll);
+            Main::getDispatcher()->registerWidget('Personen', new Panel('Personen in Gruppen', $tblGroupAll), 2, 2);
         }
     }
 
@@ -81,9 +79,9 @@ class People implements IClusterInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage( 'Dashboard', 'Personen' );
+        $Stage = new Stage('Dashboard', 'Personen');
 
-        $Stage->setContent( Main::getDispatcher()->fetchDashboard( 'Personen' ) );
+        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Personen'));
 
         return $Stage;
     }

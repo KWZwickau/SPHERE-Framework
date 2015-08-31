@@ -48,14 +48,14 @@ class TblToCompany extends Element
         if (null === $this->serviceTblCompany) {
             return false;
         } else {
-            return Company::useService()->getCompanyById( $this->serviceTblCompany );
+            return Company::useService()->getCompanyById($this->serviceTblCompany);
         }
     }
 
     /**
      * @param TblCompany|null $tblCompany
      */
-    public function setServiceTblCompany( TblCompany $tblCompany = null )
+    public function setServiceTblCompany(TblCompany $tblCompany = null)
     {
 
         $this->serviceTblCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
@@ -73,7 +73,7 @@ class TblToCompany extends Element
     /**
      * @param string $Remark
      */
-    public function setRemark( $Remark )
+    public function setRemark($Remark)
     {
 
         $this->Remark = $Remark;
@@ -88,14 +88,14 @@ class TblToCompany extends Element
         if (null === $this->tblType) {
             return false;
         } else {
-            return Mail::useService()->getTypeById( $this->tblType );
+            return Mail::useService()->getTypeById($this->tblType);
         }
     }
 
     /**
      * @param null|TblType $tblType
      */
-    public function setTblType( TblType $tblType = null )
+    public function setTblType(TblType $tblType = null)
     {
 
         $this->tblType = ( null === $tblType ? null : $tblType->getId() );
@@ -110,14 +110,14 @@ class TblToCompany extends Element
         if (null === $this->tblMail) {
             return false;
         } else {
-            return Mail::useService()->getMailById( $this->tblMail );
+            return Mail::useService()->getMailById($this->tblMail);
         }
     }
 
     /**
      * @param null|TblMail $tblMail
      */
-    public function setTblMail( TblMail $tblMail = null )
+    public function setTblMail(TblMail $tblMail = null)
     {
 
         $this->tblMail = ( null === $tblMail ? null : $tblMail->getId() );

@@ -49,7 +49,7 @@ class Memcached implements IApiInterface
     public function isAvailable()
     {
 
-        if (class_exists( '\Memcached', false )) {
+        if (class_exists('\Memcached', false)) {
             return true;
         }
         return false;
@@ -163,17 +163,17 @@ class Memcached implements IApiInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
         self::$Host = (string)$Configuration['Host'];
         self::$Port = (integer)$Configuration['Port'];
 
         if (self::$Host && self::$Port) {
-            if (class_exists( '\Memcached', false ) && null === self::$Server) {
+            if (class_exists('\Memcached', false) && null === self::$Server) {
                 self::$Server = new \Memcached();
-                self::$Server->addServer( self::$Host, (integer)self::$Port );
-                self::$Server->setOption( \Memcached::OPT_TCP_NODELAY, true );
+                self::$Server->addServer(self::$Host, (integer)self::$Port);
+                self::$Server->setOption(\Memcached::OPT_TCP_NODELAY, true);
             }
         }
     }
@@ -185,11 +185,11 @@ class Memcached implements IApiInterface
      *
      * @return bool
      */
-    public function setValue( $Key, $Value, $Timeout = null )
+    public function setValue($Key, $Value, $Timeout = null)
     {
 
         if (null !== self::$Server) {
-            self::$Server->set( $Key, $Value, ( !$Timeout ? null : time() + $Timeout ) );
+            self::$Server->set($Key, $Value, ( !$Timeout ? null : time() + $Timeout ));
             return true;
         }
         return false;
@@ -200,11 +200,11 @@ class Memcached implements IApiInterface
      *
      * @return mixed|false
      */
-    public function getValue( $Key )
+    public function getValue($Key)
     {
 
         if (null !== self::$Server) {
-            $Value = self::$Server->get( $Key );
+            $Value = self::$Server->get($Key);
             // 0 = MEMCACHED_SUCCESS
             if (self::$Server->getResultCode() == 0) {
                 return $Value;

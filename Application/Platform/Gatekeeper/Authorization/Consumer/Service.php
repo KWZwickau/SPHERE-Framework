@@ -35,11 +35,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -48,12 +48,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -63,13 +63,13 @@ class Service implements IServiceInterface
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerById( $Id )
+    public function getConsumerById($Id)
     {
 
-        if (array_key_exists( $Id, self::$ConsumerByIdCache )) {
+        if (array_key_exists($Id, self::$ConsumerByIdCache)) {
             return self::$ConsumerByIdCache[$Id];
         }
-        self::$ConsumerByIdCache[$Id] = ( new Data( $this->Binding ) )->getConsumerById( $Id );
+        self::$ConsumerByIdCache[$Id] = (new Data($this->Binding))->getConsumerById($Id);
         return self::$ConsumerByIdCache[$Id];
     }
 
@@ -78,10 +78,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerByName( $Name )
+    public function getConsumerByName($Name)
     {
 
-        return ( new Data( $this->Binding ) )->getConsumerByName( $Name );
+        return (new Data($this->Binding))->getConsumerByName($Name);
     }
 
     /**
@@ -89,14 +89,14 @@ class Service implements IServiceInterface
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerBySession( $Session = null )
+    public function getConsumerBySession($Session = null)
     {
 
-        $tblConsumer = ( new Data( $this->Binding ) )->getConsumerBySession( $Session );
+        $tblConsumer = (new Data($this->Binding))->getConsumerBySession($Session);
         if ($tblConsumer) {
             return $tblConsumer;
         } else {
-            return ( new Data( $this->Binding ) )->getConsumerById( 1 );
+            return (new Data($this->Binding))->getConsumerById(1);
         }
     }
 
@@ -106,7 +106,7 @@ class Service implements IServiceInterface
     public function getConsumerAll()
     {
 
-        return ( new Data( $this->Binding ) )->getConsumerAll();
+        return (new Data($this->Binding))->getConsumerAll();
     }
 
     /**
@@ -130,23 +130,23 @@ class Service implements IServiceInterface
 
         $Error = false;
         if (null !== $ConsumerAcronym && empty( $ConsumerAcronym )) {
-            $Form->setError( 'ConsumerAcronym', 'Bitte geben Sie ein Mandantenkürzel an' );
+            $Form->setError('ConsumerAcronym', 'Bitte geben Sie ein Mandantenkürzel an');
             $Error = true;
         }
-        if ($this->getConsumerByAcronym( $ConsumerAcronym )) {
-            $Form->setError( 'ConsumerAcronym', 'Das Mandantenkürzel muss einzigartig sein' );
+        if ($this->getConsumerByAcronym($ConsumerAcronym)) {
+            $Form->setError('ConsumerAcronym', 'Das Mandantenkürzel muss einzigartig sein');
             $Error = true;
         }
         if (null !== $ConsumerName && empty( $ConsumerName )) {
-            $Form->setError( 'ConsumerName', 'Bitte geben Sie einen gültigen Mandantenname ein' );
+            $Form->setError('ConsumerName', 'Bitte geben Sie einen gültigen Mandantenname ein');
             $Error = true;
         }
 
         if ($Error) {
             return $Form;
         } else {
-            ( new Data( $this->Binding ) )->createConsumer( $ConsumerAcronym, $ConsumerName );
-            return new Redirect( '/Platform/Gatekeeper/Authorization/Consumer/Create', 0 );
+            (new Data($this->Binding))->createConsumer($ConsumerAcronym, $ConsumerName);
+            return new Redirect('/Platform/Gatekeeper/Authorization/Consumer/Create', 0);
         }
     }
 
@@ -155,13 +155,13 @@ class Service implements IServiceInterface
      *
      * @return bool|TblConsumer
      */
-    public function getConsumerByAcronym( $Acronym )
+    public function getConsumerByAcronym($Acronym)
     {
 
-        if (array_key_exists( $Acronym, self::$ConsumerByAcronymCache )) {
+        if (array_key_exists($Acronym, self::$ConsumerByAcronymCache)) {
             return self::$ConsumerByAcronymCache[$Acronym];
         }
-        self::$ConsumerByAcronymCache[$Acronym] = ( new Data( $this->Binding ) )->getConsumerByAcronym( $Acronym );
+        self::$ConsumerByAcronymCache[$Acronym] = (new Data($this->Binding))->getConsumerByAcronym($Acronym);
         return self::$ConsumerByAcronymCache[$Acronym];
     }
 }

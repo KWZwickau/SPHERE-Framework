@@ -20,11 +20,11 @@ class Address extends Extension implements ITemplateInterface
     /**
      * @param TblAddress $tblAddress
      */
-    public function __construct( TblAddress $tblAddress )
+    public function __construct(TblAddress $tblAddress)
     {
 
-        $this->Template = $this->getTemplate( __DIR__.'/Address.twig' );
-        $this->Template->setVariable( 'Address', $tblAddress );
+        $this->Template = $this->getTemplate(__DIR__.'/Address.twig');
+        $this->Template->setVariable('Address', $tblAddress);
     }
 
     /**

@@ -18,7 +18,7 @@ interface IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace );
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace);
 
     /**
      * @param bool $doSimulation
@@ -26,5 +26,5 @@ interface IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData );
+    public function setupService($doSimulation, $withData);
 }

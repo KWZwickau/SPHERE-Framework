@@ -23,11 +23,11 @@ class Transfer implements IClusterInterface
         Export::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Datentransfer' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Datentransfer'))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
     }
 
     /**
@@ -36,9 +36,9 @@ class Transfer implements IClusterInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage( 'Dashboard', 'Datentransfer' );
+        $Stage = new Stage('Dashboard', 'Datentransfer');
 
-        $Stage->setContent( Main::getDispatcher()->fetchDashboard( 'Transfer' ) );
+        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Transfer'));
 
         return $Stage;
     }

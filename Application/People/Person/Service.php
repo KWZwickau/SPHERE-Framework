@@ -36,11 +36,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -49,12 +49,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -65,7 +65,7 @@ class Service implements IServiceInterface
     public function getSalutationAll()
     {
 
-        return ( new Data( $this->Binding ) )->getSalutationAll();
+        return (new Data($this->Binding))->getSalutationAll();
     }
 
     /**
@@ -74,7 +74,7 @@ class Service implements IServiceInterface
     public function countPersonAll()
     {
 
-        return count( $this->getPersonAll() );
+        return count($this->getPersonAll());
     }
 
     /**
@@ -83,7 +83,7 @@ class Service implements IServiceInterface
     public function getPersonAll()
     {
 
-        return ( new Data( $this->Binding ) )->getPersonAll();
+        return (new Data($this->Binding))->getPersonAll();
     }
 
     /**
@@ -91,10 +91,10 @@ class Service implements IServiceInterface
      *
      * @return int
      */
-    public function countPersonAllByGroup( TblGroup $tblGroup )
+    public function countPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        return Group::useService()->countPersonAllByGroup( $tblGroup );
+        return Group::useService()->countPersonAllByGroup($tblGroup);
     }
 
     /**
@@ -103,7 +103,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|Redirect
      */
-    public function createPerson( IFormInterface $Form = null, $Person )
+    public function createPerson(IFormInterface $Form = null, $Person)
     {
 
         /**
@@ -116,35 +116,35 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Person['FirstName'] ) && empty( $Person['FirstName'] )) {
-            $Form->setError( 'Person[FirstName]', 'Bitte geben Sie einen Vornamen an' );
+            $Form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
             $Error = true;
         }
         if (isset( $Person['LastName'] ) && empty( $Person['LastName'] )) {
-            $Form->setError( 'Person[LastName]', 'Bitte geben Sie einen Nachnamen an' );
+            $Form->setError('Person[LastName]', 'Bitte geben Sie einen Nachnamen an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            if (( $tblPerson = ( new Data( $this->Binding ) )->createPerson(
-                $this->getSalutationById( $Person['Salutation'] ), $Person['Title'], $Person['FirstName'],
-                $Person['SecondName'], $Person['LastName'] ) )
+            if (( $tblPerson = (new Data($this->Binding))->createPerson(
+                $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
+                $Person['SecondName'], $Person['LastName']) )
             ) {
                 // Add to Group
                 if (isset( $Person['Group'] )) {
                     foreach ((array)$Person['Group'] as $tblGroup) {
                         Group::useService()->addGroupPerson(
-                            Group::useService()->getGroupById( $tblGroup ), $tblPerson
+                            Group::useService()->getGroupById($tblGroup), $tblPerson
                         );
                     }
                 }
-                return new Success( 'Die Person wurde erfolgreich erstellt' )
-                .new Redirect( '/People/Person', 1,
-                    array( 'Id' => $tblPerson->getId() )
+                return new Success('Die Person wurde erfolgreich erstellt')
+                .new Redirect('/People/Person', 1,
+                    array('Id' => $tblPerson->getId())
                 );
             } else {
-                return new Danger( 'Die Person konnte nicht erstellt werden' )
-                .new Redirect( '/People/Person', 10 );
+                return new Danger('Die Person konnte nicht erstellt werden')
+                .new Redirect('/People/Person', 10);
             }
         }
 
@@ -156,10 +156,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblSalutation
      */
-    public function getSalutationById( $Id )
+    public function getSalutationById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getSalutationById( $Id );
+        return (new Data($this->Binding))->getSalutationById($Id);
     }
 
     /**
@@ -167,10 +167,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblPerson
      */
-    public function getPersonById( $Id )
+    public function getPersonById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getPersonById( $Id );
+        return (new Data($this->Binding))->getPersonById($Id);
     }
 
     /**
@@ -180,7 +180,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|Redirect
      */
-    public function updatePerson( IFormInterface $Form = null, TblPerson $tblPerson, $Person )
+    public function updatePerson(IFormInterface $Form = null, TblPerson $tblPerson, $Person)
     {
 
         /**
@@ -193,47 +193,47 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Person['FirstName'] ) && empty( $Person['FirstName'] )) {
-            $Form->setError( 'Person[FirstName]', 'Bitte geben Sie einen Vornamen an' );
+            $Form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
             $Error = true;
         }
         if (isset( $Person['LastName'] ) && empty( $Person['LastName'] )) {
-            $Form->setError( 'Person[LastName]', 'Bitte geben Sie einen Nachnamen an' );
+            $Form->setError('Person[LastName]', 'Bitte geben Sie einen Nachnamen an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            if (( new Data( $this->Binding ) )->updatePerson( $tblPerson,
-                $this->getSalutationById( $Person['Salutation'] ), $Person['Title'], $Person['FirstName'],
-                $Person['SecondName'], $Person['LastName'] )
+            if ((new Data($this->Binding))->updatePerson($tblPerson,
+                $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
+                $Person['SecondName'], $Person['LastName'])
             ) {
                 // Change Groups
                 if (isset( $Person['Group'] )) {
                     // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByPerson( $tblPerson );
+                    $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                     foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupPerson( $tblGroup, $tblPerson );
+                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
                     }
                     // Add current Groups
                     foreach ((array)$Person['Group'] as $tblGroup) {
                         Group::useService()->addGroupPerson(
-                            Group::useService()->getGroupById( $tblGroup ), $tblPerson
+                            Group::useService()->getGroupById($tblGroup), $tblPerson
                         );
                     }
                 } else {
                     // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByPerson( $tblPerson );
+                    $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                     foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupPerson( $tblGroup, $tblPerson );
+                        Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
                     }
                 }
-                return new Success( 'Die Person wurde erfolgreich aktualisiert' )
-                .new Redirect( '/People/Person', 1,
-                    array( 'Id' => $tblPerson->getId() )
+                return new Success('Die Person wurde erfolgreich aktualisiert')
+                .new Redirect('/People/Person', 1,
+                    array('Id' => $tblPerson->getId())
                 );
             } else {
-                return new Danger( 'Die Person konnte nicht aktualisiert werden' )
-                .new Redirect( '/People/Person', 10 );
+                return new Danger('Die Person konnte nicht aktualisiert werden')
+                .new Redirect('/People/Person', 10);
             }
         }
 

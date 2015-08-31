@@ -21,17 +21,17 @@ class Support implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Support' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Support'))
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 'Frontend::frontendTicket'
             )
-                ->setParameterDefault( 'TicketSubject', null )
-                ->setParameterDefault( 'TicketMessage', null )
+                ->setParameterDefault('TicketSubject', null)
+                ->setParameterDefault('TicketMessage', null)
         );
     }
 

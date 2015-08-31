@@ -19,11 +19,11 @@ class Graduation implements IApplicationInterface
 //        ScoreType::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Zensuren' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Zensuren'))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
     }
 
     /**
@@ -32,7 +32,7 @@ class Graduation implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage( 'Dashboard', 'Zensuren' );
+        $Stage = new Stage('Dashboard', 'Zensuren');
 
         return $Stage;
     }

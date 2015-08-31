@@ -35,34 +35,34 @@ class Form extends Extension implements IFormInterface
      * @param string                                   $FormAction
      * @param array                                    $FormData
      */
-    public function __construct( $FormGroup, $FormButtonList = null, $FormAction = '', $FormData = array() )
+    public function __construct($FormGroup, $FormButtonList = null, $FormAction = '', $FormData = array())
     {
 
-        if (!is_array( $FormGroup )) {
-            $FormGroup = array( $FormGroup );
+        if (!is_array($FormGroup)) {
+            $FormGroup = array($FormGroup);
         }
         $this->GridGroupList = $FormGroup;
 
-        if (!is_array( $FormButtonList ) && null !== $FormButtonList) {
-            $FormButtonList = array( $FormButtonList );
+        if (!is_array($FormButtonList) && null !== $FormButtonList) {
+            $FormButtonList = array($FormButtonList);
         } elseif (empty( $FormButtonList )) {
             $FormButtonList = array();
         }
         $this->GridButtonList = $FormButtonList;
 
-        $this->Template = $this->getTemplate( __DIR__.'/Form.twig' );
+        $this->Template = $this->getTemplate(__DIR__.'/Form.twig');
         if (!empty( $FormData )) {
-            $this->Template->setVariable( 'FormAction', $this->getRequest()->getUrlBase().$FormAction );
-            $this->Template->setVariable( 'FormData', '?'.http_build_query(
-                    ( new Authenticator( new Get() ) )->getAuthenticator()->createSignature(
+            $this->Template->setVariable('FormAction', $this->getRequest()->getUrlBase().$FormAction);
+            $this->Template->setVariable('FormData', '?'.http_build_query(
+                    (new Authenticator(new Get()))->getAuthenticator()->createSignature(
                         $FormData, $FormAction
                     )
-                ) );
+                ));
         } else {
             if (empty( $FormAction )) {
-                $this->Template->setVariable( 'FormAction', $FormAction );
+                $this->Template->setVariable('FormAction', $FormAction);
             } else {
-                $this->Template->setVariable( 'FormAction', $this->getRequest()->getUrlBase().$FormAction );
+                $this->Template->setVariable('FormAction', $this->getRequest()->getUrlBase().$FormAction);
             }
         }
     }
@@ -74,7 +74,7 @@ class Form extends Extension implements IFormInterface
      *
      * @return Form
      */
-    public function setError( $Name, $Message, IIconInterface $Icon = null )
+    public function setError($Name, $Message, IIconInterface $Icon = null)
     {
 
         /** @var FormGroup $GridGroup */
@@ -90,14 +90,14 @@ class Form extends Extension implements IFormInterface
                                 if ($PanelElement instanceof Field) {
                                     /** @var IFieldInterface $PanelElement */
                                     if ($PanelElement->getName() == $Name) {
-                                        $PanelElement->setError( $Message, $Icon );
+                                        $PanelElement->setError($Message, $Icon);
                                     }
                                 }
                             }
                         }
                         if ($GridElement instanceof Field) {
                             if ($GridElement->getName() == $Name) {
-                                $GridElement->setError( $Message, $Icon );
+                                $GridElement->setError($Message, $Icon);
                             }
                         }
                     }
@@ -114,7 +114,7 @@ class Form extends Extension implements IFormInterface
      *
      * @return Form
      */
-    public function setSuccess( $Name, $Message = '', IIconInterface $Icon = null )
+    public function setSuccess($Name, $Message = '', IIconInterface $Icon = null)
     {
 
         /** @var FormGroup $GridGroup */
@@ -130,14 +130,14 @@ class Form extends Extension implements IFormInterface
                                 if ($PanelElement instanceof Field) {
                                     /** @var IFieldInterface $PanelElement */
                                     if ($PanelElement->getName() == $Name) {
-                                        $PanelElement->setSuccess( $Message, $Icon );
+                                        $PanelElement->setSuccess($Message, $Icon);
                                     }
                                 }
                             }
                         }
                         if ($GridElement instanceof Field) {
                             if ($GridElement->getName() == $Name) {
-                                $GridElement->setSuccess( $Message, $Icon );
+                                $GridElement->setSuccess($Message, $Icon);
                             }
                         }
                     }
@@ -152,10 +152,10 @@ class Form extends Extension implements IFormInterface
      *
      * @return Form
      */
-    public function setConfirm( $Message )
+    public function setConfirm($Message)
     {
 
-        $this->Template->setVariable( 'FormConfirm', $Message );
+        $this->Template->setVariable('FormConfirm', $Message);
         return $this;
     }
 
@@ -164,10 +164,10 @@ class Form extends Extension implements IFormInterface
      *
      * @return Form
      */
-    public function appendFormButton( IButtonInterface $Button )
+    public function appendFormButton(IButtonInterface $Button)
     {
 
-        array_push( $this->GridButtonList, $Button );
+        array_push($this->GridButtonList, $Button);
         return $this;
     }
 
@@ -176,10 +176,10 @@ class Form extends Extension implements IFormInterface
      *
      * @return Form
      */
-    public function prependFormButton( IButtonInterface $Button )
+    public function prependFormButton(IButtonInterface $Button)
     {
 
-        array_unshift( $this->GridButtonList, $Button );
+        array_unshift($this->GridButtonList, $Button);
         return $this;
     }
 
@@ -188,10 +188,10 @@ class Form extends Extension implements IFormInterface
      *
      * @return Form
      */
-    public function appendGridGroup( FormGroup $GridGroup )
+    public function appendGridGroup(FormGroup $GridGroup)
     {
 
-        array_push( $this->GridGroupList, $GridGroup );
+        array_push($this->GridGroupList, $GridGroup);
         return $this;
     }
 
@@ -200,10 +200,10 @@ class Form extends Extension implements IFormInterface
      *
      * @return Form
      */
-    public function prependGridGroup( FormGroup $GridGroup )
+    public function prependGridGroup(FormGroup $GridGroup)
     {
 
-        array_unshift( $this->GridGroupList, $GridGroup );
+        array_unshift($this->GridGroupList, $GridGroup);
         return $this;
     }
 
@@ -222,9 +222,9 @@ class Form extends Extension implements IFormInterface
     public function getContent()
     {
 
-        $this->Template->setVariable( 'FormButtonList', $this->GridButtonList );
-        $this->Template->setVariable( 'GridGroupList', $this->GridGroupList );
-        $this->Template->setVariable( 'Hash', $this->getHash() );
+        $this->Template->setVariable('FormButtonList', $this->GridButtonList);
+        $this->Template->setVariable('GridGroupList', $this->GridGroupList);
+        $this->Template->setVariable('Hash', $this->getHash());
         return $this->Template->getContent();
     }
 
@@ -236,13 +236,13 @@ class Form extends Extension implements IFormInterface
 
         if (empty( $this->Hash )) {
             $GroupList = $this->GridGroupList;
-            array_walk( $GroupList, function ( &$G ) {
+            array_walk($GroupList, function (&$G) {
 
-                if (is_object( $G )) {
-                    $G = serialize( $G );
+                if (is_object($G)) {
+                    $G = serialize($G);
                 }
-            } );
-            $this->Hash = sha1( json_encode( $GroupList ) );
+            });
+            $this->Hash = sha1(json_encode($GroupList));
         }
         return $this->Hash;
     }

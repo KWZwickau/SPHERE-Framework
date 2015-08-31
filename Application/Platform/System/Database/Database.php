@@ -42,25 +42,25 @@ class Database extends Extension implements IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Datenbank' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Datenbank'))
         );
         /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 'Database::frontendStatus'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Setup/Simulation',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Simulation',
                 __CLASS__.'::frontendSetup'
-            )->setParameterDefault( 'Simulation', true )
+            )->setParameterDefault('Simulation', true)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Setup/Execution',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Execution',
                 __CLASS__.'::frontendSetup'
-            )->setParameterDefault( 'Simulation', false )
+            )->setParameterDefault('Simulation', false)
         );
     }
 
@@ -85,11 +85,11 @@ class Database extends Extension implements IModuleInterface
      *
      * @param $__CLASS__
      */
-    public static function registerService( $__CLASS__ )
+    public static function registerService($__CLASS__)
     {
 
-        if (!in_array( $__CLASS__, self::$ServiceRegister )) {
-            array_push( self::$ServiceRegister, trim( $__CLASS__, '\\' ) );
+        if (!in_array($__CLASS__, self::$ServiceRegister)) {
+            array_push(self::$ServiceRegister, trim($__CLASS__, '\\'));
         }
     }
 
@@ -99,12 +99,12 @@ class Database extends Extension implements IModuleInterface
     public function frontendStatus()
     {
 
-        $Stage = new Stage( 'Database', 'Status' );
-        $this->menuButton( $Stage );
-        $Configuration = parse_ini_file( __DIR__.'/../../../../System/Database/Configuration.ini', true );
+        $Stage = new Stage('Database', 'Status');
+        $this->menuButton($Stage);
+        $Configuration = parse_ini_file(__DIR__.'/../../../../System/Database/Configuration.ini', true);
         $Result = array();
         foreach ((array)$Configuration as $Service => $Parameter) {
-            $Service = explode( ':', $Service );
+            $Service = explode(':', $Service);
 
             // Force Consumer ?
             if (!isset( $Service[4] ) && ( !isset( $Parameter['Consumer'] ) || $Parameter['Consumer'] )) {
@@ -123,11 +123,11 @@ class Database extends Extension implements IModuleInterface
                                 ( isset( $Service[4] ) ? $Service[4] : null )
                             )
                         );
-                        $Status = new Success( 'Verbunden', new Ok() );
-                    } catch( \Exception $E ) {
-                        $Status = new Danger( 'Fehler', new Warning() );
+                        $Status = new Success('Verbunden', new Ok());
+                    } catch (\Exception $E) {
+                        $Status = new Danger('Fehler', new Warning());
                     }
-                    $Result[] = $this->statusRow( $Status, $Service, $Parameter, $Connection );
+                    $Result[] = $this->statusRow($Status, $Service, $Parameter, $Connection);
                 }
             } else {
                 $Connection = null;
@@ -141,29 +141,29 @@ class Database extends Extension implements IModuleInterface
                             ( isset( $Service[4] ) ? $Service[4] : null )
                         )
                     );
-                    $Status = new Success( 'Verbunden', new Ok() );
-                } catch( \Exception $E ) {
-                    $Status = new Danger( 'Fehler', new Warning() );
+                    $Status = new Success('Verbunden', new Ok());
+                } catch (\Exception $E) {
+                    $Status = new Danger('Fehler', new Warning());
                 }
-                $Result[] = $this->statusRow( $Status, $Service, $Parameter, $Connection );
+                $Result[] = $this->statusRow($Status, $Service, $Parameter, $Connection);
             }
         }
 
         $Stage->setContent(
             new Table(
                 new TableHead(
-                    new TableRow( array(
-                        new TableColumn( 'Status' ),
-                        new TableColumn( 'Cluster' ),
-                        new TableColumn( 'Application' ),
-                        new TableColumn( 'Module' ),
-                        new TableColumn( 'Service' ),
-                        new TableColumn( 'Consumer' ),
-                        new TableColumn( 'Driver' ),
-                        new TableColumn( 'Server' ),
-                        new TableColumn( 'Port' ),
-                        new TableColumn( 'Database' )
-                    ) )
+                    new TableRow(array(
+                        new TableColumn('Status'),
+                        new TableColumn('Cluster'),
+                        new TableColumn('Application'),
+                        new TableColumn('Module'),
+                        new TableColumn('Service'),
+                        new TableColumn('Consumer'),
+                        new TableColumn('Driver'),
+                        new TableColumn('Server'),
+                        new TableColumn('Port'),
+                        new TableColumn('Database')
+                    ))
                 ),
                 new TableBody(
                     $Result
@@ -177,20 +177,20 @@ class Database extends Extension implements IModuleInterface
     /**
      * @param Stage $Stage
      */
-    private function menuButton( Stage $Stage )
+    private function menuButton(Stage $Stage)
     {
 
-        $Stage->addButton( new Standard( 'Status', new Link\Route( __NAMESPACE__ ), null,
+        $Stage->addButton(new Standard('Status', new Link\Route(__NAMESPACE__), null,
             array(), 'Datenbankverbindungen'
-        ) );
-        $Stage->addButton( new Standard( 'Simulation', new Link\Route( __NAMESPACE__.'/Setup/Simulation' ), null,
+        ));
+        $Stage->addButton(new Standard('Simulation', new Link\Route(__NAMESPACE__.'/Setup/Simulation'), null,
             array(), 'Anzeige von Strukturänderungen'
-        ) );
-        $Stage->addButton( new Standard( 'Durchführung', new Link\Route( __NAMESPACE__.'/Setup/Execution' ), null,
+        ));
+        $Stage->addButton(new Standard('Durchführung', new Link\Route(__NAMESPACE__.'/Setup/Execution'), null,
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
-        ) );
-        $Stage->addButton( new External( 'phpMyAdmin',
-            $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12' ) );
+        ));
+        $Stage->addButton(new External('phpMyAdmin',
+            $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12'));
     }
 
     /**
@@ -208,18 +208,18 @@ class Database extends Extension implements IModuleInterface
         \SPHERE\System\Database\Database $Connection = null
     ) {
 
-        return new TableRow( array(
-            new TableColumn( $Status ),
-            new TableColumn( $Service[0] ),
-            new TableColumn( $Service[1] ),
-            new TableColumn( ( isset( $Service[2] ) ? $Service[2] : null ) ),
-            new TableColumn( ( isset( $Service[3] ) ? $Service[3] : null ) ),
-            new TableColumn( ( isset( $Service[4] ) ? $Service[4] : null ) ),
-            new TableColumn( $Parameter['Driver'] ),
-            new TableColumn( $Parameter['Host'] ),
-            new TableColumn( ( isset( $Parameter['Port'] ) ? $Parameter['Port'] : 'Default' ) ),
-            new TableColumn( isset( $Connection ) ? $Connection->getDatabase() : '-NA-' )
-        ) );
+        return new TableRow(array(
+            new TableColumn($Status),
+            new TableColumn($Service[0]),
+            new TableColumn($Service[1]),
+            new TableColumn(( isset( $Service[2] ) ? $Service[2] : null )),
+            new TableColumn(( isset( $Service[3] ) ? $Service[3] : null )),
+            new TableColumn(( isset( $Service[4] ) ? $Service[4] : null )),
+            new TableColumn($Parameter['Driver']),
+            new TableColumn($Parameter['Host']),
+            new TableColumn(( isset( $Parameter['Port'] ) ? $Parameter['Port'] : 'Default' )),
+            new TableColumn(isset( $Connection ) ? $Connection->getDatabase() : '-NA-')
+        ));
     }
 
     /**
@@ -227,31 +227,31 @@ class Database extends Extension implements IModuleInterface
      *
      * @return Stage
      */
-    public function frontendSetup( $Simulation = true )
+    public function frontendSetup($Simulation = true)
     {
 
         $ClassList = get_declared_classes();
         self::$ServiceRegister = array_merge(
-            self::$ServiceRegister, array_diff( $ClassList, self::$ServiceRegister )
+            self::$ServiceRegister, array_diff($ClassList, self::$ServiceRegister)
         );
 
-        $Stage = new Stage( 'Database', 'Setup' );
-        $this->menuButton( $Stage );
+        $Stage = new Stage('Database', 'Setup');
+        $this->menuButton($Stage);
         if ($Simulation) {
             $ClassList = self::$ServiceRegister;
-            array_walk( $ClassList, function ( &$Class ) {
+            array_walk($ClassList, function (&$Class) {
 
-                $Inspection = new \ReflectionClass( $Class );
+                $Inspection = new \ReflectionClass($Class);
                 if ($Inspection->isInternal()) {
                     $Class = false;
                 } else {
-                    if ($Inspection->implementsInterface( '\SPHERE\Application\IModuleInterface' )) {
+                    if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
                         /** @var IModuleInterface $Class */
                         $Class = $Inspection->newInstance();
                         $Class = $Class->useService();
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
-                            $Class = $Class->setupService( true, false );
+                            $Class = $Class->setupService(true, false);
                         } else {
                             $Class = false;
                         }
@@ -259,24 +259,24 @@ class Database extends Extension implements IModuleInterface
                         $Class = false;
                     }
                 }
-            } );
-            $ClassList = array_filter( $ClassList );
+            });
+            $ClassList = array_filter($ClassList);
 
         } else {
             $ClassList = self::$ServiceRegister;
-            array_walk( $ClassList, function ( &$Class ) {
+            array_walk($ClassList, function (&$Class) {
 
-                $Inspection = new \ReflectionClass( $Class );
+                $Inspection = new \ReflectionClass($Class);
                 if ($Inspection->isInternal()) {
                     $Class = false;
                 } else {
-                    if ($Inspection->implementsInterface( '\SPHERE\Application\IModuleInterface' )) {
+                    if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
                         /** @var IModuleInterface $Class */
                         $Class = $Inspection->newInstance();
                         $Class = $Class->useService();
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
-                            $Class = $Class->setupService( false, false );
+                            $Class = $Class->setupService(false, false);
                         } else {
                             $Class = false;
                         }
@@ -284,23 +284,23 @@ class Database extends Extension implements IModuleInterface
                         $Class = false;
                     }
                 }
-            } );
-            $ClassList = array_filter( $ClassList );
+            });
+            $ClassList = array_filter($ClassList);
 
             $DataList = self::$ServiceRegister;
-            array_walk( $DataList, function ( &$Class ) {
+            array_walk($DataList, function (&$Class) {
 
-                $Inspection = new \ReflectionClass( $Class );
+                $Inspection = new \ReflectionClass($Class);
                 if ($Inspection->isInternal()) {
                     $Class = false;
                 } else {
-                    if ($Inspection->implementsInterface( '\SPHERE\Application\IModuleInterface' )) {
+                    if ($Inspection->implementsInterface('\SPHERE\Application\IModuleInterface')) {
                         /** @var IModuleInterface $Class */
                         $Class = $Inspection->newInstance();
                         $Class = $Class->useService();
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
-                            $Class = $Class->setupService( false, true );
+                            $Class = $Class->setupService(false, true);
                         } else {
                             $Class = false;
                         }
@@ -308,10 +308,10 @@ class Database extends Extension implements IModuleInterface
                         $Class = false;
                     }
                 }
-            } );
+            });
         }
 
-        $Stage->setContent( implode( $ClassList ) );
+        $Stage->setContent(implode($ClassList));
         return $Stage;
     }
 }

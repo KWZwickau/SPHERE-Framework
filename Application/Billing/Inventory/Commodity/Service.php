@@ -36,14 +36,14 @@ class Service implements IServiceInterface
      * Define Database Connection
      *
      * @param Identifier $Identifier
-     * @param string $EntityPath
-     * @param string $EntityNamespace
+     * @param string     $EntityPath
+     * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -52,12 +52,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $Simulate, $withData )
+    public function setupService($Simulate, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $Simulate );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($Simulate);
         if (!$Simulate && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -68,7 +68,7 @@ class Service implements IServiceInterface
     public function entityCommodityAll()
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityAll();
+        return (new Data($this->Binding))->entityCommodityAll();
     }
 
     /**
@@ -76,10 +76,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCommodityType
      */
-    public function entityCommodityTypeById( $Id )
+    public function entityCommodityTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityTypeById( $Id );
+        return (new Data($this->Binding))->entityCommodityTypeById($Id);
     }
 
     /**
@@ -87,10 +87,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCommodity
      */
-    public function entityCommodityById( $Id )
+    public function entityCommodityById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityById( $Id );
+        return (new Data($this->Binding))->entityCommodityById($Id);
     }
 
     /**
@@ -98,10 +98,10 @@ class Service implements IServiceInterface
      *
      * @return int
      */
-    public function countItemAllByCommodity( TblCommodity $tblCommodity )
+    public function countItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
-        return ( new Data( $this->Binding ) )->countItemAllByCommodity( $tblCommodity );
+        return (new Data($this->Binding))->countItemAllByCommodity($tblCommodity);
     }
 
     /**
@@ -109,10 +109,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function sumPriceItemAllByCommodity( TblCommodity $tblCommodity )
+    public function sumPriceItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
-        return ( new Data( $this->Binding ) )->sumPriceItemAllByCommodity( $tblCommodity );
+        return (new Data($this->Binding))->sumPriceItemAllByCommodity($tblCommodity);
     }
 
     /**
@@ -121,7 +121,7 @@ class Service implements IServiceInterface
     public function entityCommodityTypeAll()
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityTypeAll();
+        return (new Data($this->Binding))->entityCommodityTypeAll();
     }
 
     /**
@@ -129,10 +129,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCommodityItem
      */
-    public function entityCommodityItemById( $Id )
+    public function entityCommodityItemById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityItemById( $Id );
+        return (new Data($this->Binding))->entityCommodityItemById($Id);
     }
 
     /**
@@ -140,10 +140,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblItem[]
      */
-    public function entityCommodityItemAllByCommodity( TblCommodity $tblCommodity )
+    public function entityCommodityItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityItemAllByCommodity( $tblCommodity );
+        return (new Data($this->Binding))->entityCommodityItemAllByCommodity($tblCommodity);
     }
 
     /**
@@ -151,10 +151,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblItem[]
      */
-    public function entityItemAllByCommodity( TblCommodity $tblCommodity )
+    public function entityItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
-        return ( new Data( $this->Binding ) )->entityItemAllByCommodity( $tblCommodity );
+        return (new Data($this->Binding))->entityItemAllByCommodity($tblCommodity);
     }
 
     /**
@@ -162,10 +162,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblItem[]
      */
-    public function entityCommodityItemAllByItem( TblItem $tblItem )
+    public function entityCommodityItemAllByItem(TblItem $tblItem)
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityItemAllByItem( $tblItem );
+        return (new Data($this->Binding))->entityCommodityItemAllByItem($tblItem);
     }
 
     /**
@@ -173,10 +173,10 @@ class Service implements IServiceInterface
      *
      * @return TblAccount[]
      */
-    public function entityAccountAllByItem( TblItem $tblItem )
+    public function entityAccountAllByItem(TblItem $tblItem)
     {
 
-        return ( new Data( $this->Binding ) )->entityAccountAllByItem( $tblItem );
+        return (new Data($this->Binding))->entityAccountAllByItem($tblItem);
     }
 
     /**
@@ -184,48 +184,50 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCommodity
      */
-    public function entityCommodityByName( $Name )
+    public function entityCommodityByName($Name)
     {
 
-        return ( new Data( $this->Binding ) )->entityCommodityByName( $Name );
+        return (new Data($this->Binding))->entityCommodityByName($Name);
     }
 
     /**
      * @param IFormInterface $Stage
-     * @param $Commodity
+     * @param                $Commodity
      *
      * @return IFormInterface|string
      */
-    public function executeCreateCommodity( IFormInterface &$Stage = null, $Commodity )
+    public function executeCreateCommodity(IFormInterface &$Stage = null, $Commodity)
     {
 
         /**
          * Skip to Frontend
          */
-        if ( null === $Commodity
+        if (null === $Commodity
         ) {
             return $Stage;
         }
 
         $Error = false;
 
-        if ( isset( $Commodity['Name'] ) && empty( $Commodity['Name'] ) ) {
-            $Stage->setError( 'Commodity[Name]', 'Bitte geben Sie einen Namen an' );
+        if (isset( $Commodity['Name'] ) && empty( $Commodity['Name'] )) {
+            $Stage->setError('Commodity[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
-        } else if ( isset( $Commodity['Name'] ) && ( new Data( $this->Binding ) )->entityCommodityByName( $Commodity['Name'] ) ) {
-            $Stage->setError( 'Commodity[Name]', 'Die Leistung exisitiert bereits.
-                Bitte geben Sie eine anderen Name an' );
-            $Error = true;
+        } else {
+            if (isset( $Commodity['Name'] ) && (new Data($this->Binding))->entityCommodityByName($Commodity['Name'])) {
+                $Stage->setError('Commodity[Name]', 'Die Leistung exisitiert bereits.
+                Bitte geben Sie eine anderen Name an');
+                $Error = true;
+            }
         }
 
-        if ( !$Error ) {
-            ( new Data( $this->Binding ) )->actionCreateCommodity(
+        if (!$Error) {
+            (new Data($this->Binding))->actionCreateCommodity(
                 $Commodity['Name'],
                 $Commodity['Description'],
-                $this->entityCommodityTypeById( $Commodity['Type'] )
+                $this->entityCommodityTypeById($Commodity['Type'])
             );
-            return new Success( 'Die Leistung wurde erfolgreich angelegt' )
-            .new Redirect( '/Billing/Inventory/Commodity', 1 );
+            return new Success('Die Leistung wurde erfolgreich angelegt')
+            .new Redirect('/Billing/Inventory/Commodity', 1);
         }
         return $Stage;
     }
@@ -235,65 +237,67 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeRemoveCommodity( TblCommodity $tblCommodity )
+    public function executeRemoveCommodity(TblCommodity $tblCommodity)
     {
 
-        if ( null === $tblCommodity ) {
+        if (null === $tblCommodity) {
             return '';
         }
 
-        if ( ( new Data( $this->Binding ) )->actionRemoveCommodity( $tblCommodity ) ) {
-            return new Success( 'Die Leistung wurde erfolgreich gelöscht' )
-            .new Redirect( '/Billing/Inventory/Commodity', 1 );
+        if ((new Data($this->Binding))->actionRemoveCommodity($tblCommodity)) {
+            return new Success('Die Leistung wurde erfolgreich gelöscht')
+            .new Redirect('/Billing/Inventory/Commodity', 1);
         } else {
-            return new Danger( 'Die Leistung konnte nicht gelöscht werden' )
-            .new Redirect( '/Billing/Inventory/Commodity', 3 );
+            return new Danger('Die Leistung konnte nicht gelöscht werden')
+            .new Redirect('/Billing/Inventory/Commodity', 3);
         }
     }
 
     /**
      * @param IFormInterface $Stage
-     * @param TblCommodity $tblCommodity
-     * @param $Commodity
+     * @param TblCommodity   $tblCommodity
+     * @param                $Commodity
      *
      * @return IFormInterface|string
      */
-    public function executeEditCommodity( IFormInterface &$Stage = null, TblCommodity $tblCommodity, $Commodity )
+    public function executeEditCommodity(IFormInterface &$Stage = null, TblCommodity $tblCommodity, $Commodity)
     {
 
         /**
          * Skip to Frontend
          */
-        if ( null === $Commodity
+        if (null === $Commodity
         ) {
             return $Stage;
         }
 
         $Error = false;
 
-        if ( isset( $Commodity['Name'] ) && empty( $Commodity['Name'] ) ) {
-            $Stage->setError( 'Commodity[Name]', 'Bitte geben Sie einen Namen an' );
+        if (isset( $Commodity['Name'] ) && empty( $Commodity['Name'] )) {
+            $Stage->setError('Commodity[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
-        } else if ( isset( $Commodity['Name'] ) && $tblCommodity->getName() !== $Commodity['Name']
-            && ( new Data( $this->Binding ) )->entityCommodityByName( $Commodity['Name'] )
-        ) {
-            $Stage->setError( 'Commodity[Name]', 'Die Leistung exisitiert bereits.
-                Bitte geben Sie eine anderen Name an' );
-            $Error = true;
+        } else {
+            if (isset( $Commodity['Name'] ) && $tblCommodity->getName() !== $Commodity['Name']
+                && (new Data($this->Binding))->entityCommodityByName($Commodity['Name'])
+            ) {
+                $Stage->setError('Commodity[Name]', 'Die Leistung exisitiert bereits.
+                Bitte geben Sie eine anderen Name an');
+                $Error = true;
+            }
         }
 
-        if ( !$Error ) {
-            if ( ( new Data( $this->Binding ) )->actionEditCommodity(
+        if (!$Error) {
+            if ((new Data($this->Binding))->actionEditCommodity(
                 $tblCommodity,
                 $Commodity['Name'],
                 $Commodity['Description'],
-                $this->entityCommodityTypeById( $Commodity['Type'] )
+                $this->entityCommodityTypeById($Commodity['Type'])
             )
             ) {
-                $Stage .= new Success( 'Änderungen gespeichert, die Daten werden neu geladen...' )
-                    .new Redirect( '/Billing/Inventory/Commodity', 1 );
+                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                    .new Redirect('/Billing/Inventory/Commodity', 1);
             } else {
-                $Stage .= new Danger( 'Änderungen konnten nicht gespeichert werden' );
+                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden');
             };
         }
         return $Stage;
@@ -304,38 +308,40 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeRemoveCommodityItem( TblCommodityItem $tblCommodityItem )
+    public function executeRemoveCommodityItem(TblCommodityItem $tblCommodityItem)
     {
 
-        if ( ( new Data( $this->Binding ) )->actionRemoveCommodityItem( $tblCommodityItem ) ) {
-            return new Success( 'Der Artikel '.$tblCommodityItem->getTblItem()->getName().' wurde erfolgreich entfernt' )
-            .new Redirect( '/Billing/Inventory/Commodity/Item/Select', 1, array( 'Id' => $tblCommodityItem->getTblCommodity()->getId() ) );
+        if ((new Data($this->Binding))->actionRemoveCommodityItem($tblCommodityItem)) {
+            return new Success('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' wurde erfolgreich entfernt')
+            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 1,
+                array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
         } else {
-            return new Warning( 'Der Artikel '.$tblCommodityItem->getTblItem()->getName().' konnte nicht entfernt werden' )
-            .new Redirect( '/Billing/Inventory/Commodity/Item/Select', 3, array( 'Id' => $tblCommodityItem->getTblCommodity()->getId() ) );
+            return new Warning('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' konnte nicht entfernt werden')
+            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3,
+                array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
         }
     }
 
     /**
      * @param TblCommodity $tblCommodity
-     * @param TblItem $tblItem
-     * @param $Item
+     * @param TblItem      $tblItem
+     * @param              $Item
      *
      * @return string
      */
-    public function executeAddCommodityItem( TblCommodity $tblCommodity, TblItem $tblItem, $Item )
+    public function executeAddCommodityItem(TblCommodity $tblCommodity, TblItem $tblItem, $Item)
     {
-        if($Item['Quantity'] == null)
-        {
+
+        if ($Item['Quantity'] == null) {
             $Item['Quantity'] = 1;
         }
 
-        if ( ( new Data( $this->Binding ) )->actionAddCommodityItem( $tblCommodity, $tblItem, $Item['Quantity'] ) ) {
-            return new Success( 'Der Artikel '.$tblItem->getName().' wurde erfolgreich hinzugefügt' )
-            .new Redirect( '/Billing/Inventory/Commodity/Item/Select', 1, array( 'Id' => $tblCommodity->getId() ) );
+        if ((new Data($this->Binding))->actionAddCommodityItem($tblCommodity, $tblItem, $Item['Quantity'])) {
+            return new Success('Der Artikel '.$tblItem->getName().' wurde erfolgreich hinzugefügt')
+            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 1, array('Id' => $tblCommodity->getId()));
         } else {
-            return new Warning( 'Der Artikel '.$tblItem->getName().' konnte nicht entfernt werden' )
-            .new Redirect( '/Billing/Inventory/Commodity/Item/Select', 3, array( 'Id' => $tblCommodity->getId() ) );
+            return new Warning('Der Artikel '.$tblItem->getName().' konnte nicht entfernt werden')
+            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3, array('Id' => $tblCommodity->getId()));
         }
     }
 }

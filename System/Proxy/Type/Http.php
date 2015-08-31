@@ -73,7 +73,7 @@ class Http implements ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
         if (isset( $Configuration['Host'] )) {

@@ -52,7 +52,7 @@ class TblAccount extends Element
     /**
      * @param string $Number
      */
-    public function setNumber( $Number )
+    public function setNumber($Number)
     {
 
         $this->Number = $Number;
@@ -70,7 +70,7 @@ class TblAccount extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;
@@ -88,7 +88,7 @@ class TblAccount extends Element
     /**
      * @param boolean $IsActive
      */
-    public function setIsActive( $IsActive )
+    public function setIsActive($IsActive)
     {
 
         $this->IsActive = $IsActive;
@@ -100,17 +100,17 @@ class TblAccount extends Element
     public function getTblAccountType()
     {
 
-        if ( null === $this->tblAccountType ) {
+        if (null === $this->tblAccountType) {
             return false;
         } else {
-            return Account::useService()->entityAccountTypeById( $this->tblAccountType );
+            return Account::useService()->entityAccountTypeById($this->tblAccountType);
         }
     }
 
     /**
      * @param null|TblAccountType $tblAccountType
      */
-    public function setTblAccountType( TblAccountType $tblAccountType = null )
+    public function setTblAccountType(TblAccountType $tblAccountType = null)
     {
 
         $this->tblAccountType = ( null === $tblAccountType ? null : $tblAccountType->getId() );
@@ -122,17 +122,17 @@ class TblAccount extends Element
     public function getTblAccountKey()
     {
 
-        if ( null === $this->tblAccountKey ) {
+        if (null === $this->tblAccountKey) {
             return false;
         } else {
-            return Account::useService()->entityAccountKeyById( $this->tblAccountKey );
+            return Account::useService()->entityAccountKeyById($this->tblAccountKey);
         }
     }
 
     /**
      * @param null|TblAccountKey $tblAccountKey
      */
-    public function setTblAccountKey( TblAccountKey $tblAccountKey = null )
+    public function setTblAccountKey(TblAccountKey $tblAccountKey = null)
     {
 
         $this->tblAccountKey = ( null === $tblAccountKey ? null : $tblAccountKey->getId() );

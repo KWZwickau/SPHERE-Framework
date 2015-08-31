@@ -25,7 +25,7 @@ class Common implements IModuleInterface
     {
 
         return new Service(
-            new Identifier( 'People', 'Meta', null, null, Consumer::useService()->getConsumerBySession() ),
+            new Identifier('People', 'Meta', null, null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

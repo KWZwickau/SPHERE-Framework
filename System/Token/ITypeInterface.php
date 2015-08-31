@@ -17,5 +17,5 @@ interface ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration );
+    public function setConfiguration($Configuration);
 }

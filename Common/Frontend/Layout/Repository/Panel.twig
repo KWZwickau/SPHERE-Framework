@@ -23,7 +23,7 @@
     {% endif %}
 </div>
 <script type="text/javascript">
-    Client.Use( 'ModAlways', function()
+    Client.Use('ModAlways', function()
     {
         {% if Filter is not empty %}
         var Option = {
@@ -34,7 +34,7 @@
                 'sphere-label'
             ]
         };
-        var PanelList = new List( "{{ Hash }}", Option );
+        var PanelList = new List("{{ Hash }}", Option);
         {% endif %}
-    } );
+    });
 </script>

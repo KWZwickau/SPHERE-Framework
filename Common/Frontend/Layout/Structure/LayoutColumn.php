@@ -22,11 +22,11 @@ class LayoutColumn extends Extension implements ILayoutInterface
      * @param string|IFrontendInterface|IFrontendInterface[] $Frontend
      * @param int                                            $Size
      */
-    public function __construct( $Frontend, $Size = 12 )
+    public function __construct($Frontend, $Size = 12)
     {
 
-        if (!is_array( $Frontend )) {
-            $Frontend = array( $Frontend );
+        if (!is_array($Frontend)) {
+            $Frontend = array($Frontend);
         }
         $this->Frontend = $Frontend;
         $this->Size = $Size;

@@ -22,7 +22,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -38,14 +38,14 @@ class Data
      *
      * @return TblCompany
      */
-    public function createCompany( $Name )
+    public function createCompany($Name)
     {
 
         $Manager = $this->Connection->getEntityManager();
         $Entity = new TblCompany();
-        $Entity->setName( $Name );
-        $Manager->saveEntity( $Entity );
-        Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+        $Entity->setName($Name);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         return $Entity;
     }
 
@@ -62,12 +62,12 @@ class Data
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblCompany $Entity */
-        $Entity = $Manager->getEntityById( 'TblCompany', $tblCompany->getId() );
+        $Entity = $Manager->getEntityById('TblCompany', $tblCompany->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setName( $Name );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createUpdateEntry( $this->Connection->getDatabase(), $Protocol, $Entity );
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -80,7 +80,7 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblCompany' )->findAll();
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblCompany')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -89,14 +89,14 @@ class Data
      *
      * @return bool|TblCompany
      */
-    public function getCompanyById( $Id )
+    public function getCompanyById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblCompany', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblCompany', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
         }
         return ( null === $Entity ? false : $Entity );
     }

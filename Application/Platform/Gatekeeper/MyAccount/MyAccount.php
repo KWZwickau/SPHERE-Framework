@@ -20,12 +20,12 @@ class MyAccount implements IModuleInterface
     {
 
         if (Account::useService()->getAccountBySession()) {
-            Main::getDisplay()->addServiceNavigation( new Link( new Link\Route( __NAMESPACE__ ),
-                new Link\Name( 'Profil' ), new Link\Icon( new Person() )
-            ) );
+            Main::getDisplay()->addServiceNavigation(new Link(new Link\Route(__NAMESPACE__),
+                new Link\Name('Profil'), new Link\Icon(new Person())
+            ));
         }
 
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendMyAccount'
         )
         );

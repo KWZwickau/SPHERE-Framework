@@ -17,14 +17,14 @@ class Authenticator
      *
      * @throws \Exception
      */
-    function __construct( ITypeInterface $Type )
+    function __construct(ITypeInterface $Type)
     {
 
         $this->Type = $Type;
         if ($this->Type->getConfiguration() !== null) {
-            $Configuration = parse_ini_file( __DIR__.'/Configuration.ini', true );
+            $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
             if (isset( $Configuration[$this->Type->getConfiguration()] )) {
-                $this->Type->setConfiguration( $Configuration[$this->Type->getConfiguration()] );
+                $this->Type->setConfiguration($Configuration[$this->Type->getConfiguration()]);
             }
         }
     }

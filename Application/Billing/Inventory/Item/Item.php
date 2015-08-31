@@ -27,25 +27,25 @@ class Item implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 __NAMESPACE__.'\Frontend::frontendItemStatus'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Create',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
                 __NAMESPACE__.'\Frontend::frontendItemCreate'
-            )->setParameterDefault( 'Item', null )
+            )->setParameterDefault('Item', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Delete',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
                 __NAMESPACE__.'\Frontend::frontendItemDelete'
-            )->setParameterDefault( 'Id', null )
+            )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__.'/Edit',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit',
                 __NAMESPACE__.'\Frontend::frontendItemEdit'
-            )->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'Item', null )
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('Item', null)
         );
     }
 
@@ -55,7 +55,8 @@ class Item implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Billing', 'Inventory', 'Item', null, Consumer::useService()->getConsumerBySession() ),
+        return new Service(new Identifier('Billing', 'Inventory', 'Item', null,
+            Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

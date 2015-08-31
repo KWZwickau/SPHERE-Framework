@@ -27,7 +27,7 @@ class Data
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -36,11 +36,11 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->createType( 'Sorgeberechtigt' );
-        $this->createType( 'Vormund' );
-        $this->createType( 'Bevollmächtigt' );
-        $this->createType( 'Geschwisterkind' );
-        $this->createType( 'Arzt' );
+        $this->createType('Sorgeberechtigt');
+        $this->createType('Vormund');
+        $this->createType('Bevollmächtigt');
+        $this->createType('Geschwisterkind');
+        $this->createType('Arzt');
     }
 
     /**
@@ -50,28 +50,28 @@ class Data
      *
      * @return TblType
      */
-    public function createType( $Name, $Description = '', $IsLocked = false )
+    public function createType($Name, $Description = '', $IsLocked = false)
     {
 
         $Manager = $this->Connection->getEntityManager();
         if ($IsLocked) {
-            $Entity = $Manager->getEntity( 'TblType' )->findOneBy( array(
+            $Entity = $Manager->getEntity('TblType')->findOneBy(array(
                 TblType::ATTR_NAME      => $Name,
                 TblType::ATTR_IS_LOCKED => $IsLocked
-            ) );
+            ));
         } else {
-            $Entity = $Manager->getEntity( 'TblType' )->findOneBy( array(
+            $Entity = $Manager->getEntity('TblType')->findOneBy(array(
                 TblType::ATTR_NAME => $Name
-            ) );
+            ));
         }
 
         if (null === $Entity) {
             $Entity = new TblType();
-            $Entity->setName( $Name );
-            $Entity->setDescription( $Description );
-            $Entity->setIsLocked( $IsLocked );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Entity->setIsLocked($IsLocked);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -81,14 +81,14 @@ class Data
      *
      * @return bool|TblType
      */
-    public function getTypeById( $Id )
+    public function getTypeById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblType', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -100,10 +100,10 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $EntityList = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblType' )->findAll();
-            $Cache->setValue( __METHOD__, ( null === $EntityList ? false : $EntityList ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
+            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
         }
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
@@ -113,14 +113,14 @@ class Data
      *
      * @return bool|TblToPerson
      */
-    public function getRelationshipToPersonById( $Id )
+    public function getRelationshipToPersonById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToPerson', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -130,14 +130,14 @@ class Data
      *
      * @return bool|TblToCompany
      */
-    public function getRelationshipToCompanyById( $Id )
+    public function getRelationshipToCompanyById($Id)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memcached() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__.'::'.$Id ) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblToCompany', $Id );
-            $Cache->setValue( __METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500 );
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
+            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
+            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -147,21 +147,21 @@ class Data
      *
      * @return bool|TblToPerson[]
      */
-    public function getPersonRelationshipAllByPerson( TblPerson $tblPerson )
+    public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
             $EntityList = array_merge(
-                $this->Connection->getEntityManager()->getEntity( 'TblToPerson' )->findBy( array(
+                $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
                     TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
-                ) ),
-                $this->Connection->getEntityManager()->getEntity( 'TblToPerson' )->findBy( array(
+                )),
+                $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
                     TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
-                ) )
+                ))
             );
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -171,16 +171,16 @@ class Data
      *
      * @return bool|TblToPerson[]
      */
-    public function getCompanyRelationshipAllByPerson( TblPerson $tblPerson )
+    public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = ( new Cache( new Memory() ) )->getCache();
-        if (!( $Entity = $Cache->getValue( __METHOD__ ) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblToCompany' )->findBy( array(
+        $Cache = (new Cache(new Memory()))->getCache();
+        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+            $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
                 TblToCompany::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ) );
-            $Cache->setValue( __METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300 );
+            ));
+            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -201,20 +201,20 @@ class Data
     ) {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblToPerson' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblToPerson')
+            ->findOneBy(array(
                 TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPersonFrom->getId(),
                 TblToPerson::SERVICE_TBL_PERSON_TO   => $tblPersonTo->getId(),
                 TblToPerson::ATT_TBL_TYPE            => $tblType->getId(),
-            ) );
+            ));
         if (null === $Entity) {
             $Entity = new TblToPerson();
-            $Entity->setServiceTblPersonFrom( $tblPersonFrom );
-            $Entity->setServiceTblPersonTo( $tblPersonTo );
-            $Entity->setTblType( $tblType );
-            $Entity->setRemark( $Remark );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setServiceTblPersonFrom($tblPersonFrom);
+            $Entity->setServiceTblPersonTo($tblPersonTo);
+            $Entity->setTblType($tblType);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -224,15 +224,15 @@ class Data
      *
      * @return bool
      */
-    public function removePersonRelationshipToPerson( TblToPerson $tblToPerson )
+    public function removePersonRelationshipToPerson(TblToPerson $tblToPerson)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblToPerson $Entity */
-        $Entity = $Manager->getEntityById( 'TblToPerson', $tblToPerson->getId() );
+        $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -243,15 +243,15 @@ class Data
      *
      * @return bool
      */
-    public function removeCompanyRelationshipToPerson( TblToCompany $tblToCompany )
+    public function removeCompanyRelationshipToPerson(TblToCompany $tblToCompany)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblToCompany $Entity */
-        $Entity = $Manager->getEntityById( 'TblToCompany', $tblToCompany->getId() );
+        $Entity = $Manager->getEntityById('TblToCompany', $tblToCompany->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -273,20 +273,20 @@ class Data
     ) {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblToCompany' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblToCompany')
+            ->findOneBy(array(
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
                 TblToCompany::SERVICE_TBL_PERSON  => $tblPerson->getId(),
                 TblToCompany::ATT_TBL_TYPE        => $tblType->getId(),
-            ) );
+            ));
         if (null === $Entity) {
             $Entity = new TblToCompany();
-            $Entity->setServiceTblCompany( $tblCompany );
-            $Entity->setServiceTblPerson( $tblPerson );
-            $Entity->setTblType( $tblType );
-            $Entity->setRemark( $Remark );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setServiceTblCompany($tblCompany);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setTblType($tblType);
+            $Entity->setRemark($Remark);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }

@@ -23,24 +23,24 @@ class Redirect extends Extension implements ITemplateInterface
      * @param int    $Timeout
      * @param array  $Data
      */
-    public function __construct( $Route, $Timeout = 15, $Data = array() )
+    public function __construct($Route, $Timeout = 15, $Data = array())
     {
 
         if (!empty( $Data )) {
             $Data = '?'.http_build_query(
-                    ( new Authenticator( new Get() ) )->getAuthenticator()->createSignature( $Data, $Route )
+                    (new Authenticator(new Get()))->getAuthenticator()->createSignature($Data, $Route)
                 );
         } else {
             $Data = '';
         }
 
         // Trim /Client
-        $Route = str_replace( '/Client', '', $Route );
+        $Route = str_replace('/Client', '', $Route);
 
-        $this->Template = $this->getTemplate( __DIR__.'/Redirect.twig' );
-        $this->Template->setVariable( 'Route', '/'.trim( $Route, '/' ).$Data );
-        $this->Template->setVariable( 'Timeout', $Timeout );
-        $this->Template->setVariable( 'UrlBase', $this->getRequest()->getUrlBase() );
+        $this->Template = $this->getTemplate(__DIR__.'/Redirect.twig');
+        $this->Template->setVariable('Route', '/'.trim($Route, '/').$Data);
+        $this->Template->setVariable('Timeout', $Timeout);
+        $this->Template->setVariable('UrlBase', $this->getRequest()->getUrlBase());
 
     }
 

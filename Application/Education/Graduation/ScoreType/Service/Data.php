@@ -7,13 +7,14 @@ use SPHERE\System\Database\Fitting\Binding;
 
 class Data
 {
+
     /** @var null|Binding $Connection */
     private $Connection = null;
 
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -21,18 +22,19 @@ class Data
 
     public function setupDatabaseContent()
     {
-        $this->createScoreType( 'Besondere Leistungsfeststellung', 'BLF' );
-        $this->createScoreType( 'Hausaufgaben', 'HA' );
-        $this->createScoreType( 'Klassenarbeit', 'KA' );
-        $this->createScoreType( 'Kurzkontrolle', 'KK' );
-        $this->createScoreType( 'Klausur', 'KL' );
-        $this->createScoreType( 'Komplexe Leistung', 'KoL' );
-        $this->createScoreType( 'Leistungskontrolle', 'LK' );
-        $this->createScoreType( 'Mitarbeit', 'MA' );
-        $this->createScoreType( 'Mündlich', 'MDL' );
-        $this->createScoreType( 'Mündliche Leitungskontrolle', 'MLK' );
-        $this->createScoreType( 'Projekt', 'Prj' );
-        $this->createScoreType( 'Tägliche Übung', 'TÜ' );
+
+        $this->createScoreType('Besondere Leistungsfeststellung', 'BLF');
+        $this->createScoreType('Hausaufgaben', 'HA');
+        $this->createScoreType('Klassenarbeit', 'KA');
+        $this->createScoreType('Kurzkontrolle', 'KK');
+        $this->createScoreType('Klausur', 'KL');
+        $this->createScoreType('Komplexe Leistung', 'KoL');
+        $this->createScoreType('Leistungskontrolle', 'LK');
+        $this->createScoreType('Mitarbeit', 'MA');
+        $this->createScoreType('Mündlich', 'MDL');
+        $this->createScoreType('Mündliche Leitungskontrolle', 'MLK');
+        $this->createScoreType('Projekt', 'Prj');
+        $this->createScoreType('Tägliche Übung', 'TÜ');
     }
 
     /**
@@ -41,22 +43,22 @@ class Data
      *
      * @return null|object|TblScoreType
      */
-    public function createScoreType( $Name, $Short )
+    public function createScoreType($Name, $Short)
     {
 
         $Manager = $this->Connection->getEntityManager();
 
-        $Entity = $Manager->getEntity( 'TblScoreType' )
-            ->findOneBy( array( TblScoreType::ATTR_NAME => $Name ) );
+        $Entity = $Manager->getEntity('TblScoreType')
+            ->findOneBy(array(TblScoreType::ATTR_NAME => $Name));
 
-        if ( null === $Entity ) {
+        if (null === $Entity) {
             $Entity = new TblScoreType();
-            $Entity->setName( $Name );
-            $Entity->setShort( $Short );
+            $Entity->setName($Name);
+            $Entity->setShort($Short);
 
-            var_dump( $Entity );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            var_dump($Entity);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -66,18 +68,19 @@ class Data
      *
      * @return bool
      */
-    public function removeScoreTypeByEntity( TblScoreType $tblScoreType )
+    public function removeScoreTypeByEntity(TblScoreType $tblScoreType)
     {
+
         $Manager = $this->Connection->getEntityManager();
 
-        $Entity = $Manager->getEntity( 'TblScoreType' )->findOneBy(
+        $Entity = $Manager->getEntity('TblScoreType')->findOneBy(
             array(
                 'Id' => $tblScoreType->getId()
-            ) );
+            ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(),
-                $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;
@@ -88,10 +91,10 @@ class Data
      *
      * @return bool|TblScoreType
      */
-    public function getScoreTypeById( $Id )
+    public function getScoreTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblScoreType', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblScoreType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -100,11 +103,11 @@ class Data
      *
      * @return bool|TblScoreType
      */
-    public function getScoreTypeByName( $Name )
+    public function getScoreTypeByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity( 'TblScoreType' )
-            ->findOneBy( array( TblScoreType::ATTR_NAME => $Name ) );
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblScoreType')
+            ->findOneBy(array(TblScoreType::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -114,7 +117,7 @@ class Data
     public function getScoreTypeAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblScoreType' )->findAll();
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblScoreType')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 }

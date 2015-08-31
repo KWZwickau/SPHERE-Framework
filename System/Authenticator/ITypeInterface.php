@@ -17,7 +17,7 @@ interface ITypeInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration );
+    public function setConfiguration($Configuration);
 
     /**
      * @return bool|null
@@ -30,5 +30,5 @@ interface ITypeInterface
      *
      * @return array
      */
-    public function createSignature( $Data, $Location = null );
+    public function createSignature($Data, $Location = null);
 }

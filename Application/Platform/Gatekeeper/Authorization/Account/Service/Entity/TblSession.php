@@ -36,7 +36,7 @@ class TblSession extends Element
     /**
      * @param string $Session
      */
-    function __construct( $Session )
+    function __construct($Session)
     {
 
         $this->Session = $Session;
@@ -51,14 +51,14 @@ class TblSession extends Element
         if (null === $this->tblAccount) {
             return false;
         } else {
-            return Account::useService()->getAccountById( $this->tblAccount );
+            return Account::useService()->getAccountById($this->tblAccount);
         }
     }
 
     /**
      * @param null|TblAccount $tblAccount
      */
-    public function setTblAccount( TblAccount $tblAccount = null )
+    public function setTblAccount(TblAccount $tblAccount = null)
     {
 
         $this->tblAccount = ( null === $tblAccount ? null : $tblAccount->getId() );
@@ -76,7 +76,7 @@ class TblSession extends Element
     /**
      * @param integer $Timeout
      */
-    public function setTimeout( $Timeout )
+    public function setTimeout($Timeout)
     {
 
         $this->Timeout = $Timeout;
@@ -94,7 +94,7 @@ class TblSession extends Element
     /**
      * @param string $Session
      */
-    public function setSession( $Session )
+    public function setSession($Session)
     {
 
         $this->Session = $Session;

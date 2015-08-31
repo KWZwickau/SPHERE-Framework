@@ -34,7 +34,7 @@ class TblMail extends Element
     /**
      * @param string $Address
      */
-    public function setAddress( $Address )
+    public function setAddress($Address)
     {
 
         $this->Address = $Address;

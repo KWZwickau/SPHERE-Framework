@@ -39,14 +39,14 @@ class TblMember extends Element
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById( $this->serviceTblPerson );
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServiceTblPerson( TblPerson $tblPerson = null )
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
@@ -61,14 +61,14 @@ class TblMember extends Element
         if (null === $this->tblGroup) {
             return false;
         } else {
-            return Group::useService()->getGroupById( $this->tblGroup );
+            return Group::useService()->getGroupById($this->tblGroup);
         }
     }
 
     /**
      * @param null|TblGroup $tblGroup
      */
-    public function setTblGroup( TblGroup $tblGroup = null )
+    public function setTblGroup(TblGroup $tblGroup = null)
     {
 
         $this->tblGroup = ( null === $tblGroup ? null : $tblGroup->getId() );

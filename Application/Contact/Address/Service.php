@@ -40,11 +40,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -53,12 +53,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -68,10 +68,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCity
      */
-    public function getCityById( $Id )
+    public function getCityById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getCityById( $Id );
+        return (new Data($this->Binding))->getCityById($Id);
     }
 
     /**
@@ -79,10 +79,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblAddress
      */
-    public function getAddressById( $Id )
+    public function getAddressById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getAddressById( $Id );
+        return (new Data($this->Binding))->getAddressById($Id);
     }
 
     /**
@@ -91,7 +91,7 @@ class Service implements IServiceInterface
     public function getCityAll()
     {
 
-        return ( new Data( $this->Binding ) )->getCityAll();
+        return (new Data($this->Binding))->getCityAll();
     }
 
     /**
@@ -100,7 +100,7 @@ class Service implements IServiceInterface
     public function getStateAll()
     {
 
-        return ( new Data( $this->Binding ) )->getStateAll();
+        return (new Data($this->Binding))->getStateAll();
     }
 
     /**
@@ -109,7 +109,7 @@ class Service implements IServiceInterface
     public function getAddressAll()
     {
 
-        return ( new Data( $this->Binding ) )->getAddressAll();
+        return (new Data($this->Binding))->getAddressAll();
     }
 
     /**
@@ -118,7 +118,7 @@ class Service implements IServiceInterface
     public function getTypeAll()
     {
 
-        return ( new Data( $this->Binding ) )->getTypeAll();
+        return (new Data($this->Binding))->getTypeAll();
     }
 
     /**
@@ -153,52 +153,52 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
-            $Form->setError( 'Street[Name]', 'Bitte geben Sie eine Strasse an' );
+            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
-            $Form->setSuccess( 'Street[Number]' );
+            $Form->setSuccess('Street[Number]');
         }
         if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
-            $Form->setError( 'Street[Number]', 'Bitte geben Sie eine Hausnummer an' );
+            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         } else {
-            $Form->setSuccess( 'Street[Number]' );
+            $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match( '!^[0-9]{5}$!is', $City['Code'] )) {
-            $Form->setError( 'City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein' );
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
             $Error = true;
         } else {
-            $Form->setSuccess( 'City[Code]' );
+            $Form->setSuccess('City[Code]');
         }
         if (isset( $City['Name'] ) && empty( $City['Name'] )) {
-            $Form->setError( 'City[Name]', 'Bitte geben Sie einen Namen ein' );
+            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
-            $Form->setSuccess( 'City[Name]' );
+            $Form->setSuccess('City[Name]');
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblState = $this->getStateById( $State );
-            $tblCity = ( new Data( $this->Binding ) )->createCity(
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblState = $this->getStateById($State);
+            $tblCity = (new Data($this->Binding))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
-            $tblAddress = ( new Data( $this->Binding ) )->createAddress(
+            $tblAddress = (new Data($this->Binding))->createAddress(
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
             );
 
-            if (( new Data( $this->Binding ) )->addAddressToPerson( $tblPerson, $tblAddress, $tblType,
-                $Type['Remark'] )
+            if ((new Data($this->Binding))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
+                $Type['Remark'])
             ) {
-                return new Success( 'Die Adresse wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/People/Person', 1,
-                    array( 'Id' => $tblPerson->getId() ) );
+                return new Success('Die Adresse wurde erfolgreich hinzugefügt')
+                .new Redirect('/People/Person', 1,
+                    array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger( 'Die Adresse konnte nicht hinzugefügt werden' )
-                .new Redirect( '/People/Person', 10,
-                    array( 'Id' => $tblPerson->getId() ) );
+                return new Danger('Die Adresse konnte nicht hinzugefügt werden')
+                .new Redirect('/People/Person', 10,
+                    array('Id' => $tblPerson->getId()));
             }
         }
         return $Form;
@@ -209,10 +209,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblType
      */
-    public function getTypeById( $Id )
+    public function getTypeById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getTypeById( $Id );
+        return (new Data($this->Binding))->getTypeById($Id);
     }
 
     /**
@@ -220,10 +220,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblState
      */
-    public function getStateById( $Id )
+    public function getStateById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getStateById( $Id );
+        return (new Data($this->Binding))->getStateById($Id);
     }
 
     /**
@@ -258,52 +258,52 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
-            $Form->setError( 'Street[Name]', 'Bitte geben Sie eine Strasse an' );
+            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
             $Error = true;
         } else {
-            $Form->setSuccess( 'Street[Number]' );
+            $Form->setSuccess('Street[Number]');
         }
         if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
-            $Form->setError( 'Street[Number]', 'Bitte geben Sie eine Hausnummer an' );
+            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
             $Error = true;
         } else {
-            $Form->setSuccess( 'Street[Number]' );
+            $Form->setSuccess('Street[Number]');
         }
 
-        if (isset( $City['Code'] ) && !preg_match( '!^[0-9]{5}$!is', $City['Code'] )) {
-            $Form->setError( 'City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein' );
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
             $Error = true;
         } else {
-            $Form->setSuccess( 'City[Code]' );
+            $Form->setSuccess('City[Code]');
         }
         if (isset( $City['Name'] ) && empty( $City['Name'] )) {
-            $Form->setError( 'City[Name]', 'Bitte geben Sie einen Namen ein' );
+            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
             $Error = true;
         } else {
-            $Form->setSuccess( 'City[Name]' );
+            $Form->setSuccess('City[Name]');
         }
 
         if (!$Error) {
 
-            $tblType = $this->getTypeById( $Type['Type'] );
-            $tblState = $this->getStateById( $State );
-            $tblCity = ( new Data( $this->Binding ) )->createCity(
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblState = $this->getStateById($State);
+            $tblCity = (new Data($this->Binding))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
-            $tblAddress = ( new Data( $this->Binding ) )->createAddress(
+            $tblAddress = (new Data($this->Binding))->createAddress(
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
             );
 
-            if (( new Data( $this->Binding ) )->addAddressToCompany( $tblCompany, $tblAddress, $tblType,
-                $Type['Remark'] )
+            if ((new Data($this->Binding))->addAddressToCompany($tblCompany, $tblAddress, $tblType,
+                $Type['Remark'])
             ) {
-                return new Success( 'Die Adresse wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/Corporation/Company', 1,
-                    array( 'Id' => $tblPerson->getId() ) );
+                return new Success('Die Adresse wurde erfolgreich hinzugefügt')
+                .new Redirect('/Corporation/Company', 1,
+                    array('Id' => $tblPerson->getId()));
             } else {
-                return new Danger( 'Die Adresse konnte nicht hinzugefügt werden' )
-                .new Redirect( '/Corporation/Company', 10,
-                    array( 'Id' => $tblPerson->getId() ) );
+                return new Danger('Die Adresse konnte nicht hinzugefügt werden')
+                .new Redirect('/Corporation/Company', 10,
+                    array('Id' => $tblPerson->getId()));
             }
         }
         return $Form;
@@ -314,10 +314,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson[]
      */
-    public function getAddressAllByPerson( TblPerson $tblPerson )
+    public function getAddressAllByPerson(TblPerson $tblPerson)
     {
 
-        return ( new Data( $this->Binding ) )->getAddressAllByPerson( $tblPerson );
+        return (new Data($this->Binding))->getAddressAllByPerson($tblPerson);
     }
 
     /**
@@ -325,10 +325,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToCompany[]
      */
-    public function getAddressAllByCompany( TblCompany $tblCompany )
+    public function getAddressAllByCompany(TblCompany $tblCompany)
     {
 
-        return ( new Data( $this->Binding ) )->getAddressAllByCompany( $tblCompany );
+        return (new Data($this->Binding))->getAddressAllByCompany($tblCompany);
     }
 
     /**
@@ -336,10 +336,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToPerson
      */
-    public function getAddressToPersonById( $Id )
+    public function getAddressToPersonById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getAddressToPersonById( $Id );
+        return (new Data($this->Binding))->getAddressToPersonById($Id);
     }
 
 
@@ -348,10 +348,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblToCompany
      */
-    public function getAddressToCompanyById( $Id )
+    public function getAddressToCompanyById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getAddressToCompanyById( $Id );
+        return (new Data($this->Binding))->getAddressToCompanyById($Id);
     }
 
     /**
@@ -359,10 +359,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removeAddressToPerson( TblToPerson $tblToPerson )
+    public function removeAddressToPerson(TblToPerson $tblToPerson)
     {
 
-        return ( new Data( $this->Binding ) )->removeAddressToPerson( $tblToPerson );
+        return (new Data($this->Binding))->removeAddressToPerson($tblToPerson);
     }
 
     /**
@@ -370,9 +370,9 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function removeAddressToCompany( TblToCompany $tblToCompany )
+    public function removeAddressToCompany(TblToCompany $tblToCompany)
     {
 
-        return ( new Data( $this->Binding ) )->removeAddressToCompany( $tblToCompany );
+        return (new Data($this->Binding))->removeAddressToCompany($tblToCompany);
     }
 }

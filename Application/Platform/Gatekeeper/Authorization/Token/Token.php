@@ -18,16 +18,17 @@ class Token implements IModuleInterface
 
     public static function registerModule()
     {
-        Database::registerService( __CLASS__ );
 
-        Main::getDisplay()->addModuleNavigation( new Link( new Link\Route( __NAMESPACE__ ),
-            new Link\Name( 'Hardware-Token' ) ),
-            new Link\Route( '/Platform/Gatekeeper/Authorization' )
+        Database::registerService(__CLASS__);
+
+        Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__),
+            new Link\Name('Hardware-Token')),
+            new Link\Route('/Platform/Gatekeeper/Authorization')
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendYubiKey'
         )
-            ->setParameterDefault( 'CredentialKey', null )
+            ->setParameterDefault('CredentialKey', null)
         );
     }
 
@@ -46,7 +47,7 @@ class Token implements IModuleInterface
     public static function useService()
     {
 
-        return new Service( new Identifier( 'Platform', 'Gatekeeper', 'Authorization', 'Token' ),
+        return new Service(new Identifier('Platform', 'Gatekeeper', 'Authorization', 'Token'),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }

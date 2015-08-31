@@ -23,7 +23,7 @@ class Logger extends Extension implements SQLLogger
      *
      * @return void
      */
-    public function startQuery( $sql, array $params = null, array $types = null )
+    public function startQuery($sql, array $params = null, array $types = null)
     {
 
         $this->Data = func_get_args();
@@ -32,18 +32,18 @@ class Logger extends Extension implements SQLLogger
         $Log = $sql;
 
         ob_start();
-        var_dump( $params );
+        var_dump($params);
         $params = ob_get_clean();
 
         $Log .= ' '.$params;
 
         ob_start();
-        var_dump( $types );
+        var_dump($types);
         $types = ob_get_clean();
 
         $Log .= ' '.$types;
 
-        $this->getDebugger()->protocolDump( $Log );
+        $this->getDebugger()->protocolDump($Log);
     }
 
     /**
@@ -55,7 +55,7 @@ class Logger extends Extension implements SQLLogger
     {
 
         $this->getDebugger()->addProtocol(
-            number_format( ( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, ',', '' )
+            number_format(( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, ',', '')
         );
     }
 }

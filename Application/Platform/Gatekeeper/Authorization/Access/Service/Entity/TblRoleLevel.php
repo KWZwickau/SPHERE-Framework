@@ -37,14 +37,14 @@ class TblRoleLevel extends Element
         if (null === $this->tblRole) {
             return false;
         } else {
-            return Access::useService()->getRoleById( $this->tblRole );
+            return Access::useService()->getRoleById($this->tblRole);
         }
     }
 
     /**
      * @param null|TblRole $tblRole
      */
-    public function setTblRole( TblRole $tblRole = null )
+    public function setTblRole(TblRole $tblRole = null)
     {
 
         $this->tblRole = ( null === $tblRole ? null : $tblRole->getId() );
@@ -59,14 +59,14 @@ class TblRoleLevel extends Element
         if (null === $this->tblLevel) {
             return false;
         } else {
-            return Access::useService()->getLevelById( $this->tblLevel );
+            return Access::useService()->getLevelById($this->tblLevel);
         }
     }
 
     /**
      * @param null|TblLevel $tblLevel
      */
-    public function setTblLevel( TblLevel $tblLevel = null )
+    public function setTblLevel(TblLevel $tblLevel = null)
     {
 
         $this->tblLevel = ( null === $tblLevel ? null : $tblLevel->getId() );

@@ -35,17 +35,17 @@ class TblDebtorCommodity extends Element
     public function getServiceBillingCommodity()
     {
 
-        if ( null === $this->serviceBilling_Commodity ) {
+        if (null === $this->serviceBilling_Commodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById( $this->serviceBilling_Commodity );
+            return Commodity::useService()->entityCommodityById($this->serviceBilling_Commodity);
         }
     }
 
     /**
      * @param null|TblCommodity $tblCommodity
      */
-    public function setServiceBillingCommodity( TblCommodity $tblCommodity )
+    public function setServiceBillingCommodity(TblCommodity $tblCommodity)
     {
 
         $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
@@ -57,17 +57,17 @@ class TblDebtorCommodity extends Element
     public function getTblDebtor()
     {
 
-        if ( null === $this->tblDebtor ) {
+        if (null === $this->tblDebtor) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById( $this->tblDebtor );
+            return Banking::useService()->entityDebtorById($this->tblDebtor);
         }
     }
 
     /**
      * @param null|TblDebtor $tblDebtor
      */
-    public function setTblDebtor( TblDebtor $tblDebtor )
+    public function setTblDebtor(TblDebtor $tblDebtor)
     {
 
         $this->tblDebtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );

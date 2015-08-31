@@ -20,10 +20,10 @@
     {{ ElementFeedbackMessage }}
 </div>
 <script type="text/javascript">
-    Client.Use( 'ModSelecter', function()
+    Client.Use('ModSelecter', function()
         {
-            var guiSelect = jQuery( 'select[name="{{ ElementName }}"]' );
-            guiSelect.find( 'option[value="{{ ElementValue }}"]' ).attr( 'selected', 'selected' );
+            var guiSelect = jQuery('select[name="{{ ElementName }}"]');
+            guiSelect.find('option[value="{{ ElementValue }}"]').attr('selected', 'selected');
             guiSelect.ModSelecter();
         }
     );

@@ -42,34 +42,34 @@ class Search implements IApplicationInterface, IModuleInterface
          * Register Navigation
          */
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Firmensuche' ),
-                new Link\Icon( new Info() )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Firmensuche'),
+                new Link\Icon(new Info())
             )
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'SPHERE\Application\Corporation\Corporation::frontendDashboard'
-        ) );
+        ));
     }
 
     public static function registerModule()
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Group' ), new Link\Name( 'Nach Firmengruppe' ),
-                new Link\Icon( new Info() )
+            new Link(new Link\Route(__NAMESPACE__.'/Group'), new Link\Name('Nach Firmengruppe'),
+                new Link\Icon(new Info())
             )
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Group', __CLASS__.'::frontendGroup'
-        ) );
+        ));
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Attribute' ), new Link\Name( 'Nach Eigenschaften' ),
-                new Link\Icon( new Info() )
+            new Link(new Link\Route(__NAMESPACE__.'/Attribute'), new Link\Name('Nach Eigenschaften'),
+                new Link\Icon(new Info())
             )
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Attribute', __CLASS__.'::frontendAttribute'
-        ) );
+        ));
 
     }
 
@@ -89,48 +89,48 @@ class Search implements IApplicationInterface, IModuleInterface
         // TODO: Implement useFrontend() method.
     }
 
-    public function frontendGroup( $Id = false )
+    public function frontendGroup($Id = false)
     {
 
-        $Stage = new Stage( 'Firmensuche', 'nach Firmengruppe' );
+        $Stage = new Stage('Firmensuche', 'nach Firmengruppe');
 
-        $tblGroup = Group::useService()->getGroupById( $Id );
+        $tblGroup = Group::useService()->getGroupById($Id);
 
         if ($tblGroup) {
             $Stage->setMessage(
-                new PullClear( new Bold( $tblGroup->getName() ).' '.new Small( $tblGroup->getDescription() ) ).
-                new PullClear( new Danger( new Italic( nl2br( $tblGroup->getRemark() ) ) ) )
+                new PullClear(new Bold($tblGroup->getName()).' '.new Small($tblGroup->getDescription())).
+                new PullClear(new Danger(new Italic(nl2br($tblGroup->getRemark()))))
             );
         } else {
-            $Stage->setMessage( 'Bitte wählen Sie eine Firmengruppe' );
+            $Stage->setMessage('Bitte wählen Sie eine Firmengruppe');
         }
 
         $tblGroupAll = Group::useService()->getGroupAll();
 
         /** @noinspection PhpUnusedParameterInspection */
-        array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
+        array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
             $Stage->addButton(
                 new Standard(
                     $tblGroup->getName(),
-                    new Link\Route( __NAMESPACE__.'/Group' ), null,
+                    new Link\Route(__NAMESPACE__.'/Group'), null,
                     array(
                         'Id' => $tblGroup->getId()
-                    ), $tblGroup->getDescription() )
+                    ), $tblGroup->getDescription())
             );
-        }, $Stage );
+        }, $Stage);
 
         if ($tblGroup) {
 
             // TODO: Company-List
 
-            $tblCompanyAll = Group::useService()->getCompanyAllByGroup( $tblGroup );
+            $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
 
-            array_walk( $tblCompanyAll, function ( TblCompany &$tblCompany ) {
+            array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
 
-                $tblCompany->Option = new Standard( '', '/Corporation/Company', new Pencil(),
-                    array( 'Id' => $tblCompany->getId() ), 'Bearbeiten' );
-            } );
+                $tblCompany->Option = new Standard('', '/Corporation/Company', new Pencil(),
+                    array('Id' => $tblCompany->getId()), 'Bearbeiten');
+            });
 
 //            Debugger::screenDump( $tblCompanyAll );
 
@@ -139,12 +139,12 @@ class Search implements IApplicationInterface, IModuleInterface
                     new LayoutGroup(
                         new LayoutRow(
                             new LayoutColumn(
-                                new TableData( $tblCompanyAll, null,
+                                new TableData($tblCompanyAll, null,
                                     array(
                                         'Id'     => '#',
                                         'Name'   => 'Name',
                                         'Option' => 'Optionen',
-                                    ) )
+                                    ))
                             )
                         )
                     )

@@ -29,7 +29,7 @@ class TblIdentification extends Element
     /**
      * @param string $Name
      */
-    function __construct( $Name )
+    function __construct($Name)
     {
 
         $this->Name = $Name;
@@ -47,7 +47,7 @@ class TblIdentification extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;
@@ -65,7 +65,7 @@ class TblIdentification extends Element
     /**
      * @param string $Description
      */
-    public function setDescription( $Description )
+    public function setDescription($Description)
     {
 
         $this->Description = $Description;

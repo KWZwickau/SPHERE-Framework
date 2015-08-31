@@ -27,14 +27,14 @@ class DatePicker extends Field implements IFieldInterface
     ) {
 
         $this->Name = $Name;
-        $this->Template = $this->getTemplate( __DIR__.'/DatePicker.twig' );
-        $this->Template->setVariable( 'ElementName', $Name );
-        $this->Template->setVariable( 'ElementLabel', $Label );
-        $this->Template->setVariable( 'ElementPlaceholder', $Placeholder );
+        $this->Template = $this->getTemplate(__DIR__.'/DatePicker.twig');
+        $this->Template->setVariable('ElementName', $Name);
+        $this->Template->setVariable('ElementLabel', $Label);
+        $this->Template->setVariable('ElementPlaceholder', $Placeholder);
         if (null !== $Icon) {
-            $this->Template->setVariable( 'ElementIcon', $Icon );
+            $this->Template->setVariable('ElementIcon', $Icon);
         }
-        $this->setPostValue( $this->Template, $Name, 'ElementValue' );
+        $this->setPostValue($this->Template, $Name, 'ElementValue');
     }
 
 }

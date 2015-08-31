@@ -29,7 +29,7 @@ class Assistance implements IApplicationInterface
          * Register Navigation
          */
         Main::getDisplay()->addServiceNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ), new Link\Icon( new Question() ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Hilfe'), new Link\Icon(new Question()))
         );
 //        Main::getDisplay()->addApplicationNavigation(
 //            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Hilfe' ), new Link\Icon( new Question() ) )
@@ -38,7 +38,7 @@ class Assistance implements IApplicationInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute( __NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__,
                 'Assistance::frontendAssistance'
             )
         );
@@ -50,7 +50,7 @@ class Assistance implements IApplicationInterface
     public function frontendAssistance()
     {
 
-        $Stage = new Stage( 'Hilfe', 'Bitte wählen Sie ein Thema' );
+        $Stage = new Stage('Hilfe', 'Bitte wählen Sie ein Thema');
 
         return $Stage;
     }

@@ -19,10 +19,10 @@ class FuxSchool implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Schülerdaten' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schülerdaten'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Klassendaten' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Klassendaten'))
         );
     }
 

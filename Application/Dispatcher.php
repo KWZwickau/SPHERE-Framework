@@ -21,7 +21,7 @@ class Dispatcher
     /**
      * @param IBridgeInterface|null $Router
      */
-    function __construct( IBridgeInterface $Router = null )
+    function __construct(IBridgeInterface $Router = null)
     {
 
         if (null !== $Router) {
@@ -35,21 +35,21 @@ class Dispatcher
      *
      * @return RouteParameter
      */
-    public static function createRoute( $Path, $Controller )
+    public static function createRoute($Path, $Controller)
     {
 
         // Map Controller Class to FQN
-        if (false === strpos( $Controller, 'SPHERE' )) {
+        if (false === strpos($Controller, 'SPHERE')) {
             $Controller = '\\'.$Path.'\\'.$Controller;
         }
         // Map Controller to Syntax
-        $Controller = str_replace( array( '/', '//', '\\', '\\\\' ), '\\', $Controller );
+        $Controller = str_replace(array('/', '//', '\\', '\\\\'), '\\', $Controller);
 
         // Map Route to FileSystem
-        $Path = str_replace( array( '/', '//', '\\', '\\\\' ), '/', $Path );
-        $Path = trim( str_replace( 'SPHERE/Application', '', $Path ), '/' );
+        $Path = str_replace(array('/', '//', '\\', '\\\\'), '/', $Path);
+        $Path = trim(str_replace('SPHERE/Application', '', $Path), '/');
 
-        return new RouteParameter( $Path, $Controller );
+        return new RouteParameter($Path, $Controller);
     }
 
     /**
@@ -57,14 +57,14 @@ class Dispatcher
      *
      * @throws \Exception
      */
-    public static function registerRoute( RouteParameter $Route )
+    public static function registerRoute(RouteParameter $Route)
     {
 
-        if (Access::useService()->hasAuthorization( $Route->getPath() )) {
-            if (in_array( $Route->getPath(), self::$Router->getRouteList() )) {
-                throw new \Exception( __CLASS__.' > Route already available! ('.$Route->getPath().')' );
+        if (Access::useService()->hasAuthorization($Route->getPath())) {
+            if (in_array($Route->getPath(), self::$Router->getRouteList())) {
+                throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
             } else {
-                self::$Router->addRoute( $Route );
+                self::$Router->addRoute($Route);
             }
         }
     }
@@ -75,14 +75,14 @@ class Dispatcher
      * @return string
      * @throws \Exception
      */
-    public static function fetchRoute( $Path )
+    public static function fetchRoute($Path)
     {
 
-        $Path = trim( $Path, '/' );
-        if (in_array( $Path, self::$Router->getRouteList() )) {
-            return self::$Router->getRoute( $Path );
+        $Path = trim($Path, '/');
+        if (in_array($Path, self::$Router->getRouteList())) {
+            return self::$Router->getRoute($Path);
         } else {
-            return self::$Router->getRoute( 'Platform/Assistance/Error/Authorization' );
+            return self::$Router->getRoute('Platform/Assistance/Error/Authorization');
         }
     }
 
@@ -92,10 +92,10 @@ class Dispatcher
      * @param int    $Width
      * @param int    $Height
      */
-    public static function registerWidget( $Location, $Content, $Width = 2, $Height = 2 )
+    public static function registerWidget($Location, $Content, $Width = 2, $Height = 2)
     {
 
-        self::$Widget[$Location][] = array( $Content, $Width, $Height );
+        self::$Widget[$Location][] = array($Content, $Width, $Height);
     }
 
     /**
@@ -103,7 +103,7 @@ class Dispatcher
      *
      * @return string
      */
-    public static function fetchDashboard( $Location )
+    public static function fetchDashboard($Location)
     {
 
         $Dashboard = '<div class="Location-'.$Location.' gridster"><ul style="list-style: none; display: none;">';

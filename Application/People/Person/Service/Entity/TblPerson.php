@@ -67,14 +67,14 @@ class TblPerson extends Element
         if (null === $this->tblSalutation) {
             return false;
         } else {
-            return Person::useService()->getSalutationById( $this->tblSalutation );
+            return Person::useService()->getSalutationById($this->tblSalutation);
         }
     }
 
     /**
      * @param null|TblSalutation $tblSalutation
      */
-    public function setTblSalutation( TblSalutation $tblSalutation = null )
+    public function setTblSalutation(TblSalutation $tblSalutation = null)
     {
 
         $this->tblSalutation = ( null === $tblSalutation ? null : $tblSalutation->getId() );
@@ -92,7 +92,7 @@ class TblPerson extends Element
     /**
      * @param string $Title
      */
-    public function setTitle( $Title )
+    public function setTitle($Title)
     {
 
         $this->Title = $Title;
@@ -110,7 +110,7 @@ class TblPerson extends Element
     /**
      * @param string $FirstName
      */
-    public function setFirstName( $FirstName )
+    public function setFirstName($FirstName)
     {
 
         $this->FirstName = $FirstName;
@@ -128,7 +128,7 @@ class TblPerson extends Element
     /**
      * @param string $SecondName
      */
-    public function setSecondName( $SecondName )
+    public function setSecondName($SecondName)
     {
 
         $this->SecondName = $SecondName;
@@ -146,7 +146,7 @@ class TblPerson extends Element
     /**
      * @param string $LastName
      */
-    public function setLastName( $LastName )
+    public function setLastName($LastName)
     {
 
         $this->LastName = $LastName;

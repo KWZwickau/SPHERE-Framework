@@ -24,10 +24,10 @@ class Binding
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Database = new Database( $Identifier );
+        $this->Database = new Database($Identifier);
         $this->EntityPath = $EntityPath;
         $this->EntityNamespace = $EntityNamespace;
     }
@@ -38,7 +38,7 @@ class Binding
     public function getEntityManager()
     {
 
-        return $this->Database->getEntityManager( $this->EntityPath, $this->EntityNamespace );
+        return $this->Database->getEntityManager($this->EntityPath, $this->EntityNamespace);
     }
 
     /**
@@ -46,10 +46,10 @@ class Binding
      *
      * @return int The number of affected rows
      */
-    public function setStatement( $Statement )
+    public function setStatement($Statement)
     {
 
-        return $this->Database->setStatement( $Statement );
+        return $this->Database->setStatement($Statement);
     }
 
     /**
@@ -57,10 +57,10 @@ class Binding
      *
      * @return array
      */
-    public function getStatement( $Statement )
+    public function getStatement($Statement)
     {
 
-        return $this->Database->getStatement( $Statement );
+        return $this->Database->getStatement($Statement);
     }
 
     /**
@@ -75,10 +75,10 @@ class Binding
     /**
      * @param string $Item
      */
-    public function addProtocol( $Item )
+    public function addProtocol($Item)
     {
 
-        $this->Database->addProtocol( $Item );
+        $this->Database->addProtocol($Item);
     }
 
 
@@ -87,9 +87,9 @@ class Binding
      *
      * @return string
      */
-    public function getProtocol( $Simulate = false )
+    public function getProtocol($Simulate = false)
     {
 
-        return $this->Database->getProtocol( $Simulate );
+        return $this->Database->getProtocol($Simulate);
     }
 }

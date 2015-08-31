@@ -43,17 +43,17 @@ class TblTempInvoice extends Element
     public function getServiceBillingBasket()
     {
 
-        if ( null === $this->serviceBilling_Basket ) {
+        if (null === $this->serviceBilling_Basket) {
             return false;
         } else {
-            return Basket::useService()->entityBasketById( $this->serviceBilling_Basket );
+            return Basket::useService()->entityBasketById($this->serviceBilling_Basket);
         }
     }
 
     /**
      * @param TblBasket $tblBasket
      */
-    public function setServiceBillingBasket( TblBasket $tblBasket = null )
+    public function setServiceBillingBasket(TblBasket $tblBasket = null)
     {
 
         $this->serviceBilling_Basket = ( null === $tblBasket ? null : $tblBasket->getId() );
@@ -65,17 +65,17 @@ class TblTempInvoice extends Element
     public function getServiceManagementPerson()
     {
 
-        if ( null === $this->serviceManagement_Person ) {
+        if (null === $this->serviceManagement_Person) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById( $this->serviceManagement_Person );
+            return Management::servicePerson()->entityPersonById($this->serviceManagement_Person);
         }
     }
 
     /**
      * @param TblPerson $tblPerson
      */
-    public function setServiceManagementPerson( TblPerson $tblPerson = null )
+    public function setServiceManagementPerson(TblPerson $tblPerson = null)
     {
 
         $this->serviceManagement_Person = ( null === $tblPerson ? null : $tblPerson->getId() );
@@ -87,17 +87,17 @@ class TblTempInvoice extends Element
     public function getServiceBillingDebtor()
     {
 
-        if ( null === $this->serviceBilling_Debtor ) {
+        if (null === $this->serviceBilling_Debtor) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById( $this->serviceBilling_Debtor );
+            return Banking::useService()->entityDebtorById($this->serviceBilling_Debtor);
         }
     }
 
     /**
      * @param TblDebtor $tblDebtor
      */
-    public function setServiceBillingDebtor( TblDebtor $tblDebtor = null )
+    public function setServiceBillingDebtor(TblDebtor $tblDebtor = null)
     {
 
         $this->serviceBilling_Debtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );

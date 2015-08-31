@@ -48,14 +48,14 @@ class TblToPerson extends Element
         if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById( $this->serviceTblPerson );
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
      * @param TblPerson|null $tblPerson
      */
-    public function setServiceTblPerson( TblPerson $tblPerson = null )
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
@@ -73,7 +73,7 @@ class TblToPerson extends Element
     /**
      * @param string $Remark
      */
-    public function setRemark( $Remark )
+    public function setRemark($Remark)
     {
 
         $this->Remark = $Remark;
@@ -88,14 +88,14 @@ class TblToPerson extends Element
         if (null === $this->tblType) {
             return false;
         } else {
-            return Address::useService()->getTypeById( $this->tblType );
+            return Address::useService()->getTypeById($this->tblType);
         }
     }
 
     /**
      * @param null|TblType $tblType
      */
-    public function setTblType( TblType $tblType = null )
+    public function setTblType(TblType $tblType = null)
     {
 
         $this->tblType = ( null === $tblType ? null : $tblType->getId() );
@@ -110,14 +110,14 @@ class TblToPerson extends Element
         if (null === $this->tblAddress) {
             return false;
         } else {
-            return Address::useService()->getAddressById( $this->tblAddress );
+            return Address::useService()->getAddressById($this->tblAddress);
         }
     }
 
     /**
      * @param null|TblAddress $tblAddress
      */
-    public function setTblAddress( TblAddress $tblAddress = null )
+    public function setTblAddress(TblAddress $tblAddress = null)
     {
 
         $this->tblAddress = ( null === $tblAddress ? null : $tblAddress->getId() );

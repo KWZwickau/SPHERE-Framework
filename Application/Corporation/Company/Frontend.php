@@ -18,7 +18,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
-use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -29,7 +28,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
-use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -56,51 +54,51 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendCompany( $TabActive = false, $Id = null, $Company = null, $Meta = null )
+    public function frontendCompany($TabActive = false, $Id = null, $Company = null, $Meta = null)
     {
 
-        $Stage = new Stage( 'Firmen', 'Datenblatt' );
+        $Stage = new Stage('Firmen', 'Datenblatt');
 
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk( $tblGroupAll, function ( TblGroup &$tblGroup, $Index, Stage $Stage ) {
+            array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
                 $Stage->addButton(
                     new Standard(
                         $tblGroup->getName(),
-                        new Route( '/Corporation/Search/Group' ), null,
-                        array( 'Id' => $tblGroup->getId() ),
+                        new Route('/Corporation/Search/Group'), null,
+                        array('Id' => $tblGroup->getId()),
                         $tblGroup->getDescription()
                     )
                 );
-            }, $Stage );
+            }, $Stage);
         }
 
         if (!$Id) {
 
             $BasicTable = Company::useService()->createCompany(
                 $this->formCompany()
-                    ->appendFormButton( new Primary( 'Grunddaten anlegen' ) )
-                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' ),
-                $Company );
+                    ->appendFormButton(new Primary('Grunddaten anlegen'))
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                $Company);
 
             $Stage->setContent(
-                new Layout( array(
+                new Layout(array(
                     new LayoutGroup(
-                        new LayoutRow( new LayoutColumn( $BasicTable ) ),
-                        new Title( new Building().' Grunddaten', 'der Firma' )
+                        new LayoutRow(new LayoutColumn($BasicTable)),
+                        new Title(new Building().' Grunddaten', 'der Firma')
                     ),
-                ) )
+                ))
             );
 
         } else {
-            $tblCompany = Company::useService()->getCompanyById( $Id );
+            $tblCompany = Company::useService()->getCompanyById($Id);
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Company'] )) {
                 $Global->POST['Company']['Name'] = $tblCompany->getName();
-                $tblGroupAll = Group::useService()->getGroupAllByCompany( $tblCompany );
+                $tblGroupAll = Group::useService()->getGroupAllByCompany($tblCompany);
                 if (!empty( $tblGroupAll )) {
                     /** @var TblGroup $tblGroup */
                     foreach ((array)$tblGroupAll as $tblGroup) {
@@ -112,21 +110,21 @@ class Frontend extends Extension implements IFrontendInterface
 
             $BasicTable = Company::useService()->updateCompany(
                 $this->formCompany()
-                    ->appendFormButton( new Primary( 'Grunddaten speichern' ) )
-                    ->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert' ),
-                $tblCompany, $Company );
+                    ->appendFormButton(new Primary('Grunddaten speichern'))
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                $tblCompany, $Company);
 
-            $MetaTabs = Group::useService()->getGroupAllByCompany( $tblCompany );
+            $MetaTabs = Group::useService()->getGroupAllByCompany($tblCompany);
             // Sort by Name
-            usort( $MetaTabs, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
+            usort($MetaTabs, function (TblGroup $ObjectA, TblGroup $ObjectB) {
 
-                return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
-            } );
+                return strnatcmp($ObjectA->getName(), $ObjectB->getName());
+            });
             // Create Tabs
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk( $MetaTabs, function ( TblGroup &$tblGroup, $Index, TblCompany $tblCompany ) {
+            array_walk($MetaTabs, function (TblGroup &$tblGroup, $Index, TblCompany $tblCompany) {
 
-                switch (strtoupper( $tblGroup->getMetaTable() )) {
+                switch (strtoupper($tblGroup->getMetaTable())) {
 //                    case 'COMMON':
 //                        $tblGroup = new LayoutTab( 'Allgemein', $tblGroup->getMetaTable(),
 //                            array( 'tblCompany' => $tblCompany->getId() )
@@ -135,75 +133,75 @@ class Frontend extends Extension implements IFrontendInterface
                     default:
                         $tblGroup = false;
                 }
-            }, $tblCompany );
+            }, $tblCompany);
             /** @var LayoutTab[] $MetaTabs */
-            $MetaTabs = array_filter( $MetaTabs );
+            $MetaTabs = array_filter($MetaTabs);
             // Folded ?
             if (!empty( $MetaTabs )) {
                 if (!$TabActive || $TabActive == '#') {
-                    array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronRight().'&nbsp;', '#',
-                        array( 'Id' => $tblCompany->getId() )
-                    ) );
+                    array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronRight().'&nbsp;', '#',
+                        array('Id' => $tblCompany->getId())
+                    ));
                     $MetaTabs[0]->setActive();
                 } else {
-                    array_unshift( $MetaTabs, new LayoutTab( '&nbsp;'.new ChevronUp().'&nbsp;', '#',
-                        array( 'Id' => $tblCompany->getId() )
-                    ) );
+                    array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
+                        array('Id' => $tblCompany->getId())
+                    ));
                 }
             }
 
-            switch (strtoupper( $TabActive )) {
+            switch (strtoupper($TabActive)) {
 //                case 'COMMON':
 //                    $MetaTable = Common::useFrontend()->frontendMeta( $tblCompany, $Meta );
 //                    break;
                 default:
                     if (!empty( $MetaTabs )) {
-                        $MetaTable = new Well( new Muted( 'Bitte wählen Sie eine Rubrik' ) );
+                        $MetaTable = new Well(new Muted('Bitte wählen Sie eine Rubrik'));
                     } else {
-                        $MetaTable = new Well( new Warning( 'Keine Informationen verfügbar' ) );
+                        $MetaTable = new Well(new Warning('Keine Informationen verfügbar'));
                     }
             }
 
             $Stage->setContent(
-                new Layout( array(
+                new Layout(array(
                     new LayoutGroup(
-                        new LayoutRow( new LayoutColumn( $BasicTable ) ),
-                        new Title( new Building().' Grunddaten', 'der Firma' )
+                        new LayoutRow(new LayoutColumn($BasicTable)),
+                        new Title(new Building().' Grunddaten', 'der Firma')
                     ),
 //                    new LayoutGroup( array(
 //                        new LayoutRow( new LayoutColumn( new LayoutTabs( $MetaTabs ) ) ),
 //                        new LayoutRow( new LayoutColumn( $MetaTable ) ),
 //                    ), new Title( new Tag().' Informationen', 'zur Firma' ) ),
-                    new LayoutGroup( array(
-                        new LayoutRow( new LayoutColumn(
-                            Address::useFrontend()->frontendLayoutCompany( $tblCompany )
-                        ) ),
-                    ), ( new Title( new TagList().' Adressdaten', 'der Firma' ) )
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            Address::useFrontend()->frontendLayoutCompany($tblCompany)
+                        )),
+                    ), (new Title(new TagList().' Adressdaten', 'der Firma'))
                         ->addButton(
-                            new Standard( 'Adresse hinzufügen', '/Corporation/Company/Address/Create',
-                                new ChevronDown(), array( 'Id' => $tblCompany->getId() )
+                            new Standard('Adresse hinzufügen', '/Corporation/Company/Address/Create',
+                                new ChevronDown(), array('Id' => $tblCompany->getId())
                             )
                         )
                     ),
-                    new LayoutGroup( array(
-                        new LayoutRow( new LayoutColumn(
-                            Phone::useFrontend()->frontendLayoutCompany( $tblCompany )
-                            .Mail::useFrontend()->frontendLayoutCompany( $tblCompany )
-                        ) ),
-                    ), ( new Title( new TagList().' Kontaktdaten', 'der Firma' ) )
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(
+                            Phone::useFrontend()->frontendLayoutCompany($tblCompany)
+                            .Mail::useFrontend()->frontendLayoutCompany($tblCompany)
+                        )),
+                    ), (new Title(new TagList().' Kontaktdaten', 'der Firma'))
                         ->addButton(
-                            new Standard( 'Telefonnummer hinzufügen', '/Corporation/Company/Phone/Create',
-                                new ChevronDown(), array( 'Id' => $tblCompany->getId() )
+                            new Standard('Telefonnummer hinzufügen', '/Corporation/Company/Phone/Create',
+                                new ChevronDown(), array('Id' => $tblCompany->getId())
                             )
                         )
                         ->addButton(
-                            new Standard( 'E-Mail Adresse hinzufügen', '/Corporation/Company/Mail/Create',
-                                new ChevronDown(), array( 'Id' => $tblCompany->getId() )
+                            new Standard('E-Mail Adresse hinzufügen', '/Corporation/Company/Mail/Create',
+                                new ChevronDown(), array('Id' => $tblCompany->getId())
                             )
                         )
                     ),
 
-                ) )
+                ))
             );
 
         }
@@ -220,35 +218,35 @@ class Frontend extends Extension implements IFrontendInterface
         $tblGroupList = Group::useService()->getGroupAll();
         if ($tblGroupList) {
             // Sort by Name
-            usort( $tblGroupList, function ( TblGroup $ObjectA, TblGroup $ObjectB ) {
+            usort($tblGroupList, function (TblGroup $ObjectA, TblGroup $ObjectB) {
 
-                return strnatcmp( $ObjectA->getName(), $ObjectB->getName() );
-            } );
+                return strnatcmp($ObjectA->getName(), $ObjectB->getName());
+            });
             // Create CheckBoxes
             /** @noinspection PhpUnusedParameterInspection */
-            array_walk( $tblGroupList, function ( TblGroup &$tblGroup ) {
+            array_walk($tblGroupList, function (TblGroup &$tblGroup) {
 
                 $tblGroup = new CheckBox(
                     'Company[Group]['.$tblGroup->getId().']',
-                    $tblGroup->getName().' '.new Muted( new Small( $tblGroup->getDescription() ) ),
+                    $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
                     $tblGroup->getId()
                 );
-            } );
+            });
         } else {
-            $tblGroupList = array( new Warning( 'Keine Gruppen vorhanden' ) );
+            $tblGroupList = array(new Warning('Keine Gruppen vorhanden'));
         }
 
         return new Form(
-            new FormGroup( array(
-                new FormRow( array(
+            new FormGroup(array(
+                new FormRow(array(
                     new FormColumn(
-                        new Panel( 'Firmenname', array(
-                            new TextField( 'Company[Name]', 'Name', 'Name' ),
-                        ), Panel::PANEL_TYPE_INFO ), 8 ),
+                        new Panel('Firmenname', array(
+                            new TextField('Company[Name]', 'Name', 'Name'),
+                        ), Panel::PANEL_TYPE_INFO), 8),
                     new FormColumn(
-                        new Panel( 'Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO ), 4 ),
-                ) )
-            ) )
+                        new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
+                ))
+            ))
         );
     }
 }

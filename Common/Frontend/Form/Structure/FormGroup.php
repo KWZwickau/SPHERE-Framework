@@ -17,11 +17,11 @@ class FormGroup extends Extension implements IStructureInterface
      * @param FormRow|FormRow[] $FormRow
      * @param Title             $FormTitle
      */
-    public function __construct( $FormRow, Title $FormTitle = null )
+    public function __construct($FormRow, Title $FormTitle = null)
     {
 
-        if (!is_array( $FormRow )) {
-            $FormRow = array( $FormRow );
+        if (!is_array($FormRow)) {
+            $FormRow = array($FormRow);
         }
         $this->FormRow = $FormRow;
         $this->FormTitle = $FormTitle;

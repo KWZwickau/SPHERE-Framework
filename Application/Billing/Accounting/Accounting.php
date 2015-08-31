@@ -23,16 +23,16 @@ class Accounting implements IApplicationInterface
         Basket::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Buchhaltung' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Buchhaltung'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Account' ), new Link\Name( 'FIBU-Konten' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Account'), new Link\Name('FIBU-Konten'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Banking' ), new Link\Name( 'Debitoren' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Banking'), new Link\Name('Debitoren'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Basket' ), new Link\Name( 'Warenkorb' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Basket'), new Link\Name('Warenkorb'))
         );
 
     }

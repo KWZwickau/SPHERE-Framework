@@ -2,11 +2,11 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
-use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
+use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
+use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -50,8 +50,8 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnungen' );
-        $Stage->setDescription( 'Übersicht' );
+        $Stage->setTitle('Rechnungen');
+        $Stage->setDescription('Übersicht');
 
         return $Stage;
     }
@@ -63,15 +63,15 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnungen' );
-        $Stage->setDescription( 'Übersicht' );
-        $Stage->setMessage( 'Zeigt alle vorhandenen Rechnungen an' );
-        $Stage->addButton( new Primary( 'Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new Ok() ) );
+        $Stage->setTitle('Rechnungen');
+        $Stage->setDescription('Übersicht');
+        $Stage->setMessage('Zeigt alle vorhandenen Rechnungen an');
+        $Stage->addButton(new Primary('Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new Ok()));
 
         $tblInvoiceAll = Invoice::useService()->entityInvoiceAll();
 
         if (!empty( $tblInvoiceAll )) {
-            array_walk( $tblInvoiceAll, function ( TblInvoice &$tblInvoice ) {
+            array_walk($tblInvoiceAll, function (TblInvoice &$tblInvoice) {
 
                 $paymentType = $tblInvoice->getServiceBillingBankingPaymentType();
                 if ($paymentType) {
@@ -82,15 +82,15 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblInvoice->Person = $tblInvoice->getServiceManagementPerson()->getFullName();
                 $tblInvoice->Debtor = $tblInvoice->getDebtorFullName();
-                $tblInvoice->TotalPrice = Invoice::useService()->sumPriceItemAllStringByInvoice( $tblInvoice );
-                $tblInvoice->Option = ( new Primary( 'Anzeigen', '/Billing/Bookkeeping/Invoice/Show',
-                    new EyeOpen(), array( 'Id' => $tblInvoice->getId() ) ) )->__toString();;
+                $tblInvoice->TotalPrice = Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice);
+                $tblInvoice->Option = (new Primary('Anzeigen', '/Billing/Bookkeeping/Invoice/Show',
+                    new EyeOpen(), array('Id' => $tblInvoice->getId())))->__toString();;
                 if ($tblInvoice->getIsPaid()) {
                     $tblInvoice->IsPaidString = "Bezahlt (manuell)";
                 } else {
-                    if (Balance::useService()->entityBalanceByInvoice( $tblInvoice )
-                        && ( Balance::useService()->sumPriceItemByBalance( Balance::useService()->entityBalanceByInvoice( $tblInvoice ) )
-                            >= Invoice::useService()->sumPriceItemAllByInvoice( $tblInvoice ) )
+                    if (Balance::useService()->entityBalanceByInvoice($tblInvoice)
+                        && ( Balance::useService()->sumPriceItemByBalance(Balance::useService()->entityBalanceByInvoice($tblInvoice))
+                            >= Invoice::useService()->sumPriceItemAllByInvoice($tblInvoice) )
                     ) {
                         $tblInvoice->IsPaidString = "Bezahlt";
                     } else {
@@ -109,11 +109,11 @@ class Frontend extends Extension implements IFrontendInterface
                 } else {
                     $tblInvoice->IsConfirmedString = "";
                 }
-            } );
+            });
         }
 
         $Stage->setContent(
-            new TableData( $tblInvoiceAll, null,
+            new TableData($tblInvoiceAll, null,
                 array(
                     'Number'            => 'Nummer',
                     'InvoiceDate'       => 'Rechnungsdatum',
@@ -141,23 +141,23 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnungen' );
-        $Stage->setDescription( 'Freigeben' );
-        $Stage->setMessage( 'Zeigt alle noch nicht freigegebenen Rechnungen an' );
+        $Stage->setTitle('Rechnungen');
+        $Stage->setDescription('Freigeben');
+        $Stage->setMessage('Zeigt alle noch nicht freigegebenen Rechnungen an');
 
-        $tblInvoiceAllByIsConfirmedState = Invoice::useService()->entityInvoiceAllByIsConfirmedState( false );
-        $tblInvoiceAllByIsVoid = Invoice::useService()->entityInvoiceAllByIsVoidState( true );
+        $tblInvoiceAllByIsConfirmedState = Invoice::useService()->entityInvoiceAllByIsConfirmedState(false);
+        $tblInvoiceAllByIsVoid = Invoice::useService()->entityInvoiceAllByIsVoidState(true);
 
         if ($tblInvoiceAllByIsConfirmedState && $tblInvoiceAllByIsVoid) {
-            $tblInvoiceAllByIsConfirmedState = array_udiff( $tblInvoiceAllByIsConfirmedState, $tblInvoiceAllByIsVoid,
-                function ( TblInvoice $invoiceA, TblInvoice $invoiceB ) {
+            $tblInvoiceAllByIsConfirmedState = array_udiff($tblInvoiceAllByIsConfirmedState, $tblInvoiceAllByIsVoid,
+                function (TblInvoice $invoiceA, TblInvoice $invoiceB) {
 
                     return $invoiceA->getId() - $invoiceB->getId();
-                } );
+                });
         }
 
         if (!empty( $tblInvoiceAllByIsConfirmedState )) {
-            array_walk( $tblInvoiceAllByIsConfirmedState, function ( TblInvoice &$tblInvoice ) {
+            array_walk($tblInvoiceAllByIsConfirmedState, function (TblInvoice &$tblInvoice) {
 
                 $paymentType = $tblInvoice->getServiceBillingBankingPaymentType();
                 if ($paymentType) {
@@ -167,8 +167,8 @@ class Frontend extends Extension implements IFrontendInterface
                 }
 
                 if ($tblInvoice->getIsPaymentDateModified()) {
-                    $tblInvoice->InvoiceDateString = new Warning( $tblInvoice->getInvoiceDate() );
-                    $tblInvoice->PaymentDateString = new Warning( $tblInvoice->getPaymentDate() );
+                    $tblInvoice->InvoiceDateString = new Warning($tblInvoice->getInvoiceDate());
+                    $tblInvoice->PaymentDateString = new Warning($tblInvoice->getPaymentDate());
                 } else {
                     $tblInvoice->InvoiceDateString = $tblInvoice->getInvoiceDate();
                     $tblInvoice->PaymentDateString = $tblInvoice->getPaymentDate();
@@ -176,17 +176,17 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblInvoice->Person = $tblInvoice->getServiceManagementPerson()->getFullName();
                 $tblInvoice->Debtor = $tblInvoice->getDebtorFullName();
-                $tblInvoice->TotalPrice = Invoice::useService()->sumPriceItemAllStringByInvoice( $tblInvoice );
+                $tblInvoice->TotalPrice = Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice);
                 $tblInvoice->Option =
-                    ( new Primary( 'Bearbeiten und Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
+                    (new Primary('Bearbeiten und Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
                         new Edit(), array(
                             'Id' => $tblInvoice->getId()
-                        ) ) )->__toString();
-            } );
+                        )))->__toString();
+            });
         }
 
         $Stage->setContent(
-            new TableData( $tblInvoiceAllByIsConfirmedState, null,
+            new TableData($tblInvoiceAllByIsConfirmedState, null,
                 array(
                     'Number'            => 'Nummer',
                     'InvoiceDateString' => 'Rechnungsdatum',
@@ -211,48 +211,47 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceEdit( $Id, $Data )
+    public function frontendInvoiceEdit($Id, $Data)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Bearbeiten' );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Bearbeiten');
         $Stage->setMessage(
             'Hier können Sie die Rechnung bearbeiten und freigeben. <br>
             <b>Hinweis:</b> Freigegebene Rechnung sind nicht mehr bearbeitbar.'
         );
-        $Stage->addButton( new Primary( 'Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+        $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
             new Ok(), array(
                 'Id' => $Id
             )
-        ) );
-        $Stage->addButton( new Danger( 'Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
+        ));
+        $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
             new Remove(), array(
                 'Id' => $Id
             )
-        ) );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new ChevronLeft() ) );
+        ));
+        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new ChevronLeft()));
 
-
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
         if ($tblInvoice->getIsConfirmed()) {
-            $Stage->setContent( new Warning( 'Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden' )
-                .new Redirect( '/Billing/Bookkeeping/Invoice', 2 ) );
+            $Stage->setContent(new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
+                .new Redirect('/Billing/Bookkeeping/Invoice', 2));
         } else {
-            $tblInvoiceItemAll = Invoice::useService()->entityInvoiceItemAllByInvoice( $tblInvoice );
+            $tblInvoiceItemAll = Invoice::useService()->entityInvoiceItemAllByInvoice($tblInvoice);
             if (!empty( $tblInvoiceItemAll )) {
-                array_walk( $tblInvoiceItemAll,
-                    function ( TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice ) {
+                array_walk($tblInvoiceItemAll,
+                    function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
 
                         if ($tblInvoice->getServiceBillingBankingPaymentType()->getId() == 1) //SEPA-Lastschrift
                         {
-                            $tblCommodity = Commodity::useService()->entityCommodityByName( $tblInvoiceItem->getCommodityName() );
+                            $tblCommodity = Commodity::useService()->entityCommodityByName($tblInvoiceItem->getCommodityName());
                             if ($tblCommodity) {
 
-                                $tblDebtor = Banking::useService()->entityDebtorByDebtorNumber( $tblInvoice->getDebtorNumber() );
+                                $tblDebtor = Banking::useService()->entityDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
                                 if ($tblDebtor) {
-                                    if (Banking::useService()->entityReferenceByDebtorAndCommodity( $tblDebtor,
-                                        $tblCommodity )
+                                    if (Banking::useService()->entityReferenceByDebtorAndCommodity($tblDebtor,
+                                        $tblCommodity)
                                     ) {
                                         $tblInvoiceItem->Status = new Success(
                                             'Mandatsreferenz', new Ok()
@@ -277,70 +276,70 @@ class Frontend extends Extension implements IFrontendInterface
                         }
 
                         $tblInvoiceItem->TotalPriceString = $tblInvoiceItem->getTotalPriceString();
-                        $tblInvoiceItem->QuantityString = str_replace( '.', ',', $tblInvoiceItem->getItemQuantity() );
+                        $tblInvoiceItem->QuantityString = str_replace('.', ',', $tblInvoiceItem->getItemQuantity());
                         $tblInvoiceItem->PriceString = $tblInvoiceItem->getPriceString();
                         $tblInvoiceItem->Option =
-                            ( new Primary( 'Bearbeiten', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Item/Edit',
+                            (new Primary('Bearbeiten', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Item/Edit',
                                 new Edit(), array(
                                     'Id' => $tblInvoiceItem->getId()
-                                ) ) )->__toString().
-                            ( new Danger( 'Entfernen',
+                                )))->__toString().
+                            (new Danger('Entfernen',
                                 '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Item/Remove',
                                 new Minus(), array(
                                     'Id' => $tblInvoiceItem->getId()
-                                ) ) )->__toString();
-                    }, $tblInvoice );
+                                )))->__toString();
+                    }, $tblInvoice);
             }
 
             $Stage->setContent(
-                new Layout( array(
-                    new LayoutGroup( array(
-                        new LayoutRow( array(
+                new Layout(array(
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel( 'Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_PRIMARY ), 3
+                                new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_PRIMARY), 3
                             ),
                             new LayoutColumn(
-                                new Panel( 'Warenkorb', $tblInvoice->getBasketName(), Panel::PANEL_TYPE_DEFAULT ), 3
+                                new Panel('Warenkorb', $tblInvoice->getBasketName(), Panel::PANEL_TYPE_DEFAULT), 3
                             ),
                             new LayoutColumn(
-                                new Panel( 'Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT ),
+                                new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
+                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
                             new LayoutColumn(
-                                new Panel( 'Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT ),
+                                new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
+                                    $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                                 3
                             ),
-                        ) ),
+                        )),
                         new LayoutRow(
                             new LayoutColumn(
-                                new Aspect( 'Empfänger' )
+                                new Aspect('Empfänger')
                             )
                         ),
-                        new LayoutRow( array(
+                        new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel( 'Debitor', $tblInvoice->getDebtorFullName() ), 3
+                                new Panel('Debitor', $tblInvoice->getDebtorFullName()), 3
                             ),
                             new LayoutColumn(
-                                new Panel( 'Debitorennummer', $tblInvoice->getDebtorNumber() ), 3
+                                new Panel('Debitorennummer', $tblInvoice->getDebtorNumber()), 3
                             ),
                             new LayoutColumn(
-                                new Panel( 'Person', $tblInvoice->getServiceManagementPerson()->getFullName() ), 3
+                                new Panel('Person', $tblInvoice->getServiceManagementPerson()->getFullName()), 3
                             )
-                        ) ),
-                        new LayoutRow( array(
+                        )),
+                        new LayoutRow(array(
                             new LayoutColumn(
                                 ( $tblInvoice->getServiceManagementAddress()
                                     ? new Panel(
                                         new MapMarker().' Rechnungsadresse',
-                                        new Address( $tblInvoice->getServiceManagementAddress() ),
+                                        new Address($tblInvoice->getServiceManagementAddress()),
                                         Panel::PANEL_TYPE_DEFAULT,
                                         ( ( $tblDebtor = Banking::useService()->entityDebtorByDebtorNumber(
-                                            $tblInvoice->getDebtorNumber() ) )
-                                        && count( Management::servicePerson()->entityAddressAllByPerson(
-                                            $tblDebtor->getServiceManagementPerson() ) ) > 1
-                                            ? new Primary( 'Bearbeiten',
+                                            $tblInvoice->getDebtorNumber()) )
+                                        && count(Management::servicePerson()->entityAddressAllByPerson(
+                                            $tblDebtor->getServiceManagementPerson())) > 1
+                                            ? new Primary('Bearbeiten',
                                                 '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Address/Select',
                                                 new Edit(),
                                                 array(
@@ -361,7 +360,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Zahlungsart',
                                     $tblInvoice->getServiceBillingBankingPaymentType()->getName(),
                                     Panel::PANEL_TYPE_DEFAULT,
-                                    new Primary( 'Bearbeiten',
+                                    new Primary('Bearbeiten',
                                         '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Payment/Type/Select',
                                         new Edit(),
                                         array(
@@ -370,23 +369,23 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 ), 3
                             ),
-                        ) ),
+                        )),
                         new LayoutRow(
                             new LayoutColumn(
-                                new Aspect( 'Betrag' )
+                                new Aspect('Betrag')
                             )
                         ),
-                        new LayoutRow( array(
+                        new LayoutRow(array(
                             new LayoutColumn(
-                                new Panel( 'Rechnungsbetrag',
-                                    Invoice::useService()->sumPriceItemAllStringByInvoice( $tblInvoice ) ), 3
+                                new Panel('Rechnungsbetrag',
+                                    Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice)), 3
                             )
-                        ) )
-                    ), new Title( 'Kopf' ) ),
-                    new LayoutGroup( array(
-                        new LayoutRow( array(
-                            new LayoutColumn( array(
-                                    new TableData( $tblInvoiceItemAll, null,
+                        ))
+                    ), new Title('Kopf')),
+                    new LayoutGroup(array(
+                        new LayoutRow(array(
+                            new LayoutColumn(array(
+                                    new TableData($tblInvoiceItemAll, null,
                                         array(
                                             'CommodityName'    => 'Leistung',
                                             'ItemName'         => 'Artikel',
@@ -399,9 +398,9 @@ class Frontend extends Extension implements IFrontendInterface
                                     )
                                 )
                             )
-                        ) ),
-                    ), new Title( 'Positionen' ) )
-                ) )
+                        )),
+                    ), new Title('Positionen'))
+                ))
             );
         }
 
@@ -413,34 +412,34 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceShow( $Id )
+    public function frontendInvoiceShow($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Anzeigen' );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Bookkeeping/Invoice', new ChevronLeft() ) );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Anzeigen');
+        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice', new ChevronLeft()));
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
 
         if ($tblInvoice->getIsVoid()) {
-            $Stage->setMessage( new \SPHERE\Common\Frontend\Message\Repository\Danger( "Diese Rechnung wurde storniert" ) );
+            $Stage->setMessage(new \SPHERE\Common\Frontend\Message\Repository\Danger("Diese Rechnung wurde storniert"));
         }
 
-        $tblInvoiceItemAll = Invoice::useService()->entityInvoiceItemAllByInvoice( $tblInvoice );
+        $tblInvoiceItemAll = Invoice::useService()->entityInvoiceItemAllByInvoice($tblInvoice);
         if (!empty( $tblInvoiceItemAll )) {
-            array_walk( $tblInvoiceItemAll,
-                function ( TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice ) {
+            array_walk($tblInvoiceItemAll,
+                function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
 
                     if ($tblInvoice->getServiceBillingBankingPaymentType()->getId() == 1) //SEPA-Lastschrift
                     {
-                        $tblCommodity = Commodity::useService()->entityCommodityByName( $tblInvoiceItem->getCommodityName() );
+                        $tblCommodity = Commodity::useService()->entityCommodityByName($tblInvoiceItem->getCommodityName());
                         if ($tblCommodity) {
 
-                            $tblDebtor = Banking::useService()->entityDebtorByDebtorNumber( $tblInvoice->getDebtorNumber() );
+                            $tblDebtor = Banking::useService()->entityDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
                             if ($tblDebtor) {
-                                if (Banking::useService()->entityReferenceByDebtorAndCommodity( $tblDebtor,
-                                    $tblCommodity )
+                                if (Banking::useService()->entityReferenceByDebtorAndCommodity($tblDebtor,
+                                    $tblCommodity)
                                 ) {
                                     $tblInvoiceItem->Status = new Success(
                                         'Mandatsreferenz', new Ok()
@@ -465,55 +464,54 @@ class Frontend extends Extension implements IFrontendInterface
                     }
 
                     $tblInvoiceItem->TotalPriceString = $tblInvoiceItem->getTotalPriceString();
-                    $tblInvoiceItem->QuantityString = str_replace( '.', ',', $tblInvoiceItem->getItemQuantity() );
+                    $tblInvoiceItem->QuantityString = str_replace('.', ',', $tblInvoiceItem->getItemQuantity());
                     $tblInvoiceItem->PriceString = $tblInvoiceItem->getPriceString();
-                }, $tblInvoice );
+                }, $tblInvoice);
         }
 
-
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
-                    new LayoutRow( array(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel( 'Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_PRIMARY ), 3
+                            new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_PRIMARY), 3
                         ),
                         new LayoutColumn(
-                            new Panel( 'Warenkorb', $tblInvoice->getBasketName(), Panel::PANEL_TYPE_DEFAULT ), 3
+                            new Panel('Warenkorb', $tblInvoice->getBasketName(), Panel::PANEL_TYPE_DEFAULT), 3
                         ),
                         new LayoutColumn(
-                            new Panel( 'Rechnungsdatum', $tblInvoice->getInvoiceDate(),
-                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT ),
+                            new Panel('Rechnungsdatum', $tblInvoice->getInvoiceDate(),
+                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
                         new LayoutColumn(
-                            new Panel( 'Zahlungsdatum', $tblInvoice->getPaymentDate(),
-                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT ),
+                            new Panel('Zahlungsdatum', $tblInvoice->getPaymentDate(),
+                                $tblInvoice->getIsPaymentDateModified() ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT),
                             3
                         ),
-                    ) ),
+                    )),
                     new LayoutRow(
                         new LayoutColumn(
-                            new Aspect( 'Empfänger' )
+                            new Aspect('Empfänger')
                         )
                     ),
-                    new LayoutRow( array(
+                    new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel( 'Debitor', $tblInvoice->getDebtorFullName() ), 3
+                            new Panel('Debitor', $tblInvoice->getDebtorFullName()), 3
                         ),
                         new LayoutColumn(
-                            new Panel( 'Debitorennummer', $tblInvoice->getDebtorNumber() ), 3
+                            new Panel('Debitorennummer', $tblInvoice->getDebtorNumber()), 3
                         ),
                         new LayoutColumn(
-                            new Panel( 'Person', $tblInvoice->getServiceManagementPerson()->getFullName() ), 3
+                            new Panel('Person', $tblInvoice->getServiceManagementPerson()->getFullName()), 3
                         )
-                    ) ),
-                    new LayoutRow( array(
+                    )),
+                    new LayoutRow(array(
                         new LayoutColumn(
                             ( $tblInvoice->getServiceManagementAddress()
                                 ? new Panel(
                                     new MapMarker().' Rechnungsadresse',
-                                    new Address( $tblInvoice->getServiceManagementAddress() ),
+                                    new Address($tblInvoice->getServiceManagementAddress()),
                                     Panel::PANEL_TYPE_DEFAULT
                                 )
                                 : new Warning(
@@ -528,38 +526,38 @@ class Frontend extends Extension implements IFrontendInterface
                                 Panel::PANEL_TYPE_DEFAULT
                             ), 3
                         ),
-                    ) ),
+                    )),
                     new LayoutRow(
                         new LayoutColumn(
-                            new Aspect( 'Betrag' )
+                            new Aspect('Betrag')
                         )
                     ),
-                    new LayoutRow( array(
+                    new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel( 'Rechnungsbetrag',
-                                Invoice::useService()->sumPriceItemAllStringByInvoice( $tblInvoice ) ), 3
+                            new Panel('Rechnungsbetrag',
+                                Invoice::useService()->sumPriceItemAllStringByInvoice($tblInvoice)), 3
                         ),
                         new LayoutColumn(
                             $tblInvoice->getIsConfirmed() ?
                                 ( $tblInvoice->getIsPaid()
-                                    ? new Success( "Bezahlt" )
-                                    : ( round( Balance::useService()->sumPriceItemByBalance( Balance::useService()->entityBalanceByInvoice( $tblInvoice ) ),
-                                        2 )
-                                    >= round( Invoice::useService()->sumPriceItemAllByInvoice( $tblInvoice ), 2 )
-                                        ? new Panel( 'Bezahlbetrag', Balance::useService()->sumPriceItemStringByBalance(
-                                            Balance::useService()->entityBalanceByInvoice( $tblInvoice ) ),
-                                            Panel::PANEL_TYPE_SUCCESS )
-                                        : new Panel( 'Bezahlbetrag', Balance::useService()->sumPriceItemStringByBalance(
-                                            Balance::useService()->entityBalanceByInvoice( $tblInvoice ) ),
-                                            Panel::PANEL_TYPE_DANGER ) ) )
-                                : new \SPHERE\Common\Frontend\Text\Repository\Success( "" )
-                            , 3 )
-                    ) ),
-                ), new Title( 'Kopf' ) ),
-                new LayoutGroup( array(
-                    new LayoutRow( array(
-                        new LayoutColumn( array(
-                                new TableData( $tblInvoiceItemAll, null,
+                                    ? new Success("Bezahlt")
+                                    : ( round(Balance::useService()->sumPriceItemByBalance(Balance::useService()->entityBalanceByInvoice($tblInvoice)),
+                                        2)
+                                    >= round(Invoice::useService()->sumPriceItemAllByInvoice($tblInvoice), 2)
+                                        ? new Panel('Bezahlbetrag', Balance::useService()->sumPriceItemStringByBalance(
+                                            Balance::useService()->entityBalanceByInvoice($tblInvoice)),
+                                            Panel::PANEL_TYPE_SUCCESS)
+                                        : new Panel('Bezahlbetrag', Balance::useService()->sumPriceItemStringByBalance(
+                                            Balance::useService()->entityBalanceByInvoice($tblInvoice)),
+                                            Panel::PANEL_TYPE_DANGER) ) )
+                                : new \SPHERE\Common\Frontend\Text\Repository\Success("")
+                            , 3)
+                    )),
+                ), new Title('Kopf')),
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                                new TableData($tblInvoiceItemAll, null,
                                     array(
                                         'CommodityName'    => 'Leistung',
                                         'ItemName'         => 'Artikel',
@@ -571,9 +569,9 @@ class Frontend extends Extension implements IFrontendInterface
                                 )
                             )
                         )
-                    ) ),
-                ), new Title( 'Positionen' ) )
-            ) )
+                    )),
+                ), new Title('Positionen'))
+            ))
         );
 
         return $Stage;
@@ -585,15 +583,15 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceConfirm( $Id, $Data )
+    public function frontendInvoiceConfirm($Id, $Data)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Freigeben' );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Freigeben');
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
-        $Stage->setContent( Invoice::useService()->executeConfirmInvoice( $tblInvoice, $Data ) );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
+        $Stage->setContent(Invoice::useService()->executeConfirmInvoice($tblInvoice, $Data));
 
         return $Stage;
     }
@@ -604,15 +602,15 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceCancel( $Id )
+    public function frontendInvoiceCancel($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Stornieren' );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Stornieren');
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
-        $Stage->setContent( Invoice::useService()->executeCancelInvoice( $tblInvoice ) );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
+        $Stage->setContent(Invoice::useService()->executeCancelInvoice($tblInvoice));
 
         return $Stage;
     }
@@ -622,35 +620,35 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceAddressSelect( $Id )
+    public function frontendInvoiceAddressSelect($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Rechnungsadresse Auswählen' );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
-            array( 'Id' => $Id )
-        ) );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Rechnungsadresse Auswählen');
+        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
+            array('Id' => $Id)
+        ));
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
         $tblAddressAll = Management::servicePerson()->entityAddressAllByPerson(
-            Banking::useService()->entityDebtorByDebtorNumber( $tblInvoice->getDebtorNumber() )->getServiceManagementPerson() );
+            Banking::useService()->entityDebtorByDebtorNumber($tblInvoice->getDebtorNumber())->getServiceManagementPerson());
 
-        $layoutGroup = self::layoutAddress( $tblAddressAll, $tblInvoice->getServiceManagementAddress(), $tblInvoice );
+        $layoutGroup = self::layoutAddress($tblAddressAll, $tblInvoice->getServiceManagementAddress(), $tblInvoice);
 
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
-                    new LayoutRow( array(
-                        new LayoutColumn( array(
-                            new Panel( 'Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_SUCCESS )
-                        ), 3 ),
-                        new LayoutColumn( array(
-                            new Panel( 'Empfänger', $tblInvoice->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS )
-                        ), 3 )
-                    ) )
-                ) )
-            ) )
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_SUCCESS)
+                        ), 3),
+                        new LayoutColumn(array(
+                            new Panel('Empfänger', $tblInvoice->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS)
+                        ), 3)
+                    ))
+                ))
+            ))
             .$layoutGroup
         );
 
@@ -658,13 +656,13 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $tblAddressList
+     * @param            $tblAddressList
      * @param TblAddress $invoiceAddress
      * @param TblInvoice $tblInvoice
      *
      * @return Layout
      */
-    private static function layoutAddress( $tblAddressList, TblAddress $invoiceAddress, TblInvoice $tblInvoice )
+    private static function layoutAddress($tblAddressList, TblAddress $invoiceAddress, TblInvoice $tblInvoice)
     {
 
         if (!empty( $tblAddressList )) {
@@ -680,8 +678,8 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblAddress = new LayoutColumn(
                     new Panel(
-                        $AddressType, new Address( $tblAddress ), $PanelType,
-                        new Primary( 'Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Address/Change',
+                        $AddressType, new Address($tblAddress), $PanelType,
+                        new Primary('Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Address/Change',
                             new Ok(),
                             array(
                                 'Id'        => $tblInvoice->getId(),
@@ -694,13 +692,13 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             $tblAddressList = array(
                 new LayoutColumn(
-                    new Warning( 'Keine Adressen hinterlegt', new \SPHERE\Common\Frontend\Icon\Repository\Warning() )
+                    new Warning('Keine Adressen hinterlegt', new \SPHERE\Common\Frontend\Icon\Repository\Warning())
                 )
             );
         }
 
         return new Layout(
-            new LayoutGroup( new LayoutRow( $tblAddressList ), new Title( 'Adressen' ) )
+            new LayoutGroup(new LayoutRow($tblAddressList), new Title('Adressen'))
         );
     }
 
@@ -709,17 +707,17 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoicePaymentTypeSelect( $Id )
+    public function frontendInvoicePaymentTypeSelect($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Zahlungsart Auswählen' );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
-            array( 'Id' => $Id )
-        ) );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Zahlungsart Auswählen');
+        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
+            array('Id' => $Id)
+        ));
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
         $tblPaymentTypeList = Banking::useService()->entityPaymentTypeAll();
 
         if ($tblPaymentTypeList) {
@@ -731,7 +729,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblPaymentType->getId() === $tblInvoice->getServiceBillingBankingPaymentType()->getId() ?
                             Panel::PANEL_TYPE_SUCCESS :
                             Panel::PANEL_TYPE_DEFAULT,
-                        new Primary( 'Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Payment/Type/Change',
+                        new Primary('Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Payment/Type/Change',
                             new Ok(),
                             array(
                                 'Id'            => $tblInvoice->getId(),
@@ -743,23 +741,23 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
         $Stage->setContent(
-            new Layout( array(
-                new LayoutGroup( array(
-                    new LayoutRow( array(
-                        new LayoutColumn( array(
-                            new Panel( 'Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_SUCCESS )
-                        ), 3 ),
-                        new LayoutColumn( array(
-                            new Panel( 'Empfänger', $tblInvoice->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS )
-                        ), 3 )
-                    ) )
-                ) ),
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel('Rechnungsnummer', $tblInvoice->getNumber(), Panel::PANEL_TYPE_SUCCESS)
+                        ), 3),
+                        new LayoutColumn(array(
+                            new Panel('Empfänger', $tblInvoice->getDebtorFullName(), Panel::PANEL_TYPE_SUCCESS)
+                        ), 3)
+                    ))
+                )),
                 new LayoutGroup(
                     new LayoutRow(
                         $tblPaymentTypeList
-                    ), new Title( 'Zahlungsarten' )
+                    ), new Title('Zahlungsarten')
                 )
-            ) )
+            ))
         );
 
         return $Stage;
@@ -771,16 +769,16 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceAddressChange( $Id, $AddressId )
+    public function frontendInvoiceAddressChange($Id, $AddressId)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Rechnungsadresse Ändern' );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Rechnungsadresse Ändern');
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
-        $tblAddress = Management::serviceAddress()->entityAddressById( $AddressId );
-        $Stage->setContent( Invoice::useService()->executeChangeInvoiceAddress( $tblInvoice, $tblAddress ) );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
+        $tblAddress = Management::serviceAddress()->entityAddressById($AddressId);
+        $Stage->setContent(Invoice::useService()->executeChangeInvoiceAddress($tblInvoice, $tblAddress));
 
         return $Stage;
     }
@@ -791,16 +789,16 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoicePaymentTypeChange( $Id, $PaymentTypeId )
+    public function frontendInvoicePaymentTypeChange($Id, $PaymentTypeId)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Zahlungsart Ändern' );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Zahlungsart Ändern');
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
-        $tblPaymentType = Banking::useService()->entityPaymentTypeById( $PaymentTypeId );
-        $Stage->setContent( Invoice::useService()->executeChangeInvoicePaymentType( $tblInvoice, $tblPaymentType ) );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
+        $tblPaymentType = Banking::useService()->entityPaymentTypeById($PaymentTypeId);
+        $Stage->setContent(Invoice::useService()->executeChangeInvoicePaymentType($tblInvoice, $tblPaymentType));
 
         return $Stage;
     }
@@ -810,15 +808,15 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoicePay( $Id )
+    public function frontendInvoicePay($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Bezahlen' );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Bezahlen');
 
-        $tblInvoice = Invoice::useService()->entityInvoiceById( $Id );
-        $Stage->setContent( Invoice::useService()->executePayInvoice( $tblInvoice ) );
+        $tblInvoice = Invoice::useService()->entityInvoiceById($Id);
+        $Stage->setContent(Invoice::useService()->executePayInvoice($tblInvoice));
 
         return $Stage;
     }
@@ -829,76 +827,76 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceItemEdit( $Id, $InvoiceItem )
+    public function frontendInvoiceItemEdit($Id, $InvoiceItem)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Artikel Bearbeiten' );
-        $Stage->addButton( new Primary( 'Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
-            array( 'Id' => $Id )
-        ) );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Artikel Bearbeiten');
+        $Stage->addButton(new Primary('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', new ChevronLeft(),
+            array('Id' => $Id)
+        ));
 
         if (empty( $Id )) {
-            $Stage->setContent( new Warning( 'Die Daten konnten nicht abgerufen werden' ) );
+            $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
-            $tblInvoiceItem = Invoice::useService()->entityInvoiceItemById( $Id );
+            $tblInvoiceItem = Invoice::useService()->entityInvoiceItemById($Id);
             if (empty( $tblInvoiceItem )) {
-                $Stage->setContent( new Warning( 'Der Artikel konnte nicht abgerufen werden' ) );
+                $Stage->setContent(new Warning('Der Artikel konnte nicht abgerufen werden'));
             } else {
 
                 $Global = $this->getGlobal();
                 if (!isset( $Global->POST['InvoiceItems'] )) {
-                    $Global->POST['InvoiceItem']['Price'] = str_replace( '.', ',', $tblInvoiceItem->getItemPrice() );
-                    $Global->POST['InvoiceItem']['Quantity'] = str_replace( '.', ',',
-                        $tblInvoiceItem->getItemQuantity() );
+                    $Global->POST['InvoiceItem']['Price'] = str_replace('.', ',', $tblInvoiceItem->getItemPrice());
+                    $Global->POST['InvoiceItem']['Quantity'] = str_replace('.', ',',
+                        $tblInvoiceItem->getItemQuantity());
                     $Global->savePost();
                 }
 
                 $Stage->setContent(
-                    new Layout( array(
-                        new LayoutGroup( array(
-                            new LayoutRow( array(
+                    new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel( 'Leistung-Name', $tblInvoiceItem->getCommodityName()
-                                        , Panel::PANEL_TYPE_SUCCESS ), 3
+                                    new Panel('Leistung-Name', $tblInvoiceItem->getCommodityName()
+                                        , Panel::PANEL_TYPE_SUCCESS), 3
                                 ),
                                 new LayoutColumn(
-                                    new Panel( 'Artikel-Name', $tblInvoiceItem->getItemName()
-                                        , Panel::PANEL_TYPE_SUCCESS ), 3
+                                    new Panel('Artikel-Name', $tblInvoiceItem->getItemName()
+                                        , Panel::PANEL_TYPE_SUCCESS), 3
                                 ),
                                 new LayoutColumn(
-                                    new Panel( 'Artikel-Beschreibung', $tblInvoiceItem->getItemDescription()
-                                        , Panel::PANEL_TYPE_SUCCESS ), 6
+                                    new Panel('Artikel-Beschreibung', $tblInvoiceItem->getItemDescription()
+                                        , Panel::PANEL_TYPE_SUCCESS), 6
                                 )
-                            ) ),
-                        ) ),
-                        new LayoutGroup( array(
-                            new LayoutRow( array(
-                                new LayoutColumn( array(
+                            )),
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(array(
                                         Invoice::useService()->executeEditInvoiceItem(
-                                            new Form( array(
-                                                new FormGroup( array(
-                                                    new FormRow( array(
+                                            new Form(array(
+                                                new FormGroup(array(
+                                                    new FormRow(array(
                                                         new FormColumn(
-                                                            new TextField( 'InvoiceItem[Price]', 'Preis in €', 'Preis',
+                                                            new TextField('InvoiceItem[Price]', 'Preis in €', 'Preis',
                                                                 new MoneyEuro()
-                                                            ), 6 ),
+                                                            ), 6),
                                                         new FormColumn(
-                                                            new TextField( 'InvoiceItem[Quantity]', 'Menge', 'Menge',
+                                                            new TextField('InvoiceItem[Quantity]', 'Menge', 'Menge',
                                                                 new Quantity()
-                                                            ), 6 )
-                                                    ) )
-                                                ) )
+                                                            ), 6)
+                                                    ))
+                                                ))
                                             ),
-                                                new \SPHERE\Common\Frontend\Form\Repository\Button\Primary( 'Änderungen speichern' )
+                                                new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern')
                                             ), $tblInvoiceItem, $InvoiceItem
                                         )
                                     )
                                 )
-                            ) )
-                        ) )
-                    ) )
+                            ))
+                        ))
+                    ))
                 );
             }
         }
@@ -911,15 +909,15 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendInvoiceItemRemove( $Id )
+    public function frontendInvoiceItemRemove($Id)
     {
 
         $Stage = new Stage();
-        $Stage->setTitle( 'Rechnung' );
-        $Stage->setDescription( 'Artikel Entfernen' );
+        $Stage->setTitle('Rechnung');
+        $Stage->setDescription('Artikel Entfernen');
 
-        $tblInvoiceItem = Invoice::useService()->entityInvoiceItemById( $Id );
-        $Stage->setContent( Invoice::useService()->executeRemoveInvoiceItem( $tblInvoiceItem ) );
+        $tblInvoiceItem = Invoice::useService()->entityInvoiceItemById($Id);
+        $Stage->setContent(Invoice::useService()->executeRemoveInvoiceItem($tblInvoiceItem));
 
         return $Stage;
     }

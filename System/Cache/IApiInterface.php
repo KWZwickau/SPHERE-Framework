@@ -16,12 +16,12 @@ interface IApiInterface extends ITypeInterface
      *
      * @return bool
      */
-    public function setValue( $Key, $Value, $Timeout = null );
+    public function setValue($Key, $Value, $Timeout = null);
 
     /**
      * @param string $Key
      *
      * @return mixed|false
      */
-    public function getValue( $Key );
+    public function getValue($Key);
 }

@@ -14,12 +14,12 @@ class Gradebook implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Notenbuch' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Notenbuch'))
         );
 
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
     }
 
     /**

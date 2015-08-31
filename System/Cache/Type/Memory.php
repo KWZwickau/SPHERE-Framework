@@ -23,7 +23,7 @@ class Memory implements IApiInterface
      *
      * @return bool
      */
-    public function setValue( $Key, $Value, $Timeout = null )
+    public function setValue($Key, $Value, $Timeout = null)
     {
 
         self::$Memory[$Key] = $Value;
@@ -35,10 +35,10 @@ class Memory implements IApiInterface
      *
      * @return mixed|false
      */
-    public function getValue( $Key )
+    public function getValue($Key)
     {
 
-        if (array_key_exists( $Key, self::$Memory )) {
+        if (array_key_exists($Key, self::$Memory)) {
             self::$HitCount++;
             return self::$Memory[$Key];
         }
@@ -106,7 +106,7 @@ class Memory implements IApiInterface
     public function getAvailableSize()
     {
 
-        return $this->convertByte2Integer( ini_get( 'memory_limit' ) );
+        return $this->convertByte2Integer(ini_get('memory_limit'));
     }
 
     /**
@@ -114,12 +114,12 @@ class Memory implements IApiInterface
      *
      * @return int
      */
-    private function convertByte2Integer( $Byte )
+    private function convertByte2Integer($Byte)
     {
 
-        preg_match( '/^\s*([0-9.]+)\s*([KMGTPE])B?\s*$/i', $Byte, $Match );
+        preg_match('/^\s*([0-9.]+)\s*([KMGTPE])B?\s*$/i', $Byte, $Match);
         $Value = (float)$Match[1];
-        switch (strtoupper( $Match[2] )) {
+        switch (strtoupper($Match[2])) {
             /** @noinspection PhpMissingBreakStatementInspection */
             case 'E':
                 $Value = $Value * 1024;
@@ -148,7 +148,7 @@ class Memory implements IApiInterface
     public function getUsedSize()
     {
 
-        return memory_get_peak_usage( true );
+        return memory_get_peak_usage(true);
     }
 
     /**
@@ -172,7 +172,7 @@ class Memory implements IApiInterface
     /**
      * @param array $Configuration
      */
-    public function setConfiguration( $Configuration )
+    public function setConfiguration($Configuration)
     {
 
     }

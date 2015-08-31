@@ -30,7 +30,7 @@ class TblConsumer extends Element
     /**
      * @param string $Acronym
      */
-    function __construct( $Acronym )
+    function __construct($Acronym)
     {
 
         $this->Acronym = $Acronym;
@@ -48,7 +48,7 @@ class TblConsumer extends Element
     /**
      * @param string $Acronym
      */
-    public function setAcronym( $Acronym )
+    public function setAcronym($Acronym)
     {
 
         $this->Acronym = $Acronym;
@@ -66,7 +66,7 @@ class TblConsumer extends Element
     /**
      * @param string $Name
      */
-    public function setName( $Name )
+    public function setName($Name)
     {
 
         $this->Name = $Name;

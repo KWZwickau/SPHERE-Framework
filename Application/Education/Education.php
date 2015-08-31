@@ -14,7 +14,7 @@ class Education implements IClusterInterface
     {
 
         Main::getDisplay()->addClusterNavigation(
-            new Link( new Link\Route( __NAMESPACE__.'/Lesson' ), new Link\Name( 'Bildung' ) )
+            new Link(new Link\Route(__NAMESPACE__.'/Lesson'), new Link\Name('Bildung'))
         );
 
         Lesson::registerApplication();

@@ -28,29 +28,29 @@ class Danger extends Extension implements ILinkInterface
      * @param array          $Data
      * @param bool|string    $ToolTip
      */
-    public function __construct( $Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false )
+    public function __construct($Name, $Path, IIconInterface $Icon = null, $Data = array(), $ToolTip = false)
     {
 
         $this->Name = $Name;
-        $this->Template = $this->getTemplate( __DIR__.'/Link.twig' );
-        $this->Template->setVariable( 'ElementName', $Name );
-        $this->Template->setVariable( 'ElementType', 'danger' );
+        $this->Template = $this->getTemplate(__DIR__.'/Link.twig');
+        $this->Template->setVariable('ElementName', $Name);
+        $this->Template->setVariable('ElementType', 'danger');
         if (null !== $Icon) {
-            $this->Template->setVariable( 'ElementIcon', $Icon );
+            $this->Template->setVariable('ElementIcon', $Icon);
         }
         if (!empty( $Data )) {
-            $Signature = ( new Authenticator( new Get() ) )->getAuthenticator();
-            $Data = '?'.http_build_query( $Signature->createSignature( $Data, $Path ) );
+            $Signature = (new Authenticator(new Get()))->getAuthenticator();
+            $Data = '?'.http_build_query($Signature->createSignature($Data, $Path));
         } else {
             $Data = '';
         }
-        $this->Template->setVariable( 'ElementPath', $Path.$Data );
-        $this->Template->setVariable( 'UrlBase', $this->getRequest()->getUrlBase() );
+        $this->Template->setVariable('ElementPath', $Path.$Data);
+        $this->Template->setVariable('UrlBase', $this->getRequest()->getUrlBase());
         if ($ToolTip) {
-            if (is_string( $ToolTip )) {
-                $this->Template->setVariable( 'ElementToolTip', $ToolTip );
+            if (is_string($ToolTip)) {
+                $this->Template->setVariable('ElementToolTip', $ToolTip);
             } else {
-                $this->Template->setVariable( 'ElementToolTip', $Name );
+                $this->Template->setVariable('ElementToolTip', $Name);
             }
         }
     }

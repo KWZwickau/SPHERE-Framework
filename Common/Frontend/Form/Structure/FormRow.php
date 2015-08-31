@@ -22,11 +22,11 @@ class FormRow extends Extension implements IStructureInterface
      * @param FormColumn|FormColumn[] $FormColumn
      * @param bool                    $IsSortable
      */
-    public function __construct( $FormColumn, $IsSortable = false )
+    public function __construct($FormColumn, $IsSortable = false)
     {
 
-        if (!is_array( $FormColumn )) {
-            $FormColumn = array( $FormColumn );
+        if (!is_array($FormColumn)) {
+            $FormColumn = array($FormColumn);
         }
         $this->FormColumn = $FormColumn;
         $this->IsSortable = $IsSortable;
@@ -37,10 +37,10 @@ class FormRow extends Extension implements IStructureInterface
      *
      * @return FormRow
      */
-    public function addColumn( FormColumn $FormColumn )
+    public function addColumn(FormColumn $FormColumn)
     {
 
-        array_push( $this->FormColumn, $FormColumn );
+        array_push($this->FormColumn, $FormColumn);
         return $this;
     }
 

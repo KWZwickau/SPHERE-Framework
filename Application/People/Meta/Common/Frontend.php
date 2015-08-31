@@ -42,7 +42,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendMeta( TblPerson $tblPerson = null, $Meta = array() )
+    public function frontendMeta(TblPerson $tblPerson = null, $Meta = array())
     {
 
         $Stage = new Stage();
@@ -51,13 +51,13 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Meta'] )) {
                 /** @var TblCommon $tblCommon */
-                $tblCommon = Common::useService()->getCommonByPerson( $tblPerson );
-                if( $tblCommon ) {
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if ($tblCommon) {
                     $Global->POST['Meta']['Remark'] = $tblCommon->getRemark();
 
                     /** @var TblCommonBirthDates $tblCommonBirthDates */
                     $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
-                    if( $tblCommonBirthDates ) {
+                    if ($tblCommonBirthDates) {
                         $Global->POST['Meta']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
                         $Global->POST['Meta']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace();
                         $Global->POST['Meta']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
@@ -65,7 +65,7 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                     /** @var TblCommonInformation $tblCommonInformation */
                     $tblCommonInformation = $tblCommon->getTblCommonInformation();
-                    if( $tblCommonInformation ) {
+                    if ($tblCommonInformation) {
                         $Global->POST['Meta']['Title'] = $tblCommonInformation->getTitle();
                         $Global->POST['Meta']['First'] = $tblCommonInformation->getFirstName();
                         $Global->POST['Meta']['Middle'] = $tblPerson->getSecondName();
@@ -80,56 +80,56 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            ( new Form( array(
-                new FormGroup( array(
-                    new FormRow( array(
+            (new Form(array(
+                new FormGroup(array(
+                    new FormRow(array(
                         new FormColumn(
-                            new Panel( 'Geburtsdaten', array(
-                                new DatePicker( 'Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
-                                    new Calendar() ),
-                                new AutoCompleter( 'Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort', array(),
-                                    new MapMarker() ),
-                                new SelectBox( 'Meta[BirthDates][Gender]', 'Geschlecht', array(
+                            new Panel('Geburtsdaten', array(
+                                new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
+                                    new Calendar()),
+                                new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort', array(),
+                                    new MapMarker()),
+                                new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
                                     TblCommonBirthDates::VALUE_GENDER_NULL   => '',
                                     TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
                                     TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
-                                ), new Child() ),
-                                new AutoCompleter( 'Meta[BirthDates][Nationality]', 'Staatsangehörigkeit',
+                                ), new Child()),
+                                new AutoCompleter('Meta[BirthDates][Nationality]', 'Staatsangehörigkeit',
                                     'Staatsangehörigkeit',
                                     array(), new Nameplate()
                                 ),
-                            ), Panel::PANEL_TYPE_INFO ), 6 ),
+                            ), Panel::PANEL_TYPE_INFO), 6),
                         new FormColumn(
-                            new Panel( 'Informationen', array(
-                                new AutoCompleter( 'Meta[Information][Denomination]', 'Konfession',
+                            new Panel('Informationen', array(
+                                new AutoCompleter('Meta[Information][Denomination]', 'Konfession',
                                     'Konfession',
                                     array(), new TempleChurch()
                                 ),
-                                new SelectBox( 'Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
+                                new SelectBox('Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
                                     TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
                                     TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
                                     TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
                                 ), new Sheriff()
                                 ),
-                                new Danger( new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.' ),
-                                new TextArea( 'Meta[Information][AssistanceActivity]',
+                                new Danger(new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'),
+                                new TextArea('Meta[Information][AssistanceActivity]',
                                     'Mitarbeitsbereitschaft - Tätigkeiten',
                                     'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
                                 ),
-                            ), Panel::PANEL_TYPE_INFO ), 6 ),
-                    ) ),
-                ) ),
-                new FormGroup( array(
-                    new FormRow( array(
+                            ), Panel::PANEL_TYPE_INFO), 6),
+                    )),
+                )),
+                new FormGroup(array(
+                    new FormRow(array(
                         new FormColumn(
-                            new Panel( 'Sonstiges', array(
-                                new Danger( new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.' ),
-                                new TextArea( 'Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil() )
-                            ), Panel::PANEL_TYPE_INFO ) ),
-                    ) ),
-                ) ),
+                            new Panel('Sonstiges', array(
+                                new Danger(new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'),
+                                new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                            ), Panel::PANEL_TYPE_INFO)),
+                    )),
+                )),
             ),
-                new Primary( 'Informationen speichern' ) ) )->setConfirm( 'Eventuelle Änderungen wurden noch nicht gespeichert.' )
+                new Primary('Informationen speichern')))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
         );
 
         return $Stage;

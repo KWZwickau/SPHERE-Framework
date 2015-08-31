@@ -25,24 +25,24 @@ class Export implements IApplicationInterface
         Datev::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Daten exportieren' ) )
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten exportieren'))
         );
-        Main::getDispatcher()->registerRoute( Main::getDispatcher()->createRoute(
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ) );
+        ));
 
-        Main::getDispatcher()->registerWidget( 'Export',
+        Main::getDispatcher()->registerWidget('Export',
             new Thumbnail(
-                FileSystem::getFileLoader( '/Common/Style/Resource/datev_logo.png' ),
+                FileSystem::getFileLoader('/Common/Style/Resource/datev_logo.png'),
                 'Datev', 'Rechnungen',
-                new Standard( '', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download' )
+                new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
             ), 2, 4
         );
-        Main::getDispatcher()->registerWidget( 'Transfer',
+        Main::getDispatcher()->registerWidget('Transfer',
             new Thumbnail(
-                FileSystem::getFileLoader( '/Common/Style/Resource/datev_logo.png' ),
+                FileSystem::getFileLoader('/Common/Style/Resource/datev_logo.png'),
                 'Datev', 'Rechnungen',
-                new Standard( '', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download' )
+                new Standard('', '/Sphere/Transfer/Export/Datev', new Download(), array(), 'Download')
             ), 2, 4
         );
     }
@@ -53,9 +53,9 @@ class Export implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage( 'Dashboard', 'Export' );
+        $Stage = new Stage('Dashboard', 'Export');
 
-        $Stage->setContent( Main::getDispatcher()->fetchDashboard( 'Export' ) );
+        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Export'));
 
         return $Stage;
     }

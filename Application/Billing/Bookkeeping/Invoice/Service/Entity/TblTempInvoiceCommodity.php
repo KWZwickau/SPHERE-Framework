@@ -4,9 +4,9 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity;
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
-use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -36,17 +36,17 @@ class TblTempInvoiceCommodity extends Element
     public function getTblTempInvoice()
     {
 
-        if ( null === $this->tblTempInvoice ) {
+        if (null === $this->tblTempInvoice) {
             return false;
         } else {
-            return Invoice::useService()->entityTempInvoiceById( $this->tblTempInvoice );
+            return Invoice::useService()->entityTempInvoiceById($this->tblTempInvoice);
         }
     }
 
     /**
      * @param TblTempInvoice $tblTempInvoice
      */
-    public function setTblTempInvoice( TblTempInvoice $tblTempInvoice = null )
+    public function setTblTempInvoice(TblTempInvoice $tblTempInvoice = null)
     {
 
         $this->tblTempInvoice = ( null === $tblTempInvoice ? null : $tblTempInvoice->getId() );
@@ -58,17 +58,17 @@ class TblTempInvoiceCommodity extends Element
     public function getServiceBillingCommodity()
     {
 
-        if ( null === $this->serviceBilling_Commodity ) {
+        if (null === $this->serviceBilling_Commodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById( $this->serviceBilling_Commodity );
+            return Commodity::useService()->entityCommodityById($this->serviceBilling_Commodity);
         }
     }
 
     /**
      * @param TblCommodity $tblCommodity
      */
-    public function setServiceBillingCommodity( TblCommodity $tblCommodity = null )
+    public function setServiceBillingCommodity(TblCommodity $tblCommodity = null)
     {
 
         $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );

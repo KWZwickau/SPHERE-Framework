@@ -12,11 +12,11 @@
 <meta http-equiv="Refresh" content="{{ Timeout }}; URL={{ UrlBase }}{{ Route }}" property="">
 <!--suppress DynamicallyGeneratedCodeJS -->
 <script language=javascript>
-    Client.Use( 'ModCountDown', function()
+    Client.Use('ModCountDown', function()
     {
         {% if Timeout is not empty %}
-        jQuery( 'span.ModCountDown' ).ModCountDown( '{{ Timeout }}' );
+        jQuery('span.ModCountDown').ModCountDown('{{ Timeout }}');
         {% endif %}
-    } );
-    setTimeout( "location.href='{{ UrlBase }}{{ Route }}'", {{ Timeout }}1000 );
+    });
+    setTimeout("location.href='{{ UrlBase }}{{ Route }}'", {{ Timeout }}1000);
 </script>

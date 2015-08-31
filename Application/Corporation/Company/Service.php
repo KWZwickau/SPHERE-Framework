@@ -35,11 +35,11 @@ class Service implements IServiceInterface
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    public function __construct( Identifier $Identifier, $EntityPath, $EntityNamespace )
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -48,12 +48,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -64,7 +64,7 @@ class Service implements IServiceInterface
     public function countCompanyAll()
     {
 
-        return count( $this->getCompanyAll() );
+        return count($this->getCompanyAll());
     }
 
     /**
@@ -73,7 +73,7 @@ class Service implements IServiceInterface
     public function getCompanyAll()
     {
 
-        return ( new Data( $this->Binding ) )->getCompanyAll();
+        return (new Data($this->Binding))->getCompanyAll();
     }
 
     /**
@@ -81,10 +81,10 @@ class Service implements IServiceInterface
      *
      * @return int
      */
-    public function countCompanyAllByGroup( TblGroup $tblGroup )
+    public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return Group::useService()->countCompanyAllByGroup( $tblGroup );
+        return Group::useService()->countCompanyAllByGroup($tblGroup);
     }
 
     /**
@@ -93,7 +93,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|Redirect
      */
-    public function createCompany( IFormInterface $Form = null, $Company )
+    public function createCompany(IFormInterface $Form = null, $Company)
     {
 
         /**
@@ -106,28 +106,28 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Company['Name'] ) && empty( $Company['Name'] )) {
-            $Form->setError( 'Company[Name]', 'Bitte geben Sie einen Namen an' );
+            $Form->setError('Company[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            if (( $tblCompany = ( new Data( $this->Binding ) )->createCompany( $Company['Name'] ) )) {
+            if (( $tblCompany = (new Data($this->Binding))->createCompany($Company['Name']) )) {
                 // Add to Group
                 if (isset( $Company['Group'] )) {
                     foreach ((array)$Company['Group'] as $tblGroup) {
                         Group::useService()->addGroupCompany(
-                            Group::useService()->getGroupById( $tblGroup ), $tblCompany
+                            Group::useService()->getGroupById($tblGroup), $tblCompany
                         );
                     }
                 }
-                return new Success( 'Die Firma wurde erfolgreich erstellt' )
-                .new Redirect( '/Corporation/Company', 3,
-                    array( 'Id' => $tblCompany->getId() )
+                return new Success('Die Firma wurde erfolgreich erstellt')
+                .new Redirect('/Corporation/Company', 3,
+                    array('Id' => $tblCompany->getId())
                 );
             } else {
-                return new Danger( 'Die Firma konnte nicht erstellt werden' )
-                .new Redirect( '/Corporation/Company', 10 );
+                return new Danger('Die Firma konnte nicht erstellt werden')
+                .new Redirect('/Corporation/Company', 10);
             }
         }
 
@@ -139,10 +139,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCompany
      */
-    public function getCompanyById( $Id )
+    public function getCompanyById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getCompanyById( $Id );
+        return (new Data($this->Binding))->getCompanyById($Id);
     }
 
     /**
@@ -152,7 +152,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|Redirect
      */
-    public function updateCompany( IFormInterface $Form = null, TblCompany $tblCompany, $Company )
+    public function updateCompany(IFormInterface $Form = null, TblCompany $tblCompany, $Company)
     {
 
         /**
@@ -165,40 +165,40 @@ class Service implements IServiceInterface
         $Error = false;
 
         if (isset( $Company['Name'] ) && empty( $Company['Name'] )) {
-            $Form->setError( 'Company[Name]', 'Bitte geben Sie einen Namen an' );
+            $Form->setError('Company[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            if (( new Data( $this->Binding ) )->updateCompany( $tblCompany, $Company['Name'] )) {
+            if ((new Data($this->Binding))->updateCompany($tblCompany, $Company['Name'])) {
                 // Change Groups
                 if (isset( $Company['Group'] )) {
                     // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByCompany( $tblCompany );
+                    $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
                     foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupCompany( $tblGroup, $tblCompany );
+                        Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
                     }
                     // Add current Groups
                     foreach ((array)$Company['Group'] as $tblGroup) {
                         Group::useService()->addGroupCompany(
-                            Group::useService()->getGroupById( $tblGroup ), $tblCompany
+                            Group::useService()->getGroupById($tblGroup), $tblCompany
                         );
                     }
                 } else {
                     // Remove all Groups
-                    $tblGroupList = Group::useService()->getGroupAllByCompany( $tblCompany );
+                    $tblGroupList = Group::useService()->getGroupAllByCompany($tblCompany);
                     foreach ($tblGroupList as $tblGroup) {
-                        Group::useService()->removeGroupCompany( $tblGroup, $tblCompany );
+                        Group::useService()->removeGroupCompany($tblGroup, $tblCompany);
                     }
                 }
-                return new Success( 'Die Firma wurde erfolgreich aktualisiert' )
-                .new Redirect( '/Corporation/Company', 1,
-                    array( 'Id' => $tblCompany->getId() )
+                return new Success('Die Firma wurde erfolgreich aktualisiert')
+                .new Redirect('/Corporation/Company', 1,
+                    array('Id' => $tblCompany->getId())
                 );
             } else {
-                return new Danger( 'Die Firma konnte nicht aktualisiert werden' )
-                .new Redirect( '/Corporation/Company', 10 );
+                return new Danger('Die Firma konnte nicht aktualisiert werden')
+                .new Redirect('/Corporation/Company', 10);
             }
         }
 

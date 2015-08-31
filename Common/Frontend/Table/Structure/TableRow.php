@@ -18,11 +18,11 @@ class TableRow extends Extension implements ITableInterface
     /**
      * @param TableColumn|TableColumn[] $TableColumn
      */
-    public function __construct( $TableColumn )
+    public function __construct($TableColumn)
     {
 
-        if (!is_array( $TableColumn )) {
-            $TableColumn = array( $TableColumn );
+        if (!is_array($TableColumn)) {
+            $TableColumn = array($TableColumn);
         }
         $this->TableColumn = $TableColumn;
     }

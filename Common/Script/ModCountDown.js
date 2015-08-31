@@ -1,4 +1,4 @@
-(function( $ )
+(function($)
 {
     'use strict';
     $.fn.ModCountDown = function(
@@ -7,7 +7,7 @@
     {
 
         // This is the easiest way to have default options.
-        var settings = $.extend( {
+        var settings = $.extend({
             // These are the defaults.
             precision: 200,
 // [format] Directives
@@ -21,16 +21,16 @@
 //%M %-M Minutes left
 //%S %-S Seconds left
             format: '%-S'
-        }, options );
+        }, options);
 
         var MomentJs = moment();
-        MomentJs.add( seconds, 's' );
+        MomentJs.add(seconds, 's');
         // script goes here
-        this.countdown( MomentJs.toDate(), function( Event )
+        this.countdown(MomentJs.toDate(), function(Event)
         {
-            $( Event.target ).html( Event.strftime( settings.format ) );
-        } );
+            $(Event.target).html(Event.strftime(settings.format));
+        });
         return this;
     };
 
-}( jQuery ));
+}(jQuery));
