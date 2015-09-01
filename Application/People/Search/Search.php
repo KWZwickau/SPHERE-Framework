@@ -63,6 +63,7 @@ class Search implements IApplicationInterface, IModuleInterface
 
     public static function registerModule()
     {
+
 //
 //        Main::getDisplay()->addModuleNavigation(
 //            new Link(new Link\Route(__NAMESPACE__.'/Group'), new Link\Name('Nach Personengruppe'),
@@ -134,6 +135,7 @@ class Search implements IApplicationInterface, IModuleInterface
         if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
+                $tblPerson->FullName = $tblPerson->getFullName();
                 $tblPerson->Option = new Standard('', '/People/Person', new Pencil(),
                     array('Id' => $tblPerson->getId()), 'Bearbeiten');
             });
@@ -143,13 +145,8 @@ class Search implements IApplicationInterface, IModuleInterface
                     new LayoutColumn(
                         new TableData($tblPersonAll, null,
                             array(
-                                'Id'           => '#',
-                                'Salutation'   => 'Anrede',
-                                'Title'        => 'Titel',
-                                'FirstName'    => 'Vorname',
-                                'SecondName'   => 'Zweitname',
-                                'LastName'     => 'Nachname',
-                                'Option'       => 'Optionen',
+                                'FullName' => 'Name',
+                                'Option'     => 'Optionen',
                             )
                         )
                     )

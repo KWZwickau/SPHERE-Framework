@@ -33,13 +33,14 @@ require_once( __DIR__.'/Library/MOC-V/Core/AutoLoader/AutoLoader.php' );
 AutoLoader::getNamespaceAutoLoader( 'MOC\V', __DIR__.'/Library/MOC-V' );
 AutoLoader::getNamespaceAutoLoader( 'SPHERE', __DIR__.'/', 'SPHERE' );
 
-(new Cache(new ApcSma()))->getCache()->clearCache();
-(new Cache(new Apcu()))->getCache()->clearCache();
-(new Cache(new ApcUser()))->getCache()->clearCache();
-(new Cache(new Memcached()))->getCache()->clearCache();
-(new Cache(new Memory()))->getCache()->clearCache();
-(new Cache(new OpCache()))->getCache()->clearCache();
-
+if( false ) {
+    (new Cache(new ApcSma()))->getCache()->clearCache();
+    (new Cache(new Apcu()))->getCache()->clearCache();
+    (new Cache(new ApcUser()))->getCache()->clearCache();
+    (new Cache(new Memcached()))->getCache()->clearCache();
+    (new Cache(new Memory()))->getCache()->clearCache();
+    (new Cache(new OpCache()))->getCache()->clearCache();
+}
 $Main = new Main();
 $Main->runPlatform();
 

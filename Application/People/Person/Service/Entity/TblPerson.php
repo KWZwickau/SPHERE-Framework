@@ -55,7 +55,6 @@ class TblPerson extends Element
     public function getSalutation()
     {
 
-        $this->getDebugger()->screenDump(__METHOD__);
         return $this->getTblSalutation()->getSalutation();
     }
 
@@ -65,7 +64,6 @@ class TblPerson extends Element
     public function getTblSalutation()
     {
 
-        $this->getDebugger()->screenDump(__METHOD__);
         if (null === $this->tblSalutation) {
             return false;
         } else {
