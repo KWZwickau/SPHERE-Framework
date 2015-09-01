@@ -20,18 +20,24 @@ h4 {
 
 .gridster ul li {
     overflow: hidden;
-    padding: 5px;
+    padding: 2px;
 }
 
 .gridster .gs-w {
-    background: #fff;
+    background: #F0F0F0;
     border: 1px solid #EBEBEB;
     border-radius: 4px;
 }
 
 .gridster .player {
-    border: 1px solid #ff0f00;
+    border: 1px solid #E0E0E0;
     border-radius: 4px;
+}
+
+.gridster .preview-holder {
+    border: none !important;
+    border-radius: 4px !important;
+    background: #CCC !important;
 }
 
 /* GLYPHICONS */

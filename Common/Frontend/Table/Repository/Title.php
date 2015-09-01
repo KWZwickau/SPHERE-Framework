@@ -31,7 +31,7 @@ class Title extends Extension implements ITemplateInterface
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         return $this->getContent();

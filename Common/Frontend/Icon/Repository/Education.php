@@ -17,7 +17,7 @@ class Education implements IIconInterface
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         return $this->getContent();

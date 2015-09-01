@@ -214,7 +214,7 @@ class Script extends Extension
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         return '<script type="text/javascript">'

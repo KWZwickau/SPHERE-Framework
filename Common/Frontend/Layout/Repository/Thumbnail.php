@@ -2,6 +2,7 @@
 namespace SPHERE\Common\Frontend\Layout\Repository;
 
 use MOC\V\Core\FileSystem\Component\IBridgeInterface;
+use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Common\Frontend\ITemplateInterface;
 use SPHERE\System\Extension\Extension;
 
@@ -41,11 +42,17 @@ class Thumbnail extends Extension implements ITemplateInterface
         }
 
         $this->Template = $this->getTemplate(__DIR__.'/Thumbnail.twig');
-        $this->Template->setVariable('File', $File->getLocation());
 
-        $Size = getimagesize($File->getRealPath());
-
-        $this->Template->setVariable('Height', $Size[1]);
+        if ($File->getRealPath()) {
+            $this->Template->setVariable('File', $File->getLocation());
+            $Size = getimagesize($File->getRealPath());
+            $this->Template->setVariable('Height', $Size[1]);
+        } else {
+            $File = FileSystem::getFileLoader( 'Common/Style/Resource/logo_kreide2.png');
+            $this->Template->setVariable('File', $File->getLocation());
+            $Size = getimagesize($File->getRealPath());
+            $this->Template->setVariable('Height', $Size[1]);
+        }
 
         $this->Template->setVariable('Type', $Type);
         $this->Template->setVariable('Title', $Title);

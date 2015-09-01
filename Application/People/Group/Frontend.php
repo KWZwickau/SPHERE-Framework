@@ -13,9 +13,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -70,7 +70,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Standard('', '/People/Group/Edit', new Edit(),
                         array('Id' => $tblGroup->getId()), 'Daten ändern'
                     )
-                    .new Standard('', '/People/Group/Manage', new Person(),
+                    .new Standard('', '/People/Group/Manage', new GroupIcon(),
                         array('Id' => $tblGroup->getId()), 'Personen ändern'
                     )
                     .( $tblGroup->getIsLocked()

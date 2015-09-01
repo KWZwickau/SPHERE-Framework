@@ -5,7 +5,25 @@
     {% for LayoutRow in LayoutGroup.getLayoutRow %}
         <div class="row{% if(LayoutRow.IsSortable) %} {{ LayoutRow.IsSortable }}{% endif %}">
             {% for LayoutColumn in LayoutRow.getLayoutColumn %}
-                <div class="col-md-{{ LayoutColumn.getSize }}">
+                {% if( LayoutColumn.getSize is iterable ) %}
+                    {% set Column = "" %}
+                    {% for Index, Size in LayoutColumn.getSize %}
+                        {% if(Size != 0) %}
+                            {% if(Index == 0) %}
+                                {% set Column = Column ~ " col-xs-" ~ Size %}
+                            {% elseif(Index == 1) %}
+                                {% set Column = Column ~ " col-sm-" ~ Size %}
+                            {% elseif(Index == 2) %}
+                                {% set Column = Column ~ " col-md-" ~ Size %}
+                            {% elseif(Index == 3) %}
+                                {% set Column = Column ~ " col-lg-" ~ Size %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    {% set Column = "col-md-" ~ LayoutColumn.getSize %}
+                {% endif %}
+                <div class="{{ Column }} {{ LayoutColumn.getGridOption }}">
                     {% for AbstractFrontend in LayoutColumn.getFrontend %}
                         {{ AbstractFrontend }}
                     {% endfor %}

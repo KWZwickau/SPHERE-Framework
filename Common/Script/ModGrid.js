@@ -18,7 +18,7 @@
             widget_margins: [15, 15],
 //            autogenerate_stylesheet: false,
 //            shift_larger_widgets_down: false,
-            min_cols: 1,
+            min_cols: 2,
             max_cols: 8,
 //            max_size_x: 2,
 //            max_size_y: 2,
@@ -55,7 +55,7 @@
             },
             resize: {
                 enabled: true,
-                max_size: [3, 4],
+                max_size: [4, 6],
                 stop: function(e, ui, $widget)
                 {
                     Storage.localStorage.set('ModGrid', selfApi.serialize())

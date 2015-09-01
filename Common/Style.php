@@ -70,7 +70,7 @@ class Style extends Extension
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         $StyleList = self::$SourceList;

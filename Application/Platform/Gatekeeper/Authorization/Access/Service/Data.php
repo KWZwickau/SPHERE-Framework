@@ -408,8 +408,8 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
             $EntityList = $this->Connection->getEntityManager()->getEntity('TblRight')->findAll();
             $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
@@ -523,8 +523,8 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
             $EntityList = $this->Connection->getEntityManager()->getEntity('TblPrivilege')->findAll();
             $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
@@ -538,8 +538,8 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
             $EntityList = $this->Connection->getEntityManager()->getEntity('TblLevel')->findAll();
             $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
@@ -583,8 +583,8 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
             $EntityList = $this->Connection->getEntityManager()->getEntity('TblRole')->findAll();
             $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
