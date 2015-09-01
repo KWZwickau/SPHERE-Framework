@@ -189,6 +189,16 @@ class Service implements IServiceInterface
         return (new Data($this->Binding))->getPersonAllByGroup($tblGroup);
     }
 
+
+    /**
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllHavingNoGroup()
+    {
+
+        return (new Data($this->Binding))->getPersonAllHavingNoGroup();
+    }
+
     /**
      *
      * @param TblGroup $tblGroup

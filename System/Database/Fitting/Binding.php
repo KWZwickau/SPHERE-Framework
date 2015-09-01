@@ -92,4 +92,13 @@ class Binding
 
         return $this->Database->getProtocol($Simulate);
     }
+
+    /**
+     * @return string
+     */
+    public function getEntityNamespace()
+    {
+
+        return $this->EntityNamespace;
+    }
 }

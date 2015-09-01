@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Group\Service;
 
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Group\Service\Entity\TblMember;
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
@@ -166,7 +167,6 @@ class Data
     }
 
     /**
-     *
      * @param TblGroup $tblGroup
      *
      * @return bool|TblPerson[]
@@ -182,6 +182,35 @@ class Data
 
             $V = $V->getServiceTblPerson();
         });
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllHavingNoGroup()
+    {
+
+        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+            ->select('M.serviceTblPerson')
+            ->from('\SPHERE\Application\People\Group\Service\Entity\TblMember', 'M')
+            ->distinct()
+            ->getQuery()
+            ->getResult("COLUMN_HYDRATOR");
+
+        $tblPersonAll = Person::useService()->getPersonAll();
+        if ($tblPersonAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson, $Index, $Exclude) {
+
+                if (in_array($tblPerson->getId(), $Exclude)) {
+                    $tblPerson = false;
+                }
+            }, $Exclude);
+            $EntityList = array_filter($tblPersonAll);
+        } else {
+            $EntityList = null;
+        }
         return ( null === $EntityList ? false : $EntityList );
     }
 

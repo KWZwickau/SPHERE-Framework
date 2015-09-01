@@ -189,7 +189,6 @@ class Service implements IServiceInterface
     }
 
     /**
-     *
      * @param TblGroup $tblGroup
      *
      * @return bool|TblCompany[]
@@ -198,6 +197,16 @@ class Service implements IServiceInterface
     {
 
         return (new Data($this->Binding))->getCompanyAllByGroup($tblGroup);
+    }
+
+
+    /**
+     * @return bool|TblCompany[]
+     */
+    public function getCompanyAllHavingNoGroup()
+    {
+
+        return (new Data($this->Binding))->getCompanyAllHavingNoGroup();
     }
 
     /**

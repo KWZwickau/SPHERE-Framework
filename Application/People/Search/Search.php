@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
@@ -41,35 +42,44 @@ class Search implements IApplicationInterface, IModuleInterface
         /**
          * Register Navigation
          */
+//        Main::getDisplay()->addApplicationNavigation(
+//            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personensuche'),
+//                new Link\Icon(new Info())
+//            )
+//        );
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__, 'SPHERE\Application\People\People::frontendDashboard'
+//        ));
+
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Personensuche'),
-                new Link\Icon(new Info())
-            )
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, 'SPHERE\Application\People\People::frontendDashboard'
-        ));
-    }
-
-    public static function registerModule()
-    {
-
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Group'), new Link\Name('Nach Personengruppe'),
+            new Link(new Link\Route(__NAMESPACE__.'/Group'), new Link\Name('Personensuche'),
                 new Link\Icon(new Info())
             )
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Group', __CLASS__.'::frontendGroup'
         ));
-        Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'/Attribute'), new Link\Name('Nach Eigenschaften'),
-                new Link\Icon(new Info())
-            )
-        );
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Attribute', __CLASS__.'::frontendAttribute'
-        ));
+    }
+
+    public static function registerModule()
+    {
+//
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__.'/Group'), new Link\Name('Nach Personengruppe'),
+//                new Link\Icon(new Info())
+//            )
+//        );
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Group', __CLASS__.'::frontendGroup'
+//        ));
+//        Main::getDisplay()->addModuleNavigation(
+//            new Link(new Link\Route(__NAMESPACE__.'/Attribute'), new Link\Name('Nach Eigenschaften'),
+//                new Link\Icon(new Info())
+//            )
+//        );
+//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+//            __NAMESPACE__.'/Attribute', __CLASS__.'::frontendAttribute'
+//        ));
 
     }
 
@@ -95,16 +105,6 @@ class Search implements IApplicationInterface, IModuleInterface
         $Stage = new Stage('Personensuche', 'nach Personengruppe');
 
         $tblGroup = Group::useService()->getGroupById($Id);
-
-        if ($tblGroup) {
-            $Stage->setMessage(
-                new PullClear(new Bold($tblGroup->getName()).' '.new Small($tblGroup->getDescription())).
-                new PullClear(new Danger(new Italic(nl2br($tblGroup->getRemark()))))
-            );
-        } else {
-            $Stage->setMessage('Bitte wählen Sie eine Personengruppe');
-        }
-
         $tblGroupAll = Group::useService()->getGroupAll();
 
         /** @noinspection PhpUnusedParameterInspection */
@@ -121,43 +121,52 @@ class Search implements IApplicationInterface, IModuleInterface
         }, $Stage);
 
         if ($tblGroup) {
-
-            // TODO: Person-List
-
+            $Stage->setMessage(
+                new PullClear(new Bold($tblGroup->getName()).' '.new Small($tblGroup->getDescription())).
+                new PullClear(new Danger(new Italic(nl2br($tblGroup->getRemark()))))
+            );
             $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
+        } else {
+            $Stage->setMessage('Bitte wählen Sie eine Personengruppe');
+            $tblPersonAll = Group::useService()->getPersonAllHavingNoGroup();
+        }
 
+        if ($tblPersonAll) {
             array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
                 $tblPerson->Option = new Standard('', '/People/Person', new Pencil(),
                     array('Id' => $tblPerson->getId()), 'Bearbeiten');
             });
 
-//            Debugger::screenDump( $tblPersonAll );
-
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($tblPersonAll, null,
-                                    array(
-                                        'Id'           => '#',
-                                        'Salutation'   => 'Anrede',
-                                        'Title'        => 'Titel',
-                                        'FirstName'    => 'Vorname',
-                                        'SecondName'   => 'Zweitname',
-                                        'LastName'     => 'Nachname',
-                                        'EntityCreate' => 'Eingabedatum',
-                                        'EntityUpdate' => 'Letzte Änderung',
-                                        'Option'       => 'Optionen',
-                                    ))
+            $Layout = array(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($tblPersonAll, null,
+                            array(
+                                'Id'           => '#',
+                                'Salutation'   => 'Anrede',
+                                'Title'        => 'Titel',
+                                'FirstName'    => 'Vorname',
+                                'SecondName'   => 'Zweitname',
+                                'LastName'     => 'Nachname',
+                                'Option'       => 'Optionen',
                             )
                         )
                     )
                 )
             );
-        }
+            if (!$tblGroup) {
+                array_unshift($Layout, new LayoutRow(
+                    new LayoutColumn(
+                        new DangerMessage('Folgende Personen sind keiner Gruppe zugewiesen')
+                    )
+                ));
+            }
 
+            $Stage->setContent(
+                new Layout(new LayoutGroup($Layout))
+            );
+        }
         return $Stage;
     }
 

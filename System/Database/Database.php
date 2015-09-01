@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
 use SPHERE\System\Database\Link\Identifier;
@@ -126,6 +127,7 @@ class Database extends Extension
         $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
         $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
         $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
+        $MetadataConfiguration->addCustomHydrationMode( 'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator' );
         $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
         if (self::$ConditionMemcached || self::$ConditionMemcached = class_exists('\Memcached', false)) {
             /** @var Memcached $CacheDriver */

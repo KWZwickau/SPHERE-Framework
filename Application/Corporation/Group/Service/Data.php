@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Corporation\Group\Service;
 
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
@@ -163,7 +164,6 @@ class Data
     }
 
     /**
-     *
      * @param TblGroup $tblGroup
      *
      * @return bool|TblCompany[]
@@ -179,6 +179,35 @@ class Data
 
             $V = $V->getServiceTblCompany();
         });
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @return bool|TblCompany[]
+     */
+    public function getCompanyAllHavingNoGroup()
+    {
+
+        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+            ->select('M.serviceTblCompany')
+            ->from('\SPHERE\Application\Corporation\Group\Service\Entity\TblMember', 'M')
+            ->distinct()
+            ->getQuery()
+            ->getResult("COLUMN_HYDRATOR");
+
+        $tblCompanyAll = Company::useService()->getCompanyAll();
+        if ($tblCompanyAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblCompanyAll, function (TblCompany &$tblCompany, $Index, $Exclude) {
+
+                if (in_array($tblCompany->getId(), $Exclude)) {
+                    $tblCompany = false;
+                }
+            }, $Exclude);
+            $EntityList = array_filter($tblCompanyAll);
+        } else {
+            $EntityList = null;
+        }
         return ( null === $EntityList ? false : $EntityList );
     }
 

@@ -16,6 +16,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Danger as DangerMessage;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
@@ -121,37 +122,48 @@ class Search implements IApplicationInterface, IModuleInterface
         }, $Stage);
 
         if ($tblGroup) {
-
-            // TODO: Company-List
-
+            $Stage->setMessage(
+                new PullClear(new Bold($tblGroup->getName()).' '.new Small($tblGroup->getDescription())).
+                new PullClear(new Danger(new Italic(nl2br($tblGroup->getRemark()))))
+            );
             $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
+        } else {
+            $Stage->setMessage('Bitte wählen Sie eine Firmengruppe');
+            $tblCompanyAll = Group::useService()->getCompanyAllHavingNoGroup();
+        }
 
+        if ($tblCompanyAll) {
             array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
 
                 $tblCompany->Option = new Standard('', '/Corporation/Company', new Pencil(),
                     array('Id' => $tblCompany->getId()), 'Bearbeiten');
             });
 
-//            Debugger::screenDump( $tblCompanyAll );
-
-            $Stage->setContent(
-                new Layout(
-                    new LayoutGroup(
-                        new LayoutRow(
-                            new LayoutColumn(
-                                new TableData($tblCompanyAll, null,
-                                    array(
-                                        'Id'     => '#',
-                                        'Name'   => 'Name',
-                                        'Option' => 'Optionen',
-                                    ))
+            $Layout = array(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData($tblCompanyAll, null,
+                            array(
+                                'Id'     => '#',
+                                'Name'   => 'Firmenname',
+                                'Option' => 'Optionen',
                             )
                         )
                     )
                 )
             );
-        }
+            if (!$tblGroup) {
+                array_unshift($Layout, new LayoutRow(
+                    new LayoutColumn(
+                        new DangerMessage('Folgende Firmen sind keiner Gruppe zugewiesen')
+                    )
+                ));
+            }
 
+            $Stage->setContent(
+                new Layout(new LayoutGroup($Layout))
+            );
+        }
         return $Stage;
     }
 

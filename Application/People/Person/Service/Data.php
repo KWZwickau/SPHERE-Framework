@@ -7,7 +7,6 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\IApiInterface;
 use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**
@@ -124,8 +123,8 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
             $EntityList = $this->Connection->getEntityManager()->getEntity('TblSalutation')->findAll();
             $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }
@@ -139,8 +138,8 @@ class Data
     {
 
         /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
+        $Cache = (new Cache(new Memcached()))->getCache();
+        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
             $EntityList = $this->Connection->getEntityManager()->getEntity('TblPerson')->findAll();
             $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
         }

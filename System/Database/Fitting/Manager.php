@@ -124,4 +124,13 @@ class Manager
         $this->EntityManager->remove($Entity);
         return $this;
     }
+
+    /**
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    final public function getQueryBuilder()
+    {
+
+        return $this->EntityManager->createQueryBuilder();
+    }
 }
