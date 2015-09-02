@@ -47,6 +47,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage();
 
+        $Stage->setMessage(
+            new Danger(
+                new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+            )
+        );
+
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Meta'] )) {

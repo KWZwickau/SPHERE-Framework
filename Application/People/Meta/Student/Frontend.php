@@ -23,6 +23,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Heart;
 use SPHERE\Common\Frontend\Icon\Repository\Hospital;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
@@ -35,6 +36,7 @@ use SPHERE\Common\Frontend\Icon\Repository\StopSign;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
 
 /**
@@ -57,6 +59,12 @@ class Frontend implements IFrontendInterface
             Group::useService()->getGroupByMetaTable('SCHOOL')
         );
         array_push($tblCompanyAllSchool, new TblCompany());
+
+        $Stage->setMessage(
+            new Danger(
+                new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+            )
+        );
 
         $Stage->setContent((new Form(array(
             new FormGroup(array(

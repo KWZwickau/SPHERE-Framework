@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -23,6 +24,9 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -56,7 +60,10 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Beziehungen', 'Hinzufügen');
-        $Stage->setMessage('Eine Beziehungen zur gewählten Person hinzufügen');
+        $Stage->setMessage(
+            'Eine Beziehungen zur gewählten Person hinzufügen'
+            .'<br/>Beispiel: Die Person (Vater) > hat folgende Beziehung (Sorgeberechtigt), Bemerkung: Vater > zu folgender Person (Kind)'
+        );
 
         $tblPerson = Person::useService()->getPersonById($Id);
 
@@ -65,7 +72,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel(new PersonIcon().' Person',
+                            new Panel(new PersonIcon().' Die Person',
                                 $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS,
                                 new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
@@ -104,29 +111,58 @@ class Frontend extends Extension implements IFrontendInterface
 
         array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-            $tblPerson = new RadioBox('To', $tblPerson->getFullName(), $tblPerson->getId());
-
+            $tblPerson = new PullClear(
+                new PullLeft(new RadioBox('To', $tblPerson->getFullName(), $tblPerson->getId()))
+                .new PullRight(
+                    new Standard('', '/People/Person/Relationship/Create',
+                        new PersonIcon(), array('Id' => $tblPerson->getId()),
+                        'zu'
+                        .' '.$tblPerson->getSalutation()
+                        .' '.$tblPerson->getTitle()
+                        .' '.$tblPerson->getLastName()
+                        .' wechseln'
+                    )));
         });
 
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(array(
-                        new Panel('Hat folgende Beziehung',
+                        new Panel('hat folgende Beziehung',
                             array(
                                 new SelectBox('Type[Type]', 'Beziehungstyp',
                                     array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
                                 ),
+                                new TextArea('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
+                                    new Pencil()
+                                ),
+                                new \SPHERE\Common\Frontend\Text\Repository\Danger(
+                                    new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+                                ),
                             ), Panel::PANEL_TYPE_INFO
                         ),
-                        new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                            , Panel::PANEL_TYPE_INFO
-                        )
                     ), 6),
                     new FormColumn(array(
-                        new Panel('zu folgender Person', $tblPersonAll, Panel::PANEL_TYPE_INFO, null, 15)
+                        new Panel(
+                            new PullClear(
+                                'zu folgender Person'
+                                .new PullRight(
+                                    new Standard('Neue Person anlegen', '/People/Person', new PersonIcon()
+                                        , array(), 'Die aktuell gewählte Person verlassen'
+                                    ))
+                            )
+                            , $tblPersonAll, Panel::PANEL_TYPE_INFO, null, 15),
+
                     ), 6),
+//                    new FormColumn(array(
+//                        new Panel('Sonstiges zur Beziehung', array(
+//                            new \SPHERE\Common\Frontend\Text\Repository\Danger(new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'),
+//                            new TextArea('Type[Remark]', 'Bemerkungen - z.B: Mutter / Vater / ..', 'Bemerkungen',
+//                                new Pencil())
+//                            )
+//                            , Panel::PANEL_TYPE_INFO
+//                        )
+//                    ), 3),
                 )),
             ))
         );

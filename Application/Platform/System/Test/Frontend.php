@@ -22,6 +22,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Badge;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -43,13 +44,14 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\System\Platform\Test
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -206,4 +208,28 @@ class Frontend implements IFrontendInterface
         return $Stage;
     }
 
+    public function frontendUpload()
+    {
+
+        $Stage = new Stage('Upload', 'Form-Test');
+
+        $this->getDebugger()->screenDump(
+            $this->getUpload('FileUpload', __DIR__)->validateMaxSize('5M')->validateMimeType('image/png')->doUpload()
+        );
+
+        $Stage->setContent(
+
+            (new Form(
+                new FormGroup(
+                    new FormRow(
+                        new FormColumn(array(
+                            new FileUpload('FileUpload', 'FileUpload', 'FileUpload'),
+                        ))
+                    )
+                )
+            ))->appendFormButton(new Primary('Hochladen', new Upload()))
+        );
+
+        return $Stage;
+    }
 }

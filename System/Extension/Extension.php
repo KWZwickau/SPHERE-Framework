@@ -7,6 +7,7 @@ use MOC\V\Core\HttpKernel\HttpKernel;
 use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\ModHex;
 use SPHERE\System\Extension\Repository\SuperGlobal;
+use SPHERE\System\Extension\Repository\Upload;
 
 /**
  * Class Extension
@@ -63,6 +64,18 @@ class Extension
     {
 
         return new SuperGlobal($_GET, $_POST, $_SESSION);
+    }
+
+    /**
+     * @param string $FileKey  Key-Name in $_FILES
+     * @param string $Location Storage-Directory
+     *
+     * @return Upload
+     */
+    public function getUpload($FileKey, $Location)
+    {
+
+        return new Upload($FileKey, $Location);
     }
 
     /**

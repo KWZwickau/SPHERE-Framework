@@ -26,7 +26,7 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
-use SPHERE\Common\Frontend\Icon\Repository\Info;
+use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
@@ -41,7 +41,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
@@ -59,7 +58,7 @@ class Frontend extends Extension implements IFrontendInterface
 
 
     /**
-     * @param bool|false $TabActive
+     * @param bool|false|string $TabActive
      *
      * @param null|int   $Id
      * @param null|array $Person
@@ -67,14 +66,19 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendPerson($TabActive = false, $Id = null, $Person = null, $Meta = null)
+    public function frontendPerson($TabActive = 'Common', $Id = null, $Person = null, $Meta = null)
     {
 
         $Stage = new Stage('Personen', 'Datenblatt');
-        $Stage->setMessage(new Danger(new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'));
+
+        if ($Id) {
+            $Stage->setMessage('Personendaten bearbeiten');
+        } else {
+            $Stage->setMessage('Eine neue Person anlegen');
+        }
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if ($tblGroupAll) {
+        if ($Id && $tblGroupAll) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
@@ -177,9 +181,16 @@ class Frontend extends Extension implements IFrontendInterface
                     ));
                     $MetaTabs[0]->setActive();
                 } else {
-                    array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
-                        array('Id' => $tblPerson->getId())
-                    ));
+                    if ($TabActive == 'Common') {
+                        array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
+                            array('Id' => $tblPerson->getId())
+                        ));
+                        $MetaTabs[1]->setActive();
+                    } else {
+                        array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
+                            array('Id' => $tblPerson->getId())
+                        ));
+                    }
                 }
             }
 
@@ -207,7 +218,13 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
-                        new LayoutRow(new LayoutColumn($BasicTable)),
+                        new LayoutRow(new LayoutColumn(array(
+                            new Panel(new PersonIcon().' Person',
+                                $tblPerson->getFullName(),
+                                Panel::PANEL_TYPE_SUCCESS
+                            ),
+                            $BasicTable
+                        ))),
                         new Title(new PersonParent().' Grunddaten', 'der Person')
                     ),
                     new LayoutGroup(array(
