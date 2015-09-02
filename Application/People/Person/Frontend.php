@@ -15,6 +15,7 @@ use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -277,11 +278,22 @@ class Frontend extends Extension implements IFrontendInterface
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupList, function (TblGroup &$tblGroup) {
 
-                $tblGroup = new CheckBox(
-                    'Person[Group]['.$tblGroup->getId().']',
-                    $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
-                    $tblGroup->getId()
-                );
+                if (strtoupper($tblGroup->getMetaTable()) == 'COMMON') {
+                    $Global = $this->getGlobal();
+                    $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                    $Global->savePost();
+                    $tblGroup = new RadioBox(
+                        'Person[Group]['.$tblGroup->getId().']',
+                        $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                        $tblGroup->getId()
+                    );
+                } else {
+                    $tblGroup = new CheckBox(
+                        'Person[Group]['.$tblGroup->getId().']',
+                        $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                        $tblGroup->getId()
+                    );
+                }
             });
         } else {
             $tblGroupList = array(new Warning('Keine Gruppen vorhanden'));
