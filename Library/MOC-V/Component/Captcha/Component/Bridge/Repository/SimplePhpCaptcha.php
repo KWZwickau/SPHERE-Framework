@@ -28,9 +28,7 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     public function createCaptcha()
     {
 
-        \session_start();
-        $_SESSION[sha1( __CLASS__ )] = \simple_php_captcha();
-        \session_write_close();
+        $_SESSION[sha1(__CLASS__)] = \simple_php_captcha();
         return $this;
     }
 
@@ -39,13 +37,19 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
      *
      * @return bool
      */
-    public function verifyCaptcha( $InputValue )
+    public function verifyCaptcha($InputValue)
     {
 
-        \session_start();
-        $Result = $_SESSION[sha1( __CLASS__ )]['code'] == $InputValue;
-        \session_write_close();
-        return $Result;
+        return $_SESSION[sha1(__CLASS__)]['code'] == $InputValue;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCode()
+    {
+
+        return $_SESSION[sha1(__CLASS__)]['code'];
     }
 
     /**
@@ -54,9 +58,6 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     public function getCaptcha()
     {
 
-        \session_start();
-        $Result = $_SESSION[sha1( __CLASS__ )]['image_src'];
-        \session_write_close();
-        return $Result;
+        return $_SESSION[sha1(__CLASS__)]['image_src'];
     }
 }

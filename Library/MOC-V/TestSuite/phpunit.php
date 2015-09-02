@@ -1,6 +1,11 @@
 <?php
 namespace MOC\V\TestSuite;
 
+/**
+ * MUST start session at this point for tests
+ */
+\session_start();
+
 use MOC\V\Core\AutoLoader\AutoLoader;
 
 require_once( __DIR__.'/../Core/AutoLoader/AutoLoader.php' );

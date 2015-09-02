@@ -16,3 +16,4 @@ exclude_paths:
 - "Component/Mail/Vendor/EdenPhpMail/*"
 - "Core/HttpKernel/Vendor/Symfony/*"
 - "Core/FileSystem/Vendor/Symfony/*"
+- "Core/SecureKernel/Vendor/PhpSecLib/*"

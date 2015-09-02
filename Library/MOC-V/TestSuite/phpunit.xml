@@ -9,6 +9,7 @@
             <directory suffix=".php">./Tests/Core/AutoLoader</directory>
             <directory suffix=".php">./Tests/Core/FileSystem</directory>
             <directory suffix=".php">./Tests/Core/HttpKernel</directory>
+            <directory suffix=".php">./Tests/Core/SecureKernel</directory>
             <directory suffix=".php">./Tests/Component/Router</directory>
             <directory suffix=".php">./Tests/Component/Template</directory>
             <directory suffix=".php">./Tests/Component/Database</directory>
@@ -28,6 +29,7 @@
             <exclude>
                 <directory>./../Core/FileSystem/Vendor/Symfony</directory>
                 <directory>./../Core/HttpKernel/Vendor/Symfony</directory>
+                <directory>./../Core/SecureKernel/Vendor/PhpSecLib</directory>
                 <directory>./../Component/Router/Vendor/Symfony</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2DBAL</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2ORM</directory>
