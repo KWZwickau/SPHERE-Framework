@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class UpdateItem extends Node
 {
-
     /**
      * @var PathExpression
      */
@@ -49,7 +48,6 @@ class UpdateItem extends Node
      */
     public function __construct($pathExpression, $newValue)
     {
-
         $this->pathExpression = $pathExpression;
         $this->newValue = $newValue;
     }
@@ -59,7 +57,6 @@ class UpdateItem extends Node
      */
     public function dispatch($sqlWalker)
     {
-
         return $sqlWalker->walkUpdateItem($this);
     }
 }

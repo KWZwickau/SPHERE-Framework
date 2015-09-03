@@ -42,7 +42,6 @@ use Doctrine\ORM\Query\TreeWalkerAdapter;
  */
 class WhereInWalker extends TreeWalkerAdapter
 {
-
     /**
      * ID Count hint name.
      */
@@ -72,7 +71,6 @@ class WhereInWalker extends TreeWalkerAdapter
      */
     public function walkSelectStatement(SelectStatement $AST)
     {
-
         $queryComponents = $this->_getQueryComponents();
         // Get the root entity and alias from the AST fromClause
         $from = $AST->fromClause->identificationVariableDeclarations;

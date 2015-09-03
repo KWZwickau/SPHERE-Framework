@@ -31,7 +31,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class PostFlushEventArgs extends EventArgs
 {
-
     /**
      * @var \Doctrine\ORM\EntityManager
      */
@@ -44,7 +43,6 @@ class PostFlushEventArgs extends EventArgs
      */
     public function __construct(EntityManagerInterface $em)
     {
-
         $this->em = $em;
     }
 
@@ -55,7 +53,6 @@ class PostFlushEventArgs extends EventArgs
      */
     public function getEntityManager()
     {
-
         return $this->em;
     }
 }

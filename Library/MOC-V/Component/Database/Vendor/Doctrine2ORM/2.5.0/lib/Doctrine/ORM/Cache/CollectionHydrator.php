@@ -31,7 +31,6 @@ use Doctrine\ORM\PersistentCollection;
  */
 interface CollectionHydrator
 {
-
     /**
      * @param \Doctrine\ORM\Mapping\ClassMetadata           $metadata   The entity metadata.
      * @param \Doctrine\ORM\Cache\CollectionCacheKey        $key        The cached collection key.

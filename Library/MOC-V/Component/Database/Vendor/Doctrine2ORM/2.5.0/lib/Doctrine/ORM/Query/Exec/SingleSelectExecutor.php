@@ -33,14 +33,12 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class SingleSelectExecutor extends AbstractSqlExecutor
 {
-
     /**
      * @param \Doctrine\ORM\Query\AST\SelectStatement $AST
      * @param \Doctrine\ORM\Query\SqlWalker           $sqlWalker
      */
     public function __construct(SelectStatement $AST, SqlWalker $sqlWalker)
     {
-
         $this->_sqlStatements = $sqlWalker->walkSelectStatement($AST);
     }
 
@@ -49,7 +47,6 @@ class SingleSelectExecutor extends AbstractSqlExecutor
      */
     public function execute(Connection $conn, array $params, array $types)
     {
-
         return $conn->executeQuery($this->_sqlStatements, $params, $types, $this->queryCacheProfile);
     }
 }

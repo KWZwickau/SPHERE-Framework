@@ -29,7 +29,6 @@ namespace Doctrine\ORM\Internal;
  */
 class CommitOrderCalculator
 {
-
     const NOT_VISITED = 1;
     const IN_PROGRESS = 2;
     const VISITED = 3;
@@ -63,7 +62,6 @@ class CommitOrderCalculator
      */
     public function clear()
     {
-
         $this->_classes = array();
         $this->_relatedClasses = array();
     }
@@ -78,7 +76,6 @@ class CommitOrderCalculator
      */
     public function getCommitOrder()
     {
-
         // Check whether we need to do anything. 0 or 1 node is easy.
         $nodeCount = count($this->_classes);
 
@@ -112,7 +109,6 @@ class CommitOrderCalculator
      */
     private function _visitNode($node)
     {
-
         $this->_nodeStates[$node->name] = self::IN_PROGRESS;
 
         if (isset( $this->_relatedClasses[$node->name] )) {
@@ -135,7 +131,6 @@ class CommitOrderCalculator
      */
     public function addDependency($fromClass, $toClass)
     {
-
         $this->_relatedClasses[$fromClass->name][] = $toClass;
     }
 
@@ -157,7 +152,6 @@ class CommitOrderCalculator
      */
     public function addClass($class)
     {
-
         $this->_classes[$class->name] = $class;
     }
 }

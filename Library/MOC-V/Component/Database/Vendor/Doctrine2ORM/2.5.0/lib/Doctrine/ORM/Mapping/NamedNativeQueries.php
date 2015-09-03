@@ -25,13 +25,12 @@ namespace Doctrine\ORM\Mapping;
  *
  * @author  Fabio B. Silva <fabio.bat.silva@gmail.com>
  * @since   2.3
- *
+ * 
  * @Annotation
  * @Target("CLASS")
  */
 final class NamedNativeQueries implements Annotation
 {
-
     /**
      * One or more NamedNativeQuery annotations.
      *

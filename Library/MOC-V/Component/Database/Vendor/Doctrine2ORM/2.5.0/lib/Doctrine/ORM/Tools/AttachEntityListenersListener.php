@@ -26,11 +26,10 @@ use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
  *
  * @author Fabio B. SIlva <fabio.bat.silva@gmail.com>
  *
- * @since  2.5
+ * @since 2.5
  */
 class AttachEntityListenersListener
 {
-
     /**
      * @var array[]
      */
@@ -48,7 +47,6 @@ class AttachEntityListenersListener
      */
     public function addEntityListener($entityClass, $listenerClass, $eventName, $listenerCallback = null)
     {
-
         $this->entityListeners[ltrim($entityClass, '\\')][] = array(
             'event'  => $eventName,
             'class'  => $listenerClass,
@@ -65,7 +63,6 @@ class AttachEntityListenersListener
      */
     public function loadClassMetadata(LoadClassMetadataEventArgs $event)
     {
-
         /** @var $metadata \Doctrine\ORM\Mapping\ClassMetadata */
         $metadata = $event->getClassMetadata();
 

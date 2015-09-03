@@ -31,7 +31,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class PreUpdateEventArgs extends LifecycleEventArgs
 {
-
     /**
      * @var array
      */
@@ -46,7 +45,6 @@ class PreUpdateEventArgs extends LifecycleEventArgs
      */
     public function __construct($entity, EntityManagerInterface $em, array &$changeSet)
     {
-
         parent::__construct($entity, $em);
 
         $this->entityChangeSet = &$changeSet;
@@ -59,7 +57,6 @@ class PreUpdateEventArgs extends LifecycleEventArgs
      */
     public function getEntityChangeSet()
     {
-
         return $this->entityChangeSet;
     }
 
@@ -85,7 +82,6 @@ class PreUpdateEventArgs extends LifecycleEventArgs
      */
     public function getOldValue($field)
     {
-
         $this->assertValidField($field);
 
         return $this->entityChangeSet[$field][0];
@@ -121,7 +117,6 @@ class PreUpdateEventArgs extends LifecycleEventArgs
      */
     public function getNewValue($field)
     {
-
         $this->assertValidField($field);
 
         return $this->entityChangeSet[$field][1];
@@ -137,7 +132,6 @@ class PreUpdateEventArgs extends LifecycleEventArgs
      */
     public function setNewValue($field, $value)
     {
-
         $this->assertValidField($field);
 
         $this->entityChangeSet[$field][1] = $value;

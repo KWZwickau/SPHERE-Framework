@@ -23,11 +23,10 @@ namespace Doctrine\ORM\Query;
  * Interface for walkers of DQL ASTs (abstract syntax trees).
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since  2.0
+ * @since 2.0
  */
 interface TreeWalker
 {
-
     /**
      * Initializes TreeWalker with important information about the ASTs to be walked.
      *

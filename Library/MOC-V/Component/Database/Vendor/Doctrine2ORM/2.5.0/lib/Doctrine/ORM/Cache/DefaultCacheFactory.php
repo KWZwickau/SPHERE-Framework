@@ -46,7 +46,6 @@ use Doctrine\ORM\Persisters\Entity\EntityPersister;
  */
 class DefaultCacheFactory implements CacheFactory
 {
-
     /**
      * @var CacheAdapter
      */
@@ -88,7 +87,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function getFileLockRegionDirectory()
     {
-
         return $this->fileLockRegionDirectory;
     }
 
@@ -106,7 +104,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function setRegion(Region $region)
     {
-
         $this->regions[$region->getName()] = $region;
     }
 
@@ -208,7 +205,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function buildQueryCache(EntityManagerInterface $em, $regionName = null)
     {
-
         return new DefaultQueryCache(
             $em,
             $this->getRegion(
@@ -225,7 +221,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function buildCollectionHydrator(EntityManagerInterface $em, array $mapping)
     {
-
         /* @var $targetPersister \Doctrine\ORM\Cache\Persister\CachedPersister */
         $targetPersister = $em->getUnitOfWork()->getEntityPersister($mapping['targetEntity']);
 
@@ -240,7 +235,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function buildEntityHydrator(EntityManagerInterface $em, ClassMetadata $metadata)
     {
-
         return new DefaultEntityHydrator($em);
     }
 
@@ -249,7 +243,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function getTimestampRegion()
     {
-
         if ($this->timestampRegion === null) {
             $name = Cache::DEFAULT_TIMESTAMP_REGION_NAME;
             $lifetime = $this->regionsConfig->getLifetime($name);
@@ -265,7 +258,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function setTimestampRegion(TimestampRegion $region)
     {
-
         $this->timestampRegion = $region;
     }
 
@@ -274,7 +266,6 @@ class DefaultCacheFactory implements CacheFactory
      */
     public function createCache(EntityManagerInterface $em)
     {
-
         return new DefaultCache($em);
     }
 }

@@ -32,7 +32,6 @@ use Doctrine\ORM\Tools\Export\ExportException;
  */
 abstract class AbstractExporter
 {
-
     /**
      * @var array
      */
@@ -58,7 +57,6 @@ abstract class AbstractExporter
      */
     public function __construct($dir = null)
     {
-
         $this->_outputDir = $dir;
     }
 
@@ -69,7 +67,6 @@ abstract class AbstractExporter
      */
     public function setOverwriteExistingFiles($overwrite)
     {
-
         $this->_overwriteExistingFiles = $overwrite;
     }
 
@@ -82,7 +79,6 @@ abstract class AbstractExporter
      */
     public function setMetadata(array $metadata)
     {
-
         $this->_metadata = $metadata;
     }
 
@@ -93,7 +89,6 @@ abstract class AbstractExporter
      */
     public function getExtension()
     {
-
         return $this->_extension;
     }
 
@@ -111,7 +106,6 @@ abstract class AbstractExporter
      */
     public function setExtension($extension)
     {
-
         $this->_extension = $extension;
     }
 
@@ -129,7 +123,6 @@ abstract class AbstractExporter
      */
     public function setOutputDir($dir)
     {
-
         $this->_outputDir = $dir;
     }
 
@@ -194,7 +187,6 @@ abstract class AbstractExporter
      */
     protected function _getInheritanceTypeString($type)
     {
-
         switch ($type) {
             case ClassMetadataInfo::INHERITANCE_TYPE_NONE:
                 return 'NONE';
@@ -217,7 +209,6 @@ abstract class AbstractExporter
      */
     protected function _getFetchModeString($mode)
     {
-
         switch ($mode) {
             case ClassMetadataInfo::FETCH_EAGER:
                 return 'EAGER';
@@ -237,7 +228,6 @@ abstract class AbstractExporter
      */
     protected function _getChangeTrackingPolicyString($policy)
     {
-
         switch ($policy) {
             case ClassMetadataInfo::CHANGETRACKING_DEFERRED_IMPLICIT:
                 return 'DEFERRED_IMPLICIT';
@@ -257,7 +247,6 @@ abstract class AbstractExporter
      */
     protected function _getIdGeneratorTypeString($type)
     {
-
         switch ($type) {
             case ClassMetadataInfo::GENERATOR_TYPE_AUTO:
                 return 'AUTO';

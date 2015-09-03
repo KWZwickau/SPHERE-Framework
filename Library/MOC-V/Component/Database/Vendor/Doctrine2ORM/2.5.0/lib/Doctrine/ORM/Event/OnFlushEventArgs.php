@@ -33,7 +33,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class OnFlushEventArgs extends EventArgs
 {
-
     /**
      * @var EntityManagerInterface
      */
@@ -46,7 +45,6 @@ class OnFlushEventArgs extends EventArgs
      */
     public function __construct(EntityManagerInterface $em)
     {
-
         $this->em = $em;
     }
 
@@ -57,7 +55,6 @@ class OnFlushEventArgs extends EventArgs
      */
     public function getEntityManager()
     {
-
         return $this->em;
     }
 

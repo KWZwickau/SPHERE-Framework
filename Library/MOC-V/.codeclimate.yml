@@ -4,6 +4,7 @@ exclude_paths:
 - "TestSuite/*"
 - "Documentation/*"
 - "Component/Router/Vendor/Symfony/*"
+- "Component/Database/Vendor/Doctrine2Common/*"
 - "Component/Database/Vendor/Doctrine2DBAL/*"
 - "Component/Database/Vendor/Doctrine2ORM/*"
 - "Component/Template/Vendor/Twig/*"

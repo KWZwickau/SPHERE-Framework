@@ -33,13 +33,11 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class DateSubFunction extends DateAddFunction
 {
-
     /**
      * @override
      */
     public function getSql(SqlWalker $sqlWalker)
     {
-
         switch (strtolower($this->unit->value)) {
             case 'hour':
                 return $sqlWalker->getConnection()->getDatabasePlatform()->getDateSubHourExpression(

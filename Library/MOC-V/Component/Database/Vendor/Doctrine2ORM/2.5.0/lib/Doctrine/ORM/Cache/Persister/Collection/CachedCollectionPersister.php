@@ -29,11 +29,10 @@ use Doctrine\ORM\Persisters\Collection\CollectionPersister;
  * Interface for second level cache collection persisters.
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 interface CachedCollectionPersister extends CachedPersister, CollectionPersister
 {
-
     /**
      * @return \Doctrine\ORM\Mapping\ClassMetadata
      */

@@ -28,7 +28,6 @@ namespace Doctrine\ORM\Cache;
  */
 class RegionsConfiguration
 {
-
     /**
      * @var array
      */
@@ -65,7 +64,6 @@ class RegionsConfiguration
      */
     public function getDefaultLifetime()
     {
-
         return $this->defaultLifetime;
     }
 
@@ -83,7 +81,6 @@ class RegionsConfiguration
      */
     public function getDefaultLockLifetime()
     {
-
         return $this->defaultLockLifetime;
     }
 

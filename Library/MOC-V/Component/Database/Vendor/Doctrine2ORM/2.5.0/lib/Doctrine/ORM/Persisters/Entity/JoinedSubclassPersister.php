@@ -32,12 +32,11 @@ use Doctrine\ORM\Utility\PersisterHelper;
  * @author Roman Borschel <roman@code-factory.org>
  * @author Benjamin Eberlei <kontakt@beberlei.de>
  * @author Alexander <iam.asm89@gmail.com>
- * @since  2.0
- * @see    http://martinfowler.com/eaaCatalog/classTableInheritance.html
+ * @since 2.0
+ * @see   http://martinfowler.com/eaaCatalog/classTableInheritance.html
  */
 class JoinedSubclassPersister extends AbstractEntityInheritancePersister
 {
-
     /**
      * Map that maps column names to the table names that own them.
      * This is mainly a temporary cache, used during a single request.
@@ -204,7 +203,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
      */
     protected function assignDefaultVersionValue($entity, array $id)
     {
-
         $value = $this->fetchVersionValue($this->getVersionedClassMetadata(), $id);
         $this->class->setFieldValue($entity, $this->class->versionField, $value);
     }
@@ -232,7 +230,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
      */
     public function update($entity)
     {
-
         $updateData = $this->prepareUpdateData($entity);
 
         if (!$updateData) {
@@ -271,7 +268,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
      */
     public function delete($entity)
     {
-
         $identifier = $this->em->getUnitOfWork()->getEntityIdentifier($entity);
         $id = array_combine($this->class->getIdentifierColumnNames(), $identifier);
 
@@ -312,7 +308,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
         $offset = null,
         array $orderBy = null
     ) {
-
         $this->switchPersisterContext($offset, $limit);
 
         $baseTableAlias = $this->getSQLTableAlias($this->class->name);
@@ -377,7 +372,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
 
     /**
      * @param  string $baseTableAlias
-     *
      * @return string
      */
     private function getJoinSql($baseTableAlias)
@@ -393,6 +387,7 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
             $tableAlias = $this->getSQLTableAlias($parentClassName);
             $joinSql .= ' INNER JOIN '.$this->quoteStrategy->getTableName($parentClass,
                     $this->platform).' '.$tableAlias.' ON ';
+
 
             foreach ($identifierColumn as $idColumn) {
                 $conditions[] = $baseTableAlias.'.'.$idColumn.' = '.$tableAlias.'.'.$idColumn;
@@ -426,7 +421,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
      */
     protected function getSelectColumnsSQL()
     {
-
         // Create the column list fragment only once
         if ($this->currentPersisterContext->selectColumnListSql !== null) {
             return $this->currentPersisterContext->selectColumnListSql;
@@ -613,7 +607,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
      */
     protected function getInsertColumnList()
     {
-
         // Identifier columns must always come first in the column list of subclasses.
         $columns = $this->class->parentClasses
             ? $this->class->getIdentifierColumnNames()
@@ -636,13 +629,11 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
                         $columns[] = $sourceCol;
                     }
                 }
-            } else {
-                if ($this->class->name != $this->class->rootEntityName ||
-                    !$this->class->isIdGeneratorIdentity() || $this->class->identifier[0] != $name
-                ) {
-                    $columns[] = $this->quoteStrategy->getColumnName($name, $this->class, $this->platform);
-                    $this->columnTypes[$name] = $this->class->fieldMappings[$name]['type'];
-                }
+            } else if ($this->class->name != $this->class->rootEntityName ||
+                !$this->class->isIdGeneratorIdentity() || $this->class->identifier[0] != $name
+            ) {
+                $columns[] = $this->quoteStrategy->getColumnName($name, $this->class, $this->platform);
+                $this->columnTypes[$name] = $this->class->fieldMappings[$name]['type'];
             }
         }
 

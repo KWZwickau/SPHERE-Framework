@@ -32,7 +32,6 @@ use Doctrine\ORM\EntityManager;
  */
 class TableGenerator extends AbstractIdGenerator
 {
-
     /**
      * @var string
      */
@@ -65,7 +64,6 @@ class TableGenerator extends AbstractIdGenerator
      */
     public function __construct($tableName, $sequenceName = 'default', $allocationSize = 10)
     {
-
         $this->_tableName = $tableName;
         $this->_sequenceName = $sequenceName;
         $this->_allocationSize = $allocationSize;
@@ -78,7 +76,6 @@ class TableGenerator extends AbstractIdGenerator
         EntityManager $em,
         $entity
     ) {
-
         if ($this->_maxValue === null || $this->_nextValue == $this->_maxValue) {
             // Allocate new values
             $conn = $em->getConnection();

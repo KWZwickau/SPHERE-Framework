@@ -29,7 +29,6 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 interface QuoteStrategy
 {
-
     /**
      * Gets the (possibly quoted) column name for safe use in an SQL statement.
      *

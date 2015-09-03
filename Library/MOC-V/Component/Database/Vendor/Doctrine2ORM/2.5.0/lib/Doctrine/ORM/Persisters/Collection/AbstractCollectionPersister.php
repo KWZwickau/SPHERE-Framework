@@ -25,12 +25,11 @@ use Doctrine\ORM\UnitOfWork;
 /**
  * Base class for all collection persisters.
  *
- * @since  2.0
+ * @since 2.0
  * @author Roman Borschel <roman@code-factory.org>
  */
 abstract class AbstractCollectionPersister implements CollectionPersister
 {
-
     /**
      * @var EntityManagerInterface
      */
@@ -84,7 +83,6 @@ abstract class AbstractCollectionPersister implements CollectionPersister
      */
     protected function isValidEntityState($entity)
     {
-
         $entityState = $this->uow->getEntityState($entity, UnitOfWork::STATE_NEW);
 
         if ($entityState === UnitOfWork::STATE_NEW) {

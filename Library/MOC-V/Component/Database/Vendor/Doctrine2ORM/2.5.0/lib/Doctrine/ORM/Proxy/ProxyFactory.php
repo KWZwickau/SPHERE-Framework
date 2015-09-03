@@ -36,11 +36,10 @@ use Doctrine\ORM\Utility\IdentifierFlattener;
  * @author Roman Borschel <roman@code-factory.org>
  * @author Giorgio Sironi <piccoloprincipeazzurro@gmail.com>
  * @author Marco Pivetta  <ocramius@gmail.com>
- * @since  2.0
+ * @since 2.0
  */
 class ProxyFactory extends AbstractProxyFactory
 {
-
     /**
      * @var EntityManagerInterface The EntityManager this factory is bound to.
      */
@@ -79,7 +78,6 @@ class ProxyFactory extends AbstractProxyFactory
         $proxyNs,
         $autoGenerate = AbstractProxyFactory::AUTOGENERATE_NEVER
     ) {
-
         $proxyGenerator = new ProxyGenerator($proxyDir, $proxyNs);
 
         $proxyGenerator->setPlaceholder('baseProxyInterface', 'Doctrine\ORM\Proxy\Proxy');
@@ -96,7 +94,6 @@ class ProxyFactory extends AbstractProxyFactory
      */
     protected function skipClass(ClassMetadata $metadata)
     {
-
         /* @var $metadata \Doctrine\ORM\Mapping\ClassMetadataInfo */
         return $metadata->isMappedSuperclass || $metadata->getReflectionClass()->isAbstract();
     }
@@ -131,10 +128,8 @@ class ProxyFactory extends AbstractProxyFactory
      */
     private function createInitializer(ClassMetadata $classMetadata, EntityPersister $entityPersister)
     {
-
         if ($classMetadata->getReflectionClass()->hasMethod('__wakeup')) {
             return function (BaseProxy $proxy) use ($entityPersister, $classMetadata) {
-
                 $initializer = $proxy->__getInitializer();
                 $cloner = $proxy->__getCloner();
 
@@ -172,7 +167,6 @@ class ProxyFactory extends AbstractProxyFactory
         }
 
         return function (BaseProxy $proxy) use ($entityPersister, $classMetadata) {
-
             $initializer = $proxy->__getInitializer();
             $cloner = $proxy->__getCloner();
 
@@ -220,9 +214,7 @@ class ProxyFactory extends AbstractProxyFactory
      */
     private function createCloner(ClassMetadata $classMetadata, EntityPersister $entityPersister)
     {
-
         return function (BaseProxy $proxy) use ($entityPersister, $classMetadata) {
-
             if ($proxy->__isInitialized()) {
                 return;
             }

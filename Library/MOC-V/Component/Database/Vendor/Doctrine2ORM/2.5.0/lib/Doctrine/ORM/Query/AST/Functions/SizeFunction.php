@@ -34,7 +34,6 @@ use Doctrine\ORM\Query\Lexer;
  */
 class SizeFunction extends FunctionNode
 {
-
     /**
      * @var \Doctrine\ORM\Query\AST\PathExpression
      */
@@ -125,7 +124,6 @@ class SizeFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
-
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

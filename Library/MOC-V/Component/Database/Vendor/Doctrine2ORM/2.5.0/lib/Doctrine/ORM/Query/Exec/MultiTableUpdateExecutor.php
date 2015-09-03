@@ -29,11 +29,10 @@ use Doctrine\ORM\Query\ParameterTypeInferer;
  * Class Table Inheritance (JOINED).
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since  2.0
+ * @since 2.0
  */
 class MultiTableUpdateExecutor extends AbstractSqlExecutor
 {
-
     /**
      * @var string
      */
@@ -165,7 +164,6 @@ class MultiTableUpdateExecutor extends AbstractSqlExecutor
      */
     public function execute(Connection $conn, array $params, array $types)
     {
-
         $numUpdated = 0;
 
         // Create temporary id table

@@ -63,7 +63,6 @@ use Exception;
 
 class EntityManager implements EntityManagerInterface
 {
-
     /**
      * The used Configuration.
      *
@@ -222,7 +221,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getMetadataFactory()
     {
-
         return $this->metadataFactory;
     }
 
@@ -231,7 +229,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getExpressionBuilder()
     {
-
         if ($this->expressionBuilder === null) {
             $this->expressionBuilder = new Query\Expr;
         }
@@ -244,7 +241,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function beginTransaction()
     {
-
         $this->conn->beginTransaction();
     }
 
@@ -253,7 +249,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getCache()
     {
-
         return $this->cache;
     }
 
@@ -262,7 +257,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function transactional($func)
     {
-
         if (!is_callable($func)) {
             throw new \InvalidArgumentException('Expected argument of type "callable", got "'.gettype($func).'"');
         }
@@ -301,7 +295,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function flush($entity = null)
     {
-
         $this->errorIfClosed();
 
         $this->unitOfWork->commit($entity);
@@ -316,7 +309,6 @@ class EntityManager implements EntityManagerInterface
      */
     private function errorIfClosed()
     {
-
         if ($this->closed) {
             throw ORMException::entityManagerClosed();
         }
@@ -327,7 +319,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function close()
     {
-
         $this->clear();
 
         $this->closed = true;
@@ -343,7 +334,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function clear($entityName = null)
     {
-
         $this->unitOfWork->clear($entityName);
     }
 
@@ -352,7 +342,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function commit()
     {
-
         $this->conn->commit();
     }
 
@@ -361,7 +350,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function rollback()
     {
-
         $this->conn->rollback();
     }
 
@@ -383,7 +371,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getClassMetadata($className)
     {
-
         return $this->metadataFactory->getMetadataFor($className);
     }
 
@@ -392,7 +379,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function createNamedQuery($name)
     {
-
         return $this->createQuery($this->config->getNamedQuery($name));
     }
 
@@ -401,7 +387,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function createQuery($dql = '')
     {
-
         $query = new Query($this);
 
         if (!empty( $dql )) {
@@ -427,7 +412,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function createNativeQuery($sql, ResultSetMapping $rsm)
     {
-
         $query = new NativeQuery($this);
 
         $query->setSql($sql);
@@ -441,7 +425,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function createQueryBuilder()
     {
-
         return new QueryBuilder($this);
     }
 
@@ -450,7 +433,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getReference($entityName, $id)
     {
-
         $class = $this->metadataFactory->getMetadataFor(ltrim($entityName, '\\'));
 
         if (!is_array($id)) {
@@ -507,7 +489,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function find($entityName, $id, $lockMode = null, $lockVersion = null)
     {
-
         $class = $this->metadataFactory->getMetadataFor(ltrim($entityName, '\\'));
 
         if (!is_array($id)) {
@@ -600,7 +581,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getUnitOfWork()
     {
-
         return $this->unitOfWork;
     }
 
@@ -609,7 +589,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function lock($entity, $lockMode, $lockVersion = null)
     {
-
         $this->unitOfWork->lock($entity, $lockMode, $lockVersion);
     }
 
@@ -618,7 +597,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getConnection()
     {
-
         return $this->conn;
     }
 
@@ -627,7 +605,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getPartialReference($entityName, $identifier)
     {
-
         $class = $this->metadataFactory->getMetadataFor(ltrim($entityName, '\\'));
 
         // Check identity map first, if its already in there just return it.
@@ -776,7 +753,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function copy($entity, $deep = false)
     {
-
         throw new \BadMethodCallException("Not implemented.");
     }
 
@@ -789,7 +765,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getRepository($entityName)
     {
-
         return $this->repositoryFactory->getRepository($this, $entityName);
     }
 
@@ -802,7 +777,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function contains($entity)
     {
-
         return $this->unitOfWork->isScheduledForInsert($entity)
         || $this->unitOfWork->isInIdentityMap($entity)
         && !$this->unitOfWork->isScheduledForDelete($entity);
@@ -813,7 +787,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getEventManager()
     {
-
         return $this->eventManager;
     }
 
@@ -822,7 +795,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getConfiguration()
     {
-
         return $this->config;
     }
 
@@ -840,7 +812,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getHydrator($hydrationMode)
     {
-
         return $this->newHydrator($hydrationMode);
     }
 
@@ -849,7 +820,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function newHydrator($hydrationMode)
     {
-
         switch ($hydrationMode) {
             case Query::HYDRATE_OBJECT:
                 return new Internal\Hydration\ObjectHydrator($this);
@@ -880,7 +850,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getProxyFactory()
     {
-
         return $this->proxyFactory;
     }
 
@@ -889,7 +858,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function initializeObject($obj)
     {
-
         $this->unitOfWork->initializeObject($obj);
     }
 
@@ -898,7 +866,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function getFilters()
     {
-
         if (null === $this->filterCollection) {
             $this->filterCollection = new FilterCollection($this);
         }
@@ -911,7 +878,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function isFiltersStateClean()
     {
-
         return null === $this->filterCollection || $this->filterCollection->isClean();
     }
 
@@ -920,7 +886,6 @@ class EntityManager implements EntityManagerInterface
      */
     public function hasFilters()
     {
-
         return null !== $this->filterCollection;
     }
 }

@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class RangeVariableDeclaration extends Node
 {
-
     /**
      * @var string
      */
@@ -64,7 +63,6 @@ class RangeVariableDeclaration extends Node
      */
     public function dispatch($walker)
     {
-
         return $walker->walkRangeVariableDeclaration($this);
     }
 }

@@ -28,13 +28,12 @@ use Doctrine\ORM\QueryBuilder;
 /**
  * The paginator can handle various complex scenarios with DQL.
  *
- * @author  Pablo Díez <pablodip@gmail.com>
- * @author  Benjamin Eberlei <kontakt@beberlei.de>
+ * @author Pablo Díez <pablodip@gmail.com>
+ * @author Benjamin Eberlei <kontakt@beberlei.de>
  * @license New BSD
  */
 class Paginator implements \Countable, \IteratorAggregate
 {
-
     /**
      * @var Query
      */
@@ -63,7 +62,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     public function __construct($query, $fetchJoinCollection = true)
     {
-
         if ($query instanceof QueryBuilder) {
             $query = $query->getQuery();
         }
@@ -79,7 +77,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     public function getQuery()
     {
-
         return $this->query;
     }
 
@@ -90,7 +87,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     public function getFetchJoinCollection()
     {
-
         return $this->fetchJoinCollection;
     }
 
@@ -101,7 +97,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     public function getUseOutputWalkers()
     {
-
         return $this->useOutputWalkers;
     }
 
@@ -114,7 +109,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     public function setUseOutputWalkers($useOutputWalkers)
     {
-
         $this->useOutputWalkers = $useOutputWalkers;
         return $this;
     }
@@ -124,7 +118,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     public function count()
     {
-
         if ($this->count === null) {
             try {
                 $this->count = array_sum(array_map('current', $this->getCountQuery()->getScalarResult()));
@@ -143,7 +136,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     private function getCountQuery()
     {
-
         /* @var $countQuery Query */
         $countQuery = $this->cloneQuery($this->query);
 
@@ -194,7 +186,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     private function cloneQuery(Query $query)
     {
-
         /* @var $cloneQuery Query */
         $cloneQuery = clone $query;
 
@@ -217,7 +208,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     private function useOutputWalker(Query $query)
     {
-
         if ($this->useOutputWalkers === null) {
             return (Boolean)$query->getHint(Query::HINT_CUSTOM_OUTPUT_WALKER) == false;
         }
@@ -233,7 +223,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     private function appendTreeWalker(Query $query, $walkerClass)
     {
-
         $hints = $query->getHint(Query::HINT_CUSTOM_TREE_WALKERS);
 
         if ($hints === false) {
@@ -249,7 +238,6 @@ class Paginator implements \Countable, \IteratorAggregate
      */
     public function getIterator()
     {
-
         $offset = $this->query->getFirstResult();
         $length = $this->query->getMaxResults();
 

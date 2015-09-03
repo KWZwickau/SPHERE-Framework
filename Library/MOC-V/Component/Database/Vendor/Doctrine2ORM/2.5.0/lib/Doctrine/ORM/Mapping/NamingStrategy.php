@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Mapping;
  */
 interface NamingStrategy
 {
-
     /**
      * Returns a table name for an entity class.
      *

@@ -22,7 +22,7 @@ namespace Doctrine\ORM\Query\AST;
 /**
  * OrderByItem ::= (ResultVariable | StateFieldPathExpression) ["ASC" | "DESC"]
  *
- *
+ * 
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -31,7 +31,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class OrderByItem extends Node
 {
-
     /**
      * @var mixed
      */
@@ -47,7 +46,6 @@ class OrderByItem extends Node
      */
     public function __construct($expression)
     {
-
         $this->expression = $expression;
     }
 
@@ -56,7 +54,6 @@ class OrderByItem extends Node
      */
     public function isAsc()
     {
-
         return strtoupper($this->type) == 'ASC';
     }
 
@@ -65,7 +62,6 @@ class OrderByItem extends Node
      */
     public function isDesc()
     {
-
         return strtoupper($this->type) == 'DESC';
     }
 
@@ -74,7 +70,6 @@ class OrderByItem extends Node
      */
     public function dispatch($sqlWalker)
     {
-
         return $sqlWalker->walkOrderByItem($this);
     }
 }

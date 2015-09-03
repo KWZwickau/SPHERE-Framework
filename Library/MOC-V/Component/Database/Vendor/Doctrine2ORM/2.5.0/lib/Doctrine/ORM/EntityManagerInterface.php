@@ -32,7 +32,6 @@ use Doctrine\ORM\Query\ResultSetMapping;
  */
 interface EntityManagerInterface extends ObjectManager
 {
-
     /**
      * Returns the cache API for managing the second level cache regions or NULL if the cache is not enabled.
      *

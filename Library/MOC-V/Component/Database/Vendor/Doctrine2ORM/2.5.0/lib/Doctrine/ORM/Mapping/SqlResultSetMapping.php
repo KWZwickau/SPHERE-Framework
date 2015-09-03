@@ -31,17 +31,16 @@ namespace Doctrine\ORM\Mapping;
  */
 final class SqlResultSetMapping implements Annotation
 {
-
     /**
      * The name given to the result set mapping, and used to refer to it in the methods of the Query API.
-     *
+     * 
      * @var string
      */
     public $name;
 
     /**
      * Specifies the result set mapping to entities.
-     *
+     * 
      * @var array<\Doctrine\ORM\Mapping\EntityResult>
      */
     public $entities = array();

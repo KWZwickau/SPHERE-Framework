@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class NullIfExpression extends Node
 {
-
     /**
      * @var mixed
      */
@@ -59,7 +58,6 @@ class NullIfExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
-
         return $sqlWalker->walkNullIfExpression($this);
     }
 }

@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class AssociationOverride implements Annotation
 {
-
     /**
      * The name of the relationship property whose mapping is being overridden.
      *

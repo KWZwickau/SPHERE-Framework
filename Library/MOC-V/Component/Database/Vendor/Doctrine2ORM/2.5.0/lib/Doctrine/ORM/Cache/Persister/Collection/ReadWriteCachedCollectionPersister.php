@@ -28,11 +28,10 @@ use Doctrine\ORM\Persisters\Collection\CollectionPersister;
 
 /**
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 class ReadWriteCachedCollectionPersister extends AbstractCollectionPersister
 {
-
     /**
      * @param \Doctrine\ORM\Persisters\Collection\CollectionPersister $persister   The collection persister that will be cached.
      * @param \Doctrine\ORM\Cache\ConcurrentRegion                    $region      The collection region.
@@ -45,7 +44,6 @@ class ReadWriteCachedCollectionPersister extends AbstractCollectionPersister
         EntityManagerInterface $em,
         array $association
     ) {
-
         parent::__construct($persister, $region, $em, $association);
     }
 
@@ -96,7 +94,6 @@ class ReadWriteCachedCollectionPersister extends AbstractCollectionPersister
      */
     public function delete(PersistentCollection $collection)
     {
-
         $ownerId = $this->uow->getEntityIdentifier($collection->getOwner());
         $key = new CollectionCacheKey($this->sourceEntity->rootEntityName, $this->association['fieldName'], $ownerId);
         $lock = $this->region->lock($key);
@@ -118,7 +115,6 @@ class ReadWriteCachedCollectionPersister extends AbstractCollectionPersister
      */
     public function update(PersistentCollection $collection)
     {
-
         $isInitialized = $collection->isInitialized();
         $isDirty = $collection->isDirty();
 

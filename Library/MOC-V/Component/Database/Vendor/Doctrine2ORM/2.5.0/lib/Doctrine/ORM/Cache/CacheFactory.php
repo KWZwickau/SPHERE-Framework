@@ -33,7 +33,6 @@ use Doctrine\ORM\Persisters\Entity\EntityPersister;
  */
 interface CacheFactory
 {
-
     /**
      * Build an entity persister for the given entity metadata.
      *

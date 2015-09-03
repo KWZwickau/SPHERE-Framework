@@ -284,7 +284,6 @@
                 select.hide();
             }
         }
-
         function trimWords(value)
         {
             if (!value) {
@@ -362,7 +361,6 @@
                 );
             }
         }
-
         function receiveData(q, data)
         {
             if (data && data.length && hasFocus) {
@@ -374,7 +372,6 @@
                 hideResultsNow();
             }
         }
-
         function request(term, success, failure)
         {
             if (!options.matchCase) {
@@ -421,7 +418,6 @@
                 }
             }
         }
-
         function parse(data)
         {
             var parsed = [];
@@ -497,7 +493,6 @@
             }
             return i == 0 || options.matchContains;
         }
-
         function add(q, value)
         {
             if (length > options.cacheLength) {
@@ -723,7 +718,6 @@
                 }
             }
         }
-
         function movePosition(step)
         {
             active += step;

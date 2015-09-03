@@ -32,13 +32,11 @@ use Doctrine\ORM\PersistentCollection;
  */
 class OneToManyPersister extends AbstractCollectionPersister
 {
-
     /**
      * {@inheritdoc}
      */
     public function delete(PersistentCollection $collection)
     {
-
         // This can never happen. One to many can only be inverse side.
         // For owning side one to many, it is required to have a join table,
         // then classifying it as a ManyToManyPersister.
@@ -50,7 +48,6 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function update(PersistentCollection $collection)
     {
-
         // This can never happen. One to many can only be inverse side.
         // For owning side one to many, it is required to have a join table,
         // then classifying it as a ManyToManyPersister.
@@ -62,7 +59,6 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function get(PersistentCollection $collection, $index)
     {
-
         $mapping = $collection->getMapping();
 
         if (!isset( $mapping['indexBy'] )) {
@@ -118,7 +114,6 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function containsKey(PersistentCollection $collection, $key)
     {
-
         $mapping = $collection->getMapping();
 
         if (!isset( $mapping['indexBy'] )) {
@@ -164,7 +159,6 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function removeElement(PersistentCollection $collection, $element)
     {
-
         $mapping = $collection->getMapping();
 
         if (!$mapping['orphanRemoval']) {
@@ -187,7 +181,6 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function loadCriteria(PersistentCollection $collection, Criteria $criteria)
     {
-
         throw new \BadMethodCallException("Filtering a collection by Criteria is not supported by this CollectionPersister.");
     }
 }

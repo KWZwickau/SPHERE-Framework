@@ -33,7 +33,6 @@ use ReflectionProperty;
  */
 class ReflectionEmbeddedProperty extends ReflectionProperty
 {
-
     /**
      * @var ReflectionProperty reflection property of the class where the embedded object has to be put
      */
@@ -74,7 +73,6 @@ class ReflectionEmbeddedProperty extends ReflectionProperty
      */
     public function getValue($object = null)
     {
-
         $embeddedObject = $this->parentProperty->getValue($object);
 
         if (null === $embeddedObject) {
@@ -89,7 +87,6 @@ class ReflectionEmbeddedProperty extends ReflectionProperty
      */
     public function setValue($object, $value = null)
     {
-
         $embeddedObject = $this->parentProperty->getValue($object);
 
         if (null === $embeddedObject) {

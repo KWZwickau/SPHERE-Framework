@@ -25,9 +25,8 @@ use Doctrine\Common\Proxy\Proxy as BaseProxy;
  * Interface for proxy classes.
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since  2.0
+ * @since 2.0
  */
 interface Proxy extends BaseProxy
 {
-
 }

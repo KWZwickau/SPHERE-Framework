@@ -24,7 +24,6 @@ namespace Doctrine\ORM\Query;
  */
 class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
 {
-
     /**
      * @var TreeWalker[]
      */
@@ -44,7 +43,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
 
     public function __construct(TreeWalkerChain $treeWalkerChain, $query, $parserResult)
     {
-
         $this->treeWalkerChain = $treeWalkerChain;
         $this->query = $query;
         $this->parserResult = $parserResult;
@@ -55,7 +53,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     function rewind()
     {
-
         return reset($this->walkers);
     }
 
@@ -64,7 +61,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     function current()
     {
-
         return $this->offsetGet(key($this->walkers));
     }
 
@@ -73,7 +69,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     public function offsetGet($offset)
     {
-
         if ($this->offsetExists($offset)) {
             return new $this->walkers[$offset](
                 $this->query,
@@ -99,7 +94,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     function key()
     {
-
         return key($this->walkers);
     }
 
@@ -108,7 +102,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     function next()
     {
-
         next($this->walkers);
 
         return $this->offsetGet(key($this->walkers));
@@ -119,7 +112,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     function valid()
     {
-
         return key($this->walkers) !== null;
     }
 
@@ -128,7 +120,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     public function offsetSet($offset, $value)
     {
-
         if (is_null($offset)) {
             $this->walkers[] = $value;
         } else {
@@ -141,7 +132,6 @@ class TreeWalkerChainIterator implements \Iterator, \ArrayAccess
      */
     public function offsetUnset($offset)
     {
-
         if ($this->offsetExists($offset)) {
             unset( $this->walkers[$offset] );
         }

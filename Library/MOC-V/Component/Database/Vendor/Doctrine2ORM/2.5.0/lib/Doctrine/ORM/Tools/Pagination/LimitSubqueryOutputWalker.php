@@ -37,7 +37,6 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class LimitSubqueryOutputWalker extends SqlWalker
 {
-
     /**
      * @var \Doctrine\DBAL\Platforms\AbstractPlatform
      */
@@ -99,7 +98,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     public function __construct($query, $parserResult, array $queryComponents)
     {
-
         $this->platform = $query->getEntityManager()->getConnection()->getDatabasePlatform();
         $this->rsm = $parserResult->getResultSetMapping();
         $this->queryComponents = $queryComponents;
@@ -126,7 +124,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     public function walkSelectStatement(SelectStatement $AST)
     {
-
         if ($this->platformSupportsRowNumber()) {
             return $this->walkSelectStatementWithRowNumber($AST);
         }
@@ -140,7 +137,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     private function platformSupportsRowNumber()
     {
-
         return $this->platform instanceof PostgreSqlPlatform
         || $this->platform instanceof SQLServerPlatform
         || $this->platform instanceof OraclePlatform
@@ -162,7 +158,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     public function walkSelectStatementWithRowNumber(SelectStatement $AST)
     {
-
         $hasOrderBy = false;
         $outerOrderBy = ' ORDER BY dctrn_minrownum ASC';
         $orderGroupBy = '';
@@ -217,7 +212,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     private function rebuildOrderByForRowNumber(SelectStatement $AST)
     {
-
         $orderByClause = $AST->orderByClause;
         $selectAliasToExpressionMap = [];
         // Get any aliases that are available for select expressions.
@@ -249,7 +243,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     private function getInnerSQL(SelectStatement $AST)
     {
-
         // Set every select expression as visible(hidden = false) to
         // make $AST have scalar mappings properly - this is relevant for referencing selected
         // fields from outside the subquery, for example in the ORDER BY segment
@@ -277,7 +270,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     private function getSQLIdentifier(SelectStatement $AST)
     {
-
         // Find out the SQL alias of the identifier column of the root entity.
         // It may be possible to make this work with multiple root entities but that
         // would probably require issuing multiple queries or doing a UNION SELECT.
@@ -345,7 +337,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
         SelectStatement $AST,
         $addMissingItemsFromOrderByToSelect = true
     ) {
-
         // We don't want to call this recursively!
         if ($AST->orderByClause instanceof OrderByClause && $addMissingItemsFromOrderByToSelect) {
             // In the case of ordering a query by columns from joined tables, we
@@ -397,7 +388,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     private function addMissingItemsFromOrderByToSelect(SelectStatement $AST)
     {
-
         $this->orderByPathExpressions = [];
 
         // We need to do this in another walker because otherwise we'll end up
@@ -454,7 +444,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     public function getOrderByPathExpressions()
     {
-
         return $this->orderByPathExpressions;
     }
 
@@ -470,7 +459,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     private function preserveSqlOrdering(array $sqlIdentifier, $innerSql, $sql, $orderByClause)
     {
-
         // If the sql statement has an order by clause, we need to wrap it in a new select distinct
         // statement
         if (!$orderByClause instanceof OrderByClause) {
@@ -496,12 +484,10 @@ class LimitSubqueryOutputWalker extends SqlWalker
      * Generates a new order by clause that works in the scope of a select query wrapping the original
      *
      * @param OrderByClause $orderByClause
-     *
      * @return array
      */
     private function rebuildOrderByClauseForOuterScope(OrderByClause $orderByClause)
     {
-
         $dqlAliasToSqlTableAliasMap
             = $searchPatterns
             = $replacements
@@ -587,7 +573,6 @@ class LimitSubqueryOutputWalker extends SqlWalker
      */
     public function walkSubSelect($subselect)
     {
-
         $this->inSubSelect = true;
 
         $sql = parent::walkSubselect($subselect);

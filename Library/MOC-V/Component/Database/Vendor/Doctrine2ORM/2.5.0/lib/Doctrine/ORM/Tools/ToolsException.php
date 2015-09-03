@@ -28,7 +28,6 @@ use Doctrine\ORM\ORMException;
  */
 class ToolsException extends ORMException
 {
-
     /**
      * @param string     $sql
      * @param \Exception $e
@@ -48,7 +47,6 @@ class ToolsException extends ORMException
      */
     public static function couldNotMapDoctrine1Type($type)
     {
-
         return new self("Could not map doctrine 1 type '$type'!");
     }
 }

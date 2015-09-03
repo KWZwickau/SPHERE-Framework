@@ -38,7 +38,6 @@ use Doctrine\ORM\Persisters\Entity\EntityPersister;
  */
 class LazyCriteriaCollection extends AbstractLazyCollection implements Selectable
 {
-
     /**
      * @var BasicEntityPersister
      */
@@ -60,7 +59,6 @@ class LazyCriteriaCollection extends AbstractLazyCollection implements Selectabl
      */
     public function __construct(EntityPersister $entityPersister, Criteria $criteria)
     {
-
         $this->entityPersister = $entityPersister;
         $this->criteria = $criteria;
     }
@@ -72,7 +70,6 @@ class LazyCriteriaCollection extends AbstractLazyCollection implements Selectabl
      */
     public function count()
     {
-
         if ($this->isInitialized()) {
             return $this->collection->count();
         }
@@ -89,12 +86,10 @@ class LazyCriteriaCollection extends AbstractLazyCollection implements Selectabl
      * Do an optimized search of an element
      *
      * @param  object $element
-     *
      * @return bool
      */
     public function contains($element)
     {
-
         if ($this->isInitialized()) {
             return $this->collection->contains($element);
         }
@@ -107,7 +102,6 @@ class LazyCriteriaCollection extends AbstractLazyCollection implements Selectabl
      */
     public function matching(Criteria $criteria)
     {
-
         $this->initialize();
 
         return $this->collection->matching($criteria);

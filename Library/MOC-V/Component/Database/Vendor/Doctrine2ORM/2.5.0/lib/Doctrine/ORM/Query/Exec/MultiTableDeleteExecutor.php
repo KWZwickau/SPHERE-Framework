@@ -33,7 +33,6 @@ use Doctrine\ORM\Query\AST;
  */
 class MultiTableDeleteExecutor extends AbstractSqlExecutor
 {
-
     /**
      * @var string
      */
@@ -118,7 +117,6 @@ class MultiTableDeleteExecutor extends AbstractSqlExecutor
      */
     public function execute(Connection $conn, array $params, array $types)
     {
-
         $numDeleted = 0;
 
         // Create temporary id table

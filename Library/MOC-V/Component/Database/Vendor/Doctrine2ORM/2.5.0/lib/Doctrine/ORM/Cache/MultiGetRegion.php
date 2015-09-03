@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Cache;
  */
 interface MultiGetRegion
 {
-
     /**
      * Get all items from the cache indentifed by $keys.
      * It returns NULL if some elements can not be found.

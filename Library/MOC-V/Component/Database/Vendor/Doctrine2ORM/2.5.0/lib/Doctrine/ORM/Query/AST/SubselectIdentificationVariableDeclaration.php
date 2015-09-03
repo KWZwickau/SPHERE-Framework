@@ -28,7 +28,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SubselectIdentificationVariableDeclaration
 {
-
     /**
      * @var PathExpression
      */

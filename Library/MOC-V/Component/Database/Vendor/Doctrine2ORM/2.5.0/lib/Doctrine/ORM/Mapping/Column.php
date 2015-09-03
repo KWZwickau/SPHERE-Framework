@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class Column implements Annotation
 {
-
     /**
      * @var string
      */

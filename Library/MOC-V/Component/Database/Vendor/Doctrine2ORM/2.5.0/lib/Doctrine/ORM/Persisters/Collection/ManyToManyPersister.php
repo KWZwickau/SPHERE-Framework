@@ -36,13 +36,11 @@ use Doctrine\ORM\Utility\PersisterHelper;
  */
 class ManyToManyPersister extends AbstractCollectionPersister
 {
-
     /**
      * {@inheritdoc}
      */
     public function delete(PersistentCollection $collection)
     {
-
         $mapping = $collection->getMapping();
 
         if (!$mapping['isOwningSide']) {
@@ -77,7 +75,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      * {@inheritdoc}
      *
      * Internal note: Order of the parameters must be the same as the order of the columns in getDeleteSql.
-     *
      * @override
      */
     protected function getDeleteSQLParameters(PersistentCollection $collection)
@@ -109,7 +106,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     public function update(PersistentCollection $collection)
     {
-
         $mapping = $collection->getMapping();
 
         if (!$mapping['isOwningSide']) {
@@ -219,7 +215,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     protected function getDeleteRowSQLParameters(PersistentCollection $collection, $element)
     {
-
         return $this->collectJoinTableColumnParameters($collection, $element);
     }
 
@@ -281,7 +276,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     protected function getInsertRowSQLParameters(PersistentCollection $collection, $element)
     {
-
         return $this->collectJoinTableColumnParameters($collection, $element);
     }
 
@@ -290,7 +284,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     public function get(PersistentCollection $collection, $index)
     {
-
         $mapping = $collection->getMapping();
 
         if (!isset( $mapping['indexBy'] )) {
@@ -384,7 +377,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     public function getFilterSql($mapping)
     {
-
         $targetClass = $this->em->getClassMetadata($mapping['targetEntity']);
         $rootClass = $this->em->getClassMetadata($targetClass->rootEntityName);
         $filterSql = $this->generateFilterConditionSQL($rootClass, 'te');
@@ -411,7 +403,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     protected function generateFilterConditionSQL(ClassMetadata $targetEntity, $targetTableAlias)
     {
-
         $filterClauses = array();
 
         foreach ($this->em->getFilters()->getEnabledFilters() as $filter) {
@@ -434,7 +425,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     protected function getOnConditionSQL($mapping)
     {
-
         $targetClass = $this->em->getClassMetadata($mapping['targetEntity']);
         $association = ( !$mapping['isOwningSide'] )
             ? $targetClass->associationMappings[$mapping['mappedBy']]
@@ -474,7 +464,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     public function containsKey(PersistentCollection $collection, $key)
     {
-
         $mapping = $collection->getMapping();
 
         if (!isset( $mapping['indexBy'] )) {
@@ -502,7 +491,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     private function getJoinTableRestrictionsWithKey(PersistentCollection $collection, $key, $addFilters)
     {
-
         $filterMapping = $collection->getMapping();
         $mapping = $filterMapping;
         $indexBy = $mapping['indexBy'];
@@ -736,7 +724,6 @@ class ManyToManyPersister extends AbstractCollectionPersister
      */
     private function expandCriteriaParameters(Criteria $criteria)
     {
-
         $expression = $criteria->getWhereExpression();
 
         if ($expression === null) {

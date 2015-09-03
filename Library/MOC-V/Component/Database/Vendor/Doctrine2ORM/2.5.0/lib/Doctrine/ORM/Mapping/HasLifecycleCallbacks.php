@@ -25,5 +25,4 @@ namespace Doctrine\ORM\Mapping;
  */
 final class HasLifecycleCallbacks implements Annotation
 {
-
 }

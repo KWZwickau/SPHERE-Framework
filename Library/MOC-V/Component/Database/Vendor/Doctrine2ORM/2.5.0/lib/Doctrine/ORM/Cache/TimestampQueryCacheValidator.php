@@ -26,13 +26,11 @@ namespace Doctrine\ORM\Cache;
  */
 class TimestampQueryCacheValidator implements QueryCacheValidator
 {
-
     /**
      * {@inheritdoc}
      */
     public function isValid(QueryCacheKey $key, QueryCacheEntry $entry)
     {
-
         if ($key->lifetime == 0) {
             return true;
         }

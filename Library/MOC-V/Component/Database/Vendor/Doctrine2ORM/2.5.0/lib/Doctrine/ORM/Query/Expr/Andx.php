@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class Andx extends Composite
 {
-
     /**
      * @var string
      */
@@ -51,7 +50,6 @@ class Andx extends Composite
      */
     public function getParts()
     {
-
         return $this->parts;
     }
 }

@@ -29,17 +29,15 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  *
  * @author Roman Borschel <roman@code-factory.org>
  * @author Benjamin Eberlei <kontakt@beberlei.de>
- * @since  2.0
+ * @since 2.0
  */
 abstract class AbstractEntityInheritancePersister extends BasicEntityPersister
 {
-
     /**
      * {@inheritdoc}
      */
     protected function prepareInsertData($entity)
     {
-
         $data = parent::prepareInsertData($entity);
 
         // Populate the discriminator column
@@ -89,7 +87,6 @@ abstract class AbstractEntityInheritancePersister extends BasicEntityPersister
      */
     protected function getSelectJoinColumnSQL($tableAlias, $joinColumnName, $className, $type)
     {
-
         $columnAlias = $this->getSQLColumnAlias($joinColumnName);
 
         $this->currentPersisterContext->rsm->addMetaResult('r', $columnAlias, $joinColumnName, false, $type);

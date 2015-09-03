@@ -29,7 +29,6 @@ namespace Doctrine\ORM\Query;
  */
 class Printer
 {
-
     /**
      * Current indentation level
      *
@@ -51,7 +50,6 @@ class Printer
      */
     public function __construct($silent = false)
     {
-
         $this->_silent = $silent;
     }
 
@@ -96,7 +94,6 @@ class Printer
      */
     public function endProduction()
     {
-
         $this->_indent--;
         $this->println(')');
     }

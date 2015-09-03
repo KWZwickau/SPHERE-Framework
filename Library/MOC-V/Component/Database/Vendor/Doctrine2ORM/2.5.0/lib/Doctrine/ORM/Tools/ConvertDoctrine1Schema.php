@@ -36,7 +36,6 @@ use Symfony\Component\Yaml\Yaml;
  */
 class ConvertDoctrine1Schema
 {
-
     /**
      * @var array
      */
@@ -74,7 +73,6 @@ class ConvertDoctrine1Schema
      */
     public function getMetadata()
     {
-
         $schema = array();
         foreach ($this->from as $path) {
             if (is_dir($path)) {
@@ -103,7 +101,6 @@ class ConvertDoctrine1Schema
      */
     private function convertToClassMetadataInfo($className, $mappingInformation)
     {
-
         $metadata = new ClassMetadataInfo($className);
 
         $this->convertTableName($className, $mappingInformation, $metadata);
@@ -145,7 +142,6 @@ class ConvertDoctrine1Schema
      */
     private function convertColumns($className, array $model, ClassMetadataInfo $metadata)
     {
-
         $id = false;
 
         if (isset( $model['columns'] ) && $model['columns']) {
@@ -182,7 +178,6 @@ class ConvertDoctrine1Schema
      */
     private function convertColumn($className, $name, $column, ClassMetadataInfo $metadata)
     {
-
         if (is_string($column)) {
             $string = $column;
             $column = array();

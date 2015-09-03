@@ -34,7 +34,6 @@ use Doctrine\ORM\Query\ParameterTypeInferer;
  */
 abstract class SQLFilter
 {
-
     /**
      * The entity manager.
      *
@@ -56,7 +55,6 @@ abstract class SQLFilter
      */
     final public function __construct(EntityManagerInterface $em)
     {
-
         $this->em = $em;
     }
 
@@ -73,7 +71,6 @@ abstract class SQLFilter
      */
     final public function setParameter($name, $value, $type = null)
     {
-
         if (null === $type) {
             $type = ParameterTypeInferer::inferType($value);
         }
@@ -135,7 +132,6 @@ abstract class SQLFilter
      */
     final public function __toString()
     {
-
         return serialize($this->parameters);
     }
 
@@ -156,7 +152,6 @@ abstract class SQLFilter
      */
     final protected function getConnection()
     {
-
         return $this->em->getConnection();
     }
 }

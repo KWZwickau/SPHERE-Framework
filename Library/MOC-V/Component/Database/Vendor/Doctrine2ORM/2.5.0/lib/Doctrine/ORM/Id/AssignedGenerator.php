@@ -33,7 +33,6 @@ use Doctrine\ORM\ORMException;
  */
 class AssignedGenerator extends AbstractIdGenerator
 {
-
     /**
      * Returns the identifier assigned to the given entity.
      *

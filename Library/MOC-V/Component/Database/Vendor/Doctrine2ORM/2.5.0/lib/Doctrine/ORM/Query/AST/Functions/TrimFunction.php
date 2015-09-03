@@ -37,7 +37,6 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class TrimFunction extends FunctionNode
 {
-
     /**
      * @var boolean
      */
@@ -86,7 +85,6 @@ class TrimFunction extends FunctionNode
      */
     private function getTrimMode()
     {
-
         if ($this->leading) {
             return AbstractPlatform::TRIM_LEADING;
         }
@@ -107,7 +105,6 @@ class TrimFunction extends FunctionNode
      */
     public function parse(Parser $parser)
     {
-
         $lexer = $parser->getLexer();
 
         $parser->match(Lexer::T_IDENTIFIER);
@@ -137,7 +134,6 @@ class TrimFunction extends FunctionNode
      */
     private function parseTrimMode(Parser $parser)
     {
-
         $lexer = $parser->getLexer();
         $value = $lexer->lookahead['value'];
 

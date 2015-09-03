@@ -45,7 +45,6 @@ use ReflectionException;
  */
 class ClassMetadataFactory extends AbstractClassMetadataFactory
 {
-
     /**
      * @var EntityManagerInterface|null
      */
@@ -76,7 +75,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     public function setEntityManager(EntityManagerInterface $em)
     {
-
         $this->em = $em;
     }
 
@@ -85,7 +83,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     protected function loadMetadata($name)
     {
-
         $loaded = parent::loadMetadata($name);
 
         array_map([$this, 'resolveDiscriminatorValue'], array_map([$this, 'getMetadataFor'], $loaded));
@@ -98,7 +95,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     protected function initialize()
     {
-
         $this->driver = $this->em->getConfiguration()->getMetadataDriverImpl();
         $this->evm = $this->em->getEventManager();
         $this->initialized = true;
@@ -126,7 +122,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     protected function doLoadMetadata($class, $parent, $rootEntityFound, array $nonSuperclassParents)
     {
-
         /* @var $class ClassMetadata */
         /* @var $parent ClassMetadata */
         if ($parent) {
@@ -165,10 +160,8 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
         if ($parent && $rootEntityFound) {
             if ($parent->isIdGeneratorSequence()) {
                 $class->setSequenceGeneratorDefinition($parent->sequenceGeneratorDefinition);
-            } else {
-                if ($parent->isIdGeneratorTable()) {
-                    $class->tableGeneratorDefinition = $parent->tableGeneratorDefinition;
-                }
+            } else if ($parent->isIdGeneratorTable()) {
+                $class->tableGeneratorDefinition = $parent->tableGeneratorDefinition;
             }
 
             if ($parent->generatorType) {
@@ -269,7 +262,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function addInheritedFields(ClassMetadata $subClass, ClassMetadata $parentClass)
     {
-
         foreach ($parentClass->fieldMappings as $mapping) {
             if (!isset( $mapping['inherited'] ) && !$parentClass->isMappedSuperclass) {
                 $mapping['inherited'] = $parentClass->name;
@@ -296,7 +288,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function addInheritedRelations(ClassMetadata $subClass, ClassMetadata $parentClass)
     {
-
         foreach ($parentClass->associationMappings as $field => $mapping) {
             if ($parentClass->isMappedSuperclass) {
                 if ($mapping['type'] & ClassMetadata::TO_MANY && !$mapping['isOwningSide']) {
@@ -318,7 +309,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
 
     private function addInheritedEmbeddedClasses(ClassMetadata $subClass, ClassMetadata $parentClass)
     {
-
         foreach ($parentClass->embeddedClasses as $field => $embeddedClass) {
             if (!isset( $embeddedClass['inherited'] ) && !$parentClass->isMappedSuperclass) {
                 $embeddedClass['inherited'] = $parentClass->name;
@@ -343,17 +333,14 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function completeIdGeneratorMapping(ClassMetadataInfo $class)
     {
-
         $idGenType = $class->generatorType;
         if ($idGenType == ClassMetadata::GENERATOR_TYPE_AUTO) {
             if ($this->getTargetPlatform()->prefersSequences()) {
                 $class->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_SEQUENCE);
+            } else if ($this->getTargetPlatform()->prefersIdentityColumns()) {
+                $class->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_IDENTITY);
             } else {
-                if ($this->getTargetPlatform()->prefersIdentityColumns()) {
-                    $class->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_IDENTITY);
-                } else {
-                    $class->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_TABLE);
-                }
+                $class->setIdGeneratorType(ClassMetadata::GENERATOR_TYPE_TABLE);
             }
         }
 
@@ -453,7 +440,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function getTargetPlatform()
     {
-
         if (!$this->targetPlatform) {
             $this->targetPlatform = $this->em->getConnection()->getDatabasePlatform();
         }
@@ -470,7 +456,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function addNestedEmbeddedClasses(ClassMetadata $subClass, ClassMetadata $parentClass, $prefix)
     {
-
         foreach ($subClass->embeddedClasses as $property => $embeddableClass) {
             if (isset( $embeddableClass['inherited'] )) {
                 continue;
@@ -530,7 +515,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function addInheritedNamedQueries(ClassMetadata $subClass, ClassMetadata $parentClass)
     {
-
         foreach ($parentClass->namedQueries as $name => $query) {
             if (!isset ( $subClass->namedQueries[$name] )) {
                 $subClass->addNamedQuery(array(
@@ -553,7 +537,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function addInheritedNamedNativeQueries(ClassMetadata $subClass, ClassMetadata $parentClass)
     {
-
         foreach ($parentClass->namedNativeQueries as $name => $query) {
             if (!isset ( $subClass->namedNativeQueries[$name] )) {
                 $subClass->addNamedNativeQuery(array(
@@ -579,7 +562,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function addInheritedSqlResultSetMappings(ClassMetadata $subClass, ClassMetadata $parentClass)
     {
-
         foreach ($parentClass->sqlResultSetMappings as $name => $mapping) {
             if (!isset ( $subClass->sqlResultSetMappings[$name] )) {
                 $entities = array();
@@ -617,7 +599,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function addDefaultDiscriminatorMap(ClassMetadata $class)
     {
-
         $allClasses = $this->driver->getAllClassNames();
         $fqcn = $class->getName();
         $map = array($this->getShortName($class->name) => $fqcn);
@@ -651,7 +632,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function getShortName($className)
     {
-
         if (strpos($className, "\\") === false) {
             return strtolower($className);
         }
@@ -692,11 +672,9 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
                     throw MappingException::missingDiscriminatorColumn($class->name);
                 }
             }
-        } else {
-            if ($class->isMappedSuperclass && $class->name == $class->rootEntityName && ( count($class->discriminatorMap) || $class->discriminatorColumn )) {
-                // second condition is necessary for mapped superclasses in the middle of an inheritance hierarchy
-                throw MappingException::noInheritanceOnMappedSuperClass($class->name);
-            }
+        } else if ($class->isMappedSuperclass && $class->name == $class->rootEntityName && ( count($class->discriminatorMap) || $class->discriminatorColumn )) {
+            // second condition is necessary for mapped superclasses in the middle of an inheritance hierarchy
+            throw MappingException::noInheritanceOnMappedSuperClass($class->name);
         }
     }
 
@@ -705,7 +683,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     protected function newClassMetadataInstance($className)
     {
-
         return new ClassMetadata($className, $this->em->getConfiguration()->getNamingStrategy());
     }
 
@@ -714,7 +691,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     protected function wakeupReflection(ClassMetadataInterface $class, ReflectionService $reflService)
     {
-
         /* @var $class ClassMetadata */
         $class->wakeupReflection($reflService);
     }
@@ -724,7 +700,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     protected function initializeReflection(ClassMetadataInterface $class, ReflectionService $reflService)
     {
-
         /* @var $class ClassMetadata */
         $class->initializeReflection($reflService);
     }
@@ -743,7 +718,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     protected function getDriver()
     {
-
         return $this->driver;
     }
 
@@ -768,7 +742,6 @@ class ClassMetadataFactory extends AbstractClassMetadataFactory
      */
     private function resolveDiscriminatorValue(ClassMetadata $metadata)
     {
-
         if ($metadata->discriminatorValue
             || !$metadata->discriminatorMap
             || $metadata->isMappedSuperclass

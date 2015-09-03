@@ -29,7 +29,6 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class DefaultQuoteStrategy implements QuoteStrategy
 {
-
     /**
      * {@inheritdoc}
      *
@@ -37,7 +36,6 @@ class DefaultQuoteStrategy implements QuoteStrategy
      */
     public function getTableName(ClassMetadata $class, AbstractPlatform $platform)
     {
-
         $tableName = $class->table['name'];
 
         if (!empty( $class->table['schema'] )) {
@@ -91,7 +89,6 @@ class DefaultQuoteStrategy implements QuoteStrategy
      */
     public function getJoinTableName(array $association, ClassMetadata $class, AbstractPlatform $platform)
     {
-
         $schema = '';
 
         if (isset( $association['joinTable']['schema'] )) {
@@ -112,7 +109,6 @@ class DefaultQuoteStrategy implements QuoteStrategy
      */
     public function getIdentifierColumnNames(ClassMetadata $class, AbstractPlatform $platform)
     {
-
         $quotedColumnNames = array();
 
         foreach ($class->identifier as $fieldName) {
@@ -156,7 +152,6 @@ class DefaultQuoteStrategy implements QuoteStrategy
      */
     public function getColumnAlias($columnName, $counter, AbstractPlatform $platform, ClassMetadata $class = null)
     {
-
         // 1 ) Concatenate column name and counter
         // 2 ) Trim the column alias to the maximum identifier length of the platform.
         //     If the alias is to long, characters are cut off from the beginning.

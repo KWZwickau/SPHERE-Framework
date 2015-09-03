@@ -24,14 +24,13 @@ use Doctrine\ORM\Query\Lexer;
 /**
  * "BIT_OR" "(" ArithmeticPrimary "," ArithmeticPrimary ")"
  *
- *
+ * 
  * @link    www.doctrine-project.org
  * @since   2.2
  * @author  Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
 class BitOrFunction extends FunctionNode
 {
-
     public $firstArithmetic;
     public $secondArithmetic;
 
@@ -40,7 +39,6 @@ class BitOrFunction extends FunctionNode
      */
     public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker)
     {
-
         $platform = $sqlWalker->getConnection()->getDatabasePlatform();
         return $platform->getBitOrComparisonExpression(
             $this->firstArithmetic->dispatch($sqlWalker),
@@ -53,7 +51,6 @@ class BitOrFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
-
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

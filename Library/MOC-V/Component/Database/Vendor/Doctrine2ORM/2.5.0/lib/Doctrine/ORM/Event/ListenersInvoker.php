@@ -56,7 +56,6 @@ class ListenersInvoker
      */
     public function __construct(EntityManagerInterface $em)
     {
-
         $this->eventManager = $em->getEventManager();
         $this->resolver = $em->getConfiguration()->getEntityListenerResolver();
     }
@@ -71,7 +70,6 @@ class ListenersInvoker
      */
     public function getSubscribedSystems(ClassMetadata $metadata, $eventName)
     {
-
         $invoke = self::INVOKE_NONE;
 
         if (isset( $metadata->lifecycleCallbacks[$eventName] )) {

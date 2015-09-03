@@ -29,7 +29,6 @@ namespace Doctrine\ORM\Tools\Export;
  */
 class ClassMetadataExporter
 {
-
     /**
      * @var array
      */
@@ -51,7 +50,6 @@ class ClassMetadataExporter
      */
     public static function registerExportDriver($name, $class)
     {
-
         self::$_exporterDrivers[$name] = $class;
     }
 

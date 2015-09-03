@@ -38,13 +38,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class RunDqlCommand extends Command
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
             ->setName('orm:run-dql')
             ->setDescription('Executes arbitrary DQL directly from the command line.')
@@ -83,7 +81,6 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
         /* @var $em \Doctrine\ORM\EntityManagerInterface */
         $em = $this->getHelper('em')->getEntityManager();
 

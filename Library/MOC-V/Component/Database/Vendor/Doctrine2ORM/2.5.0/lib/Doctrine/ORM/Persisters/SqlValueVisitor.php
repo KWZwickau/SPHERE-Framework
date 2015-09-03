@@ -31,7 +31,6 @@ use Doctrine\Common\Collections\Expr\Value;
  */
 class SqlValueVisitor extends ExpressionVisitor
 {
-
     /**
      * @var array
      */
@@ -58,10 +57,8 @@ class SqlValueVisitor extends ExpressionVisitor
 
         if (( $operator === Comparison::EQ || $operator === Comparison::IS ) && $value === null) {
             return;
-        } else {
-            if ($operator === Comparison::NEQ && $value === null) {
-                return;
-            }
+        } else if ($operator === Comparison::NEQ && $value === null) {
+            return;
         }
 
         $this->values[] = $value;
@@ -73,12 +70,10 @@ class SqlValueVisitor extends ExpressionVisitor
      * the value is wrapped in %-signs, because it will be used in a LIKE clause.
      *
      * @param \Doctrine\Common\Collections\Expr\Comparison $comparison
-     *
      * @return mixed
      */
     protected function getValueFromComparison(Comparison $comparison)
     {
-
         $value = $comparison->getValue()->getValue();
 
         return $comparison->getOperator() == Comparison::CONTAINS
@@ -95,7 +90,6 @@ class SqlValueVisitor extends ExpressionVisitor
      */
     public function walkCompositeExpression(CompositeExpression $expr)
     {
-
         foreach ($expr->getExpressionList() as $child) {
             $this->dispatch($child);
         }
@@ -110,7 +104,6 @@ class SqlValueVisitor extends ExpressionVisitor
      */
     public function walkValue(Value $value)
     {
-
         return;
     }
 
@@ -121,7 +114,6 @@ class SqlValueVisitor extends ExpressionVisitor
      */
     public function getParamsAndTypes()
     {
-
         return array($this->values, $this->types);
     }
 }

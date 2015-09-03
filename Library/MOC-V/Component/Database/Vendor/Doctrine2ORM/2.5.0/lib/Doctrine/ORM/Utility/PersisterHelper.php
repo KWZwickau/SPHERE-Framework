@@ -34,7 +34,6 @@ use Doctrine\ORM\Query\QueryException;
  */
 class PersisterHelper
 {
-
     /**
      * @param string                 $fieldName
      * @param ClassMetadata          $class

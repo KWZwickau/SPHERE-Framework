@@ -28,7 +28,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class FilterCollection
 {
-
     /* Filter STATES */
 
     /**
@@ -79,7 +78,6 @@ class FilterCollection
      */
     public function __construct(EntityManagerInterface $em)
     {
-
         $this->em = $em;
         $this->config = $em->getConfiguration();
     }
@@ -91,7 +89,6 @@ class FilterCollection
      */
     public function getEnabledFilters()
     {
-
         return $this->enabledFilters;
     }
 
@@ -135,7 +132,6 @@ class FilterCollection
      */
     public function has($name)
     {
-
         return null !== $this->config->getFilterClassName($name);
     }
 
@@ -163,7 +159,6 @@ class FilterCollection
      */
     public function disable($name)
     {
-
         // Get the filter to return it
         $filter = $this->getFilter($name);
 
@@ -199,7 +194,6 @@ class FilterCollection
      */
     public function isClean()
     {
-
         return self::FILTERS_STATE_CLEAN === $this->filtersState;
     }
 
@@ -210,7 +204,6 @@ class FilterCollection
      */
     public function getHash()
     {
-
         // If there are only clean filters, the previous hash can be returned
         if (self::FILTERS_STATE_CLEAN === $this->filtersState) {
             return $this->filterHash;
@@ -230,7 +223,6 @@ class FilterCollection
      */
     public function setFiltersStateDirty()
     {
-
         $this->filtersState = self::FILTERS_STATE_DIRTY;
     }
 }

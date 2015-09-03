@@ -46,7 +46,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class EntityGenerator
 {
-
     /**
      * Specifies class fields should be protected.
      */
@@ -303,7 +302,6 @@ public function __construct(<params>)
      */
     public function __construct()
     {
-
         if (version_compare(\Doctrine\Common\Version::VERSION, '2.2.0-DEV', '>=')) {
             $this->annotationsPrefix = 'ORM\\';
         }
@@ -319,7 +317,6 @@ public function __construct(<params>)
      */
     public function generate(array $metadatas, $outputDirectory)
     {
-
         foreach ($metadatas as $metadata) {
             $this->writeEntityClass($metadata, $outputDirectory);
         }
@@ -378,7 +375,6 @@ public function __construct(<params>)
      */
     protected function parseTokensInEntityFile($src)
     {
-
         $tokens = token_get_all($src);
         $lastSeenNamespace = "";
         $lastSeenClass = false;
@@ -435,7 +431,6 @@ public function __construct(<params>)
      */
     public function generateEntityClass(ClassMetadataInfo $metadata)
     {
-
         $placeHolders = array(
             '<namespace>',
             '<useStatement>',
@@ -464,7 +459,6 @@ public function __construct(<params>)
      */
     protected function generateEntityNamespace(ClassMetadataInfo $metadata)
     {
-
         if ($this->hasNamespace($metadata)) {
             return 'namespace '.$this->getNamespace($metadata).';';
         }
@@ -477,7 +471,6 @@ public function __construct(<params>)
      */
     protected function hasNamespace(ClassMetadataInfo $metadata)
     {
-
         return strpos($metadata->name, '\\') ? true : false;
     }
 
@@ -488,13 +481,11 @@ public function __construct(<params>)
      */
     protected function getNamespace(ClassMetadataInfo $metadata)
     {
-
         return substr($metadata->name, 0, strrpos($metadata->name, '\\'));
     }
 
     protected function generateEntityUse()
     {
-
         if ($this->generateAnnotations) {
             return "\n".'use Doctrine\ORM\Mapping as ORM;'."\n";
         } else {
@@ -509,7 +500,6 @@ public function __construct(<params>)
      */
     protected function generateEntityDocBlock(ClassMetadataInfo $metadata)
     {
-
         $lines = array();
         $lines[] = '/**';
         $lines[] = ' * '.$this->getClassName($metadata);
@@ -570,7 +560,6 @@ public function __construct(<params>)
      */
     protected function extendsClass()
     {
-
         return $this->classToExtend ? true : false;
     }
 
@@ -579,7 +568,6 @@ public function __construct(<params>)
      */
     protected function getClassToExtendName()
     {
-
         $refl = new \ReflectionClass($this->getClassToExtend());
 
         return '\\'.$refl->getName();
@@ -590,7 +578,6 @@ public function __construct(<params>)
      */
     protected function getClassToExtend()
     {
-
         return $this->classToExtend;
     }
 
@@ -603,7 +590,6 @@ public function __construct(<params>)
      */
     public function setClassToExtend($classToExtend)
     {
-
         $this->classToExtend = $classToExtend;
     }
 
@@ -614,7 +600,6 @@ public function __construct(<params>)
      */
     protected function generateEntityBody(ClassMetadataInfo $metadata)
     {
-
         $fieldMappingProperties = $this->generateEntityFieldMappingProperties($metadata);
         $embeddedProperties = $this->generateEntityEmbeddedProperties($metadata);
         $associationMappingProperties = $this->generateEntityAssociationMappingProperties($metadata);
@@ -655,7 +640,6 @@ public function __construct(<params>)
      */
     protected function generateEntityFieldMappingProperties(ClassMetadataInfo $metadata)
     {
-
         $lines = array();
 
         foreach ($metadata->fieldMappings as $fieldMapping) {
@@ -743,7 +727,6 @@ public function __construct(<params>)
      */
     protected function generateFieldMappingPropertyDocBlock(array $fieldMapping, ClassMetadataInfo $metadata)
     {
-
         $lines = array();
         $lines[] = $this->spaces.'/**';
         $lines[] = $this->spaces.' * @var '.$this->getType($fieldMapping['type']);
@@ -866,7 +849,6 @@ public function __construct(<params>)
      */
     protected function generateEntityEmbeddedProperties(ClassMetadataInfo $metadata)
     {
-
         $lines = array();
 
         foreach ($metadata->embeddedClasses as $fieldName => $embeddedClass) {
@@ -888,7 +870,6 @@ public function __construct(<params>)
      */
     protected function generateEmbeddedPropertyDocBlock(array $embeddedClass)
     {
-
         $lines = array();
         $lines[] = $this->spaces.'/**';
         $lines[] = $this->spaces.' * @var \\'.ltrim($embeddedClass['class'], '\\');
@@ -918,7 +899,6 @@ public function __construct(<params>)
      */
     protected function generateEntityAssociationMappingProperties(ClassMetadataInfo $metadata)
     {
-
         $lines = array();
 
         foreach ($metadata->associationMappings as $associationMapping) {
@@ -944,7 +924,6 @@ public function __construct(<params>)
         array $associationMapping,
         ClassMetadataInfo $metadata
     ) {
-
         $lines = array();
         $lines[] = $this->spaces.'/**';
 
@@ -1106,7 +1085,6 @@ public function __construct(<params>)
      */
     protected function generateJoinColumnAnnotation(array $joinColumn)
     {
-
         $joinColumnAnnot = array();
 
         if (isset( $joinColumn['name'] )) {
@@ -1143,7 +1121,6 @@ public function __construct(<params>)
      */
     protected function generateEntityStubMethods(ClassMetadataInfo $metadata)
     {
-
         $methods = array();
 
         foreach ($metadata->fieldMappings as $fieldMapping) {
@@ -1323,7 +1300,6 @@ public function __construct(<params>)
      */
     protected function prefixCodeWithSpaces($code, $num = 1)
     {
-
         $lines = explode("\n", $code);
 
         foreach ($lines as $key => $value) {
@@ -1397,7 +1373,6 @@ public function __construct(<params>)
      */
     protected function generateLifecycleCallbackMethod($name, $methodName, $metadata)
     {
-
         if ($this->hasMethod($methodName, $metadata)) {
             return '';
         }
@@ -1424,7 +1399,6 @@ public function __construct(<params>)
      */
     protected function generateEntityConstructor(ClassMetadataInfo $metadata)
     {
-
         if ($this->hasMethod('__construct', $metadata)) {
             return '';
         }
@@ -1456,7 +1430,6 @@ public function __construct(<params>)
      */
     private function generateEmbeddableConstructor(ClassMetadataInfo $metadata)
     {
-
         $paramTypes = array();
         $paramVariables = array();
         $params = array();
@@ -1555,7 +1528,6 @@ public function __construct(<params>)
      */
     public function generateUpdatedEntityClass(ClassMetadataInfo $metadata, $path)
     {
-
         $currentCode = file_get_contents($path);
 
         $body = $this->generateEntityBody($metadata);
@@ -1574,7 +1546,6 @@ public function __construct(<params>)
      */
     public function setNumSpaces($numSpaces)
     {
-
         $this->spaces = str_repeat(' ', $numSpaces);
         $this->numSpaces = $numSpaces;
     }
@@ -1588,7 +1559,6 @@ public function __construct(<params>)
      */
     public function setExtension($extension)
     {
-
         $this->extension = $extension;
     }
 
@@ -1601,7 +1571,6 @@ public function __construct(<params>)
      */
     public function setGenerateAnnotations($bool)
     {
-
         $this->generateAnnotations = $bool;
     }
 
@@ -1616,7 +1585,6 @@ public function __construct(<params>)
      */
     public function setFieldVisibility($visibility)
     {
-
         if ($visibility !== static::FIELD_VISIBLE_PRIVATE && $visibility !== static::FIELD_VISIBLE_PROTECTED) {
             throw new \InvalidArgumentException('Invalid provided visibility (only private and protected are allowed): '.$visibility);
         }
@@ -1644,7 +1612,6 @@ public function __construct(<params>)
      */
     public function setAnnotationPrefix($prefix)
     {
-
         $this->annotationsPrefix = $prefix;
     }
 
@@ -1657,7 +1624,6 @@ public function __construct(<params>)
      */
     public function setUpdateEntityIfExists($bool)
     {
-
         $this->updateEntityIfExists = $bool;
     }
 
@@ -1670,7 +1636,6 @@ public function __construct(<params>)
      */
     public function setRegenerateEntityIfExists($bool)
     {
-
         $this->regenerateEntityIfExists = $bool;
     }
 
@@ -1683,7 +1648,6 @@ public function __construct(<params>)
      */
     public function setGenerateStubMethods($bool)
     {
-
         $this->generateEntityStubMethods = $bool;
     }
 
@@ -1696,7 +1660,6 @@ public function __construct(<params>)
      */
     public function setBackupExisting($bool)
     {
-
         $this->backupExisting = $bool;
     }
 
@@ -1728,7 +1691,6 @@ public function __construct(<params>)
      */
     protected function generateTableAnnotation($metadata)
     {
-
         if ($metadata->isEmbeddedClass) {
             return '';
         }
@@ -1767,7 +1729,6 @@ public function __construct(<params>)
      */
     private function exportTableOptions(array $options)
     {
-
         $optionsStr = array();
 
         foreach ($options as $name => $option) {
@@ -1789,7 +1750,6 @@ public function __construct(<params>)
      */
     protected function generateTableConstraints($constraintName, $constraints)
     {
-
         $annotations = array();
         foreach ($constraints as $name => $constraint) {
             $columns = array();
@@ -1809,7 +1769,6 @@ public function __construct(<params>)
      */
     protected function generateInheritanceAnnotation($metadata)
     {
-
         if ($metadata->inheritanceType != ClassMetadataInfo::INHERITANCE_TYPE_NONE) {
             return '@'.$this->annotationsPrefix.'InheritanceType("'.$this->getInheritanceTypeString($metadata->inheritanceType).'")';
         }
@@ -1839,7 +1798,6 @@ public function __construct(<params>)
      */
     protected function generateDiscriminatorColumnAnnotation($metadata)
     {
-
         if ($metadata->inheritanceType != ClassMetadataInfo::INHERITANCE_TYPE_NONE) {
             $discrColumn = $metadata->discriminatorColumn;
             $columnDefinition = 'name="'.$discrColumn['name']
@@ -1857,7 +1815,6 @@ public function __construct(<params>)
      */
     protected function generateDiscriminatorMapAnnotation($metadata)
     {
-
         if ($metadata->inheritanceType != ClassMetadataInfo::INHERITANCE_TYPE_NONE) {
             $inheritanceClassMap = array();
 

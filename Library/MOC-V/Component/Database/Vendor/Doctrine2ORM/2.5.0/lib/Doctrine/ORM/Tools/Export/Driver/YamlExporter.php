@@ -31,7 +31,6 @@ use Symfony\Component\Yaml\Yaml;
  */
 class YamlExporter extends AbstractExporter
 {
-
     /**
      * @var string
      */
@@ -42,7 +41,6 @@ class YamlExporter extends AbstractExporter
      */
     public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
-
         $array = array();
 
         if ($metadata->isMappedSuperclass) {
@@ -232,7 +230,6 @@ class YamlExporter extends AbstractExporter
      */
     protected function yamlDump($array, $inline = 2)
     {
-
         return Yaml::dump($array, $inline);
     }
 }

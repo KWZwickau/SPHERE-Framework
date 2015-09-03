@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class ArithmeticTerm extends Node
 {
-
     /**
      * @var array
      */
@@ -41,7 +40,6 @@ class ArithmeticTerm extends Node
      */
     public function __construct(array $arithmeticFactors)
     {
-
         $this->arithmeticFactors = $arithmeticFactors;
     }
 
@@ -50,7 +48,6 @@ class ArithmeticTerm extends Node
      */
     public function dispatch($sqlWalker)
     {
-
         return $sqlWalker->walkArithmeticTerm($this);
     }
 }

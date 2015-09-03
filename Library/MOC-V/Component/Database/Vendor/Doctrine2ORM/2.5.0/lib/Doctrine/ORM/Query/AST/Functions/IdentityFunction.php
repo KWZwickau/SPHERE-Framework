@@ -35,7 +35,6 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class IdentityFunction extends FunctionNode
 {
-
     /**
      * @var \Doctrine\ORM\Query\AST\PathExpression
      */
@@ -99,7 +98,6 @@ class IdentityFunction extends FunctionNode
      */
     public function parse(Parser $parser)
     {
-
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

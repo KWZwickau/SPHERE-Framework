@@ -30,13 +30,11 @@ namespace Doctrine\ORM\Internal\Hydration;
  */
 class ScalarHydrator extends AbstractHydrator
 {
-
     /**
      * {@inheritdoc}
      */
     protected function hydrateAllData()
     {
-
         $result = array();
 
         while ($data = $this->_stmt->fetch(\PDO::FETCH_ASSOC)) {
@@ -51,7 +49,6 @@ class ScalarHydrator extends AbstractHydrator
      */
     protected function hydrateRowData(array $data, array &$result)
     {
-
         $result[] = $this->gatherScalarRowData($data);
     }
 }

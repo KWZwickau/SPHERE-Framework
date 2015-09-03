@@ -31,7 +31,7 @@ use Doctrine\ORM\Mapping\MappingException;
 /**
  * The AnnotationDriver reads the mapping metadata from docblock annotations.
  *
- * @since  2.0
+ * @since 2.0
  * @author Benjamin Eberlei <kontakt@beberlei.de>
  * @author Guilherme Blanco <guilhermeblanco@hotmail.com>
  * @author Jonathan H. Wage <jonwage@gmail.com>
@@ -39,7 +39,6 @@ use Doctrine\ORM\Mapping\MappingException;
  */
 class AnnotationDriver extends AbstractAnnotationDriver
 {
-
     /**
      * {@inheritDoc}
      */
@@ -58,7 +57,6 @@ class AnnotationDriver extends AbstractAnnotationDriver
      */
     static public function create($paths = array(), AnnotationReader $reader = null)
     {
-
         if ($reader == null) {
             $reader = new AnnotationReader();
         }
@@ -71,7 +69,6 @@ class AnnotationDriver extends AbstractAnnotationDriver
      */
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
-
         /* @var $metadata \Doctrine\ORM\Mapping\ClassMetadataInfo */
         $class = $metadata->getReflectionClass();
         if (!$class) {
@@ -101,18 +98,14 @@ class AnnotationDriver extends AbstractAnnotationDriver
             if ($entityAnnot->readOnly) {
                 $metadata->markReadOnly();
             }
+        } else if (isset( $classAnnotations['Doctrine\ORM\Mapping\MappedSuperclass'] )) {
+            $mappedSuperclassAnnot = $classAnnotations['Doctrine\ORM\Mapping\MappedSuperclass'];
+            $metadata->setCustomRepositoryClass($mappedSuperclassAnnot->repositoryClass);
+            $metadata->isMappedSuperclass = true;
+        } else if (isset( $classAnnotations['Doctrine\ORM\Mapping\Embeddable'] )) {
+            $metadata->isEmbeddedClass = true;
         } else {
-            if (isset( $classAnnotations['Doctrine\ORM\Mapping\MappedSuperclass'] )) {
-                $mappedSuperclassAnnot = $classAnnotations['Doctrine\ORM\Mapping\MappedSuperclass'];
-                $metadata->setCustomRepositoryClass($mappedSuperclassAnnot->repositoryClass);
-                $metadata->isMappedSuperclass = true;
-            } else {
-                if (isset( $classAnnotations['Doctrine\ORM\Mapping\Embeddable'] )) {
-                    $metadata->isEmbeddedClass = true;
-                } else {
-                    throw MappingException::classIsNotAValidEntityOrMappedSuperClass($className);
-                }
-            }
+            throw MappingException::classIsNotAValidEntityOrMappedSuperClass($className);
         }
 
         // Evaluate Table annotation
@@ -275,6 +268,7 @@ class AnnotationDriver extends AbstractAnnotationDriver
             }
         }
 
+
         // Evaluate DoctrineChangeTrackingPolicy annotation
         if (isset( $classAnnotations['Doctrine\ORM\Mapping\ChangeTrackingPolicy'] )) {
             $changeTrackingAnnot = $classAnnotations['Doctrine\ORM\Mapping\ChangeTrackingPolicy'];
@@ -303,13 +297,11 @@ class AnnotationDriver extends AbstractAnnotationDriver
 
             if ($joinColumnAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\JoinColumn')) {
                 $joinColumns[] = $this->joinColumnToArray($joinColumnAnnot);
-            } else {
-                if ($joinColumnsAnnot = $this->reader->getPropertyAnnotation($property,
-                    'Doctrine\ORM\Mapping\JoinColumns')
-                ) {
-                    foreach ($joinColumnsAnnot->value as $joinColumn) {
-                        $joinColumns[] = $this->joinColumnToArray($joinColumn);
-                    }
+            } else if ($joinColumnsAnnot = $this->reader->getPropertyAnnotation($property,
+                'Doctrine\ORM\Mapping\JoinColumns')
+            ) {
+                foreach ($joinColumnsAnnot->value as $joinColumn) {
+                    $joinColumns[] = $this->joinColumnToArray($joinColumn);
                 }
             }
 
@@ -347,116 +339,100 @@ class AnnotationDriver extends AbstractAnnotationDriver
                         'allocationSize' => $seqGeneratorAnnot->allocationSize,
                         'initialValue' => $seqGeneratorAnnot->initialValue
                     ));
-                } else {
-                    if ($this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\TableGenerator')) {
-                        throw MappingException::tableIdGeneratorNotImplemented($className);
-                    } else {
-                        if ($customGeneratorAnnot = $this->reader->getPropertyAnnotation($property,
-                            'Doctrine\ORM\Mapping\CustomIdGenerator')
-                        ) {
-                            $metadata->setCustomGeneratorDefinition(array(
-                                'class' => $customGeneratorAnnot->class
-                            ));
-                        }
+                } else if ($this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\TableGenerator')) {
+                    throw MappingException::tableIdGeneratorNotImplemented($className);
+                } else if ($customGeneratorAnnot = $this->reader->getPropertyAnnotation($property,
+                    'Doctrine\ORM\Mapping\CustomIdGenerator')
+                ) {
+                    $metadata->setCustomGeneratorDefinition(array(
+                        'class' => $customGeneratorAnnot->class
+                    ));
+                }
+            } else if ($oneToOneAnnot = $this->reader->getPropertyAnnotation($property,
+                'Doctrine\ORM\Mapping\OneToOne')
+            ) {
+                if ($idAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\Id')) {
+                    $mapping['id'] = true;
+                }
+
+                $mapping['targetEntity'] = $oneToOneAnnot->targetEntity;
+                $mapping['joinColumns'] = $joinColumns;
+                $mapping['mappedBy'] = $oneToOneAnnot->mappedBy;
+                $mapping['inversedBy'] = $oneToOneAnnot->inversedBy;
+                $mapping['cascade'] = $oneToOneAnnot->cascade;
+                $mapping['orphanRemoval'] = $oneToOneAnnot->orphanRemoval;
+                $mapping['fetch'] = $this->getFetchMode($className, $oneToOneAnnot->fetch);
+                $metadata->mapOneToOne($mapping);
+            } else if ($oneToManyAnnot = $this->reader->getPropertyAnnotation($property,
+                'Doctrine\ORM\Mapping\OneToMany')
+            ) {
+                $mapping['mappedBy'] = $oneToManyAnnot->mappedBy;
+                $mapping['targetEntity'] = $oneToManyAnnot->targetEntity;
+                $mapping['cascade'] = $oneToManyAnnot->cascade;
+                $mapping['indexBy'] = $oneToManyAnnot->indexBy;
+                $mapping['orphanRemoval'] = $oneToManyAnnot->orphanRemoval;
+                $mapping['fetch'] = $this->getFetchMode($className, $oneToManyAnnot->fetch);
+
+                if ($orderByAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\OrderBy')) {
+                    $mapping['orderBy'] = $orderByAnnot->value;
+                }
+
+                $metadata->mapOneToMany($mapping);
+            } else if ($manyToOneAnnot = $this->reader->getPropertyAnnotation($property,
+                'Doctrine\ORM\Mapping\ManyToOne')
+            ) {
+                if ($idAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\Id')) {
+                    $mapping['id'] = true;
+                }
+
+                $mapping['joinColumns'] = $joinColumns;
+                $mapping['cascade'] = $manyToOneAnnot->cascade;
+                $mapping['inversedBy'] = $manyToOneAnnot->inversedBy;
+                $mapping['targetEntity'] = $manyToOneAnnot->targetEntity;
+                $mapping['fetch'] = $this->getFetchMode($className, $manyToOneAnnot->fetch);
+                $metadata->mapManyToOne($mapping);
+            } else if ($manyToManyAnnot = $this->reader->getPropertyAnnotation($property,
+                'Doctrine\ORM\Mapping\ManyToMany')
+            ) {
+                $joinTable = array();
+
+                if ($joinTableAnnot = $this->reader->getPropertyAnnotation($property,
+                    'Doctrine\ORM\Mapping\JoinTable')
+                ) {
+                    $joinTable = array(
+                        'name'   => $joinTableAnnot->name,
+                        'schema' => $joinTableAnnot->schema
+                    );
+
+                    foreach ($joinTableAnnot->joinColumns as $joinColumn) {
+                        $joinTable['joinColumns'][] = $this->joinColumnToArray($joinColumn);
+                    }
+
+                    foreach ($joinTableAnnot->inverseJoinColumns as $joinColumn) {
+                        $joinTable['inverseJoinColumns'][] = $this->joinColumnToArray($joinColumn);
                     }
                 }
-            } else {
-                if ($oneToOneAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\OneToOne')) {
-                    if ($idAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\Id')) {
-                        $mapping['id'] = true;
-                    }
 
-                    $mapping['targetEntity'] = $oneToOneAnnot->targetEntity;
-                    $mapping['joinColumns'] = $joinColumns;
-                    $mapping['mappedBy'] = $oneToOneAnnot->mappedBy;
-                    $mapping['inversedBy'] = $oneToOneAnnot->inversedBy;
-                    $mapping['cascade'] = $oneToOneAnnot->cascade;
-                    $mapping['orphanRemoval'] = $oneToOneAnnot->orphanRemoval;
-                    $mapping['fetch'] = $this->getFetchMode($className, $oneToOneAnnot->fetch);
-                    $metadata->mapOneToOne($mapping);
-                } else {
-                    if ($oneToManyAnnot = $this->reader->getPropertyAnnotation($property,
-                        'Doctrine\ORM\Mapping\OneToMany')
-                    ) {
-                        $mapping['mappedBy'] = $oneToManyAnnot->mappedBy;
-                        $mapping['targetEntity'] = $oneToManyAnnot->targetEntity;
-                        $mapping['cascade'] = $oneToManyAnnot->cascade;
-                        $mapping['indexBy'] = $oneToManyAnnot->indexBy;
-                        $mapping['orphanRemoval'] = $oneToManyAnnot->orphanRemoval;
-                        $mapping['fetch'] = $this->getFetchMode($className, $oneToManyAnnot->fetch);
+                $mapping['joinTable'] = $joinTable;
+                $mapping['targetEntity'] = $manyToManyAnnot->targetEntity;
+                $mapping['mappedBy'] = $manyToManyAnnot->mappedBy;
+                $mapping['inversedBy'] = $manyToManyAnnot->inversedBy;
+                $mapping['cascade'] = $manyToManyAnnot->cascade;
+                $mapping['indexBy'] = $manyToManyAnnot->indexBy;
+                $mapping['orphanRemoval'] = $manyToManyAnnot->orphanRemoval;
+                $mapping['fetch'] = $this->getFetchMode($className, $manyToManyAnnot->fetch);
 
-                        if ($orderByAnnot = $this->reader->getPropertyAnnotation($property,
-                            'Doctrine\ORM\Mapping\OrderBy')
-                        ) {
-                            $mapping['orderBy'] = $orderByAnnot->value;
-                        }
-
-                        $metadata->mapOneToMany($mapping);
-                    } else {
-                        if ($manyToOneAnnot = $this->reader->getPropertyAnnotation($property,
-                            'Doctrine\ORM\Mapping\ManyToOne')
-                        ) {
-                            if ($idAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\Id')) {
-                                $mapping['id'] = true;
-                            }
-
-                            $mapping['joinColumns'] = $joinColumns;
-                            $mapping['cascade'] = $manyToOneAnnot->cascade;
-                            $mapping['inversedBy'] = $manyToOneAnnot->inversedBy;
-                            $mapping['targetEntity'] = $manyToOneAnnot->targetEntity;
-                            $mapping['fetch'] = $this->getFetchMode($className, $manyToOneAnnot->fetch);
-                            $metadata->mapManyToOne($mapping);
-                        } else {
-                            if ($manyToManyAnnot = $this->reader->getPropertyAnnotation($property,
-                                'Doctrine\ORM\Mapping\ManyToMany')
-                            ) {
-                                $joinTable = array();
-
-                                if ($joinTableAnnot = $this->reader->getPropertyAnnotation($property,
-                                    'Doctrine\ORM\Mapping\JoinTable')
-                                ) {
-                                    $joinTable = array(
-                                        'name'   => $joinTableAnnot->name,
-                                        'schema' => $joinTableAnnot->schema
-                                    );
-
-                                    foreach ($joinTableAnnot->joinColumns as $joinColumn) {
-                                        $joinTable['joinColumns'][] = $this->joinColumnToArray($joinColumn);
-                                    }
-
-                                    foreach ($joinTableAnnot->inverseJoinColumns as $joinColumn) {
-                                        $joinTable['inverseJoinColumns'][] = $this->joinColumnToArray($joinColumn);
-                                    }
-                                }
-
-                                $mapping['joinTable'] = $joinTable;
-                                $mapping['targetEntity'] = $manyToManyAnnot->targetEntity;
-                                $mapping['mappedBy'] = $manyToManyAnnot->mappedBy;
-                                $mapping['inversedBy'] = $manyToManyAnnot->inversedBy;
-                                $mapping['cascade'] = $manyToManyAnnot->cascade;
-                                $mapping['indexBy'] = $manyToManyAnnot->indexBy;
-                                $mapping['orphanRemoval'] = $manyToManyAnnot->orphanRemoval;
-                                $mapping['fetch'] = $this->getFetchMode($className, $manyToManyAnnot->fetch);
-
-                                if ($orderByAnnot = $this->reader->getPropertyAnnotation($property,
-                                    'Doctrine\ORM\Mapping\OrderBy')
-                                ) {
-                                    $mapping['orderBy'] = $orderByAnnot->value;
-                                }
-
-                                $metadata->mapManyToMany($mapping);
-                            } else {
-                                if ($embeddedAnnot = $this->reader->getPropertyAnnotation($property,
-                                    'Doctrine\ORM\Mapping\Embedded')
-                                ) {
-                                    $mapping['class'] = $embeddedAnnot->class;
-                                    $mapping['columnPrefix'] = $embeddedAnnot->columnPrefix;
-                                    $metadata->mapEmbedded($mapping);
-                                }
-                            }
-                        }
-                    }
+                if ($orderByAnnot = $this->reader->getPropertyAnnotation($property, 'Doctrine\ORM\Mapping\OrderBy')) {
+                    $mapping['orderBy'] = $orderByAnnot->value;
                 }
+
+                $metadata->mapManyToMany($mapping);
+            } else if ($embeddedAnnot = $this->reader->getPropertyAnnotation($property,
+                'Doctrine\ORM\Mapping\Embedded')
+            ) {
+                $mapping['class'] = $embeddedAnnot->class;
+                $mapping['columnPrefix'] = $embeddedAnnot->columnPrefix;
+                $metadata->mapEmbedded($mapping);
             }
 
             // Evaluate @Cache annotation
@@ -567,18 +543,16 @@ class AnnotationDriver extends AbstractAnnotationDriver
      * Parse the given JoinColumn as array
      *
      * @param JoinColumn $joinColumn
-     *
      * @return array
      */
     private function joinColumnToArray(JoinColumn $joinColumn)
     {
-
         return array(
-            'name'                 => $joinColumn->name,
-            'unique'               => $joinColumn->unique,
-            'nullable'             => $joinColumn->nullable,
-            'onDelete'             => $joinColumn->onDelete,
-            'columnDefinition'     => $joinColumn->columnDefinition,
+            'name'             => $joinColumn->name,
+            'unique'           => $joinColumn->unique,
+            'nullable'         => $joinColumn->nullable,
+            'onDelete'         => $joinColumn->onDelete,
+            'columnDefinition' => $joinColumn->columnDefinition,
             'referencedColumnName' => $joinColumn->referencedColumnName,
         );
     }
@@ -593,7 +567,6 @@ class AnnotationDriver extends AbstractAnnotationDriver
      */
     private function columnToArray($fieldName, Column $column)
     {
-
         $mapping = array(
             'fieldName' => $fieldName,
             'type'      => $column->type,

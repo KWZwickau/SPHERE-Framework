@@ -27,11 +27,10 @@ use Doctrine\ORM\PersistentCollection;
  * Define the behavior that should be implemented by all entity persisters.
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 interface EntityPersister
 {
-
     /**
      * @return \Doctrine\ORM\Mapping\ClassMetadata
      */
@@ -86,7 +85,6 @@ interface EntityPersister
      * Get the COUNT SQL to count entities (optionally based on a criteria)
      *
      * @param  array|\Doctrine\Common\Collections\Criteria $criteria
-     *
      * @return string
      */
     public function getCountSQL($criteria = array());

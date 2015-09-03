@@ -44,7 +44,6 @@ use Doctrine\ORM\Tools\Event\GenerateSchemaTableEventArgs;
  */
 class SchemaTool
 {
-
     /**
      * @var \Doctrine\ORM\EntityManagerInterface
      */
@@ -87,7 +86,6 @@ class SchemaTool
      */
     public function createSchema(array $classes)
     {
-
         $createSchemaSql = $this->getCreateSchemaSql($classes);
         $conn = $this->em->getConnection();
 
@@ -110,7 +108,6 @@ class SchemaTool
      */
     public function getCreateSchemaSql(array $classes)
     {
-
         $schema = $this->getSchemaFromMetadata($classes);
         return $schema->toSql($this->platform);
     }
@@ -126,7 +123,6 @@ class SchemaTool
      */
     public function getSchemaFromMetadata(array $classes)
     {
-
         // Reminder for processed classes, used for hierarchies
         $processedClasses = array();
         $eventManager = $this->em->getEventManager();
@@ -319,7 +315,6 @@ class SchemaTool
      */
     private function processingNotRequired($class, array $processedClasses)
     {
-
         return (
             isset( $processedClasses[$class->name] ) ||
             $class->isMappedSuperclass ||
@@ -339,7 +334,6 @@ class SchemaTool
      */
     private function gatherColumns($class, Table $table)
     {
-
         $pkColumns = array();
 
         foreach ($class->fieldMappings as $mapping) {
@@ -372,7 +366,6 @@ class SchemaTool
      */
     private function gatherColumn($class, array $mapping, Table $table)
     {
-
         $columnName = $this->quoteStrategy->getColumnName($mapping['fieldName'], $class, $this->platform);
         $columnType = $mapping['type'];
 
@@ -456,7 +449,6 @@ class SchemaTool
      */
     private function gatherRelationsSql($class, $table, $schema, &$addedFks, &$blacklistedFks)
     {
-
         foreach ($class->associationMappings as $mapping) {
             if (isset( $mapping['inherited'] )) {
                 continue;
@@ -666,7 +658,6 @@ class SchemaTool
      */
     private function getDefiningClass($class, $referencedColumnName)
     {
-
         $referencedFieldName = $class->getFieldName($referencedColumnName);
 
         if ($class->hasField($referencedFieldName)) {
@@ -702,7 +693,6 @@ class SchemaTool
      */
     private function addDiscriminatorColumnDefinition($class, Table $table)
     {
-
         $discrColumn = $class->discriminatorColumn;
 
         if (!isset( $discrColumn['type'] ) ||
@@ -713,7 +703,7 @@ class SchemaTool
         }
 
         $options = array(
-            'length'  => isset( $discrColumn['length'] ) ? $discrColumn['length'] : null,
+            'length' => isset( $discrColumn['length'] ) ? $discrColumn['length'] : null,
             'notnull' => true
         );
 
@@ -736,7 +726,6 @@ class SchemaTool
      */
     public function dropSchema(array $classes)
     {
-
         $dropSchemaSql = $this->getDropSchemaSQL($classes);
         $conn = $this->em->getConnection();
 
@@ -758,7 +747,6 @@ class SchemaTool
      */
     public function getDropSchemaSQL(array $classes)
     {
-
         $visitor = new DropSchemaSqlCollector($this->platform);
         $schema = $this->getSchemaFromMetadata($classes);
 
@@ -810,7 +798,6 @@ class SchemaTool
      */
     public function dropDatabase()
     {
-
         $dropSchemaSql = $this->getDropDatabaseSQL();
         $conn = $this->em->getConnection();
 
@@ -826,7 +813,6 @@ class SchemaTool
      */
     public function getDropDatabaseSQL()
     {
-
         $sm = $this->em->getConnection()->getSchemaManager();
         $schema = $sm->createSchema();
 
@@ -848,7 +834,6 @@ class SchemaTool
      */
     public function updateSchema(array $classes, $saveMode = false)
     {
-
         $updateSchemaSql = $this->getUpdateSchemaSql($classes, $saveMode);
         $conn = $this->em->getConnection();
 
@@ -870,7 +855,6 @@ class SchemaTool
      */
     public function getUpdateSchemaSql(array $classes, $saveMode = false)
     {
-
         $sm = $this->em->getConnection()->getSchemaManager();
 
         $fromSchema = $sm->createSchema();

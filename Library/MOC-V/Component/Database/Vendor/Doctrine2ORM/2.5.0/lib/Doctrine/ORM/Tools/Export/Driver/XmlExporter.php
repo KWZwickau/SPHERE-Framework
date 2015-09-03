@@ -30,7 +30,6 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class XmlExporter extends AbstractExporter
 {
-
     /**
      * @var string
      */
@@ -41,7 +40,6 @@ class XmlExporter extends AbstractExporter
      */
     public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
-
         $xml = new \SimpleXmlElement("<?xml version=\"1.0\" encoding=\"utf-8\"?><doctrine-mapping ".
             "xmlns=\"http://doctrine-project.org/schemas/orm/doctrine-mapping\" ".
             "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" ".
@@ -235,7 +233,6 @@ class XmlExporter extends AbstractExporter
         );
 
         uasort($metadata->associationMappings, function ($m1, $m2) use (&$orderMap) {
-
             $a1 = array_search($m1['type'], $orderMap);
             $a2 = array_search($m2['type'], $orderMap);
 
@@ -405,7 +402,6 @@ class XmlExporter extends AbstractExporter
      */
     private function exportTableOptions(\SimpleXMLElement $parentXml, array $options)
     {
-
         foreach ($options as $name => $option) {
             $isArray = is_array($option);
             $optionXml = $isArray
@@ -430,7 +426,6 @@ class XmlExporter extends AbstractExporter
      */
     private function exportSequenceInformation(\SimpleXMLElement $identifierXmlNode, ClassMetadataInfo $metadata)
     {
-
         $sequenceDefinition = $metadata->sequenceGeneratorDefinition;
 
         if (!( $metadata->generatorType === ClassMetadataInfo::GENERATOR_TYPE_SEQUENCE && $sequenceDefinition )) {
@@ -451,7 +446,6 @@ class XmlExporter extends AbstractExporter
      */
     private function _asXml($simpleXml)
     {
-
         $dom = new \DOMDocument('1.0', 'UTF-8');
         $dom->loadXML($simpleXml->asXML());
         $dom->formatOutput = true;

@@ -31,6 +31,7 @@
                 <directory>./../Core/HttpKernel/Vendor/Symfony</directory>
                 <directory>./../Core/SecureKernel/Vendor/PhpSecLib</directory>
                 <directory>./../Component/Captcha/Vendor/SimplePhpCaptcha</directory>
+                <directory>./../Component/Database/Vendor/Doctrine2Common</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2DBAL</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2ORM</directory>
                 <directory>./../Component/Document/Vendor/PhpExcel</directory>

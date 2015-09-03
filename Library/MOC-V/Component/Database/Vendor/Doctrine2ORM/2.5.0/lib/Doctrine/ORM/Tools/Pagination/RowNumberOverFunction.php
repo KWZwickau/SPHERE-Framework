@@ -33,7 +33,6 @@ use Doctrine\ORM\Query\AST\Functions\FunctionNode;
  */
 class RowNumberOverFunction extends FunctionNode
 {
-
     /**
      * @var \Doctrine\ORM\Query\AST\OrderByClause
      */
@@ -57,7 +56,6 @@ class RowNumberOverFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
-
         throw new ORMException("The RowNumberOverFunction is not intended for, nor is it enabled for use in DQL.");
     }
 }

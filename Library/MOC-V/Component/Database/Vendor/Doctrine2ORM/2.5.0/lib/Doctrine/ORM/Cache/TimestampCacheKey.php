@@ -28,7 +28,6 @@ namespace Doctrine\ORM\Cache;
  */
 class TimestampCacheKey extends CacheKey
 {
-
     /**
      * @param string $space Result cache id
      */

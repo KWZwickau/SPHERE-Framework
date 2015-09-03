@@ -35,13 +35,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class EntityRegionCommand extends Command
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
             ->setName('orm:clear-cache:region:entity')
             ->setDescription('Clear a second-level cache entity region.')

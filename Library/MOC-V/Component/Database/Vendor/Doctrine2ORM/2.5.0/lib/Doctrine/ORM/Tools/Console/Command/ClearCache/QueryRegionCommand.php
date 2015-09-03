@@ -35,13 +35,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class QueryRegionCommand extends Command
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
             ->setName('orm:clear-cache:region:query')
             ->setDescription('Clear a second-level cache query region.')

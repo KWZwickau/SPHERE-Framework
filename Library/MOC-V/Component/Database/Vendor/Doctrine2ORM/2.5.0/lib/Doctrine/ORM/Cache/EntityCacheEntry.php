@@ -30,7 +30,6 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class EntityCacheEntry implements CacheEntry
 {
-
     /**
      * READ-ONLY: Public only for performance reasons, it should be considered immutable.
      *
@@ -51,7 +50,6 @@ class EntityCacheEntry implements CacheEntry
      */
     public function __construct($class, array $data)
     {
-
         $this->class = $class;
         $this->data = $data;
     }
@@ -65,7 +63,6 @@ class EntityCacheEntry implements CacheEntry
      */
     public static function __set_state(array $values)
     {
-
         return new self($values['class'], $values['data']);
     }
 

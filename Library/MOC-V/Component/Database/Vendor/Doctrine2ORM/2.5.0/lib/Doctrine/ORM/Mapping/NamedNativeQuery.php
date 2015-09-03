@@ -31,7 +31,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class NamedNativeQuery implements Annotation
 {
-
     /**
      * The name used to refer to the query with the EntityManager methods that create query objects.
      *
@@ -42,7 +41,7 @@ final class NamedNativeQuery implements Annotation
     /**
      * The SQL query string.
      *
-     * @var string
+     * @var string 
      */
     public $query;
 
@@ -55,7 +54,7 @@ final class NamedNativeQuery implements Annotation
 
     /**
      * The name of a SqlResultSetMapping, as defined in metadata.
-     *
+     * 
      * @var string
      */
     public $resultSetMapping;

@@ -32,7 +32,6 @@ use Doctrine\ORM\Cache\QueryCacheKey;
  */
 interface CacheLogger
 {
-
     /**
      * Log an entity put into second level cache.
      *

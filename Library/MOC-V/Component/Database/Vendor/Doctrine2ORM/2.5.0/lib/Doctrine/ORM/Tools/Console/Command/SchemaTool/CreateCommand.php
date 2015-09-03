@@ -36,13 +36,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CreateCommand extends AbstractCommand
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
             ->setName('orm:schema-tool:create')
             ->setDescription(
@@ -75,7 +73,6 @@ EOT
         SchemaTool $schemaTool,
         array $metadatas
     ) {
-
         if ($input->getOption('dump-sql')) {
             $sqls = $schemaTool->getCreateSchemaSql($metadatas);
             $output->writeln(implode(';'.PHP_EOL, $sqls).';');

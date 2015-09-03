@@ -18,7 +18,6 @@
  */
 
 namespace Doctrine\ORM;
-
 use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
@@ -28,7 +27,6 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 class ORMInvalidArgumentException extends \InvalidArgumentException
 {
-
     /**
      * @param object $entity
      *
@@ -49,7 +47,6 @@ class ORMInvalidArgumentException extends \InvalidArgumentException
      */
     private static function objToStr($obj)
     {
-
         return method_exists($obj, '__toString') ? (string)$obj : get_class($obj).'@'.spl_object_hash($obj);
     }
 
@@ -83,7 +80,6 @@ class ORMInvalidArgumentException extends \InvalidArgumentException
      */
     static public function entityWithoutIdentity($className, $entity)
     {
-
         return new self(
             "The given entity of type '".$className."' (".self::objToStr($entity).") has no identity/no ".
             "id values set. It cannot be added to the identity map."
@@ -109,7 +105,6 @@ class ORMInvalidArgumentException extends \InvalidArgumentException
      */
     static public function newEntityFoundThroughRelationship(array $assoc, $entry)
     {
-
         return new self("A new entity was found through the relationship '"
             .$assoc['sourceEntity']."#".$assoc['fieldName']."' that was not"
             ." configured to cascade persist operations for entity: ".self::objToStr($entry)."."
@@ -213,7 +208,6 @@ class ORMInvalidArgumentException extends \InvalidArgumentException
      */
     public static function invalidIdentifierBindingEntity()
     {
-
         return new self("Binding entities to query parameters only allowed for entities that have an identifier.");
     }
 
@@ -226,7 +220,6 @@ class ORMInvalidArgumentException extends \InvalidArgumentException
      */
     public static function invalidAssociation(ClassMetadata $targetClass, $assoc, $actualValue)
     {
-
         $expectedType = 'Doctrine\Common\Collections\Collection|array';
 
         if (( $assoc['type'] & ClassMetadata::TO_ONE ) > 0) {

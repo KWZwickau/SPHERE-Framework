@@ -39,13 +39,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class GenerateRepositoriesCommand extends Command
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
             ->setName('orm:generate-repositories')
             ->setAliases(array('orm:generate:repositories'))
@@ -70,7 +68,6 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
         $em = $this->getHelper('em')->getEntityManager();
 
         $metadatas = $em->getMetadataFactory()->getAllMetadata();

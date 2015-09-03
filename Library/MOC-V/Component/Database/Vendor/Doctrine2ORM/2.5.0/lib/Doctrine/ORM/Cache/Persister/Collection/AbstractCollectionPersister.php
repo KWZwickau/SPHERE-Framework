@@ -32,7 +32,7 @@ use Doctrine\ORM\Persisters\Collection\CollectionPersister;
 
 /**
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 abstract class AbstractCollectionPersister implements CachedCollectionPersister
 {
@@ -126,7 +126,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function getCacheRegion()
     {
-
         return $this->region;
     }
 
@@ -135,7 +134,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function getSourceEntityMetadata()
     {
-
         return $this->sourceEntity;
     }
 
@@ -144,7 +142,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function getTargetEntityMetadata()
     {
-
         return $this->targetEntity;
     }
 
@@ -173,7 +170,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function storeCollectionCache(CollectionCacheKey $key, $elements)
     {
-
         /* @var $targetPersister CachedEntityPersister */
         $targetPersister = $this->uow->getEntityPersister($this->targetEntity->rootEntityName);
         $targetRegion = $targetPersister->getCacheRegion();
@@ -210,7 +206,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function contains(PersistentCollection $collection, $element)
     {
-
         return $this->persister->contains($collection, $element);
     }
 
@@ -219,7 +214,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function containsKey(PersistentCollection $collection, $key)
     {
-
         return $this->persister->containsKey($collection, $key);
     }
 
@@ -228,7 +222,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function count(PersistentCollection $collection)
     {
-
         $ownerId = $this->uow->getEntityIdentifier($collection->getOwner());
         $key = new CollectionCacheKey($this->sourceEntity->rootEntityName, $this->association['fieldName'], $ownerId);
         $entry = $this->region->get($key);
@@ -245,7 +238,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function get(PersistentCollection $collection, $index)
     {
-
         return $this->persister->get($collection, $index);
     }
 
@@ -254,7 +246,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function removeElement(PersistentCollection $collection, $element)
     {
-
         if ($persisterResult = $this->persister->removeElement($collection, $element)) {
             $this->evictCollectionCache($collection);
             $this->evictElementCache($this->sourceEntity->rootEntityName, $collection->getOwner());
@@ -271,7 +262,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     protected function evictCollectionCache(PersistentCollection $collection)
     {
-
         $key = new CollectionCacheKey(
             $this->sourceEntity->rootEntityName,
             $this->association['fieldName'],
@@ -291,7 +281,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     protected function evictElementCache($targetEntity, $element)
     {
-
         /* @var $targetPersister CachedEntityPersister */
         $targetPersister = $this->uow->getEntityPersister($targetEntity);
         $targetRegion = $targetPersister->getCacheRegion();
@@ -309,7 +298,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function slice(PersistentCollection $collection, $offset, $length = null)
     {
-
         return $this->persister->slice($collection, $offset, $length);
     }
 
@@ -318,7 +306,6 @@ abstract class AbstractCollectionPersister implements CachedCollectionPersister
      */
     public function loadCriteria(PersistentCollection $collection, Criteria $criteria)
     {
-
         return $this->persister->loadCriteria($collection, $criteria);
     }
 }

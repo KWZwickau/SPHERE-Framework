@@ -36,13 +36,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class DropCommand extends AbstractCommand
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
             ->setName('orm:schema-tool:drop')
             ->setDescription(
@@ -84,7 +82,6 @@ EOT
         SchemaTool $schemaTool,
         array $metadatas
     ) {
-
         $isFullDatabaseDrop = $input->getOption('full-database');
 
         if ($input->getOption('dump-sql')) {

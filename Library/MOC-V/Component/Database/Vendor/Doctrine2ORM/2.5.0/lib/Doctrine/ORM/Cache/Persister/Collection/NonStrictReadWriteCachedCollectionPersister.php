@@ -25,11 +25,10 @@ use Doctrine\ORM\PersistentCollection;
 
 /**
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since  2.5
+ * @since 2.5
  */
 class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPersister
 {
-
     /**
      * {@inheritdoc}
      */
@@ -56,7 +55,6 @@ class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPers
      */
     public function afterTransactionRolledBack()
     {
-
         $this->queuedCache = array();
     }
 
@@ -65,7 +63,6 @@ class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPers
      */
     public function delete(PersistentCollection $collection)
     {
-
         $ownerId = $this->uow->getEntityIdentifier($collection->getOwner());
         $key = new CollectionCacheKey($this->sourceEntity->rootEntityName, $this->association['fieldName'], $ownerId);
 
@@ -79,7 +76,6 @@ class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPers
      */
     public function update(PersistentCollection $collection)
     {
-
         $isInitialized = $collection->isInitialized();
         $isDirty = $collection->isDirty();
 

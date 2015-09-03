@@ -30,7 +30,6 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class Math
 {
-
     /**
      * @var mixed
      */
@@ -66,7 +65,6 @@ class Math
      */
     public function getLeftExpr()
     {
-
         return $this->leftExpr;
     }
 
@@ -75,7 +73,6 @@ class Math
      */
     public function getOperator()
     {
-
         return $this->operator;
     }
 
@@ -84,7 +81,6 @@ class Math
      */
     public function getRightExpr()
     {
-
         return $this->rightExpr;
     }
 
@@ -93,7 +89,6 @@ class Math
      */
     public function __toString()
     {
-
         // Adjusting Left Expression
         $leftExpr = (string)$this->leftExpr;
 

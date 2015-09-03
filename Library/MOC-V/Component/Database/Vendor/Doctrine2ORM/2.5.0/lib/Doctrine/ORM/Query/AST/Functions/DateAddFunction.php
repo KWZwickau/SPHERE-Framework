@@ -35,7 +35,6 @@ use Doctrine\ORM\Query\SqlWalker;
  */
 class DateAddFunction extends FunctionNode
 {
-
     public $firstDateExpression = null;
     public $intervalExpression = null;
     public $unit = null;
@@ -45,7 +44,6 @@ class DateAddFunction extends FunctionNode
      */
     public function getSql(SqlWalker $sqlWalker)
     {
-
         switch (strtolower($this->unit->value)) {
             case 'second':
                 return $sqlWalker->getConnection()->getDatabasePlatform()->getDateAddSecondsExpression(
@@ -82,7 +80,6 @@ class DateAddFunction extends FunctionNode
      */
     public function parse(Parser $parser)
     {
-
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

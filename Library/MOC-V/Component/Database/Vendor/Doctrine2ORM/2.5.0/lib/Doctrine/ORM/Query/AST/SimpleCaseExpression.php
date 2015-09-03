@@ -23,7 +23,7 @@ namespace Doctrine\ORM\Query\AST;
  * SimpleCaseExpression ::= "CASE" CaseOperand SimpleWhenClause {SimpleWhenClause}* "ELSE" ScalarExpression "END"
  *
  * @since   2.2
- *
+ * 
  * @link    www.doctrine-project.org
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SimpleCaseExpression extends Node
 {
-
     /**
      * @var PathExpression
      */
@@ -55,7 +54,6 @@ class SimpleCaseExpression extends Node
      */
     public function __construct($caseOperand, array $simpleWhenClauses, $elseScalarExpression)
     {
-
         $this->caseOperand = $caseOperand;
         $this->simpleWhenClauses = $simpleWhenClauses;
         $this->elseScalarExpression = $elseScalarExpression;
@@ -66,7 +64,6 @@ class SimpleCaseExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
-
         return $sqlWalker->walkSimpleCaseExpression($this);
     }
 }

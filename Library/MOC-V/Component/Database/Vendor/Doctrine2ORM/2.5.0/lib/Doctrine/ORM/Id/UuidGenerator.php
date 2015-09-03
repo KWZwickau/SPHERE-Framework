@@ -24,18 +24,16 @@ use Doctrine\ORM\EntityManager;
 /**
  * Represents an ID generator that uses the database UUID expression
  *
- * @since  2.3
+ * @since 2.3
  * @author Maarten de Keizer <m.de.keizer@markei.nl>
  */
 class UuidGenerator extends AbstractIdGenerator
 {
-
     /**
      * {@inheritDoc}
      */
     public function generate(EntityManager $em, $entity)
     {
-
         $conn = $em->getConnection();
         $sql = 'SELECT '.$conn->getDatabasePlatform()->getGuidExpression();
         return $conn->query($sql)->fetchColumn(0);

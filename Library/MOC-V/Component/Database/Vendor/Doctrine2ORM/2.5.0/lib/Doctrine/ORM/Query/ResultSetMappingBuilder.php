@@ -26,11 +26,10 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  * A ResultSetMappingBuilder uses the EntityManager to automatically populate entity fields.
  *
  * @author Michael Ridgway <mcridgway@gmail.com>
- * @since  2.1
+ * @since 2.1
  */
 class ResultSetMappingBuilder extends ResultSetMapping
 {
-
     /**
      * Picking this rename mode will register entity columns as is,
      * as they are in the database. This can cause clashes when multiple
@@ -120,7 +119,6 @@ class ResultSetMappingBuilder extends ResultSetMapping
      */
     private function getColumnAliasMap($className, $mode, array $customRenameColumns)
     {
-
         if ($customRenameColumns) { // for BC with 2.2-2.3 API
             $mode = self::COLUMN_RENAMING_CUSTOM;
         }
@@ -155,7 +153,6 @@ class ResultSetMappingBuilder extends ResultSetMapping
      */
     private function getColumnAlias($columnName, $mode, array $customRenameColumns)
     {
-
         switch ($mode) {
             case self::COLUMN_RENAMING_INCREMENT:
                 return $columnName.$this->sqlCounter++;
@@ -183,13 +180,13 @@ class ResultSetMappingBuilder extends ResultSetMapping
      */
     protected function addAllClassFields($class, $alias, $columnAliasMap = array())
     {
-
         $classMetadata = $this->em->getClassMetadata($class);
         $platform = $this->em->getConnection()->getDatabasePlatform();
 
         if (!$this->isInheritanceSupported($classMetadata)) {
             throw new \InvalidArgumentException('ResultSetMapping builder does not currently support your inheritance scheme.');
         }
+
 
         foreach ($classMetadata->getColumnNames() as $columnName) {
             $propertyName = $classMetadata->getFieldName($columnName);
@@ -225,7 +222,6 @@ class ResultSetMappingBuilder extends ResultSetMapping
 
     private function isInheritanceSupported(ClassMetadataInfo $classMetadata)
     {
-
         if ($classMetadata->isInheritanceTypeSingleTable()
             && in_array($classMetadata->name, $classMetadata->discriminatorMap, true)
         ) {
@@ -435,7 +431,6 @@ class ResultSetMappingBuilder extends ResultSetMapping
      */
     public function __toString()
     {
-
         return $this->generateSelectClause(array());
     }
 
@@ -451,7 +446,6 @@ class ResultSetMappingBuilder extends ResultSetMapping
      */
     public function generateSelectClause($tableAliases = array())
     {
-
         $sql = "";
 
         foreach ($this->columnOwnerMap as $columnName => $dqlAlias) {
@@ -467,14 +461,10 @@ class ResultSetMappingBuilder extends ResultSetMapping
             if (isset( $this->fieldMappings[$columnName] )) {
                 $class = $this->em->getClassMetadata($this->declaringClasses[$columnName]);
                 $sql .= $class->fieldMappings[$this->fieldMappings[$columnName]]['columnName'];
-            } else {
-                if (isset( $this->metaMappings[$columnName] )) {
-                    $sql .= $this->metaMappings[$columnName];
-                } else {
-                    if (isset( $this->discriminatorColumn[$columnName] )) {
-                        $sql .= $this->discriminatorColumn[$columnName];
-                    }
-                }
+            } else if (isset( $this->metaMappings[$columnName] )) {
+                $sql .= $this->metaMappings[$columnName];
+            } else if (isset( $this->discriminatorColumn[$columnName] )) {
+                $sql .= $this->discriminatorColumn[$columnName];
             }
 
             $sql .= " AS ".$columnName;

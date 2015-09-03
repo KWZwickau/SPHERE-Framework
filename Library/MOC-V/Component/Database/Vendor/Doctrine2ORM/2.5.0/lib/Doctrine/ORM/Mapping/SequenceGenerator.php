@@ -25,7 +25,6 @@ namespace Doctrine\ORM\Mapping;
  */
 final class SequenceGenerator implements Annotation
 {
-
     /**
      * @var string
      */

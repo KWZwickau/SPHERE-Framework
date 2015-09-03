@@ -38,13 +38,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ResultCommand extends Command
 {
-
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-
         $this
             ->setName('orm:clear-cache:result')
             ->setDescription('Clear all result cache of the various cache drivers.')
@@ -80,7 +78,6 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-
         $em = $this->getHelper('em')->getEntityManager();
         $cacheDriver = $em->getConfiguration()->getResultCacheImpl();
 

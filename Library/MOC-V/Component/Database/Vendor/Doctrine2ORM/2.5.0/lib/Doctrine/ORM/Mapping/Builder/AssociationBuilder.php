@@ -23,7 +23,6 @@ use Doctrine\ORM\Mapping\ClassMetadata;
 
 class AssociationBuilder
 {
-
     /**
      * @var ClassMetadataBuilder
      */
@@ -51,7 +50,6 @@ class AssociationBuilder
      */
     public function __construct(ClassMetadataBuilder $builder, array $mapping, $type)
     {
-
         $this->builder = $builder;
         $this->mapping = $mapping;
         $this->type = $type;
@@ -64,7 +62,6 @@ class AssociationBuilder
      */
     public function mappedBy($fieldName)
     {
-
         $this->mapping['mappedBy'] = $fieldName;
         return $this;
     }
@@ -76,7 +73,6 @@ class AssociationBuilder
      */
     public function inversedBy($fieldName)
     {
-
         $this->mapping['inversedBy'] = $fieldName;
         return $this;
     }
@@ -86,7 +82,6 @@ class AssociationBuilder
      */
     public function cascadeAll()
     {
-
         $this->mapping['cascade'] = array("ALL");
         return $this;
     }
@@ -96,7 +91,6 @@ class AssociationBuilder
      */
     public function cascadePersist()
     {
-
         $this->mapping['cascade'][] = "persist";
         return $this;
     }
@@ -106,7 +100,6 @@ class AssociationBuilder
      */
     public function cascadeRemove()
     {
-
         $this->mapping['cascade'][] = "remove";
         return $this;
     }
@@ -116,7 +109,6 @@ class AssociationBuilder
      */
     public function cascadeMerge()
     {
-
         $this->mapping['cascade'][] = "merge";
         return $this;
     }
@@ -126,7 +118,6 @@ class AssociationBuilder
      */
     public function cascadeDetach()
     {
-
         $this->mapping['cascade'][] = "detach";
         return $this;
     }
@@ -136,7 +127,6 @@ class AssociationBuilder
      */
     public function cascadeRefresh()
     {
-
         $this->mapping['cascade'][] = "refresh";
         return $this;
     }
@@ -146,7 +136,6 @@ class AssociationBuilder
      */
     public function fetchExtraLazy()
     {
-
         $this->mapping['fetch'] = ClassMetadata::FETCH_EXTRA_LAZY;
         return $this;
     }
@@ -156,7 +145,6 @@ class AssociationBuilder
      */
     public function fetchEager()
     {
-
         $this->mapping['fetch'] = ClassMetadata::FETCH_EAGER;
         return $this;
     }
@@ -166,7 +154,6 @@ class AssociationBuilder
      */
     public function fetchLazy()
     {
-
         $this->mapping['fetch'] = ClassMetadata::FETCH_LAZY;
         return $this;
     }
@@ -191,7 +178,6 @@ class AssociationBuilder
         $onDelete = null,
         $columnDef = null
     ) {
-
         $this->joinColumns[] = array(
             'name'             => $columnName,
             'referencedColumnName' => $referencedColumnName,
@@ -210,7 +196,6 @@ class AssociationBuilder
      */
     public function makePrimaryKey()
     {
-
         $this->mapping['id'] = true;
 
         return $this;
@@ -223,7 +208,6 @@ class AssociationBuilder
      */
     public function orphanRemoval()
     {
-
         $this->mapping['orphanRemoval'] = true;
 
         return $this;
@@ -236,7 +220,6 @@ class AssociationBuilder
      */
     public function build()
     {
-
         $mapping = $this->mapping;
         if ($this->joinColumns) {
             $mapping['joinColumns'] = $this->joinColumns;
@@ -244,12 +227,10 @@ class AssociationBuilder
         $cm = $this->builder->getClassMetadata();
         if ($this->type == ClassMetadata::MANY_TO_ONE) {
             $cm->mapManyToOne($mapping);
+        } else if ($this->type == ClassMetadata::ONE_TO_ONE) {
+            $cm->mapOneToOne($mapping);
         } else {
-            if ($this->type == ClassMetadata::ONE_TO_ONE) {
-                $cm->mapOneToOne($mapping);
-            } else {
-                throw new \InvalidArgumentException("Type should be a ToOne Association here");
-            }
+            throw new \InvalidArgumentException("Type should be a ToOne Association here");
         }
         return $this->builder;
     }

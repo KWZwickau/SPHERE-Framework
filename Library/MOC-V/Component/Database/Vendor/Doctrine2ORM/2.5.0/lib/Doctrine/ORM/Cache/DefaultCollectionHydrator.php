@@ -33,7 +33,6 @@ use Doctrine\ORM\Query;
  */
 class DefaultCollectionHydrator implements CollectionHydrator
 {
-
     /**
      * @var array
      */
@@ -62,7 +61,6 @@ class DefaultCollectionHydrator implements CollectionHydrator
      */
     public function buildCacheEntry(ClassMetadata $metadata, CollectionCacheKey $key, $collection)
     {
-
         $data = array();
 
         foreach ($collection as $index => $entity) {
@@ -100,7 +98,6 @@ class DefaultCollectionHydrator implements CollectionHydrator
         }
 
         array_walk($list, function ($entity, $index) use ($collection) {
-
             $collection->hydrateSet($index, $entity);
         });
 

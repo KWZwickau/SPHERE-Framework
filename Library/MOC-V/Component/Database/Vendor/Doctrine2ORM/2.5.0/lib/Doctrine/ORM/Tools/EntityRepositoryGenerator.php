@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Tools;
  */
 class EntityRepositoryGenerator
 {
-
     protected static $_template =
         '<?php
 
@@ -58,7 +57,6 @@ class <className> extends <repositoryName>
      */
     public function writeEntityRepositoryClass($fullClassName, $outputDirectory)
     {
-
         $code = $this->generateEntityRepositoryClass($fullClassName);
 
         $path = $outputDirectory.DIRECTORY_SEPARATOR
@@ -81,7 +79,6 @@ class <className> extends <repositoryName>
      */
     public function generateEntityRepositoryClass($fullClassName)
     {
-
         $variables = array(
             '<namespace>'      => $this->generateEntityRepositoryNamespace($fullClassName),
             '<repositoryName>' => $this->generateEntityRepositoryName($fullClassName),
@@ -100,7 +97,6 @@ class <className> extends <repositoryName>
      */
     private function generateEntityRepositoryNamespace($fullClassName)
     {
-
         $namespace = $this->getClassNamespace($fullClassName);
 
         return $namespace ? 'namespace '.$namespace.';' : '';
@@ -115,7 +111,6 @@ class <className> extends <repositoryName>
      */
     private function getClassNamespace($fullClassName)
     {
-
         $namespace = substr($fullClassName, 0, strrpos($fullClassName, '\\'));
 
         return $namespace;
@@ -128,7 +123,6 @@ class <className> extends <repositoryName>
      */
     private function generateEntityRepositoryName($fullClassName)
     {
-
         $namespace = $this->getClassNamespace($fullClassName);
 
         $repositoryName = $this->repositoryName ?: 'Doctrine\ORM\EntityRepository';
@@ -149,7 +143,6 @@ class <className> extends <repositoryName>
      */
     private function generateClassName($fullClassName)
     {
-
         $namespace = $this->getClassNamespace($fullClassName);
 
         $className = $fullClassName;
@@ -168,7 +161,6 @@ class <className> extends <repositoryName>
      */
     public function setDefaultRepositoryName($repositoryName)
     {
-
         $this->repositoryName = $repositoryName;
 
         return $this;

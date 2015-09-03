@@ -32,7 +32,6 @@ namespace Doctrine\ORM\Cache;
  */
 interface ConcurrentRegion extends Region
 {
-
     /**
      * Attempts to read lock the mapping for the given key.
      *

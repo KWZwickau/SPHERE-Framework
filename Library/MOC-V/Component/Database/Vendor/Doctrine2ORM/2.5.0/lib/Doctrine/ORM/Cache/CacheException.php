@@ -29,7 +29,6 @@ use Doctrine\ORM\ORMException;
  */
 class CacheException extends ORMException
 {
-
     /**
      * @param string $sourceEntity
      * @param string $fieldName
@@ -38,7 +37,6 @@ class CacheException extends ORMException
      */
     public static function updateReadOnlyCollection($sourceEntity, $fieldName)
     {
-
         return new self(sprintf('Cannot update a readonly collection "%s#%s"', $sourceEntity, $fieldName));
     }
 
@@ -49,7 +47,6 @@ class CacheException extends ORMException
      */
     public static function updateReadOnlyEntity($entityName)
     {
-
         return new self(sprintf('Cannot update a readonly entity "%s"', $entityName));
     }
 
@@ -60,7 +57,6 @@ class CacheException extends ORMException
      */
     public static function nonCacheableEntity($entityName)
     {
-
         return new self(sprintf('Entity "%s" not configured as part of the second-level cache.', $entityName));
     }
 
