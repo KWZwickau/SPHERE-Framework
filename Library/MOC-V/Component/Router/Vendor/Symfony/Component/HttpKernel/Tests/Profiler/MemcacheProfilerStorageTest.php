@@ -16,10 +16,12 @@ use Symfony\Component\HttpKernel\Tests\Profiler\Mock\MemcacheMock;
 
 class MemcacheProfilerStorageTest extends AbstractProfilerStorageTest
 {
+
     protected static $storage;
 
     protected function setUp()
     {
+
         $memcacheMock = new MemcacheMock();
         $memcacheMock->addServer('127.0.0.1', 11211);
 
@@ -33,6 +35,7 @@ class MemcacheProfilerStorageTest extends AbstractProfilerStorageTest
 
     protected function tearDown()
     {
+
         if (self::$storage) {
             self::$storage->purge();
             self::$storage = false;
@@ -44,6 +47,7 @@ class MemcacheProfilerStorageTest extends AbstractProfilerStorageTest
      */
     protected function getStorage()
     {
+
         return self::$storage;
     }
 }

@@ -5,10 +5,11 @@ namespace Doctrine\Tests\DBAL\Types;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\Tests\DBAL\Mocks\MockPlatform;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 class BlobTest extends \Doctrine\Tests\DbalTestCase
 {
+
     /**
      * @var \Doctrine\Tests\DBAL\Mocks\MockPlatform
      */
@@ -19,35 +20,20 @@ class BlobTest extends \Doctrine\Tests\DbalTestCase
      */
     protected $type;
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function setUp()
-    {
-        $this->platform = new MockPlatform();
-        $this->type = Type::getType('blob');
-    }
-
     public function testBlobNullConvertsToPHPValue()
     {
+
         $this->assertNull($this->type->convertToPHPValue(null, $this->platform));
     }
 
     public function testBinaryStringConvertsToPHPValue()
     {
+
         $databaseValue = $this->getBinaryString();
-        $phpValue      = $this->type->convertToPHPValue($databaseValue, $this->platform);
+        $phpValue = $this->type->convertToPHPValue($databaseValue, $this->platform);
 
         $this->assertInternalType('resource', $phpValue);
         $this->assertSame($databaseValue, stream_get_contents($phpValue));
-    }
-
-    public function testBinaryResourceConvertsToPHPValue()
-    {
-        $databaseValue = fopen('data://text/plain;base64,' . base64_encode($this->getBinaryString()), 'r');
-        $phpValue      = $this->type->convertToPHPValue($databaseValue, $this->platform);
-
-        $this->assertSame($databaseValue, $phpValue);
     }
 
     /**
@@ -57,6 +43,7 @@ class BlobTest extends \Doctrine\Tests\DbalTestCase
      */
     private function getBinaryString()
     {
+
         $string = '';
 
         for ($i = 0; $i < 256; $i++) {
@@ -64,5 +51,24 @@ class BlobTest extends \Doctrine\Tests\DbalTestCase
         }
 
         return $string;
+    }
+
+    public function testBinaryResourceConvertsToPHPValue()
+    {
+
+        $databaseValue = fopen('data://text/plain;base64,'.base64_encode($this->getBinaryString()), 'r');
+        $phpValue = $this->type->convertToPHPValue($databaseValue, $this->platform);
+
+        $this->assertSame($databaseValue, $phpValue);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function setUp()
+    {
+
+        $this->platform = new MockPlatform();
+        $this->type = Type::getType('blob');
     }
 }

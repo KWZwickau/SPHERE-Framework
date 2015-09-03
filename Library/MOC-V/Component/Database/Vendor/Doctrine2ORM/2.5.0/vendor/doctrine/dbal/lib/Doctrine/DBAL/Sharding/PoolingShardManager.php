@@ -26,6 +26,7 @@ namespace Doctrine\DBAL\Sharding;
  */
 class PoolingShardManager implements ShardManager
 {
+
     /**
      * @var \Doctrine\DBAL\Sharding\PoolingShardConnection
      */
@@ -46,53 +47,10 @@ class PoolingShardManager implements ShardManager
      */
     public function __construct(PoolingShardConnection $conn)
     {
-        $params       = $conn->getParams();
-        $this->conn   = $conn;
+
+        $params = $conn->getParams();
+        $this->conn = $conn;
         $this->choser = $params['shardChoser'];
-    }
-
-    /**
-     * @return void
-     */
-    public function selectGlobal()
-    {
-        $this->conn->connect(0);
-        $this->currentDistributionValue = null;
-    }
-
-    /**
-     * @param string $distributionValue
-     *
-     * @return void
-     */
-    public function selectShard($distributionValue)
-    {
-        $shardId = $this->choser->pickShard($distributionValue, $this->conn);
-        $this->conn->connect($shardId);
-        $this->currentDistributionValue = $distributionValue;
-    }
-
-    /**
-     * @return string|null
-     */
-    public function getCurrentDistributionValue()
-    {
-        return $this->currentDistributionValue;
-    }
-
-    /**
-     * @return array
-     */
-    public function getShards()
-    {
-        $params = $this->conn->getParams();
-        $shards = array();
-
-        foreach ($params['shards'] as $shard) {
-            $shards[] = array('id' => $shard['id']);
-        }
-
-        return $shards;
     }
 
     /**
@@ -106,6 +64,7 @@ class PoolingShardManager implements ShardManager
      */
     public function queryAll($sql, array $params, array $types)
     {
+
         $shards = $this->getShards();
         if (!$shards) {
             throw new \RuntimeException("No shards found.");
@@ -128,5 +87,53 @@ class PoolingShardManager implements ShardManager
         }
 
         return $result;
+    }
+
+    /**
+     * @return array
+     */
+    public function getShards()
+    {
+
+        $params = $this->conn->getParams();
+        $shards = array();
+
+        foreach ($params['shards'] as $shard) {
+            $shards[] = array('id' => $shard['id']);
+        }
+
+        return $shards;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getCurrentDistributionValue()
+    {
+
+        return $this->currentDistributionValue;
+    }
+
+    /**
+     * @return void
+     */
+    public function selectGlobal()
+    {
+
+        $this->conn->connect(0);
+        $this->currentDistributionValue = null;
+    }
+
+    /**
+     * @param string $distributionValue
+     *
+     * @return void
+     */
+    public function selectShard($distributionValue)
+    {
+
+        $shardId = $this->choser->pickShard($distributionValue, $this->conn);
+        $this->conn->connect($shardId);
+        $this->currentDistributionValue = $distributionValue;
     }
 }

@@ -6,13 +6,16 @@ use PhpSpec\ObjectBehavior;
 
 class CallTimesPredictionSpec extends ObjectBehavior
 {
+
     function let()
     {
+
         $this->beConstructedWith(2);
     }
 
     function it_is_prediction()
     {
+
         $this->shouldHaveType('Prophecy\Prediction\PredictionInterface');
     }
 
@@ -23,9 +26,12 @@ class CallTimesPredictionSpec extends ObjectBehavior
      * @param \Prophecy\Call\Call               $call2
      */
     function it_does_nothing_if_there_were_exact_amount_of_calls_being_made(
-        $object, $method, $call1, $call2
-    )
-    {
+        $object,
+        $method,
+        $call1,
+        $call2
+    ) {
+
         $this->check(array($call1, $call2), $object, $method)->shouldReturn(null);
     }
 
@@ -36,9 +42,12 @@ class CallTimesPredictionSpec extends ObjectBehavior
      * @param \Prophecy\Argument\ArgumentsWildcard $arguments
      */
     function it_throws_UnexpectedCallsCountException_if_calls_found(
-        $object, $method, $call, $arguments
-    )
-    {
+        $object,
+        $method,
+        $call,
+        $arguments
+    ) {
+
         $method->getObjectProphecy()->willReturn($object);
         $method->getMethodName()->willReturn('getName');
         $method->getArgumentsWildcard()->willReturn($arguments);

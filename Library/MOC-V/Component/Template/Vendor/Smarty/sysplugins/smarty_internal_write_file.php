@@ -26,26 +26,26 @@ class Smarty_Internal_Write_File
      * @throws SmartyException
      * @return boolean true
      */
-    public static function writeFile( $_filepath, $_contents, Smarty $smarty )
+    public static function writeFile($_filepath, $_contents, Smarty $smarty)
     {
 
         $_error_reporting = error_reporting();
-        error_reporting( $_error_reporting & ~E_NOTICE & ~E_WARNING );
+        error_reporting($_error_reporting & ~E_NOTICE & ~E_WARNING);
         if ($smarty->_file_perms !== null) {
-            $old_umask = umask( 0 );
+            $old_umask = umask(0);
         }
 
-        $_dirpath = dirname( $_filepath );
+        $_dirpath = dirname($_filepath);
         // if subdirs, create dir structure
-        if ($_dirpath !== '.' && !file_exists( $_dirpath )) {
-            mkdir( $_dirpath, $smarty->_dir_perms === null ? 0777 : $smarty->_dir_perms, true );
+        if ($_dirpath !== '.' && !file_exists($_dirpath)) {
+            mkdir($_dirpath, $smarty->_dir_perms === null ? 0777 : $smarty->_dir_perms, true);
         }
 
         // write to tmp file, then move to overt file lock race condition
-        $_tmp_file = $_dirpath.DS.str_replace( array( '.', ',' ), '_', uniqid( 'wrt', true ) );
-        if (!file_put_contents( $_tmp_file, $_contents )) {
-            error_reporting( $_error_reporting );
-            throw new SmartyException( "unable to write file {$_tmp_file}" );
+        $_tmp_file = $_dirpath.DS.str_replace(array('.', ','), '_', uniqid('wrt', true));
+        if (!file_put_contents($_tmp_file, $_contents)) {
+            error_reporting($_error_reporting);
+            throw new SmartyException("unable to write file {$_tmp_file}");
         }
 
         /*
@@ -57,31 +57,31 @@ class Smarty_Internal_Write_File
          */
         if (Smarty::$_IS_WINDOWS) {
             // remove original file
-            @unlink( $_filepath );
+            @unlink($_filepath);
             // rename tmp file
-            $success = @rename( $_tmp_file, $_filepath );
+            $success = @rename($_tmp_file, $_filepath);
         } else {
             // rename tmp file
-            $success = @rename( $_tmp_file, $_filepath );
+            $success = @rename($_tmp_file, $_filepath);
             if (!$success) {
                 // remove original file
-                @unlink( $_filepath );
+                @unlink($_filepath);
                 // rename tmp file
-                $success = @rename( $_tmp_file, $_filepath );
+                $success = @rename($_tmp_file, $_filepath);
             }
         }
 
         if (!$success) {
-            error_reporting( $_error_reporting );
-            throw new SmartyException( "unable to write file {$_filepath}" );
+            error_reporting($_error_reporting);
+            throw new SmartyException("unable to write file {$_filepath}");
         }
 
         if ($smarty->_file_perms !== null) {
             // set file permissions
-            chmod( $_filepath, $smarty->_file_perms );
-            umask( $old_umask );
+            chmod($_filepath, $smarty->_file_perms);
+            umask($old_umask);
         }
-        error_reporting( $_error_reporting );
+        error_reporting($_error_reporting);
 
         return true;
     }

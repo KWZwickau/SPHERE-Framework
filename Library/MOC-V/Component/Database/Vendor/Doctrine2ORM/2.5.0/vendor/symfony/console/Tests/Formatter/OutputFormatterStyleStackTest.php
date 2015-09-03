@@ -11,13 +11,15 @@
 
 namespace Symfony\Component\Console\Tests\Formatter;
 
-use Symfony\Component\Console\Formatter\OutputFormatterStyleStack;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Formatter\OutputFormatterStyleStack;
 
 class OutputFormatterStyleStackTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testPush()
     {
+
         $stack = new OutputFormatterStyleStack();
         $stack->push($s1 = new OutputFormatterStyle('white', 'black'));
         $stack->push($s2 = new OutputFormatterStyle('yellow', 'blue'));
@@ -31,6 +33,7 @@ class OutputFormatterStyleStackTest extends \PHPUnit_Framework_TestCase
 
     public function testPop()
     {
+
         $stack = new OutputFormatterStyleStack();
         $stack->push($s1 = new OutputFormatterStyle('white', 'black'));
         $stack->push($s2 = new OutputFormatterStyle('yellow', 'blue'));
@@ -41,6 +44,7 @@ class OutputFormatterStyleStackTest extends \PHPUnit_Framework_TestCase
 
     public function testPopEmpty()
     {
+
         $stack = new OutputFormatterStyleStack();
         $style = new OutputFormatterStyle();
 
@@ -49,6 +53,7 @@ class OutputFormatterStyleStackTest extends \PHPUnit_Framework_TestCase
 
     public function testPopNotLast()
     {
+
         $stack = new OutputFormatterStyleStack();
         $stack->push($s1 = new OutputFormatterStyle('white', 'black'));
         $stack->push($s2 = new OutputFormatterStyle('yellow', 'blue'));
@@ -63,6 +68,7 @@ class OutputFormatterStyleStackTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidPop()
     {
+
         $stack = new OutputFormatterStyleStack();
         $stack->push(new OutputFormatterStyle('white', 'black'));
         $stack->pop(new OutputFormatterStyle('yellow', 'blue'));

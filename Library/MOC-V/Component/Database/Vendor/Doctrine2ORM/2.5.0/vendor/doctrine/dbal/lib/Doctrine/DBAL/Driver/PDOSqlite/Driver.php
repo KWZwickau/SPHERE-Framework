@@ -31,13 +31,14 @@ use PDOException;
  */
 class Driver extends AbstractSQLiteDriver
 {
+
     /**
      * @var array
      */
     protected $_userDefinedFunctions = array(
-        'sqrt' => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfSqrt'), 'numArgs' => 1),
-        'mod'  => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfMod'), 'numArgs' => 2),
-        'locate'  => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfLocate'), 'numArgs' => -1),
+        'sqrt'   => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfSqrt'), 'numArgs' => 1),
+        'mod'    => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfMod'), 'numArgs' => 2),
+        'locate' => array('callback' => array('Doctrine\DBAL\Platforms\SqlitePlatform', 'udfLocate'), 'numArgs' => -1),
     );
 
     /**
@@ -45,10 +46,11 @@ class Driver extends AbstractSQLiteDriver
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
-        if (isset($driverOptions['userDefinedFunctions'])) {
+
+        if (isset( $driverOptions['userDefinedFunctions'] )) {
             $this->_userDefinedFunctions = array_merge(
                 $this->_userDefinedFunctions, $driverOptions['userDefinedFunctions']);
-            unset($driverOptions['userDefinedFunctions']);
+            unset( $driverOptions['userDefinedFunctions'] );
         }
 
         try {
@@ -78,10 +80,11 @@ class Driver extends AbstractSQLiteDriver
      */
     protected function _constructPdoDsn(array $params)
     {
+
         $dsn = 'sqlite:';
-        if (isset($params['path'])) {
+        if (isset( $params['path'] )) {
             $dsn .= $params['path'];
-        } elseif (isset($params['memory'])) {
+        } elseif (isset( $params['memory'] )) {
             $dsn .= ':memory:';
         }
 
@@ -93,6 +96,7 @@ class Driver extends AbstractSQLiteDriver
      */
     public function getName()
     {
+
         return 'pdo_sqlite';
     }
 }

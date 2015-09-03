@@ -11,23 +11,43 @@ use Symfony\Component\Console\Tester\ApplicationTester;
  */
 class ApplicationTest extends ProjectTestCase
 {
-    protected function setUp()
-    {
-        $this->projectDir = realpath(__DIR__ . '/../../../..');
 
-        $this->setUpDir($this->projectDir);
+    /**
+     * @test
+     */
+    public function shouldExecuteCoverallsV1JobsCommand()
+    {
+
+        $this->makeProjectDir(null, $this->logsDir);
+        $this->dumpCloverXml();
+
+        $app = new Application($this->rootDir, 'Coveralls API client for PHP', '1.0.0');
+        $app->setAutoExit(false); // avoid to call exit() in Application
+
+        // run
+        $_SERVER['TRAVIS'] = true;
+        $_SERVER['TRAVIS_JOB_ID'] = 'application_test';
+
+        $tester = new ApplicationTester($app);
+        $actual = $tester->run(
+            array(
+                '--dry-run' => true,
+                '--config'  => 'coveralls.yml',
+            )
+        );
+
+        $this->assertEquals(0, $actual);
     }
 
-    protected function tearDown()
+    protected function dumpCloverXml()
     {
-        $this->rmFile($this->cloverXmlPath);
-        $this->rmFile($this->jsonPath);
-        $this->rmDir($this->logsDir);
-        $this->rmDir($this->buildDir);
+
+        file_put_contents($this->cloverXmlPath, $this->getCloverXml());
     }
 
     protected function getCloverXml()
     {
+
         $xml = <<<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <coverage generated="1365848893">
@@ -54,34 +74,20 @@ XML;
         return sprintf($xml, $this->srcDir, $this->srcDir);
     }
 
-    protected function dumpCloverXml()
+    protected function setUp()
     {
-        file_put_contents($this->cloverXmlPath, $this->getCloverXml());
+
+        $this->projectDir = realpath(__DIR__.'/../../../..');
+
+        $this->setUpDir($this->projectDir);
     }
 
-    /**
-     * @test
-     */
-    public function shouldExecuteCoverallsV1JobsCommand()
+    protected function tearDown()
     {
-        $this->makeProjectDir(null, $this->logsDir);
-        $this->dumpCloverXml();
 
-        $app = new Application($this->rootDir, 'Coveralls API client for PHP', '1.0.0');
-        $app->setAutoExit(false); // avoid to call exit() in Application
-
-        // run
-        $_SERVER['TRAVIS']        = true;
-        $_SERVER['TRAVIS_JOB_ID'] = 'application_test';
-
-        $tester = new ApplicationTester($app);
-        $actual = $tester->run(
-            array(
-                '--dry-run' => true,
-                '--config'  => 'coveralls.yml',
-            )
-        );
-
-        $this->assertEquals(0, $actual);
+        $this->rmFile($this->cloverXmlPath);
+        $this->rmFile($this->jsonPath);
+        $this->rmDir($this->logsDir);
+        $this->rmDir($this->buildDir);
     }
 }

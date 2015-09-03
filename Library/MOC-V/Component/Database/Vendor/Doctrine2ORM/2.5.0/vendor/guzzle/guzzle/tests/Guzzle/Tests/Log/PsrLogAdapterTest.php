@@ -3,8 +3,8 @@
 namespace Guzzle\Tests\Log;
 
 use Guzzle\Log\PsrLogAdapter;
-use Monolog\Logger;
 use Monolog\Handler\TestHandler;
+use Monolog\Logger;
 
 /**
  * @covers Guzzle\Log\PsrLogAdapter
@@ -12,8 +12,10 @@ use Monolog\Handler\TestHandler;
  */
 class PsrLogAdapterTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testLogsMessagesToAdaptedObject()
     {
+
         $log = new Logger('test');
         $handler = new TestHandler();
         $log->pushHandler($handler);

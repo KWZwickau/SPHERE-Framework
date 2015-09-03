@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class SelectClause extends Node
 {
+
     /**
      * @var bool
      */
@@ -46,6 +47,7 @@ class SelectClause extends Node
      */
     public function __construct(array $selectExpressions, $isDistinct)
     {
+
         $this->isDistinct = $isDistinct;
         $this->selectExpressions = $selectExpressions;
     }
@@ -55,6 +57,7 @@ class SelectClause extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkSelectClause($this);
     }
 }

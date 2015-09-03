@@ -39,6 +39,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
  */
 class MimeTypeGuesser implements MimeTypeGuesserInterface
 {
+
     /**
      * The singleton instance
      *
@@ -58,6 +59,7 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface
      */
     private function __construct()
     {
+
         if (FileBinaryMimeTypeGuesser::isSupported()) {
             $this->register(new FileBinaryMimeTypeGuesser());
         }
@@ -76,6 +78,7 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface
      */
     public function register(MimeTypeGuesserInterface $guesser)
     {
+
         array_unshift($this->guessers, $guesser);
     }
 
@@ -112,6 +115,7 @@ class MimeTypeGuesser implements MimeTypeGuesserInterface
      */
     public function guess($path)
     {
+
         if (!is_file($path)) {
             throw new FileNotFoundException($path);
         }

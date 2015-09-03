@@ -9,8 +9,10 @@ use Guzzle\Http\EntityBody;
  */
 class AbstractEntityBodyDecoratorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testDecoratesEntityBody()
     {
+
         $e = EntityBody::factory();
         $mock = $this->getMockForAbstractClass('Guzzle\Http\AbstractEntityBodyDecorator', array($e));
 

@@ -30,6 +30,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class TableDiff
 {
+
     /**
      * @var string
      */
@@ -134,10 +135,17 @@ class TableDiff
      * @param \Doctrine\DBAL\Schema\Index[]      $removedIndexes
      * @param \Doctrine\DBAL\Schema\Table|null   $fromTable
      */
-    public function __construct($tableName, $addedColumns = array(),
-        $changedColumns = array(), $removedColumns = array(), $addedIndexes = array(),
-        $changedIndexes = array(), $removedIndexes = array(), Table $fromTable = null)
-    {
+    public function __construct(
+        $tableName,
+        $addedColumns = array(),
+        $changedColumns = array(),
+        $removedColumns = array(),
+        $addedIndexes = array(),
+        $changedIndexes = array(),
+        $removedIndexes = array(),
+        Table $fromTable = null
+    ) {
+
         $this->name = $tableName;
         $this->addedColumns = $addedColumns;
         $this->changedColumns = $changedColumns;
@@ -155,6 +163,7 @@ class TableDiff
      */
     public function getName(AbstractPlatform $platform)
     {
+
         return new Identifier(
             $this->fromTable instanceof Table ? $this->fromTable->getQuotedName($platform) : $this->name
         );
@@ -165,6 +174,7 @@ class TableDiff
      */
     public function getNewName()
     {
+
         return $this->newName ? new Identifier($this->newName) : $this->newName;
     }
 }

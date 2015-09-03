@@ -22,8 +22,10 @@ use Symfony\Component\HttpFoundation\Session\Storage\Handler\NativeSessionHandle
  */
 class NativeSessionHandlerTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConstruct()
     {
+
         $handler = new NativeSessionHandler();
 
         // note for PHPUnit optimisers - the use of assertTrue/False

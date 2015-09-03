@@ -3,11 +3,13 @@
 /** Docblock */
 interface Foo
 {
+
     public function bar();
 }
 
 class Foo
 {
+
     public function bar()
     {
     }
@@ -15,6 +17,7 @@ class Foo
 
 function baz()
 {
+
     // a one-line comment
     print '*'; // a one-line comment
 

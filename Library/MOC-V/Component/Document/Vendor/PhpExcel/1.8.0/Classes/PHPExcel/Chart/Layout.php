@@ -144,7 +144,7 @@ class PHPExcel_Chart_Layout
     /**
      * Create a new PHPExcel_Chart_Layout
      */
-    public function __construct( $layout = array() )
+    public function __construct($layout = array())
     {
 
         if (isset( $layout['layoutTarget'] )) {
@@ -188,7 +188,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setLayoutTarget( $value )
+    public function setLayoutTarget($value)
     {
 
         $this->_layoutTarget = $value;
@@ -213,7 +213,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setXMode( $value )
+    public function setXMode($value)
     {
 
         $this->_xMode = $value;
@@ -238,7 +238,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setYMode( $value )
+    public function setYMode($value)
     {
 
         $this->_yMode = $value;
@@ -263,7 +263,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setXPosition( $value )
+    public function setXPosition($value)
     {
 
         $this->_xPos = $value;
@@ -288,7 +288,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setYPosition( $value )
+    public function setYPosition($value)
     {
 
         $this->_yPos = $value;
@@ -313,7 +313,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setWidth( $value )
+    public function setWidth($value)
     {
 
         $this->_width = $value;
@@ -338,7 +338,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setHeight( $value )
+    public function setHeight($value)
     {
 
         $this->_height = $value;
@@ -365,7 +365,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setShowLegendKey( $value )
+    public function setShowLegendKey($value)
     {
 
         $this->_showLegendKey = $value;
@@ -391,7 +391,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setShowVal( $value )
+    public function setShowVal($value)
     {
 
         $this->_showVal = $value;
@@ -417,7 +417,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setShowCatName( $value )
+    public function setShowCatName($value)
     {
 
         $this->_showCatName = $value;
@@ -443,7 +443,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setShowSerName( $value )
+    public function setShowSerName($value)
     {
 
         $this->_showSerName = $value;
@@ -469,7 +469,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setShowPercent( $value )
+    public function setShowPercent($value)
     {
 
         $this->_showPercent = $value;
@@ -495,7 +495,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setShowBubbleSize( $value )
+    public function setShowBubbleSize($value)
     {
 
         $this->_showBubbleSize = $value;
@@ -521,7 +521,7 @@ class PHPExcel_Chart_Layout
      *
      * @return PHPExcel_Chart_Layout
      */
-    public function setShowLeaderLines( $value )
+    public function setShowLeaderLines($value)
     {
 
         $this->_showLeaderLines = $value;

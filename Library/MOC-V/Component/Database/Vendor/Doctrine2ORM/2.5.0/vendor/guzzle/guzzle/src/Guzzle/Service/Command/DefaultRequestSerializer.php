@@ -13,11 +13,20 @@ use Guzzle\Service\Description\Parameter;
  */
 class DefaultRequestSerializer implements RequestSerializerInterface
 {
-    /** @var VisitorFlyweight $factory Visitor factory */
-    protected $factory;
 
     /** @var self */
     protected static $instance;
+    /** @var VisitorFlyweight $factory Visitor factory */
+    protected $factory;
+
+    /**
+     * @param VisitorFlyweight $factory Factory to use when creating visitors
+     */
+    public function __construct(VisitorFlyweight $factory)
+    {
+
+        $this->factory = $factory;
+    }
 
     /**
      * @return self
@@ -25,6 +34,7 @@ class DefaultRequestSerializer implements RequestSerializerInterface
      */
     public static function getInstance()
     {
+
         if (!self::$instance) {
             self::$instance = new self(VisitorFlyweight::getInstance());
         }
@@ -33,23 +43,16 @@ class DefaultRequestSerializer implements RequestSerializerInterface
     }
 
     /**
-     * @param VisitorFlyweight $factory Factory to use when creating visitors
-     */
-    public function __construct(VisitorFlyweight $factory)
-    {
-        $this->factory = $factory;
-    }
-
-    /**
      * Add a location visitor to the serializer
      *
-     * @param string                   $location Location to associate with the visitor
-     * @param RequestVisitorInterface  $visitor  Visitor to attach
+     * @param string                  $location Location to associate with the visitor
+     * @param RequestVisitorInterface $visitor  Visitor to attach
      *
      * @return self
      */
     public function addVisitor($location, RequestVisitorInterface $visitor)
     {
+
         $this->factory->addRequestVisitor($location, $visitor);
 
         return $this;
@@ -57,6 +60,7 @@ class DefaultRequestSerializer implements RequestSerializerInterface
 
     public function prepare(CommandInterface $command)
     {
+
         $request = $this->createRequest($command);
         // Keep an array of visitors found in the operation
         $foundVisitors = array();
@@ -69,7 +73,7 @@ class DefaultRequestSerializer implements RequestSerializerInterface
             // Skip 'uri' locations because they've already been processed
             if ($location && $location != 'uri') {
                 // Instantiate visitors as they are detected in the properties
-                if (!isset($foundVisitors[$location])) {
+                if (!isset( $foundVisitors[$location] )) {
                     $foundVisitors[$location] = $this->factory->getRequestVisitor($location);
                 }
                 // Ensure that a value has been set for this parameter
@@ -97,6 +101,41 @@ class DefaultRequestSerializer implements RequestSerializerInterface
     }
 
     /**
+     * Create a request for the command and operation
+     *
+     * @param CommandInterface $command Command to create a request for
+     *
+     * @return RequestInterface
+     */
+    protected function createRequest(CommandInterface $command)
+    {
+
+        $operation = $command->getOperation();
+        $client = $command->getClient();
+        $options = $command[AbstractCommand::REQUEST_OPTIONS] ?: array();
+
+        // If the command does not specify a template, then assume the base URL of the client
+        if (!( $uri = $operation->getUri() )) {
+            return $client->createRequest($operation->getHttpMethod(), $client->getBaseUrl(), null, null, $options);
+        }
+
+        // Get the path values and use the client config settings
+        $variables = array();
+        foreach ($operation->getParams() as $name => $arg) {
+            if ($arg->getLocation() == 'uri') {
+                if (isset( $command[$name] )) {
+                    $variables[$name] = $arg->filter($command[$name]);
+                    if (!is_array($variables[$name])) {
+                        $variables[$name] = (string)$variables[$name];
+                    }
+                }
+            }
+        }
+
+        return $client->createRequest($operation->getHttpMethod(), array($uri, $variables), null, null, $options);
+    }
+
+    /**
      * Serialize additional parameters
      *
      * @param OperationInterface $operation  Operation that owns the command
@@ -112,7 +151,8 @@ class DefaultRequestSerializer implements RequestSerializerInterface
         RequestInterface $request,
         Parameter $additional
     ) {
-        if (!($location = $additional->getLocation())) {
+
+        if (!( $location = $additional->getLocation() )) {
             return;
         }
 
@@ -131,39 +171,5 @@ class DefaultRequestSerializer implements RequestSerializerInterface
         }
 
         return $visitor;
-    }
-
-    /**
-     * Create a request for the command and operation
-     *
-     * @param CommandInterface $command Command to create a request for
-     *
-     * @return RequestInterface
-     */
-    protected function createRequest(CommandInterface $command)
-    {
-        $operation = $command->getOperation();
-        $client = $command->getClient();
-        $options = $command[AbstractCommand::REQUEST_OPTIONS] ?: array();
-
-        // If the command does not specify a template, then assume the base URL of the client
-        if (!($uri = $operation->getUri())) {
-            return $client->createRequest($operation->getHttpMethod(), $client->getBaseUrl(), null, null, $options);
-        }
-
-        // Get the path values and use the client config settings
-        $variables = array();
-        foreach ($operation->getParams() as $name => $arg) {
-            if ($arg->getLocation() == 'uri') {
-                if (isset($command[$name])) {
-                    $variables[$name] = $arg->filter($command[$name]);
-                    if (!is_array($variables[$name])) {
-                        $variables[$name] = (string) $variables[$name];
-                    }
-                }
-            }
-        }
-
-        return $client->createRequest($operation->getHttpMethod(), array($uri, $variables), null, null, $options);
     }
 }

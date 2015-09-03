@@ -9,8 +9,10 @@ use Guzzle\Http\QueryString;
  */
 class PhpAggregator implements QueryAggregatorInterface
 {
+
     public function aggregate($key, $value, QueryString $query)
     {
+
         $ret = array();
 
         foreach ($value as $k => $v) {

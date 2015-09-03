@@ -1,6 +1,5 @@
 <?php
 
-
 require_once 'testDataFileIterator.php';
 
 class FunctionsTest extends PHPUnit_Framework_TestCase
@@ -9,8 +8,8 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
 
-        if (!defined( 'PHPEXCEL_ROOT' )) {
-            define( 'PHPEXCEL_ROOT', APPLICATION_PATH.'/' );
+        if (!defined('PHPEXCEL_ROOT')) {
+            define('PHPEXCEL_ROOT', APPLICATION_PATH.'/');
         }
         require_once( PHPEXCEL_ROOT.'PHPExcel/Autoloader.php' );
     }
@@ -19,56 +18,56 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $result = PHPExcel_Calculation_Functions::DUMMY();
-        $this->assertEquals( '#Not Yet Implemented', $result );
+        $this->assertEquals('#Not Yet Implemented', $result);
     }
 
     public function testDIV0()
     {
 
         $result = PHPExcel_Calculation_Functions::DIV0();
-        $this->assertEquals( '#DIV/0!', $result );
+        $this->assertEquals('#DIV/0!', $result);
     }
 
     public function testNA()
     {
 
         $result = PHPExcel_Calculation_Functions::NA();
-        $this->assertEquals( '#N/A', $result );
+        $this->assertEquals('#N/A', $result);
     }
 
     public function testNaN()
     {
 
         $result = PHPExcel_Calculation_Functions::NaN();
-        $this->assertEquals( '#NUM!', $result );
+        $this->assertEquals('#NUM!', $result);
     }
 
     public function testNAME()
     {
 
         $result = PHPExcel_Calculation_Functions::NAME();
-        $this->assertEquals( '#NAME?', $result );
+        $this->assertEquals('#NAME?', $result);
     }
 
     public function testREF()
     {
 
         $result = PHPExcel_Calculation_Functions::REF();
-        $this->assertEquals( '#REF!', $result );
+        $this->assertEquals('#REF!', $result);
     }
 
     public function testNULL()
     {
 
         $result = PHPExcel_Calculation_Functions::NULL();
-        $this->assertEquals( '#NULL!', $result );
+        $this->assertEquals('#NULL!', $result);
     }
 
     public function testVALUE()
     {
 
         $result = PHPExcel_Calculation_Functions::VALUE();
-        $this->assertEquals( '#VALUE!', $result );
+        $this->assertEquals('#VALUE!', $result);
     }
 
     /**
@@ -78,15 +77,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_BLANK' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_BLANK'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_BLANK()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_BLANK.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_BLANK.data');
     }
 
     /**
@@ -96,15 +95,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_ERR' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_ERR'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_ERR()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_ERR.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_ERR.data');
     }
 
     /**
@@ -114,15 +113,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_ERROR' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_ERROR'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_ERROR()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_ERROR.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_ERROR.data');
     }
 
     /**
@@ -132,15 +131,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'ERROR_TYPE' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'ERROR_TYPE'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerERROR_TYPE()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/ERROR_TYPE.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/ERROR_TYPE.data');
     }
 
     /**
@@ -150,15 +149,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_LOGICAL' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_LOGICAL'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_LOGICAL()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_LOGICAL.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_LOGICAL.data');
     }
 
     /**
@@ -168,15 +167,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_NA' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_NA'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_NA()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_NA.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_NA.data');
     }
 
     /**
@@ -186,15 +185,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_NUMBER' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_NUMBER'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_NUMBER()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_NUMBER.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_NUMBER.data');
     }
 
     /**
@@ -204,15 +203,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_TEXT' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_TEXT'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_TEXT()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_TEXT.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_TEXT.data');
     }
 
     /**
@@ -222,15 +221,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_NONTEXT' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_NONTEXT'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_NONTEXT()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_NONTEXT.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_NONTEXT.data');
     }
 
     /**
@@ -240,15 +239,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_EVEN' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_EVEN'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_EVEN()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_EVEN.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_EVEN.data');
     }
 
     /**
@@ -258,15 +257,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'IS_ODD' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'IS_ODD'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerIS_ODD()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/IS_ODD.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/IS_ODD.data');
     }
 
     /**
@@ -276,15 +275,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'TYPE' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'TYPE'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerTYPE()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/TYPE.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/TYPE.data');
     }
 
     /**
@@ -294,15 +293,15 @@ class FunctionsTest extends PHPUnit_Framework_TestCase
     {
 
         $args = func_get_args();
-        $expectedResult = array_pop( $args );
-        $result = call_user_func_array( array( 'PHPExcel_Calculation_Functions', 'N' ), $args );
-        $this->assertEquals( $expectedResult, $result, null, 1E-8 );
+        $expectedResult = array_pop($args);
+        $result = call_user_func_array(array('PHPExcel_Calculation_Functions', 'N'), $args);
+        $this->assertEquals($expectedResult, $result, null, 1E-8);
     }
 
     public function providerN()
     {
 
-        return new testDataFileIterator( 'rawTestData/Calculation/Functions/N.data' );
+        return new testDataFileIterator('rawTestData/Calculation/Functions/N.data');
     }
 
 }

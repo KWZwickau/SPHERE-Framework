@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
  */
 interface MimeTypeGuesserInterface
 {
+
     /**
      * Guesses the mime type of the file with the given path.
      *

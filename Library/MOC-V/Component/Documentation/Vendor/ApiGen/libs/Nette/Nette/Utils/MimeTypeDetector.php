@@ -38,25 +38,25 @@ final class MimeTypeDetector
      *
      * @return string
      */
-    public static function fromFile( $file )
+    public static function fromFile($file)
     {
 
-        if (!is_file( $file )) {
-            throw new Nette\FileNotFoundException( "File '$file' not found." );
+        if (!is_file($file)) {
+            throw new Nette\FileNotFoundException("File '$file' not found.");
         }
 
-        $info = @getimagesize( $file ); // @ - files smaller than 12 bytes causes read error
+        $info = @getimagesize($file); // @ - files smaller than 12 bytes causes read error
         if (isset( $info['mime'] )) {
             return $info['mime'];
 
-        } elseif (extension_loaded( 'fileinfo' )) {
-            $type = preg_replace( '#[\s;].*$#', '', finfo_file( finfo_open( FILEINFO_MIME ), $file ) );
+        } elseif (extension_loaded('fileinfo')) {
+            $type = preg_replace('#[\s;].*$#', '', finfo_file(finfo_open(FILEINFO_MIME), $file));
 
-        } elseif (function_exists( 'mime_content_type' )) {
-            $type = mime_content_type( $file );
+        } elseif (function_exists('mime_content_type')) {
+            $type = mime_content_type($file);
         }
 
-        return isset( $type ) && preg_match( '#^\S+/\S+$#', $type ) ? $type : 'application/octet-stream';
+        return isset( $type ) && preg_match('#^\S+/\S+$#', $type) ? $type : 'application/octet-stream';
     }
 
 
@@ -67,21 +67,21 @@ final class MimeTypeDetector
      *
      * @return string
      */
-    public static function fromString( $data )
+    public static function fromString($data)
     {
 
-        if (extension_loaded( 'fileinfo' ) && preg_match( '#^(\S+/[^\s;]+)#',
-                finfo_buffer( finfo_open( FILEINFO_MIME ), $data ), $m )
+        if (extension_loaded('fileinfo') && preg_match('#^(\S+/[^\s;]+)#',
+                finfo_buffer(finfo_open(FILEINFO_MIME), $data), $m)
         ) {
             return $m[1];
 
-        } elseif (strncmp( $data, "\xff\xd8", 2 ) === 0) {
+        } elseif (strncmp($data, "\xff\xd8", 2) === 0) {
             return 'image/jpeg';
 
-        } elseif (strncmp( $data, "\x89PNG", 4 ) === 0) {
+        } elseif (strncmp($data, "\x89PNG", 4) === 0) {
             return 'image/png';
 
-        } elseif (strncmp( $data, "GIF", 3 ) === 0) {
+        } elseif (strncmp($data, "GIF", 3) === 0) {
             return 'image/gif';
 
         } else {

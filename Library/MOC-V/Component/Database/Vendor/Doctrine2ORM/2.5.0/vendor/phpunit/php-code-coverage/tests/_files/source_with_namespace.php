@@ -6,6 +6,7 @@ namespace bar\baz;
  */
 class source_with_namespace
 {
+
 }
 
 /**
@@ -13,8 +14,10 @@ class source_with_namespace
  */
 function &foo($bar)
 {
-    $baz = function () {};
-    $a   = true ? true : false;
+
+    $baz = function () {
+    };
+    $a = true ? true : false;
     $b = "{$a}";
     $c = "${b}";
 }

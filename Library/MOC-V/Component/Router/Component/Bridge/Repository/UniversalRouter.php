@@ -23,7 +23,7 @@ class UniversalRouter extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function addRoute( RouteParameter $RouteOption )
+    public function addRoute(RouteParameter $RouteOption)
     {
 
         $this->RouteCollection[$RouteOption->getPath()] = $RouteOption;
@@ -36,7 +36,7 @@ class UniversalRouter extends Bridge implements IBridgeInterface
      * @return string
      * @throws ComponentException
      */
-    public function getRoute( $Path = null )
+    public function getRoute($Path = null)
     {
 
         if (null === $Path) {
@@ -48,14 +48,14 @@ class UniversalRouter extends Bridge implements IBridgeInterface
             $Route = $this->RouteCollection[$Path];
             // @codeCoverageIgnoreEnd
         }
-        $Controller = $this->handleController( $Route );
-        if (!is_callable( $Controller )) {
+        $Controller = $this->handleController($Route);
+        if (!is_callable($Controller)) {
             // @codeCoverageIgnoreStart
-            throw new ComponentException( $Controller );
+            throw new ComponentException($Controller);
             // @codeCoverageIgnoreEnd
         }
-        $Arguments = $this->handleArguments( $Controller, $Route );
-        $Response = call_user_func_array( $Controller, $Arguments );
+        $Arguments = $this->handleArguments($Controller, $Route);
+        $Response = call_user_func_array($Controller, $Arguments);
         return $Response;
     }
 
@@ -65,25 +65,25 @@ class UniversalRouter extends Bridge implements IBridgeInterface
      * @throws ComponentException
      * @return callable
      */
-    private function handleController( RouteParameter $Route )
+    private function handleController(RouteParameter $Route)
     {
 
         $Class = $Route->getClass();
-        if (!class_exists( $Class, true )) {
+        if (!class_exists($Class, true)) {
             // @codeCoverageIgnoreStart
-            throw new ComponentException( $Class );
+            throw new ComponentException($Class);
             // @codeCoverageIgnoreEnd
         }
         $Method = $Route->getMethod();
 
         $Object = new $Class();
-        if (!method_exists( $Object, $Method )) {
+        if (!method_exists($Object, $Method)) {
             // @codeCoverageIgnoreStart
-            throw new ComponentException( $Method );
+            throw new ComponentException($Method);
             // @codeCoverageIgnoreEnd
         }
 
-        return array( $Object, $Method );
+        return array($Object, $Method);
     }
 
     /**
@@ -93,24 +93,24 @@ class UniversalRouter extends Bridge implements IBridgeInterface
      * @throws MissingParameterException
      * @return array
      */
-    private function handleArguments( $Controller, RouteParameter $Route )
+    private function handleArguments($Controller, RouteParameter $Route)
     {
 
-        $Reflection = new \ReflectionMethod( $Controller[0], $Controller[1] );
+        $Reflection = new \ReflectionMethod($Controller[0], $Controller[1]);
         $MethodParameters = $Reflection->getParameters();
         $RequestParameters = HttpKernel::getRequest()->getParameterArray();
         $MethodArguments = array();
         /** @var \ReflectionParameter $MethodParameter */
         foreach ((array)$MethodParameters as $MethodParameter) {
             // @codeCoverageIgnoreStart
-            if (array_key_exists( $MethodParameter->name, $RequestParameters )) {
+            if (array_key_exists($MethodParameter->name, $RequestParameters)) {
                 $MethodArguments[] = $RequestParameters[$MethodParameter->name];
-            } elseif (array_key_exists( $MethodParameter->name, $Route->getParameterDefault() )) {
-                $MethodArguments[] = $Route->getParameterDefault( $MethodParameter->name );
+            } elseif (array_key_exists($MethodParameter->name, $Route->getParameterDefault())) {
+                $MethodArguments[] = $Route->getParameterDefault($MethodParameter->name);
             } elseif ($MethodParameter->isDefaultValueAvailable()) {
                 $MethodArguments[] = $MethodParameter->getDefaultValue();
             } else {
-                throw new MissingParameterException( $MethodParameter->name );
+                throw new MissingParameterException($MethodParameter->name);
             }
             // @codeCoverageIgnoreEnd
         }
@@ -125,6 +125,6 @@ class UniversalRouter extends Bridge implements IBridgeInterface
     public function getRouteList()
     {
 
-        return array_keys( $this->RouteCollection );
+        return array_keys($this->RouteCollection);
     }
 }

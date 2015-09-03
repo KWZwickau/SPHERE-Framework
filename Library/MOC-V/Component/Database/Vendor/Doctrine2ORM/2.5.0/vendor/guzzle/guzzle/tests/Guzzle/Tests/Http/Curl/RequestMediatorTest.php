@@ -3,24 +3,27 @@
 namespace Guzzle\Tests\Http\Curl;
 
 use Guzzle\Http\Client;
+use Guzzle\Http\Curl\RequestMediator;
 use Guzzle\Http\Message\EntityEnclosingRequest;
 use Guzzle\Http\Message\Response;
-use Guzzle\Http\Curl\RequestMediator;
 
 /**
  * @covers Guzzle\Http\Curl\RequestMediator
  */
 class RequestMediatorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public $events = array();
 
     public function event($event)
     {
+
         $this->events[] = $event;
     }
 
     public function testEmitsEvents()
     {
+
         $request = new EntityEnclosingRequest('PUT', 'http://www.example.com');
         $request->setBody('foo');
         $request->setResponse(new Response(200));
@@ -54,6 +57,7 @@ class RequestMediatorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesNotUseRequestResponseBodyWhenNotCustom()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 307 Foo\r\nLocation: /foo\r\nContent-Length: 2\r\n\r\nHI",

@@ -25,7 +25,7 @@ class UserPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
     private $user;
 
 
-    public function __construct( Nette\Security\User $user )
+    public function __construct(Nette\Security\User $user)
     {
 
         $this->user = $user;

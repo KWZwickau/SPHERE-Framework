@@ -20,19 +20,20 @@
 
 namespace Doctrine\ORM\Cache;
 
-use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Persisters\Collection\CollectionPersister;
 use Doctrine\ORM\Persisters\Entity\EntityPersister;
 
 /**
  * Contract for building second level cache regions components.
- * 
+ *
  * @since   2.5
  * @author  Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
 interface CacheFactory
 {
+
     /**
      * Build an entity persister for the given entity metadata.
      *
@@ -42,7 +43,11 @@ interface CacheFactory
      *
      * @return \Doctrine\ORM\Cache\Persister\Entity\CachedEntityPersister
      */
-    public function buildCachedEntityPersister(EntityManagerInterface $em, EntityPersister $persister, ClassMetadata $metadata);
+    public function buildCachedEntityPersister(
+        EntityManagerInterface $em,
+        EntityPersister $persister,
+        ClassMetadata $metadata
+    );
 
     /**
      * Build a collection persister for the given relation mapping.
@@ -53,7 +58,11 @@ interface CacheFactory
      *
      * @return \Doctrine\ORM\Cache\Persister\Collection\CachedCollectionPersister
      */
-    public function buildCachedCollectionPersister(EntityManagerInterface $em, CollectionPersister $persister, array $mapping);
+    public function buildCachedCollectionPersister(
+        EntityManagerInterface $em,
+        CollectionPersister $persister,
+        array $mapping
+    );
 
     /**
      * Build a query cache based on the given region name

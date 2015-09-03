@@ -45,7 +45,7 @@ class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_C
      * @return    PHPExcel_Cell
      * @throws    PHPExcel_Exception
      */
-    public function addCacheData( $pCoord, PHPExcel_Cell $cell )
+    public function addCacheData($pCoord, PHPExcel_Cell $cell)
     {
 
         $this->_cellCache[$pCoord] = $cell;
@@ -64,7 +64,7 @@ class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_C
      * @throws    PHPExcel_Exception
      * @return    PHPExcel_Cell    Cell that was found, or null if not found
      */
-    public function getCacheData( $pCoord )
+    public function getCacheData($pCoord)
     {
 
         //	Check if the entry that has been requested actually exists
@@ -88,15 +88,15 @@ class PHPExcel_CachedObjectStorage_Memory extends PHPExcel_CachedObjectStorage_C
      *
      * @return    void
      */
-    public function copyCellCollection( PHPExcel_Worksheet $parent )
+    public function copyCellCollection(PHPExcel_Worksheet $parent)
     {
 
-        parent::copyCellCollection( $parent );
+        parent::copyCellCollection($parent);
 
         $newCollection = array();
         foreach ($this->_cellCache as $k => &$cell) {
             $newCollection[$k] = clone $cell;
-            $newCollection[$k]->attach( $this );
+            $newCollection[$k]->attach($this);
         }
 
         $this->_cellCache = $newCollection;

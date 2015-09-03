@@ -20,6 +20,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  */
 class WrappedListener
 {
+
     private $listener;
     private $name;
     private $called;
@@ -28,6 +29,7 @@ class WrappedListener
 
     public function __construct($listener, $name, Stopwatch $stopwatch)
     {
+
         $this->listener = $listener;
         $this->name = $name;
         $this->stopwatch = $stopwatch;
@@ -37,21 +39,25 @@ class WrappedListener
 
     public function getWrappedListener()
     {
+
         return $this->listener;
     }
 
     public function wasCalled()
     {
+
         return $this->called;
     }
 
     public function stoppedPropagation()
     {
+
         return $this->stoppedPropagation;
     }
 
     public function __invoke(Event $event, $eventName, EventDispatcherInterface $dispatcher)
     {
+
         $this->called = true;
 
         $e = $this->stopwatch->start($this->name, 'event_listener');

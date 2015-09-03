@@ -12,6 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
  */
 class Application extends BaseApplication
 {
+
     /**
      * Path to project root directory.
      *
@@ -28,6 +29,7 @@ class Application extends BaseApplication
      */
     public function __construct($rootDir, $name = 'UNKNOWN', $version = 'UNKNOWN')
     {
+
         $this->rootDir = $rootDir;
 
         parent::__construct($name, $version);
@@ -38,10 +40,26 @@ class Application extends BaseApplication
     /**
      * {@inheritdoc}
      *
+     * @see \Symfony\Component\Console\Application::getDefinition()
+     */
+    public function getDefinition()
+    {
+
+        $inputDefinition = parent::getDefinition();
+        // clear out the normal first argument, which is the command name
+        $inputDefinition->setArguments();
+
+        return $inputDefinition;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
      * @see \Symfony\Component\Console\Application::getCommandName()
      */
     protected function getCommandName(InputInterface $input)
     {
+
         return 'coveralls:v1:jobs';
     }
 
@@ -52,6 +70,7 @@ class Application extends BaseApplication
      */
     protected function getDefaultCommands()
     {
+
         // Keep the core default commands to have the HelpCommand
         // which is used when using the --help option
         $defaultCommands = parent::getDefaultCommands();
@@ -61,6 +80,8 @@ class Application extends BaseApplication
         return $defaultCommands;
     }
 
+    // accessor
+
     /**
      * Create CoverallsV1JobsCommand.
      *
@@ -68,25 +89,10 @@ class Application extends BaseApplication
      */
     protected function createCoverallsV1JobsCommand()
     {
+
         $command = new CoverallsV1JobsCommand();
         $command->setRootDir($this->rootDir);
 
         return $command;
-    }
-
-    // accessor
-
-    /**
-     * {@inheritdoc}
-     *
-     * @see \Symfony\Component\Console\Application::getDefinition()
-     */
-    public function getDefinition()
-    {
-        $inputDefinition = parent::getDefinition();
-        // clear out the normal first argument, which is the command name
-        $inputDefinition->setArguments();
-
-        return $inputDefinition;
     }
 }

@@ -8,6 +8,7 @@ namespace Doctrine\Tests\Common\Annotations\Fixtures;
  */
 final class AnnotationEnumInvalid
 {
+
     /**
      * @var mixed
      *

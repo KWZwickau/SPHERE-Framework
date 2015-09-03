@@ -58,10 +58,10 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      * @param string                  $fileName  Original definiton file name
      * @param \TokenReflection\Broker $broker    Reflection broker
      */
-    public function __construct( $className, $fileName, Broker $broker )
+    public function __construct($className, $fileName, Broker $broker)
     {
 
-        $this->name = ltrim( $className, '\\' );
+        $this->name = ltrim($className, '\\');
         $this->fileName = $fileName;
         $this->broker = $broker;
     }
@@ -76,10 +76,10 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      * @return string|null
      * @throws \TokenReflection\Exception\RuntimeException If requested parameter doesn't exist.
      */
-    public static function export( Broker $broker, $className, $return = false )
+    public static function export(Broker $broker, $className, $return = false)
     {
 
-        TokenReflection\ReflectionClass::export( $broker, $className, $return );
+        TokenReflection\ReflectionClass::export($broker, $className, $return);
     }
 
     /**
@@ -101,8 +101,8 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
     public function getShortName()
     {
 
-        $pos = strrpos( $this->name, '\\' );
-        return false === $pos ? $this->name : substr( $this->name, $pos + 1 );
+        $pos = strrpos($this->name, '\\');
+        return false === $pos ? $this->name : substr($this->name, $pos + 1);
     }
 
     /**
@@ -113,8 +113,8 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
     public function getNamespaceName()
     {
 
-        $pos = strrpos( $this->name, '\\' );
-        return false === $pos ? '' : substr( $this->name, 0, $pos );
+        $pos = strrpos($this->name, '\\');
+        return false === $pos ? '' : substr($this->name, 0, $pos);
     }
 
     /**
@@ -125,7 +125,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
     public function inNamespace()
     {
 
-        return false !== strrpos( $this->name, '\\' );
+        return false !== strrpos($this->name, '\\');
     }
 
     /**
@@ -181,8 +181,8 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
     public function getFileReflection()
     {
 
-        throw new Exception\BrokerException( $this->getBroker(),
-            sprintf( 'Class was not parsed from a file', $this->getName() ), Exception\BrokerException::UNSUPPORTED );
+        throw new Exception\BrokerException($this->getBroker(),
+            sprintf('Class was not parsed from a file', $this->getName()), Exception\BrokerException::UNSUPPORTED);
     }
 
     /**
@@ -247,7 +247,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -260,7 +260,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -416,7 +416,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function usesTrait( $trait )
+    public function usesTrait($trait)
     {
 
         return false;
@@ -489,7 +489,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function isSubclassOf( $class )
+    public function isSubclassOf($class)
     {
 
         return false;
@@ -547,20 +547,20 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      * @return boolean
      * @throws \TokenReflection\Exception\RuntimeException If the provided parameter is not an interface.
      */
-    public function implementsInterface( $interface )
+    public function implementsInterface($interface)
     {
 
-        if (is_object( $interface )) {
+        if (is_object($interface)) {
             if (!$interface instanceof IReflectionClass) {
-                throw new Exception\RuntimeException( sprintf( 'Parameter must be a string or an instance of class reflection, "%s" provided.',
-                        get_class( $interface ) ), Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException(sprintf('Parameter must be a string or an instance of class reflection, "%s" provided.',
+                    get_class($interface)), Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
 
             $interfaceName = $interface->getName();
 
             if (!$interface->isInterface()) {
-                throw new Exception\RuntimeException( sprintf( '"%s" is not an interface.', $interfaceName ),
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException(sprintf('"%s" is not an interface.', $interfaceName),
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
         }
 
@@ -641,7 +641,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasMethod( $name )
+    public function hasMethod($name)
     {
 
         return false;
@@ -654,11 +654,11 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @throws \TokenReflection\Exception\RuntimeException If the requested method does not exist.
      */
-    public function getMethod( $name )
+    public function getMethod($name)
     {
 
-        throw new Exception\RuntimeException( sprintf( 'There is no method "%s".', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('There is no method "%s".', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -668,7 +668,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return array
      */
-    public function getMethods( $filter = null )
+    public function getMethods($filter = null)
     {
 
         return array();
@@ -681,7 +681,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasOwnMethod( $name )
+    public function hasOwnMethod($name)
     {
 
         return false;
@@ -694,7 +694,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return array
      */
-    public function getOwnMethods( $filter = null )
+    public function getOwnMethods($filter = null)
     {
 
         return array();
@@ -707,7 +707,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasTraitMethod( $name )
+    public function hasTraitMethod($name)
     {
 
         return false;
@@ -720,7 +720,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return array
      */
-    public function getTraitMethods( $filter = null )
+    public function getTraitMethods($filter = null)
     {
 
         return array();
@@ -733,7 +733,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasConstant( $name )
+    public function hasConstant($name)
     {
 
         return false;
@@ -746,11 +746,11 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @throws \TokenReflection\Exception\RuntimeException If the requested constant does not exist.
      */
-    public function getConstant( $name )
+    public function getConstant($name)
     {
 
-        throw new Exception\RuntimeException( sprintf( 'There is no constant "%s".', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('There is no constant "%s".', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -760,11 +760,11 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @throws \TokenReflection\Exception\RuntimeException If the requested constant does not exist.
      */
-    public function getConstantReflection( $name )
+    public function getConstantReflection($name)
     {
 
-        throw new Exception\RuntimeException( sprintf( 'There is no constant "%s".', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('There is no constant "%s".', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -796,7 +796,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasOwnConstant( $name )
+    public function hasOwnConstant($name)
     {
 
         return false;
@@ -842,7 +842,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasProperty( $name )
+    public function hasProperty($name)
     {
 
         return false;
@@ -855,7 +855,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return array
      */
-    public function getProperties( $filter = null )
+    public function getProperties($filter = null)
     {
 
         return array();
@@ -868,11 +868,11 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @throws \TokenReflection\Exception\RuntimeException If the requested property does not exist.
      */
-    public function getProperty( $name )
+    public function getProperty($name)
     {
 
-        throw new Exception\RuntimeException( sprintf( 'There is no property "%s".', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('There is no property "%s".', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -882,7 +882,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasOwnProperty( $name )
+    public function hasOwnProperty($name)
     {
 
         return false;
@@ -895,7 +895,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return array
      */
-    public function getOwnProperties( $filter = null )
+    public function getOwnProperties($filter = null)
     {
 
         return array();
@@ -908,7 +908,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    public function hasTraitProperty( $name )
+    public function hasTraitProperty($name)
     {
 
         return false;
@@ -921,7 +921,7 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return array
      */
-    public function getTraitProperties( $filter = null )
+    public function getTraitProperties($filter = null)
     {
 
         return array();
@@ -946,11 +946,11 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @throws \TokenReflection\Exception\RuntimeException If the requested static property does not exist.
      */
-    public function getStaticPropertyValue( $name, $default = null )
+    public function getStaticPropertyValue($name, $default = null)
     {
 
-        throw new Exception\RuntimeException( sprintf( 'There is no static property "%s".', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('There is no static property "%s".', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -1049,15 +1049,15 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      * @return boolean
      * @throws \TokenReflection\Exception\RuntimeException If the provided argument is not an object.
      */
-    public function isInstance( $object )
+    public function isInstance($object)
     {
 
-        if (!is_object( $object )) {
-            throw new Exception\RuntimeException( sprintf( 'Parameter must be a class instance, "%s" provided.',
-                    gettype( $object ) ), Exception\RuntimeException::INVALID_ARGUMENT, $this );
+        if (!is_object($object)) {
+            throw new Exception\RuntimeException(sprintf('Parameter must be a class instance, "%s" provided.',
+                gettype($object)), Exception\RuntimeException::INVALID_ARGUMENT, $this);
         }
 
-        return $this->name === get_class( $object ) || is_subclass_of( $object, $this->name );
+        return $this->name === get_class($object) || is_subclass_of($object, $this->name);
     }
 
     /**
@@ -1069,12 +1069,12 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
     public function newInstanceWithoutConstructor()
     {
 
-        if (!class_exists( $this->name, true )) {
-            throw new Exception\RuntimeException( 'Could not create an instance; class does not exist.',
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        if (!class_exists($this->name, true)) {
+            throw new Exception\RuntimeException('Could not create an instance; class does not exist.',
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
-        $reflection = new \TokenReflection\Php\ReflectionClass( $this->name, $this->getBroker() );
+        $reflection = new \TokenReflection\Php\ReflectionClass($this->name, $this->getBroker());
         return $reflection->newInstanceWithoutConstructor();
     }
 
@@ -1087,10 +1087,10 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return object
      */
-    public function newInstance( $args )
+    public function newInstance($args)
     {
 
-        return $this->newInstanceArgs( func_get_args() );
+        return $this->newInstanceArgs(func_get_args());
     }
 
     /**
@@ -1101,16 +1101,16 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      * @return object
      * @throws \TokenReflection\Exception\RuntimeException If the required class does not exist.
      */
-    public function newInstanceArgs( array $args = array() )
+    public function newInstanceArgs(array $args = array())
     {
 
-        if (!class_exists( $this->name, true )) {
-            throw new Exception\RuntimeException( 'Could not create an instance of class; class does not exist.',
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        if (!class_exists($this->name, true)) {
+            throw new Exception\RuntimeException('Could not create an instance of class; class does not exist.',
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
-        $reflection = new InternalReflectionClass( $this->name );
-        return $reflection->newInstanceArgs( $args );
+        $reflection = new InternalReflectionClass($this->name);
+        return $reflection->newInstanceArgs($args);
     }
 
     /**
@@ -1121,11 +1121,11 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @throws \TokenReflection\Exception\RuntimeException If the requested static property does not exist.
      */
-    public function setStaticPropertyValue( $name, $value )
+    public function setStaticPropertyValue($name, $value)
     {
 
-        throw new Exception\RuntimeException( sprintf( 'There is no static property "%s".', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('There is no static property "%s".', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -1222,10 +1222,10 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return ReflectionBase::get( $this, $key );
+        return ReflectionBase::get($this, $key);
     }
 
     /**
@@ -1235,9 +1235,9 @@ class ReflectionClass extends ReflectionElement implements IReflectionClass
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return ReflectionBase::exists( $this, $key );
+        return ReflectionBase::exists($this, $key);
     }
 }

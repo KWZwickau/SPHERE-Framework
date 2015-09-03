@@ -19,4 +19,5 @@ namespace Prophecy\Doubler;
  */
 interface DoubleInterface
 {
+
 }

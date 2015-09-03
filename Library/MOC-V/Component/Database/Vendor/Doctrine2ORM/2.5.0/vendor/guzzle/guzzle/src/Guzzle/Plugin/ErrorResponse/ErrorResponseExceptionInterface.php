@@ -2,14 +2,15 @@
 
 namespace Guzzle\Plugin\ErrorResponse;
 
-use Guzzle\Service\Command\CommandInterface;
 use Guzzle\Http\Message\Response;
+use Guzzle\Service\Command\CommandInterface;
 
 /**
  * Interface used to create an exception from an error response
  */
 interface ErrorResponseExceptionInterface
 {
+
     /**
      * Create an exception for a command based on a command and an error response definition
      *

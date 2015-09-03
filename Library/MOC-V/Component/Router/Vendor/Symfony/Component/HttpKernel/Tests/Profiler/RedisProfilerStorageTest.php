@@ -16,10 +16,12 @@ use Symfony\Component\HttpKernel\Tests\Profiler\Mock\RedisMock;
 
 class RedisProfilerStorageTest extends AbstractProfilerStorageTest
 {
+
     protected static $storage;
 
     protected function setUp()
     {
+
         $redisMock = new RedisMock();
         $redisMock->connect('127.0.0.1', 6379);
 
@@ -33,6 +35,7 @@ class RedisProfilerStorageTest extends AbstractProfilerStorageTest
 
     protected function tearDown()
     {
+
         if (self::$storage) {
             self::$storage->purge();
             self::$storage = false;
@@ -44,6 +47,7 @@ class RedisProfilerStorageTest extends AbstractProfilerStorageTest
      */
     protected function getStorage()
     {
+
         return self::$storage;
     }
 }

@@ -11,10 +11,12 @@
 
 class Twig_Tests_TokenStreamTest extends PHPUnit_Framework_TestCase
 {
+
     protected static $tokens;
 
     public function setUp()
     {
+
         self::$tokens = array(
             new Twig_Token(Twig_Token::TEXT_TYPE, 1, 1),
             new Twig_Token(Twig_Token::TEXT_TYPE, 2, 1),
@@ -29,6 +31,7 @@ class Twig_Tests_TokenStreamTest extends PHPUnit_Framework_TestCase
 
     public function testNext()
     {
+
         $stream = new Twig_TokenStream(self::$tokens);
         $repr = array();
         while (!$stream->isEOF()) {
@@ -36,7 +39,8 @@ class Twig_Tests_TokenStreamTest extends PHPUnit_Framework_TestCase
 
             $repr[] = $token->getValue();
         }
-        $this->assertEquals('1, 2, 3, 4, 5, 6, 7', implode(', ', $repr), '->next() advances the pointer and returns the current token');
+        $this->assertEquals('1, 2, 3, 4, 5, 6, 7', implode(', ', $repr),
+            '->next() advances the pointer and returns the current token');
     }
 
     /**
@@ -45,6 +49,7 @@ class Twig_Tests_TokenStreamTest extends PHPUnit_Framework_TestCase
      */
     public function testEndOfTemplateNext()
     {
+
         $stream = new Twig_TokenStream(array(
             new Twig_Token(Twig_Token::BLOCK_START_TYPE, 1, 1),
         ));
@@ -59,6 +64,7 @@ class Twig_Tests_TokenStreamTest extends PHPUnit_Framework_TestCase
      */
     public function testEndOfTemplateLook()
     {
+
         $stream = new Twig_TokenStream(array(
             new Twig_Token(Twig_Token::BLOCK_START_TYPE, 1, 1),
         ));

@@ -8,10 +8,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
 {
+
     protected function compileCallable(Twig_Compiler $compiler)
     {
+
         $closingParenthesis = false;
         if ($this->hasAttribute('callable') && $callable = $this->getAttribute('callable')) {
             if (is_string($callable)) {
@@ -20,7 +23,8 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
                 $compiler->raw(sprintf('$this->env->getExtension(\'%s\')->%s', $callable[0]->getName(), $callable[1]));
             } else {
                 $type = ucfirst($this->getAttribute('type'));
-                $compiler->raw(sprintf('call_user_func_array($this->env->get%s(\'%s\')->getCallable(), array', $type, $this->getAttribute('name')));
+                $compiler->raw(sprintf('call_user_func_array($this->env->get%s(\'%s\')->getCallable(), array', $type,
+                    $this->getAttribute('name')));
                 $closingParenthesis = true;
             }
         } else {
@@ -36,6 +40,7 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
 
     protected function compileArguments(Twig_Compiler $compiler)
     {
+
         $compiler->raw('(');
 
         $first = true;
@@ -90,6 +95,7 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
 
     protected function getArguments($callable, $arguments)
     {
+
         $parameters = array();
         $named = false;
         foreach ($arguments as $name => $node) {
@@ -97,7 +103,8 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
                 $named = true;
                 $name = $this->normalizeName($name);
             } elseif ($named) {
-                throw new Twig_Error_Syntax(sprintf('Positional arguments cannot be used after named arguments for %s "%s".', $this->getAttribute('type'), $this->getAttribute('name')));
+                throw new Twig_Error_Syntax(sprintf('Positional arguments cannot be used after named arguments for %s "%s".',
+                    $this->getAttribute('type'), $this->getAttribute('name')));
             }
 
             $parameters[$name] = $node;
@@ -108,7 +115,8 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
         }
 
         if (!$callable) {
-            throw new LogicException(sprintf('Named arguments are not supported for %s "%s".', $this->getAttribute('type'), $this->getAttribute('name')));
+            throw new LogicException(sprintf('Named arguments are not supported for %s "%s".',
+                $this->getAttribute('type'), $this->getAttribute('name')));
         }
 
         // manage named arguments
@@ -144,26 +152,30 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
 
             if (array_key_exists($name, $parameters)) {
                 if (array_key_exists($pos, $parameters)) {
-                    throw new Twig_Error_Syntax(sprintf('Argument "%s" is defined twice for %s "%s".', $name, $this->getAttribute('type'), $this->getAttribute('name')));
+                    throw new Twig_Error_Syntax(sprintf('Argument "%s" is defined twice for %s "%s".', $name,
+                        $this->getAttribute('type'), $this->getAttribute('name')));
                 }
 
                 $arguments[] = $parameters[$name];
-                unset($parameters[$name]);
+                unset( $parameters[$name] );
             } elseif (array_key_exists($pos, $parameters)) {
                 $arguments[] = $parameters[$pos];
-                unset($parameters[$pos]);
+                unset( $parameters[$pos] );
                 ++$pos;
             } elseif ($param->isDefaultValueAvailable()) {
                 $arguments[] = new Twig_Node_Expression_Constant($param->getDefaultValue(), -1);
             } elseif ($param->isOptional()) {
                 break;
             } else {
-                throw new Twig_Error_Syntax(sprintf('Value for argument "%s" is required for %s "%s".', $name, $this->getAttribute('type'), $this->getAttribute('name')));
+                throw new Twig_Error_Syntax(sprintf('Value for argument "%s" is required for %s "%s".', $name,
+                    $this->getAttribute('type'), $this->getAttribute('name')));
             }
         }
 
-        if (!empty($parameters)) {
-            throw new Twig_Error_Syntax(sprintf('Unknown argument%s "%s" for %s "%s".', count($parameters) > 1 ? 's' : '', implode('", "', array_keys($parameters)), $this->getAttribute('type'), $this->getAttribute('name')));
+        if (!empty( $parameters )) {
+            throw new Twig_Error_Syntax(sprintf('Unknown argument%s "%s" for %s "%s".',
+                count($parameters) > 1 ? 's' : '', implode('", "', array_keys($parameters)),
+                $this->getAttribute('type'), $this->getAttribute('name')));
         }
 
         return $arguments;
@@ -171,6 +183,8 @@ abstract class Twig_Node_Expression_Call extends Twig_Node_Expression
 
     protected function normalizeName($name)
     {
-        return strtolower(preg_replace(array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'), array('\\1_\\2', '\\1_\\2'), $name));
+
+        return strtolower(preg_replace(array('/([A-Z]+)([A-Z][a-z])/', '/([a-z\d])([A-Z])/'),
+            array('\\1_\\2', '\\1_\\2'), $name));
     }
 }

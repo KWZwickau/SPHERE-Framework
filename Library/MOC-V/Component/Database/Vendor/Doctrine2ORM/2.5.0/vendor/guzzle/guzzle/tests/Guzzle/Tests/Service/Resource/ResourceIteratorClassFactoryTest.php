@@ -11,12 +11,14 @@ use Guzzle\Tests\Service\Mock\Command\MockCommand;
  */
 class ResourceIteratorClassFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /**
      * @expectedException \InvalidArgumentException
      * @expectedExceptionMessage Iterator was not found for mock_command
      */
     public function testEnsuresIteratorClassExists()
     {
+
         $factory = new ResourceIteratorClassFactory(array('Foo', 'Bar'));
         $factory->registerNamespace('Baz');
         $command = new MockCommand();
@@ -25,6 +27,7 @@ class ResourceIteratorClassFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testBuildsResourceIterators()
     {
+
         $factory = new ResourceIteratorClassFactory('Guzzle\Tests\Service\Mock\Model');
         $command = new MockCommand();
         $iterator = $factory->build($command, array('client.namespace' => 'Guzzle\Tests\Service\Mock'));
@@ -33,6 +36,7 @@ class ResourceIteratorClassFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testChecksIfCanBuild()
     {
+
         $factory = new ResourceIteratorClassFactory('Guzzle\Tests\Service');
         $this->assertFalse($factory->canBuild(new MockCommand()));
         $factory = new ResourceIteratorClassFactory('Guzzle\Tests\Service\Mock\Model');

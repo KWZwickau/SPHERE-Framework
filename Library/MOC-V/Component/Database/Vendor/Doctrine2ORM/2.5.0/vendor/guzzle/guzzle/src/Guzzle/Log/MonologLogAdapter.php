@@ -10,6 +10,7 @@ use Monolog\Logger;
  */
 class MonologLogAdapter extends AbstractLogAdapter
 {
+
     /**
      * syslog to Monolog mappings
      */
@@ -24,11 +25,13 @@ class MonologLogAdapter extends AbstractLogAdapter
 
     public function __construct(Logger $logObject)
     {
+
         $this->log = $logObject;
     }
 
     public function log($message, $priority = LOG_INFO, $extras = array())
     {
+
         $this->log->addRecord(self::$mapping[$priority], $message, $extras);
     }
 }

@@ -65,7 +65,7 @@ class PHPExcel_Shared_Escher
      *
      * @param PHPExcel_Shared_Escher_DggContainer $dggContainer
      */
-    public function setDggContainer( $dggContainer )
+    public function setDggContainer($dggContainer)
     {
 
         return $this->_dggContainer = $dggContainer;
@@ -87,7 +87,7 @@ class PHPExcel_Shared_Escher
      *
      * @param PHPExcel_Shared_Escher_DgContainer $dgContainer
      */
-    public function setDgContainer( $dgContainer )
+    public function setDgContainer($dgContainer)
     {
 
         return $this->_dgContainer = $dgContainer;

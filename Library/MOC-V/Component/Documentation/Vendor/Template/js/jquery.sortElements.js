@@ -27,25 +27,25 @@ jQuery.fn.sortElements = (function()
 
     var sort = [].sort;
 
-    return function( comparator, getSortable )
+    return function(comparator, getSortable)
     {
 
         getSortable = getSortable || function()
-        {
-            return this;
-        };
+            {
+                return this;
+            };
 
-        var placements = this.map( function()
+        var placements = this.map(function()
         {
 
-            var sortElement = getSortable.call( this ),
+            var sortElement = getSortable.call(this),
                 parentNode = sortElement.parentNode,
 
             // Since the element itself will change position, we have
             // to have some way of storing it's original position in
             // the DOM. The easiest way is to have a 'flag' node:
                 nextSibling = parentNode.insertBefore(
-                    document.createTextNode( '' ),
+                    document.createTextNode(''),
                     sortElement.nextSibling
                 );
 
@@ -59,18 +59,18 @@ jQuery.fn.sortElements = (function()
                 }
 
                 // Insert before flag:
-                parentNode.insertBefore( this, nextSibling );
+                parentNode.insertBefore(this, nextSibling);
                 // Remove flag:
-                parentNode.removeChild( nextSibling );
+                parentNode.removeChild(nextSibling);
 
             };
 
-        } );
+        });
 
-        return sort.call( this, comparator ).each( function( i )
+        return sort.call(this, comparator).each(function(i)
         {
-            placements[i].call( getSortable.call( this ) );
-        } );
+            placements[i].call(getSortable.call(this));
+        });
 
     };
 

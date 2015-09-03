@@ -12,6 +12,7 @@ use Guzzle\Service\Exception\ServiceNotFoundException;
  */
 interface ServiceBuilderInterface
 {
+
     /**
      * Get a ClientInterface object or arbitrary data from the service builder
      *

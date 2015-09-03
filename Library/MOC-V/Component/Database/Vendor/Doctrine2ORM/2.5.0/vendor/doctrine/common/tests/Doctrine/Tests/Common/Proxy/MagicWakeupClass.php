@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Proxy;
  */
 class MagicWakeupClass
 {
+
     /**
      * @var string
      */
@@ -27,6 +28,7 @@ class MagicWakeupClass
      */
     public function __wakeup()
     {
+
         $this->wakeupValue = 'newWakeupValue';
     }
 }

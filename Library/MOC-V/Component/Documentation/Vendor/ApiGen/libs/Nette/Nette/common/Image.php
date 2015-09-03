@@ -134,11 +134,11 @@ class Image extends Object
      *
      * @param  resource
      */
-    public function __construct( $image )
+    public function __construct($image)
     {
 
-        $this->setImageResource( $image );
-        imagesavealpha( $image, true );
+        $this->setImageResource($image);
+        imagesavealpha($image, true);
     }
 
     /**
@@ -148,11 +148,11 @@ class Image extends Object
      *
      * @return Image  provides a fluent interface
      */
-    protected function setImageResource( $image )
+    protected function setImageResource($image)
     {
 
-        if (!is_resource( $image ) || get_resource_type( $image ) !== 'gd') {
-            throw new InvalidArgumentException( 'Image is not valid.' );
+        if (!is_resource($image) || get_resource_type($image) !== 'gd') {
+            throw new InvalidArgumentException('Image is not valid.');
         }
         $this->image = $image;
         return $this;
@@ -166,27 +166,27 @@ class Image extends Object
      *
      * @return Image
      */
-    public static function fromFile( $file, & $format = null )
+    public static function fromFile($file, & $format = null)
     {
 
-        if (!extension_loaded( 'gd' )) {
-            throw new NotSupportedException( "PHP extension GD is not loaded." );
+        if (!extension_loaded('gd')) {
+            throw new NotSupportedException("PHP extension GD is not loaded.");
         }
 
-        $info = @getimagesize( $file ); // @ - files smaller than 12 bytes causes read error
+        $info = @getimagesize($file); // @ - files smaller than 12 bytes causes read error
 
         switch ($format = $info[2]) {
             case self::JPEG:
-                return new static( imagecreatefromjpeg( $file ) );
+                return new static(imagecreatefromjpeg($file));
 
             case self::PNG:
-                return new static( imagecreatefrompng( $file ) );
+                return new static(imagecreatefrompng($file));
 
             case self::GIF:
-                return new static( imagecreatefromgif( $file ) );
+                return new static(imagecreatefromgif($file));
 
             default:
-                throw new UnknownImageFileException( "Unknown image type or file '$file' not found." );
+                throw new UnknownImageFileException("Unknown image type or file '$file' not found.");
         }
     }
 
@@ -198,16 +198,16 @@ class Image extends Object
      *
      * @return Image
      */
-    public static function fromString( $s, & $format = null )
+    public static function fromString($s, & $format = null)
     {
 
-        if (!extension_loaded( 'gd' )) {
-            throw new NotSupportedException( "PHP extension GD is not loaded." );
+        if (!extension_loaded('gd')) {
+            throw new NotSupportedException("PHP extension GD is not loaded.");
         }
 
-        $format = static::getFormatFromString( $s );
+        $format = static::getFormatFromString($s);
 
-        return new static( imagecreatefromstring( $s ) );
+        return new static(imagecreatefromstring($s));
     }
 
     /**
@@ -217,11 +217,11 @@ class Image extends Object
      *
      * @return mixed  detected image format
      */
-    public static function getFormatFromString( $s )
+    public static function getFormatFromString($s)
     {
 
-        $types = array( 'image/jpeg' => self::JPEG, 'image/gif' => self::GIF, 'image/png' => self::PNG );
-        $type = Utils\MimeTypeDetector::fromString( $s );
+        $types = array('image/jpeg' => self::JPEG, 'image/gif' => self::GIF, 'image/png' => self::PNG);
+        $type = Utils\MimeTypeDetector::fromString($s);
         return isset( $types[$type] ) ? $types[$type] : null;
     }
 
@@ -234,18 +234,18 @@ class Image extends Object
      *
      * @return Image  provides a fluent interface
      */
-    public function resize( $width, $height, $flags = self::FIT )
+    public function resize($width, $height, $flags = self::FIT)
     {
 
         if ($flags & self::EXACT) {
-            return $this->resize( $width, $height, self::FILL )->crop( '50%', '50%', $width, $height );
+            return $this->resize($width, $height, self::FILL)->crop('50%', '50%', $width, $height);
         }
 
-        list( $newWidth, $newHeight ) = static::calculateSize( $this->getWidth(), $this->getHeight(), $width, $height,
-            $flags );
+        list( $newWidth, $newHeight ) = static::calculateSize($this->getWidth(), $this->getHeight(), $width, $height,
+            $flags);
 
         if ($newWidth !== $this->getWidth() || $newHeight !== $this->getHeight()) { // resize
-            $newImage = static::fromBlank( $newWidth, $newHeight, self::RGB( 0, 0, 0, 127 ) )->getImageResource();
+            $newImage = static::fromBlank($newWidth, $newHeight, self::RGB(0, 0, 0, 127))->getImageResource();
             imagecopyresampled(
                 $newImage, $this->getImageResource(),
                 0, 0, 0, 0,
@@ -255,7 +255,7 @@ class Image extends Object
         }
 
         if ($width < 0 || $height < 0) { // flip is processed in two steps for better quality
-            $newImage = static::fromBlank( $newWidth, $newHeight, self::RGB( 0, 0, 0, 127 ) )->getImageResource();
+            $newImage = static::fromBlank($newWidth, $newHeight, self::RGB(0, 0, 0, 127))->getImageResource();
             imagecopyresampled(
                 $newImage, $this->getImageResource(),
                 0, 0, $width < 0 ? $newWidth - 1 : 0, $height < 0 ? $newHeight - 1 : 0,
@@ -276,13 +276,13 @@ class Image extends Object
      *
      * @return Image  provides a fluent interface
      */
-    public function crop( $left, $top, $width, $height )
+    public function crop($left, $top, $width, $height)
     {
 
-        list( $left, $top, $width, $height ) = static::calculateCutout( $this->getWidth(), $this->getHeight(), $left,
-            $top, $width, $height );
-        $newImage = static::fromBlank( $width, $height, self::RGB( 0, 0, 0, 127 ) )->getImageResource();
-        imagecopy( $newImage, $this->getImageResource(), 0, 0, $left, $top, $width, $height );
+        list( $left, $top, $width, $height ) = static::calculateCutout($this->getWidth(), $this->getHeight(), $left,
+            $top, $width, $height);
+        $newImage = static::fromBlank($width, $height, self::RGB(0, 0, 0, 127))->getImageResource();
+        imagecopy($newImage, $this->getImageResource(), 0, 0, $left, $top, $width, $height);
         $this->image = $newImage;
         return $this;
     }
@@ -299,20 +299,20 @@ class Image extends Object
      *
      * @return array
      */
-    public static function calculateCutout( $srcWidth, $srcHeight, $left, $top, $newWidth, $newHeight )
+    public static function calculateCutout($srcWidth, $srcHeight, $left, $top, $newWidth, $newHeight)
     {
 
-        if (substr( $newWidth, -1 ) === '%') {
-            $newWidth = round( $srcWidth / 100 * $newWidth );
+        if (substr($newWidth, -1) === '%') {
+            $newWidth = round($srcWidth / 100 * $newWidth);
         }
-        if (substr( $newHeight, -1 ) === '%') {
-            $newHeight = round( $srcHeight / 100 * $newHeight );
+        if (substr($newHeight, -1) === '%') {
+            $newHeight = round($srcHeight / 100 * $newHeight);
         }
-        if (substr( $left, -1 ) === '%') {
-            $left = round( ( $srcWidth - $newWidth ) / 100 * $left );
+        if (substr($left, -1) === '%') {
+            $left = round(( $srcWidth - $newWidth ) / 100 * $left);
         }
-        if (substr( $top, -1 ) === '%') {
-            $top = round( ( $srcHeight - $newHeight ) / 100 * $top );
+        if (substr($top, -1) === '%') {
+            $top = round(( $srcHeight - $newHeight ) / 100 * $top);
         }
         if ($left < 0) {
             $newWidth += $left;
@@ -322,9 +322,9 @@ class Image extends Object
             $newHeight += $top;
             $top = 0;
         }
-        $newWidth = min( (int)$newWidth, $srcWidth - $left );
-        $newHeight = min( (int)$newHeight, $srcHeight - $top );
-        return array( $left, $top, $newWidth, $newHeight );
+        $newWidth = min((int)$newWidth, $srcWidth - $left);
+        $newHeight = min((int)$newHeight, $srcHeight - $top);
+        return array($left, $top, $newWidth, $newHeight);
     }
 
     /**
@@ -335,7 +335,7 @@ class Image extends Object
     public function getWidth()
     {
 
-        return imagesx( $this->image );
+        return imagesx($this->image);
     }
 
     /**
@@ -346,7 +346,7 @@ class Image extends Object
     public function getHeight()
     {
 
-        return imagesy( $this->image );
+        return imagesy($this->image);
     }
 
     /**
@@ -369,28 +369,28 @@ class Image extends Object
      *
      * @return Image
      */
-    public static function fromBlank( $width, $height, $color = null )
+    public static function fromBlank($width, $height, $color = null)
     {
 
-        if (!extension_loaded( 'gd' )) {
-            throw new NotSupportedException( "PHP extension GD is not loaded." );
+        if (!extension_loaded('gd')) {
+            throw new NotSupportedException("PHP extension GD is not loaded.");
         }
 
         $width = (int)$width;
         $height = (int)$height;
         if ($width < 1 || $height < 1) {
-            throw new InvalidArgumentException( 'Image width and height must be greater than zero.' );
+            throw new InvalidArgumentException('Image width and height must be greater than zero.');
         }
 
-        $image = imagecreatetruecolor( $width, $height );
-        if (is_array( $color )) {
-            $color += array( 'alpha' => 0 );
-            $color = imagecolorallocatealpha( $image, $color['red'], $color['green'], $color['blue'], $color['alpha'] );
-            imagealphablending( $image, false );
-            imagefilledrectangle( $image, 0, 0, $width - 1, $height - 1, $color );
-            imagealphablending( $image, true );
+        $image = imagecreatetruecolor($width, $height);
+        if (is_array($color)) {
+            $color += array('alpha' => 0);
+            $color = imagecolorallocatealpha($image, $color['red'], $color['green'], $color['blue'], $color['alpha']);
+            imagealphablending($image, false);
+            imagefilledrectangle($image, 0, 0, $width - 1, $height - 1, $color);
+            imagealphablending($image, true);
         }
-        return new static( $image );
+        return new static($image);
     }
 
     /**
@@ -403,14 +403,14 @@ class Image extends Object
      *
      * @return array
      */
-    public static function rgb( $red, $green, $blue, $transparency = 0 )
+    public static function rgb($red, $green, $blue, $transparency = 0)
     {
 
         return array(
-            'red'   => max( 0, min( 255, (int)$red ) ),
-            'green' => max( 0, min( 255, (int)$green ) ),
-            'blue'  => max( 0, min( 255, (int)$blue ) ),
-            'alpha' => max( 0, min( 127, (int)$transparency ) ),
+            'red'   => max(0, min(255, (int)$red)),
+            'green' => max(0, min(255, (int)$green)),
+            'blue'  => max(0, min(255, (int)$blue)),
+            'alpha' => max(0, min(127, (int)$transparency)),
         );
     }
 
@@ -425,36 +425,36 @@ class Image extends Object
      *
      * @return array
      */
-    public static function calculateSize( $srcWidth, $srcHeight, $newWidth, $newHeight, $flags = self::FIT )
+    public static function calculateSize($srcWidth, $srcHeight, $newWidth, $newHeight, $flags = self::FIT)
     {
 
-        if (substr( $newWidth, -1 ) === '%') {
-            $newWidth = round( $srcWidth / 100 * abs( $newWidth ) );
+        if (substr($newWidth, -1) === '%') {
+            $newWidth = round($srcWidth / 100 * abs($newWidth));
             $percents = true;
         } else {
-            $newWidth = (int)abs( $newWidth );
+            $newWidth = (int)abs($newWidth);
         }
 
-        if (substr( $newHeight, -1 ) === '%') {
-            $newHeight = round( $srcHeight / 100 * abs( $newHeight ) );
+        if (substr($newHeight, -1) === '%') {
+            $newHeight = round($srcHeight / 100 * abs($newHeight));
             $flags |= empty( $percents ) ? 0 : self::STRETCH;
         } else {
-            $newHeight = (int)abs( $newHeight );
+            $newHeight = (int)abs($newHeight);
         }
 
         if ($flags & self::STRETCH) { // non-proportional
             if (empty( $newWidth ) || empty( $newHeight )) {
-                throw new InvalidArgumentException( 'For stretching must be both width and height specified.' );
+                throw new InvalidArgumentException('For stretching must be both width and height specified.');
             }
 
             if ($flags & self::SHRINK_ONLY) {
-                $newWidth = round( $srcWidth * min( 1, $newWidth / $srcWidth ) );
-                $newHeight = round( $srcHeight * min( 1, $newHeight / $srcHeight ) );
+                $newWidth = round($srcWidth * min(1, $newWidth / $srcWidth));
+                $newHeight = round($srcHeight * min(1, $newHeight / $srcHeight));
             }
 
         } else {  // proportional
             if (empty( $newWidth ) && empty( $newHeight )) {
-                throw new InvalidArgumentException( 'At least width or height must be specified.' );
+                throw new InvalidArgumentException('At least width or height must be specified.');
             }
 
             $scale = array();
@@ -467,19 +467,19 @@ class Image extends Object
             }
 
             if ($flags & self::FILL) {
-                $scale = array( max( $scale ) );
+                $scale = array(max($scale));
             }
 
             if ($flags & self::SHRINK_ONLY) {
                 $scale[] = 1;
             }
 
-            $scale = min( $scale );
-            $newWidth = round( $srcWidth * $scale );
-            $newHeight = round( $srcHeight * $scale );
+            $scale = min($scale);
+            $newWidth = round($srcWidth * $scale);
+            $newHeight = round($srcHeight * $scale);
         }
 
-        return array( max( (int)$newWidth, 1 ), max( (int)$newHeight, 1 ) );
+        return array(max((int)$newWidth, 1), max((int)$newHeight, 1));
     }
 
     /**
@@ -490,11 +490,11 @@ class Image extends Object
     public function sharpen()
     {
 
-        imageconvolution( $this->getImageResource(), array( // my magic numbers ;)
-            array( -1, -1, -1 ),
-            array( -1, 24, -1 ),
-            array( -1, -1, -1 ),
-        ), 16, 0 );
+        imageconvolution($this->getImageResource(), array( // my magic numbers ;)
+            array(-1, -1, -1),
+            array(-1, 24, -1),
+            array(-1, -1, -1),
+        ), 16, 0);
         return $this;
     }
 
@@ -509,17 +509,17 @@ class Image extends Object
      *
      * @return Image  provides a fluent interface
      */
-    public function place( Image $image, $left = 0, $top = 0, $opacity = 100 )
+    public function place(Image $image, $left = 0, $top = 0, $opacity = 100)
     {
 
-        $opacity = max( 0, min( 100, (int)$opacity ) );
+        $opacity = max(0, min(100, (int)$opacity));
 
-        if (substr( $left, -1 ) === '%') {
-            $left = round( ( $this->getWidth() - $image->getWidth() ) / 100 * $left );
+        if (substr($left, -1) === '%') {
+            $left = round(( $this->getWidth() - $image->getWidth() ) / 100 * $left);
         }
 
-        if (substr( $top, -1 ) === '%') {
-            $top = round( ( $this->getHeight() - $image->getHeight() ) / 100 * $top );
+        if (substr($top, -1) === '%') {
+            $top = round(( $this->getHeight() - $image->getHeight() ) / 100 * $top);
         }
 
         if ($opacity === 100) {
@@ -549,8 +549,8 @@ class Image extends Object
         try {
             return $this->toString();
 
-        } catch( \Exception $e ) {
-            Diagnostics\Debugger::toStringException( $e );
+        } catch (\Exception $e) {
+            Diagnostics\Debugger::toStringException($e);
         }
     }
 
@@ -562,11 +562,11 @@ class Image extends Object
      *
      * @return string
      */
-    public function toString( $type = self::JPEG, $quality = null )
+    public function toString($type = self::JPEG, $quality = null)
     {
 
         ob_start();
-        $this->save( null, $quality, $type );
+        $this->save(null, $quality, $type);
         return ob_get_clean();
     }
 
@@ -579,11 +579,11 @@ class Image extends Object
      *
      * @return bool TRUE on success or FALSE on failure.
      */
-    public function save( $file = null, $quality = null, $type = null )
+    public function save($file = null, $quality = null, $type = null)
     {
 
         if ($type === null) {
-            switch (strtolower( pathinfo( $file, PATHINFO_EXTENSION ) )) {
+            switch (strtolower(pathinfo($file, PATHINFO_EXTENSION))) {
                 case 'jpg':
                 case 'jpeg':
                     $type = self::JPEG;
@@ -598,19 +598,19 @@ class Image extends Object
 
         switch ($type) {
             case self::JPEG:
-                $quality = $quality === null ? 85 : max( 0, min( 100, (int)$quality ) );
-                return imagejpeg( $this->getImageResource(), $file, $quality );
+                $quality = $quality === null ? 85 : max(0, min(100, (int)$quality));
+                return imagejpeg($this->getImageResource(), $file, $quality);
 
             case self::PNG:
-                $quality = $quality === null ? 9 : max( 0, min( 9, (int)$quality ) );
-                return imagepng( $this->getImageResource(), $file, $quality );
+                $quality = $quality === null ? 9 : max(0, min(9, (int)$quality));
+                return imagepng($this->getImageResource(), $file, $quality);
 
             case self::GIF:
-                return $file === null ? imagegif( $this->getImageResource() ) : imagegif( $this->getImageResource(),
-                    $file ); // PHP bug #44591
+                return $file === null ? imagegif($this->getImageResource()) : imagegif($this->getImageResource(),
+                    $file); // PHP bug #44591
 
             default:
-                throw new InvalidArgumentException( "Unsupported image type." );
+                throw new InvalidArgumentException("Unsupported image type.");
         }
     }
 
@@ -622,14 +622,14 @@ class Image extends Object
      *
      * @return bool TRUE on success or FALSE on failure.
      */
-    public function send( $type = self::JPEG, $quality = null )
+    public function send($type = self::JPEG, $quality = null)
     {
 
         if ($type !== self::GIF && $type !== self::PNG && $type !== self::JPEG) {
-            throw new InvalidArgumentException( "Unsupported image type." );
+            throw new InvalidArgumentException("Unsupported image type.");
         }
-        header( 'Content-Type: '.image_type_to_mime_type( $type ) );
-        return $this->save( null, $quality, $type );
+        header('Content-Type: '.image_type_to_mime_type($type));
+        return $this->save(null, $quality, $type);
     }
 
 
@@ -642,29 +642,29 @@ class Image extends Object
      * @return mixed
      * @throws MemberAccessException
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
         $function = 'image'.$name;
-        if (function_exists( $function )) {
+        if (function_exists($function)) {
             foreach ($args as $key => $value) {
                 if ($value instanceof self) {
                     $args[$key] = $value->getImageResource();
 
-                } elseif (is_array( $value ) && isset( $value['red'] )) { // rgb
+                } elseif (is_array($value) && isset( $value['red'] )) { // rgb
                     $args[$key] = imagecolorallocatealpha(
                         $this->getImageResource(),
                         $value['red'], $value['green'], $value['blue'], $value['alpha']
                     );
                 }
             }
-            array_unshift( $args, $this->getImageResource() );
+            array_unshift($args, $this->getImageResource());
 
-            $res = call_user_func_array( $function, $args );
-            return is_resource( $res ) && get_resource_type( $res ) === 'gd' ? $this->setImageResource( $res ) : $res;
+            $res = call_user_func_array($function, $args);
+            return is_resource($res) && get_resource_type($res) === 'gd' ? $this->setImageResource($res) : $res;
         }
 
-        return parent::__call( $name, $args );
+        return parent::__call($name, $args);
     }
 
 }

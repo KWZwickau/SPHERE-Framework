@@ -2,16 +2,18 @@
 
 namespace Guzzle\Tests\Batch;
 
-use Guzzle\Batch\HistoryBatch;
 use Guzzle\Batch\Batch;
+use Guzzle\Batch\HistoryBatch;
 
 /**
  * @covers Guzzle\Batch\HistoryBatch
  */
 class HistoryBatchTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testMaintainsHistoryOfItemsAddedToBatch()
     {
+
         $batch = new Batch(
             $this->getMock('Guzzle\Batch\BatchTransferInterface'),
             $this->getMock('Guzzle\Batch\BatchDivisorInterface')

@@ -28,7 +28,7 @@ interface IReflectionExtension extends IReflection
      *
      * @return \TokenReflection\IReflectionClass|null
      */
-    public function getClass( $name );
+    public function getClass($name);
 
     /**
      * Returns reflections of classes defined by this extension.
@@ -51,7 +51,7 @@ interface IReflectionExtension extends IReflection
      *
      * @return \TokenReflection\IReflectionConstant
      */
-    public function getConstantReflection( $name );
+    public function getConstantReflection($name);
 
     /**
      * Returns reflections of constants defined by this extension.
@@ -70,7 +70,7 @@ interface IReflectionExtension extends IReflection
      *
      * @return mixed|false
      */
-    public function getConstant( $name );
+    public function getConstant($name);
 
     /**
      * Returns values of constants defined by this extension.
@@ -88,7 +88,7 @@ interface IReflectionExtension extends IReflection
      *
      * @return \TokenReflection\IReflectionFunction
      */
-    public function getFunction( $name );
+    public function getFunction($name);
 
     /**
      * Returns reflections of functions defined by this extension.

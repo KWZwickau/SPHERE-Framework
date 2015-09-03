@@ -9,9 +9,12 @@ use Guzzle\Iterator\MapIterator;
  */
 class MapIteratorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testFiltersValues()
     {
+
         $i = new MapIterator(new \ArrayIterator(range(0, 100)), function ($value) {
+
             return $value * 10;
         });
 
@@ -23,6 +26,7 @@ class MapIteratorTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatesCallable()
     {
+
         $i = new MapIterator(new \ArrayIterator(), new \stdClass());
     }
 }

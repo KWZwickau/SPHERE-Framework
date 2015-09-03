@@ -1,6 +1,8 @@
 <?php
+
 class Calculator
 {
+
     /**
      * @assert (0, 0) == 0
      * @assert (0, 1) == 1
@@ -9,6 +11,7 @@ class Calculator
      */
     public function add($a, $b)
     {
+
         return $a + $b;
     }
 }

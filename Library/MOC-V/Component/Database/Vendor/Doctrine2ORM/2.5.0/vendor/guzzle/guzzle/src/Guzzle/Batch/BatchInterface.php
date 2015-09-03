@@ -7,6 +7,7 @@ namespace Guzzle\Batch;
  */
 interface BatchInterface
 {
+
     /**
      * Add an item to the queue
      *

@@ -65,8 +65,8 @@ class Minimal implements FSHL\Lexer
         return array(
             'OUT' => array(
                 array(
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,

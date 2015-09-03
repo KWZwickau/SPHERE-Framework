@@ -17,10 +17,10 @@ class Table_Row_Frame_Decorator extends Frame_Decorator
 
     // protected members
 
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
-        parent::__construct( $frame, $dompdf );
+        parent::__construct($frame, $dompdf);
     }
 
     //........................................................................
@@ -33,7 +33,7 @@ class Table_Row_Frame_Decorator extends Frame_Decorator
     {
 
         // Find our table parent
-        $p = Table_Frame_Decorator::find_parent_table( $this );
+        $p = Table_Frame_Decorator::find_parent_table($this);
 
         $erroneous_frames = array();
         foreach ($this->get_children() as $child) {
@@ -46,7 +46,7 @@ class Table_Row_Frame_Decorator extends Frame_Decorator
 
         //  dump the extra nodes after the table.
         foreach ($erroneous_frames as $frame) {
-            $p->move_after( $frame );
+            $p->move_after($frame);
         }
     }
 

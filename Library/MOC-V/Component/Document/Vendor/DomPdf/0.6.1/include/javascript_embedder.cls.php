@@ -20,25 +20,25 @@ class Javascript_Embedder
      */
     protected $_dompdf;
 
-    function __construct( DOMPDF $dompdf )
+    function __construct(DOMPDF $dompdf)
     {
 
         $this->_dompdf = $dompdf;
     }
 
-    function render( Frame $frame )
+    function render(Frame $frame)
     {
 
-        if (!$this->_dompdf->get_option( "enable_javascript" )) {
+        if (!$this->_dompdf->get_option("enable_javascript")) {
             return;
         }
 
-        $this->insert( $frame->get_node()->nodeValue );
+        $this->insert($frame->get_node()->nodeValue);
     }
 
-    function insert( $script )
+    function insert($script)
     {
 
-        $this->_dompdf->get_canvas()->javascript( $script );
+        $this->_dompdf->get_canvas()->javascript($script);
     }
 }

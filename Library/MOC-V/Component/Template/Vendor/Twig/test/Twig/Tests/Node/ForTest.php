@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_ForTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_For::__construct
      */
     public function testConstructor()
     {
+
         $keyTarget = new Twig_Node_Expression_AssignName('key', 1);
         $valueTarget = new Twig_Node_Expression_AssignName('item', 1);
         $seq = new Twig_Node_Expression_Name('items', 1);
@@ -40,16 +42,18 @@ class Twig_Tests_Node_ForTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_For::compile
+     * @covers       Twig_Node_For::compile
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $tests = array();
 
         $keyTarget = new Twig_Node_Expression_AssignName('key', 1);
@@ -61,8 +65,10 @@ class Twig_Tests_Node_ForTest extends Twig_Test_NodeTestCase
         $node = new Twig_Node_For($keyTarget, $valueTarget, $seq, $ifexpr, $body, $else, 1);
         $node->setAttribute('with_loop', false);
 
-        $tests[] = array($node, <<<EOF
-// line 1
+        $tests[] = array(
+            $node,
+            <<<EOF
+           // line 1
 \$context['_parent'] = (array) \$context;
 \$context['_seq'] = twig_ensure_traversable({$this->getVariableGetter('items')});
 foreach (\$context['_seq'] as \$context["key"] => \$context["item"]) {
@@ -83,8 +89,10 @@ EOF
         $node = new Twig_Node_For($keyTarget, $valueTarget, $seq, $ifexpr, $body, $else, 1);
         $node->setAttribute('with_loop', true);
 
-        $tests[] = array($node, <<<EOF
-// line 1
+        $tests[] = array(
+            $node,
+            <<<EOF
+           // line 1
 \$context['_parent'] = (array) \$context;
 \$context['_seq'] = twig_ensure_traversable({$this->getVariableGetter('values')});
 \$context['loop'] = array(
@@ -126,8 +134,10 @@ EOF
         $node = new Twig_Node_For($keyTarget, $valueTarget, $seq, $ifexpr, $body, $else, 1);
         $node->setAttribute('with_loop', true);
 
-        $tests[] = array($node, <<<EOF
-// line 1
+        $tests[] = array(
+            $node,
+            <<<EOF
+           // line 1
 \$context['_parent'] = (array) \$context;
 \$context['_seq'] = twig_ensure_traversable({$this->getVariableGetter('values')});
 \$context['loop'] = array(
@@ -159,8 +169,10 @@ EOF
         $node = new Twig_Node_For($keyTarget, $valueTarget, $seq, $ifexpr, $body, $else, 1);
         $node->setAttribute('with_loop', true);
 
-        $tests[] = array($node, <<<EOF
-// line 1
+        $tests[] = array(
+            $node,
+            <<<EOF
+           // line 1
 \$context['_parent'] = (array) \$context;
 \$context['_seq'] = twig_ensure_traversable({$this->getVariableGetter('values')});
 \$context['_iterated'] = false;

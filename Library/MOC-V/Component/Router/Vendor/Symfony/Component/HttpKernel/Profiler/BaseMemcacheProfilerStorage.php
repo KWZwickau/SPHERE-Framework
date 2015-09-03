@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpKernel\Profiler;
  */
 abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
 {
+
     const TOKEN_PREFIX = 'sf_profiler_';
 
     protected $dsn;
@@ -33,8 +34,9 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
      */
     public function __construct($dsn, $username = '', $password = '', $lifetime = 86400)
     {
+
         $this->dsn = $dsn;
-        $this->lifetime = (int) $lifetime;
+        $this->lifetime = (int)$lifetime;
     }
 
     /**
@@ -42,6 +44,7 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
      */
     public function find($ip, $url, $limit, $method, $start = null, $end = null)
     {
+
         $indexName = $this->getIndexName();
 
         $indexContent = $this->getValue($indexName);
@@ -58,27 +61,29 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
                 break;
             }
 
-            if ($item=='') {
+            if ($item == '') {
                 continue;
             }
 
-            list($itemToken, $itemIp, $itemMethod, $itemUrl, $itemTime, $itemParent) = explode("\t", $item, 6);
+            list( $itemToken, $itemIp, $itemMethod, $itemUrl, $itemTime, $itemParent ) = explode("\t", $item, 6);
 
-            $itemTime = (int) $itemTime;
+            $itemTime = (int)$itemTime;
 
-            if ($ip && false === strpos($itemIp, $ip) || $url && false === strpos($itemUrl, $url) || $method && false === strpos($itemMethod, $method)) {
+            if ($ip && false === strpos($itemIp, $ip) || $url && false === strpos($itemUrl,
+                    $url) || $method && false === strpos($itemMethod, $method)
+            ) {
                 continue;
             }
 
-            if (!empty($start) && $itemTime < $start) {
+            if (!empty( $start ) && $itemTime < $start) {
                 continue;
             }
 
-            if (!empty($end) && $itemTime > $end) {
+            if (!empty( $end ) && $itemTime > $end) {
                 continue;
             }
 
-            $result[$itemToken]  = array(
+            $result[$itemToken] = array(
                 'token'  => $itemToken,
                 'ip'     => $itemIp,
                 'method' => $itemMethod,
@@ -90,6 +95,7 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
         }
 
         usort($result, function ($a, $b) {
+
             if ($a['time'] === $b['time']) {
                 return 0;
             }
@@ -110,21 +116,21 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
 
         $name = self::TOKEN_PREFIX.'index';
 
-        if ($this->isItemNameValid( $name )) {
+        if ($this->isItemNameValid($name)) {
             return $name;
         }
 
         return false;
     }
 
-    private function isItemNameValid( $name )
+    private function isItemNameValid($name)
     {
 
-        $length = strlen( $name );
+        $length = strlen($name);
 
         if ($length > 250) {
-            throw new \RuntimeException( sprintf( 'The memcache item key "%s" is too long (%s bytes). Allowed maximum size is 250 bytes.',
-                $name, $length ) );
+            throw new \RuntimeException(sprintf('The memcache item key "%s" is too long (%s bytes). Allowed maximum size is 250 bytes.',
+                $name, $length));
         }
 
         return true;
@@ -137,13 +143,14 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
      *
      * @return mixed
      */
-    abstract protected function getValue( $key );
+    abstract protected function getValue($key);
 
     /**
      * {@inheritdoc}
      */
     public function purge()
     {
+
         // delete only items from index
         $indexName = $this->getIndexName();
 
@@ -175,7 +182,7 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
      *
      * @return bool
      */
-    abstract protected function delete( $key );
+    abstract protected function delete($key);
 
     /**
      * Get item name
@@ -184,12 +191,12 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
      *
      * @return string
      */
-    private function getItemName( $token )
+    private function getItemName($token)
     {
 
         $name = self::TOKEN_PREFIX.$token;
 
-        if ($this->isItemNameValid( $name )) {
+        if ($this->isItemNameValid($name)) {
             return $name;
         }
 
@@ -201,7 +208,8 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
      */
     public function read($token)
     {
-        if (empty($token)) {
+
+        if (empty( $token )) {
             return false;
         }
 
@@ -214,22 +222,22 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
         return $profile;
     }
 
-    private function createProfileFromData( $token, $data, $parent = null )
+    private function createProfileFromData($token, $data, $parent = null)
     {
 
-        $profile = new Profile( $token );
-        $profile->setIp( $data['ip'] );
-        $profile->setMethod( $data['method'] );
-        $profile->setUrl( $data['url'] );
-        $profile->setTime( $data['time'] );
-        $profile->setCollectors( $data['data'] );
+        $profile = new Profile($token);
+        $profile->setIp($data['ip']);
+        $profile->setMethod($data['method']);
+        $profile->setUrl($data['url']);
+        $profile->setTime($data['time']);
+        $profile->setCollectors($data['data']);
 
         if (!$parent && $data['parent']) {
-            $parent = $this->read( $data['parent'] );
+            $parent = $this->read($data['parent']);
         }
 
         if ($parent) {
-            $profile->setParent( $parent );
+            $profile->setParent($parent);
         }
 
         foreach ($data['children'] as $token) {
@@ -237,11 +245,11 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
                 continue;
             }
 
-            if (!$childProfileData = $this->getValue( $this->getItemName( $token ) )) {
+            if (!$childProfileData = $this->getValue($this->getItemName($token))) {
                 continue;
             }
 
-            $profile->addChild( $this->createProfileFromData( $token, $childProfileData, $profile ) );
+            $profile->addChild($this->createProfileFromData($token, $childProfileData, $profile));
         }
 
         return $profile;
@@ -252,10 +260,14 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
      */
     public function write(Profile $profile)
     {
+
         $data = array(
             'token'    => $profile->getToken(),
             'parent'   => $profile->getParentToken(),
-            'children' => array_map(function ($p) { return $p->getToken(); }, $profile->getChildren()),
+            'children' => array_map(function ($p) {
+
+                return $p->getToken();
+            }, $profile->getChildren()),
             'data'     => $profile->getCollectors(),
             'ip'       => $profile->getIp(),
             'method'   => $profile->getMethod(),
@@ -272,13 +284,13 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
                 $indexName = $this->getIndexName();
 
                 $indexRow = implode("\t", array(
-                    $profile->getToken(),
-                    $profile->getIp(),
-                    $profile->getMethod(),
-                    $profile->getUrl(),
-                    $profile->getTime(),
-                    $profile->getParentToken(),
-                ))."\n";
+                        $profile->getToken(),
+                        $profile->getIp(),
+                        $profile->getMethod(),
+                        $profile->getUrl(),
+                        $profile->getTime(),
+                        $profile->getParentToken(),
+                    ))."\n";
 
                 return $this->appendValue($indexName, $indexRow, $this->lifetime);
             }
@@ -302,6 +314,7 @@ abstract class BaseMemcacheProfilerStorage implements ProfilerStorageInterface
 
     /**
      * Append data to an existing item on the memcache server
+     *
      * @param string $key
      * @param string $value
      * @param int    $expiration

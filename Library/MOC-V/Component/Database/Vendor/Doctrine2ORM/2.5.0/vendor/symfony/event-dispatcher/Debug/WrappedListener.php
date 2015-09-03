@@ -11,15 +11,16 @@
 
 namespace Symfony\Component\EventDispatcher\Debug;
 
-use Symfony\Component\Stopwatch\Stopwatch;
 use Symfony\Component\EventDispatcher\Event;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class WrappedListener
 {
+
     private $listener;
     private $name;
     private $called;
@@ -29,6 +30,7 @@ class WrappedListener
 
     public function __construct($listener, $name, Stopwatch $stopwatch, EventDispatcherInterface $dispatcher = null)
     {
+
         $this->listener = $listener;
         $this->name = $name;
         $this->stopwatch = $stopwatch;
@@ -39,21 +41,25 @@ class WrappedListener
 
     public function getWrappedListener()
     {
+
         return $this->listener;
     }
 
     public function wasCalled()
     {
+
         return $this->called;
     }
 
     public function stoppedPropagation()
     {
+
         return $this->stoppedPropagation;
     }
 
     public function __invoke(Event $event, $eventName, EventDispatcherInterface $dispatcher)
     {
+
         $this->called = true;
 
         $e = $this->stopwatch->start($this->name, 'event_listener');

@@ -1,5 +1,7 @@
 {
-    "includes": [ "test_service2.json" ],
+    "includes": [
+        "test_service2.json"
+    ],
     "operations": {
         "test": {
             "uri": "/path"
@@ -27,7 +29,10 @@
                             "filters": [
                                 {
                                     "method": "strtolower",
-                                    "args": ["test", "@value"]
+                                    "args": [
+                                        "test",
+                                        "@value"
+                                    ]
                                 },
                                 "strtoupper"
                             ]

@@ -16,6 +16,7 @@
  */
 interface Twig_NodeVisitorInterface
 {
+
     /**
      * Called before child nodes are visited.
      *

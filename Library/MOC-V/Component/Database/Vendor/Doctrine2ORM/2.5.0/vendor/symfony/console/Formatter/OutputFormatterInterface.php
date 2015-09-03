@@ -20,6 +20,7 @@ namespace Symfony\Component\Console\Formatter;
  */
 interface OutputFormatterInterface
 {
+
     /**
      * Sets the decorated flag.
      *

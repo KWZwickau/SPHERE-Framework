@@ -56,7 +56,7 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
      * @param string                  $fileName Original definiton file name
      * @param \TokenReflection\Broker $broker   Reflection broker
      */
-    public function __construct( $name, $fileName, Broker $broker )
+    public function __construct($name, $fileName, Broker $broker)
     {
 
         $this->name = $name;
@@ -72,8 +72,8 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
     public function getShortName()
     {
 
-        $pos = strrpos( $this->name, '\\' );
-        return false === $pos ? $this->name : substr( $this->name, $pos + 1 );
+        $pos = strrpos($this->name, '\\');
+        return false === $pos ? $this->name : substr($this->name, $pos + 1);
     }
 
     /**
@@ -106,8 +106,8 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
     public function getNamespaceName()
     {
 
-        $pos = strrpos( $this->name, '\\' );
-        return false === $pos ? '' : substr( $this->name, 0, $pos );
+        $pos = strrpos($this->name, '\\');
+        return false === $pos ? '' : substr($this->name, 0, $pos);
     }
 
     /**
@@ -118,7 +118,7 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
     public function inNamespace()
     {
 
-        return false !== strpos( $this->name, '\\' );
+        return false !== strpos($this->name, '\\');
     }
 
     /**
@@ -196,9 +196,9 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
     public function getFileReflection()
     {
 
-        throw new Exception\BrokerException( $this->getBroker(),
-            sprintf( 'Constant %s was not parsed from a file', $this->getPrettyName() ),
-            Exception\BrokerException::UNSUPPORTED );
+        throw new Exception\BrokerException($this->getBroker(),
+            sprintf('Constant %s was not parsed from a file', $this->getPrettyName()),
+            Exception\BrokerException::UNSUPPORTED);
     }
 
     /**
@@ -263,7 +263,7 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -276,7 +276,7 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -380,7 +380,7 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
 
         return sprintf(
             "Constant [ %s %s ] { %s }\n",
-            gettype( null ),
+            gettype(null),
             $this->getName(),
             null
         );
@@ -426,10 +426,10 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return ReflectionBase::get( $this, $key );
+        return ReflectionBase::get($this, $key);
     }
 
     /**
@@ -439,9 +439,9 @@ class ReflectionConstant extends ReflectionElement implements IReflectionConstan
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return ReflectionBase::exists( $this, $key );
+        return ReflectionBase::exists($this, $key);
     }
 }

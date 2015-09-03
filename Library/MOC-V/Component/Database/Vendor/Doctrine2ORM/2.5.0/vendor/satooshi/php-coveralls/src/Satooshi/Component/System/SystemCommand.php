@@ -8,6 +8,7 @@ namespace Satooshi\Component\System;
  */
 abstract class SystemCommand
 {
+
     /**
      * Command name or path.
      *
@@ -24,12 +25,31 @@ abstract class SystemCommand
      */
     public function execute()
     {
+
         $command = $this->createCommand();
 
         return $this->executeCommand($command);
     }
 
     // internal method
+
+    /**
+     * Create command.
+     *
+     * @param string $args Command arguments.
+     *
+     * @return string
+     */
+    protected function createCommand($args = null)
+    {
+
+        if ($args === null) {
+            return $this->commandPath;
+        }
+
+        // escapeshellarg($args) ?
+        return sprintf('%s %s', $this->commandPath, $args);
+    }
 
     /**
      * Execute command.
@@ -42,6 +62,7 @@ abstract class SystemCommand
      */
     protected function executeCommand($command)
     {
+
         exec($command, $result, $returnValue);
 
         if ($returnValue === 0) {
@@ -51,24 +72,18 @@ abstract class SystemCommand
         throw new \RuntimeException(sprintf('Failed to execute command: %s', $command), $returnValue);
     }
 
+    // accessor
+
     /**
-     * Create command.
-     *
-     * @param string $args Command arguments.
+     * Return command path.
      *
      * @return string
      */
-    protected function createCommand($args = null)
+    public function getCommandPath()
     {
-        if ($args === null) {
-            return $this->commandPath;
-        }
 
-        // escapeshellarg($args) ?
-        return sprintf('%s %s', $this->commandPath, $args);
+        return $this->commandPath;
     }
-
-    // accessor
 
     /**
      * Set command path.
@@ -79,16 +94,7 @@ abstract class SystemCommand
      */
     public function setCommandPath($commandPath)
     {
-        $this->commandPath = $commandPath;
-    }
 
-    /**
-     * Return command path.
-     *
-     * @return string
-     */
-    public function getCommandPath()
-    {
-        return $this->commandPath;
+        $this->commandPath = $commandPath;
     }
 }

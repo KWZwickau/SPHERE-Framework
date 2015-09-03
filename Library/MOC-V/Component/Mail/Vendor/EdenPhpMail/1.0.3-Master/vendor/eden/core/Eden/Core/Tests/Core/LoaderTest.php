@@ -14,11 +14,11 @@ class Eden_Core_Tests_Core_LoaderTest extends \PHPUnit_Framework_TestCase
     {
 
         $loader = Eden\Core\Loader::i()
-            ->load( 'Eden\\Core\\Route' )
-            ->load( 'Eden_Core_Route' );
+            ->load('Eden\\Core\\Route')
+            ->load('Eden_Core_Route');
 
-        $this->assertTrue( $loader->handler( 'Eden\\Core\\Route' ) );
-        $this->assertTrue( $loader->handler( 'Eden_Core_Route' ) );
-        $this->assertFalse( $loader->handler( 'Eden_Core_Something' ) );
+        $this->assertTrue($loader->handler('Eden\\Core\\Route'));
+        $this->assertTrue($loader->handler('Eden_Core_Route'));
+        $this->assertFalse($loader->handler('Eden_Core_Something'));
     }
 }

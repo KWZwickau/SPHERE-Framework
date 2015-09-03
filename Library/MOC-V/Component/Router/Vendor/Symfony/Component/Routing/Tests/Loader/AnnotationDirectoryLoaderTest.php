@@ -16,31 +16,36 @@ use Symfony\Component\Routing\Loader\AnnotationDirectoryLoader;
 
 class AnnotationDirectoryLoaderTest extends AbstractAnnotationLoaderTest
 {
+
     protected $loader;
     protected $reader;
 
     public function testLoad()
     {
+
         $this->reader->expects($this->exactly(2))->method('getClassAnnotation');
 
         $this->reader
             ->expects($this->any())
             ->method('getMethodAnnotations')
-            ->will($this->returnValue(array()))
-        ;
+            ->will($this->returnValue(array()));
 
         $this->loader->load(__DIR__.'/../Fixtures/AnnotatedClasses');
     }
 
     public function testSupports()
     {
+
         $fixturesDir = __DIR__.'/../Fixtures';
 
-        $this->assertTrue($this->loader->supports($fixturesDir), '->supports() returns true if the resource is loadable');
+        $this->assertTrue($this->loader->supports($fixturesDir),
+            '->supports() returns true if the resource is loadable');
         $this->assertFalse($this->loader->supports('foo.foo'), '->supports() returns true if the resource is loadable');
 
-        $this->assertTrue($this->loader->supports($fixturesDir, 'annotation'), '->supports() checks the resource type if specified');
-        $this->assertFalse($this->loader->supports($fixturesDir, 'foo'), '->supports() checks the resource type if specified');
+        $this->assertTrue($this->loader->supports($fixturesDir, 'annotation'),
+            '->supports() checks the resource type if specified');
+        $this->assertFalse($this->loader->supports($fixturesDir, 'foo'),
+            '->supports() checks the resource type if specified');
     }
 
     protected function setUp()
@@ -49,6 +54,6 @@ class AnnotationDirectoryLoaderTest extends AbstractAnnotationLoaderTest
         parent::setUp();
 
         $this->reader = $this->getReader();
-        $this->loader = new AnnotationDirectoryLoader( new FileLocator(), $this->getClassLoader( $this->reader ) );
+        $this->loader = new AnnotationDirectoryLoader(new FileLocator(), $this->getClassLoader($this->reader));
     }
 }

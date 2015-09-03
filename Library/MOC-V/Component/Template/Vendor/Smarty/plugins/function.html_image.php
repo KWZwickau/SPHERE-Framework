@@ -36,7 +36,7 @@
  * @return string
  * @uses    smarty_function_escape_special_chars()
  */
-function smarty_function_html_image( $params, $template )
+function smarty_function_html_image($params, $template)
 {
 
     require_once( SMARTY_PLUGINS_DIR.'shared.escape_special_chars.php' );
@@ -62,11 +62,11 @@ function smarty_function_html_image( $params, $template )
                 break;
 
             case 'alt':
-                if (!is_array( $_val )) {
-                    $$_key = smarty_function_escape_special_chars( $_val );
+                if (!is_array($_val)) {
+                    $$_key = smarty_function_escape_special_chars($_val);
                 } else {
-                    throw new SmartyException ( "html_image: extra attribute '$_key' cannot be an array",
-                        E_USER_NOTICE );
+                    throw new SmartyException ("html_image: extra attribute '$_key' cannot be an array",
+                        E_USER_NOTICE);
                 }
                 break;
 
@@ -77,18 +77,18 @@ function smarty_function_html_image( $params, $template )
                 break;
 
             default:
-                if (!is_array( $_val )) {
-                    $extra .= ' '.$_key.'="'.smarty_function_escape_special_chars( $_val ).'"';
+                if (!is_array($_val)) {
+                    $extra .= ' '.$_key.'="'.smarty_function_escape_special_chars($_val).'"';
                 } else {
-                    throw new SmartyException ( "html_image: extra attribute '$_key' cannot be an array",
-                        E_USER_NOTICE );
+                    throw new SmartyException ("html_image: extra attribute '$_key' cannot be an array",
+                        E_USER_NOTICE);
                 }
                 break;
         }
     }
 
     if (empty( $file )) {
-        trigger_error( "html_image: missing 'file' parameter", E_USER_NOTICE );
+        trigger_error("html_image: missing 'file' parameter", E_USER_NOTICE);
 
         return;
     }
@@ -100,24 +100,24 @@ function smarty_function_html_image( $params, $template )
     }
 
     // strip file protocol
-    if (stripos( $params['file'], 'file://' ) === 0) {
-        $params['file'] = substr( $params['file'], 7 );
+    if (stripos($params['file'], 'file://') === 0) {
+        $params['file'] = substr($params['file'], 7);
     }
 
-    $protocol = strpos( $params['file'], '://' );
+    $protocol = strpos($params['file'], '://');
     if ($protocol !== false) {
-        $protocol = strtolower( substr( $params['file'], 0, $protocol ) );
+        $protocol = strtolower(substr($params['file'], 0, $protocol));
     }
 
     if (isset( $template->smarty->security_policy )) {
         if ($protocol) {
             // remote resource (or php stream, …)
-            if (!$template->smarty->security_policy->isTrustedUri( $params['file'] )) {
+            if (!$template->smarty->security_policy->isTrustedUri($params['file'])) {
                 return;
             }
         } else {
             // local file
-            if (!$template->smarty->security_policy->isTrustedResourceDir( $_image_path )) {
+            if (!$template->smarty->security_policy->isTrustedResourceDir($_image_path)) {
                 return;
             }
         }
@@ -125,17 +125,17 @@ function smarty_function_html_image( $params, $template )
 
     if (!isset( $params['width'] ) || !isset( $params['height'] )) {
         // FIXME: (rodneyrehm) getimagesize() loads the complete file off a remote resource, use custom [jpg,png,gif]header reader!
-        if (!$_image_data = @getimagesize( $_image_path )) {
-            if (!file_exists( $_image_path )) {
-                trigger_error( "html_image: unable to find '$_image_path'", E_USER_NOTICE );
+        if (!$_image_data = @getimagesize($_image_path)) {
+            if (!file_exists($_image_path)) {
+                trigger_error("html_image: unable to find '$_image_path'", E_USER_NOTICE);
 
                 return;
-            } elseif (!is_readable( $_image_path )) {
-                trigger_error( "html_image: unable to read '$_image_path'", E_USER_NOTICE );
+            } elseif (!is_readable($_image_path)) {
+                trigger_error("html_image: unable to read '$_image_path'", E_USER_NOTICE);
 
                 return;
             } else {
-                trigger_error( "html_image: '$_image_path' is not a valid image file", E_USER_NOTICE );
+                trigger_error("html_image: '$_image_path' is not a valid image file", E_USER_NOTICE);
 
                 return;
             }
@@ -150,7 +150,7 @@ function smarty_function_html_image( $params, $template )
     }
 
     if (isset( $params['dpi'] )) {
-        if (strstr( $_SERVER['HTTP_USER_AGENT'], 'Mac' )) {
+        if (strstr($_SERVER['HTTP_USER_AGENT'], 'Mac')) {
             // FIXME: (rodneyrehm) wrong dpi assumption
             // don't know who thought this up… even if it was true in 1998, it's definitely wrong in 2011.
             $dpi_default = 72;
@@ -158,8 +158,8 @@ function smarty_function_html_image( $params, $template )
             $dpi_default = 96;
         }
         $_resize = $dpi_default / $params['dpi'];
-        $width = round( $width * $_resize );
-        $height = round( $height * $_resize );
+        $width = round($width * $_resize);
+        $height = round($height * $_resize);
     }
 
     return $prefix.'<img src="'.$path_prefix.$file.'" alt="'.$alt.'" width="'.$width.'" height="'.$height.'"'.$extra.' />'.$suffix;

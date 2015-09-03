@@ -6,18 +6,21 @@ use Guzzle\Service\Resource\ResourceIterator;
 use Guzzle\Tests\Service\Mock\Model\MockCommandIterator;
 
 /**
- * @group server
+ * @group  server
  * @covers Guzzle\Service\Resource\ResourceIterator
  */
 class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testDescribesEvents()
     {
+
         $this->assertInternalType('array', ResourceIterator::getAllEvents());
     }
 
     public function testConstructorConfiguresDefaults()
     {
+
         $ri = $this->getMockForAbstractClass('Guzzle\\Service\\Resource\\ResourceIterator', array(
             $this->getServiceBuilder()->get('mock')->getCommand('iterable_command'),
             array(
@@ -32,6 +35,7 @@ class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSendsRequestsForNextSetOfResources()
     {
+
         // Queue up an array of responses for iterating
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
@@ -74,6 +78,7 @@ class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCalculatesPageSize()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 200 OK\r\nContent-Length: 52\r\n\r\n{ \"next_token\": \"g\", \"resources\": [\"d\", \"e\", \"f\"] }",
@@ -96,6 +101,7 @@ class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUseAsArray()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 200 OK\r\nContent-Length: 52\r\n\r\n{ \"next_token\": \"g\", \"resources\": [\"d\", \"e\", \"f\"] }",
@@ -121,6 +127,7 @@ class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testBailsWhenSendReturnsNoResults()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 200 OK\r\n\r\n{ \"next_token\": \"g\", \"resources\": [\"d\", \"e\", \"f\"] }",
@@ -141,6 +148,7 @@ class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHoldsDataOptions()
     {
+
         $ri = new MockCommandIterator($this->getServiceBuilder()->get('mock')->getCommand('iterable_command'));
         $this->assertNull($ri->get('foo'));
         $this->assertSame($ri, $ri->set('foo', 'bar'));
@@ -149,6 +157,7 @@ class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSettingLimitOrPageSizeClearsData()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 200 OK\r\n\r\n{ \"next_token\": \"\", \"resources\": [\"d\", \"e\", \"f\"] }",
@@ -171,6 +180,7 @@ class ResourceIteratorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testWorksWithCustomAppendIterator()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 200 OK\r\n\r\n{ \"next_token\": \"\", \"resources\": [\"d\", \"e\", \"f\"] }"

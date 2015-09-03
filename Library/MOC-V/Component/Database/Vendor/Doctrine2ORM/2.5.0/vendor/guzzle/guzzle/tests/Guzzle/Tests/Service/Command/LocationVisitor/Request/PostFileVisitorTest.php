@@ -2,18 +2,20 @@
 
 namespace Guzzle\Tests\Service\Command\LocationVisitor\Request;
 
-use Guzzle\Service\Client;
-use Guzzle\Service\Description\ServiceDescription;
 use Guzzle\Http\Message\PostFile;
+use Guzzle\Service\Client;
 use Guzzle\Service\Command\LocationVisitor\Request\PostFileVisitor as Visitor;
+use Guzzle\Service\Description\ServiceDescription;
 
 /**
  * @covers Guzzle\Service\Command\LocationVisitor\Request\PostFileVisitor
  */
 class PostFileVisitorTest extends AbstractVisitorTestCase
 {
+
     public function testVisitsLocation()
     {
+
         $visitor = new Visitor();
         $param = $this->getNestedCommand('postFile')->getParam('foo');
 
@@ -28,6 +30,7 @@ class PostFileVisitorTest extends AbstractVisitorTestCase
 
     public function testVisitsLocationWithMultipleFiles()
     {
+
         $description = ServiceDescription::factory(array(
             'operations' => array(
                 'DoPost' => array(

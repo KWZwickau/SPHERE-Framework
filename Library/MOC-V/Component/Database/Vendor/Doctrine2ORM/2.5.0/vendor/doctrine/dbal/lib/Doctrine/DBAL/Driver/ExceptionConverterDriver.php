@@ -29,6 +29,7 @@ namespace Doctrine\DBAL\Driver;
  */
 interface ExceptionConverterDriver
 {
+
     /**
      * Converts a given DBAL driver exception into a standardized DBAL driver exception.
      *

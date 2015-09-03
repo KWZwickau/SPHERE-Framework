@@ -2,15 +2,17 @@
 
 namespace Doctrine\Tests\DBAL\Schema;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Types\Type;
 
 class ColumnTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testGet()
     {
+
         $column = $this->createColumn();
 
         $this->assertEquals("foo", $column->getName());
@@ -35,41 +37,20 @@ class ColumnTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($column->hasCustomSchemaOption('foo'));
     }
 
-    public function testToArray()
-    {
-        $expected = array(
-            'name' => 'foo',
-            'type' => Type::getType('string'),
-            'default' => 'baz',
-            'notnull' => false,
-            'length' => 200,
-            'precision' => 5,
-            'scale' => 2,
-            'fixed' => true,
-            'unsigned' => true,
-            'autoincrement' => false,
-            'columnDefinition' => null,
-            'comment' => null,
-            'foo' => 'bar',
-            'bar' => 'baz'
-        );
-
-        $this->assertEquals($expected, $this->createColumn()->toArray());
-    }
-
     /**
      * @return Column
      */
     public function createColumn()
     {
+
         $options = array(
-            'length' => 200,
-            'precision' => 5,
-            'scale' => 2,
-            'unsigned' => true,
-            'notnull' => false,
-            'fixed' => true,
-            'default' => 'baz',
+            'length'          => 200,
+            'precision'       => 5,
+            'scale'           => 2,
+            'unsigned'        => true,
+            'notnull'         => false,
+            'fixed'           => true,
+            'default'         => 'baz',
             'platformOptions' => array('foo' => 'bar'),
             'customSchemaOptions' => array('bar' => 'baz'),
         );
@@ -78,12 +59,36 @@ class ColumnTest extends \PHPUnit_Framework_TestCase
         return new Column("foo", $string, $options);
     }
 
+    public function testToArray()
+    {
+
+        $expected = array(
+            'name'             => 'foo',
+            'type'             => Type::getType('string'),
+            'default'          => 'baz',
+            'notnull'          => false,
+            'length'           => 200,
+            'precision'        => 5,
+            'scale'            => 2,
+            'fixed'            => true,
+            'unsigned'         => true,
+            'autoincrement'    => false,
+            'columnDefinition' => null,
+            'comment'          => null,
+            'foo'              => 'bar',
+            'bar'              => 'baz'
+        );
+
+        $this->assertEquals($expected, $this->createColumn()->toArray());
+    }
+
     /**
      * @group DBAL-64
      * @group DBAL-830
      */
     public function testQuotedColumnName()
     {
+
         $string = Type::getType('string');
         $column = new Column("`bar`", $string, array());
 
@@ -104,10 +109,11 @@ class ColumnTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider getIsQuoted
-     * @group DBAL-830
+     * @group        DBAL-830
      */
     public function testIsQuoted($columnName, $isQuoted)
     {
+
         $type = Type::getType('string');
         $column = new Column($columnName, $type);
 
@@ -116,6 +122,7 @@ class ColumnTest extends \PHPUnit_Framework_TestCase
 
     public function getIsQuoted()
     {
+
         return array(
             array('bar', false),
             array('`bar`', true),
@@ -129,6 +136,7 @@ class ColumnTest extends \PHPUnit_Framework_TestCase
      */
     public function testColumnComment()
     {
+
         $column = new Column("bar", Type::getType('string'));
         $this->assertNull($column->getComment());
 

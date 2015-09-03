@@ -7,6 +7,7 @@ namespace Guzzle\Parser\Url;
  */
 interface UrlParserInterface
 {
+
     /**
      * Parse a URL using special handling for a subset of UTF-8 characters in the query string if needed.
      *

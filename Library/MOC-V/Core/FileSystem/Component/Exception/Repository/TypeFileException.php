@@ -16,12 +16,12 @@ class TypeFileException extends ComponentException
      * @param int    $Code
      * @param null   $Previous
      */
-    public function __construct( $Message = "", $Code = 0, $Previous = null )
+    public function __construct($Message = "", $Code = 0, $Previous = null)
     {
 
         $Message = $Message.' is not a file!';
 
-        parent::__construct( $Message, $Code, $Previous );
+        parent::__construct($Message, $Code, $Previous);
     }
 
 }

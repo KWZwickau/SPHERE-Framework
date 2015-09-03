@@ -28,13 +28,13 @@ class Factory extends Base
      *
      * @return Eden\System\File
      */
-    public function file( $path )
+    public function file($path)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        return File::i( $path );
+        return File::i($path);
     }
 
     /**
@@ -44,13 +44,13 @@ class Factory extends Base
      *
      * @return Eden\System\Folder
      */
-    public function folder( $path )
+    public function folder($path)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        return Folder::i( $path );
+        return Folder::i($path);
     }
 
     /**
@@ -60,12 +60,12 @@ class Factory extends Base
      *
      * @return Eden\System\Path
      */
-    public function path( $path )
+    public function path($path)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        return Path::i( $path );
+        return Path::i($path);
     }
 }

@@ -32,6 +32,7 @@ namespace Doctrine\Common\Cache;
  */
 class ArrayCache extends CacheProvider
 {
+
     /**
      * @var array $data
      */
@@ -42,6 +43,7 @@ class ArrayCache extends CacheProvider
      */
     protected function doFetch($id)
     {
+
         return $this->doContains($id) ? $this->data[$id] : false;
     }
 
@@ -50,8 +52,9 @@ class ArrayCache extends CacheProvider
      */
     protected function doContains($id)
     {
+
         // isset() is required for performance optimizations, to avoid unnecessary function calls to array_key_exists.
-        return isset($this->data[$id]) || array_key_exists($id, $this->data);
+        return isset( $this->data[$id] ) || array_key_exists($id, $this->data);
     }
 
     /**
@@ -59,6 +62,7 @@ class ArrayCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         $this->data[$id] = $data;
 
         return true;
@@ -69,7 +73,8 @@ class ArrayCache extends CacheProvider
      */
     protected function doDelete($id)
     {
-        unset($this->data[$id]);
+
+        unset( $this->data[$id] );
 
         return true;
     }
@@ -79,6 +84,7 @@ class ArrayCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         $this->data = array();
 
         return true;
@@ -89,6 +95,7 @@ class ArrayCache extends CacheProvider
      */
     protected function doGetStats()
     {
+
         return null;
     }
 }

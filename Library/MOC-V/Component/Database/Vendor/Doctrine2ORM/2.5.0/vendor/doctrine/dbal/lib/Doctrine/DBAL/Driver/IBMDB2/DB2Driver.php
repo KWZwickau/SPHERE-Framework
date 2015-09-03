@@ -24,30 +24,32 @@ use Doctrine\DBAL\Driver\AbstractDB2Driver;
 /**
  * IBM DB2 Driver.
  *
- * @since 2.0
+ * @since  2.0
  * @author Benjamin Eberlei <kontakt@beberlei.de>
  */
 class DB2Driver extends AbstractDB2Driver
 {
+
     /**
      * {@inheritdoc}
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
-        if ( ! isset($params['protocol'])) {
+
+        if (!isset( $params['protocol'] )) {
             $params['protocol'] = 'TCPIP';
         }
 
         if ($params['host'] !== 'localhost' && $params['host'] != '127.0.0.1') {
             // if the host isn't localhost, use extended connection params
-            $params['dbname'] = 'DRIVER={IBM DB2 ODBC DRIVER}' .
-                     ';DATABASE=' . $params['dbname'] .
-                     ';HOSTNAME=' . $params['host'] .
-                     ';PROTOCOL=' . $params['protocol'] .
-                     ';UID='      . $username .
-                     ';PWD='      . $password .';';
-            if (isset($params['port'])) {
-                $params['dbname'] .= 'PORT=' . $params['port'];
+            $params['dbname'] = 'DRIVER={IBM DB2 ODBC DRIVER}'.
+                ';DATABASE='.$params['dbname'].
+                ';HOSTNAME='.$params['host'].
+                ';PROTOCOL='.$params['protocol'].
+                ';UID='.$username.
+                ';PWD='.$password.';';
+            if (isset( $params['port'] )) {
+                $params['dbname'] .= 'PORT='.$params['port'];
             }
 
             $username = null;
@@ -62,6 +64,7 @@ class DB2Driver extends AbstractDB2Driver
      */
     public function getName()
     {
+
         return 'ibm_db2';
     }
 }

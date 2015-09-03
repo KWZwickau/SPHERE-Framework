@@ -44,53 +44,53 @@ class Loader extends Nette\Object
      *
      * @return array
      */
-    public function load( $file, $section = null )
+    public function load($file, $section = null)
     {
 
-        if (!is_file( $file ) || !is_readable( $file )) {
-            throw new Nette\FileNotFoundException( "File '$file' is missing or is not readable." );
+        if (!is_file($file) || !is_readable($file)) {
+            throw new Nette\FileNotFoundException("File '$file' is missing or is not readable.");
         }
-        $this->dependencies[] = $file = realpath( $file );
-        $data = $this->getAdapter( $file )->load( $file );
+        $this->dependencies[] = $file = realpath($file);
+        $data = $this->getAdapter($file)->load($file);
 
         if ($section) {
             if (isset( $data[self::INCLUDES_KEY] )) {
-                throw new Nette\InvalidStateException( "Section 'includes' must be placed under some top section in file '$file'." );
+                throw new Nette\InvalidStateException("Section 'includes' must be placed under some top section in file '$file'.");
             }
-            $data = $this->getSection( $data, $section, $file );
+            $data = $this->getSection($data, $section, $file);
         }
 
         // include child files
         $merged = array();
         if (isset( $data[self::INCLUDES_KEY] )) {
-            Validators::assert( $data[self::INCLUDES_KEY], 'list', "section 'includes' in file '$file'" );
+            Validators::assert($data[self::INCLUDES_KEY], 'list', "section 'includes' in file '$file'");
             foreach ($data[self::INCLUDES_KEY] as $include) {
-                $merged = Helpers::merge( $this->load( dirname( $file ).'/'.$include ), $merged );
+                $merged = Helpers::merge($this->load(dirname($file).'/'.$include), $merged);
             }
         }
         unset( $data[self::INCLUDES_KEY] );
 
-        return Helpers::merge( $data, $merged );
+        return Helpers::merge($data, $merged);
     }
 
     /** @return IAdapter */
-    private function getAdapter( $file )
+    private function getAdapter($file)
     {
 
-        $extension = strtolower( pathinfo( $file, PATHINFO_EXTENSION ) );
+        $extension = strtolower(pathinfo($file, PATHINFO_EXTENSION));
         if (!isset( $this->adapters[$extension] )) {
-            throw new Nette\InvalidArgumentException( "Unknown file extension '$file'." );
+            throw new Nette\InvalidArgumentException("Unknown file extension '$file'.");
         }
-        return is_object( $this->adapters[$extension] ) ? $this->adapters[$extension] : new $this->adapters[$extension];
+        return is_object($this->adapters[$extension]) ? $this->adapters[$extension] : new $this->adapters[$extension];
     }
 
-    private function getSection( array $data, $key, $file )
+    private function getSection(array $data, $key, $file)
     {
 
-        Validators::assertField( $data, $key, 'array|null', "section '%' in file '$file'" );
+        Validators::assertField($data, $key, 'array|null', "section '%' in file '$file'");
         $item = $data[$key];
-        if ($parent = Helpers::takeParent( $item )) {
-            $item = Helpers::merge( $item, $this->getSection( $data, $parent, $file ) );
+        if ($parent = Helpers::takeParent($item)) {
+            $item = Helpers::merge($item, $this->getSection($data, $parent, $file));
         }
         return $item;
     }
@@ -103,11 +103,11 @@ class Loader extends Nette\Object
      *
      * @return void
      */
-    public function save( $data, $file )
+    public function save($data, $file)
     {
 
-        if (file_put_contents( $file, $this->getAdapter( $file )->dump( $data ) ) === false) {
-            throw new Nette\IOException( "Cannot write file '$file'." );
+        if (file_put_contents($file, $this->getAdapter($file)->dump($data)) === false) {
+            throw new Nette\IOException("Cannot write file '$file'.");
         }
     }
 
@@ -119,7 +119,7 @@ class Loader extends Nette\Object
     public function getDependencies()
     {
 
-        return array_unique( $this->dependencies );
+        return array_unique($this->dependencies);
     }
 
     /**
@@ -130,10 +130,10 @@ class Loader extends Nette\Object
      *
      * @return Loader  provides a fluent interface
      */
-    public function addAdapter( $extension, $adapter )
+    public function addAdapter($extension, $adapter)
     {
 
-        $this->adapters[strtolower( $extension )] = $adapter;
+        $this->adapters[strtolower($extension)] = $adapter;
         return $this;
     }
 

@@ -66,11 +66,11 @@ abstract class TexyObject
      * @return mixed
      * @throws MemberAccessException
      */
-    public static function __callStatic( $name, $args )
+    public static function __callStatic($name, $args)
     {
 
         $class = get_called_class();
-        throw new MemberAccessException( "Call to undefined static method $class::$name()." );
+        throw new MemberAccessException("Call to undefined static method $class::$name().");
     }
 
     /**
@@ -83,7 +83,7 @@ abstract class TexyObject
     {
 
         return /*get_called_class()*/ /**/
-            get_class( $this )/**/
+            get_class($this)/**/
             ;
     }
 
@@ -95,7 +95,7 @@ abstract class TexyObject
     final public function getReflection()
     {
 
-        return new ReflectionObject( $this );
+        return new ReflectionObject($this);
     }
 
     /**
@@ -107,28 +107,28 @@ abstract class TexyObject
      * @return mixed
      * @throws MemberAccessException
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        $class = get_class( $this );
+        $class = get_class($this);
 
         if ($name === '') {
-            throw new MemberAccessException( "Call to class '$class' method without name." );
+            throw new MemberAccessException("Call to class '$class' method without name.");
         }
 
         // event functionality
-        if (preg_match( '#^on[A-Z]#', $name )) {
-            $rp = new ReflectionProperty( $class, $name );
+        if (preg_match('#^on[A-Z]#', $name)) {
+            $rp = new ReflectionProperty($class, $name);
             if ($rp->isPublic() && !$rp->isStatic()) {
                 $list = $this->$name;
-                if (is_array( $list ) || $list instanceof Traversable) {
+                if (is_array($list) || $list instanceof Traversable) {
                     foreach ($list as $handler) {
                         /**/
-                        if (is_object( $handler )) {
-                            call_user_func_array( array( $handler, '__invoke' ), $args );
+                        if (is_object($handler)) {
+                            call_user_func_array(array($handler, '__invoke'), $args);
 
                         } else /**/ {
-                            call_user_func_array( $handler, $args );
+                            call_user_func_array($handler, $args);
                         }
                     }
                 }
@@ -137,12 +137,12 @@ abstract class TexyObject
         }
 
         // extension methods
-        if ($cb = self::extensionMethod( "$class::$name" )) {
-            array_unshift( $args, $this );
-            return call_user_func_array( $cb, $args );
+        if ($cb = self::extensionMethod("$class::$name")) {
+            array_unshift($args, $this);
+            return call_user_func_array($cb, $args);
         }
 
-        throw new MemberAccessException( "Call to undefined method $class::$name()." );
+        throw new MemberAccessException("Call to undefined method $class::$name().");
     }
 
     /**
@@ -153,14 +153,14 @@ abstract class TexyObject
      *
      * @return mixed
      */
-    public static function extensionMethod( $name, $callback = null )
+    public static function extensionMethod($name, $callback = null)
     {
 
         if (self::$extMethods === null || $name === null) { // for backwards compatibility
             $list = get_defined_functions();
             foreach ($list['user'] as $fce) {
-                $pair = explode( '_prototype_', $fce );
-                if (count( $pair ) === 2) {
+                $pair = explode('_prototype_', $fce);
+                if (count($pair) === 2) {
                     self::$extMethods[$pair[1]][$pair[0]] = $fce;
                     self::$extMethods[$pair[1]][''] = null;
                 }
@@ -170,14 +170,14 @@ abstract class TexyObject
             }
         }
 
-        $name = strtolower( $name );
-        $a = strrpos( $name, ':' ); // search ::
+        $name = strtolower($name);
+        $a = strrpos($name, ':'); // search ::
         if ($a === false) {
-            $class = strtolower( get_called_class() );
+            $class = strtolower(get_called_class());
             $l = &self::$extMethods[$name];
         } else {
-            $class = substr( $name, 0, $a - 1 );
-            $l = &self::$extMethods[substr( $name, $a + 1 )];
+            $class = substr($name, 0, $a - 1);
+            $l = &self::$extMethods[substr($name, $a + 1)];
         }
 
         if ($callback !== null) { // works as setter
@@ -195,14 +195,14 @@ abstract class TexyObject
         }
         $cl = $class;
         do {
-            $cl = strtolower( $cl );
+            $cl = strtolower($cl);
             if (isset( $l[$cl] )) {
                 return $l[''][$class] = $l[$cl];
             }
-        } while (( $cl = get_parent_class( $cl ) ) !== false);
+        } while (( $cl = get_parent_class($cl) ) !== false);
 
-        foreach (class_implements( $class ) as $cl) {
-            $cl = strtolower( $cl );
+        foreach (class_implements($class) as $cl) {
+            $cl = strtolower($cl);
             if (isset( $l[$cl] )) {
                 return $l[''][$class] = $l[$cl];
             }
@@ -219,19 +219,19 @@ abstract class TexyObject
      * @return mixed   property value
      * @throws MemberAccessException if the property is not defined.
      */
-    public function &__get( $name )
+    public function &__get($name)
     {
 
-        $class = get_class( $this );
+        $class = get_class($this);
 
         if ($name === '') {
-            throw new MemberAccessException( "Cannot read a class '$class' property without name." );
+            throw new MemberAccessException("Cannot read a class '$class' property without name.");
         }
 
         // property getter support
         $name[0] = $name[0] & "\xDF"; // case-sensitive checking, capitalize first character
         $m = 'get'.$name;
-        if (self::hasAccessor( $class, $m )) {
+        if (self::hasAccessor($class, $m)) {
             // ampersands:
             // - uses &__get() because declaration should be forward compatible (e.g. with Nette\Web\Html)
             // - doesn't call &$this->$m because user could bypass property setter by: $x = & $obj->property; $x = 'new value';
@@ -240,13 +240,13 @@ abstract class TexyObject
         }
 
         $m = 'is'.$name;
-        if (self::hasAccessor( $class, $m )) {
+        if (self::hasAccessor($class, $m)) {
             $val = $this->$m();
             return $val;
         }
 
-        $name = func_get_arg( 0 );
-        throw new MemberAccessException( "Cannot read an undeclared property $class::\$$name." );
+        $name = func_get_arg(0);
+        throw new MemberAccessException("Cannot read an undeclared property $class::\$$name.");
     }
 
 
@@ -259,31 +259,31 @@ abstract class TexyObject
      * @return void
      * @throws MemberAccessException if the property is not defined or is read-only
      */
-    public function __set( $name, $value )
+    public function __set($name, $value)
     {
 
-        $class = get_class( $this );
+        $class = get_class($this);
 
         if ($name === '') {
-            throw new MemberAccessException( "Cannot assign to a class '$class' property without name." );
+            throw new MemberAccessException("Cannot assign to a class '$class' property without name.");
         }
 
         // property setter support
         $name[0] = $name[0] & "\xDF"; // case-sensitive checking, capitalize first character
-        if (self::hasAccessor( $class, 'get'.$name ) || self::hasAccessor( $class, 'is'.$name )) {
+        if (self::hasAccessor($class, 'get'.$name) || self::hasAccessor($class, 'is'.$name)) {
             $m = 'set'.$name;
-            if (self::hasAccessor( $class, $m )) {
-                $this->$m( $value );
+            if (self::hasAccessor($class, $m)) {
+                $this->$m($value);
                 return;
 
             } else {
-                $name = func_get_arg( 0 );
-                throw new MemberAccessException( "Cannot assign to a read-only property $class::\$$name." );
+                $name = func_get_arg(0);
+                throw new MemberAccessException("Cannot assign to a read-only property $class::\$$name.");
             }
         }
 
-        $name = func_get_arg( 0 );
-        throw new MemberAccessException( "Cannot assign to an undeclared property $class::\$$name." );
+        $name = func_get_arg(0);
+        throw new MemberAccessException("Cannot assign to an undeclared property $class::\$$name.");
     }
 
     /**
@@ -294,7 +294,7 @@ abstract class TexyObject
      *
      * @return bool
      */
-    private static function hasAccessor( $c, $m )
+    private static function hasAccessor($c, $m)
     {
 
         static $cache;
@@ -304,7 +304,7 @@ abstract class TexyObject
             // but returns static methods too (nothing doing...)
             // and is much faster than reflection
             // (works good since 5.0.4)
-            $cache[$c] = array_flip( get_class_methods( $c ) );
+            $cache[$c] = array_flip(get_class_methods($c));
         }
         return isset( $cache[$c][$m] );
     }
@@ -316,11 +316,11 @@ abstract class TexyObject
      *
      * @return bool
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
         $name[0] = $name[0] & "\xDF";
-        return $name !== '' && self::hasAccessor( get_class( $this ), 'get'.$name );
+        return $name !== '' && self::hasAccessor(get_class($this), 'get'.$name);
     }
 
     /**
@@ -331,11 +331,11 @@ abstract class TexyObject
      * @return void
      * @throws MemberAccessException
      */
-    public function __unset( $name )
+    public function __unset($name)
     {
 
-        $class = get_class( $this );
-        throw new MemberAccessException( "Cannot unset the property $class::\$$name." );
+        $class = get_class($this);
+        throw new MemberAccessException("Cannot unset the property $class::\$$name.");
     }
 
 }

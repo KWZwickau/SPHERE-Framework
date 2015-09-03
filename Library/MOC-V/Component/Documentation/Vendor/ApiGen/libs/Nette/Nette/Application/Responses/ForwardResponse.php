@@ -30,7 +30,7 @@ class ForwardResponse extends Nette\Object implements Nette\Application\IRespons
     /**
      * @param  Nette\Application\Request new request
      */
-    public function __construct( Nette\Application\Request $request )
+    public function __construct(Nette\Application\Request $request)
     {
 
         $this->request = $request;
@@ -52,7 +52,7 @@ class ForwardResponse extends Nette\Object implements Nette\Application\IRespons
      *
      * @return void
      */
-    public function send( Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse )
+    public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse)
     {
     }
 

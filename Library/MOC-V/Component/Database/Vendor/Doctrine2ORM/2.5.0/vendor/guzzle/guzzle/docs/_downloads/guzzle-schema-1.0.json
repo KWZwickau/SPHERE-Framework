@@ -5,7 +5,10 @@
         "description": "Name of the web service"
     },
     "apiVersion": {
-        "type": ["string", "number"],
+        "type": [
+            "string",
+            "number"
+        ],
         "description": "Version identifier that the service description is compatible with"
     },
     "baseUrl": {
@@ -55,7 +58,12 @@
             "responseType": {
                 "type": "string",
                 "description": "The type of response that the operation creates. If not specified, this value will be automatically inferred based on whether or not there is a model matching the name, if a matching class name is found, or set to 'primitive' by default.",
-                "enum": [ "primitive", "class", "model", "documentation" ]
+                "enum": [
+                    "primitive",
+                    "class",
+                    "model",
+                    "documentation"
+                ]
             },
             "deprecated": {
                 "type": "boolean",
@@ -91,8 +99,8 @@
                 "description": "Parameters of the operation. Parameters are used to define how input data is serialized into a HTTP request."
             },
             "additionalParameters": {
-              "$ref": "parameters",
-              "description": "Validation and serialization rules for any parameter supplied to the operation that was not explicitly defined."
+                "$ref": "parameters",
+                "description": "Validation and serialization rules for any parameter supplied to the operation that was not explicitly defined."
             }
         }
     },
@@ -121,7 +129,10 @@
                 "description": "Unique name of the parameter"
             },
             "type": {
-                "type": ["string", "array"],
+                "type": [
+                    "string",
+                    "array"
+                ],
                 "description": "Type of variable (string, number, integer, boolean, object, array, numeric, null, any). Types are using for validation and determining the structure of a parameter. You can use a union type by providing an array of simple types. If one of the union types matches the provided value, then the value is valid."
             },
             "instanceOf": {
@@ -155,20 +166,23 @@
                 "type": "array",
                 "description": "Array of static method names to to run a parameter value through. Each value in the array must be a string containing the full class path to a static method or an array of complex filter information. You can specify static methods of classes using the full namespace class name followed by ‘::’ (e.g. FooBar::baz()). Some filters require arguments in order to properly filter a value. For complex filters, use a hash containing a ‘method’ key pointing to a static method, and an ‘args’ key containing an array of positional arguments to pass to the method. Arguments can contain keywords that are replaced when filtering a value: '@value‘ is replaced with the value being validated, '@api‘ is replaced with the Parameter object.",
                 "items": {
-                    "type": ["string", {
-                        "object": {
-                            "properties": {
-                                "method": {
-                                    "type": "string",
-                                    "description": "PHP function to call",
-                                    "required": true
-                                },
-                                "args": {
-                                    "type": "array"
+                    "type": [
+                        "string",
+                        {
+                            "object": {
+                                "properties": {
+                                    "method": {
+                                        "type": "string",
+                                        "description": "PHP function to call",
+                                        "required": true
+                                    },
+                                    "args": {
+                                        "type": "array"
+                                    }
                                 }
                             }
                         }
-                    }]
+                    ]
                 }
             }
         }

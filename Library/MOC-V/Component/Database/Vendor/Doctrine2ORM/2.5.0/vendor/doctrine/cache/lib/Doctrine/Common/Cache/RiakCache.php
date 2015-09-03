@@ -21,8 +21,8 @@ namespace Doctrine\Common\Cache;
 
 use Riak\Bucket;
 use Riak\Connection;
-use Riak\Input;
 use Riak\Exception;
+use Riak\Input;
 use Riak\Object;
 
 /**
@@ -34,6 +34,7 @@ use Riak\Object;
  */
 class RiakCache extends CacheProvider
 {
+
     const EXPIRES_HEADER = 'X-Riak-Meta-Expires';
 
     /**
@@ -48,6 +49,7 @@ class RiakCache extends CacheProvider
      */
     public function __construct(Bucket $bucket)
     {
+
         $this->bucket = $bucket;
     }
 
@@ -56,16 +58,17 @@ class RiakCache extends CacheProvider
      */
     protected function doFetch($id)
     {
+
         try {
             $response = $this->bucket->get($id);
 
             // No objects found
-            if ( ! $response->hasObject()) {
+            if (!$response->hasObject()) {
                 return false;
             }
 
             // Check for attempted siblings
-            $object = ($response->hasSiblings())
+            $object = ( $response->hasSiblings() )
                 ? $this->resolveConflict($id, $response->getVClock(), $response->getObjectList())
                 : $response->getFirstObject();
 
@@ -89,10 +92,64 @@ class RiakCache extends CacheProvider
     }
 
     /**
+     * On-read conflict resolution. Applied approach here is last write wins.
+     * Specific needs may override this method to apply alternate conflict resolutions.
+     *
+     * {@internal Riak does not attempt to resolve a write conflict, and store
+     * it as sibling of conflicted one. By following this approach, it is up to
+     * the next read to resolve the conflict. When this happens, your fetched
+     * object will have a list of siblings (read as a list of objects).
+     * In our specific case, we do not care about the intermediate ones since
+     * they are all the same read from storage, and we do apply a last sibling
+     * (last write) wins logic.
+     * If by any means our resolution generates another conflict, it'll up to
+     * next read to properly solve it.}
+     *
+     * @param string $id
+     * @param string $vClock
+     * @param array  $objectList
+     *
+     * @return \Riak\Object
+     */
+    protected function resolveConflict($id, $vClock, array $objectList)
+    {
+
+        // Our approach here is last-write wins
+        $winner = $objectList[count($objectList)];
+
+        $putInput = new Input\PutInput();
+        $putInput->setVClock($vClock);
+
+        $mergedObject = new Object($id);
+        $mergedObject->setContent($winner->getContent());
+
+        $this->bucket->put($mergedObject, $putInput);
+
+        return $mergedObject;
+    }
+
+    /**
+     * Check if a given Riak Object have expired.
+     *
+     * @param \Riak\Object $object
+     *
+     * @return boolean
+     */
+    private function isExpired(Object $object)
+    {
+
+        $metadataMap = $object->getMetadataMap();
+
+        return isset( $metadataMap[self::EXPIRES_HEADER] )
+        && $metadataMap[self::EXPIRES_HEADER] < time();
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function doContains($id)
     {
+
         try {
             // We only need the HEAD, not the entire object
             $input = new Input\GetInput();
@@ -102,7 +159,7 @@ class RiakCache extends CacheProvider
             $response = $this->bucket->get($id, $input);
 
             // No objects found
-            if ( ! $response->hasObject()) {
+            if (!$response->hasObject()) {
                 return false;
             }
 
@@ -128,13 +185,14 @@ class RiakCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         try {
             $object = new Object($id);
 
             $object->setContent(serialize($data));
 
             if ($lifeTime > 0) {
-                $object->addMetadata(self::EXPIRES_HEADER, (string) (time() + $lifeTime));
+                $object->addMetadata(self::EXPIRES_HEADER, (string)( time() + $lifeTime ));
             }
 
             $this->bucket->put($object);
@@ -152,6 +210,7 @@ class RiakCache extends CacheProvider
      */
     protected function doDelete($id)
     {
+
         try {
             $this->bucket->delete($id);
 
@@ -173,6 +232,7 @@ class RiakCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         try {
             $keyList = $this->bucket->getKeyList();
 
@@ -193,58 +253,8 @@ class RiakCache extends CacheProvider
      */
     protected function doGetStats()
     {
+
         // Only exposed through HTTP stats API, not Protocol Buffers API
         return null;
-    }
-
-    /**
-     * Check if a given Riak Object have expired.
-     *
-     * @param \Riak\Object $object
-     *
-     * @return boolean
-     */
-    private function isExpired(Object $object)
-    {
-        $metadataMap = $object->getMetadataMap();
-
-        return isset($metadataMap[self::EXPIRES_HEADER])
-            && $metadataMap[self::EXPIRES_HEADER] < time();
-    }
-
-    /**
-     * On-read conflict resolution. Applied approach here is last write wins.
-     * Specific needs may override this method to apply alternate conflict resolutions.
-     *
-     * {@internal Riak does not attempt to resolve a write conflict, and store
-     * it as sibling of conflicted one. By following this approach, it is up to
-     * the next read to resolve the conflict. When this happens, your fetched
-     * object will have a list of siblings (read as a list of objects).
-     * In our specific case, we do not care about the intermediate ones since
-     * they are all the same read from storage, and we do apply a last sibling
-     * (last write) wins logic.
-     * If by any means our resolution generates another conflict, it'll up to
-     * next read to properly solve it.}
-     *
-     * @param string $id
-     * @param string $vClock
-     * @param array  $objectList
-     *
-     * @return \Riak\Object
-     */
-    protected function resolveConflict($id, $vClock, array $objectList)
-    {
-        // Our approach here is last-write wins
-        $winner = $objectList[count($objectList)];
-
-        $putInput = new Input\PutInput();
-        $putInput->setVClock($vClock);
-
-        $mergedObject = new Object($id);
-        $mergedObject->setContent($winner->getContent());
-
-        $this->bucket->put($mergedObject, $putInput);
-
-        return $mergedObject;
     }
 }

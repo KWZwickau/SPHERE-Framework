@@ -16,23 +16,25 @@ namespace Symfony\Component\HttpKernel\DataCollector\Util;
  */
 class ValueExporter
 {
+
     /**
      * Converts a PHP value to a string.
      *
-     * @param mixed   $value The PHP value
-     * @param int     $depth only for internal usage
-     * @param bool    $deep  only for internal usage
+     * @param mixed $value The PHP value
+     * @param int   $depth only for internal usage
+     * @param bool  $deep  only for internal usage
      *
      * @return string The string representation of the given value
      */
     public function exportValue($value, $depth = 1, $deep = false)
     {
+
         if (is_object($value)) {
             return sprintf('Object(%s)', get_class($value));
         }
 
         if (is_array($value)) {
-            if (empty($value)) {
+            if (empty( $value )) {
                 return '[]';
             }
 
@@ -47,7 +49,8 @@ class ValueExporter
             }
 
             if ($deep) {
-                return sprintf("[\n%s%s\n%s]", $indent, implode(sprintf(", \n%s", $indent), $a), str_repeat('  ', $depth - 1));
+                return sprintf("[\n%s%s\n%s]", $indent, implode(sprintf(", \n%s", $indent), $a),
+                    str_repeat('  ', $depth - 1));
             }
 
             return sprintf("[%s]", implode(', ', $a));
@@ -69,6 +72,6 @@ class ValueExporter
             return 'true';
         }
 
-        return (string) $value;
+        return (string)$value;
     }
 }

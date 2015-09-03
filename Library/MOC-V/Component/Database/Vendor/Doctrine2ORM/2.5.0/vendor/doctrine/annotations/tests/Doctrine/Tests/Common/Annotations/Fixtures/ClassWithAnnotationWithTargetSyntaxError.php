@@ -2,13 +2,12 @@
 
 namespace Doctrine\Tests\Common\Annotations\Fixtures;
 
-use Doctrine\Tests\Common\Annotations\Fixtures\AnnotationWithTargetSyntaxError;
-
 /**
  * @AnnotationWithTargetSyntaxError()
  */
 class ClassWithAnnotationWithTargetSyntaxError
 {
+
     /**
      * @AnnotationWithTargetSyntaxError()
      */
@@ -17,5 +16,7 @@ class ClassWithAnnotationWithTargetSyntaxError
     /**
      * @AnnotationWithTargetSyntaxError()
      */
-    public function bar(){}
+    public function bar()
+    {
+    }
 }

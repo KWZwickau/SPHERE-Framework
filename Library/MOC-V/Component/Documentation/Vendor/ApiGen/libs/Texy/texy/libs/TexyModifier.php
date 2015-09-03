@@ -116,14 +116,14 @@ final class TexyModifier extends TexyObject
     /**
      * @param  string modifier to parse
      */
-    public function __construct( $mod = null )
+    public function __construct($mod = null)
     {
 
-        $this->setProperties( $mod );
+        $this->setProperties($mod);
     }
 
 
-    public function setProperties( $mod )
+    public function setProperties($mod)
     {
 
         if (!$mod) {
@@ -131,25 +131,25 @@ final class TexyModifier extends TexyObject
         }
 
         $p = 0;
-        $len = strlen( $mod );
+        $len = strlen($mod);
 
         while ($p < $len) {
             $ch = $mod[$p];
 
             if ($ch === '(') { // title
-                $a = strpos( $mod, ')', $p ) + 1;
-                $this->title = Texy::unescapeHtml( trim( substr( $mod, $p + 1, $a - $p - 2 ) ) );
+                $a = strpos($mod, ')', $p) + 1;
+                $this->title = Texy::unescapeHtml(trim(substr($mod, $p + 1, $a - $p - 2)));
                 $p = $a;
 
             } elseif ($ch === '{') { // style & attributes
-                $a = strpos( $mod, '}', $p ) + 1;
-                foreach (explode( ';', substr( $mod, $p + 1, $a - $p - 2 ) ) as $value) {
-                    $pair = explode( ':', $value, 2 );
-                    $prop = strtolower( trim( $pair[0] ) );
+                $a = strpos($mod, '}', $p) + 1;
+                foreach (explode(';', substr($mod, $p + 1, $a - $p - 2)) as $value) {
+                    $pair = explode(':', $value, 2);
+                    $prop = strtolower(trim($pair[0]));
                     if ($prop === '' || !isset( $pair[1] )) {
                         continue;
                     }
-                    $value = trim( $pair[1] );
+                    $value = trim($pair[1]);
 
                     if (isset( self::$elAttrs[$prop] )) // attribute
                     {
@@ -162,15 +162,15 @@ final class TexyModifier extends TexyObject
                 $p = $a;
 
             } elseif ($ch === '[') { // classes & ID
-                $a = strpos( $mod, ']', $p ) + 1;
-                $s = str_replace( '#', ' #', substr( $mod, $p + 1, $a - $p - 2 ) );
-                foreach (explode( ' ', $s ) as $value) {
+                $a = strpos($mod, ']', $p) + 1;
+                $s = str_replace('#', ' #', substr($mod, $p + 1, $a - $p - 2));
+                foreach (explode(' ', $s) as $value) {
                     if ($value === '') {
                         continue;
                     }
 
                     if ($value{0} === '#') {
-                        $this->id = substr( $value, 1 );
+                        $this->id = substr($value, 1);
                     } else {
                         $this->classes[$value] = true;
                     }
@@ -192,7 +192,7 @@ final class TexyModifier extends TexyObject
             } elseif ($ch === '>') {
                 $this->hAlign = 'right';
                 $p++;
-            } elseif (substr( $mod, $p, 2 ) === '<>') {
+            } elseif (substr($mod, $p, 2) === '<>') {
                 $this->hAlign = 'center';
                 $p += 2;
             } elseif ($ch === '<') {
@@ -213,7 +213,7 @@ final class TexyModifier extends TexyObject
      *
      * @return void
      */
-    public function decorate( $texy, $el )
+    public function decorate($texy, $el)
     {
 
         $elAttrs = &$el->attrs;
@@ -224,28 +224,28 @@ final class TexyModifier extends TexyObject
 
         } elseif ($tmp === Texy::ALL) {
             $elAttrs = $this->attrs;
-            $el->validateAttrs( $texy->dtd );
+            $el->validateAttrs($texy->dtd);
 
-        } elseif (is_array( $tmp ) && isset( $tmp[$el->getName()] )) {
+        } elseif (is_array($tmp) && isset( $tmp[$el->getName()] )) {
             $tmp = $tmp[$el->getName()];
 
             if ($tmp === Texy::ALL) {
                 $elAttrs = $this->attrs;
 
-            } elseif (is_array( $tmp ) && count( $tmp )) {
-                $tmp = array_flip( $tmp );
+            } elseif (is_array($tmp) && count($tmp)) {
+                $tmp = array_flip($tmp);
                 foreach ($this->attrs as $key => $value) {
                     if (isset( $tmp[$key] )) {
                         $el->attrs[$key] = $value;
                     }
                 }
             }
-            $el->validateAttrs( $texy->dtd );
+            $el->validateAttrs($texy->dtd);
         }
 
         // title
         if ($this->title !== null) {
-            $elAttrs['title'] = $texy->typographyModule->postLine( $this->title );
+            $elAttrs['title'] = $texy->typographyModule->postLine($this->title);
         }
 
         // classes & ID
@@ -256,7 +256,7 @@ final class TexyModifier extends TexyObject
                     $elAttrs['class'][] = $value;
                 }
                 $elAttrs['id'] = $this->id;
-            } elseif (is_array( $tmp )) {
+            } elseif (is_array($tmp)) {
                 foreach ($this->classes as $value => $foo) {
                     if (isset( $tmp[$value] )) {
                         $elAttrs['class'][] = $value;
@@ -276,7 +276,7 @@ final class TexyModifier extends TexyObject
                 foreach ($this->styles as $prop => $value) {
                     $elAttrs['style'][$prop] = $value;
                 }
-            } elseif (is_array( $tmp )) {
+            } elseif (is_array($tmp)) {
                 foreach ($this->styles as $prop => $value) {
                     if (isset( $tmp[$prop] )) {
                         $elAttrs['style'][$prop] = $value;

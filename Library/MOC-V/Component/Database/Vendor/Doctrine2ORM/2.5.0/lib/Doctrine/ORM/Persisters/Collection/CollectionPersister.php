@@ -27,10 +27,11 @@ use Doctrine\ORM\PersistentCollection;
  * Define the behavior that should be implemented by all collection persisters.
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since 2.5
+ * @since  2.5
  */
 interface CollectionPersister
 {
+
     /**
      * Deletes the persistent state represented by the given collection.
      *

@@ -32,7 +32,7 @@ interface IBridgeInterface
      *
      * @return bool
      */
-    public function loadSourceFile( $ClassName );
+    public function loadSourceFile($ClassName);
 
     /**
      * @param NamespaceParameter $Namespace
@@ -40,5 +40,5 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function addNamespaceDirectoryMapping( NamespaceParameter $Namespace, DirectoryParameter $Directory );
+    public function addNamespaceDirectoryMapping(NamespaceParameter $Namespace, DirectoryParameter $Directory);
 }

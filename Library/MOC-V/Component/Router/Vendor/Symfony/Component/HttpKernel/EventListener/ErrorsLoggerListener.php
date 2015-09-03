@@ -24,12 +24,14 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class ErrorsLoggerListener implements EventSubscriberInterface
 {
+
     private $channel;
 
     private $logger;
 
     public function __construct($channel, LoggerInterface $logger = null)
     {
+
         $this->channel = $channel;
         $this->logger = $logger;
     }
@@ -37,11 +39,12 @@ class ErrorsLoggerListener implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
 
-        return array( KernelEvents::REQUEST => array( 'injectLogger', 2048 ) );
+        return array(KernelEvents::REQUEST => array('injectLogger', 2048));
     }
 
     public function injectLogger()
     {
+
         if (null !== $this->logger) {
             ErrorHandler::setLogger($this->logger, $this->channel);
             $this->logger = null;

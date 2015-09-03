@@ -7,12 +7,14 @@ use Guzzle\Http\Message\PostFile;
 
 /**
  * @covers Guzzle\Http\Message\PostFile
- * @group server
+ * @group  server
  */
 class PostFileTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testConstructorConfiguresPostFile()
     {
+
         $file = new PostFile('foo', __FILE__, 'x-foo', 'boo');
         $this->assertEquals('foo', $file->getFieldName());
         $this->assertEquals(__FILE__, $file->getFilename());
@@ -22,7 +24,8 @@ class PostFileTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRemovesLeadingAtSymbolFromPath()
     {
-        $file = new PostFile('foo', '@' . __FILE__);
+
+        $file = new PostFile('foo', '@'.__FILE__);
         $this->assertEquals(__FILE__, $file->getFilename());
     }
 
@@ -31,28 +34,32 @@ class PostFileTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testEnsuresFileIsReadable()
     {
+
         $file = new PostFile('foo', '/foo/baz/bar');
     }
 
     public function testCanChangeContentType()
     {
-        $file = new PostFile('foo', '@' . __FILE__);
+
+        $file = new PostFile('foo', '@'.__FILE__);
         $file->setContentType('Boo');
         $this->assertEquals('Boo', $file->getContentType());
     }
 
     public function testCanChangeFieldName()
     {
-        $file = new PostFile('foo', '@' . __FILE__);
+
+        $file = new PostFile('foo', '@'.__FILE__);
         $file->setFieldName('Boo');
         $this->assertEquals('Boo', $file->getFieldName());
     }
 
     public function testReturnsCurlValueString()
     {
+
         $file = new PostFile('foo', __FILE__);
         if (version_compare(phpversion(), '5.5.0', '<')) {
-            $this->assertContains('@' . __FILE__ . ';filename=PostFileTest.php;type=text/x-', $file->getCurlValue());
+            $this->assertContains('@'.__FILE__.';filename=PostFileTest.php;type=text/x-', $file->getCurlValue());
         } else {
             $c = $file->getCurlValue();
             $this->assertEquals(__FILE__, $c->getFilename());
@@ -63,9 +70,10 @@ class PostFileTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsCurlValueStringAndPostname()
     {
+
         $file = new PostFile('foo', __FILE__, null, 'NewPostFileTest.php');
         if (version_compare(phpversion(), '5.5.0', '<')) {
-            $this->assertContains('@' . __FILE__ . ';filename=NewPostFileTest.php;type=text/x-', $file->getCurlValue());
+            $this->assertContains('@'.__FILE__.';filename=NewPostFileTest.php;type=text/x-', $file->getCurlValue());
         } else {
             $c = $file->getCurlValue();
             $this->assertEquals(__FILE__, $c->getFilename());
@@ -76,6 +84,7 @@ class PostFileTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testContentDispositionFilePathIsStripped()
     {
+
         $this->getServer()->flush();
         $client = new Client($this->getServer()->getUrl());
         $this->getServer()->enqueue("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");

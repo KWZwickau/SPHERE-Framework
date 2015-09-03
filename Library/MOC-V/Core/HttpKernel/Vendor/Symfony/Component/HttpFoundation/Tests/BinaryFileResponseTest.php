@@ -18,9 +18,11 @@ use Symfony\Component\HttpFoundation\Tests\File\FakeFile;
 
 class BinaryFileResponseTest extends ResponseTestCase
 {
+
     public function testConstruction()
     {
-        $file = __DIR__ . '/../README.md';
+
+        $file = __DIR__.'/../README.md';
         $response = new BinaryFileResponse($file, 404, array('X-Header' => 'Foo'), true, null, true, true);
         $this->assertEquals(404, $response->getStatusCode());
         $this->assertEquals('Foo', $response->headers->get('X-Header'));
@@ -39,12 +41,14 @@ class BinaryFileResponseTest extends ResponseTestCase
      */
     public function testSetContent()
     {
+
         $response = new BinaryFileResponse(__FILE__);
         $response->setContent('foo');
     }
 
     public function testGetContent()
     {
+
         $response = new BinaryFileResponse(__FILE__);
         $this->assertFalse($response->getContent());
     }
@@ -54,6 +58,7 @@ class BinaryFileResponseTest extends ResponseTestCase
      */
     public function testRequests($requestRange, $offset, $length, $responseRange)
     {
+
         $response = BinaryFileResponse::create(__DIR__.'/File/Fixtures/test.gif')->setAutoEtag();
 
         // do a request to get the ETag
@@ -83,6 +88,7 @@ class BinaryFileResponseTest extends ResponseTestCase
 
     public function provideRanges()
     {
+
         return array(
             array('bytes=1-4', 1, 4, 'bytes 1-4/35'),
             array('bytes=-5', 30, 5, 'bytes 30-34/35'),
@@ -97,6 +103,7 @@ class BinaryFileResponseTest extends ResponseTestCase
      */
     public function testFullFileRequests($requestRange)
     {
+
         $response = BinaryFileResponse::create(__DIR__.'/File/Fixtures/test.gif')->setAutoEtag();
 
         // prepare a request for a range of the testing file
@@ -118,6 +125,7 @@ class BinaryFileResponseTest extends ResponseTestCase
 
     public function provideFullFileRanges()
     {
+
         return array(
             array('bytes=0-'),
             array('bytes=0-34'),
@@ -133,6 +141,7 @@ class BinaryFileResponseTest extends ResponseTestCase
      */
     public function testInvalidRequests($requestRange)
     {
+
         $response = BinaryFileResponse::create(__DIR__.'/File/Fixtures/test.gif')->setAutoEtag();
 
         // prepare a request for a range of the testing file
@@ -150,6 +159,7 @@ class BinaryFileResponseTest extends ResponseTestCase
 
     public function provideInvalidRanges()
     {
+
         return array(
             array('bytes=-40'),
             array('bytes=30-40')
@@ -158,11 +168,12 @@ class BinaryFileResponseTest extends ResponseTestCase
 
     public function testXSendfile()
     {
+
         $request = Request::create('/');
         $request->headers->set('X-Sendfile-Type', 'X-Sendfile');
 
         BinaryFileResponse::trustXSendfileTypeHeader();
-        $response = BinaryFileResponse::create(__DIR__ . '/../README.md');
+        $response = BinaryFileResponse::create(__DIR__.'/../README.md');
         $response->prepare($request);
 
         $this->expectOutputString('');
@@ -176,6 +187,7 @@ class BinaryFileResponseTest extends ResponseTestCase
      */
     public function testXAccelMapping($realpath, $mapping, $virtual)
     {
+
         $request = Request::create('/');
         $request->headers->set('X-Sendfile-Type', 'X-Accel-Redirect');
         $request->headers->set('X-Accel-Mapping', $mapping);
@@ -195,6 +207,7 @@ class BinaryFileResponseTest extends ResponseTestCase
 
     public function getSampleXAccelMappings()
     {
+
         return array(
             array('/var/www/var/www/files/foo.txt', '/files/=/var/www/', '/files/var/www/files/foo.txt'),
             array('/home/foo/bar.txt', '/files/=/var/www/,/baz/=/home/foo/', '/baz/bar.txt'),
@@ -203,6 +216,7 @@ class BinaryFileResponseTest extends ResponseTestCase
 
     protected function provideResponse()
     {
-        return new BinaryFileResponse(__DIR__ . '/../README.md');
+
+        return new BinaryFileResponse(__DIR__.'/../README.md');
     }
 }

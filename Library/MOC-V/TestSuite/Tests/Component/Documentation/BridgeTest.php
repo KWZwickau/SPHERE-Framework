@@ -18,19 +18,19 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
     public function tearDown()
     {
 
-        if (false !== ( $Path = realpath( __DIR__.'/Content' ) )) {
+        if (false !== ( $Path = realpath(__DIR__.'/Content') )) {
             $Iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator( $Path, \RecursiveDirectoryIterator::SKIP_DOTS ),
+                new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::CHILD_FIRST
             );
             /** @var \SplFileInfo $FileInfo */
             foreach ($Iterator as $FileInfo) {
                 if ($FileInfo->getBasename() != 'README.md') {
                     if ($FileInfo->isFile()) {
-                        unlink( $FileInfo->getPathname() );
+                        unlink($FileInfo->getPathname());
                     }
                     if ($FileInfo->isDir()) {
-                        rmdir( $FileInfo->getPathname() );
+                        rmdir($FileInfo->getPathname());
                     }
                 }
             }
@@ -40,12 +40,12 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
     public function testApiGen()
     {
 
-        $this->assertInstanceOf( 'MOC\V\Component\Documentation\Component\Bridge\Repository\ApiGen', new ApiGen(
+        $this->assertInstanceOf('MOC\V\Component\Documentation\Component\Bridge\Repository\ApiGen', new ApiGen(
             'MOC',
             'Test',
-            new DirectoryParameter( __DIR__ ),
-            new DirectoryParameter( __DIR__.'/Content/' )
-        ) );
+            new DirectoryParameter(__DIR__),
+            new DirectoryParameter(__DIR__.'/Content/')
+        ));
     }
 
 }

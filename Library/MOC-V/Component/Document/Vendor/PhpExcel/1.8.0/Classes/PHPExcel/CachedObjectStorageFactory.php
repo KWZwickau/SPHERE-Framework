@@ -172,7 +172,7 @@ class PHPExcel_CachedObjectStorageFactory
         $activeMethods = array();
         foreach (self::$_storageMethods as $storageMethod) {
             $cacheStorageClass = 'PHPExcel_CachedObjectStorage_'.$storageMethod;
-            if (call_user_func( array( $cacheStorageClass, 'cacheMethodIsAvailable' ) )) {
+            if (call_user_func(array($cacheStorageClass, 'cacheMethodIsAvailable'))) {
                 $activeMethods[] = $storageMethod;
             }
         }
@@ -186,7 +186,7 @@ class PHPExcel_CachedObjectStorageFactory
      *
      * @return    PHPExcel_CachedObjectStorage_ICache
      **/
-    public static function getInstance( PHPExcel_Worksheet $parent )
+    public static function getInstance(PHPExcel_Worksheet $parent)
     {
 
         $cacheMethodIsAvailable = true;
@@ -195,7 +195,7 @@ class PHPExcel_CachedObjectStorageFactory
         }
 
         if ($cacheMethodIsAvailable) {
-            $instance = new self::$_cacheStorageClass( $parent,
+            $instance = new self::$_cacheStorageClass($parent,
                 self::$_storageMethodParameters[self::$_cacheStorageMethod]
             );
             if ($instance !== null) {
@@ -215,25 +215,25 @@ class PHPExcel_CachedObjectStorageFactory
      *
      * @return boolean
      **/
-    public static function initialize( $method = self::cache_in_memory, $arguments = array() )
+    public static function initialize($method = self::cache_in_memory, $arguments = array())
     {
 
-        if (!in_array( $method, self::$_storageMethods )) {
+        if (!in_array($method, self::$_storageMethods)) {
             return false;
         }
 
         $cacheStorageClass = 'PHPExcel_CachedObjectStorage_'.$method;
-        if (!call_user_func( array(
+        if (!call_user_func(array(
             $cacheStorageClass,
             'cacheMethodIsAvailable'
-        ) )
+        ))
         ) {
             return false;
         }
 
         self::$_storageMethodParameters[$method] = self::$_storageMethodDefaultParameters[$method];
         foreach ($arguments as $k => $v) {
-            if (array_key_exists( $k, self::$_storageMethodParameters[$method] )) {
+            if (array_key_exists($k, self::$_storageMethodParameters[$method])) {
                 self::$_storageMethodParameters[$method][$k] = $v;
             }
         }

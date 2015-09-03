@@ -29,7 +29,7 @@ class Font_Table_Directory_Entry extends Font_Binary_Stream
     protected $font_table;
     protected $origF;
 
-    function __construct( Font_TrueType $font )
+    function __construct(Font_TrueType $font)
     {
 
         $this->font = $font;
@@ -39,24 +39,24 @@ class Font_Table_Directory_Entry extends Font_Binary_Stream
     function parse()
     {
 
-        $this->tag = $this->font->read( 4 );
+        $this->tag = $this->font->read(4);
     }
 
-    function open( $filename, $mode = self::modeRead )
+    function open($filename, $mode = self::modeRead)
     {
         // void
     }
 
-    function setTable( Font_Table $font_table )
+    function setTable(Font_Table $font_table)
     {
 
         $this->font_table = $font_table;
     }
 
-    function encode( $entry_offset )
+    function encode($entry_offset)
     {
 
-        Font::d( "\n==== $this->tag ====" );
+        Font::d("\n==== $this->tag ====");
         //Font::d("Entry offset  = $entry_offset");
 
         $data = $this->font_table;
@@ -66,39 +66,39 @@ class Font_Table_Directory_Entry extends Font_Binary_Stream
         $this->offset = $table_offset;
         $table_length = $data->encode();
 
-        $font->seek( $table_offset );
-        $table_data = $font->read( $table_length );
+        $font->seek($table_offset);
+        $table_data = $font->read($table_length);
 
-        $font->seek( $entry_offset );
+        $font->seek($entry_offset);
 
-        $font->write( $this->tag, 4 );
-        $font->writeUInt32( self::computeChecksum( $table_data ) );
-        $font->writeUInt32( $table_offset );
-        $font->writeUInt32( $table_length );
+        $font->write($this->tag, 4);
+        $font->writeUInt32(self::computeChecksum($table_data));
+        $font->writeUInt32($table_offset);
+        $font->writeUInt32($table_length);
 
-        Font::d( "Bytes written = $table_length" );
+        Font::d("Bytes written = $table_length");
 
-        $font->seek( $table_offset + $table_length );
+        $font->seek($table_offset + $table_length);
     }
 
-    static function computeChecksum( $data )
+    static function computeChecksum($data)
     {
 
-        $len = strlen( $data );
+        $len = strlen($data);
         $mod = $len % 4;
 
         if ($mod) {
-            $data = str_pad( $data, $len + ( 4 - $mod ), "\0" );
+            $data = str_pad($data, $len + ( 4 - $mod ), "\0");
         }
 
-        $len = strlen( $data );
+        $len = strlen($data);
 
         $hi = 0x0000;
         $lo = 0x0000;
 
         for ($i = 0; $i < $len; $i += 4) {
-            $hi += ( ord( $data[$i] ) << 8 ) + ord( $data[$i + 1] );
-            $lo += ( ord( $data[$i + 2] ) << 8 ) + ord( $data[$i + 3] );
+            $hi += ( ord($data[$i]) << 8 ) + ord($data[$i + 1]);
+            $lo += ( ord($data[$i + 2]) << 8 ) + ord($data[$i + 3]);
             $hi += $lo >> 16;
             $lo = $lo & 0xFFFF;
             $hi = $hi & 0xFFFF;
@@ -119,7 +119,7 @@ class Font_Table_Directory_Entry extends Font_Binary_Stream
     function startRead()
     {
 
-        $this->font->seek( $this->offset );
+        $this->font->seek($this->offset);
     }
 
     function endRead()
@@ -130,7 +130,7 @@ class Font_Table_Directory_Entry extends Font_Binary_Stream
     function startWrite()
     {
 
-        $this->font->seek( $this->offset );
+        $this->font->seek($this->offset);
     }
 
     function endWrite()

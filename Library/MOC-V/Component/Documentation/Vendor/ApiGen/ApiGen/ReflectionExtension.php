@@ -28,17 +28,17 @@ class ReflectionExtension extends ReflectionBase
      *
      * @return \ApiGen\ReflectionClass|null
      */
-    public function getClass( $name )
+    public function getClass($name)
     {
 
-        $class = $this->reflection->getClass( $name );
+        $class = $this->reflection->getClass($name);
         if (null === $class) {
             return null;
         }
         if (isset( self::$parsedClasses[$name] )) {
             return self::$parsedClasses[$name];
         }
-        return new ReflectionClass( $class, self::$generator );
+        return new ReflectionClass($class, self::$generator);
     }
 
     /**
@@ -51,11 +51,11 @@ class ReflectionExtension extends ReflectionBase
 
         $generator = self::$generator;
         $classes = self::$parsedClasses;
-        return array_map( function ( TokenReflection\IReflectionClass $class ) use ( $generator, $classes ) {
+        return array_map(function (TokenReflection\IReflectionClass $class) use ($generator, $classes) {
 
-            return isset( $classes[$class->getName()] ) ? $classes[$class->getName()] : new ReflectionClass( $class,
-                $generator );
-        }, $this->reflection->getClasses() );
+            return isset( $classes[$class->getName()] ) ? $classes[$class->getName()] : new ReflectionClass($class,
+                $generator);
+        }, $this->reflection->getClasses());
     }
 
     /**
@@ -65,10 +65,10 @@ class ReflectionExtension extends ReflectionBase
      *
      * @return \ApiGen\ReflectionConstant|null
      */
-    public function getConstant( $name )
+    public function getConstant($name)
     {
 
-        return $this->getConstantReflection( $name );
+        return $this->getConstantReflection($name);
     }
 
     /**
@@ -78,11 +78,11 @@ class ReflectionExtension extends ReflectionBase
      *
      * @return \ApiGen\ReflectionConstant|null
      */
-    public function getConstantReflection( $name )
+    public function getConstantReflection($name)
     {
 
-        $constant = $this->reflection->getConstantReflection( $name );
-        return null === $constant ? null : new ReflectionConstant( $constant, self::$generator );
+        $constant = $this->reflection->getConstantReflection($name);
+        return null === $constant ? null : new ReflectionConstant($constant, self::$generator);
     }
 
     /**
@@ -105,10 +105,10 @@ class ReflectionExtension extends ReflectionBase
     {
 
         $generator = self::$generator;
-        return array_map( function ( TokenReflection\IReflectionConstant $constant ) use ( $generator ) {
+        return array_map(function (TokenReflection\IReflectionConstant $constant) use ($generator) {
 
-            return new ReflectionConstant( $constant, $generator );
-        }, $this->reflection->getConstantReflections() );
+            return new ReflectionConstant($constant, $generator);
+        }, $this->reflection->getConstantReflections());
     }
 
     /**
@@ -118,11 +118,11 @@ class ReflectionExtension extends ReflectionBase
      *
      * @return \ApiGen\ReflectionFunction
      */
-    public function getFunction( $name )
+    public function getFunction($name)
     {
 
-        $function = $this->reflection->getFunction( $name );
-        return null === $function ? null : new ReflectionFunction( $function, self::$generator );
+        $function = $this->reflection->getFunction($name);
+        return null === $function ? null : new ReflectionFunction($function, self::$generator);
     }
 
     /**
@@ -134,10 +134,10 @@ class ReflectionExtension extends ReflectionBase
     {
 
         $generator = self::$generator;
-        return array_map( function ( TokenReflection\IReflectionFunction $function ) use ( $generator ) {
+        return array_map(function (TokenReflection\IReflectionFunction $function) use ($generator) {
 
-            return new ReflectionFunction( $function, $generator );
-        }, $this->reflection->getFunctions() );
+            return new ReflectionFunction($function, $generator);
+        }, $this->reflection->getFunctions());
     }
 
     /**

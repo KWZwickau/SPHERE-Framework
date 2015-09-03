@@ -13,6 +13,7 @@
  */
 class PHPUnit_Runner_Filter_Factory
 {
+
     /**
      * @var array
      */
@@ -24,6 +25,7 @@ class PHPUnit_Runner_Filter_Factory
      */
     public function addFilter(ReflectionClass $filter, $args)
     {
+
         if (!$filter->isSubclassOf('RecursiveFilterIterator')) {
             throw new InvalidArgumentException(
                 sprintf(
@@ -41,9 +43,10 @@ class PHPUnit_Runner_Filter_Factory
      */
     public function factory(Iterator $iterator, PHPUnit_Framework_TestSuite $suite)
     {
+
         foreach ($this->filters as $filter) {
-            list($class, $args) = $filter;
-            $iterator           = $class->newInstance($iterator, $args, $suite);
+            list( $class, $args ) = $filter;
+            $iterator = $class->newInstance($iterator, $args, $suite);
         }
 
         return $iterator;

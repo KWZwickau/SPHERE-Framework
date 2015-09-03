@@ -19,19 +19,21 @@
 
 namespace Doctrine\DBAL\Driver\Mysqli;
 
-use Doctrine\DBAL\Driver\AbstractMySQLDriver;
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Driver\AbstractMySQLDriver;
 
 /**
  * @author Kim Hemsø Rasmussen <kimhemsoe@gmail.com>
  */
 class Driver extends AbstractMySQLDriver
 {
+
     /**
      * {@inheritdoc}
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
+
         try {
             return new MysqliConnection($params, $username, $password, $driverOptions);
         } catch (MysqliException $e) {
@@ -44,6 +46,7 @@ class Driver extends AbstractMySQLDriver
      */
     public function getName()
     {
+
         return 'mysqli';
     }
 }

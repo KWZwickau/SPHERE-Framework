@@ -2,21 +2,23 @@
 
 namespace Guzzle\Tests\Plugin\Async;
 
-use Guzzle\Plugin\Async\AsyncPlugin;
-use Guzzle\Http\Message\RequestInterface;
-use Guzzle\Http\Message\RequestFactory;
-use Guzzle\Http\Curl\CurlHandle;
-use Guzzle\Http\Exception\CurlException;
 use Guzzle\Common\Event;
 use Guzzle\Http\Client;
+use Guzzle\Http\Curl\CurlHandle;
+use Guzzle\Http\Exception\CurlException;
+use Guzzle\Http\Message\RequestFactory;
+use Guzzle\Http\Message\RequestInterface;
+use Guzzle\Plugin\Async\AsyncPlugin;
 
 /**
  * @covers Guzzle\Plugin\Async\AsyncPlugin
  */
 class AsyncPluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testSubscribesToEvents()
     {
+
         $events = AsyncPlugin::getSubscribedEvents();
         $this->assertArrayHasKey('request.before_send', $events);
         $this->assertArrayHasKey('request.exception', $events);
@@ -25,6 +27,7 @@ class AsyncPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEnablesProgressCallbacks()
     {
+
         $p = new AsyncPlugin();
         $request = RequestFactory::getInstance()->create('PUT', 'http://www.example.com');
         $event = new Event(array(
@@ -36,6 +39,7 @@ class AsyncPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsTimesOutAfterSending()
     {
+
         $p = new AsyncPlugin();
         $request = RequestFactory::getInstance()->create('PUT', 'http://www.example.com');
         $handle = CurlHandle::factory($request);
@@ -51,6 +55,7 @@ class AsyncPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEnsuresRequestIsSet()
     {
+
         $p = new AsyncPlugin();
         $event = new Event(array(
             'uploaded'    => 10,
@@ -62,6 +67,7 @@ class AsyncPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testMasksCurlExceptions()
     {
+
         $p = new AsyncPlugin();
         $request = RequestFactory::getInstance()->create('PUT', 'http://www.example.com');
         $e = new CurlException('Error');
@@ -77,6 +83,7 @@ class AsyncPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEnsuresIntegration()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue("HTTP/1.1 204 FOO\r\nContent-Length: 4\r\n\r\ntest");
         $client = new Client($this->getServer()->getUrl());

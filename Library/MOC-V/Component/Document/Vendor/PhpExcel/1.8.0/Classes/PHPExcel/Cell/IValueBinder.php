@@ -44,5 +44,5 @@ interface PHPExcel_Cell_IValueBinder
      *
      * @return boolean
      */
-    public function bindValue( PHPExcel_Cell $cell, $value = null );
+    public function bindValue(PHPExcel_Cell $cell, $value = null);
 }

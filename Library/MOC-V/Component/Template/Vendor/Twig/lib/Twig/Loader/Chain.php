@@ -16,6 +16,7 @@
  */
 class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterface
 {
+
     protected $loaders = array();
     private $hasSourceCache = array();
 
@@ -26,6 +27,7 @@ class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterf
      */
     public function __construct(array $loaders = array())
     {
+
         foreach ($loaders as $loader) {
             $this->addLoader($loader);
         }
@@ -38,6 +40,7 @@ class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterf
      */
     public function addLoader(Twig_LoaderInterface $loader)
     {
+
         $this->loaders[] = $loader;
         $this->hasSourceCache = array();
     }
@@ -47,6 +50,7 @@ class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterf
      */
     public function getSource($name)
     {
+
         $exceptions = array();
         foreach ($this->loaders as $loader) {
             if ($loader instanceof Twig_ExistsLoaderInterface && !$loader->exists($name)) {
@@ -68,9 +72,10 @@ class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterf
      */
     public function exists($name)
     {
-        $name = (string) $name;
 
-        if (isset($this->hasSourceCache[$name])) {
+        $name = (string)$name;
+
+        if (isset( $this->hasSourceCache[$name] )) {
             return $this->hasSourceCache[$name];
         }
 
@@ -99,6 +104,7 @@ class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterf
      */
     public function getCacheKey($name)
     {
+
         $exceptions = array();
         foreach ($this->loaders as $loader) {
             if ($loader instanceof Twig_ExistsLoaderInterface && !$loader->exists($name)) {
@@ -120,6 +126,7 @@ class Twig_Loader_Chain implements Twig_LoaderInterface, Twig_ExistsLoaderInterf
      */
     public function isFresh($name, $time)
     {
+
         $exceptions = array();
         foreach ($this->loaders as $loader) {
             if ($loader instanceof Twig_ExistsLoaderInterface && !$loader->exists($name)) {

@@ -19,6 +19,7 @@ namespace Prophecy\Doubler\Generator;
  */
 class ClassCodeGenerator
 {
+
     /**
      * Generates PHP code for class node.
      *
@@ -29,13 +30,17 @@ class ClassCodeGenerator
      */
     public function generate($classname, Node\ClassNode $class)
     {
-        $parts     = explode('\\', $classname);
+
+        $parts = explode('\\', $classname);
         $classname = array_pop($parts);
         $namespace = implode('\\', $parts);
 
         $code = sprintf("class %s extends \%s implements %s {\n",
             $classname, $class->getParentClass(), implode(', ',
-                array_map(function ($interface) {return '\\'.$interface;}, $class->getInterfaces())
+                array_map(function ($interface) {
+
+                    return '\\'.$interface;
+                }, $class->getInterfaces())
             )
         );
 
@@ -54,10 +59,11 @@ class ClassCodeGenerator
 
     private function generateMethod(Node\MethodNode $method)
     {
+
         $php = sprintf("%s %s function %s%s(%s) {\n",
             $method->getVisibility(),
             $method->isStatic() ? 'static' : '',
-            $method->returnsReference() ? '&':'',
+            $method->returnsReference() ? '&' : '',
             $method->getName(),
             implode(', ', $this->generateArguments($method->getArguments()))
         );
@@ -68,7 +74,9 @@ class ClassCodeGenerator
 
     private function generateArguments(array $arguments)
     {
+
         return array_map(function (Node\ArgumentNode $argument) {
+
             $php = '';
 
             if ($hint = $argument->getTypeHint()) {
@@ -79,7 +87,7 @@ class ClassCodeGenerator
                 }
             }
 
-            $php .= ' '.($argument->isPassedByReference() ? '&' : '').'$'.$argument->getName();
+            $php .= ' '.( $argument->isPassedByReference() ? '&' : '' ).'$'.$argument->getName();
 
             if ($argument->isOptional()) {
                 $php .= ' = '.var_export($argument->getDefault(), true);

@@ -22,6 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 abstract class OutputStyle implements OutputInterface, StyleInterface
 {
+
     private $output;
 
     /**
@@ -29,6 +30,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function __construct(OutputInterface $output)
     {
+
         $this->output = $output;
     }
 
@@ -37,6 +39,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function newLine($count = 1)
     {
+
         $this->output->write(str_repeat(PHP_EOL, $count));
     }
 
@@ -47,6 +50,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function createProgressBar($max = 0)
     {
+
         return new ProgressBar($this->output, $max);
     }
 
@@ -55,6 +59,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function write($messages, $newline = false, $type = self::OUTPUT_NORMAL)
     {
+
         $this->output->write($messages, $newline, $type);
     }
 
@@ -63,6 +68,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function writeln($messages, $type = self::OUTPUT_NORMAL)
     {
+
         $this->output->writeln($messages, $type);
     }
 
@@ -71,6 +77,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function setVerbosity($level)
     {
+
         $this->output->setVerbosity($level);
     }
 
@@ -79,6 +86,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function getVerbosity()
     {
+
         return $this->output->getVerbosity();
     }
 
@@ -87,6 +95,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function setDecorated($decorated)
     {
+
         $this->output->setDecorated($decorated);
     }
 
@@ -95,6 +104,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function isDecorated()
     {
+
         return $this->output->isDecorated();
     }
 
@@ -103,6 +113,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function setFormatter(OutputFormatterInterface $formatter)
     {
+
         $this->output->setFormatter($formatter);
     }
 
@@ -111,6 +122,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
      */
     public function getFormatter()
     {
+
         return $this->output->getFormatter();
     }
 }

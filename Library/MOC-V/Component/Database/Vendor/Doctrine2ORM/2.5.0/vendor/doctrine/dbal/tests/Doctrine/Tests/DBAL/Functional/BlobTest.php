@@ -5,15 +5,17 @@ namespace Doctrine\Tests\DBAL\Functional;
 use Doctrine\DBAL\Types\Type;
 use PDO;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 /**
  * @group DBAL-6
  */
 class BlobTest extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     public function setUp()
     {
+
         parent::setUp();
 
         if ($this->_conn->getDriver() instanceof \Doctrine\DBAL\Driver\PDOSqlsrv\Driver) {
@@ -31,7 +33,7 @@ class BlobTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
             $sm = $this->_conn->getSchemaManager();
             $sm->createTable($table);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
         }
         $this->_conn->exec($this->_conn->getDatabasePlatform()->getTruncateTableSQL('blob_table'));
@@ -39,6 +41,7 @@ class BlobTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testInsert()
     {
+
         $ret = $this->_conn->insert('blob_table',
             array('id' => 1, 'clobfield' => 'test', 'blobfield' => 'test', 'binaryfield' => 'test'),
             array(\PDO::PARAM_INT, \PDO::PARAM_STR, \PDO::PARAM_LOB, \PDO::PARAM_LOB)
@@ -48,6 +51,7 @@ class BlobTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testSelect()
     {
+
         $ret = $this->_conn->insert('blob_table',
             array('id' => 1, 'clobfield' => 'test', 'blobfield' => 'test', 'binaryfield' => 'test'),
             array(\PDO::PARAM_INT, \PDO::PARAM_STR, \PDO::PARAM_LOB, \PDO::PARAM_LOB)
@@ -56,8 +60,23 @@ class BlobTest extends \Doctrine\Tests\DbalFunctionalTestCase
         $this->assertBlobContains('test');
     }
 
+    private function assertBlobContains($text)
+    {
+
+        $rows = $this->_conn->fetchAll('SELECT * FROM blob_table');
+
+        $this->assertEquals(1, count($rows));
+        $row = array_change_key_case($rows[0], CASE_LOWER);
+
+        $blobValue = Type::getType('blob')->convertToPHPValue($row['blobfield'], $this->_conn->getDatabasePlatform());
+
+        $this->assertInternalType('resource', $blobValue);
+        $this->assertEquals($text, stream_get_contents($blobValue));
+    }
+
     public function testUpdate()
     {
+
         $ret = $this->_conn->insert('blob_table',
             array('id' => 1, 'clobfield' => 'test', 'blobfield' => 'test', 'binaryfield' => 'test'),
             array(\PDO::PARAM_INT, \PDO::PARAM_STR, \PDO::PARAM_LOB, \PDO::PARAM_LOB)
@@ -75,25 +94,14 @@ class BlobTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     private function assertBinaryContains($text)
     {
+
         $rows = $this->_conn->fetchAll('SELECT * FROM blob_table');
 
         $this->assertEquals(1, count($rows));
         $row = array_change_key_case($rows[0], CASE_LOWER);
 
-        $blobValue = Type::getType('binary')->convertToPHPValue($row['binaryfield'], $this->_conn->getDatabasePlatform());
-
-        $this->assertInternalType('resource', $blobValue);
-        $this->assertEquals($text, stream_get_contents($blobValue));
-    }
-
-    private function assertBlobContains($text)
-    {
-        $rows = $this->_conn->fetchAll('SELECT * FROM blob_table');
-
-        $this->assertEquals(1, count($rows));
-        $row = array_change_key_case($rows[0], CASE_LOWER);
-
-        $blobValue = Type::getType('blob')->convertToPHPValue($row['blobfield'], $this->_conn->getDatabasePlatform());
+        $blobValue = Type::getType('binary')->convertToPHPValue($row['binaryfield'],
+            $this->_conn->getDatabasePlatform());
 
         $this->assertInternalType('resource', $blobValue);
         $this->assertEquals($text, stream_get_contents($blobValue));

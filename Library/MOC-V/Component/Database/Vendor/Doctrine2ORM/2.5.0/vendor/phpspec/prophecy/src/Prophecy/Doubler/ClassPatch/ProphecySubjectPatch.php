@@ -11,9 +11,9 @@
 
 namespace Prophecy\Doubler\ClassPatch;
 
+use Prophecy\Doubler\Generator\Node\ArgumentNode;
 use Prophecy\Doubler\Generator\Node\ClassNode;
 use Prophecy\Doubler\Generator\Node\MethodNode;
-use Prophecy\Doubler\Generator\Node\ArgumentNode;
 
 /**
  * Add Prophecy functionality to the double.
@@ -23,6 +23,7 @@ use Prophecy\Doubler\Generator\Node\ArgumentNode;
  */
 class ProphecySubjectPatch implements ClassPatchInterface
 {
+
     /**
      * Always returns true.
      *
@@ -32,6 +33,7 @@ class ProphecySubjectPatch implements ClassPatchInterface
      */
     public function supports(ClassNode $node)
     {
+
         return true;
     }
 
@@ -42,6 +44,7 @@ class ProphecySubjectPatch implements ClassPatchInterface
      */
     public function apply(ClassNode $node)
     {
+
         $node->addInterface('Prophecy\Prophecy\ProphecySubjectInterface');
         $node->addProperty('objectProphecy', 'private');
 
@@ -93,6 +96,7 @@ PHP
      */
     public function getPriority()
     {
+
         return 0;
     }
 }

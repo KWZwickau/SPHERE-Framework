@@ -30,10 +30,11 @@ use Symfony\Component\HttpKernel\Controller\ControllerReference;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @see FragmentRendererInterface
+ * @see    FragmentRendererInterface
  */
 class FragmentHandler
 {
+
     private $debug;
     private $renderers = array();
     private $request;
@@ -50,6 +51,7 @@ class FragmentHandler
      */
     public function __construct(array $renderers = array(), $debug = false, RequestStack $requestStack = null)
     {
+
         $this->requestStack = $requestStack;
         foreach ($renderers as $renderer) {
             $this->addRenderer($renderer);
@@ -64,6 +66,7 @@ class FragmentHandler
      */
     public function addRenderer(FragmentRendererInterface $renderer)
     {
+
         $this->renderers[$renderer->getName()] = $renderer;
     }
 
@@ -80,6 +83,7 @@ class FragmentHandler
      */
     public function setRequest(Request $request = null)
     {
+
         $this->request = $request;
     }
 
@@ -101,11 +105,12 @@ class FragmentHandler
      */
     public function render($uri, $renderer = 'inline', array $options = array())
     {
-        if (!isset($options['ignore_errors'])) {
+
+        if (!isset( $options['ignore_errors'] )) {
             $options['ignore_errors'] = !$this->debug;
         }
 
-        if (!isset($this->renderers[$renderer])) {
+        if (!isset( $this->renderers[$renderer] )) {
             throw new \InvalidArgumentException(sprintf('The "%s" renderer does not exist.', $renderer));
         }
 
@@ -136,8 +141,10 @@ class FragmentHandler
      */
     protected function deliver(Response $response)
     {
+
         if (!$response->isSuccessful()) {
-            throw new \RuntimeException(sprintf('Error when rendering "%s" (Status code is %s).', $this->getRequest()->getUri(), $response->getStatusCode()));
+            throw new \RuntimeException(sprintf('Error when rendering "%s" (Status code is %s).',
+                $this->getRequest()->getUri(), $response->getStatusCode()));
         }
 
         if (!$response instanceof StreamedResponse) {

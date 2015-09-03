@@ -11,6 +11,7 @@ use Zend\Log\Writer\Stream;
  */
 class Zf2LogAdapterTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /** @var Zf2LogAdapter */
     protected $adapter;
 
@@ -20,17 +21,9 @@ class Zf2LogAdapterTest extends \Guzzle\Tests\GuzzleTestCase
     /** @var resource */
     protected $stream;
 
-    protected function setUp()
-    {
-        $this->stream = fopen('php://temp', 'r+');
-        $this->log = new Logger();
-        $this->log->addWriter(new Stream($this->stream));
-        $this->adapter = new Zf2LogAdapter($this->log);
-
-    }
-
     public function testLogsMessagesToAdaptedObject()
     {
+
         // Test without a priority
         $this->adapter->log('Zend_Test!', \LOG_NOTICE);
         rewind($this->stream);
@@ -46,6 +39,17 @@ class Zf2LogAdapterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testExposesAdaptedLogObject()
     {
+
         $this->assertEquals($this->log, $this->adapter->getLogObject());
+    }
+
+    protected function setUp()
+    {
+
+        $this->stream = fopen('php://temp', 'r+');
+        $this->log = new Logger();
+        $this->log->addWriter(new Stream($this->stream));
+        $this->adapter = new Zf2LogAdapter($this->log);
+
     }
 }

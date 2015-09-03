@@ -97,10 +97,10 @@ class ParseException extends StreamException
      * @param string                             $message     Exception message
      * @param integer                            $code        Exception code
      */
-    public function __construct( IReflection $sender, StreamBase $tokenStream, $message, $code )
+    public function __construct(IReflection $sender, StreamBase $tokenStream, $message, $code)
     {
 
-        parent::__construct( $tokenStream, $message, $code );
+        parent::__construct($tokenStream, $message, $code);
 
         $this->sender = $sender;
 
@@ -120,12 +120,12 @@ class ParseException extends StreamException
 
         $this->exceptionLine = $line;
 
-        static $skip = array( T_WHITESPACE => true, T_COMMENT => true, T_DOC_COMMENT => true );
+        static $skip = array(T_WHITESPACE => true, T_COMMENT => true, T_DOC_COMMENT => true);
 
         $significant = array();
         while (isset( $tokenStream[$min - 1] )) {
             if (!isset( $significant[$tokenStream[$min][2]] )) {
-                if (self::SOURCE_LINES_AROUND <= array_sum( $significant )) {
+                if (self::SOURCE_LINES_AROUND <= array_sum($significant)) {
                     break;
                 }
 
@@ -140,7 +140,7 @@ class ParseException extends StreamException
         $significant = array();
         while (isset( $tokenStream[$max + 1] )) {
             if (!isset( $significant[$tokenStream[$max][2]] )) {
-                if (self::SOURCE_LINES_AROUND <= array_sum( $significant )) {
+                if (self::SOURCE_LINES_AROUND <= array_sum($significant)) {
                     break;
                 }
 
@@ -152,7 +152,7 @@ class ParseException extends StreamException
             $max++;
         }
 
-        $this->scopeBoundaries = array( $min, $max );
+        $this->scopeBoundaries = array($min, $max);
     }
 
     /**
@@ -229,7 +229,7 @@ class ParseException extends StreamException
                 $this->tokenName,
                 $this->token[2],
                 $this->sender && $this->sender->getName() ? $this->sender->getPrettyName() : 'the',
-                $this->getSourcePart( true )
+                $this->getSourcePart(true)
             );
         }
     }
@@ -241,7 +241,7 @@ class ParseException extends StreamException
      *
      * @return string|null
      */
-    public function getSourcePart( $lineNumbers = false )
+    public function getSourcePart($lineNumbers = false)
     {
 
         if (empty( $this->scopeBoundaries )) {
@@ -251,23 +251,23 @@ class ParseException extends StreamException
         list( $lo, $hi ) = $this->scopeBoundaries;
         $stream = $this->getStream();
 
-        $code = $stream->getSourcePart( $lo, $hi );
+        $code = $stream->getSourcePart($lo, $hi);
 
         if ($lineNumbers) {
-            $lines = explode( "\n", $code );
+            $lines = explode("\n", $code);
 
             $startLine = $stream[$lo][2];
-            $width = strlen( $startLine + count( $lines ) - 1 );
+            $width = strlen($startLine + count($lines) - 1);
             $errorLine = $this->token[2];
             $actualLine = $startLine;
 
             $code = implode(
                 "\n",
-                array_map( function ( $line ) use ( &$actualLine, $width, $errorLine ) {
+                array_map(function ($line) use (&$actualLine, $width, $errorLine) {
 
-                    return ( $actualLine === $errorLine ? '*' : ' ' ).str_pad( $actualLine++, $width, ' ',
-                        STR_PAD_LEFT ).': '.$line;
-                }, $lines )
+                    return ( $actualLine === $errorLine ? '*' : ' ' ).str_pad($actualLine++, $width, ' ',
+                        STR_PAD_LEFT).': '.$line;
+                }, $lines)
             );
         }
 

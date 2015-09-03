@@ -10,21 +10,23 @@ use Guzzle\Service\Description\ServiceDescription;
  */
 class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $data = array(
-        'name'            => 'foo',
-        'type'            => 'bar',
-        'required'        => true,
-        'default'         => '123',
-        'description'     => '456',
-        'minLength'       => 2,
-        'maxLength'       => 5,
-        'location'        => 'body',
-        'static'          => 'static!',
-        'filters'         => array('trim', 'json_encode')
+        'name'        => 'foo',
+        'type'        => 'bar',
+        'required'    => true,
+        'default'     => '123',
+        'description' => '456',
+        'minLength'   => 2,
+        'maxLength'   => 5,
+        'location'    => 'body',
+        'static'      => 'static!',
+        'filters'     => array('trim', 'json_encode')
     );
 
     public function testCreatesParamFromArray()
     {
+
         $p = new Parameter($this->data);
         $this->assertEquals('foo', $p->getName());
         $this->assertEquals('bar', $p->getType());
@@ -40,13 +42,15 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanConvertToArray()
     {
+
         $p = new Parameter($this->data);
-        unset($this->data['name']);
+        unset( $this->data['name'] );
         $this->assertEquals($this->data, $p->toArray());
     }
 
     public function testUsesStatic()
     {
+
         $d = $this->data;
         $d['default'] = 'booboo';
         $d['static'] = true;
@@ -56,6 +60,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsesDefault()
     {
+
         $d = $this->data;
         $d['default'] = 'foo';
         $d['static'] = null;
@@ -65,6 +70,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsYourValue()
     {
+
         $d = $this->data;
         $d['static'] = null;
         $p = new Parameter($d);
@@ -73,6 +79,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testZeroValueDoesNotCauseDefaultToBeReturned()
     {
+
         $d = $this->data;
         $d['default'] = '1';
         $d['static'] = null;
@@ -82,6 +89,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testFiltersValues()
     {
+
         $d = $this->data;
         $d['static'] = null;
         $d['filters'] = 'strtoupper';
@@ -91,6 +99,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testConvertsBooleans()
     {
+
         $p = new Parameter(array('type' => 'boolean'));
         $this->assertEquals(true, $p->filter('true'));
         $this->assertEquals(false, $p->filter('false'));
@@ -98,6 +107,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsesArrayByDefaultForFilters()
     {
+
         $d = $this->data;
         $d['filters'] = null;
         $p = new Parameter($d);
@@ -106,6 +116,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsSimpleLocationValue()
     {
+
         $p = new Parameter(array('name' => 'myname', 'location' => 'foo', 'sentAs' => 'Hello'));
         $this->assertEquals('foo', $p->getLocation());
         $this->assertEquals('Hello', $p->getSentAs());
@@ -113,6 +124,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testParsesTypeValues()
     {
+
         $p = new Parameter(array('type' => 'foo'));
         $this->assertEquals('foo', $p->getType());
     }
@@ -123,11 +135,13 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testValidatesComplexFilters()
     {
+
         $p = new Parameter(array('filters' => array(array('args' => 'foo'))));
     }
 
     public function testCanBuildUpParams()
     {
+
         $p = new Parameter(array());
         $p->setName('foo')
             ->setDescription('c')
@@ -166,6 +180,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsNestedShape()
     {
+
         $command = $this->getServiceBuilder()->get('mock')->getCommand('mock_command')->getOperation();
         $param = new Parameter(array(
             'parent'     => $command,
@@ -174,8 +189,8 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
             'location'   => 'query',
             'properties' => array(
                 'foo' => array(
-                    'type'      => 'object',
-                    'required'  => true,
+                    'type'     => 'object',
+                    'required' => true,
                     'properties' => array(
                         'baz' => array(
                             'name' => 'baz',
@@ -206,20 +221,28 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsComplexFilters()
     {
+
         $that = $this;
         $param = new Parameter(array());
-        $param->setFilters(array(array('method' => function ($a, $b, $c, $d) use ($that, $param) {
-            $that->assertEquals('test', $a);
-            $that->assertEquals('my_value!', $b);
-            $that->assertEquals('bar', $c);
-            $that->assertSame($param, $d);
-            return 'abc' . $b;
-        }, 'args' => array('test', '@value', 'bar', '@api'))));
+        $param->setFilters(array(
+            array(
+                'method' => function ($a, $b, $c, $d) use ($that, $param) {
+
+                    $that->assertEquals('test', $a);
+                    $that->assertEquals('my_value!', $b);
+                    $that->assertEquals('bar', $c);
+                    $that->assertSame($param, $d);
+                    return 'abc'.$b;
+                },
+                'args'   => array('test', '@value', 'bar', '@api')
+            )
+        ));
         $this->assertEquals('abcmy_value!', $param->filter('my_value!'));
     }
 
     public function testCanChangeParentOfNestedParameter()
     {
+
         $param1 = new Parameter(array('name' => 'parent'));
         $param2 = new Parameter(array('name' => 'child'));
         $param2->setParent($param1);
@@ -228,6 +251,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanRemoveFromNestedStructure()
     {
+
         $param1 = new Parameter(array('name' => 'parent'));
         $param2 = new Parameter(array('name' => 'child'));
         $param1->addProperty($param2);
@@ -245,6 +269,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsAdditionalProperties()
     {
+
         $p = new Parameter(array(
             'type' => 'object',
             'additionalProperties' => array('type' => 'string')
@@ -257,6 +282,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsItems()
     {
+
         $p = new Parameter(array(
             'type'  => 'array',
             'items' => array('type' => 'string')
@@ -269,6 +295,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasExtraProperties()
     {
+
         $p = new Parameter();
         $this->assertEquals(array(), $p->getData());
         $p->setData(array('foo' => 'bar'));
@@ -279,6 +306,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanRetrieveKnownPropertiesUsingDataMethod()
     {
+
         $p = new Parameter();
         $this->assertEquals(null, $p->getData('foo'));
         $p->setName('test');
@@ -287,6 +315,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasInstanceOf()
     {
+
         $p = new Parameter();
         $this->assertNull($p->getInstanceOf());
         $p->setInstanceOf('Foo');
@@ -295,6 +324,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasPattern()
     {
+
         $p = new Parameter();
         $this->assertNull($p->getPattern());
         $p->setPattern('/[0-9]+/');
@@ -303,6 +333,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasEnum()
     {
+
         $p = new Parameter();
         $this->assertNull($p->getEnum());
         $p->setEnum(array('foo', 'bar'));
@@ -311,18 +342,20 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSerializesItems()
     {
+
         $p = new Parameter(array(
-            'type'  => 'object',
+            'type' => 'object',
             'additionalProperties' => array('type' => 'string')
         ));
         $this->assertEquals(array(
-            'type'  => 'object',
+            'type' => 'object',
             'additionalProperties' => array('type' => 'string')
         ), $p->toArray());
     }
 
     public function testResolvesRefKeysRecursively()
     {
+
         $description = new ServiceDescription(array(
             'models' => array(
                 'JarJar' => array('type' => 'string', 'default' => 'Mesa address tha senate!'),
@@ -331,7 +364,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
         ));
         $p = new Parameter(array('$ref' => 'Anakin', 'description' => 'added'), $description);
         $this->assertEquals(array(
-            'type' => 'array',
+            'type'  => 'array',
             'items' => array('type' => 'string', 'default' => 'Mesa address tha senate!'),
             'description' => 'added'
         ), $p->toArray());
@@ -339,6 +372,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testResolvesExtendsRecursively()
     {
+
         $jarJar = array('type' => 'string', 'default' => 'Mesa address tha senate!', 'description' => 'a');
         $anakin = array('type' => 'array', 'items' => array('extends' => 'JarJar', 'description' => 'b'));
         $description = new ServiceDescription(array(
@@ -359,6 +393,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasKeyMethod()
     {
+
         $p = new Parameter(array('name' => 'foo', 'sentAs' => 'bar'));
         $this->assertEquals('bar', $p->getWireName());
         $p->setSentAs(null);
@@ -367,6 +402,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIncludesNameInToArrayWhenItemsAttributeHasName()
     {
+
         $p = new Parameter(array(
             'type' => 'array',
             'name' => 'Abc',
@@ -377,7 +413,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
         ));
         $result = $p->toArray();
         $this->assertEquals(array(
-            'type' => 'array',
+            'type'  => 'array',
             'items' => array(
                 'name' => 'Foo',
                 'type' => 'object',
@@ -388,6 +424,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function dateTimeProvider()
     {
+
         $d = 'October 13, 2012 16:15:46 UTC';
 
         return array(
@@ -403,6 +440,7 @@ class ParameterTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testAppliesFormat($d, $format, $result)
     {
+
         $p = new Parameter();
         $p->setFormat($format);
         $this->assertEquals($format, $p->getFormat());

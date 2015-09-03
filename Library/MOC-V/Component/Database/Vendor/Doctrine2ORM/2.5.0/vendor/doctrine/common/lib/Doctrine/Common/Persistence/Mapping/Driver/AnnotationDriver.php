@@ -33,6 +33,7 @@ use Doctrine\Common\Persistence\Mapping\MappingException;
  */
 abstract class AnnotationDriver implements MappingDriver
 {
+
     /**
      * The AnnotationReader.
      *
@@ -84,9 +85,10 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function __construct($reader, $paths = null)
     {
+
         $this->reader = $reader;
         if ($paths) {
-            $this->addPaths((array) $paths);
+            $this->addPaths((array)$paths);
         }
     }
 
@@ -99,6 +101,7 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function addPaths(array $paths)
     {
+
         $this->paths = array_unique(array_merge($this->paths, $paths));
     }
 
@@ -109,6 +112,7 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function getPaths()
     {
+
         return $this->paths;
     }
 
@@ -119,6 +123,7 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function addExcludePaths(array $paths)
     {
+
         $this->excludePaths = array_unique(array_merge($this->excludePaths, $paths));
     }
 
@@ -129,6 +134,7 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function getExcludePaths()
     {
+
         return $this->excludePaths;
     }
 
@@ -139,6 +145,7 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function getReader()
     {
+
         return $this->reader;
     }
 
@@ -149,6 +156,7 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function getFileExtension()
     {
+
         return $this->fileExtension;
     }
 
@@ -161,30 +169,8 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function setFileExtension($fileExtension)
     {
+
         $this->fileExtension = $fileExtension;
-    }
-
-    /**
-     * Returns whether the class with the specified name is transient. Only non-transient
-     * classes, that is entities and mapped superclasses, should have their metadata loaded.
-     *
-     * A class is non-transient if it is annotated with an annotation
-     * from the {@see AnnotationDriver::entityAnnotationClasses}.
-     *
-     * @param string $className
-     *
-     * @return boolean
-     */
-    public function isTransient($className)
-    {
-        $classAnnotations = $this->reader->getClassAnnotations(new \ReflectionClass($className));
-
-        foreach ($classAnnotations as $annot) {
-            if (isset($this->entityAnnotationClasses[get_class($annot)])) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**
@@ -192,6 +178,7 @@ abstract class AnnotationDriver implements MappingDriver
      */
     public function getAllClassNames()
     {
+
         if ($this->classNames !== null) {
             return $this->classNames;
         }
@@ -204,7 +191,7 @@ abstract class AnnotationDriver implements MappingDriver
         $includedFiles = array();
 
         foreach ($this->paths as $path) {
-            if ( ! is_dir($path)) {
+            if (!is_dir($path)) {
                 throw MappingException::fileMappingDriversRequireConfiguredDirectoryPath($path);
             }
 
@@ -213,14 +200,14 @@ abstract class AnnotationDriver implements MappingDriver
                     new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS),
                     \RecursiveIteratorIterator::LEAVES_ONLY
                 ),
-                '/^.+' . preg_quote($this->fileExtension) . '$/i',
+                '/^.+'.preg_quote($this->fileExtension).'$/i',
                 \RecursiveRegexIterator::GET_MATCH
             );
 
             foreach ($iterator as $file) {
                 $sourceFile = $file[0];
 
-                if ( ! preg_match('(^phar:)i', $sourceFile)) {
+                if (!preg_match('(^phar:)i', $sourceFile)) {
                     $sourceFile = realpath($sourceFile);
                 }
 
@@ -244,7 +231,7 @@ abstract class AnnotationDriver implements MappingDriver
         foreach ($declared as $className) {
             $rc = new \ReflectionClass($className);
             $sourceFile = $rc->getFileName();
-            if (in_array($sourceFile, $includedFiles) && ! $this->isTransient($className)) {
+            if (in_array($sourceFile, $includedFiles) && !$this->isTransient($className)) {
                 $classes[] = $className;
             }
         }
@@ -252,5 +239,29 @@ abstract class AnnotationDriver implements MappingDriver
         $this->classNames = $classes;
 
         return $classes;
+    }
+
+    /**
+     * Returns whether the class with the specified name is transient. Only non-transient
+     * classes, that is entities and mapped superclasses, should have their metadata loaded.
+     *
+     * A class is non-transient if it is annotated with an annotation
+     * from the {@see AnnotationDriver::entityAnnotationClasses}.
+     *
+     * @param string $className
+     *
+     * @return boolean
+     */
+    public function isTransient($className)
+    {
+
+        $classAnnotations = $this->reader->getClassAnnotations(new \ReflectionClass($className));
+
+        foreach ($classAnnotations as $annot) {
+            if (isset( $this->entityAnnotationClasses[get_class($annot)] )) {
+                return false;
+            }
+        }
+        return true;
     }
 }

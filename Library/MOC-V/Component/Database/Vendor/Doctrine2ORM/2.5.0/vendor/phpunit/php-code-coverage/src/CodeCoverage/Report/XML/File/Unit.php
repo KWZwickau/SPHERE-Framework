@@ -13,6 +13,7 @@
  */
 class PHP_CodeCoverage_Report_XML_File_Unit
 {
+
     /**
      * @var DOMElement
      */
@@ -20,6 +21,7 @@ class PHP_CodeCoverage_Report_XML_File_Unit
 
     public function __construct(DOMElement $context, $name)
     {
+
         $this->contextNode = $context;
 
         $this->setName($name);
@@ -27,11 +29,13 @@ class PHP_CodeCoverage_Report_XML_File_Unit
 
     private function setName($name)
     {
+
         $this->contextNode->setAttribute('name', $name);
     }
 
     public function setLines($start, $executable, $executed)
     {
+
         $this->contextNode->setAttribute('start', $start);
         $this->contextNode->setAttribute('executable', $executable);
         $this->contextNode->setAttribute('executed', $executed);
@@ -39,11 +43,13 @@ class PHP_CodeCoverage_Report_XML_File_Unit
 
     public function setCrap($crap)
     {
+
         $this->contextNode->setAttribute('crap', $crap);
     }
 
     public function setPackage($full, $package, $sub, $category)
     {
+
         $node = $this->contextNode->getElementsByTagNameNS(
             'http://schema.phpunit.de/coverage/1.0',
             'package'
@@ -66,6 +72,7 @@ class PHP_CodeCoverage_Report_XML_File_Unit
 
     public function setNamespace($namespace)
     {
+
         $node = $this->contextNode->getElementsByTagNameNS(
             'http://schema.phpunit.de/coverage/1.0',
             'namespace'
@@ -85,6 +92,7 @@ class PHP_CodeCoverage_Report_XML_File_Unit
 
     public function addMethod($name)
     {
+
         $node = $this->contextNode->appendChild(
             $this->contextNode->ownerDocument->createElementNS(
                 'http://schema.phpunit.de/coverage/1.0',

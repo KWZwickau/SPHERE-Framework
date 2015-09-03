@@ -6,7 +6,6 @@ use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
-use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -15,6 +14,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
 
@@ -44,37 +44,33 @@ class Frontend implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new DatePicker('Meta[ReservationDate]', 'Eingangsdatum', 'Eingangsdatum',
-                            new Calendar()
-                        ), 4),
+                        new Panel('Termine', array(
+                            new DatePicker('Meta[ReservationDate]', 'Eingangsdatum', 'Eingangsdatum',
+                                new Calendar()
+                            ),
+                            new DatePicker('Meta[InterviewDate]', 'Aufnahmegespräch', 'Aufnahmegespräch',
+                                new Calendar()
+                            ),
+                            new DatePicker('Meta[TrialDate]', 'Schnuppertag', 'Schnuppertag',
+                                new Calendar()
+                            ),
+                        ), Panel::PANEL_TYPE_INFO
+                        ), 6),
                     new FormColumn(
-                        new DatePicker('Meta[InterviewDate]', 'Aufnahmegespräch', 'Aufnahmegespräch',
-                            new Calendar()
-                        ), 4),
-                    new FormColumn(
-                        new DatePicker('Meta[TrialDate]', 'Schnuppertag', 'Schnuppertag',
-                            new Calendar()
-                        ), 4),
+                        new Panel('Voranmeldung für', array(
+                            new TextField('Meta[ReservationYear]', 'Schuljahr', 'Schuljahr'),
+                            new TextField('Meta[ReservationDivision]', 'Klassenstufe', 'Klassenstufe'),
+                        ), Panel::PANEL_TYPE_INFO
+                        ), 6),
                 )),
-            ), new Title('Termine')),
-            new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new TextField('Meta[ReservationYear]', 'Schuljahr', 'Schuljahr')
-                        , 6),
-                    new FormColumn(
-                        new TextField('Meta[ReservationDivision]', 'Klassenstufe', 'Klassenstufe')
-                        , 6),
+                        new Panel('Sonstiges', array(
+                            new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        ), Panel::PANEL_TYPE_INFO
+                        )),
                 )),
-            ), new Title('Voranmeldung', 'für')),
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(array(
-                            new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                        )
-                    ),
-                )),
-            ), new Title('Sonstiges')),
+            )),
         ), new Primary('Informationen speichern'))
         )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'));
 

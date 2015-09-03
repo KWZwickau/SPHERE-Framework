@@ -29,6 +29,7 @@ use PDO;
  */
 class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
 {
+
     /**
      * @param string      $dsn
      * @param string|null $user
@@ -39,6 +40,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function __construct($dsn, $user = null, $password = null, array $options = null)
     {
+
         try {
             parent::__construct($dsn, $user, $password, $options);
             $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('Doctrine\DBAL\Driver\PDOStatement', array()));
@@ -53,6 +55,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function exec($statement)
     {
+
         try {
             return parent::exec($statement);
         } catch (\PDOException $exception) {
@@ -65,6 +68,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function getServerVersion()
     {
+
         return PDO::getAttribute(PDO::ATTR_SERVER_VERSION);
     }
 
@@ -73,6 +77,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function prepare($prepareString, $driverOptions = array())
     {
+
         try {
             return parent::prepare($prepareString, $driverOptions);
         } catch (\PDOException $exception) {
@@ -85,6 +90,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function query()
     {
+
         $args = func_get_args();
         $argsCount = count($args);
 
@@ -112,6 +118,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function quote($input, $type = \PDO::PARAM_STR)
     {
+
         return parent::quote($input, $type);
     }
 
@@ -120,6 +127,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function lastInsertId($name = null)
     {
+
         return parent::lastInsertId($name);
     }
 
@@ -128,6 +136,7 @@ class PDOConnection extends PDO implements Connection, ServerInfoAwareConnection
      */
     public function requiresQueryForServerVersion()
     {
+
         return false;
     }
 }

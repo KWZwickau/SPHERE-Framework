@@ -92,15 +92,15 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @throws \TokenReflection\Exception\ParseException If an empty token stream was provided
      */
-    final public function __construct( Stream $tokenStream, Broker $broker, IReflection $parent = null )
+    final public function __construct(Stream $tokenStream, Broker $broker, IReflection $parent = null)
     {
 
         if (0 === $tokenStream->count()) {
-            throw new Exception\ParseException( $this, $tokenStream, 'Reflection token stream must not be empty.',
-                Exception\ParseException::INVALID_ARGUMENT );
+            throw new Exception\ParseException($this, $tokenStream, 'Reflection token stream must not be empty.',
+                Exception\ParseException::INVALID_ARGUMENT);
         }
 
-        parent::__construct( $tokenStream, $broker, $parent );
+        parent::__construct($tokenStream, $broker, $parent);
     }
 
     /**
@@ -112,7 +112,7 @@ abstract class ReflectionElement extends ReflectionBase
     public function getFileReflection()
     {
 
-        return $this->getBroker()->getFile( $this->fileName );
+        return $this->getBroker()->getFile($this->fileName);
     }
 
     /**
@@ -171,8 +171,8 @@ abstract class ReflectionElement extends ReflectionBase
     public function getSource()
     {
 
-        return $this->broker->getFileTokens( $this->getFileName() )->getSourcePart( $this->startPosition,
-            $this->endPosition );
+        return $this->broker->getFileTokens($this->getFileName())->getSourcePart($this->startPosition,
+            $this->endPosition);
     }
 
     /**
@@ -214,18 +214,18 @@ abstract class ReflectionElement extends ReflectionBase
      * @param \TokenReflection\Stream\StreamBase $tokenStream Token substream
      * @param \TokenReflection\IReflection       $parent      Parent reflection object
      */
-    final protected function parseStream( Stream $tokenStream, IReflection $parent = null )
+    final protected function parseStream(Stream $tokenStream, IReflection $parent = null)
     {
 
         $this->fileName = $tokenStream->getFileName();
 
         $this
-            ->processParent( $parent, $tokenStream )
-            ->parseStartLine( $tokenStream )
-            ->parseDocComment( $tokenStream, $parent )
-            ->parse( $tokenStream, $parent )
-            ->parseChildren( $tokenStream, $parent )
-            ->parseEndLine( $tokenStream );
+            ->processParent($parent, $tokenStream)
+            ->parseStartLine($tokenStream)
+            ->parseDocComment($tokenStream, $parent)
+            ->parse($tokenStream, $parent)
+            ->parseChildren($tokenStream, $parent)
+            ->parseEndLine($tokenStream);
     }
 
     /**
@@ -235,7 +235,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionElement
      */
-    private final function parseEndLine( Stream $tokenStream )
+    private final function parseEndLine(Stream $tokenStream)
     {
 
         $token = $tokenStream->current();
@@ -254,7 +254,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionElement
      */
-    protected function parseChildren( Stream $tokenStream, IReflection $parent )
+    protected function parseChildren(Stream $tokenStream, IReflection $parent)
     {
 
         // To be defined in child classes
@@ -269,7 +269,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionElement
      */
-    abstract protected function parse( Stream $tokenStream, IReflection $parent );
+    abstract protected function parse(Stream $tokenStream, IReflection $parent);
 
     /**
      * Find the appropriate docblock.
@@ -279,48 +279,48 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionElement
      */
-    protected function parseDocComment( Stream $tokenStream, IReflection $parent )
+    protected function parseDocComment(Stream $tokenStream, IReflection $parent)
     {
 
         if ($this instanceof ReflectionParameter) {
-            $this->docComment = new ReflectionAnnotation( $this );
+            $this->docComment = new ReflectionAnnotation($this);
             return $this;
         }
 
         $position = $tokenStream->key();
 
-        if ($tokenStream->is( T_DOC_COMMENT, $position - 1 )) {
-            $value = $tokenStream->getTokenValue( $position - 1 );
+        if ($tokenStream->is(T_DOC_COMMENT, $position - 1)) {
+            $value = $tokenStream->getTokenValue($position - 1);
             if (self::DOCBLOCK_TEMPLATE_END !== $value) {
-                $this->docComment = new ReflectionAnnotation( $this, $value );
+                $this->docComment = new ReflectionAnnotation($this, $value);
                 $this->startPosition--;
             }
-        } elseif ($tokenStream->is( T_DOC_COMMENT, $position - 2 )) {
-            $value = $tokenStream->getTokenValue( $position - 2 );
+        } elseif ($tokenStream->is(T_DOC_COMMENT, $position - 2)) {
+            $value = $tokenStream->getTokenValue($position - 2);
             if (self::DOCBLOCK_TEMPLATE_END !== $value) {
-                $this->docComment = new ReflectionAnnotation( $this, $value );
+                $this->docComment = new ReflectionAnnotation($this, $value);
                 $this->startPosition -= 2;
             }
-        } elseif ($tokenStream->is( T_COMMENT,
-                $position - 1 ) && preg_match( '~^'.preg_quote( self::DOCBLOCK_TEMPLATE_START, '~' ).'~',
-                $tokenStream->getTokenValue( $position - 1 ) )
+        } elseif ($tokenStream->is(T_COMMENT,
+                $position - 1) && preg_match('~^'.preg_quote(self::DOCBLOCK_TEMPLATE_START, '~').'~',
+                $tokenStream->getTokenValue($position - 1))
         ) {
-            $this->docComment = new ReflectionAnnotation( $this, $tokenStream->getTokenValue( $position - 1 ) );
+            $this->docComment = new ReflectionAnnotation($this, $tokenStream->getTokenValue($position - 1));
             $this->startPosition--;
-        } elseif ($tokenStream->is( T_COMMENT,
-                $position - 2 ) && preg_match( '~^'.preg_quote( self::DOCBLOCK_TEMPLATE_START, '~' ).'~',
-                $tokenStream->getTokenValue( $position - 2 ) )
+        } elseif ($tokenStream->is(T_COMMENT,
+                $position - 2) && preg_match('~^'.preg_quote(self::DOCBLOCK_TEMPLATE_START, '~').'~',
+                $tokenStream->getTokenValue($position - 2))
         ) {
-            $this->docComment = new ReflectionAnnotation( $this, $tokenStream->getTokenValue( $position - 2 ) );
+            $this->docComment = new ReflectionAnnotation($this, $tokenStream->getTokenValue($position - 2));
             $this->startPosition -= 2;
         }
 
         if (null === $this->docComment) {
-            $this->docComment = new ReflectionAnnotation( $this );
+            $this->docComment = new ReflectionAnnotation($this);
         }
 
         if ($parent instanceof ReflectionElement) {
-            $this->docComment->setTemplates( $parent->getDocblockTemplates() );
+            $this->docComment->setTemplates($parent->getDocblockTemplates());
         }
 
         return $this;
@@ -344,7 +344,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionElement
      */
-    private final function parseStartLine( Stream $tokenStream )
+    private final function parseStartLine(Stream $tokenStream)
     {
 
         $token = $tokenStream->current();
@@ -363,7 +363,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionElement
      */
-    protected function processParent( IReflection $parent, Stream $tokenStream )
+    protected function processParent(IReflection $parent, Stream $tokenStream)
     {
 
         // To be defined in child classes
@@ -377,5 +377,5 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionElement
      */
-    abstract protected function parseName( Stream $tokenStream );
+    abstract protected function parseName(Stream $tokenStream);
 }

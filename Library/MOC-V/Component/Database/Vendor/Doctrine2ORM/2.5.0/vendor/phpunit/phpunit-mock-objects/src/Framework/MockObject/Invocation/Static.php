@@ -17,29 +17,30 @@ use SebastianBergmann\Exporter\Exporter;
  */
 class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framework_MockObject_Invocation, PHPUnit_Framework_SelfDescribing
 {
+
     /**
      * @var array
      */
     protected static $uncloneableExtensions = array(
-      'mysqli'    => true,
-      'SQLite'    => true,
-      'sqlite3'   => true,
-      'tidy'      => true,
-      'xmlwriter' => true,
-      'xsl'       => true
+        'mysqli'    => true,
+        'SQLite'    => true,
+        'sqlite3'   => true,
+        'tidy'      => true,
+        'xmlwriter' => true,
+        'xsl'       => true
     );
 
     /**
      * @var array
      */
     protected static $uncloneableClasses = array(
-      'Closure',
-      'COMPersistHelper',
-      'IteratorIterator',
-      'RecursiveIteratorIterator',
-      'SplFileObject',
-      'PDORow',
-      'ZipArchive'
+        'Closure',
+        'COMPersistHelper',
+        'IteratorIterator',
+        'RecursiveIteratorIterator',
+        'SplFileObject',
+        'PDORow',
+        'ZipArchive'
     );
 
     /**
@@ -65,7 +66,8 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
      */
     public function __construct($className, $methodName, array $parameters, $cloneObjects = false)
     {
-        $this->className  = $className;
+
+        $this->className = $className;
         $this->methodName = $methodName;
         $this->parameters = $parameters;
 
@@ -81,39 +83,21 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
     }
 
     /**
-     * @return string
-     */
-    public function toString()
-    {
-        $exporter = new Exporter;
-
-        return sprintf(
-            '%s::%s(%s)',
-            $this->className,
-            $this->methodName,
-            implode(
-                ', ',
-                array_map(
-                    array($exporter, 'shortenedExport'),
-                    $this->parameters
-                )
-            )
-        );
-    }
-
-    /**
      * @param  object $original
+     *
      * @return object
      */
     protected function cloneObject($original)
     {
+
         $cloneable = null;
-        $object    = new ReflectionObject($original);
+        $object = new ReflectionObject($original);
 
         // Check the blacklist before asking PHP reflection to work around
         // https://bugs.php.net/bug.php?id=53967
         if ($object->isInternal() &&
-            isset(self::$uncloneableExtensions[$object->getExtensionName()])) {
+            isset( self::$uncloneableExtensions[$object->getExtensionName()] )
+        ) {
             $cloneable = false;
         }
 
@@ -131,7 +115,7 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
         }
 
         if ($cloneable === null && $object->hasMethod('__clone')) {
-            $method    = $object->getMethod('__clone');
+            $method = $object->getMethod('__clone');
             $cloneable = $method->isPublic();
         }
 
@@ -148,5 +132,27 @@ class PHPUnit_Framework_MockObject_Invocation_Static implements PHPUnit_Framewor
         } else {
             return $original;
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function toString()
+    {
+
+        $exporter = new Exporter;
+
+        return sprintf(
+            '%s::%s(%s)',
+            $this->className,
+            $this->methodName,
+            implode(
+                ', ',
+                array_map(
+                    array($exporter, 'shortenedExport'),
+                    $this->parameters
+                )
+            )
+        );
     }
 }

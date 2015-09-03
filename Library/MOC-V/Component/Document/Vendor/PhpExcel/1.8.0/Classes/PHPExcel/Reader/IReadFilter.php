@@ -45,5 +45,5 @@ interface PHPExcel_Reader_IReadFilter
      *
      * @return    boolean
      */
-    public function readCell( $column, $row, $worksheetName = '' );
+    public function readCell($column, $row, $worksheetName = '');
 }

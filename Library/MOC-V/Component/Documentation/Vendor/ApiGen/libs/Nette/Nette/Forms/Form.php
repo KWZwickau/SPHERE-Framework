@@ -115,21 +115,21 @@ class Form extends Container
      *
      * @param  string
      */
-    public function __construct( $name = null )
+    public function __construct($name = null)
     {
 
-        $this->element = Nette\Utils\Html::el( 'form' );
+        $this->element = Nette\Utils\Html::el('form');
         $this->element->action = ''; // RFC 1808 -> empty uri means 'this'
         $this->element->method = self::POST;
         $this->element->id = $name === null ? null : 'frm-'.$name;
 
-        $this->monitor( __CLASS__ );
+        $this->monitor(__CLASS__);
         if ($name !== null) {
-            $tracker = new Controls\HiddenField( $name );
-            $tracker->unmonitor( __CLASS__ );
+            $tracker = new Controls\HiddenField($name);
+            $tracker->unmonitor(__CLASS__);
             $this[self::TRACKER_ID] = $tracker;
         }
-        parent::__construct( null, $name );
+        parent::__construct(null, $name);
     }
 
     /**
@@ -137,7 +137,7 @@ class Form extends Container
      *
      * @return Form
      */
-    final public function getForm( $need = true )
+    final public function getForm($need = true)
     {
 
         return $this;
@@ -150,7 +150,7 @@ class Form extends Container
      *
      * @return Form  provides a fluent interface
      */
-    public function setAction( $url )
+    public function setAction($url)
     {
 
         $this->element->action = $url;
@@ -175,13 +175,13 @@ class Form extends Container
      *
      * @return Form  provides a fluent interface
      */
-    public function setMethod( $method )
+    public function setMethod($method)
     {
 
         if ($this->httpData !== null) {
-            throw new Nette\InvalidStateException( __METHOD__.'() must be called until the form is empty.' );
+            throw new Nette\InvalidStateException(__METHOD__.'() must be called until the form is empty.');
         }
-        $this->element->method = strtolower( $method );
+        $this->element->method = strtolower($method);
         return $this;
     }
 
@@ -193,19 +193,19 @@ class Form extends Container
      *
      * @return void
      */
-    public function addProtection( $message = null, $timeout = null )
+    public function addProtection($message = null, $timeout = null)
     {
 
-        $session = $this->getSession()->getSection( 'Nette.Forms.Form/CSRF' );
+        $session = $this->getSession()->getSection('Nette.Forms.Form/CSRF');
         $key = "key$timeout";
         if (isset( $session->$key )) {
             $token = $session->$key;
         } else {
             $session->$key = $token = Nette\Utils\Strings::random();
         }
-        $session->setExpiration( $timeout, $key );
-        $this[self::PROTECTOR_ID] = new Controls\HiddenField( $token );
-        $this[self::PROTECTOR_ID]->addRule( self::PROTECTION, $message, $token );
+        $session->setExpiration($timeout, $key);
+        $this[self::PROTECTOR_ID] = new Controls\HiddenField($token);
+        $this[self::PROTECTOR_ID]->addRule(self::PROTECTION, $message, $token);
     }
 
     /**
@@ -225,15 +225,15 @@ class Form extends Container
      *
      * @return ControlGroup
      */
-    public function addGroup( $caption = null, $setAsCurrent = true )
+    public function addGroup($caption = null, $setAsCurrent = true)
     {
 
         $group = new ControlGroup;
-        $group->setOption( 'label', $caption );
-        $group->setOption( 'visual', true );
+        $group->setOption('label', $caption);
+        $group->setOption('visual', true);
 
         if ($setAsCurrent) {
-            $this->setCurrentGroup( $group );
+            $this->setCurrentGroup($group);
         }
 
         if (isset( $this->groups[$caption] )) {
@@ -250,22 +250,22 @@ class Form extends Container
      *
      * @return void
      */
-    public function removeGroup( $name )
+    public function removeGroup($name)
     {
 
-        if (is_string( $name ) && isset( $this->groups[$name] )) {
+        if (is_string($name) && isset( $this->groups[$name] )) {
             $group = $this->groups[$name];
 
-        } elseif ($name instanceof ControlGroup && in_array( $name, $this->groups, true )) {
+        } elseif ($name instanceof ControlGroup && in_array($name, $this->groups, true)) {
             $group = $name;
-            $name = array_search( $group, $this->groups, true );
+            $name = array_search($group, $this->groups, true);
 
         } else {
-            throw new Nette\InvalidArgumentException( "Group not found in form '$this->name'" );
+            throw new Nette\InvalidArgumentException("Group not found in form '$this->name'");
         }
 
         foreach ($group->getControls() as $control) {
-            $this->removeComponent( $control );
+            $this->removeComponent($control);
         }
 
         unset( $this->groups[$name] );
@@ -289,7 +289,7 @@ class Form extends Container
      *
      * @return ControlGroup
      */
-    public function getGroup( $name )
+    public function getGroup($name)
     {
 
         return isset( $this->groups[$name] ) ? $this->groups[$name] : null;
@@ -317,7 +317,7 @@ class Form extends Container
      *
      * @return Form  provides a fluent interface
      */
-    public function setTranslator( Nette\Localization\ITranslator $translator = null )
+    public function setTranslator(Nette\Localization\ITranslator $translator = null)
     {
 
         $this->translator = $translator;
@@ -347,7 +347,7 @@ class Form extends Container
     final public function isSubmitted()
     {
 
-        if ($this->submittedBy === null && count( $this->getControls() )) {
+        if ($this->submittedBy === null && count($this->getControls())) {
             $this->getHttpData();
             $this->submittedBy = $this->httpData !== null;
         }
@@ -364,7 +364,7 @@ class Form extends Container
 
         if ($this->httpData === null) {
             if (!$this->isAnchored()) {
-                throw new Nette\InvalidStateException( 'Form is not anchored and therefore can not determine whether it was submitted.' );
+                throw new Nette\InvalidStateException('Form is not anchored and therefore can not determine whether it was submitted.');
             }
             $this->httpData = $this->receiveHttpData();
         }
@@ -391,17 +391,17 @@ class Form extends Container
     {
 
         $httpRequest = $this->getHttpRequest();
-        if (strcasecmp( $this->getMethod(), $httpRequest->getMethod() )) {
+        if (strcasecmp($this->getMethod(), $httpRequest->getMethod())) {
             return;
         }
 
-        if ($httpRequest->isMethod( 'post' )) {
-            $data = Nette\Utils\Arrays::mergeTree( $httpRequest->getPost(), $httpRequest->getFiles() );
+        if ($httpRequest->isMethod('post')) {
+            $data = Nette\Utils\Arrays::mergeTree($httpRequest->getPost(), $httpRequest->getFiles());
         } else {
             $data = $httpRequest->getQuery();
         }
 
-        if ($tracker = $this->getComponent( self::TRACKER_ID, false )) {
+        if ($tracker = $this->getComponent(self::TRACKER_ID, false)) {
             if (!isset( $data[self::TRACKER_ID] ) || $data[self::TRACKER_ID] !== $tracker->getValue()) {
                 return;
             }
@@ -437,7 +437,7 @@ class Form extends Container
      *
      * @return Form  provides a fluent interface
      */
-    public function setSubmittedBy( ISubmitterControl $by = null )
+    public function setSubmittedBy(ISubmitterControl $by = null)
     {
 
         $this->submittedBy = $by === null ? false : $by;
@@ -464,26 +464,26 @@ class Form extends Container
                 $this->submittedBy->click();
                 $valid = true;
             } else {
-                $this->submittedBy->onInvalidClick( $this->submittedBy );
+                $this->submittedBy->onInvalidClick($this->submittedBy);
             }
         }
 
         if (isset( $valid ) || $this->isValid()) {
-            $this->onSuccess( $this );
+            $this->onSuccess($this);
         } else {
-            $this->onError( $this );
+            $this->onError($this);
             if ($this->onInvalidSubmit) {
-                trigger_error( __CLASS__.'->onInvalidSubmit is deprecated; use onError instead.', E_USER_WARNING );
-                $this->onInvalidSubmit( $this );
+                trigger_error(__CLASS__.'->onInvalidSubmit is deprecated; use onError instead.', E_USER_WARNING);
+                $this->onInvalidSubmit($this);
             }
         }
 
         if ($this->onSuccess) { // back compatibility
-            $this->onSubmit( $this );
+            $this->onSubmit($this);
         } elseif ($this->onSubmit) {
-            trigger_error( __CLASS__.'->onSubmit changed its behavior; use onSuccess instead.', E_USER_WARNING );
+            trigger_error(__CLASS__.'->onSubmit changed its behavior; use onSuccess instead.', E_USER_WARNING);
             if (isset( $valid ) || $this->isValid()) {
-                $this->onSubmit( $this );
+                $this->onSubmit($this);
             }
         }
     }
@@ -497,10 +497,10 @@ class Form extends Container
      *
      * @return Nette\ArrayHash|array
      */
-    public function getValues( $asArray = false )
+    public function getValues($asArray = false)
     {
 
-        $values = parent::getValues( $asArray );
+        $values = parent::getValues($asArray);
         unset( $values[self::TRACKER_ID], $values[self::PROTECTOR_ID] );
         return $values;
     }
@@ -512,11 +512,11 @@ class Form extends Container
      *
      * @return void
      */
-    public function addError( $message )
+    public function addError($message)
     {
 
         $this->valid = false;
-        if ($message !== null && !in_array( $message, $this->errors, true )) {
+        if ($message !== null && !in_array($message, $this->errors, true)) {
             $this->errors[] = $message;
         }
     }
@@ -575,8 +575,8 @@ class Form extends Container
     {
 
         $args = func_get_args();
-        array_unshift( $args, $this );
-        echo call_user_func_array( array( $this->getRenderer(), 'render' ), $args );
+        array_unshift($args, $this);
+        echo call_user_func_array(array($this->getRenderer(), 'render'), $args);
     }
 
     /**
@@ -600,7 +600,7 @@ class Form extends Container
      *
      * @return Form  provides a fluent interface
      */
-    public function setRenderer( IFormRenderer $renderer )
+    public function setRenderer(IFormRenderer $renderer)
     {
 
         $this->renderer = $renderer;
@@ -621,13 +621,13 @@ class Form extends Container
     {
 
         try {
-            return $this->getRenderer()->render( $this );
+            return $this->getRenderer()->render($this);
 
-        } catch( \Exception $e ) {
-            if (func_get_args() && func_get_arg( 0 )) {
+        } catch (\Exception $e) {
+            if (func_get_args() && func_get_arg(0)) {
                 throw $e;
             } else {
-                Nette\Diagnostics\Debugger::toStringException( $e );
+                Nette\Diagnostics\Debugger::toStringException($e);
             }
         }
     }
@@ -640,11 +640,11 @@ class Form extends Container
      *
      * @return void
      */
-    protected function attached( $obj )
+    protected function attached($obj)
     {
 
         if ($obj instanceof self) {
-            throw new Nette\InvalidStateException( 'Nested forms are forbidden.' );
+            throw new Nette\InvalidStateException('Nested forms are forbidden.');
         }
     }
 

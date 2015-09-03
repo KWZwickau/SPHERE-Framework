@@ -8,6 +8,7 @@ namespace Satooshi\Bundle\CoverallsV1Bundle\Config;
  */
 class Configuration
 {
+
     // same as ruby lib
 
     /**
@@ -87,27 +88,14 @@ class Configuration
     // accessor
 
     /**
-     * Set repository token.
-     *
-     * @param string $repoToken
-     *
-     * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
-     */
-    public function setRepoToken($repoToken)
-    {
-        $this->repoToken = $repoToken;
-
-        return $this;
-    }
-
-    /**
      * Return whether repository token is configured.
      *
      * @return boolean
      */
     public function hasRepoToken()
     {
-        return isset($this->repoToken);
+
+        return isset( $this->repoToken );
     }
 
     /**
@@ -117,19 +105,21 @@ class Configuration
      */
     public function getRepoToken()
     {
+
         return $this->repoToken;
     }
 
     /**
-     * Set service name.
+     * Set repository token.
      *
-     * @param string $serviceName
+     * @param string $repoToken
      *
      * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
      */
-    public function setServiceName($serviceName)
+    public function setRepoToken($repoToken)
     {
-        $this->serviceName = $serviceName;
+
+        $this->repoToken = $repoToken;
 
         return $this;
     }
@@ -141,7 +131,8 @@ class Configuration
      */
     public function hasServiceName()
     {
-        return isset($this->serviceName);
+
+        return isset( $this->serviceName );
     }
 
     /**
@@ -151,19 +142,21 @@ class Configuration
      */
     public function getServiceName()
     {
+
         return $this->serviceName;
     }
 
     /**
-     * Set absolute path to src directory to include coverage report.
+     * Set service name.
      *
-     * @param string $srcDir
+     * @param string $serviceName
      *
      * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
      */
-    public function setSrcDir($srcDir)
+    public function setServiceName($serviceName)
     {
-        $this->srcDir = $srcDir;
+
+        $this->serviceName = $serviceName;
 
         return $this;
     }
@@ -175,31 +168,35 @@ class Configuration
      */
     public function getSrcDir()
     {
+
         return $this->srcDir;
     }
 
-    public function setRootDir($rootDir)
+    /**
+     * Set absolute path to src directory to include coverage report.
+     *
+     * @param string $srcDir
+     *
+     * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
+     */
+    public function setSrcDir($srcDir)
     {
-        $this->rootDir = $rootDir;
+
+        $this->srcDir = $srcDir;
 
         return $this;
     }
 
     public function getRootDir()
     {
+
         return $this->rootDir;
     }
 
-    /**
-     * Set absolute paths to clover.xml.
-     *
-     * @param string $cloverXmlPaths
-     *
-     * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
-     */
-    public function setCloverXmlPaths(array $cloverXmlPaths)
+    public function setRootDir($rootDir)
     {
-        $this->cloverXmlPaths = $cloverXmlPaths;
+
+        $this->rootDir = $rootDir;
 
         return $this;
     }
@@ -213,6 +210,7 @@ class Configuration
      */
     public function addCloverXmlPath($cloverXmlPath)
     {
+
         $this->cloverXmlPaths[] = $cloverXmlPath;
 
         return $this;
@@ -225,19 +223,21 @@ class Configuration
      */
     public function getCloverXmlPaths()
     {
+
         return $this->cloverXmlPaths;
     }
 
     /**
-     * Set absolute path to output json_file.
+     * Set absolute paths to clover.xml.
      *
-     * @param string $jsonPath
+     * @param string $cloverXmlPaths
      *
      * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
      */
-    public function setJsonPath($jsonPath)
+    public function setCloverXmlPaths(array $cloverXmlPaths)
     {
-        $this->jsonPath = $jsonPath;
+
+        $this->cloverXmlPaths = $cloverXmlPaths;
 
         return $this;
     }
@@ -249,19 +249,21 @@ class Configuration
      */
     public function getJsonPath()
     {
+
         return $this->jsonPath;
     }
 
     /**
-     * Set whether to send json_file to jobs API.
+     * Set absolute path to output json_file.
      *
-     * @param boolean $dryRun
+     * @param string $jsonPath
      *
      * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
      */
-    public function setDryRun($dryRun)
+    public function setJsonPath($jsonPath)
     {
-        $this->dryRun = $dryRun;
+
+        $this->jsonPath = $jsonPath;
 
         return $this;
     }
@@ -273,19 +275,21 @@ class Configuration
      */
     public function isDryRun()
     {
+
         return $this->dryRun;
     }
 
     /**
-     * Set whether to exclude source files that have no executable statements.
+     * Set whether to send json_file to jobs API.
      *
-     * @param boolean $excludeNoStatements
+     * @param boolean $dryRun
      *
      * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
      */
-    public function setExcludeNoStatements($excludeNoStatements)
+    public function setDryRun($dryRun)
     {
-        $this->excludeNoStatements = $excludeNoStatements;
+
+        $this->dryRun = $dryRun;
 
         return $this;
     }
@@ -299,6 +303,7 @@ class Configuration
      */
     public function setExcludeNoStatementsUnlessFalse($excludeNoStatements)
     {
+
         if ($excludeNoStatements) {
             $this->excludeNoStatements = true;
         }
@@ -313,19 +318,21 @@ class Configuration
      */
     public function isExcludeNoStatements()
     {
+
         return $this->excludeNoStatements;
     }
 
     /**
-     * Set whether to show log.
+     * Set whether to exclude source files that have no executable statements.
      *
-     * @param boolean $verbose
+     * @param boolean $excludeNoStatements
      *
      * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
      */
-    public function setVerbose($verbose)
+    public function setExcludeNoStatements($excludeNoStatements)
     {
-        $this->verbose = $verbose;
+
+        $this->excludeNoStatements = $excludeNoStatements;
 
         return $this;
     }
@@ -337,19 +344,21 @@ class Configuration
      */
     public function isVerbose()
     {
+
         return $this->verbose;
     }
 
     /**
-     * Set runtime environment name.
+     * Set whether to show log.
      *
-     * @param string $env Runtime environment name.
+     * @param boolean $verbose
      *
      * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
      */
-    public function setEnv($env)
+    public function setVerbose($verbose)
     {
-        $this->env = $env;
+
+        $this->verbose = $verbose;
 
         return $this;
     }
@@ -361,7 +370,23 @@ class Configuration
      */
     public function getEnv()
     {
+
         return $this->env;
+    }
+
+    /**
+     * Set runtime environment name.
+     *
+     * @param string $env Runtime environment name.
+     *
+     * @return \Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration
+     */
+    public function setEnv($env)
+    {
+
+        $this->env = $env;
+
+        return $this;
     }
 
     /**
@@ -371,6 +396,7 @@ class Configuration
      */
     public function isTestEnv()
     {
+
         return $this->env === 'test';
     }
 
@@ -381,6 +407,7 @@ class Configuration
      */
     public function isDevEnv()
     {
+
         return $this->env === 'dev';
     }
 
@@ -391,6 +418,7 @@ class Configuration
      */
     public function isProdEnv()
     {
+
         return $this->env === 'prod';
     }
 }

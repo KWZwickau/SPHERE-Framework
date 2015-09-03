@@ -8,6 +8,7 @@ namespace Satooshi\Bundle\CoverallsV1Bundle\Entity\Exception;
  */
 class RequirementsNotSatisfiedException extends \RuntimeException
 {
+
     /**
      * Error message.
      *
@@ -29,9 +30,10 @@ class RequirementsNotSatisfiedException extends \RuntimeException
      */
     public function getHelpMessage()
     {
-        $message = $this->message . "\n";
 
-        if (isset($this->readEnv) && is_array($this->readEnv)) {
+        $message = $this->message."\n";
+
+        if (isset( $this->readEnv ) && is_array($this->readEnv)) {
             foreach ($this->readEnv as $envVarName => $value) {
                 $message .= sprintf("  - %s=%s\n", $envVarName, var_export($value, true));
             }
@@ -68,6 +70,17 @@ EOL;
     }
 
     /**
+     * Return read environment variables.
+     *
+     * @return array
+     */
+    public function getReadEnv()
+    {
+
+        return $this->readEnv;
+    }
+
+    /**
      * Set read environment variables.
      *
      * @param array $readEnv Read environment variables.
@@ -76,16 +89,7 @@ EOL;
      */
     public function setReadEnv(array $readEnv)
     {
-        $this->readEnv = $readEnv;
-    }
 
-    /**
-     * Return read environment variables.
-     *
-     * @return array
-     */
-    public function getReadEnv()
-    {
-        return $this->readEnv;
+        $this->readEnv = $readEnv;
     }
 }

@@ -23,6 +23,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
  */
 class ConfigDataCollector extends DataCollector
 {
+
     private $kernel;
     private $name;
     private $version;
@@ -35,6 +36,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function __construct($name = null, $version = null)
     {
+
         $this->name = $name;
         $this->version = $version;
     }
@@ -46,6 +48,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function setKernel(KernelInterface $kernel = null)
     {
+
         $this->kernel = $kernel;
     }
 
@@ -54,14 +57,15 @@ class ConfigDataCollector extends DataCollector
      */
     public function collect(Request $request, Response $response, \Exception $exception = null)
     {
+
         $this->data = array(
             'app_name'             => $this->name,
             'app_version'          => $this->version,
             'token'                => $response->headers->get('X-Debug-Token'),
             'symfony_version'      => Kernel::VERSION,
-            'name'                 => isset($this->kernel) ? $this->kernel->getName() : 'n/a',
-            'env'                  => isset($this->kernel) ? $this->kernel->getEnvironment() : 'n/a',
-            'debug'                => isset($this->kernel) ? $this->kernel->isDebug() : 'n/a',
+            'name'  => isset( $this->kernel ) ? $this->kernel->getName() : 'n/a',
+            'env'   => isset( $this->kernel ) ? $this->kernel->getEnvironment() : 'n/a',
+            'debug' => isset( $this->kernel ) ? $this->kernel->isDebug() : 'n/a',
             'php_version'          => PHP_VERSION,
             'xdebug_enabled'       => extension_loaded('xdebug'),
             'eaccel_enabled'       => extension_loaded('eaccelerator') && ini_get('eaccelerator.enable'),
@@ -73,7 +77,7 @@ class ConfigDataCollector extends DataCollector
             'sapi_name'            => php_sapi_name()
         );
 
-        if (isset($this->kernel)) {
+        if (isset( $this->kernel )) {
             foreach ($this->kernel->getBundles() as $name => $bundle) {
                 $this->data['bundles'][$name] = $bundle->getPath();
             }
@@ -82,11 +86,13 @@ class ConfigDataCollector extends DataCollector
 
     public function getApplicationName()
     {
+
         return $this->data['app_name'];
     }
 
     public function getApplicationVersion()
     {
+
         return $this->data['app_version'];
     }
 
@@ -97,6 +103,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function getToken()
     {
+
         return $this->data['token'];
     }
 
@@ -107,6 +114,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function getSymfonyVersion()
     {
+
         return $this->data['symfony_version'];
     }
 
@@ -117,6 +125,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function getPhpVersion()
     {
+
         return $this->data['php_version'];
     }
 
@@ -127,6 +136,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function getAppName()
     {
+
         return $this->data['name'];
     }
 
@@ -137,6 +147,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function getEnv()
     {
+
         return $this->data['env'];
     }
 
@@ -147,6 +158,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function isDebug()
     {
+
         return $this->data['debug'];
     }
 
@@ -157,6 +169,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function hasXDebug()
     {
+
         return $this->data['xdebug_enabled'];
     }
 
@@ -178,6 +191,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function hasApc()
     {
+
         return $this->data['apc_enabled'];
     }
 
@@ -188,6 +202,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function hasZendOpcache()
     {
+
         return $this->data['zend_opcache_enabled'];
     }
 
@@ -209,6 +224,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function hasXCache()
     {
+
         return $this->data['xcache_enabled'];
     }
 
@@ -219,11 +235,13 @@ class ConfigDataCollector extends DataCollector
      */
     public function hasWinCache()
     {
+
         return $this->data['wincache_enabled'];
     }
 
     public function getBundles()
     {
+
         return $this->data['bundles'];
     }
 
@@ -234,6 +252,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function getSapiName()
     {
+
         return $this->data['sapi_name'];
     }
 
@@ -242,6 +261,7 @@ class ConfigDataCollector extends DataCollector
      */
     public function getName()
     {
+
         return 'config';
     }
 }

@@ -20,35 +20,34 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 
         try {
             throw new TemplateException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Template\Exception\TemplateException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Template\Exception\TemplateException', $E);
         }
 
         try {
             throw new TemplateTypeException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Template\Exception\TemplateTypeException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Template\Exception\TemplateTypeException', $E);
         }
 
         try {
             throw new ComponentException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Template\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Template\Component\Exception\ComponentException', $E);
         }
 
         try {
             throw new EmptyFileException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Template\Component\Exception\Repository\EmptyFileException',
-                $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Template\Component\Exception\Repository\EmptyFileException',
+                $E);
         }
 
         try {
             throw new TypeFileException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Template\Component\Exception\Repository\TypeFileException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Template\Component\Exception\Repository\TypeFileException', $E);
         }
-
 
     }
 

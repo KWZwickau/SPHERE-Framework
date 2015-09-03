@@ -28,7 +28,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     private $fmtDateTime;
 
 
-    public function __construct( Nette\Database\Connection $connection, array $options )
+    public function __construct(Nette\Database\Connection $connection, array $options)
     {
 
         $this->connection = $connection;
@@ -42,28 +42,28 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     /**
      * Delimites identifier for use in a SQL statement.
      */
-    public function delimite( $name )
+    public function delimite($name)
     {
 
         // @see http://download.oracle.com/docs/cd/B10500_01/server.920/a96540/sql_elements9a.htm
-        return '"'.str_replace( '"', '""', $name ).'"';
+        return '"'.str_replace('"', '""', $name).'"';
     }
 
 
     /**
      * Formats date-time for use in a SQL statement.
      */
-    public function formatDateTime( \DateTime $value )
+    public function formatDateTime(\DateTime $value)
     {
 
-        return $value->format( $this->fmtDateTime );
+        return $value->format($this->fmtDateTime);
     }
 
 
     /**
      * Encodes string for use in a LIKE statement.
      */
-    public function formatLike( $value, $pos )
+    public function formatLike($value, $pos)
     {
 
         throw new Nette\NotImplementedException;
@@ -73,7 +73,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     /**
      * Injects LIMIT/OFFSET to the SQL query.
      */
-    public function applyLimit( &$sql, $limit, $offset )
+    public function applyLimit(&$sql, $limit, $offset)
     {
 
         if ($offset > 0) {
@@ -91,7 +91,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     /**
      * Normalizes result row.
      */
-    public function normalizeRow( $row, $statement )
+    public function normalizeRow($row, $statement)
     {
 
         return $row;
@@ -108,7 +108,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     {
 
         $tables = array();
-        foreach ($this->connection->query( 'SELECT * FROM cat' ) as $row) {
+        foreach ($this->connection->query('SELECT * FROM cat') as $row) {
             if ($row[1] === 'TABLE' || $row[1] === 'VIEW') {
                 $tables[] = array(
                     'name' => $row[0],
@@ -123,7 +123,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     /**
      * Returns metadata for all columns in a table.
      */
-    public function getColumns( $table )
+    public function getColumns($table)
     {
 
         throw new NotImplementedException;
@@ -133,7 +133,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     /**
      * Returns metadata for all indexes in a table.
      */
-    public function getIndexes( $table )
+    public function getIndexes($table)
     {
 
         throw new NotImplementedException;
@@ -143,7 +143,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     /**
      * Returns metadata for all foreign keys in a table.
      */
-    public function getForeignKeys( $table )
+    public function getForeignKeys($table)
     {
 
         throw new NotImplementedException;
@@ -153,7 +153,7 @@ class OciDriver extends Nette\Object implements Nette\Database\ISupplementalDriv
     /**
      * @return bool
      */
-    public function isSupported( $item )
+    public function isSupported($item)
     {
 
         return $item === self::META;

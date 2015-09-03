@@ -8,6 +8,7 @@ use Doctrine\DBAL\Schema\Sequence;
 
 class SQLAnywhere12PlatformTest extends SQLAnywhere11PlatformTest
 {
+
     /**
      * @var \Doctrine\DBAL\Platforms\SQLAnywhere12Platform
      */
@@ -15,21 +16,25 @@ class SQLAnywhere12PlatformTest extends SQLAnywhere11PlatformTest
 
     public function createPlatform()
     {
+
         return new SQLAnywhere12Platform;
     }
 
     public function testDoesNotSupportSequences()
     {
+
         $this->markTestSkipped('This version of the platform now supports sequences.');
     }
 
     public function testSupportsSequences()
     {
+
         $this->assertTrue($this->_platform->supportsSequences());
     }
 
     public function testGeneratesSequenceSqlCommands()
     {
+
         $sequence = new Sequence('myseq', 20, 1);
         $this->assertEquals(
             'CREATE SEQUENCE myseq INCREMENT BY 20 START WITH 1 MINVALUE 1',
@@ -59,11 +64,12 @@ class SQLAnywhere12PlatformTest extends SQLAnywhere11PlatformTest
 
     public function testGeneratesDateTimeTzColumnTypeDeclarationSQL()
     {
+
         $this->assertEquals(
             'TIMESTAMP WITH TIME ZONE',
             $this->_platform->getDateTimeTzTypeDeclarationSQL(array(
-                'length' => 10,
-                'fixed' => true,
+                'length'   => 10,
+                'fixed'    => true,
                 'unsigned' => true,
                 'autoincrement' => true
             ))
@@ -72,17 +78,20 @@ class SQLAnywhere12PlatformTest extends SQLAnywhere11PlatformTest
 
     public function testHasCorrectDateTimeTzFormatString()
     {
+
         $this->assertEquals('Y-m-d H:i:s.uP', $this->_platform->getDateTimeTzFormatString());
     }
 
     public function testInitializesDateTimeTzTypeMapping()
     {
+
         $this->assertTrue($this->_platform->hasDoctrineTypeMappingFor('timestamp with time zone'));
         $this->assertEquals('datetime', $this->_platform->getDoctrineTypeMapping('timestamp with time zone'));
     }
 
     public function testGeneratesCreateIndexWithAdvancedPlatformOptionsSQL()
     {
+
         $this->assertEquals(
             'CREATE VIRTUAL UNIQUE CLUSTERED INDEX fooindex ON footable (a, b) WITH NULLS NOT DISTINCT FOR OLAP WORKLOAD',
             $this->_platform->getCreateIndexSQL(

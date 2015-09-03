@@ -24,10 +24,10 @@ class FileSystem implements IVendorInterface
     /**
      * @param IVendorInterface $VendorInterface
      */
-    function __construct( IVendorInterface $VendorInterface )
+    public function __construct(IVendorInterface $VendorInterface)
     {
 
-        $this->setVendorInterface( $VendorInterface );
+        $this->setVendorInterface($VendorInterface);
     }
 
     /**
@@ -36,10 +36,10 @@ class FileSystem implements IVendorInterface
      * @return IBridgeInterface
      * @throws FileSystemException
      */
-    public static function getFileLoader( $Location )
+    public static function getFileLoader($Location)
     {
 
-        return self::getUniversalFileLoader( $Location );
+        return self::getUniversalFileLoader($Location);
     }
 
     /**
@@ -47,13 +47,13 @@ class FileSystem implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getUniversalFileLoader( $Location )
+    public static function getUniversalFileLoader($Location)
     {
 
         $Loader = new FileSystem(
             new Vendor(
                 new UniversalFileLoader(
-                    new FileParameter( $Location )
+                    new FileParameter($Location)
                 )
             )
         );
@@ -75,13 +75,13 @@ class FileSystem implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getSymfonyFinder( $Location )
+    public static function getSymfonyFinder($Location)
     {
 
         $Loader = new FileSystem(
             new Vendor(
                 new SymfonyFinder(
-                    new FileParameter( $Location )
+                    new FileParameter($Location)
                 )
             )
         );
@@ -95,10 +95,10 @@ class FileSystem implements IVendorInterface
      * @return IBridgeInterface
      * @throws FileSystemException
      */
-    public static function getFileWriter( $Location )
+    public static function getFileWriter($Location)
     {
 
-        return self::getUniversalFileWriter( $Location );
+        return self::getUniversalFileWriter($Location);
     }
 
     /**
@@ -106,13 +106,13 @@ class FileSystem implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getUniversalFileWriter( $Location )
+    public static function getUniversalFileWriter($Location)
     {
 
         $Loader = new FileSystem(
             new Vendor(
                 new UniversalFileWriter(
-                    new FileParameter( $Location )
+                    new FileParameter($Location)
                 )
             )
         );
@@ -134,7 +134,7 @@ class FileSystem implements IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setVendorInterface( IVendorInterface $VendorInterface )
+    public function setVendorInterface(IVendorInterface $VendorInterface)
     {
 
         $this->VendorInterface = $VendorInterface;
@@ -146,9 +146,9 @@ class FileSystem implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface )
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface)
     {
 
-        return $this->VendorInterface->setBridgeInterface( $BridgeInterface );
+        return $this->VendorInterface->setBridgeInterface($BridgeInterface);
     }
 }

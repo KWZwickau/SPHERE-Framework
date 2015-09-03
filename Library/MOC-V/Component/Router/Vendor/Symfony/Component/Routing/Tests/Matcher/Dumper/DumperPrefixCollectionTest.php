@@ -18,8 +18,10 @@ use Symfony\Component\Routing\Route;
 
 class DumperPrefixCollectionTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testAddPrefixRoute()
     {
+
         $coll = new DumperPrefixCollection();
         $coll->setPrefix('');
 
@@ -64,16 +66,16 @@ EOF;
         $this->assertSame($expect, $this->collectionToString($result->getRoot(), '            '));
     }
 
-    private function collectionToString( DumperCollection $collection, $prefix )
+    private function collectionToString(DumperCollection $collection, $prefix)
     {
 
         $string = '';
         foreach ($collection as $route) {
             if ($route instanceof DumperCollection) {
-                $string .= sprintf( "%s|-coll %s\n", $prefix, $route->getPrefix() );
-                $string .= $this->collectionToString( $route, $prefix.'| ' );
+                $string .= sprintf("%s|-coll %s\n", $prefix, $route->getPrefix());
+                $string .= $this->collectionToString($route, $prefix.'| ');
             } else {
-                $string .= sprintf( "%s|-route %s %s\n", $prefix, $route->getName(), $route->getRoute()->getPath() );
+                $string .= sprintf("%s|-route %s %s\n", $prefix, $route->getName(), $route->getRoute()->getPath());
             }
         }
 
@@ -82,6 +84,7 @@ EOF;
 
     public function testMergeSlashNodes()
     {
+
         $coll = new DumperPrefixCollection();
         $coll->setPrefix('');
 

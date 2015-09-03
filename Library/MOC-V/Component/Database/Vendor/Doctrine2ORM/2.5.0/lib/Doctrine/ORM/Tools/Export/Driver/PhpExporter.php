@@ -30,6 +30,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class PhpExporter extends AbstractExporter
 {
+
     /**
      * @var string
      */
@@ -40,6 +41,7 @@ class PhpExporter extends AbstractExporter
      */
     public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
+
         $lines = array();
         $lines[] = '<?php';
         $lines[] = null;
@@ -51,27 +53,27 @@ class PhpExporter extends AbstractExporter
         }
 
         if ($metadata->inheritanceType) {
-            $lines[] = '$metadata->setInheritanceType(ClassMetadataInfo::INHERITANCE_TYPE_' . $this->_getInheritanceTypeString($metadata->inheritanceType) . ');';
+            $lines[] = '$metadata->setInheritanceType(ClassMetadataInfo::INHERITANCE_TYPE_'.$this->_getInheritanceTypeString($metadata->inheritanceType).');';
         }
 
         if ($metadata->customRepositoryClassName) {
-            $lines[] = "\$metadata->customRepositoryClassName = '" . $metadata->customRepositoryClassName . "';";
+            $lines[] = "\$metadata->customRepositoryClassName = '".$metadata->customRepositoryClassName."';";
         }
 
         if ($metadata->table) {
-            $lines[] = '$metadata->setPrimaryTable(' . $this->_varExport($metadata->table) . ');';
+            $lines[] = '$metadata->setPrimaryTable('.$this->_varExport($metadata->table).');';
         }
 
         if ($metadata->discriminatorColumn) {
-            $lines[] = '$metadata->setDiscriminatorColumn(' . $this->_varExport($metadata->discriminatorColumn) . ');';
+            $lines[] = '$metadata->setDiscriminatorColumn('.$this->_varExport($metadata->discriminatorColumn).');';
         }
 
         if ($metadata->discriminatorMap) {
-            $lines[] = '$metadata->setDiscriminatorMap(' . $this->_varExport($metadata->discriminatorMap) . ');';
+            $lines[] = '$metadata->setDiscriminatorMap('.$this->_varExport($metadata->discriminatorMap).');';
         }
 
         if ($metadata->changeTrackingPolicy) {
-            $lines[] = '$metadata->setChangeTrackingPolicy(ClassMetadataInfo::CHANGETRACKING_' . $this->_getChangeTrackingPolicyString($metadata->changeTrackingPolicy) . ');';
+            $lines[] = '$metadata->setChangeTrackingPolicy(ClassMetadataInfo::CHANGETRACKING_'.$this->_getChangeTrackingPolicyString($metadata->changeTrackingPolicy).');';
         }
 
         if ($metadata->lifecycleCallbacks) {
@@ -83,18 +85,18 @@ class PhpExporter extends AbstractExporter
         }
 
         foreach ($metadata->fieldMappings as $fieldMapping) {
-            $lines[] = '$metadata->mapField(' . $this->_varExport($fieldMapping) . ');';
+            $lines[] = '$metadata->mapField('.$this->_varExport($fieldMapping).');';
         }
 
-        if ( ! $metadata->isIdentifierComposite && $generatorType = $this->_getIdGeneratorTypeString($metadata->generatorType)) {
-            $lines[] = '$metadata->setIdGeneratorType(ClassMetadataInfo::GENERATOR_TYPE_' . $generatorType . ');';
+        if (!$metadata->isIdentifierComposite && $generatorType = $this->_getIdGeneratorTypeString($metadata->generatorType)) {
+            $lines[] = '$metadata->setIdGeneratorType(ClassMetadataInfo::GENERATOR_TYPE_'.$generatorType.');';
         }
 
         foreach ($metadata->associationMappings as $associationMapping) {
             $cascade = array('remove', 'persist', 'refresh', 'merge', 'detach');
             foreach ($cascade as $key => $value) {
-                if ( ! $associationMapping['isCascade'.ucfirst($value)]) {
-                    unset($cascade[$key]);
+                if (!$associationMapping['isCascade'.ucfirst($value)]) {
+                    unset( $cascade[$key] );
                 }
             }
 
@@ -105,10 +107,10 @@ class PhpExporter extends AbstractExporter
             $associationMappingArray = array(
                 'fieldName'    => $associationMapping['fieldName'],
                 'targetEntity' => $associationMapping['targetEntity'],
-                'cascade'     => $cascade,
+                'cascade' => $cascade,
             );
 
-            if (isset($associationMapping['fetch'])) {
+            if (isset( $associationMapping['fetch'] )) {
                 $associationMappingArray['fetch'] = $associationMapping['fetch'];
             }
 
@@ -130,7 +132,7 @@ class PhpExporter extends AbstractExporter
                     'orderBy',
                 );
                 foreach ($potentialAssociationMappingIndexes as $index) {
-                    if (isset($associationMapping[$index])) {
+                    if (isset( $associationMapping[$index] )) {
                         $oneToManyMappingArray[$index] = $associationMapping[$index];
                     }
                 }
@@ -143,14 +145,14 @@ class PhpExporter extends AbstractExporter
                     'orderBy',
                 );
                 foreach ($potentialAssociationMappingIndexes as $index) {
-                    if (isset($associationMapping[$index])) {
+                    if (isset( $associationMapping[$index] )) {
                         $manyToManyMappingArray[$index] = $associationMapping[$index];
                     }
                 }
                 $associationMappingArray = array_merge($associationMappingArray, $manyToManyMappingArray);
             }
 
-            $lines[] = '$metadata->' . $method . '(' . $this->_varExport($associationMappingArray) . ');';
+            $lines[] = '$metadata->'.$method.'('.$this->_varExport($associationMappingArray).');';
         }
 
         return implode("\n", $lines);
@@ -163,8 +165,9 @@ class PhpExporter extends AbstractExporter
      */
     protected function _varExport($var)
     {
+
         $export = var_export($var, true);
-        $export = str_replace("\n", PHP_EOL . str_repeat(' ', 8), $export);
+        $export = str_replace("\n", PHP_EOL.str_repeat(' ', 8), $export);
         $export = str_replace('  ', ' ', $export);
         $export = str_replace('array (', 'array(', $export);
         $export = str_replace('array( ', 'array(', $export);

@@ -2,16 +2,18 @@
 
 namespace Guzzle\Tests\Batch;
 
-use Guzzle\Batch\FlushingBatch;
 use Guzzle\Batch\Batch;
+use Guzzle\Batch\FlushingBatch;
 
 /**
  * @covers Guzzle\Batch\FlushingBatch
  */
 class FlushingBatchTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testFlushesWhenSizeMeetsThreshold()
     {
+
         $t = $this->getMock('Guzzle\Batch\BatchTransferInterface', array('transfer'));
         $d = $this->getMock('Guzzle\Batch\BatchDivisorInterface', array('createBatches'));
 
@@ -21,6 +23,7 @@ class FlushingBatchTest extends \Guzzle\Tests\GuzzleTestCase
         $d->expects($this->exactly(2))
             ->method('createBatches')
             ->will($this->returnCallback(function () use ($queue) {
+
                 $items = array();
                 foreach ($queue as $item) {
                     $items[] = $item;

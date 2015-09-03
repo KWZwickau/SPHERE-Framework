@@ -2,20 +2,30 @@
 
 namespace Guzzle\Tests\Service\Command;
 
-use Guzzle\Tests\Service\Mock\MockClient;
 use Guzzle\Service\Command\Factory\ConcreteClassFactory;
+use Guzzle\Tests\Service\Mock\MockClient;
 
 /**
  * @covers Guzzle\Service\Command\Factory\ConcreteClassFactory
  */
 class ConcreteClassFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testProvider()
     {
+
         return array(
             array('foo', null, 'Guzzle\\Tests\\Service\\Mock\\Command\\'),
-            array('mock_command', 'Guzzle\Tests\Service\Mock\Command\MockCommand', 'Guzzle\\Tests\\Service\\Mock\\Command\\'),
-            array('other_command', 'Guzzle\Tests\Service\Mock\Command\OtherCommand', 'Guzzle\\Tests\\Service\\Mock\\Command\\'),
+            array(
+                'mock_command',
+                'Guzzle\Tests\Service\Mock\Command\MockCommand',
+                'Guzzle\\Tests\\Service\\Mock\\Command\\'
+            ),
+            array(
+                'other_command',
+                'Guzzle\Tests\Service\Mock\Command\OtherCommand',
+                'Guzzle\\Tests\\Service\\Mock\\Command\\'
+            ),
             array('sub.sub', 'Guzzle\Tests\Service\Mock\Command\Sub\Sub', 'Guzzle\\Tests\\Service\\Mock\\Command\\'),
             array('sub.sub', null, 'Guzzle\\Foo\\'),
             array('foo', null, null),
@@ -30,6 +40,7 @@ class ConcreteClassFactoryTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testCreatesConcreteCommands($key, $result, $prefix)
     {
+
         if (!$prefix) {
             $client = new MockClient();
         } else {

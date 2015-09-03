@@ -28,7 +28,7 @@ class DevNullStorage extends Nette\Object implements Nette\Caching\IStorage
      *
      * @return mixed|NULL
      */
-    public function read( $key )
+    public function read($key)
     {
     }
 
@@ -40,7 +40,7 @@ class DevNullStorage extends Nette\Object implements Nette\Caching\IStorage
      *
      * @return void
      */
-    public function lock( $key )
+    public function lock($key)
     {
     }
 
@@ -54,7 +54,7 @@ class DevNullStorage extends Nette\Object implements Nette\Caching\IStorage
      *
      * @return void
      */
-    public function write( $key, $data, array $dp )
+    public function write($key, $data, array $dp)
     {
     }
 
@@ -66,7 +66,7 @@ class DevNullStorage extends Nette\Object implements Nette\Caching\IStorage
      *
      * @return void
      */
-    public function remove( $key )
+    public function remove($key)
     {
     }
 
@@ -78,7 +78,7 @@ class DevNullStorage extends Nette\Object implements Nette\Caching\IStorage
      *
      * @return void
      */
-    public function clean( array $conds )
+    public function clean(array $conds)
     {
     }
 

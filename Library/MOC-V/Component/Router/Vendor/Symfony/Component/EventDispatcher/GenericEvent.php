@@ -20,6 +20,7 @@ namespace Symfony\Component\EventDispatcher;
  */
 class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
 {
+
     /**
      * Event subject.
      *
@@ -42,6 +43,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function __construct($subject = null, array $arguments = array())
     {
+
         $this->subject = $subject;
         $this->arguments = $arguments;
     }
@@ -53,6 +55,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function getSubject()
     {
+
         return $this->subject;
     }
 
@@ -74,7 +77,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      *
      * @return GenericEvent
      */
-    public function setArguments( array $args = array() )
+    public function setArguments(array $args = array())
     {
 
         $this->arguments = $args;
@@ -91,10 +94,10 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      *
      * @return mixed
      */
-    public function offsetGet( $key )
+    public function offsetGet($key)
     {
 
-        return $this->getArgument( $key );
+        return $this->getArgument($key);
     }
 
     /**
@@ -106,14 +109,14 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      *
      * @return mixed Contents of array key.
      */
-    public function getArgument( $key )
+    public function getArgument($key)
     {
 
-        if ($this->hasArgument( $key )) {
+        if ($this->hasArgument($key)) {
             return $this->arguments[$key];
         }
 
-        throw new \InvalidArgumentException( sprintf( '%s not found in %s', $key, $this->getName() ) );
+        throw new \InvalidArgumentException(sprintf('%s not found in %s', $key, $this->getName()));
     }
 
     /**
@@ -125,6 +128,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function hasArgument($key)
     {
+
         return array_key_exists($key, $this->arguments);
     }
 
@@ -134,10 +138,10 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      * @param string $key   Array key to set.
      * @param mixed  $value Value.
      */
-    public function offsetSet( $key, $value )
+    public function offsetSet($key, $value)
     {
 
-        $this->setArgument( $key, $value );
+        $this->setArgument($key, $value);
     }
 
     /**
@@ -148,7 +152,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      *
      * @return GenericEvent
      */
-    public function setArgument( $key, $value )
+    public function setArgument($key, $value)
     {
 
         $this->arguments[$key] = $value;
@@ -163,8 +167,9 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function offsetUnset($key)
     {
+
         if ($this->hasArgument($key)) {
-            unset($this->arguments[$key]);
+            unset( $this->arguments[$key] );
         }
     }
 
@@ -177,6 +182,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function offsetExists($key)
     {
+
         return $this->hasArgument($key);
     }
 
@@ -187,6 +193,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->arguments);
     }
 }

@@ -15,6 +15,7 @@
  */
 class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
 {
+
     /**
      * @var int
      */
@@ -32,6 +33,7 @@ class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
      */
     public function __construct(PHP_CodeCoverage_Report_Node_Directory $node)
     {
+
         $this->nodes = $node->getChildNodes();
     }
 
@@ -40,17 +42,8 @@ class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
      */
     public function rewind()
     {
-        $this->position = 0;
-    }
 
-    /**
-     * Checks if there is a current element after calls to rewind() or next().
-     *
-     * @return bool
-     */
-    public function valid()
-    {
-        return $this->position < count($this->nodes);
+        $this->position = 0;
     }
 
     /**
@@ -60,6 +53,7 @@ class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
      */
     public function key()
     {
+
         return $this->position;
     }
 
@@ -70,7 +64,19 @@ class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
      */
     public function current()
     {
+
         return $this->valid() ? $this->nodes[$this->position] : null;
+    }
+
+    /**
+     * Checks if there is a current element after calls to rewind() or next().
+     *
+     * @return bool
+     */
+    public function valid()
+    {
+
+        return $this->position < count($this->nodes);
     }
 
     /**
@@ -78,6 +84,7 @@ class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
      */
     public function next()
     {
+
         $this->position++;
     }
 
@@ -88,6 +95,7 @@ class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
      */
     public function getChildren()
     {
+
         return new self(
             $this->nodes[$this->position]
         );
@@ -100,6 +108,7 @@ class PHP_CodeCoverage_Report_Node_Iterator implements RecursiveIterator
      */
     public function hasChildren()
     {
+
         return $this->nodes[$this->position] instanceof PHP_CodeCoverage_Report_Node_Directory;
     }
 }

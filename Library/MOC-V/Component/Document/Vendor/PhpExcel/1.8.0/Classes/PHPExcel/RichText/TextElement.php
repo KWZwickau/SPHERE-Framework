@@ -46,7 +46,7 @@ class PHPExcel_RichText_TextElement implements PHPExcel_RichText_ITextElement
      *
      * @param    string $pText Text
      */
-    public function __construct( $pText = '' )
+    public function __construct($pText = '')
     {
 
         // Initialise variables
@@ -71,7 +71,7 @@ class PHPExcel_RichText_TextElement implements PHPExcel_RichText_ITextElement
      *
      * @return PHPExcel_RichText_ITextElement
      */
-    public function setText( $pText = '' )
+    public function setText($pText = '')
     {
 
         $this->_text = $pText;
@@ -109,9 +109,9 @@ class PHPExcel_RichText_TextElement implements PHPExcel_RichText_ITextElement
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

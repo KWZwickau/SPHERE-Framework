@@ -21,7 +21,7 @@ use Nette;
 class Annotation extends Nette\Object implements IAnnotation
 {
 
-    public function __construct( array $values )
+    public function __construct(array $values)
     {
 
         foreach ($values as $k => $v) {

@@ -19,7 +19,7 @@ class NamespaceLoader extends NamespaceSearch
 
         return sha1(
             serialize(
-                get_object_vars( $this )
+                get_object_vars($this)
             )
         );
     }
@@ -29,10 +29,10 @@ class NamespaceLoader extends NamespaceSearch
      *
      * @return bool
      */
-    public function loadClass( $ClassName )
+    public function loadClass($ClassName)
     {
 
-        if ($this->findSource( $ClassName )) {
+        if ($this->findSource($ClassName)) {
             return true;
         }
         return false;
@@ -43,35 +43,35 @@ class NamespaceLoader extends NamespaceSearch
      *
      * @return bool
      */
-    private function findSource( $ClassName )
+    private function findSource($ClassName)
     {
 
-        $LoadNamespace = $this->getClassNamespace( $ClassName );
+        $LoadNamespace = $this->getClassNamespace($ClassName);
         /**
          * @var string $Namespace
          * @var array  $DirectoryList
          */
         foreach ((array)$this->getNamespaceList() as $Namespace) {
-            if (empty( $LoadNamespace ) || empty( $Namespace ) || 0 !== strpos( $LoadNamespace, $Namespace )) {
+            if (empty( $LoadNamespace ) || empty( $Namespace ) || 0 !== strpos($LoadNamespace, $Namespace)) {
                 continue;
             }
-            $DirectoryList = $this->getNamespaceMapping( $Namespace );
-            if ($this->searchForClass( $DirectoryList, $ClassName )) {
+            $DirectoryList = $this->getNamespaceMapping($Namespace);
+            if ($this->searchForClass($DirectoryList, $ClassName)) {
                 // @codeCoverageIgnoreStart
                 return true;
                 // @codeCoverageIgnoreEnd
             }
-            if ($this->searchForClassFallback( $DirectoryList, $ClassName, $Namespace )) {
+            if ($this->searchForClassFallback($DirectoryList, $ClassName, $Namespace)) {
                 // @codeCoverageIgnoreStart
                 return true;
                 // @codeCoverageIgnoreEnd
             }
-            if ($this->searchForInterface( $DirectoryList, $ClassName )) {
+            if ($this->searchForInterface($DirectoryList, $ClassName)) {
                 // @codeCoverageIgnoreStart
                 return true;
                 // @codeCoverageIgnoreEnd
             }
-            if ($this->searchForInterfaceFallback( $DirectoryList, $ClassName, $Namespace )) {
+            if ($this->searchForInterfaceFallback($DirectoryList, $ClassName, $Namespace)) {
                 // @codeCoverageIgnoreStart
                 return true;
                 // @codeCoverageIgnoreEnd
@@ -85,10 +85,10 @@ class NamespaceLoader extends NamespaceSearch
      *
      * @return string
      */
-    protected function getClassNamespace( $ClassName )
+    protected function getClassNamespace($ClassName)
     {
 
-        return substr( $ClassName, 0, strrpos( $ClassName, '\\' ) );
+        return substr($ClassName, 0, strrpos($ClassName, '\\'));
     }
 }
 

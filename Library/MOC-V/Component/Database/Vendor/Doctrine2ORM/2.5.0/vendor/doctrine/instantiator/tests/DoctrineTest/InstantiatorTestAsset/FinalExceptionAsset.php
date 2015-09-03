@@ -29,6 +29,7 @@ use Exception;
  */
 final class FinalExceptionAsset extends Exception
 {
+
     /**
      * Constructor - should not be called
      *
@@ -36,6 +37,7 @@ final class FinalExceptionAsset extends Exception
      */
     public function __construct()
     {
+
         throw new BadMethodCallException('Not supposed to be called!');
     }
 }

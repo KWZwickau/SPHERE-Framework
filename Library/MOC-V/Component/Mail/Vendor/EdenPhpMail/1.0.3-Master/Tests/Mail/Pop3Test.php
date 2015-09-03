@@ -15,8 +15,8 @@ class Eden_Mail_Tests_Mail_Pop3Test extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
 
-        date_default_timezone_set( 'GMT' );
-        $this->pop = eden( 'mail' )->pop3(
+        date_default_timezone_set('GMT');
+        $this->pop = eden('mail')->pop3(
             'pop.gmail.com',
             '[EMAIL-ADDRESS]',
             '[PASSWORD]',
@@ -34,12 +34,12 @@ class Eden_Mail_Tests_Mail_Pop3Test extends \PHPUnit_Framework_TestCase
     public function testGetEmails()
     {
 
-        $emails = $this->pop->getEmails( 0, 10 );
+        $emails = $this->pop->getEmails(0, 10);
 
-        $this->assertTrue( is_array( $emails ) );
+        $this->assertTrue(is_array($emails));
 
-        if (count( $emails ) > 0) {
-            $this->assertTrue( isset( $emails[0]['subject'] ) );
+        if (count($emails) > 0) {
+            $this->assertTrue(isset( $emails[0]['subject'] ));
         }
     }
 
@@ -48,6 +48,6 @@ class Eden_Mail_Tests_Mail_Pop3Test extends \PHPUnit_Framework_TestCase
 
         $total = $this->pop->getEmailTotal();
 
-        $this->assertTrue( is_numeric( $total ) );
+        $this->assertTrue(is_numeric($total));
     }
 }

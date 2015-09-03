@@ -6,8 +6,8 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
-require_once dirname( __FILE__ )."/Font_TrueType.php";
-require_once dirname( __FILE__ )."/Font_EOT_Header.php";
+require_once dirname(__FILE__)."/Font_TrueType.php";
+require_once dirname(__FILE__)."/Font_EOT_Header.php";
 
 /**
  * EOT font file.
@@ -66,25 +66,25 @@ class Font_EOT extends Font_TrueType
             return;
         }
 
-        $this->header = new Font_EOT_Header( $this );
+        $this->header = new Font_EOT_Header($this);
         $this->header->parse();
     }
 
     /**
      * Little endian version of the read method
      */
-    public function read( $n )
+    public function read($n)
     {
 
         if ($n < 1) {
             return "";
         }
 
-        $string = fread( $this->f, $n );
-        $chunks = str_split( $string, 2 );
-        $chunks = array_map( "strrev", $chunks );
+        $string = fread($this->f, $n);
+        $chunks = str_split($string, 2);
+        $chunks = array_map("strrev", $chunks);
 
-        return implode( "", $chunks );
+        return implode("", $chunks);
     }
 
     public function readUInt32()

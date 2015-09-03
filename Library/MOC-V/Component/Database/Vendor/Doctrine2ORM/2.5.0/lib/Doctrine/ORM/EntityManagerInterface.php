@@ -28,10 +28,11 @@ use Doctrine\ORM\Query\ResultSetMapping;
  * @since   2.4
  * @author  Lars Strojny <lars@strojny.net>
  *
- * @method Mapping\ClassMetadata getClassMetadata($className)
+ * @method Mapping\ClassMetadata getClassMetadata( $className )
  */
 interface EntityManagerInterface extends ObjectManager
 {
+
     /**
      * Returns the cache API for managing the second level cache regions or NULL if the cache is not enabled.
      *
@@ -242,17 +243,17 @@ interface EntityManagerInterface extends ObjectManager
     public function getUnitOfWork();
 
     /**
-    * Gets a hydrator for the given hydration mode.
-    *
-    * This method caches the hydrator instances which is used for all queries that don't
-    * selectively iterate over the result.
-    *
-    * @deprecated
-    *
-    * @param int $hydrationMode
-    *
-    * @return \Doctrine\ORM\Internal\Hydration\AbstractHydrator
-    */
+     * Gets a hydrator for the given hydration mode.
+     *
+     * This method caches the hydrator instances which is used for all queries that don't
+     * selectively iterate over the result.
+     *
+     * @deprecated
+     *
+     * @param int $hydrationMode
+     *
+     * @return \Doctrine\ORM\Internal\Hydration\AbstractHydrator
+     */
     public function getHydrator($hydrationMode);
 
     /**

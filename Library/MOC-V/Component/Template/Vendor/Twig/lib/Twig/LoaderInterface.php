@@ -16,6 +16,7 @@
  */
 interface Twig_LoaderInterface
 {
+
     /**
      * Gets the source code of a template, given its name.
      *

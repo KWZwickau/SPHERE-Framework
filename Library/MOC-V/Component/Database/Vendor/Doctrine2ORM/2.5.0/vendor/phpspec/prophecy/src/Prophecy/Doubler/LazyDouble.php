@@ -11,8 +11,8 @@
 
 namespace Prophecy\Doubler;
 
-use Prophecy\Exception\Doubler\DoubleException;
 use Prophecy\Exception\Doubler\ClassNotFoundException;
+use Prophecy\Exception\Doubler\DoubleException;
 use Prophecy\Exception\Doubler\InterfaceNotFoundException;
 use ReflectionClass;
 
@@ -24,10 +24,11 @@ use ReflectionClass;
  */
 class LazyDouble
 {
+
     private $doubler;
     private $class;
     private $interfaces = array();
-    private $arguments  = null;
+    private $arguments = null;
     private $double;
 
     /**
@@ -37,6 +38,7 @@ class LazyDouble
      */
     public function __construct(Doubler $doubler)
     {
+
         $this->doubler = $doubler;
     }
 
@@ -50,6 +52,7 @@ class LazyDouble
      */
     public function setParentClass($class)
     {
+
         if (null !== $this->double) {
             throw new DoubleException('Can not extend class with already instantiated double.');
         }
@@ -75,6 +78,7 @@ class LazyDouble
      */
     public function addInterface($interface)
     {
+
         if (null !== $this->double) {
             throw new DoubleException(
                 'Can not implement interface with already instantiated double.'
@@ -102,6 +106,7 @@ class LazyDouble
      */
     public function setArguments(array $arguments = null)
     {
+
         $this->arguments = $arguments;
     }
 
@@ -112,6 +117,7 @@ class LazyDouble
      */
     public function getInstance()
     {
+
         if (null === $this->double) {
             if (null !== $this->arguments) {
                 return $this->double = $this->doubler->double(

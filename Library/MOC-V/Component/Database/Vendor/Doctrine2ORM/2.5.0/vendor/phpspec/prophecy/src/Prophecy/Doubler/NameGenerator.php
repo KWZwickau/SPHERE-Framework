@@ -21,6 +21,7 @@ use ReflectionClass;
  */
 class NameGenerator
 {
+
     private static $counter = 1;
 
     /**
@@ -33,6 +34,7 @@ class NameGenerator
      */
     public function name(ReflectionClass $class = null, array $interfaces)
     {
+
         $parts = array();
 
         if (null !== $class) {

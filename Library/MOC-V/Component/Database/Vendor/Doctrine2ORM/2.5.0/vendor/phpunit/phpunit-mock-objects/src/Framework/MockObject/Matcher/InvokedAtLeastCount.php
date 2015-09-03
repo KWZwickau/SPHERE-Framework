@@ -16,6 +16,7 @@
  */
 class PHPUnit_Framework_MockObject_Matcher_InvokedAtLeastCount extends PHPUnit_Framework_MockObject_Matcher_InvokedRecorder
 {
+
     /**
      * @var int
      */
@@ -26,6 +27,7 @@ class PHPUnit_Framework_MockObject_Matcher_InvokedAtLeastCount extends PHPUnit_F
      */
     public function __construct($requiredInvocations)
     {
+
         $this->requiredInvocations = $requiredInvocations;
     }
 
@@ -34,7 +36,8 @@ class PHPUnit_Framework_MockObject_Matcher_InvokedAtLeastCount extends PHPUnit_F
      */
     public function toString()
     {
-        return 'invoked at least ' . $this->requiredInvocations . ' times';
+
+        return 'invoked at least '.$this->requiredInvocations.' times';
     }
 
     /**
@@ -45,12 +48,13 @@ class PHPUnit_Framework_MockObject_Matcher_InvokedAtLeastCount extends PHPUnit_F
      */
     public function verify()
     {
+
         $count = $this->getInvocationCount();
 
         if ($count < $this->requiredInvocations) {
             throw new PHPUnit_Framework_ExpectationFailedException(
-                'Expected invocation at least ' . $this->requiredInvocations .
-                ' times but it occured ' . $count . ' time(s).'
+                'Expected invocation at least '.$this->requiredInvocations.
+                ' times but it occured '.$count.' time(s).'
             );
         }
     }

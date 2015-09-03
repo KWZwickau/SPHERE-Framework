@@ -74,13 +74,13 @@ abstract class Frame_Decorator extends Frame
      * @param Frame  $frame  The decoration target
      * @param DOMPDF $dompdf The DOMPDF object
      */
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
         $this->_frame = $frame;
         $this->_root = null;
         $this->_dompdf = $dompdf;
-        $frame->set_decorator( $this );
+        $frame->set_decorator($this);
     }
 
     /**
@@ -88,19 +88,19 @@ abstract class Frame_Decorator extends Frame
      *
      * @param bool $recursive if true, call dispose on all children
      */
-    function dispose( $recursive = false )
+    function dispose($recursive = false)
     {
 
         if ($recursive) {
             while ($child = $this->get_first_child()) {
-                $child->dispose( true );
+                $child->dispose(true);
             }
         }
 
         $this->_root = null;
         unset( $this->_root );
 
-        $this->_frame->dispose( true );
+        $this->_frame->dispose(true);
         $this->_frame = null;
         unset( $this->_frame );
 
@@ -141,13 +141,13 @@ abstract class Frame_Decorator extends Frame
     function deep_copy()
     {
 
-        $frame = new Frame( $this->get_node()->cloneNode() );
-        $frame->set_style( clone $this->_frame->get_original_style() );
+        $frame = new Frame($this->get_node()->cloneNode());
+        $frame->set_style(clone $this->_frame->get_original_style());
 
-        $deco = Frame_Factory::decorate_frame( $frame, $this->_dompdf, $this->_root );
+        $deco = Frame_Factory::decorate_frame($frame, $this->_dompdf, $this->_root);
 
         foreach ($this->get_children() as $child) {
-            $deco->append_child( $child->deep_copy() );
+            $deco->append_child($child->deep_copy());
         }
 
         return $deco;
@@ -168,14 +168,14 @@ abstract class Frame_Decorator extends Frame
      * @param Frame $child
      * @param bool  $update_node
      */
-    function append_child( Frame $child, $update_node = true )
+    function append_child(Frame $child, $update_node = true)
     {
 
         while ($child instanceof Frame_Decorator) {
             $child = $child->_frame;
         }
 
-        $this->_frame->append_child( $child, $update_node );
+        $this->_frame->append_child($child, $update_node);
     }
 
     /**
@@ -232,10 +232,10 @@ abstract class Frame_Decorator extends Frame
      *
      * @return array|float
      */
-    function get_containing_block( $i = null )
+    function get_containing_block($i = null)
     {
 
-        return $this->_frame->get_containing_block( $i );
+        return $this->_frame->get_containing_block($i);
     }
 
     /**
@@ -243,10 +243,10 @@ abstract class Frame_Decorator extends Frame
      *
      * @return array|float
      */
-    function get_position( $i = null )
+    function get_position($i = null)
     {
 
-        return $this->_frame->get_position( $i );
+        return $this->_frame->get_position($i);
     }
 
     /**
@@ -297,19 +297,19 @@ abstract class Frame_Decorator extends Frame
     /**
      * @param integer $id
      */
-    function set_id( $id )
+    function set_id($id)
     {
 
-        $this->_frame->set_id( $id );
+        $this->_frame->set_id($id);
     }
 
     /**
      * @param Style $style
      */
-    function set_style( Style $style )
+    function set_style(Style $style)
     {
 
-        $this->_frame->set_style( $style );
+        $this->_frame->set_style($style);
     }
 
     /**
@@ -318,20 +318,20 @@ abstract class Frame_Decorator extends Frame
      * @param float $w
      * @param float $h
      */
-    function set_containing_block( $x = null, $y = null, $w = null, $h = null )
+    function set_containing_block($x = null, $y = null, $w = null, $h = null)
     {
 
-        $this->_frame->set_containing_block( $x, $y, $w, $h );
+        $this->_frame->set_containing_block($x, $y, $w, $h);
     }
 
     /**
      * @param float $x
      * @param float $y
      */
-    function set_position( $x = null, $y = null )
+    function set_position($x = null, $y = null)
     {
 
-        $this->_frame->set_position( $x, $y );
+        $this->_frame->set_position($x, $y);
     }
 
     /**
@@ -347,14 +347,14 @@ abstract class Frame_Decorator extends Frame
      * @param Frame $child
      * @param bool  $update_node
      */
-    function prepend_child( Frame $child, $update_node = true )
+    function prepend_child(Frame $child, $update_node = true)
     {
 
         while ($child instanceof Frame_Decorator) {
             $child = $child->_frame;
         }
 
-        $this->_frame->prepend_child( $child, $update_node );
+        $this->_frame->prepend_child($child, $update_node);
     }
 
     /**
@@ -362,7 +362,7 @@ abstract class Frame_Decorator extends Frame
      * @param Frame $ref
      * @param bool  $update_node
      */
-    function insert_child_before( Frame $new_child, Frame $ref, $update_node = true )
+    function insert_child_before(Frame $new_child, Frame $ref, $update_node = true)
     {
 
         while ($new_child instanceof Frame_Decorator) {
@@ -373,7 +373,7 @@ abstract class Frame_Decorator extends Frame
             $ref = $ref->_frame;
         }
 
-        $this->_frame->insert_child_before( $new_child, $ref, $update_node );
+        $this->_frame->insert_child_before($new_child, $ref, $update_node);
     }
 
     /**
@@ -382,14 +382,14 @@ abstract class Frame_Decorator extends Frame
      *
      * @return Frame
      */
-    function remove_child( Frame $child, $update_node = true )
+    function remove_child(Frame $child, $update_node = true)
     {
 
         while ($child instanceof Frame_Decorator) {
             $child = $child->_frame;
         }
 
-        return $this->_frame->remove_child( $child, $update_node );
+        return $this->_frame->remove_child($child, $update_node);
     }
 
     /**
@@ -463,15 +463,15 @@ abstract class Frame_Decorator extends Frame
     function get_subtree()
     {
 
-        return new FrameTreeList( $this );
+        return new FrameTreeList($this);
     }
 
-    function set_positioner( Positioner $posn )
+    function set_positioner(Positioner $posn)
     {
 
         $this->_positioner = $posn;
         if ($this->_frame instanceof Frame_Decorator) {
-            $this->_frame->set_positioner( $posn );
+            $this->_frame->set_positioner($posn);
         }
     }
 
@@ -484,12 +484,12 @@ abstract class Frame_Decorator extends Frame
         return $this->_reflower;
     }
 
-    function set_reflower( Frame_Reflower $reflower )
+    function set_reflower(Frame_Reflower $reflower)
     {
 
         $this->_reflower = $reflower;
         if ($this->_frame instanceof Frame_Decorator) {
-            $this->_frame->set_reflower( $reflower );
+            $this->_frame->set_reflower($reflower);
         }
     }
 
@@ -505,13 +505,13 @@ abstract class Frame_Decorator extends Frame
     /**
      * @param Frame $root
      */
-    function set_root( Frame $root )
+    function set_root(Frame $root)
     {
 
         $this->_root = $root;
 
         if ($this->_frame instanceof Frame_Decorator) {
-            $this->_frame->set_root( $root );
+            $this->_frame->set_root($root);
         }
     }
 
@@ -592,40 +592,40 @@ abstract class Frame_Decorator extends Frame
      * @throws DOMPDF_Exception
      * @return void
      */
-    function split( Frame $child = null, $force_pagebreak = false )
+    function split(Frame $child = null, $force_pagebreak = false)
     {
 
         // decrement any counters that were incremented on the current node, unless that node is the body
         $style = $this->_frame->get_style();
         if ($this->_frame->get_node()->nodeName !== "body" && $style->counter_increment && ( $decrement = $style->counter_increment ) !== "none") {
-            $this->decrement_counters( $decrement );
+            $this->decrement_counters($decrement);
         }
 
-        if (is_null( $child )) {
+        if (is_null($child)) {
             // check for counter increment on :before content (always a child of the selected element @link Frame_Reflower::_set_content)
             // this can push the current node to the next page before counter rules have bubbled up (but only if
             // it's been rendered, thus the position check)
-            if (!$this->is_text_node() && $this->get_node()->hasAttribute( "dompdf_before_frame_id" )) {
+            if (!$this->is_text_node() && $this->get_node()->hasAttribute("dompdf_before_frame_id")) {
                 foreach ($this->_frame->get_children() as $child) {
-                    if ($this->get_node()->getAttribute( "dompdf_before_frame_id" ) == $child->get_id() && $child->get_position( 'x' ) !== null) {
+                    if ($this->get_node()->getAttribute("dompdf_before_frame_id") == $child->get_id() && $child->get_position('x') !== null) {
                         $style = $child->get_style();
                         if ($style->counter_increment && ( $decrement = $style->counter_increment ) !== "none") {
-                            $this->decrement_counters( $decrement );
+                            $this->decrement_counters($decrement);
                         }
                     }
                 }
             }
-            $this->get_parent()->split( $this, $force_pagebreak );
+            $this->get_parent()->split($this, $force_pagebreak);
             return;
         }
 
         if ($child->get_parent() !== $this) {
-            throw new DOMPDF_Exception( "Unable to split: frame is not a child of this one." );
+            throw new DOMPDF_Exception("Unable to split: frame is not a child of this one.");
         }
 
         $node = $this->_frame->get_node();
 
-        $split = $this->copy( $node->cloneNode() );
+        $split = $this->copy($node->cloneNode());
         $split->reset();
         $split->get_original_style()->text_indent = 0;
         $split->_splitted = true;
@@ -646,7 +646,7 @@ abstract class Frame_Decorator extends Frame
             $orig_style->border_top = 0;
         }
 
-        $this->get_parent()->insert_child_after( $split, $this );
+        $this->get_parent()->insert_child_after($split, $this);
 
         // Add $frame and all following siblings to the new split node
         $iter = $child;
@@ -654,30 +654,30 @@ abstract class Frame_Decorator extends Frame
             $frame = $iter;
             $iter = $iter->get_next_sibling();
             $frame->reset();
-            $split->append_child( $frame );
+            $split->append_child($frame);
         }
 
-        $this->get_parent()->split( $split, $force_pagebreak );
+        $this->get_parent()->split($split, $force_pagebreak);
 
         // If this node resets a counter save the current value to use when rendering on the next page
         if ($style->counter_reset && ( $reset = $style->counter_reset ) !== "none") {
-            $vars = preg_split( '/\s+/', trim( $reset ), 2 );
-            $split->_counters['__'.$vars[0]] = $this->lookup_counter_frame( $vars[0] )->_counters[$vars[0]];
+            $vars = preg_split('/\s+/', trim($reset), 2);
+            $split->_counters['__'.$vars[0]] = $this->lookup_counter_frame($vars[0])->_counters[$vars[0]];
         }
     }
 
-    function decrement_counters( $counters )
+    function decrement_counters($counters)
     {
 
         foreach ($counters as $id => $increment) {
-            $this->increment_counter( $id, intval( $increment ) * -1 );
+            $this->increment_counter($id, intval($increment) * -1);
         }
     }
 
-    function increment_counter( $id = self::DEFAULT_COUNTER, $increment = 1 )
+    function increment_counter($id = self::DEFAULT_COUNTER, $increment = 1)
     {
 
-        $counter_frame = $this->lookup_counter_frame( $id );
+        $counter_frame = $this->lookup_counter_frame($id);
 
         if ($counter_frame) {
             if (!isset( $counter_frame->_counters[$id] )) {
@@ -688,7 +688,7 @@ abstract class Frame_Decorator extends Frame
         }
     }
 
-    function lookup_counter_frame( $id = self::DEFAULT_COUNTER )
+    function lookup_counter_frame($id = self::DEFAULT_COUNTER)
     {
 
         $f = $this->get_parent();
@@ -714,13 +714,13 @@ abstract class Frame_Decorator extends Frame
      *
      * @return Frame
      */
-    function copy( DOMNode $node )
+    function copy(DOMNode $node)
     {
 
-        $frame = new Frame( $node );
-        $frame->set_style( clone $this->_frame->get_original_style() );
+        $frame = new Frame($node);
+        $frame->set_style(clone $this->_frame->get_original_style());
 
-        return Frame_Factory::decorate_frame( $frame, $this->_dompdf, $this->_root );
+        return Frame_Factory::decorate_frame($frame, $this->_dompdf, $this->_root);
     }
 
     /**
@@ -728,7 +728,7 @@ abstract class Frame_Decorator extends Frame
      * @param Frame $ref
      * @param bool  $update_node
      */
-    function insert_child_after( Frame $new_child, Frame $ref, $update_node = true )
+    function insert_child_after(Frame $new_child, Frame $ref, $update_node = true)
     {
 
         while ($new_child instanceof Frame_Decorator) {
@@ -739,29 +739,29 @@ abstract class Frame_Decorator extends Frame
             $ref = $ref->_frame;
         }
 
-        $this->_frame->insert_child_after( $new_child, $ref, $update_node );
+        $this->_frame->insert_child_after($new_child, $ref, $update_node);
     }
 
-    function reset_counter( $id = self::DEFAULT_COUNTER, $value = 0 )
+    function reset_counter($id = self::DEFAULT_COUNTER, $value = 0)
     {
 
-        $this->get_parent()->_counters[$id] = intval( $value );
+        $this->get_parent()->_counters[$id] = intval($value);
     }
 
-    function increment_counters( $counters )
+    function increment_counters($counters)
     {
 
         foreach ($counters as $id => $increment) {
-            $this->increment_counter( $id, intval( $increment ) );
+            $this->increment_counter($id, intval($increment));
         }
     }
 
     // TODO: What version is the best : this one or the one in List_Bullet_Renderer ?
 
-    function counter_value( $id = self::DEFAULT_COUNTER, $type = "decimal" )
+    function counter_value($id = self::DEFAULT_COUNTER, $type = "decimal")
     {
 
-        $type = mb_strtolower( $type );
+        $type = mb_strtolower($type);
 
         if (!isset( $this->_counters[$id] )) {
             $this->_counters[$id] = 0;
@@ -775,27 +775,27 @@ abstract class Frame_Decorator extends Frame
                 return $value;
 
             case "decimal-leading-zero":
-                return str_pad( $value, 2, "0" );
+                return str_pad($value, 2, "0");
 
             case "lower-roman":
-                return dec2roman( $value );
+                return dec2roman($value);
 
             case "upper-roman":
-                return mb_strtoupper( dec2roman( $value ) );
+                return mb_strtoupper(dec2roman($value));
 
             case "lower-latin":
             case "lower-alpha":
-                return chr( ( $value % 26 ) + ord( 'a' ) - 1 );
+            return chr(( $value % 26 ) + ord('a') - 1);
 
             case "upper-latin":
             case "upper-alpha":
-                return chr( ( $value % 26 ) + ord( 'A' ) - 1 );
+            return chr(( $value % 26 ) + ord('A') - 1);
 
             case "lower-greek":
-                return unichr( $value + 944 );
+                return unichr($value + 944);
 
             case "upper-greek":
-                return unichr( $value + 912 );
+                return unichr($value + 912);
         }
     }
 
@@ -805,19 +805,19 @@ abstract class Frame_Decorator extends Frame
         $this->_positioner->position();
     }
 
-    final function move( $offset_x, $offset_y, $ignore_self = false )
+    final function move($offset_x, $offset_y, $ignore_self = false)
     {
 
-        $this->_positioner->move( $offset_x, $offset_y, $ignore_self );
+        $this->_positioner->move($offset_x, $offset_y, $ignore_self);
     }
 
-    final function reflow( Block_Frame_Decorator $block = null )
+    final function reflow(Block_Frame_Decorator $block = null)
     {
 
         // Uncomment this to see the frames before they're laid out, instead of
         // during rendering.
         //echo $this->_frame; flush();
-        $this->_reflower->reflow( $block );
+        $this->_reflower->reflow($block);
     }
 
     final function get_min_max_width()

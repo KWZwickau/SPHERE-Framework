@@ -21,6 +21,7 @@ namespace Doctrine\Common\Reflection;
 
 interface ReflectionProviderInterface
 {
+
     /**
      * Gets the ReflectionClass equivalent for this class.
      *

@@ -6,11 +6,11 @@ class TTFontFile_Analysis EXTENDS TTFontFile
 {
 
     // Used to get font information from files in directory
-    function extractCoreInfo( $file, $TTCfontID = 0 )
+    function extractCoreInfo($file, $TTCfontID = 0)
     {
 
         $this->filename = $file;
-        $this->fh = fopen( $file, 'rb' );
+        $this->fh = fopen($file, 'rb');
         if (!$this->fh) {
             return ( 'ERROR - Can\'t open file '.$file );
         }
@@ -32,7 +32,7 @@ class TTFontFile_Analysis EXTENDS TTFontFile
         if ($version == 0x74746366) {
             if ($TTCfontID > 0) {
                 $this->version = $version = $this->read_ulong();    // TTC Header version now
-                if (!in_array( $version, array( 0x00010000, 0x00020000 ) )) {
+                if (!in_array($version, array(0x00010000, 0x00020000))) {
                     return ( "ERROR - NOT ADDED as Error parsing TrueType Collection: version=".$version." - ".$file );
                 }
             } else {
@@ -42,14 +42,14 @@ class TTFontFile_Analysis EXTENDS TTFontFile
             for ($i = 1; $i <= $this->numTTCFonts; $i++) {
                 $this->TTCFonts[$i]['offset'] = $this->read_ulong();
             }
-            $this->seek( $this->TTCFonts[$TTCfontID]['offset'] );
+            $this->seek($this->TTCFonts[$TTCfontID]['offset']);
             $this->version = $version = $this->read_ulong();    // TTFont version again now
-            $this->readTableDirectory( false );
+            $this->readTableDirectory(false);
         } else {
-            if (!in_array( $version, array( 0x00010000, 0x74727565 ) )) {
+            if (!in_array($version, array(0x00010000, 0x74727565))) {
                 return ( "ERROR - NOT ADDED as Not a TrueType font: version=".$version." - ".$file );
             }
-            $this->readTableDirectory( false );
+            $this->readTableDirectory(false);
         }
 
         /* Included for testing...
@@ -115,7 +115,7 @@ class TTFontFile_Analysis EXTENDS TTFontFile
                     print_r($x); exit;
         */
 
-        $name_offset = $this->seek_table( "name" );
+        $name_offset = $this->seek_table("name");
         $format = $this->read_ushort();
         if ($format != 0 && $format != 1)    // mPDF 5.3.73
         {
@@ -123,9 +123,9 @@ class TTFontFile_Analysis EXTENDS TTFontFile
         }
         $numRecords = $this->read_ushort();
         $string_data_offset = $name_offset + $this->read_ushort();
-        $names = array( 1 => '', 2 => '', 3 => '', 4 => '', 6 => '' );
-        $K = array_keys( $names );
-        $nameCount = count( $names );
+        $names = array(1 => '', 2 => '', 3 => '', 4 => '', 6 => '');
+        $K = array_keys($names);
+        $nameCount = count($names);
         for ($i = 0; $i < $numRecords; $i++) {
             $platformId = $this->read_ushort();
             $encodingId = $this->read_ushort();
@@ -133,13 +133,13 @@ class TTFontFile_Analysis EXTENDS TTFontFile
             $nameId = $this->read_ushort();
             $length = $this->read_ushort();
             $offset = $this->read_ushort();
-            if (!in_array( $nameId, $K )) {
+            if (!in_array($nameId, $K)) {
                 continue;
             }
             $N = '';
             if ($platformId == 3 && $encodingId == 1 && $languageId == 0x409) { // Microsoft, Unicode, US English, PS Name
                 $opos = $this->_pos;
-                $this->seek( $string_data_offset + $offset );
+                $this->seek($string_data_offset + $offset);
                 if ($length % 2 != 0) {
                     $length += 1;
                 }
@@ -147,17 +147,17 @@ class TTFontFile_Analysis EXTENDS TTFontFile
                 $N = '';
                 while ($length > 0) {
                     $char = $this->read_ushort();
-                    $N .= ( chr( $char ) );
+                    $N .= ( chr($char) );
                     $length -= 1;
                 }
                 $this->_pos = $opos;
-                $this->seek( $opos );
+                $this->seek($opos);
             } else {
                 if ($platformId == 1 && $encodingId == 0 && $languageId == 0) { // Macintosh, Roman, English, PS Name
                     $opos = $this->_pos;
-                    $N = $this->get_chunk( $string_data_offset + $offset, $length );
+                    $N = $this->get_chunk($string_data_offset + $offset, $length);
                     $this->_pos = $opos;
-                    $this->seek( $opos );
+                    $this->seek($opos);
                 }
             }
             if ($N && $names[$nameId] == '') {
@@ -169,13 +169,13 @@ class TTFontFile_Analysis EXTENDS TTFontFile
             }
         }
         if ($names[6]) {
-            $psName = preg_replace( '/ /', '-', $names[6] );
+            $psName = preg_replace('/ /', '-', $names[6]);
         } else {
             if ($names[4]) {
-                $psName = preg_replace( '/ /', '-', $names[4] );
+                $psName = preg_replace('/ /', '-', $names[4]);
             } else {
                 if ($names[1]) {
-                    $psName = preg_replace( '/ /', '-', $names[1] );
+                    $psName = preg_replace('/ /', '-', $names[1]);
                 } else {
                     $psName = '';
                 }
@@ -199,24 +199,24 @@ class TTFontFile_Analysis EXTENDS TTFontFile
         ///////////////////////////////////
         // head - Font header table
         ///////////////////////////////////
-        $this->seek_table( "head" );
+        $this->seek_table("head");
         $ver_maj = $this->read_ushort();
         $ver_min = $this->read_ushort();
         if ($ver_maj != 1) {
             return ( 'ERROR - NOT ADDED as Unknown head table version '.$ver_maj.'.'.$ver_min." - ".$file );
         }
         $this->fontRevision = $this->read_ushort().$this->read_ushort();
-        $this->skip( 4 );
+        $this->skip(4);
         $magic = $this->read_ulong();
         if ($magic != 0x5F0F3CF5) {
             return ( 'ERROR - NOT ADDED as Invalid head table magic '.$magic." - ".$file );
         }
-        $this->skip( 2 );
+        $this->skip(2);
         $this->unitsPerEm = $unitsPerEm = $this->read_ushort();
         $scale = 1000 / $unitsPerEm;
-        $this->skip( 24 );
+        $this->skip(24);
         $macStyle = $this->read_short();
-        $this->skip( 4 );
+        $this->skip(4);
         $indexLocFormat = $this->read_short();
 
         ///////////////////////////////////
@@ -226,34 +226,34 @@ class TTFontFile_Analysis EXTENDS TTFontFile
         $panose = '';
         $fsSelection = '';
         if (isset( $this->tables["OS/2"] )) {
-            $this->seek_table( "OS/2" );
-            $this->skip( 30 );
+            $this->seek_table("OS/2");
+            $this->skip(30);
             $sF = $this->read_short();
             $sFamily = ( $sF >> 8 );
             $this->_pos += 10;  //PANOSE = 10 byte length
-            $panose = fread( $this->fh, 10 );
+            $panose = fread($this->fh, 10);
             $this->panose = array();
-            for ($p = 0; $p < strlen( $panose ); $p++) {
-                $this->panose[] = ord( $panose[$p] );
+            for ($p = 0; $p < strlen($panose); $p++) {
+                $this->panose[] = ord($panose[$p]);
             }
-            $this->skip( 20 );
+            $this->skip(20);
             $fsSelection = $this->read_short();
         }
 
         ///////////////////////////////////
         // post - PostScript table
         ///////////////////////////////////
-        $this->seek_table( "post" );
-        $this->skip( 4 );
+        $this->seek_table("post");
+        $this->skip(4);
         $this->italicAngle = $this->read_short() + $this->read_ushort() / 65536.0;
-        $this->skip( 4 );
+        $this->skip(4);
         $isFixedPitch = $this->read_ulong();
 
         ///////////////////////////////////
         // cmap - Character to glyph index mapping table
         ///////////////////////////////////
-        $cmap_offset = $this->seek_table( "cmap" );
-        $this->skip( 2 );
+        $cmap_offset = $this->seek_table("cmap");
+        $this->skip(2);
         $cmapTableCount = $this->read_ushort();
         $unicode_cmap_offset = 0;
         for ($i = 0; $i < $cmapTableCount; $i++) {
@@ -262,7 +262,7 @@ class TTFontFile_Analysis EXTENDS TTFontFile
             $offset = $this->read_ulong();
             $save_pos = $this->_pos;
             if (( $platformID == 3 && $encodingID == 1 ) || $platformID == 0) { // Microsoft, Unicode
-                $format = $this->get_ushort( $cmap_offset + $offset );
+                $format = $this->get_ushort($cmap_offset + $offset);
                 if ($format == 4) {
                     if (!$unicode_cmap_offset) {
                         $unicode_cmap_offset = $cmap_offset + $offset;
@@ -270,14 +270,14 @@ class TTFontFile_Analysis EXTENDS TTFontFile
                 }
             } else {
                 if (( ( $platformID == 3 && $encodingID == 10 ) || $platformID == 0 )) { // Microsoft, Unicode Format 12 table HKCS
-                    $format = $this->get_ushort( $cmap_offset + $offset );
+                    $format = $this->get_ushort($cmap_offset + $offset);
                     if ($format == 12) {
                         $unicode_cmap_offset = $cmap_offset + $offset;
                         break;
                     }
                 }
             }
-            $this->seek( $save_pos );
+            $this->seek($save_pos);
         }
 
         if (!$unicode_cmap_offset) {
@@ -295,10 +295,10 @@ class TTFontFile_Analysis EXTENDS TTFontFile
         $unAGlyphs = '';
         // Format 12 CMAP does characters above Unicode BMP i.e. some HKCS characters U+20000 and above
         if ($format == 12) {
-            $this->seek( $unicode_cmap_offset + 4 );
+            $this->seek($unicode_cmap_offset + 4);
             $length = $this->read_ulong();
             $limit = $unicode_cmap_offset + $length;
-            $this->skip( 4 );
+            $this->skip(4);
             $nGroups = $this->read_ulong();
             for ($i = 0; $i < $nGroups; $i++) {
                 $startCharCode = $this->read_ulong();
@@ -338,18 +338,18 @@ class TTFontFile_Analysis EXTENDS TTFontFile
 
             }
         } else {    // Format 4 CMap
-            $this->seek( $unicode_cmap_offset + 2 );
+            $this->seek($unicode_cmap_offset + 2);
             $length = $this->read_ushort();
             $limit = $unicode_cmap_offset + $length;
-            $this->skip( 2 );
+            $this->skip(2);
 
             $segCount = $this->read_ushort() / 2;
-            $this->skip( 6 );
+            $this->skip(6);
             $endCount = array();
             for ($i = 0; $i < $segCount; $i++) {
                 $endCount[] = $this->read_ushort();
             }
-            $this->skip( 2 );
+            $this->skip(2);
             $startCount = array();
             for ($i = 0; $i < $segCount; $i++) {
                 $startCount[] = $this->read_ushort();
@@ -392,7 +392,7 @@ class TTFontFile_Analysis EXTENDS TTFontFile
                             if ($offset >= $limit) {
                                 $glyph = 0;
                             } else {
-                                $glyph = $this->get_ushort( $offset );
+                                $glyph = $this->get_ushort($offset);
                                 if ($glyph != 0) {
                                     $glyph = ( $glyph + $idDelta[$n] ) & 0xFFFF;
                                 }
@@ -448,9 +448,9 @@ class TTFontFile_Analysis EXTENDS TTFontFile
         }
         // Use PANOSE
         if ($panose) {
-            $bFamilyType = ord( $panose[0] );
+            $bFamilyType = ord($panose[0]);
             if ($bFamilyType == 2) {
-                $bSerifStyle = ord( $panose[1] );
+                $bSerifStyle = ord($panose[1]);
                 if (!$ftype) {
                     if ($bSerifStyle > 1 && $bSerifStyle < 11) {
                         $ftype = 'serif';
@@ -460,7 +460,7 @@ class TTFontFile_Analysis EXTENDS TTFontFile
                         }
                     }
                 }
-                $bProportion = ord( $panose[3] );
+                $bProportion = ord($panose[3]);
                 if ($bProportion == 9 || $bProportion == 1) {
                     $ftype = 'mono';
                 }    // ==1 i.e. No Fit needed for OCR-a and -b
@@ -471,7 +471,7 @@ class TTFontFile_Analysis EXTENDS TTFontFile
             }
         }
 
-        fclose( $this->fh );
+        fclose($this->fh);
         return array(
             $this->familyName,
             $bold,

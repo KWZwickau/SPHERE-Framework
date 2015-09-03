@@ -28,6 +28,7 @@ use Symfony\Component\Templating\EngineInterface;
  */
 class HIncludeFragmentRenderer extends RoutableFragmentRenderer
 {
+
     private $globalDefaultTemplate;
     private $signer;
     private $templating;
@@ -36,13 +37,18 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
     /**
      * Constructor.
      *
-     * @param EngineInterface|\Twig_Environment $templating            An EngineInterface or a \Twig_Environment instance
-     * @param UriSigner                         $signer                A UriSigner instance
+     * @param EngineInterface|\Twig_Environment $templating An EngineInterface or a \Twig_Environment instance
+     * @param UriSigner                         $signer     A UriSigner instance
      * @param string                            $globalDefaultTemplate The global default content (it can be a template name or the content)
      * @param string                            $charset
      */
-    public function __construct($templating = null, UriSigner $signer = null, $globalDefaultTemplate = null, $charset = 'utf-8')
-    {
+    public function __construct(
+        $templating = null,
+        UriSigner $signer = null,
+        $globalDefaultTemplate = null,
+        $charset = 'utf-8'
+    ) {
+
         $this->setTemplating($templating);
         $this->globalDefaultTemplate = $globalDefaultTemplate;
         $this->signer = $signer;
@@ -58,6 +64,7 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
      */
     public function setTemplating($templating)
     {
+
         if (null !== $templating && !$templating instanceof EngineInterface && !$templating instanceof \Twig_Environment) {
             throw new \InvalidArgumentException('The hinclude rendering strategy needs an instance of \Twig_Environment or Symfony\Component\Templating\EngineInterface');
         }
@@ -72,6 +79,7 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
      */
     public function hasTemplating()
     {
+
         return null !== $this->templating;
     }
 
@@ -86,27 +94,29 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
      */
     public function render($uri, Request $request, array $options = array())
     {
+
         if ($uri instanceof ControllerReference) {
             if (null === $this->signer) {
                 throw new \LogicException('You must use a proper URI when using the Hinclude rendering strategy or set a URL signer.');
             }
 
             // we need to sign the absolute URI, but want to return the path only.
-            $uri = substr($this->signer->sign($this->generateFragmentUri($uri, $request, true)), strlen($request->getSchemeAndHttpHost()));
+            $uri = substr($this->signer->sign($this->generateFragmentUri($uri, $request, true)),
+                strlen($request->getSchemeAndHttpHost()));
         }
 
         // We need to replace ampersands in the URI with the encoded form in order to return valid html/xml content.
         $uri = str_replace('&', '&amp;', $uri);
 
-        $template = isset($options['default']) ? $options['default'] : $this->globalDefaultTemplate;
+        $template = isset( $options['default'] ) ? $options['default'] : $this->globalDefaultTemplate;
         if (null !== $this->templating && $template && $this->templateExists($template)) {
             $content = $this->templating->render($template);
         } else {
             $content = $template;
         }
 
-        $attributes = isset($options['attributes']) && is_array($options['attributes']) ? $options['attributes'] : array();
-        if (isset($options['id']) && $options['id']) {
+        $attributes = isset( $options['attributes'] ) && is_array($options['attributes']) ? $options['attributes'] : array();
+        if (isset( $options['id'] ) && $options['id']) {
             $attributes['id'] = $options['id'];
         }
         $renderedAttributes = '';
@@ -130,6 +140,7 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
      */
     private function templateExists($template)
     {
+
         if ($this->templating instanceof EngineInterface) {
             try {
                 return $this->templating->exists($template);
@@ -158,6 +169,7 @@ class HIncludeFragmentRenderer extends RoutableFragmentRenderer
      */
     public function getName()
     {
+
         return 'hinclude';
     }
 }

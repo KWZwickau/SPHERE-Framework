@@ -3,7 +3,6 @@
 namespace Guzzle\Tests\Plugin\Cache;
 
 use Guzzle\Http\Message\Request;
-use Guzzle\Http\Message\Response;
 use Guzzle\Plugin\Cache\DefaultCanCacheStrategy;
 
 /**
@@ -11,8 +10,10 @@ use Guzzle\Plugin\Cache\DefaultCanCacheStrategy;
  */
 class DefaultCanCacheStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testReturnsRequestcanCacheRequest()
     {
+
         $strategy = new DefaultCanCacheStrategy();
         $request = new Request('GET', 'http://foo.com');
         $this->assertTrue($strategy->canCacheRequest($request));
@@ -20,6 +21,7 @@ class DefaultCanCacheStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesNotCacheNoStore()
     {
+
         $strategy = new DefaultCanCacheStrategy();
         $request = new Request('GET', 'http://foo.com', array('cache-control' => 'no-store'));
         $this->assertFalse($strategy->canCacheRequest($request));
@@ -27,6 +29,7 @@ class DefaultCanCacheStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanCacheResponse()
     {
+
         $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
             ->setMethods(array('canCache'))
             ->setConstructorArgs(array(200))

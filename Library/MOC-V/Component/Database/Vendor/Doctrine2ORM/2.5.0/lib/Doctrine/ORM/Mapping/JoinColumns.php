@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class JoinColumns implements Annotation
 {
+
     /**
      * @var array<\Doctrine\ORM\Mapping\JoinColumn>
      */

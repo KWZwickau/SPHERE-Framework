@@ -43,7 +43,7 @@ class HtmlNode extends Nette\Object
     public $offset;
 
 
-    public function __construct( $name )
+    public function __construct($name)
     {
 
         $this->name = $name;

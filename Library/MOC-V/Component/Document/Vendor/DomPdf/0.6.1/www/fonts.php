@@ -2,13 +2,13 @@
 include "head.inc";
 require_once "../dompdf_config.inc.php";
 
-function to_bytes( $string )
+function to_bytes($string)
 {
 
-    $string = strtolower( trim( $string ) );
+    $string = strtolower(trim($string));
 
-    if (!preg_match( "/(.*)([kmgt])/", $string, $matches )) {
-        return intval( $string );
+    if (!preg_match("/(.*)([kmgt])/", $string, $matches)) {
+        return intval($string);
     }
 
     list( $string, $value, $suffix ) = $matches;
@@ -23,7 +23,7 @@ function to_bytes( $string )
             $value *= 1024;
     }
 
-    return intval( $value );
+    return intval($value);
 }
 
 ?>
@@ -41,7 +41,7 @@ function to_bytes( $string )
 <?php
 Font_Metrics::init();
 $fonts = Font_Metrics::get_font_families();
-$extensions = array( "ttf", "afm", "afm.php", "ufm", "ufm.php" );
+$extensions = array("ttf", "afm", "afm.php", "ufm", "ufm.php");
 ?>
 
 <button
@@ -63,65 +63,65 @@ $extensions = array( "ttf", "afm", "afm.php", "ufm", "ufm.php" );
         <th>UFM</th>
         <th>UFM cache</th>
     </tr>
-    <?php foreach ($fonts as $family => $variants) { ?>
+    <?php foreach ( $fonts as $family => $variants ) { ?>
     <tr>
-        <td class="title" rowspan="<?php echo count( $variants ); ?>">
+        <td class="title" rowspan="<?php echo count($variants); ?>">
             <?php
-            echo htmlentities( $family );
+            echo htmlentities($family);
             if ($family == DOMPDF_DEFAULT_FONT) {
                 echo ' <strong>(default)</strong>';
             }
             ?>
         </td>
         <?php
-            $i = 0;
-            foreach ($variants as $name => $path) {
-                if ($i > 0) {
-                    echo "<tr>";
-                }
+        $i = 0;
+        foreach ($variants as $name => $path) {
+            if ($i > 0) {
+                echo "<tr>";
+            }
 
-                echo "
+            echo "
         <td>
-          <strong style='width: 10em;'>".htmlentities( $name )."</strong> : ".htmlentities( $path )."<br />
+          <strong style='width: 10em;'>".htmlentities($name)."</strong> : ".htmlentities($path)."<br />
         </td>";
 
-                foreach ($extensions as $ext) {
-                    $v = "";
-                    $class = "";
+            foreach ($extensions as $ext) {
+                $v = "";
+                $class = "";
 
-                    if (is_readable( "$path.$ext" )) {
-                        // if not cache file
-                        if (strpos( $ext, ".php" ) === false) {
-                            $class = "ok";
-                            $v = $ext;
-                        } // cache file
-                        else {
-                            // check if old cache format
-                            $content = file_get_contents( "$path.$ext", null, null, null, 50 );
-                            if (strpos( $content, '$this->' )) {
+                if (is_readable("$path.$ext")) {
+                    // if not cache file
+                    if (strpos($ext, ".php") === false) {
+                        $class = "ok";
+                        $v = $ext;
+                    } // cache file
+                    else {
+                        // check if old cache format
+                        $content = file_get_contents("$path.$ext", null, null, null, 50);
+                        if (strpos($content, '$this->')) {
+                            $v = "DEPREC.";
+                        } else {
+                            ob_start();
+                            $d = include "$path.$ext";
+                            ob_end_clean();
+
+                            if ($d == 1) {
                                 $v = "DEPREC.";
                             } else {
-                                ob_start();
-                                $d = include "$path.$ext";
-                                ob_end_clean();
-
-                                if ($d == 1) {
-                                    $v = "DEPREC.";
-                                } else {
-                                    $class = "ok";
-                                    $v = $d["_version_"];
-                                }
+                                $class = "ok";
+                                $v = $d["_version_"];
                             }
                         }
                     }
-
-                    echo "<td style='width: 2em; text-align: center;' class='$class'>$v</td>";
                 }
 
-                echo "</tr>";
-                $i++;
+                echo "<td style='width: 2em; text-align: center;' class='$class'>$v</td>";
             }
-            ?>
+
+            echo "</tr>";
+            $i++;
+        }
+        ?>
         <?php } ?>
 
 </table>
@@ -129,46 +129,46 @@ $extensions = array( "ttf", "afm", "afm.php", "ufm", "ufm.php" );
 <h3 id="install-fonts">Install new fonts</h3>
 
 <script type="text/javascript">
-    function checkFileName( form )
-        {
-            var fields = {
-                normal: "Normal",
-                bold: "Bold",
-                bold_italic: "Bold italic",
-                italic: "Italic"
-            };
-            var pattern = /\.[ot]tf$/i;
-            var ok = true;
+    function checkFileName(form)
+    {
+        var fields = {
+            normal: "Normal",
+            bold: "Bold",
+            bold_italic: "Bold italic",
+            italic: "Italic"
+        };
+        var pattern = /\.[ot]tf$/i;
+        var ok = true;
 
-            if (!form.elements.family.value) {
-                alert( "The font name is required" );
-                form.elements.family.focus();
-                return false;
+        if (!form.elements.family.value) {
+            alert("The font name is required");
+            form.elements.family.focus();
+            return false;
+        }
+
+        $.each(fields, function(key, name)
+        {
+            var value = form.elements["file[" + key + "]"].value;
+
+            if (!value) {
+                return;
             }
 
-            $.each( fields, function( key, name )
-            {
-                var value = form.elements["file[" + key + "]"].value;
+            if (!value.match(pattern)) {
+                alert("The font name specified for " + name + " is not a TrueType font");
+                ok = false;
+                return false;
+            }
+        });
 
-                if (!value) {
-                    return;
-                }
-
-                if (!value.match( pattern )) {
-                    alert( "The font name specified for " + name + " is not a TrueType font" );
-                    ok = false;
-                    return false;
-                }
-            } );
-
-            return ok;
-        }
+        return ok;
+    }
 </script>
 
 <?php
 
 if (auth_ok()) {
-    $max_size = min( to_bytes( ini_get( 'post_max_size' ) ), to_bytes( ini_get( 'upload_max_filesize' ) ) );
+    $max_size = min(to_bytes(ini_get('post_max_size')), to_bytes(ini_get('upload_max_filesize')));
     ?>
 
     <form name="upload-font" method="post" action="controller.php?cmd=install-font" target="upload-font"

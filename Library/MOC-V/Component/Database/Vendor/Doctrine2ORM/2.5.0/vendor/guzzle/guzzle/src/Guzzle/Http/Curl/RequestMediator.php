@@ -2,8 +2,8 @@
 
 namespace Guzzle\Http\Curl;
 
-use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\EntityBody;
+use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
 
 /**
@@ -11,6 +11,7 @@ use Guzzle\Http\Message\Response;
  */
 class RequestMediator
 {
+
     /** @var RequestInterface */
     protected $request;
 
@@ -23,6 +24,7 @@ class RequestMediator
      */
     public function __construct(RequestInterface $request, $emitIo = false)
     {
+
         $this->request = $request;
         $this->emitIo = $emitIo;
     }
@@ -37,6 +39,7 @@ class RequestMediator
      */
     public function receiveResponseHeader($curl, $header)
     {
+
         static $normalize = array("\r", "\n");
         $length = strlen($header);
         $header = str_replace($normalize, '', $header);
@@ -44,9 +47,9 @@ class RequestMediator
         if (strpos($header, 'HTTP/') === 0) {
 
             $startLine = explode(' ', $header, 3);
-            list($protocol, $version) = explode('/', trim($startLine[0]));
+            list( $protocol, $version ) = explode('/', trim($startLine[0]));
             $code = $startLine[1];
-            $status = isset($startLine[2]) ? $startLine[2] : '';
+            $status = isset( $startLine[2] ) ? $startLine[2] : '';
 
             // Only download the body of the response to the specified response
             // body when a successful response is received.
@@ -81,14 +84,15 @@ class RequestMediator
     /**
      * Received a progress notification
      *
-     * @param int        $downloadSize Total download size
-     * @param int        $downloaded   Amount of bytes downloaded
-     * @param int        $uploadSize   Total upload size
-     * @param int        $uploaded     Amount of bytes uploaded
-     * @param resource   $handle       CurlHandle object
+     * @param int      $downloadSize Total download size
+     * @param int      $downloaded   Amount of bytes downloaded
+     * @param int      $uploadSize   Total upload size
+     * @param int      $uploaded     Amount of bytes uploaded
+     * @param resource $handle       CurlHandle object
      */
     public function progress($downloadSize, $downloaded, $uploadSize, $uploaded, $handle = null)
     {
+
         $this->request->dispatch('curl.callback.progress', array(
             'request'       => $this->request,
             'handle'        => $handle,
@@ -109,6 +113,7 @@ class RequestMediator
      */
     public function writeResponseBody($curl, $write)
     {
+
         if ($this->emitIo) {
             $this->request->dispatch('curl.callback.write', array(
                 'request' => $this->request,
@@ -135,11 +140,12 @@ class RequestMediator
      */
     public function readRequestBody($ch, $fd, $length)
     {
-        if (!($body = $this->request->getBody())) {
+
+        if (!( $body = $this->request->getBody() )) {
             return '';
         }
 
-        $read = (string) $body->read($length);
+        $read = (string)$body->read($length);
         if ($this->emitIo) {
             $this->request->dispatch('curl.callback.read', array('request' => $this->request, 'read' => $read));
         }

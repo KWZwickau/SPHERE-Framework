@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
  */
 class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var array
      */
@@ -32,6 +33,7 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testInitialize()
     {
+
         $bag = new NamespacedAttributeBag();
         $bag->initialize($this->array);
         $this->assertEquals($this->array, $this->bag->all());
@@ -44,6 +46,7 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testGetStorageKey()
     {
+
         $this->assertEquals('_sf2', $this->bag->getStorageKey());
         $attributeBag = new NamespacedAttributeBag('test');
         $this->assertEquals('test', $attributeBag->getStorageKey());
@@ -54,6 +57,7 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testHas($key, $value, $exists)
     {
+
         $this->assertEquals($exists, $this->bag->has($key));
     }
 
@@ -62,11 +66,13 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testGet($key, $value, $expected)
     {
+
         $this->assertEquals($value, $this->bag->get($key));
     }
 
     public function testGetDefaults()
     {
+
         $this->assertNull($this->bag->get('user2.login'));
         $this->assertEquals('default', $this->bag->get('user2.login', 'default'));
     }
@@ -76,12 +82,14 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testSet($key, $value, $expected)
     {
+
         $this->bag->set($key, $value);
         $this->assertEquals($value, $this->bag->get($key));
     }
 
     public function testAll()
     {
+
         $this->assertEquals($this->array, $this->bag->all());
 
         $this->bag->set('hello', 'fabien');
@@ -92,6 +100,7 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testReplace()
     {
+
         $array = array();
         $array['name'] = 'jack';
         $array['foo.bar'] = 'beep';
@@ -104,6 +113,7 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testRemove()
     {
+
         $this->assertEquals('world', $this->bag->get('hello'));
         $this->bag->remove('hello');
         $this->assertNull($this->bag->get('hello'));
@@ -119,22 +129,26 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testRemoveExistingNamespacedAttribute()
     {
+
         $this->assertSame('cod', $this->bag->remove('category/fishing/first'));
     }
 
     public function testRemoveNonexistingNamespacedAttribute()
     {
+
         $this->assertNull($this->bag->remove('foo/bar/baz'));
     }
 
     public function testClear()
     {
+
         $this->bag->clear();
         $this->assertEquals(array(), $this->bag->all());
     }
 
     public function attributesProvider()
     {
+
         return array(
             array('hello', 'world', true),
             array('always', 'be happy', true),
@@ -173,8 +187,8 @@ class NamespacedAttributeBagTest extends \PHPUnit_Framework_TestCase
                 )
             ),
         );
-        $this->bag = new NamespacedAttributeBag( '_sf2', '/' );
-        $this->bag->initialize( $this->array );
+        $this->bag = new NamespacedAttributeBag('_sf2', '/');
+        $this->bag->initialize($this->array);
     }
 
     protected function tearDown()

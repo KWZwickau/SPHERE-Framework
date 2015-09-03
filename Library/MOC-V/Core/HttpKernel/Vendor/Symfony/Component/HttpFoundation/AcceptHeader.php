@@ -21,6 +21,7 @@ namespace Symfony\Component\HttpFoundation;
  */
 class AcceptHeader
 {
+
     /**
      * @var AcceptHeaderItem[]
      */
@@ -38,6 +39,7 @@ class AcceptHeader
      */
     public function __construct(array $items)
     {
+
         foreach ($items as $item) {
             $this->add($item);
         }
@@ -50,7 +52,7 @@ class AcceptHeader
      *
      * @return AcceptHeader
      */
-    public function add( AcceptHeaderItem $item )
+    public function add(AcceptHeaderItem $item)
     {
 
         $this->items[$item->getValue()] = $item;
@@ -68,14 +70,17 @@ class AcceptHeader
      */
     public static function fromString($headerValue)
     {
+
         $index = 0;
 
         return new self(array_map(function ($itemValue) use (&$index) {
+
             $item = AcceptHeaderItem::fromString($itemValue);
             $item->setIndex($index++);
 
             return $item;
-        }, preg_split('/\s*(?:,*("[^"]+"),*|,*(\'[^\']+\'),*|,+)\s*/', $headerValue, 0, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE)));
+        }, preg_split('/\s*(?:,*("[^"]+"),*|,*(\'[^\']+\'),*|,+)\s*/', $headerValue, 0,
+            PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE)));
     }
 
     /**
@@ -85,6 +90,7 @@ class AcceptHeader
      */
     public function __toString()
     {
+
         return implode(',', $this->items);
     }
 
@@ -97,7 +103,8 @@ class AcceptHeader
      */
     public function has($value)
     {
-        return isset($this->items[$value]);
+
+        return isset( $this->items[$value] );
     }
 
     /**
@@ -109,7 +116,8 @@ class AcceptHeader
      */
     public function get($value)
     {
-        return isset($this->items[$value]) ? $this->items[$value] : null;
+
+        return isset( $this->items[$value] ) ? $this->items[$value] : null;
     }
 
     /**
@@ -132,7 +140,7 @@ class AcceptHeader
     {
 
         if (!$this->sorted) {
-            uasort( $this->items, function ( $a, $b ) {
+            uasort($this->items, function ($a, $b) {
 
                 $qA = $a->getQuality();
                 $qB = $b->getQuality();
@@ -142,7 +150,7 @@ class AcceptHeader
                 }
 
                 return $qA > $qB ? -1 : 1;
-            } );
+            });
 
             $this->sorted = true;
         }
@@ -157,7 +165,9 @@ class AcceptHeader
      */
     public function filter($pattern)
     {
+
         return new self(array_filter($this->items, function (AcceptHeaderItem $item) use ($pattern) {
+
             return preg_match($pattern, $item->getValue());
         }));
     }
@@ -169,8 +179,9 @@ class AcceptHeader
      */
     public function first()
     {
+
         $this->sort();
 
-        return !empty($this->items) ? reset($this->items) : null;
+        return !empty( $this->items ) ? reset($this->items) : null;
     }
 }

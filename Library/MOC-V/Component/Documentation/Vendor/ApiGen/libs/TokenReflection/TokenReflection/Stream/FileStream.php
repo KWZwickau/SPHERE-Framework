@@ -33,24 +33,24 @@ class FileStream extends StreamBase
      *
      * @throws \TokenReflection\Exception\StreamException If the file does not exist or is not readable.
      */
-    public function __construct( $fileName )
+    public function __construct($fileName)
     {
 
         parent::__construct();
 
-        $this->fileName = Broker::getRealPath( $fileName );
+        $this->fileName = Broker::getRealPath($fileName);
 
         if (false === $this->fileName) {
-            throw new Exception\StreamException( $this, 'File does not exist.',
-                Exception\StreamException::DOES_NOT_EXIST );
+            throw new Exception\StreamException($this, 'File does not exist.',
+                Exception\StreamException::DOES_NOT_EXIST);
         }
 
-        $contents = @file_get_contents( $this->fileName );
+        $contents = @file_get_contents($this->fileName);
         if (false === $contents) {
-            throw new Exception\StreamException( $this, 'File is not readable.',
-                Exception\StreamException::NOT_READABLE );
+            throw new Exception\StreamException($this, 'File is not readable.',
+                Exception\StreamException::NOT_READABLE);
         }
 
-        $this->processSource( $contents );
+        $this->processSource($contents);
     }
 }

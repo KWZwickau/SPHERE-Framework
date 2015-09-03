@@ -20,6 +20,7 @@ use Symfony\Component\DependencyInjection\Extension\Extension as BaseExtension;
  */
 abstract class Extension extends BaseExtension
 {
+
     private $classes = array();
 
     /**
@@ -29,6 +30,7 @@ abstract class Extension extends BaseExtension
      */
     public function getClassesToCompile()
     {
+
         return $this->classes;
     }
 
@@ -39,6 +41,7 @@ abstract class Extension extends BaseExtension
      */
     public function addClassesToCompile(array $classes)
     {
+
         $this->classes = array_merge($this->classes, $classes);
     }
 }

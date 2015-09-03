@@ -33,11 +33,13 @@ use Doctrine\DBAL\Types\Type;
  */
 class MySqlSchemaManager extends AbstractSchemaManager
 {
+
     /**
      * {@inheritdoc}
      */
     protected function _getPortableViewDefinition($view)
     {
+
         return new View($view['TABLE_NAME'], $view['VIEW_DEFINITION']);
     }
 
@@ -46,6 +48,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableTableDefinition($table)
     {
+
         return array_shift($table);
     }
 
@@ -54,6 +57,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableUserDefinition($user)
     {
+
         return array(
             'user' => $user['User'],
             'password' => $user['Password'],
@@ -63,8 +67,9 @@ class MySqlSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableIndexesList($tableIndexes, $tableName=null)
+    protected function _getPortableTableIndexesList($tableIndexes, $tableName = null)
     {
+
         foreach ($tableIndexes as $k => $v) {
             $v = array_change_key_case($v, CASE_LOWER);
             if ($v['key_name'] == 'PRIMARY') {
@@ -88,6 +93,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableSequenceDefinition($sequence)
     {
+
         return end($sequence);
     }
 
@@ -96,6 +102,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableDatabaseDefinition($database)
     {
+
         return $database['Database'];
     }
 
@@ -104,11 +111,12 @@ class MySqlSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableTableColumnDefinition($tableColumn)
     {
+
         $tableColumn = array_change_key_case($tableColumn, CASE_LOWER);
 
         $dbType = strtolower($tableColumn['type']);
         $dbType = strtok($dbType, '(), ');
-        if (isset($tableColumn['length'])) {
+        if (isset( $tableColumn['length'] )) {
             $length = $tableColumn['length'];
         } else {
             $length = strtok('(), ');
@@ -116,7 +124,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
 
         $fixed = null;
 
-        if ( ! isset($tableColumn['name'])) {
+        if (!isset( $tableColumn['name'] )) {
             $tableColumn['name'] = '';
         }
 
@@ -126,7 +134,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
         $type = $this->_platform->getDoctrineTypeMapping($dbType);
 
         // In cases where not connected to a database DESCRIBE $table does not return 'Comment'
-        if (isset($tableColumn['comment'])) {
+        if (isset( $tableColumn['comment'] )) {
             $type = $this->extractDoctrineTypeFromComment($tableColumn['comment'], $type);
             $tableColumn['comment'] = $this->removeDoctrineTypeFromComment($tableColumn['comment'], $type);
         }
@@ -176,18 +184,18 @@ class MySqlSchemaManager extends AbstractSchemaManager
                 break;
         }
 
-        $length = ((int) $length == 0) ? null : (int) $length;
+        $length = ( (int)$length == 0 ) ? null : (int)$length;
 
         $options = array(
             'length'        => $length,
-            'unsigned'      => (bool) (strpos($tableColumn['type'], 'unsigned') !== false),
-            'fixed'         => (bool) $fixed,
-            'default'       => isset($tableColumn['default']) ? $tableColumn['default'] : null,
-            'notnull'       => (bool) ($tableColumn['null'] != 'YES'),
+            'unsigned'      => (bool)( strpos($tableColumn['type'], 'unsigned') !== false ),
+            'fixed'         => (bool)$fixed,
+            'default'       => isset( $tableColumn['default'] ) ? $tableColumn['default'] : null,
+            'notnull'       => (bool)( $tableColumn['null'] != 'YES' ),
             'scale'         => null,
             'precision'     => null,
-            'autoincrement' => (bool) (strpos($tableColumn['extra'], 'auto_increment') !== false),
-            'comment'       => isset($tableColumn['comment']) && $tableColumn['comment'] !== ''
+            'autoincrement' => (bool)( strpos($tableColumn['extra'], 'auto_increment') !== false ),
+            'comment'       => isset( $tableColumn['comment'] ) && $tableColumn['comment'] !== ''
                 ? $tableColumn['comment']
                 : null,
         );
@@ -199,7 +207,7 @@ class MySqlSchemaManager extends AbstractSchemaManager
 
         $column = new Column($tableColumn['field'], Type::getType($type), $options);
 
-        if (isset($tableColumn['collation'])) {
+        if (isset( $tableColumn['collation'] )) {
             $column->setPlatformOption('collation', $tableColumn['collation']);
         }
 
@@ -211,21 +219,22 @@ class MySqlSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableTableForeignKeysList($tableForeignKeys)
     {
+
         $list = array();
         foreach ($tableForeignKeys as $value) {
             $value = array_change_key_case($value, CASE_LOWER);
-            if (!isset($list[$value['constraint_name']])) {
-                if (!isset($value['delete_rule']) || $value['delete_rule'] == "RESTRICT") {
+            if (!isset( $list[$value['constraint_name']] )) {
+                if (!isset( $value['delete_rule'] ) || $value['delete_rule'] == "RESTRICT") {
                     $value['delete_rule'] = null;
                 }
-                if (!isset($value['update_rule']) || $value['update_rule'] == "RESTRICT") {
+                if (!isset( $value['update_rule'] ) || $value['update_rule'] == "RESTRICT") {
                     $value['update_rule'] = null;
                 }
 
                 $list[$value['constraint_name']] = array(
-                    'name' => $value['constraint_name'],
-                    'local' => array(),
-                    'foreign' => array(),
+                    'name'     => $value['constraint_name'],
+                    'local'    => array(),
+                    'foreign'  => array(),
                     'foreignTable' => $value['referenced_table_name'],
                     'onDelete' => $value['delete_rule'],
                     'onUpdate' => $value['update_rule'],

@@ -30,7 +30,7 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
     protected $_current_page_id;
     protected $_fonts;  // fonts used in this document
 
-    function __construct( $paper = "letter", $orientation = "portrait", DOMPDF $dompdf )
+    function __construct($paper = "letter", $orientation = "portrait", DOMPDF $dompdf)
     {
 
         $this->_fonts = array();
@@ -42,7 +42,7 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
      * @param int $cache_id
      * @param CPDF_Adapter $pdf
      */
-    function init( $cache_id, CPDF_Adapter $pdf )
+    function init($cache_id, CPDF_Adapter $pdf)
     {
 
         $this->_cache_id = $cache_id;
@@ -64,10 +64,10 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
         $this->_pdf->open_object();
     }
 
-    function reopen_object( $object )
+    function reopen_object($object)
     {
 
-        $this->_pdf->reopen_object( $object );
+        $this->_pdf->reopen_object($object);
     }
 
     function close_object()
@@ -76,22 +76,22 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
         $this->_pdf->close_object();
     }
 
-    function add_object( $object, $where = 'all' )
+    function add_object($object, $where = 'all')
     {
 
-        $this->_pdf->add_object( $object, $where );
+        $this->_pdf->add_object($object, $where);
     }
 
-    function serialize_object( $id )
+    function serialize_object($id)
     {
 
-        $this->_pdf->serialize_object( $id );
+        $this->_pdf->serialize_object($id);
     }
 
-    function reopen_serialized_object( $obj )
+    function reopen_serialized_object($obj)
     {
 
-        $this->_pdf->reopen_serialized_object( $obj );
+        $this->_pdf->reopen_serialized_object($obj);
     }
 
     //........................................................................
@@ -120,52 +120,52 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
         return $this->_pdf->get_page_count();
     }
 
-    function set_page_number( $num )
+    function set_page_number($num)
     {
 
-        $this->_pdf->set_page_number( $num );
+        $this->_pdf->set_page_number($num);
     }
 
-    function set_page_count( $count )
+    function set_page_count($count)
     {
 
-        $this->_pdf->set_page_count( $count );
+        $this->_pdf->set_page_count($count);
     }
 
-    function line( $x1, $y1, $x2, $y2, $color, $width, $style = array() )
+    function line($x1, $y1, $x2, $y2, $color, $width, $style = array())
     {
 
-        $this->_pdf->line( $x1, $y1, $x2, $y2, $color, $width, $style );
+        $this->_pdf->line($x1, $y1, $x2, $y2, $color, $width, $style);
     }
 
-    function rectangle( $x1, $y1, $w, $h, $color, $width, $style = array() )
+    function rectangle($x1, $y1, $w, $h, $color, $width, $style = array())
     {
 
-        $this->_pdf->rectangle( $x1, $y1, $w, $h, $color, $width, $style );
+        $this->_pdf->rectangle($x1, $y1, $w, $h, $color, $width, $style);
     }
 
-    function filled_rectangle( $x1, $y1, $w, $h, $color )
+    function filled_rectangle($x1, $y1, $w, $h, $color)
     {
 
-        $this->_pdf->filled_rectangle( $x1, $y1, $w, $h, $color );
+        $this->_pdf->filled_rectangle($x1, $y1, $w, $h, $color);
     }
 
-    function polygon( $points, $color, $width = null, $style = array(), $fill = false )
+    function polygon($points, $color, $width = null, $style = array(), $fill = false)
     {
 
-        $this->_pdf->polygon( $points, $color, $width, $style, $fill );
+        $this->_pdf->polygon($points, $color, $width, $style, $fill);
     }
 
-    function circle( $x, $y, $r1, $color, $width = null, $style = null, $fill = false )
+    function circle($x, $y, $r1, $color, $width = null, $style = null, $fill = false)
     {
 
-        $this->_pdf->circle( $x, $y, $r1, $color, $width, $style, $fill );
+        $this->_pdf->circle($x, $y, $r1, $color, $width, $style, $fill);
     }
 
-    function image( $img_url, $x, $y, $w, $h, $resolution = "normal" )
+    function image($img_url, $x, $y, $w, $h, $resolution = "normal")
     {
 
-        $this->_pdf->image( $img_url, $x, $y, $w, $h, $resolution );
+        $this->_pdf->image($img_url, $x, $y, $w, $h, $resolution);
     }
 
     function text(
@@ -174,14 +174,14 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
         $text,
         $font,
         $size,
-        $color = array( 0, 0, 0 ),
+        $color = array(0, 0, 0),
         $word_space = 0.0,
         $char_space = 0.0,
         $angle = 0.0
     ) {
 
         $this->_fonts[$font] = true;
-        $this->_pdf->text( $x, $y, $text, $font, $size, $color, $word_space, $char_space, $angle );
+        $this->_pdf->text($x, $y, $text, $font, $size, $color, $word_space, $char_space, $angle);
     }
 
     function page_text(
@@ -190,7 +190,7 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
         $text,
         $font,
         $size,
-        $color = array( 0, 0, 0 ),
+        $color = array(0, 0, 0),
         $word_space = 0.0,
         $char_space = 0.0,
         $angle = 0.0
@@ -198,17 +198,17 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
 
         // We want to remove this from cached pages since it may not be correct
         $this->_pdf->close_object();
-        $this->_pdf->page_text( $x, $y, $text, $font, $size, $color, $word_space, $char_space, $angle );
-        $this->_pdf->reopen_object( $this->_current_page_id );
+        $this->_pdf->page_text($x, $y, $text, $font, $size, $color, $word_space, $char_space, $angle);
+        $this->_pdf->reopen_object($this->_current_page_id);
     }
 
-    function page_script( $script, $type = 'text/php' )
+    function page_script($script, $type = 'text/php')
     {
 
         // We want to remove this from cached pages since it may not be correct
         $this->_pdf->close_object();
-        $this->_pdf->page_script( $script, $type );
-        $this->_pdf->reopen_object( $this->_current_page_id );
+        $this->_pdf->page_script($script, $type);
+        $this->_pdf->reopen_object($this->_current_page_id);
     }
 
     function new_page()
@@ -217,45 +217,45 @@ class Cached_PDF_Decorator extends CPDF_Adapter implements Canvas
         $this->_pdf->close_object();
 
         // Add the object to the current page
-        $this->_pdf->add_object( $this->_current_page_id, "add" );
+        $this->_pdf->add_object($this->_current_page_id, "add");
         $this->_pdf->new_page();
 
-        Page_Cache::store_page( $this->_cache_id,
+        Page_Cache::store_page($this->_cache_id,
             $this->_pdf->get_page_number() - 1,
-            $this->_pdf->serialize_object( $this->_current_page_id ) );
+            $this->_pdf->serialize_object($this->_current_page_id));
 
         $this->_current_page_id = $this->_pdf->open_object();
         return $this->_current_page_id;
     }
 
-    function stream( $filename, $options = null )
+    function stream($filename, $options = null)
     {
 
         // Store the last page in the page cache
-        if (!is_null( $this->_current_page_id )) {
+        if (!is_null($this->_current_page_id)) {
             $this->_pdf->close_object();
-            $this->_pdf->add_object( $this->_current_page_id, "add" );
-            Page_Cache::store_page( $this->_cache_id,
+            $this->_pdf->add_object($this->_current_page_id, "add");
+            Page_Cache::store_page($this->_cache_id,
                 $this->_pdf->get_page_number(),
-                $this->_pdf->serialize_object( $this->_current_page_id ) );
-            Page_Cache::store_fonts( $this->_cache_id, $this->_fonts );
+                $this->_pdf->serialize_object($this->_current_page_id));
+            Page_Cache::store_fonts($this->_cache_id, $this->_fonts);
             $this->_current_page_id = null;
         }
 
-        $this->_pdf->stream( $filename );
+        $this->_pdf->stream($filename);
 
     }
 
-    function output( $options = null )
+    function output($options = null)
     {
 
         // Store the last page in the page cache
-        if (!is_null( $this->_current_page_id )) {
+        if (!is_null($this->_current_page_id)) {
             $this->_pdf->close_object();
-            $this->_pdf->add_object( $this->_current_page_id, "add" );
-            Page_Cache::store_page( $this->_cache_id,
+            $this->_pdf->add_object($this->_current_page_id, "add");
+            Page_Cache::store_page($this->_cache_id,
                 $this->_pdf->get_page_number(),
-                $this->_pdf->serialize_object( $this->_current_page_id ) );
+                $this->_pdf->serialize_object($this->_current_page_id));
             $this->_current_page_id = null;
         }
 

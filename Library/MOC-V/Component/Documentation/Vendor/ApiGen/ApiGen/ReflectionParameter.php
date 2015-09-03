@@ -35,9 +35,9 @@ class ReflectionParameter extends ReflectionBase
             return 'callable';
         } elseif ($className = $this->getClassName()) {
             return $className;
-        } elseif ($annotations = $this->getDeclaringFunction()->getAnnotation( 'param' )) {
+        } elseif ($annotations = $this->getDeclaringFunction()->getAnnotation('param')) {
             if (!empty( $annotations[$this->getPosition()] )) {
-                list( $types ) = preg_split( '~\s+|$~', $annotations[$this->getPosition()], 2 );
+                list( $types ) = preg_split('~\s+|$~', $annotations[$this->getPosition()], 2);
                 if (!empty( $types ) && '$' !== $types[0]) {
                     return $types;
                 }
@@ -91,7 +91,7 @@ class ReflectionParameter extends ReflectionBase
         $functionName = $this->reflection->getDeclaringFunctionName();
 
         if ($className = $this->reflection->getDeclaringClassName()) {
-            return self::$parsedClasses[$className]->getMethod( $functionName );
+            return self::$parsedClasses[$className]->getMethod($functionName);
         } else {
             return self::$parsedFunctions[$functionName];
         }

@@ -22,6 +22,7 @@ use Prophecy\Doubler\Generator\Node\ClassNode;
  */
 interface ClassPatchInterface
 {
+
     /**
      * Checks if patch supports specific class node.
      *
@@ -35,6 +36,7 @@ interface ClassPatchInterface
      * Applies patch to the specific class node.
      *
      * @param ClassNode $node
+     *
      * @return void
      */
     public function apply(ClassNode $node);

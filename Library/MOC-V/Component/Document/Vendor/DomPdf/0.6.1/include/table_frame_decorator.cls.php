@@ -76,14 +76,14 @@ class Table_Frame_Decorator extends Frame_Decorator
      * @param Frame  $frame the frame to decorate
      * @param DOMPDF $dompdf
      */
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
-        parent::__construct( $frame, $dompdf );
-        $this->_cellmap = new Cellmap( $this );
+        parent::__construct($frame, $dompdf);
+        $this->_cellmap = new Cellmap($this);
 
         if ($frame->get_style()->table_layout === "fixed") {
-            $this->_cellmap->set_layout_fixed( true );
+            $this->_cellmap->set_layout_fixed(true);
         }
 
         $this->_min_width = null;
@@ -99,7 +99,7 @@ class Table_Frame_Decorator extends Frame_Decorator
      *
      * @return Table_Frame_Decorator the table that is an ancestor of $frame
      */
-    static function find_parent_table( Frame $frame )
+    static function find_parent_table(Frame $frame)
     {
 
         while ($frame = $frame->get_parent()) {
@@ -135,18 +135,18 @@ class Table_Frame_Decorator extends Frame_Decorator
      *
      * @return void
      */
-    function split( Frame $child = null, $force_pagebreak = false )
+    function split(Frame $child = null, $force_pagebreak = false)
     {
 
-        if (is_null( $child )) {
+        if (is_null($child)) {
             parent::split();
             return;
         }
 
         // If $child is a header or if it is the first non-header row, do
         // not duplicate headers, simply move the table to the next page.
-        if (count( $this->_headers ) && !in_array( $child, $this->_headers, true ) &&
-            !in_array( $child->get_prev_sibling(), $this->_headers, true )
+        if (count($this->_headers) && !in_array($child, $this->_headers, true) &&
+            !in_array($child->get_prev_sibling(), $this->_headers, true)
         ) {
 
             $first_header = null;
@@ -156,31 +156,31 @@ class Table_Frame_Decorator extends Frame_Decorator
 
                 $new_header = $header->deep_copy();
 
-                if (is_null( $first_header )) {
+                if (is_null($first_header)) {
                     $first_header = $new_header;
                 }
 
-                $this->insert_child_before( $new_header, $child );
+                $this->insert_child_before($new_header, $child);
             }
 
-            parent::split( $first_header );
+            parent::split($first_header);
 
         } else {
-            if (in_array( $child->get_style()->display, self::$ROW_GROUPS )) {
+            if (in_array($child->get_style()->display, self::$ROW_GROUPS)) {
 
                 // Individual rows should have already been handled
-                parent::split( $child );
+                parent::split($child);
 
             } else {
 
                 $iter = $child;
 
                 while ($iter) {
-                    $this->_cellmap->remove_row( $iter );
+                    $this->_cellmap->remove_row($iter);
                     $iter = $iter->get_next_sibling();
                 }
 
-                parent::split( $child );
+                parent::split($child);
             }
         }
     }
@@ -192,13 +192,13 @@ class Table_Frame_Decorator extends Frame_Decorator
      *
      * @return Frame
      */
-    function copy( DOMNode $node )
+    function copy(DOMNode $node)
     {
 
-        $deco = parent::copy( $node );
+        $deco = parent::copy($node);
 
         // In order to keep columns' widths through pages
-        $deco->_cellmap->set_columns( $this->_cellmap->get_columns() );
+        $deco->_cellmap->set_columns($this->_cellmap->get_columns());
         $deco->_cellmap->lock_columns();
 
         return $deco;
@@ -231,7 +231,7 @@ class Table_Frame_Decorator extends Frame_Decorator
      *
      * @param float $width the new minimum width
      */
-    function set_min_width( $width )
+    function set_min_width($width)
     {
 
         $this->_min_width = $width;
@@ -253,7 +253,7 @@ class Table_Frame_Decorator extends Frame_Decorator
      *
      * @param float $width the new maximum width
      */
-    function set_max_width( $width )
+    function set_max_width($width)
     {
 
         $this->_max_width = $width;
@@ -281,7 +281,7 @@ class Table_Frame_Decorator extends Frame_Decorator
 
                 if ($display === "table-row") {
                     // Add the previous anonymous row
-                    $this->insert_child_before( $table_row, $child );
+                    $this->insert_child_before($table_row, $child);
 
                     $table_row->normalise();
                     $child->normalise();
@@ -290,7 +290,7 @@ class Table_Frame_Decorator extends Frame_Decorator
                 }
 
                 // add the child to the anonymous row
-                $table_row->append_child( $child );
+                $table_row->append_child($child);
                 continue;
 
             } else {
@@ -302,34 +302,34 @@ class Table_Frame_Decorator extends Frame_Decorator
 
                 if ($display === "table-cell") {
                     // Create an anonymous table row
-                    $tr = $this->get_node()->ownerDocument->createElement( "tr" );
+                    $tr = $this->get_node()->ownerDocument->createElement("tr");
 
-                    $frame = new Frame( $tr );
+                    $frame = new Frame($tr);
 
                     $css = $this->get_style()->get_stylesheet();
                     $style = $css->create_style();
-                    $style->inherit( $this->get_style() );
+                    $style->inherit($this->get_style());
 
                     // Lookup styles for tr tags.  If the user wants styles to work
                     // better, they should make the tr explicit... I'm not going to
                     // try to guess what they intended.
-                    if ($tr_style = $css->lookup( "tr" )) {
-                        $style->merge( $tr_style );
+                    if ($tr_style = $css->lookup("tr")) {
+                        $style->merge($tr_style);
                     }
 
                     // Okay, I have absolutely no idea why I need this clone here, but
                     // if it's omitted, php (as of 2004-07-28) segfaults.
-                    $frame->set_style( clone $style );
-                    $table_row = Frame_Factory::decorate_frame( $frame, $this->_dompdf, $this->_root );
+                    $frame->set_style(clone $style);
+                    $table_row = Frame_Factory::decorate_frame($frame, $this->_dompdf, $this->_root);
 
                     // Add the cell to the row
-                    $table_row->append_child( $child );
+                    $table_row->append_child($child);
 
                     $anon_row = true;
                     continue;
                 }
 
-                if (!in_array( $display, self::$VALID_CHILDREN )) {
+                if (!in_array($display, self::$VALID_CHILDREN)) {
                     $erroneous_frames[] = $child;
                     continue;
                 }
@@ -354,13 +354,13 @@ class Table_Frame_Decorator extends Frame_Decorator
 
         if ($anon_row) {
             // Add the row to the table
-            $this->_frame->append_child( $table_row );
+            $this->_frame->append_child($table_row);
             $table_row->normalise();
             $this->_cellmap->add_row();
         }
 
         foreach ($erroneous_frames as $frame) {
-            $this->move_after( $frame );
+            $this->move_after($frame);
         }
 
     }
@@ -373,10 +373,10 @@ class Table_Frame_Decorator extends Frame_Decorator
      *
      * @param Frame $frame the frame to move
      */
-    function move_after( Frame $frame )
+    function move_after(Frame $frame)
     {
 
-        $this->get_parent()->insert_child_after( $frame, $this );
+        $this->get_parent()->insert_child_after($frame, $this);
     }
 
 }

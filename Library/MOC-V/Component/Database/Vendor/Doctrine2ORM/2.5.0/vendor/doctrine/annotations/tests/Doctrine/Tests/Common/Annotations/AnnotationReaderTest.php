@@ -6,13 +6,10 @@ use Doctrine\Common\Annotations\AnnotationReader;
 
 class AnnotationReaderTest extends AbstractReaderTest
 {
-    protected function getReader()
-    {
-        return new AnnotationReader();
-    }
 
     public function testMethodAnnotationFromTrait()
     {
+
         if (PHP_VERSION_ID < 50400) {
             $this->markTestSkipped('This test requires PHP 5.4 or later.');
         }
@@ -27,10 +24,17 @@ class AnnotationReaderTest extends AbstractReaderTest
         $this->assertInstanceOf('Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Autoload', $annotations[0]);
     }
 
+    protected function getReader()
+    {
+
+        return new AnnotationReader();
+    }
+
     public function testMethodAnnotationFromOverwrittenTrait()
     {
+
         if (PHP_VERSION_ID < 50400) {
-           $this->markTestSkipped('This test requires PHP 5.4 or later.');
+            $this->markTestSkipped('This test requires PHP 5.4 or later.');
         }
 
         $reader = $this->getReader();
@@ -42,6 +46,7 @@ class AnnotationReaderTest extends AbstractReaderTest
 
     public function testPropertyAnnotationFromTrait()
     {
+
         if (PHP_VERSION_ID < 50400) {
             $this->markTestSkipped('This test requires PHP 5.4 or later.');
         }

@@ -7,14 +7,17 @@ use Prophecy\Argument;
 
 class LogicalAndTokenSpec extends ObjectBehavior
 {
+
     function it_implements_TokenInterface()
     {
+
         $this->beConstructedWith(array());
         $this->shouldBeAnInstanceOf('Prophecy\Argument\Token\TokenInterface');
     }
 
     function it_is_not_last()
     {
+
         $this->beConstructedWith(array());
         $this->shouldNotBeLast();
     }
@@ -26,6 +29,7 @@ class LogicalAndTokenSpec extends ObjectBehavior
      */
     function it_generates_string_representation_from_all_tokens_imploded($token1, $token2, $token3)
     {
+
         $token1->__toString()->willReturn('token_1');
         $token2->__toString()->willReturn('token_2');
         $token3->__toString()->willReturn('token_3');
@@ -36,6 +40,7 @@ class LogicalAndTokenSpec extends ObjectBehavior
 
     function it_wraps_non_token_arguments_into_ExactValueToken()
     {
+
         $this->beConstructedWith(array(15, '1985'));
         $this->__toString()->shouldReturn("bool(exact(15) AND exact(\"1985\"))");
     }
@@ -46,6 +51,7 @@ class LogicalAndTokenSpec extends ObjectBehavior
      */
     function it_scores_the_maximum_score_from_all_scores_returned_by_tokens($token1, $token2)
     {
+
         $token1->scoreArgument(1)->willReturn(10);
         $token2->scoreArgument(1)->willReturn(5);
         $this->beConstructedWith(array($token1, $token2));
@@ -54,6 +60,7 @@ class LogicalAndTokenSpec extends ObjectBehavior
 
     function it_does_not_score_if_there_are_no_arguments_or_tokens()
     {
+
         $this->beConstructedWith(array());
         $this->scoreArgument('any')->shouldReturn(false);
     }
@@ -64,6 +71,7 @@ class LogicalAndTokenSpec extends ObjectBehavior
      */
     function it_does_not_score_if_either_of_tokens_does_not_score($token1, $token2)
     {
+
         $token1->scoreArgument(1)->willReturn(10);
         $token1->scoreArgument(2)->willReturn(false);
 

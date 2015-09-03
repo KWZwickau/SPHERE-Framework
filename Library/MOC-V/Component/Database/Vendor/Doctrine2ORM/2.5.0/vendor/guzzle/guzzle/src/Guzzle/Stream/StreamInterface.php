@@ -7,6 +7,7 @@ namespace Guzzle\Stream;
  */
 interface StreamInterface
 {
+
     /**
      * Convert the stream to a string if the stream is readable and the stream is seekable.
      *

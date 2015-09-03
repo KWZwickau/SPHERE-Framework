@@ -39,6 +39,7 @@ namespace Doctrine\DBAL\Sharding;
  */
 interface ShardManager
 {
+
     /**
      * Selects global database with global data.
      *

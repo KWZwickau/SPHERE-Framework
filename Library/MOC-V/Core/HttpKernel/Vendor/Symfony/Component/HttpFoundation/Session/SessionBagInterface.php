@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpFoundation\Session;
  */
 interface SessionBagInterface
 {
+
     /**
      * Gets this bag's name
      *

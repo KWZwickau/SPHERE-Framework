@@ -116,7 +116,7 @@ class PHPExcel_DocumentSecurity
      *
      * @return PHPExcel_DocumentSecurity
      */
-    function setLockRevision( $pValue = false )
+    function setLockRevision($pValue = false)
     {
 
         $this->_lockRevision = $pValue;
@@ -141,7 +141,7 @@ class PHPExcel_DocumentSecurity
      *
      * @return PHPExcel_DocumentSecurity
      */
-    function setLockStructure( $pValue = false )
+    function setLockStructure($pValue = false)
     {
 
         $this->_lockStructure = $pValue;
@@ -166,7 +166,7 @@ class PHPExcel_DocumentSecurity
      *
      * @return PHPExcel_DocumentSecurity
      */
-    function setLockWindows( $pValue = false )
+    function setLockWindows($pValue = false)
     {
 
         $this->_lockWindows = $pValue;
@@ -192,11 +192,11 @@ class PHPExcel_DocumentSecurity
      *
      * @return PHPExcel_DocumentSecurity
      */
-    function setRevisionsPassword( $pValue = '', $pAlreadyHashed = false )
+    function setRevisionsPassword($pValue = '', $pAlreadyHashed = false)
     {
 
         if (!$pAlreadyHashed) {
-            $pValue = PHPExcel_Shared_PasswordHasher::hashPassword( $pValue );
+            $pValue = PHPExcel_Shared_PasswordHasher::hashPassword($pValue);
         }
         $this->_revisionsPassword = $pValue;
         return $this;
@@ -221,11 +221,11 @@ class PHPExcel_DocumentSecurity
      *
      * @return PHPExcel_DocumentSecurity
      */
-    function setWorkbookPassword( $pValue = '', $pAlreadyHashed = false )
+    function setWorkbookPassword($pValue = '', $pAlreadyHashed = false)
     {
 
         if (!$pAlreadyHashed) {
-            $pValue = PHPExcel_Shared_PasswordHasher::hashPassword( $pValue );
+            $pValue = PHPExcel_Shared_PasswordHasher::hashPassword($pValue);
         }
         $this->_workbookPassword = $pValue;
         return $this;
@@ -237,9 +237,9 @@ class PHPExcel_DocumentSecurity
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

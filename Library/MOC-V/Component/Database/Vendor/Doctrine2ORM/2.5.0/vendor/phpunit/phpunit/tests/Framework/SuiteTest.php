@@ -8,18 +8,18 @@
  * file that was distributed with this source code.
  */
 
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'BeforeAndAfterTest.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'BeforeClassAndAfterClassTest.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'TestWithTest.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'DataProviderSkippedTest.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'DataProviderIncompleteTest.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'InheritedTestCase.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'NoTestCaseClass.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'NoTestCases.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'NotPublicTestCase.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'NotVoidTestCase.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'OverrideTestCase.php';
-require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'RequirementsClassBeforeClassHookTest.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'BeforeAndAfterTest.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'BeforeClassAndAfterClassTest.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'TestWithTest.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'DataProviderSkippedTest.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'DataProviderIncompleteTest.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'InheritedTestCase.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'NoTestCaseClass.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'NoTestCases.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'NotPublicTestCase.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'NotVoidTestCase.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'OverrideTestCase.php';
+require_once dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'RequirementsClassBeforeClassHookTest.php';
 
 /**
  * @since      Class available since Release 2.0.0
@@ -27,15 +27,12 @@ require_once dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPAR
  */
 class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 {
-    protected $result;
 
-    protected function setUp()
-    {
-        $this->result = new PHPUnit_Framework_TestResult;
-    }
+    protected $result;
 
     public static function suite()
     {
+
         $suite = new PHPUnit_Framework_TestSuite;
 
         $suite->addTest(new self('testAddTestSuite'));
@@ -60,6 +57,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testAddTestSuite()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'OneTestCase'
         );
@@ -71,6 +69,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testInheritedTests()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'InheritedTestCase'
         );
@@ -83,6 +82,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testNoTestCases()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'NoTestCases'
         );
@@ -99,11 +99,13 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
      */
     public function testNoTestCaseClass()
     {
+
         $suite = new PHPUnit_Framework_TestSuite('NoTestCaseClass');
     }
 
     public function testNotExistingTestCase()
     {
+
         $suite = new self('notExistingMethod');
 
         $suite->run($this->result);
@@ -115,6 +117,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testNotPublicTestCase()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'NotPublicTestCase'
         );
@@ -124,6 +127,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testNotVoidTestCase()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'NotVoidTestCase'
         );
@@ -133,6 +137,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testOneTestCase()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'OneTestCase'
         );
@@ -147,6 +152,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testShadowedTests()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'OverrideTestCase'
         );
@@ -158,6 +164,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testBeforeClassAndAfterClassAnnotations()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'BeforeClassAndAfterClassTest'
         );
@@ -165,12 +172,15 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
         BeforeClassAndAfterClassTest::resetProperties();
         $suite->run($this->result);
 
-        $this->assertEquals(1, BeforeClassAndAfterClassTest::$beforeClassWasRun, '@beforeClass method was not run once for the whole suite.');
-        $this->assertEquals(1, BeforeClassAndAfterClassTest::$afterClassWasRun, '@afterClass method was not run once for the whole suite.');
+        $this->assertEquals(1, BeforeClassAndAfterClassTest::$beforeClassWasRun,
+            '@beforeClass method was not run once for the whole suite.');
+        $this->assertEquals(1, BeforeClassAndAfterClassTest::$afterClassWasRun,
+            '@afterClass method was not run once for the whole suite.');
     }
 
     public function testBeforeAnnotation()
     {
+
         $test = new PHPUnit_Framework_TestSuite(
             'BeforeAndAfterTest'
         );
@@ -184,6 +194,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testTestWithAnnotation()
     {
+
         $test = new PHPUnit_Framework_TestSuite(
             'TestWithTest'
         );
@@ -196,6 +207,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testSkippedTestDataProvider()
     {
+
         $suite = new PHPUnit_Framework_TestSuite('DataProviderSkippedTest');
 
         $suite->run($this->result);
@@ -206,6 +218,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testIncompleteTestDataProvider()
     {
+
         $suite = new PHPUnit_Framework_TestSuite('DataProviderIncompleteTest');
 
         $suite->run($this->result);
@@ -216,6 +229,7 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testRequirementsBeforeClassHook()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'RequirementsClassBeforeClassHookTest'
         );
@@ -228,15 +242,22 @@ class Framework_SuiteTest extends PHPUnit_Framework_TestCase
 
     public function testDontSkipInheritedClass()
     {
+
         $suite = new PHPUnit_Framework_TestSuite(
             'DontSkipInheritedClass'
         );
 
-        $dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . '_files' . DIRECTORY_SEPARATOR . 'Inheritance' . DIRECTORY_SEPARATOR;
+        $dir = dirname(__DIR__).DIRECTORY_SEPARATOR.'_files'.DIRECTORY_SEPARATOR.'Inheritance'.DIRECTORY_SEPARATOR;
 
-        $suite->addTestFile($dir . 'InheritanceA.php');
-        $suite->addTestFile($dir . 'InheritanceB.php');
+        $suite->addTestFile($dir.'InheritanceA.php');
+        $suite->addTestFile($dir.'InheritanceB.php');
         $result = $suite->run();
         $this->assertEquals(2, count($result));
+    }
+
+    protected function setUp()
+    {
+
+        $this->result = new PHPUnit_Framework_TestResult;
     }
 }

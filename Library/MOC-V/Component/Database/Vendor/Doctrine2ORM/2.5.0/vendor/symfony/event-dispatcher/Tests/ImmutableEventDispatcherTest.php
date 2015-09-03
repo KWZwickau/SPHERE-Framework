@@ -19,6 +19,7 @@ use Symfony\Component\EventDispatcher\ImmutableEventDispatcher;
  */
 class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var \PHPUnit_Framework_MockObject_MockObject
      */
@@ -29,14 +30,9 @@ class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
      */
     private $dispatcher;
 
-    protected function setUp()
-    {
-        $this->innerDispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
-        $this->dispatcher = new ImmutableEventDispatcher($this->innerDispatcher);
-    }
-
     public function testDispatchDelegates()
     {
+
         $event = new Event();
 
         $this->innerDispatcher->expects($this->once())
@@ -49,6 +45,7 @@ class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
 
     public function testGetListenersDelegates()
     {
+
         $this->innerDispatcher->expects($this->once())
             ->method('getListeners')
             ->with('event')
@@ -59,6 +56,7 @@ class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
 
     public function testHasListenersDelegates()
     {
+
         $this->innerDispatcher->expects($this->once())
             ->method('hasListeners')
             ->with('event')
@@ -72,7 +70,11 @@ class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddListenerDisallowed()
     {
-        $this->dispatcher->addListener('event', function () { return 'foo'; });
+
+        $this->dispatcher->addListener('event', function () {
+
+            return 'foo';
+        });
     }
 
     /**
@@ -80,6 +82,7 @@ class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
      */
     public function testAddSubscriberDisallowed()
     {
+
         $subscriber = $this->getMock('Symfony\Component\EventDispatcher\EventSubscriberInterface');
 
         $this->dispatcher->addSubscriber($subscriber);
@@ -90,7 +93,11 @@ class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveListenerDisallowed()
     {
-        $this->dispatcher->removeListener('event', function () { return 'foo'; });
+
+        $this->dispatcher->removeListener('event', function () {
+
+            return 'foo';
+        });
     }
 
     /**
@@ -98,8 +105,16 @@ class ImmutableEventDispatcherTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoveSubscriberDisallowed()
     {
+
         $subscriber = $this->getMock('Symfony\Component\EventDispatcher\EventSubscriberInterface');
 
         $this->dispatcher->removeSubscriber($subscriber);
+    }
+
+    protected function setUp()
+    {
+
+        $this->innerDispatcher = $this->getMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $this->dispatcher = new ImmutableEventDispatcher($this->innerDispatcher);
     }
 }

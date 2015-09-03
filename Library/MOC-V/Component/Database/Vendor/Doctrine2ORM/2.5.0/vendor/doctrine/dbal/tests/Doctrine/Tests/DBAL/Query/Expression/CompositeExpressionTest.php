@@ -4,15 +4,17 @@ namespace Doctrine\Tests\DBAL\Query\Expression;
 
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 
-require_once __DIR__ . '/../../../TestInit.php';
+require_once __DIR__.'/../../../TestInit.php';
 
 /**
  * @group DBAL-12
  */
 class CompositeExpressionTest extends \Doctrine\Tests\DbalTestCase
 {
+
     public function testCount()
     {
+
         $expr = new CompositeExpression(CompositeExpression::TYPE_OR, array('u.group_id = 1'));
 
         $this->assertEquals(1, count($expr));
@@ -27,13 +29,15 @@ class CompositeExpressionTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testCompositeUsageAndGeneration($type, $parts, $expects)
     {
+
         $expr = new CompositeExpression($type, $parts);
 
-        $this->assertEquals($expects, (string) $expr);
+        $this->assertEquals($expects, (string)$expr);
     }
 
     public function provideDataForConvertToString()
     {
+
         return array(
             array(
                 CompositeExpression::TYPE_AND,

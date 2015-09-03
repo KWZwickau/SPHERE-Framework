@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Proxy;
  */
 class VariadicTypeHintClass
 {
+
     public $types;
     public $foo;
     public $bar;
@@ -17,11 +18,13 @@ class VariadicTypeHintClass
      */
     public function addType(...$types)
     {
+
         $this->types = $types;
     }
 
     public function addTypeWithMultipleParameters($foo, $bar, ...$baz)
     {
+
         $this->foo = $foo;
         $this->bar = $bar;
         $this->baz = $baz;

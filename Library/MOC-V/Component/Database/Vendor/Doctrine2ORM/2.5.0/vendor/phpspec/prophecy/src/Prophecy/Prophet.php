@@ -11,16 +11,16 @@
 
 namespace Prophecy;
 
+use Prophecy\Call\CallCenter;
+use Prophecy\Doubler\ClassPatch;
 use Prophecy\Doubler\Doubler;
 use Prophecy\Doubler\LazyDouble;
-use Prophecy\Doubler\ClassPatch;
-use Prophecy\Prophecy\ObjectProphecy;
-use Prophecy\Prophecy\RevealerInterface;
-use Prophecy\Prophecy\Revealer;
-use Prophecy\Call\CallCenter;
-use Prophecy\Util\StringUtil;
-use Prophecy\Exception\Prediction\PredictionException;
 use Prophecy\Exception\Prediction\AggregateException;
+use Prophecy\Exception\Prediction\PredictionException;
+use Prophecy\Prophecy\ObjectProphecy;
+use Prophecy\Prophecy\Revealer;
+use Prophecy\Prophecy\RevealerInterface;
+use Prophecy\Util\StringUtil;
 
 /**
  * Prophet creates prophecies.
@@ -29,6 +29,7 @@ use Prophecy\Exception\Prediction\AggregateException;
  */
 class Prophet
 {
+
     private $doubler;
     private $revealer;
     private $util;
@@ -45,9 +46,12 @@ class Prophet
      * @param null|RevealerInterface $revealer
      * @param null|StringUtil        $util
      */
-    public function __construct(Doubler $doubler = null, RevealerInterface $revealer = null,
-                                StringUtil $util = null)
-    {
+    public function __construct(
+        Doubler $doubler = null,
+        RevealerInterface $revealer = null,
+        StringUtil $util = null
+    ) {
+
         if (null === $doubler) {
             $doubler = new Doubler;
             $doubler->registerClassPatch(new ClassPatch\SplFileInfoPatch);
@@ -60,9 +64,9 @@ class Prophet
             $doubler->registerClassPatch(new ClassPatch\KeywordPatch);
         }
 
-        $this->doubler  = $doubler;
+        $this->doubler = $doubler;
         $this->revealer = $revealer ?: new Revealer;
-        $this->util     = $util ?: new StringUtil;
+        $this->util = $util ?: new StringUtil;
     }
 
     /**
@@ -74,6 +78,7 @@ class Prophet
      */
     public function prophesize($classOrInterface = null)
     {
+
         $this->prophecies[] = $prophecy = new ObjectProphecy(
             new LazyDouble($this->doubler),
             new CallCenter($this->util),
@@ -98,6 +103,7 @@ class Prophet
      */
     public function getProphecies()
     {
+
         return $this->prophecies;
     }
 
@@ -108,6 +114,7 @@ class Prophet
      */
     public function getDoubler()
     {
+
         return $this->doubler;
     }
 
@@ -118,6 +125,7 @@ class Prophet
      */
     public function checkPredictions()
     {
+
         $exception = new AggregateException("Some predictions failed:\n");
         foreach ($this->prophecies as $prophecy) {
             try {

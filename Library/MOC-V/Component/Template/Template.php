@@ -23,10 +23,10 @@ class Template implements IVendorInterface
     /**
      * @param IVendorInterface $VendorInterface
      */
-    function __construct( IVendorInterface $VendorInterface )
+    public function __construct(IVendorInterface $VendorInterface)
     {
 
-        $this->setVendorInterface( $VendorInterface );
+        $this->setVendorInterface($VendorInterface);
     }
 
     /**
@@ -35,20 +35,20 @@ class Template implements IVendorInterface
      * @throws TemplateTypeException
      * @return IBridgeInterface
      */
-    public static function getTemplate( $Location )
+    public static function getTemplate($Location)
     {
 
-        switch ($Type = strtoupper( pathinfo( $Location, PATHINFO_EXTENSION ) )) {
+        switch ($Type = strtoupper(pathinfo($Location, PATHINFO_EXTENSION))) {
             case 'TWIG': {
-                return self::getTwigTemplate( $Location );
+                return self::getTwigTemplate($Location);
                 break;
             }
             case 'TPL': {
-                return self::getSmartyTemplate( $Location );
+                return self::getSmartyTemplate($Location);
                 break;
             }
             default: {
-                throw new TemplateTypeException( ( $Type ? $Type : '-NA-' ) );
+                throw new TemplateTypeException(( $Type ? $Type : '-NA-' ));
                 break;
             }
         }
@@ -59,7 +59,7 @@ class Template implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getTwigTemplate( $Location )
+    public static function getTwigTemplate($Location)
     {
 
         $Template = new Template(
@@ -68,7 +68,7 @@ class Template implements IVendorInterface
             )
         );
 
-        $Template->getBridgeInterface()->loadFile( new FileParameter( $Location ), false );
+        $Template->getBridgeInterface()->loadFile(new FileParameter($Location), false);
 
         return $Template->getBridgeInterface();
     }
@@ -87,7 +87,7 @@ class Template implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getSmartyTemplate( $Location )
+    public static function getSmartyTemplate($Location)
     {
 
         $Template = new Template(
@@ -96,7 +96,7 @@ class Template implements IVendorInterface
             )
         );
 
-        $Template->getBridgeInterface()->loadFile( new FileParameter( $Location ), false );
+        $Template->getBridgeInterface()->loadFile(new FileParameter($Location), false);
 
         return $Template->getBridgeInterface();
     }
@@ -106,7 +106,7 @@ class Template implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getTwigTemplateString( $String )
+    public static function getTwigTemplateString($String)
     {
 
         $Template = new Template(
@@ -114,7 +114,7 @@ class Template implements IVendorInterface
                 new TwigTemplate()
             )
         );
-        $Template->getBridgeInterface()->loadString( $String, true );
+        $Template->getBridgeInterface()->loadString($String, true);
 
         return $Template->getBridgeInterface();
     }
@@ -133,7 +133,7 @@ class Template implements IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setVendorInterface( IVendorInterface $VendorInterface )
+    public function setVendorInterface(IVendorInterface $VendorInterface)
     {
 
         $this->VendorInterface = $VendorInterface;
@@ -145,9 +145,9 @@ class Template implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface )
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface)
     {
 
-        return $this->VendorInterface->setBridgeInterface( $BridgeInterface );
+        return $this->VendorInterface->setBridgeInterface($BridgeInterface);
     }
 }

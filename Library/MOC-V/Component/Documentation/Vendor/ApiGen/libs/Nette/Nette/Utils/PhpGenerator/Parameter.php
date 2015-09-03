@@ -43,10 +43,10 @@ class Parameter extends Nette\Object
     public $defaultValue;
 
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return Nette\ObjectMixin::callProperty( $this, $name, $args );
+        return Nette\ObjectMixin::callProperty($this, $name, $args);
     }
 
 }

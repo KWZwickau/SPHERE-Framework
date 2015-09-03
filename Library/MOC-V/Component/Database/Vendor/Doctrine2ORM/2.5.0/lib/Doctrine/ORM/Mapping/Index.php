@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class Index implements Annotation
 {
+
     /**
      * @var string
      */

@@ -7,6 +7,7 @@ use Doctrine\DBAL\Schema\Table;
 
 class ReservedKeywordsValidatorTest extends \Doctrine\Tests\DbalTestCase
 {
+
     /**
      * @var ReservedKeywordsValidator
      */
@@ -14,6 +15,7 @@ class ReservedKeywordsValidatorTest extends \Doctrine\Tests\DbalTestCase
 
     public function setUp()
     {
+
         $this->validator = new ReservedKeywordsValidator(array(
             new \Doctrine\DBAL\Platforms\Keywords\MySQLKeywords()
         ));
@@ -21,6 +23,7 @@ class ReservedKeywordsValidatorTest extends \Doctrine\Tests\DbalTestCase
 
     public function testReservedTableName()
     {
+
         $table = new Table("TABLE");
         $this->validator->acceptTable($table);
 
@@ -32,6 +35,7 @@ class ReservedKeywordsValidatorTest extends \Doctrine\Tests\DbalTestCase
 
     public function testReservedColumnName()
     {
+
         $table = new Table("TABLE");
         $column = $table->addColumn('table', 'string');
 

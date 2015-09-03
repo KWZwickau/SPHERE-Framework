@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_DoTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_Do::__construct
      */
     public function testConstructor()
     {
+
         $expr = new Twig_Node_Expression_Constant('foo', 1);
         $node = new Twig_Node_Do($expr, 1);
 
@@ -23,16 +25,18 @@ class Twig_Tests_Node_DoTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_Do::compile
+     * @covers       Twig_Node_Do::compile
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $tests = array();
 
         $expr = new Twig_Node_Expression_Constant('foo', 1);

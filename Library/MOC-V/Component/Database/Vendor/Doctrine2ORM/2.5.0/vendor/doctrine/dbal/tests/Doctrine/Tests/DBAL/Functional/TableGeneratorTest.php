@@ -9,10 +9,12 @@ use Doctrine\DBAL\Id\TableGenerator;
  */
 class TableGeneratorTest extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     private $generator;
 
     public function setUp()
     {
+
         parent::setUp();
 
         $platform = $this->_conn->getDatabasePlatform();
@@ -29,13 +31,14 @@ class TableGeneratorTest extends \Doctrine\Tests\DbalFunctionalTestCase
                 $this->_conn->exec($sql);
             }
 
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
         }
         $this->generator = new TableGenerator($this->_conn);
     }
 
     public function testNextVal()
     {
+
         $id1 = $this->generator->nextValue("tbl1");
         $id2 = $this->generator->nextValue("tbl1");
         $id3 = $this->generator->nextValue("tbl2");
@@ -47,6 +50,7 @@ class TableGeneratorTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testNextValNotAffectedByOuterTransactions()
     {
+
         $this->_conn->beginTransaction();
         $id1 = $this->generator->nextValue("tbl1");
         $this->_conn->rollBack();

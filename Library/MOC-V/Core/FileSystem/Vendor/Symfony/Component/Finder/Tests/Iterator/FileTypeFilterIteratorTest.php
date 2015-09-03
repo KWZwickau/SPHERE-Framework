@@ -15,21 +15,23 @@ use Symfony\Component\Finder\Iterator\FileTypeFilterIterator;
 
 class FileTypeFilterIteratorTest extends RealIteratorTestCase
 {
+
     /**
      * @dataProvider getAcceptData
      */
-    public function testAccept( $mode, $expected )
+    public function testAccept($mode, $expected)
     {
 
-        $inner = new InnerTypeIterator( self::$files );
+        $inner = new InnerTypeIterator(self::$files);
 
-        $iterator = new FileTypeFilterIterator( $inner, $mode );
+        $iterator = new FileTypeFilterIterator($inner, $mode);
 
-        $this->assertIterator( $expected, $iterator );
+        $this->assertIterator($expected, $iterator);
     }
 
     public function getAcceptData()
     {
+
         $onlyFiles = array(
             'test.py',
             'foo/bar.tmp',
@@ -48,27 +50,30 @@ class FileTypeFilterIteratorTest extends RealIteratorTestCase
         );
 
         return array(
-            array( FileTypeFilterIterator::ONLY_FILES, $this->toAbsolute( $onlyFiles ) ),
-            array( FileTypeFilterIterator::ONLY_DIRECTORIES, $this->toAbsolute( $onlyDirectories ) ),
+            array(FileTypeFilterIterator::ONLY_FILES, $this->toAbsolute($onlyFiles)),
+            array(FileTypeFilterIterator::ONLY_DIRECTORIES, $this->toAbsolute($onlyDirectories)),
         );
     }
 }
 
 class InnerTypeIterator extends \ArrayIterator
 {
+
     public function isFile()
     {
+
         return $this->current()->isFile();
     }
 
     public function current()
     {
 
-        return new \SplFileInfo( parent::current() );
+        return new \SplFileInfo(parent::current());
     }
 
     public function isDir()
     {
+
         return $this->current()->isDir();
     }
 }

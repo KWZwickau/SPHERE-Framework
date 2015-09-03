@@ -43,15 +43,15 @@ class SmtpMailer extends Nette\Object implements IMailer
     private $timeout;
 
 
-    public function __construct( array $options = array() )
+    public function __construct(array $options = array())
     {
 
         if (isset( $options['host'] )) {
             $this->host = $options['host'];
             $this->port = isset( $options['port'] ) ? (int)$options['port'] : null;
         } else {
-            $this->host = ini_get( 'SMTP' );
-            $this->port = (int)ini_get( 'smtp_port' );
+            $this->host = ini_get('SMTP');
+            $this->port = (int)ini_get('smtp_port');
         }
         $this->username = isset( $options['username'] ) ? $options['username'] : '';
         $this->password = isset( $options['password'] ) ? $options['password'] : '';
@@ -70,33 +70,33 @@ class SmtpMailer extends Nette\Object implements IMailer
      *
      * @return void
      */
-    public function send( Message $mail )
+    public function send(Message $mail)
     {
 
         $data = $mail->generateMessage();
 
         $this->connect();
 
-        $from = $mail->getHeader( 'From' );
+        $from = $mail->getHeader('From');
         if ($from) {
-            $from = array_keys( $from );
-            $this->write( "MAIL FROM:<$from[0]>", 250 );
+            $from = array_keys($from);
+            $this->write("MAIL FROM:<$from[0]>", 250);
         }
 
         foreach (array_merge(
-                     (array)$mail->getHeader( 'To' ),
-                     (array)$mail->getHeader( 'Cc' ),
-                     (array)$mail->getHeader( 'Bcc' )
+                     (array)$mail->getHeader('To'),
+                     (array)$mail->getHeader('Cc'),
+                     (array)$mail->getHeader('Bcc')
                  ) as $email => $name) {
-            $this->write( "RCPT TO:<$email>", array( 250, 251 ) );
+            $this->write("RCPT TO:<$email>", array(250, 251));
         }
 
-        $this->write( 'DATA', 354 );
-        $data = preg_replace( '#^\.#m', '..', $data );
-        $this->write( $data );
-        $this->write( '.', 250 );
+        $this->write('DATA', 354);
+        $data = preg_replace('#^\.#m', '..', $data);
+        $this->write($data);
+        $this->write('.', 250);
 
-        $this->write( 'QUIT', 221 );
+        $this->write('QUIT', 221);
 
         $this->disconnect();
     }
@@ -115,29 +115,29 @@ class SmtpMailer extends Nette\Object implements IMailer
             $this->port, $errno, $error, $this->timeout
         );
         if (!$this->connection) {
-            throw new SmtpException( $error, $errno );
+            throw new SmtpException($error, $errno);
         }
-        stream_set_timeout( $this->connection, $this->timeout, 0 );
+        stream_set_timeout($this->connection, $this->timeout, 0);
         $this->read(); // greeting
 
         $self = isset( $_SERVER['SERVER_NAME'] ) ? $_SERVER['SERVER_NAME'] : 'localhost';
-        $this->write( "EHLO $self" );
+        $this->write("EHLO $self");
         if ((int)$this->read() !== 250) {
-            $this->write( "HELO $self", 250 );
+            $this->write("HELO $self", 250);
         }
 
         if ($this->secure === 'tls') {
-            $this->write( 'STARTTLS', 220 );
-            if (!stream_socket_enable_crypto( $this->connection, true, STREAM_CRYPTO_METHOD_TLS_CLIENT )) {
-                throw new SmtpException( 'Unable to connect via TLS.' );
+            $this->write('STARTTLS', 220);
+            if (!stream_socket_enable_crypto($this->connection, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+                throw new SmtpException('Unable to connect via TLS.');
             }
-            $this->write( "EHLO $self", 250 );
+            $this->write("EHLO $self", 250);
         }
 
         if ($this->username != null && $this->password != null) {
-            $this->write( 'AUTH LOGIN', 334 );
-            $this->write( base64_encode( $this->username ), 334, 'username' );
-            $this->write( base64_encode( $this->password ), 235, 'password' );
+            $this->write('AUTH LOGIN', 334);
+            $this->write(base64_encode($this->username), 334, 'username');
+            $this->write(base64_encode($this->password), 235, 'password');
         }
     }
 
@@ -150,9 +150,9 @@ class SmtpMailer extends Nette\Object implements IMailer
     {
 
         $s = '';
-        while (( $line = fgets( $this->connection, 1e3 ) ) != null) { // intentionally ==
+        while (( $line = fgets($this->connection, 1e3) ) != null) { // intentionally ==
             $s .= $line;
-            if (substr( $line, 3, 1 ) === ' ') {
+            if (substr($line, 3, 1) === ' ') {
                 break;
             }
         }
@@ -168,12 +168,12 @@ class SmtpMailer extends Nette\Object implements IMailer
      *
      * @return void
      */
-    private function write( $line, $expectedCode = null, $message = null )
+    private function write($line, $expectedCode = null, $message = null)
     {
 
-        fwrite( $this->connection, $line.Message::EOL );
-        if ($expectedCode && !in_array( (int)$this->read(), (array)$expectedCode )) {
-            throw new SmtpException( 'SMTP server did not accept '.( $message ? $message : $line ) );
+        fwrite($this->connection, $line.Message::EOL);
+        if ($expectedCode && !in_array((int)$this->read(), (array)$expectedCode)) {
+            throw new SmtpException('SMTP server did not accept '.( $message ? $message : $line ));
         }
     }
 
@@ -185,7 +185,7 @@ class SmtpMailer extends Nette\Object implements IMailer
     private function disconnect()
     {
 
-        fclose( $this->connection );
+        fclose($this->connection);
         $this->connection = null;
     }
 

@@ -15,12 +15,12 @@ var EventHelpers = new function()
     var me = this;
 
     var safariTimer;
-    var isSafari = /WebKit/i.test( navigator.userAgent );
+    var isSafari = /WebKit/i.test(navigator.userAgent);
     var globalEvent;
 
     me.init = function()
     {
-        if (me.hasPageLoadHappened( arguments )) {
+        if (me.hasPageLoadHappened(arguments)) {
             return;
         }
 
@@ -29,7 +29,7 @@ var EventHelpers = new function()
             globalEvent = document.createEventObject();
         } else {
             if (document.createEvent) {
-                globalEvent = document.createEvent( "HTMLEvents" );
+                globalEvent = document.createEvent("HTMLEvents");
             }
         }
 
@@ -48,19 +48,19 @@ var EventHelpers = new function()
      * @param {String} evType - an event to attach to the object.
      * @param {Function} fn - the function that is attached to the event.
      */
-    me.addEvent = function( obj, evType, fn )
+    me.addEvent = function(obj, evType, fn)
     {
 
         if (obj.addEventListener) {
-            obj.addEventListener( evType, fn, false );
+            obj.addEventListener(evType, fn, false);
         } else {
             if (obj.attachEvent) {
                 obj['e' + evType + fn] = fn;
                 obj[evType + fn] = function()
                 {
-                    obj["e" + evType + fn]( self.event );
+                    obj["e" + evType + fn](self.event);
                 };
-                obj.attachEvent( "on" + evType, obj[evType + fn] );
+                obj.attachEvent("on" + evType, obj[evType + fn]);
             }
         }
     };
@@ -73,62 +73,62 @@ var EventHelpers = new function()
      * @param {String} evType - an event attached to the object.
      * @param {Function} fn - the function that is called when the event fires.
      */
-    me.removeEvent = function( obj, evType, fn )
+    me.removeEvent = function(obj, evType, fn)
     {
 
         if (obj.removeEventListener) {
-            obj.removeEventListener( evType, fn, false );
+            obj.removeEventListener(evType, fn, false);
         } else {
             if (obj.detachEvent) {
                 try {
-                    obj.detachEvent( "on" + evType, obj[evType + fn] );
+                    obj.detachEvent("on" + evType, obj[evType + fn]);
                     obj[evType + fn] = null;
                     obj["e" + evType + fn] = null;
                 }
-                catch( ex ) {
+                catch (ex) {
                     // do nothing;
                 }
             }
         }
     };
 
-    function removeEventAttribute( obj, beginName )
+    function removeEventAttribute(obj, beginName)
     {
         var attributes = obj.attributes;
         for (var i = 0; i < attributes.length; i++) {
             var attribute = attributes[i];
             var name = attribute.name;
-            if (name.indexOf( beginName ) == 0) {
+            if (name.indexOf(beginName) == 0) {
                 //obj.removeAttributeNode(attribute);
                 attribute.specified = false;
             }
         }
     }
 
-    me.addScrollWheelEvent = function( obj, fn )
+    me.addScrollWheelEvent = function(obj, fn)
     {
         if (obj.addEventListener) {
             /** DOMMouseScroll is for mozilla. */
-            obj.addEventListener( 'DOMMouseScroll', fn, true );
+            obj.addEventListener('DOMMouseScroll', fn, true);
         }
 
         /** IE/Opera. */
         if (obj.attachEvent) {
-            obj.attachEvent( "onmousewheel", fn );
+            obj.attachEvent("onmousewheel", fn);
         }
 
     };
 
-    me.removeScrollWheelEvent = function( obj, fn )
+    me.removeScrollWheelEvent = function(obj, fn)
     {
         if (obj.removeEventListener) {
             /** DOMMouseScroll is for mozilla. */
-            obj.removeEventListener( 'DOMMouseScroll', fn, true );
+            obj.removeEventListener('DOMMouseScroll', fn, true);
         }
 
         /** IE/Opera. */
         if (obj.detachEvent) {
-            obj.detatchEvent( "onmousewheel", fn );
+            obj.detatchEvent("onmousewheel", fn);
         }
 
     };
@@ -139,7 +139,7 @@ var EventHelpers = new function()
      * @param {Object} e - a DOM Event object.
      * @return {int} - the mouse pointer's x-coordinate.
      */
-    me.getMouseX = function( e )
+    me.getMouseX = function(e)
     {
         if (!e) {
             return;
@@ -169,7 +169,7 @@ var EventHelpers = new function()
      * @param {Object} e - a DOM Event Object.
      * @return {int} - the mouse pointer's y-coordinate.
      */
-    me.getMouseY = function( e )
+    me.getMouseY = function(e)
     {
         // NS4
         if (e.pageY != null) {
@@ -194,7 +194,7 @@ var EventHelpers = new function()
      * @return {int} - the mouse wheel's delta.  It is greater than 0, the
      * scroll wheel was spun upwards; if less than 0, downwards.
      */
-    me.getScrollWheelDelta = function( e )
+    me.getScrollWheelDelta = function(e)
     {
         var delta = 0;
         if (!e) /* For IE. */
@@ -228,11 +228,11 @@ var EventHelpers = new function()
      *
      * @param {Function} func - the function that you want a mouse event to fire.
      */
-    me.addMouseEvent = function( func )
+    me.addMouseEvent = function(func)
     {
 
         if (document.captureEvents) {
-            document.captureEvents( Event.MOUSEMOVE );
+            document.captureEvents(Event.MOUSEMOVE);
         }
 
         document.onmousemove = func;
@@ -247,7 +247,7 @@ var EventHelpers = new function()
      * @param {Object} e - an HTML object
      * @return {Object} - the HTML object that fired the event.
      */
-    me.getEventTarget = function( e )
+    me.getEventTarget = function(e)
     {
         // first, IE method for mouse events(also supported by Safari and Opera)
         if (e.toElement) {
@@ -274,7 +274,7 @@ var EventHelpers = new function()
      * @param {Object} e - an event object.
      * @return {String} - the ASCII character code representing the key associated with the event.
      */
-    me.getKey = function( e )
+    me.getKey = function(e)
     {
         if (e.keyCode) {
             return e.keyCode;
@@ -312,10 +312,10 @@ var EventHelpers = new function()
      *
      * @param {String} funcName - a string containing the function to be called.
      */
-    me.addPageLoadEvent = function( funcName )
+    me.addPageLoadEvent = function(funcName)
     {
 
-        var func = eval( funcName );
+        var func = eval(funcName);
 
         // for Internet Explorer (using conditional comments)
         /*@cc_on @*/
@@ -324,14 +324,14 @@ var EventHelpers = new function()
          return;
          /*@end @*/
         if (isSafari) { // sniff
-            pageLoadEventArray.push( func );
+            pageLoadEventArray.push(func);
 
             if (!safariTimer) {
 
-                safariTimer = setInterval( function()
+                safariTimer = setInterval(function()
                 {
-                    if (/loaded|complete/.test( document.readyState )) {
-                        clearInterval( safariTimer );
+                    if (/loaded|complete/.test(document.readyState)) {
+                        clearInterval(safariTimer);
 
                         /*
                          * call the onload handler
@@ -341,23 +341,23 @@ var EventHelpers = new function()
                         return;
                     }
                     set = true;
-                }, 10 );
+                }, 10);
             }
             /* for Mozilla */
         } else {
             if (document.addEventListener) {
-                var x = document.addEventListener( "DOMContentLoaded", func, null );
+                var x = document.addEventListener("DOMContentLoaded", func, null);
 
                 /* Others */
             } else {
-                me.addEvent( window, 'load', func );
+                me.addEvent(window, 'load', func);
             }
         }
     };
 
     var pageLoadEventArray = [];
 
-    me.runPageLoadEvents = function( e )
+    me.runPageLoadEvents = function(e)
     {
         if (isSafari || e.srcElement.readyState == "complete") {
 
@@ -373,7 +373,7 @@ var EventHelpers = new function()
      * @see addPageLoadEvent
      * @param {Function} funcArgs - the arguments of the containing. function
      */
-    me.hasPageLoadHappened = function( funcArgs )
+    me.hasPageLoadHappened = function(funcArgs)
     {
         // If the function already been called, return true;
         if (funcArgs.callee.done) {
@@ -391,7 +391,7 @@ var EventHelpers = new function()
      * @param {Object} e - an event object.
      * @return {Boolean} - always false
      */
-    me.preventDefault = function( e )
+    me.preventDefault = function(e)
     {
 
         if (e.preventDefault) {
@@ -401,13 +401,13 @@ var EventHelpers = new function()
         try {
             e.returnValue = false;
         }
-        catch( ex ) {
+        catch (ex) {
             // do nothing
         }
 
     };
 
-    me.cancelBubble = function( e )
+    me.cancelBubble = function(e)
     {
         if (e.stopPropagation) {
             e.stopPropagation();
@@ -416,7 +416,7 @@ var EventHelpers = new function()
         try {
             e.cancelBubble = true;
         }
-        catch( ex ) {
+        catch (ex) {
             // do nothing
         }
     };
@@ -429,7 +429,7 @@ var EventHelpers = new function()
      * @param {Function} fn - the function that is called when the event fires.
      *
      */
-    me.fireEvent = function( element, event, options )
+    me.fireEvent = function(element, event, options)
     {
 
         if (!element) {
@@ -445,14 +445,14 @@ var EventHelpers = new function()
              return;
              }
              */
-            return element.fireEvent( 'on' + event, globalEvent );
-            jslog.debug( 'ss' );
+            return element.fireEvent('on' + event, globalEvent);
+            jslog.debug('ss');
 
         }
         else {
             // dispatch for firefox + others
-            globalEvent.initEvent( event, true, true ); // event type,bubbling,cancelable
-            return !element.dispatchEvent( globalEvent );
+            globalEvent.initEvent(event, true, true); // event type,bubbling,cancelable
+            return !element.dispatchEvent(globalEvent);
         }
     };
 
@@ -481,4 +481,4 @@ var EventHelpers = new function()
     init();
 };
 
-EventHelpers.addPageLoadEvent( 'EventHelpers.init' );
+EventHelpers.addPageLoadEvent('EventHelpers.init');

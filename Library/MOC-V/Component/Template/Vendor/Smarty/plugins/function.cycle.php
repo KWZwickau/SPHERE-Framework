@@ -44,7 +44,7 @@
  * @return string|null
  */
 
-function smarty_function_cycle( $params, $template )
+function smarty_function_cycle($params, $template)
 {
 
     static $cycle_vars;
@@ -56,7 +56,7 @@ function smarty_function_cycle( $params, $template )
 
     if (!isset( $params['values'] )) {
         if (!isset( $cycle_vars[$name]['values'] )) {
-            trigger_error( "cycle: missing 'values' parameter" );
+            trigger_error("cycle: missing 'values' parameter");
 
             return;
         }
@@ -75,10 +75,10 @@ function smarty_function_cycle( $params, $template )
         $cycle_vars[$name]['delimiter'] = ',';
     }
 
-    if (is_array( $cycle_vars[$name]['values'] )) {
+    if (is_array($cycle_vars[$name]['values'])) {
         $cycle_array = $cycle_vars[$name]['values'];
     } else {
-        $cycle_array = explode( $cycle_vars[$name]['delimiter'], $cycle_vars[$name]['values'] );
+        $cycle_array = explode($cycle_vars[$name]['delimiter'], $cycle_vars[$name]['values']);
     }
 
     if (!isset( $cycle_vars[$name]['index'] ) || $reset) {
@@ -87,7 +87,7 @@ function smarty_function_cycle( $params, $template )
 
     if (isset( $params['assign'] )) {
         $print = false;
-        $template->assign( $params['assign'], $cycle_array[$cycle_vars[$name]['index']] );
+        $template->assign($params['assign'], $cycle_array[$cycle_vars[$name]['index']]);
     }
 
     if ($print) {
@@ -97,7 +97,7 @@ function smarty_function_cycle( $params, $template )
     }
 
     if ($advance) {
-        if ($cycle_vars[$name]['index'] >= count( $cycle_array ) - 1) {
+        if ($cycle_vars[$name]['index'] >= count($cycle_array) - 1) {
             $cycle_vars[$name]['index'] = 0;
         } else {
             $cycle_vars[$name]['index']++;

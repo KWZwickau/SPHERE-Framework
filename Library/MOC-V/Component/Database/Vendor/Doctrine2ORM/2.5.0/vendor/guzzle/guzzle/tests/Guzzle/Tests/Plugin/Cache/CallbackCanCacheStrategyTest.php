@@ -15,17 +15,23 @@ use Guzzle\Plugin\Cache\CallbackCanCacheStrategy;
  */
 class CallbackCanCacheStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /**
      * @expectedException \Guzzle\Common\Exception\InvalidArgumentException
      */
     public function testConstructorEnsuresCallbackIsCallable()
     {
+
         $p = new CallbackCanCacheStrategy(new \stdClass());
     }
 
     public function testUsesCallback()
     {
-        $c = new CallbackCanCacheStrategy(function ($request) { return true; });
+
+        $c = new CallbackCanCacheStrategy(function ($request) {
+
+            return true;
+        });
         $this->assertTrue($c->canCacheRequest(new Request('DELETE', 'http://www.foo.com')));
     }
 
@@ -35,20 +41,27 @@ class CallbackCanCacheStrategyTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testIntegrationWithCachePlugin()
     {
+
         $c = new CallbackCanCacheStrategy(
-            function ($request) { return true; },
-            function ($response) { return true; }
+            function ($request) {
+
+                return true;
+            },
+            function ($response) {
+
+                return true;
+            }
         );
 
         // Make a request and response that have no business being cached
         $request = new Request('DELETE', 'http://www.foo.com');
         $response = Response::fromMessage(
             "HTTP/1.1 200 OK\r\n"
-            . "Expires: Mon, 26 Jul 1997 05:00:00 GMT\r\n"
-            . "Last-Modified: Wed, 09 Jan 2013 08:48:53 GMT\r\n"
-            . "Content-Length: 2\r\n"
-            . "Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0\r\n\r\n"
-            . "hi"
+            ."Expires: Mon, 26 Jul 1997 05:00:00 GMT\r\n"
+            ."Last-Modified: Wed, 09 Jan 2013 08:48:53 GMT\r\n"
+            ."Content-Length: 2\r\n"
+            ."Cache-Control: no-store, no-cache, must-revalidate, post-check=0, pre-check=0\r\n\r\n"
+            ."hi"
         );
 
         $this->assertTrue($c->canCacheRequest($request));

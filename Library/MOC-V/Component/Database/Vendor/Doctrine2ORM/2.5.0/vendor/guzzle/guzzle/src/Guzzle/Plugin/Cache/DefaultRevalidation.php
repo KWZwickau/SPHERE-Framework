@@ -2,15 +2,16 @@
 
 namespace Guzzle\Plugin\Cache;
 
+use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
-use Guzzle\Http\Exception\BadResponseException;
 
 /**
  * Default revalidation strategy
  */
 class DefaultRevalidation implements RevalidationInterface
 {
+
     /** @var CacheStorageInterface Cache object storing cache data */
     protected $storage;
 
@@ -23,12 +24,14 @@ class DefaultRevalidation implements RevalidationInterface
      */
     public function __construct(CacheStorageInterface $cache, CanCacheStrategyInterface $canCache = null)
     {
+
         $this->storage = $cache;
         $this->canCache = $canCache ?: new DefaultCanCacheStrategy();
     }
 
     public function revalidate(RequestInterface $request, Response $response)
     {
+
         try {
             $revalidate = $this->createRevalidationRequest($request, $response);
             $validateResponse = $revalidate->send();
@@ -46,44 +49,6 @@ class DefaultRevalidation implements RevalidationInterface
         return false;
     }
 
-    public function shouldRevalidate(RequestInterface $request, Response $response)
-    {
-        if ($request->getMethod() != RequestInterface::GET) {
-            return false;
-        }
-
-        $reqCache = $request->getHeader('Cache-Control');
-        $resCache = $response->getHeader('Cache-Control');
-
-        $revalidate = $request->getHeader('Pragma') == 'no-cache' ||
-            ($reqCache && ($reqCache->hasDirective('no-cache') || $reqCache->hasDirective('must-revalidate'))) ||
-            ($resCache && ($resCache->hasDirective('no-cache') || $resCache->hasDirective('must-revalidate')));
-
-        // Use the strong ETag validator if available and the response contains no Cache-Control directive
-        if (!$revalidate && !$resCache && $response->hasHeader('ETag')) {
-            $revalidate = true;
-        }
-
-        return $revalidate;
-    }
-
-    /**
-     * Handles a bad response when attempting to revalidate
-     *
-     * @param BadResponseException $e Exception encountered
-     *
-     * @throws BadResponseException
-     */
-    protected function handleBadResponse(BadResponseException $e)
-    {
-        // 404 errors mean the resource no longer exists, so remove from
-        // cache, and prevent an additional request by throwing the exception
-        if ($e->getResponse()->getStatusCode() == 404) {
-            $this->storage->delete($e->getRequest());
-            throw $e;
-        }
-    }
-
     /**
      * Creates a request to use for revalidation
      *
@@ -94,6 +59,7 @@ class DefaultRevalidation implements RevalidationInterface
      */
     protected function createRevalidationRequest(RequestInterface $request, Response $response)
     {
+
         $revalidate = clone $request;
         $revalidate->removeHeader('Pragma')->removeHeader('Cache-Control');
 
@@ -128,6 +94,7 @@ class DefaultRevalidation implements RevalidationInterface
      */
     protected function handle200Response(RequestInterface $request, Response $validateResponse)
     {
+
         $request->setResponse($validateResponse);
         if ($this->canCache->canCacheResponse($validateResponse)) {
             $this->storage->cache($request, $validateResponse);
@@ -147,6 +114,7 @@ class DefaultRevalidation implements RevalidationInterface
      */
     protected function handle304Response(RequestInterface $request, Response $validateResponse, Response $response)
     {
+
         static $replaceHeaders = array('Date', 'Expires', 'Cache-Control', 'ETag', 'Last-Modified');
 
         // Make sure that this response has the same ETag
@@ -170,5 +138,45 @@ class DefaultRevalidation implements RevalidationInterface
         }
 
         return true;
+    }
+
+    /**
+     * Handles a bad response when attempting to revalidate
+     *
+     * @param BadResponseException $e Exception encountered
+     *
+     * @throws BadResponseException
+     */
+    protected function handleBadResponse(BadResponseException $e)
+    {
+
+        // 404 errors mean the resource no longer exists, so remove from
+        // cache, and prevent an additional request by throwing the exception
+        if ($e->getResponse()->getStatusCode() == 404) {
+            $this->storage->delete($e->getRequest());
+            throw $e;
+        }
+    }
+
+    public function shouldRevalidate(RequestInterface $request, Response $response)
+    {
+
+        if ($request->getMethod() != RequestInterface::GET) {
+            return false;
+        }
+
+        $reqCache = $request->getHeader('Cache-Control');
+        $resCache = $response->getHeader('Cache-Control');
+
+        $revalidate = $request->getHeader('Pragma') == 'no-cache' ||
+            ( $reqCache && ( $reqCache->hasDirective('no-cache') || $reqCache->hasDirective('must-revalidate') ) ) ||
+            ( $resCache && ( $resCache->hasDirective('no-cache') || $resCache->hasDirective('must-revalidate') ) );
+
+        // Use the strong ETag validator if available and the response contains no Cache-Control directive
+        if (!$revalidate && !$resCache && $response->hasHeader('ETag')) {
+            $revalidate = true;
+        }
+
+        return $revalidate;
     }
 }

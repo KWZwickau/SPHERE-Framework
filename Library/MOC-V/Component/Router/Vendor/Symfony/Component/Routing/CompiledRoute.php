@@ -18,6 +18,7 @@ namespace Symfony\Component\Routing;
  */
 class CompiledRoute
 {
+
     private $variables;
     private $tokens;
     private $staticPrefix;
@@ -30,18 +31,27 @@ class CompiledRoute
     /**
      * Constructor.
      *
-     * @param string      $staticPrefix       The static prefix of the compiled route
-     * @param string      $regex              The regular expression to use to match this route
-     * @param array       $tokens             An array of tokens to use to generate URL for this route
-     * @param array       $pathVariables      An array of path variables
-     * @param string|null $hostRegex          Host regex
-     * @param array       $hostTokens         Host tokens
-     * @param array       $hostVariables      An array of host variables
-     * @param array       $variables          An array of variables (variables defined in the path and in the host patterns)
+     * @param string      $staticPrefix  The static prefix of the compiled route
+     * @param string      $regex         The regular expression to use to match this route
+     * @param array       $tokens        An array of tokens to use to generate URL for this route
+     * @param array       $pathVariables An array of path variables
+     * @param string|null $hostRegex     Host regex
+     * @param array       $hostTokens    Host tokens
+     * @param array       $hostVariables An array of host variables
+     * @param array       $variables     An array of variables (variables defined in the path and in the host patterns)
      */
-    public function __construct($staticPrefix, $regex, array $tokens, array $pathVariables, $hostRegex = null, array $hostTokens = array(), array $hostVariables = array(), array $variables = array())
-    {
-        $this->staticPrefix = (string) $staticPrefix;
+    public function __construct(
+        $staticPrefix,
+        $regex,
+        array $tokens,
+        array $pathVariables,
+        $hostRegex = null,
+        array $hostTokens = array(),
+        array $hostVariables = array(),
+        array $variables = array()
+    ) {
+
+        $this->staticPrefix = (string)$staticPrefix;
         $this->regex = $regex;
         $this->tokens = $tokens;
         $this->pathVariables = $pathVariables;
@@ -58,6 +68,7 @@ class CompiledRoute
      */
     public function getStaticPrefix()
     {
+
         return $this->staticPrefix;
     }
 
@@ -68,6 +79,7 @@ class CompiledRoute
      */
     public function getRegex()
     {
+
         return $this->regex;
     }
 
@@ -78,6 +90,7 @@ class CompiledRoute
      */
     public function getHostRegex()
     {
+
         return $this->hostRegex;
     }
 
@@ -88,6 +101,7 @@ class CompiledRoute
      */
     public function getTokens()
     {
+
         return $this->tokens;
     }
 
@@ -98,6 +112,7 @@ class CompiledRoute
      */
     public function getHostTokens()
     {
+
         return $this->hostTokens;
     }
 
@@ -108,6 +123,7 @@ class CompiledRoute
      */
     public function getVariables()
     {
+
         return $this->variables;
     }
 
@@ -118,6 +134,7 @@ class CompiledRoute
      */
     public function getPathVariables()
     {
+
         return $this->pathVariables;
     }
 
@@ -128,6 +145,7 @@ class CompiledRoute
      */
     public function getHostVariables()
     {
+
         return $this->hostVariables;
     }
 

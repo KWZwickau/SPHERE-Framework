@@ -9,8 +9,10 @@ use Guzzle\Service\Command\LocationVisitor\Request\QueryVisitor as Visitor;
  */
 class QueryVisitorTest extends AbstractVisitorTestCase
 {
+
     public function testVisitsLocation()
     {
+
         $visitor = new Visitor();
         $param = $this->getNestedCommand('query')->getParam('foo')->setSentAs('test');
         $visitor->visit($this->command, $this->request, $param, '123');
@@ -23,6 +25,7 @@ class QueryVisitorTest extends AbstractVisitorTestCase
      */
     public function testRecursivelyBuildsQueryStrings()
     {
+
         $command = $this->getCommand('query');
         $command->getOperation()->getParam('foo')->setSentAs('Foo');
         $request = $command->prepare();
@@ -37,6 +40,7 @@ class QueryVisitorTest extends AbstractVisitorTestCase
      */
     public function testFiltersAreAppliedToArrayParamType()
     {
+
         $command = $this->getCommandWithArrayParamAndFilters();
         $request = $command->prepare();
         $query = $request->getQuery();

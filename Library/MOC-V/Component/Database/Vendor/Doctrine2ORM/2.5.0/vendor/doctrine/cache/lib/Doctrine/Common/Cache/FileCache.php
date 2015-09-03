@@ -27,6 +27,7 @@ namespace Doctrine\Common\Cache;
  */
 abstract class FileCache extends CacheProvider
 {
+
     /**
      * The cache directory.
      *
@@ -64,14 +65,15 @@ abstract class FileCache extends CacheProvider
      */
     public function __construct($directory, $extension = '')
     {
-        if ( ! $this->createPathIfNeeded($directory)) {
+
+        if (!$this->createPathIfNeeded($directory)) {
             throw new \InvalidArgumentException(sprintf(
                 'The directory "%s" does not exist and could not be created.',
                 $directory
             ));
         }
 
-        if ( ! is_writable($directory)) {
+        if (!is_writable($directory)) {
             throw new \InvalidArgumentException(sprintf(
                 'The directory "%s" is not writable.',
                 $directory
@@ -79,7 +81,26 @@ abstract class FileCache extends CacheProvider
         }
 
         $this->directory = realpath($directory);
-        $this->extension = (string) $extension;
+        $this->extension = (string)$extension;
+    }
+
+    /**
+     * Create path if needed.
+     *
+     * @param string $path
+     *
+     * @return bool TRUE on success or if path already exists, FALSE if path cannot be created.
+     */
+    private function createPathIfNeeded($path)
+    {
+
+        if (!is_dir($path)) {
+            if (false === @mkdir($path, 0777, true) && !is_dir($path)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -89,6 +110,7 @@ abstract class FileCache extends CacheProvider
      */
     public function getDirectory()
     {
+
         return $this->directory;
     }
 
@@ -99,7 +121,17 @@ abstract class FileCache extends CacheProvider
      */
     public function getExtension()
     {
+
         return $this->extension;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doDelete($id)
+    {
+
+        return @unlink($this->getFilename($id));
     }
 
     /**
@@ -109,20 +141,13 @@ abstract class FileCache extends CacheProvider
      */
     protected function getFilename($id)
     {
-        return $this->directory
-            . DIRECTORY_SEPARATOR
-            . implode(str_split(hash('sha256', $id), 2), DIRECTORY_SEPARATOR)
-            . DIRECTORY_SEPARATOR
-            . preg_replace($this->disallowedCharacterPatterns, $this->replacementCharacters, $id)
-            . $this->extension;
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function doDelete($id)
-    {
-        return @unlink($this->getFilename($id));
+        return $this->directory
+        .DIRECTORY_SEPARATOR
+        .implode(str_split(hash('sha256', $id), 2), DIRECTORY_SEPARATOR)
+        .DIRECTORY_SEPARATOR
+        .preg_replace($this->disallowedCharacterPatterns, $this->replacementCharacters, $id)
+        .$this->extension;
     }
 
     /**
@@ -130,6 +155,7 @@ abstract class FileCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         foreach ($this->getIterator() as $name => $file) {
             @unlink($name);
         }
@@ -138,10 +164,23 @@ abstract class FileCache extends CacheProvider
     }
 
     /**
+     * @return \Iterator
+     */
+    private function getIterator()
+    {
+
+        return new \RegexIterator(
+            new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->directory)),
+            '/^.+'.preg_quote($this->extension, '/').'$/i'
+        );
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function doGetStats()
     {
+
         $usage = 0;
         foreach ($this->getIterator() as $file) {
             $usage += $file->getSize();
@@ -150,29 +189,12 @@ abstract class FileCache extends CacheProvider
         $free = disk_free_space($this->directory);
 
         return array(
-            Cache::STATS_HITS               => null,
-            Cache::STATS_MISSES             => null,
-            Cache::STATS_UPTIME             => null,
-            Cache::STATS_MEMORY_USAGE       => $usage,
-            Cache::STATS_MEMORY_AVAILABLE   => $free,
+            Cache::STATS_HITS             => null,
+            Cache::STATS_MISSES           => null,
+            Cache::STATS_UPTIME           => null,
+            Cache::STATS_MEMORY_USAGE     => $usage,
+            Cache::STATS_MEMORY_AVAILABLE => $free,
         );
-    }
-
-    /**
-     * Create path if needed.
-     *
-     * @param string $path
-     * @return bool TRUE on success or if path already exists, FALSE if path cannot be created.
-     */
-    private function createPathIfNeeded($path)
-    {
-        if ( ! is_dir($path)) {
-            if (false === @mkdir($path, 0777, true) && !is_dir($path)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**
@@ -185,13 +207,14 @@ abstract class FileCache extends CacheProvider
      */
     protected function writeFile($filename, $content)
     {
+
         $filepath = pathinfo($filename, PATHINFO_DIRNAME);
 
-        if ( ! $this->createPathIfNeeded($filepath)) {
+        if (!$this->createPathIfNeeded($filepath)) {
             return false;
         }
 
-        if ( ! is_writable($filepath)) {
+        if (!is_writable($filepath)) {
             return false;
         }
 
@@ -208,16 +231,5 @@ abstract class FileCache extends CacheProvider
         }
 
         return false;
-    }
-
-    /**
-     * @return \Iterator
-     */
-    private function getIterator()
-    {
-        return new \RegexIterator(
-            new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->directory)),
-            '/^.+' . preg_quote($this->extension, '/') . '$/i'
-        );
     }
 }

@@ -20,6 +20,7 @@ namespace Symfony\Component\HttpFoundation\Session\Flash;
  */
 class FlashBag implements FlashBagInterface, \IteratorAggregate
 {
+
     private $name = 'flashes';
 
     /**
@@ -43,6 +44,7 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
      */
     public function __construct($storageKey = '_sf2_flashes')
     {
+
         $this->storageKey = $storageKey;
     }
 
@@ -51,11 +53,13 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
      */
     public function getName()
     {
+
         return $this->name;
     }
 
     public function setName($name)
     {
+
         $this->name = $name;
     }
 
@@ -64,6 +68,7 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
      */
     public function initialize(array &$flashes)
     {
+
         $this->flashes = &$flashes;
     }
 
@@ -72,6 +77,7 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
      */
     public function add($type, $message)
     {
+
         $this->flashes[$type][] = $message;
     }
 
@@ -80,16 +86,17 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
      */
     public function peek($type, array $default = array())
     {
+
         return $this->has($type) ? $this->flashes[$type] : $default;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function has( $type )
+    public function has($type)
     {
 
-        return array_key_exists( $type, $this->flashes ) && $this->flashes[$type];
+        return array_key_exists($type, $this->flashes) && $this->flashes[$type];
     }
 
     /**
@@ -97,13 +104,14 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
      */
     public function get($type, array $default = array())
     {
+
         if (!$this->has($type)) {
             return $default;
         }
 
         $return = $this->flashes[$type];
 
-        unset($this->flashes[$type]);
+        unset( $this->flashes[$type] );
 
         return $return;
     }
@@ -111,7 +119,7 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
     /**
      * {@inheritdoc}
      */
-    public function set( $type, $messages )
+    public function set($type, $messages)
     {
 
         $this->flashes[$type] = (array)$messages;
@@ -120,7 +128,7 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
     /**
      * {@inheritdoc}
      */
-    public function setAll( array $messages )
+    public function setAll(array $messages)
     {
 
         $this->flashes = $messages;
@@ -132,7 +140,7 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
     public function keys()
     {
 
-        return array_keys( $this->flashes );
+        return array_keys($this->flashes);
     }
 
     /**
@@ -183,6 +191,7 @@ class FlashBag implements FlashBagInterface, \IteratorAggregate
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->all());
     }
 }

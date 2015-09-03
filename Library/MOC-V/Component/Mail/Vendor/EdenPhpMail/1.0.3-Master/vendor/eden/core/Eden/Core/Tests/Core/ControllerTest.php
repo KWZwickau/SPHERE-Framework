@@ -14,13 +14,13 @@ class Eden_Core_Tests_Core_ControllerTest extends \PHPUnit_Framework_TestCase
     {
 
         $class = eden()->getActiveApp();
-        $this->assertInstanceOf( 'Eden\\Core\\Controller', $class );
+        $this->assertInstanceOf('Eden\\Core\\Controller', $class);
     }
 
     public function testSetTimezone()
     {
 
-        $class = eden()->setTimezone( 'GMT' );
-        $this->assertInstanceOf( 'Eden\\Core\\Controller', $class );
+        $class = eden()->setTimezone('GMT');
+        $this->assertInstanceOf('Eden\\Core\\Controller', $class);
     }
 }

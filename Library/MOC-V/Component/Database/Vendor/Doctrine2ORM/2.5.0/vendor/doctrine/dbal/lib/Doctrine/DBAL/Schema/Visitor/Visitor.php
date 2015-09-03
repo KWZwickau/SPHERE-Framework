@@ -19,12 +19,12 @@
 
 namespace Doctrine\DBAL\Schema\Visitor;
 
-use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Sequence;
+use Doctrine\DBAL\Schema\Table;
 
 /**
  * Schema Visitor used for Validation or Generation purposes.
@@ -35,6 +35,7 @@ use Doctrine\DBAL\Schema\Index;
  */
 interface Visitor
 {
+
     /**
      * @param \Doctrine\DBAL\Schema\Schema $schema
      *

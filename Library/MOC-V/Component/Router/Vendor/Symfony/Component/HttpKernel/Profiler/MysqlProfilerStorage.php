@@ -18,14 +18,17 @@ namespace Symfony\Component\HttpKernel\Profiler;
  */
 class MysqlProfilerStorage extends PdoProfilerStorage
 {
+
     /**
      * {@inheritdoc}
      */
     protected function initDb()
     {
+
         if (null === $this->db) {
             if (0 !== strpos($this->dsn, 'mysql')) {
-                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Mysql with an invalid dsn "%s". The expected format is "mysql:dbname=database_name;host=host_name".', $this->dsn));
+                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Mysql with an invalid dsn "%s". The expected format is "mysql:dbname=database_name;host=host_name".',
+                    $this->dsn));
             }
 
             if (!class_exists('PDO') || !in_array('mysql', \PDO::getAvailableDrivers(), true)) {
@@ -46,6 +49,7 @@ class MysqlProfilerStorage extends PdoProfilerStorage
      */
     protected function buildCriteria($ip, $url, $start, $end, $limit, $method)
     {
+
         $criteria = array();
         $args = array();
 
@@ -64,12 +68,12 @@ class MysqlProfilerStorage extends PdoProfilerStorage
             $args[':method'] = $method;
         }
 
-        if (!empty($start)) {
+        if (!empty( $start )) {
             $criteria[] = 'time >= :start';
             $args[':start'] = $start;
         }
 
-        if (!empty($end)) {
+        if (!empty( $end )) {
             $criteria[] = 'time <= :end';
             $args[':end'] = $end;
         }

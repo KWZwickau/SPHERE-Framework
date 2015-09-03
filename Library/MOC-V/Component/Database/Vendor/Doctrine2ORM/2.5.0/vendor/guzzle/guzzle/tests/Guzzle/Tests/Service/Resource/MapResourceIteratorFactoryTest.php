@@ -10,18 +10,21 @@ use Guzzle\Tests\Service\Mock\Command\MockCommand;
  */
 class MapResourceIteratorFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage Iterator was not found for mock_command
      */
     public function testEnsuresIteratorClassExists()
     {
+
         $factory = new MapResourceIteratorFactory(array('Foo', 'Bar'));
         $factory->build(new MockCommand());
     }
 
     public function testBuildsResourceIterators()
     {
+
         $factory = new MapResourceIteratorFactory(array(
             'mock_command' => 'Guzzle\Tests\Service\Mock\Model\MockCommandIterator'
         ));
@@ -31,6 +34,7 @@ class MapResourceIteratorFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsesWildcardMappings()
     {
+
         $factory = new MapResourceIteratorFactory(array(
             '*' => 'Guzzle\Tests\Service\Mock\Model\MockCommandIterator'
         ));

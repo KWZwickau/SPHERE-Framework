@@ -15,10 +15,10 @@ class Eden_Type_Tests_Type_StringTypeTest extends \PHPUnit_Framework_TestCase
 
         $string = 'test-value';
         $resultString = 'testValue';
-        $class = eden( 'type', $string )->camelize( '-' );
-        $this->assertInstanceOf( 'Eden\\Type\\StringType', $class );
+        $class = eden('type', $string)->camelize('-');
+        $this->assertInstanceOf('Eden\\Type\\StringType', $class);
         $newString = $class->get();
-        $this->assertEquals( $resultString, $newString );
+        $this->assertEquals($resultString, $newString);
     }
 
     public function testDasherize()
@@ -26,10 +26,10 @@ class Eden_Type_Tests_Type_StringTypeTest extends \PHPUnit_Framework_TestCase
 
         $string = 'test Value';
         $resultString = 'test-value';
-        $class = eden( 'type', $string )->dasherize();
-        $this->assertInstanceOf( 'Eden\\Type\\StringType', $class );
+        $class = eden('type', $string)->dasherize();
+        $this->assertInstanceOf('Eden\\Type\\StringType', $class);
         $newString = $class->get();
-        $this->assertEquals( $resultString, $newString );
+        $this->assertEquals($resultString, $newString);
     }
 
     public function testSummarize()
@@ -37,10 +37,10 @@ class Eden_Type_Tests_Type_StringTypeTest extends \PHPUnit_Framework_TestCase
 
         $string = 'the quick brown fox jumps over the lazy dog';
         $resultString = 'the quick';
-        $class = eden( 'type', $string )->summarize( 3 );
-        $this->assertInstanceOf( 'Eden\\Type\\StringType', $class );
+        $class = eden('type', $string)->summarize(3);
+        $this->assertInstanceOf('Eden\\Type\\StringType', $class);
         $newString = $class->get();
-        $this->assertEquals( $resultString, $newString );
+        $this->assertEquals($resultString, $newString);
     }
 
     public function testTitlize()
@@ -48,10 +48,10 @@ class Eden_Type_Tests_Type_StringTypeTest extends \PHPUnit_Framework_TestCase
 
         $string = 'test+Value';
         $resultString = 'Test Value';
-        $class = eden( 'type', $string )->titlize( '+' );
-        $this->assertInstanceOf( 'Eden\\Type\\StringType', $class );
+        $class = eden('type', $string)->titlize('+');
+        $this->assertInstanceOf('Eden\\Type\\StringType', $class);
         $newString = $class->get();
-        $this->assertEquals( $resultString, $newString );
+        $this->assertEquals($resultString, $newString);
     }
 
     public function testUncamelize()
@@ -59,9 +59,9 @@ class Eden_Type_Tests_Type_StringTypeTest extends \PHPUnit_Framework_TestCase
 
         $string = 'testValue';
         $resultString = 'test-value';
-        $class = eden( 'type', $string )->uncamelize( '-' );
-        $this->assertInstanceOf( 'Eden\\Type\\StringType', $class );
+        $class = eden('type', $string)->uncamelize('-');
+        $this->assertInstanceOf('Eden\\Type\\StringType', $class);
         $newString = $class->get();
-        $this->assertEquals( $resultString, $newString );
+        $this->assertEquals($resultString, $newString);
     }
 }

@@ -18,10 +18,10 @@ class PasswordParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Password
      */
-    function __construct( $Password )
+    public function __construct($Password)
     {
 
-        $this->setPassword( $Password );
+        $this->setPassword($Password);
     }
 
     /**
@@ -36,7 +36,7 @@ class PasswordParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Password
      */
-    public function setPassword( $Password )
+    public function setPassword($Password)
     {
 
         $this->Password = $Password;

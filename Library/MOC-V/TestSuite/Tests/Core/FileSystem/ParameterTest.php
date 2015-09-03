@@ -11,10 +11,10 @@ class ParameterTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Core\FileSystem\Component\Parameter\Parameter $MockParameter */
-        $MockParameter = $this->getMockForAbstractClass( 'MOC\V\Core\FileSystem\Component\Parameter\Parameter' );
+        $MockParameter = $this->getMockForAbstractClass('MOC\V\Core\FileSystem\Component\Parameter\Parameter');
 
         $Parameter = new $MockParameter();
-        $this->assertInstanceOf( 'MOC\V\Core\FileSystem\Component\Parameter\Parameter', $Parameter );
+        $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Parameter\Parameter', $Parameter);
 
     }
 
@@ -22,18 +22,18 @@ class ParameterTest extends \PHPUnit_Framework_TestCase
     {
 
         try {
-            new FileParameter( null );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Core\FileSystem\Component\Exception\Repository\EmptyFileException', $E );
+            new FileParameter(null);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\EmptyFileException', $E);
         }
 
-        $Parameter = new FileParameter( __FILE__ );
-        $this->assertEquals( __FILE__, $Parameter->getFile() );
+        $Parameter = new FileParameter(__FILE__);
+        $this->assertEquals(__FILE__, $Parameter->getFile());
 
         try {
-            $Parameter->setFile( __DIR__ );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException', $E );
+            $Parameter->setFile(__DIR__);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException', $E);
         }
 
     }
@@ -42,20 +42,20 @@ class ParameterTest extends \PHPUnit_Framework_TestCase
     {
 
         try {
-            new DirectoryParameter( null );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Core\FileSystem\Component\Exception\Repository\EmptyDirectoryException',
-                $E );
+            new DirectoryParameter(null);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\EmptyDirectoryException',
+                $E);
         }
 
-        $Parameter = new DirectoryParameter( __DIR__ );
-        $this->assertEquals( __DIR__, $Parameter->getDirectory() );
+        $Parameter = new DirectoryParameter(__DIR__);
+        $this->assertEquals(__DIR__, $Parameter->getDirectory());
 
         try {
-            $Parameter->setDirectory( __FILE__ );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Core\FileSystem\Component\Exception\Repository\TypeDirectoryException',
-                $E );
+            $Parameter->setDirectory(__FILE__);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\TypeDirectoryException',
+                $E);
         }
 
     }

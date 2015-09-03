@@ -2,16 +2,18 @@
 
 namespace Doctrine\Tests\Common\Cache;
 
-use Doctrine\Common\Cache\Cache;
 use ArrayObject;
+use Doctrine\Common\Cache\Cache;
 
 abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 {
+
     /**
      * @dataProvider provideCrudValues
      */
     public function testBasicCrudOperations($value)
     {
+
         $cache = $this->_getCacheDriver();
 
         // Test saving a value, checking if it exists, and fetching it back
@@ -29,8 +31,14 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
         $this->assertFalse($cache->contains('key'));
     }
 
+    /**
+     * @return \Doctrine\Common\Cache\CacheProvider
+     */
+    abstract protected function _getCacheDriver();
+
     public function testFetchMulti()
     {
+
         $cache = $this->_getCacheDriver();
 
         $cache->deleteAll();
@@ -55,6 +63,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testFetchMultiWillFilterNonRequestedKeys()
     {
+
         /* @var $cache \Doctrine\Common\Cache\CacheProvider|\PHPUnit_Framework_MockObject_MockObject */
         $cache = $this->getMockForAbstractClass(
             'Doctrine\Common\Cache\CacheProvider',
@@ -81,21 +90,22 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
         );
     }
 
-
     public function provideCrudValues()
     {
+
         return array(
-            'array' => array(array('one', 2, 3.0)),
+            'array'  => array(array('one', 2, 3.0)),
             'string' => array('value'),
             'integer' => array(1),
-            'float' => array(1.5),
+            'float'  => array(1.5),
             'object' => array(new ArrayObject()),
-            'null' => array(null),
+            'null'   => array(null),
         );
     }
 
     public function testDeleteAll()
     {
+
         $cache = $this->_getCacheDriver();
 
         $this->assertTrue($cache->save('key1', 1));
@@ -107,8 +117,9 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testDeleteAllAndNamespaceVersioningBetweenCaches()
     {
-        if ( ! $this->isSharedStorage()) {
-            $this->markTestSkipped('The ' . __CLASS__ .' does not use shared storage');
+
+        if (!$this->isSharedStorage()) {
+            $this->markTestSkipped('The '.__CLASS__.' does not use shared storage');
         }
 
         $cache1 = $this->_getCacheDriver();
@@ -144,8 +155,22 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
         $this->assertFalse($cache3->contains('key2'));
     }
 
+    /**
+     * Return whether multiple cache providers share the same storage.
+     *
+     * This is used for skipping certain tests for shared storage behavior.
+     *
+     * @return boolean
+     */
+    protected function isSharedStorage()
+    {
+
+        return true;
+    }
+
     public function testFlushAll()
     {
+
         $cache = $this->_getCacheDriver();
 
         $this->assertTrue($cache->save('key1', 1));
@@ -157,8 +182,9 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testFlushAllAndNamespaceVersioningBetweenCaches()
     {
-        if ( ! $this->isSharedStorage()) {
-            $this->markTestSkipped('The ' . __CLASS__ .' does not use shared storage');
+
+        if (!$this->isSharedStorage()) {
+            $this->markTestSkipped('The '.__CLASS__.' does not use shared storage');
         }
 
         $cache1 = $this->_getCacheDriver();
@@ -211,6 +237,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testNamespace()
     {
+
         $cache = $this->_getCacheDriver();
 
         $cache->setNamespace('ns1_');
@@ -225,6 +252,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testDeleteAllNamespace()
     {
+
         $cache = $this->_getCacheDriver();
 
         $cache->setNamespace('ns1');
@@ -253,6 +281,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
      */
     public function testGetStats()
     {
+
         $cache = $this->_getCacheDriver();
         $stats = $cache->getStats();
 
@@ -265,6 +294,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testFetchMissShouldReturnFalse()
     {
+
         $cache = $this->_getCacheDriver();
 
         /* Ensure that caches return boolean false instead of null on a fetch
@@ -284,6 +314,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
      */
     public function testFalseCastedValues($value)
     {
+
         $cache = $this->_getCacheDriver();
 
         $this->assertTrue($cache->save('key', $value));
@@ -293,10 +324,12 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
 
     /**
      * The following values get converted to FALSE if you cast them to a boolean.
+     *
      * @see http://php.net/manual/en/types.comparisons.php
      */
     public function falseCastedValuesProvider()
     {
+
         return array(
             array(false),
             array(null),
@@ -314,6 +347,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
      */
     public function testCachedObject()
     {
+
         $cache = $this->_getCacheDriver();
         $cache->deleteAll();
         $obj = new \stdClass();
@@ -338,6 +372,7 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
      */
     public function testFetchMultipleObjects()
     {
+
         $cache = $this->_getCacheDriver();
         $cache->deleteAll();
         $obj1 = new \stdClass();
@@ -353,21 +388,4 @@ abstract class CacheTest extends \Doctrine\Tests\DoctrineTestCase
         $this->assertEquals("bar", $fetched["obj1"]->foo);
         $this->assertEquals("baz", $fetched["obj2"]->bar);
     }
-    
-    /**
-     * Return whether multiple cache providers share the same storage.
-     *
-     * This is used for skipping certain tests for shared storage behavior.
-     *
-     * @return boolean
-     */
-    protected function isSharedStorage()
-    {
-        return true;
-    }
-
-    /**
-     * @return \Doctrine\Common\Cache\CacheProvider
-     */
-    abstract protected function _getCacheDriver();
 }

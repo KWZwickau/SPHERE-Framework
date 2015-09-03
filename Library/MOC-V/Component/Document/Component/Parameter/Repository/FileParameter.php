@@ -20,10 +20,10 @@ class FileParameter extends Parameter implements IParameterInterface
     /**
      * @param string $File
      */
-    function __construct( $File )
+    public function __construct($File)
     {
 
-        $this->setFile( (string)$File );
+        $this->setFile((string)$File);
     }
 
     /**
@@ -32,7 +32,7 @@ class FileParameter extends Parameter implements IParameterInterface
     public function getFileInfo()
     {
 
-        return new \SplFileInfo( $this->getFile() );
+        return new \SplFileInfo($this->getFile());
     }
 
     /**
@@ -50,16 +50,16 @@ class FileParameter extends Parameter implements IParameterInterface
      * @throws EmptyFileException
      * @throws TypeFileException
      */
-    public function setFile( $File )
+    public function setFile($File)
     {
 
         if (empty( $File )) {
             throw new EmptyFileException();
         } else {
-            if (!is_dir( $File )) {
+            if (!is_dir($File)) {
                 $this->File = $File;
             } else {
-                throw new TypeFileException( $File.' is a directory!' );
+                throw new TypeFileException($File.' is a directory!');
             }
         }
     }
@@ -67,7 +67,7 @@ class FileParameter extends Parameter implements IParameterInterface
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         return $this->getFile();

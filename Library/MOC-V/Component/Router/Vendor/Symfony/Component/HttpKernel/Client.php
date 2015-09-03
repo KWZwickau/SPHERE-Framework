@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class Client extends BaseClient
 {
+
     protected $kernel;
 
     /**
@@ -40,8 +41,13 @@ class Client extends BaseClient
      * @param History             $history   A History instance to store the browser history
      * @param CookieJar           $cookieJar A CookieJar instance to store the cookies
      */
-    public function __construct(HttpKernelInterface $kernel, array $server = array(), History $history = null, CookieJar $cookieJar = null)
-    {
+    public function __construct(
+        HttpKernelInterface $kernel,
+        array $server = array(),
+        History $history = null,
+        CookieJar $cookieJar = null
+    ) {
+
         // These class properties must be set before calling the parent constructor, as it may depend on it.
         $this->kernel = $kernel;
         $this->followRedirects = false;
@@ -56,6 +62,7 @@ class Client extends BaseClient
      */
     public function getRequest()
     {
+
         return parent::getRequest();
     }
 
@@ -66,6 +73,7 @@ class Client extends BaseClient
      */
     public function getResponse()
     {
+
         return parent::getResponse();
     }
 
@@ -78,6 +86,7 @@ class Client extends BaseClient
      */
     protected function doRequest($request)
     {
+
         $response = $this->kernel->handle($request);
 
         if ($this->kernel instanceof TerminableInterface) {
@@ -96,6 +105,7 @@ class Client extends BaseClient
      */
     protected function getScript($request)
     {
+
         $kernel = str_replace("'", "\\'", serialize($this->kernel));
         $request = str_replace("'", "\\'", serialize($request));
 
@@ -121,6 +131,7 @@ EOF;
 
     protected function getHandleScript()
     {
+
         return <<<'EOF'
 $response = $kernel->handle($request);
 
@@ -141,7 +152,9 @@ EOF;
      */
     protected function filterRequest(DomRequest $request)
     {
-        $httpRequest = Request::create($request->getUri(), $request->getMethod(), $request->getParameters(), $request->getCookies(), $request->getFiles(), $request->getServer(), $request->getContent());
+
+        $httpRequest = Request::create($request->getUri(), $request->getMethod(), $request->getParameters(),
+            $request->getCookies(), $request->getFiles(), $request->getServer(), $request->getContent());
 
         foreach ($this->filterFiles($httpRequest->files->all()) as $key => $value) {
             $httpRequest->files->set($key, $value);
@@ -167,6 +180,7 @@ EOF;
      */
     protected function filterFiles(array $files)
     {
+
         $filtered = array();
         foreach ($files as $key => $value) {
             if (is_array($value)) {
@@ -206,11 +220,13 @@ EOF;
      */
     protected function filterResponse($response)
     {
+
         $headers = $response->headers->all();
         if ($response->headers->getCookies()) {
             $cookies = array();
             foreach ($response->headers->getCookies() as $cookie) {
-                $cookies[] = new DomCookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(), $cookie->getPath(), $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly());
+                $cookies[] = new DomCookie($cookie->getName(), $cookie->getValue(), $cookie->getExpiresTime(),
+                    $cookie->getPath(), $cookie->getDomain(), $cookie->isSecure(), $cookie->isHttpOnly());
             }
             $headers['Set-Cookie'] = $cookies;
         }

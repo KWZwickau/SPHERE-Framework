@@ -26,4 +26,5 @@ use Doctrine\Common\Proxy\Autoloader as BaseAutoloader;
  */
 class Autoloader extends BaseAutoloader
 {
+
 }

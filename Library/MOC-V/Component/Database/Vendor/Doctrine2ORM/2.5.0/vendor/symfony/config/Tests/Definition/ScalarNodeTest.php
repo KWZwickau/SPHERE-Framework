@@ -15,17 +15,20 @@ use Symfony\Component\Config\Definition\ScalarNode;
 
 class ScalarNodeTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getValidValues
      */
     public function testNormalize($value)
     {
+
         $node = new ScalarNode('test');
         $this->assertSame($value, $node->normalize($value));
     }
 
     public function getValidValues()
     {
+
         return array(
             array(false),
             array(true),
@@ -45,12 +48,14 @@ class ScalarNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testNormalizeThrowsExceptionOnInvalidValues($value)
     {
+
         $node = new ScalarNode('test');
         $node->normalize($value);
     }
 
     public function getInvalidValues()
     {
+
         return array(
             array(array()),
             array(array('foo' => 'bar')),
@@ -60,19 +65,23 @@ class ScalarNodeTest extends \PHPUnit_Framework_TestCase
 
     public function testNormalizeThrowsExceptionWithoutHint()
     {
+
         $node = new ScalarNode('test');
 
-        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidTypeException', 'Invalid type for path "test". Expected scalar, but got array.');
+        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidTypeException',
+            'Invalid type for path "test". Expected scalar, but got array.');
 
         $node->normalize(array());
     }
 
     public function testNormalizeThrowsExceptionWithErrorMessage()
     {
+
         $node = new ScalarNode('test');
         $node->setInfo('"the test value"');
 
-        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidTypeException', "Invalid type for path \"test\". Expected scalar, but got array.\nHint: \"the test value\"");
+        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidTypeException',
+            "Invalid type for path \"test\". Expected scalar, but got array.\nHint: \"the test value\"");
 
         $node->normalize(array());
     }
@@ -84,6 +93,7 @@ class ScalarNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidNonEmptyValues($value)
     {
+
         $node = new ScalarNode('test');
         $node->setAllowEmptyValue(false);
 
@@ -92,6 +102,7 @@ class ScalarNodeTest extends \PHPUnit_Framework_TestCase
 
     public function getValidNonEmptyValues()
     {
+
         return array(
             array(false),
             array(true),
@@ -111,6 +122,7 @@ class ScalarNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testNotAllowedEmptyValuesThrowException($value)
     {
+
         $node = new ScalarNode('test');
         $node->setAllowEmptyValue(false);
         $node->finalize($value);
@@ -118,6 +130,7 @@ class ScalarNodeTest extends \PHPUnit_Framework_TestCase
 
     public function getEmptyValues()
     {
+
         return array(
             array(null),
             array(''),

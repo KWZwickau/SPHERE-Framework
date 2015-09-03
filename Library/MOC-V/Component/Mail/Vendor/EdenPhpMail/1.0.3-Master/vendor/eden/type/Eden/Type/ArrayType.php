@@ -97,16 +97,16 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return mixed
      */
-    public function __construct( $data = array() )
+    public function __construct($data = array())
     {
 
         //if there is more arguments or data is not an array
-        if (func_num_args() > 1 || !is_array( $data )) {
+        if (func_num_args() > 1 || !is_array($data)) {
             //just get the args
             $data = func_get_args();
         }
 
-        parent::__construct( $data );
+        parent::__construct($data);
     }
 
     /**
@@ -117,26 +117,26 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return mixed
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
         Argument::i()
             //argument 1 must be a string
-            ->test( 1, 'string' )
+            ->test(1, 'string')
             //argument 2 must be an array
-            ->test( 2, 'array' );
+            ->test(2, 'array');
 
         //if the method starts with get
-        if (strpos( $name, 'get' ) === 0) {
+        if (strpos($name, 'get') === 0) {
             //getUserName('-')
             $separator = '_';
-            if (isset( $args[0] ) && is_scalar( $args[0] )) {
+            if (isset( $args[0] ) && is_scalar($args[0])) {
                 $separator = (string)$args[0];
             }
 
-            $key = preg_replace( "/([A-Z0-9])/", $separator."$1", $name );
+            $key = preg_replace("/([A-Z0-9])/", $separator."$1", $name);
             //get rid of get
-            $key = strtolower( substr( $key, 3 + strlen( $separator ) ) );
+            $key = strtolower(substr($key, 3 + strlen($separator)));
 
             if (isset( $this->data[$key] )) {
                 return $this->data[$key];
@@ -144,25 +144,25 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
 
             return null;
         } else {
-            if (strpos( $name, 'set' ) === 0) {
+            if (strpos($name, 'set') === 0) {
                 //setUserName('Chris', '-')
                 $separator = '_';
-                if (isset( $args[1] ) && is_scalar( $args[1] )) {
+                if (isset( $args[1] ) && is_scalar($args[1])) {
                     $separator = (string)$args[1];
                 }
 
-                $key = preg_replace( "/([A-Z0-9])/", $separator."$1", $name );
+                $key = preg_replace("/([A-Z0-9])/", $separator."$1", $name);
 
                 //get rid of set
-                $key = strtolower( substr( $key, 3 + strlen( $separator ) ) );
+                $key = strtolower(substr($key, 3 + strlen($separator)));
 
-                $this->__set( $key, isset( $args[0] ) ? $args[0] : null );
+                $this->__set($key, isset( $args[0] ) ? $args[0] : null);
 
                 return $this;
             }
         }
 
-        return parent::__call( $name, $args );
+        return parent::__call($name, $args);
     }
 
     /**
@@ -173,11 +173,11 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return void
      */
-    public function __set( $name, $value )
+    public function __set($name, $value)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
         $this->data[$name] = $value;
     }
@@ -190,7 +190,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
     public function __toString()
     {
 
-        return json_encode( $this->get() );
+        return json_encode($this->get());
     }
 
     /**
@@ -201,14 +201,14 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return Eden\Type\Type\ArrayType
      */
-    public function copy( $source, $destination )
+    public function copy($source, $destination)
     {
 
         Argument::i()
             //argument 1 must be a string
-            ->test( 1, 'string' )
+            ->test(1, 'string')
             //argument 2 must be a string
-            ->test( 2, 'string' );
+            ->test(2, 'string');
 
         $this->data[$destination] = $this->data[$source];
         return $this;
@@ -222,7 +222,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
     public function count()
     {
 
-        return count( $this->data );
+        return count($this->data);
     }
 
     /**
@@ -232,11 +232,11 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return Eden\Type\Type\ArrayType
      */
-    public function cut( $key )
+    public function cut($key)
     {
 
         //argument 1 must be scalar
-        Argument::i()->test( 1, 'scalar' );
+        Argument::i()->test(1, 'scalar');
 
         //if nothing to cut
         if (!isset( $this->data[$key] )) {
@@ -247,7 +247,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
         //unset the value
         unset( $this->data[$key] );
         //reindex the list
-        $this->data = array_values( $this->data );
+        $this->data = array_values($this->data);
         return $this;
     }
 
@@ -260,7 +260,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
     public function current()
     {
 
-        return current( $this->data );
+        return current($this->data);
     }
 
     /**
@@ -270,13 +270,13 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return Eden\Type\Type\ArrayType
      */
-    public function each( $callback )
+    public function each($callback)
     {
 
-        Argument::i()->test( 1, 'callable' );
+        Argument::i()->test(1, 'callable');
 
         foreach ($this->data as $key => $value) {
-            call_user_func( $callback, $key, $value );
+            call_user_func($callback, $key, $value);
         }
 
         return $this;
@@ -302,7 +302,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
     public function next()
     {
 
-        next( $this->data );
+        next($this->data);
     }
 
     /**
@@ -312,11 +312,11 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return bool
      */
-    public function offsetExists( $offset )
+    public function offsetExists($offset)
     {
 
         //argument 1 must be scalar, null or bool
-        Argument::i()->test( 1, 'scalar', 'null', 'bool' );
+        Argument::i()->test(1, 'scalar', 'null', 'bool');
 
         return isset( $this->data[$offset] );
     }
@@ -328,11 +328,11 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return bool
      */
-    public function offsetGet( $offset )
+    public function offsetGet($offset)
     {
 
         //argument 1 must be scalar, null or bool
-        Argument::i()->test( 1, 'scalar', 'null', 'bool' );
+        Argument::i()->test(1, 'scalar', 'null', 'bool');
 
         return isset( $this->data[$offset] ) ? $this->data[$offset] : null;
     }
@@ -345,13 +345,13 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return void
      */
-    public function offsetSet( $offset, $value )
+    public function offsetSet($offset, $value)
     {
 
         //argument 1 must be scalar, null or bool
-        Argument::i()->test( 1, 'scalar', 'null', 'bool' );
+        Argument::i()->test(1, 'scalar', 'null', 'bool');
 
-        if (is_null( $offset )) {
+        if (is_null($offset)) {
             $this->data[] = $value;
         } else {
             $this->data[$offset] = $value;
@@ -367,11 +367,11 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return bool
      */
-    public function offsetUnset( $offset )
+    public function offsetUnset($offset)
     {
 
         //argument 1 must be scalar, null or bool
-        Argument::i()->test( 1, 'scalar', 'null', 'bool' );
+        Argument::i()->test(1, 'scalar', 'null', 'bool');
 
         unset( $this->data[$offset] );
 
@@ -387,15 +387,15 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return Eden\Type\Type\ArrayType
      */
-    public function paste( $after, $value, $key = null )
+    public function paste($after, $value, $key = null)
     {
 
         //Argument test
         Argument::i()
             //Argument 1 must be a scalar
-            ->test( 1, 'scalar' )
+            ->test(1, 'scalar')
             //Argument 3 must be a scalar or null
-            ->test( 3, 'scalar', 'null' );
+            ->test(3, 'scalar', 'null');
 
         $list = array();
         //for each row
@@ -411,7 +411,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
             }
 
             //if there was a key involved
-            if (!is_null( $key )) {
+            if (!is_null($key)) {
                 //lets add the new value
                 $list[$key] = $value;
                 continue;
@@ -422,9 +422,9 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
         }
 
         //if there was no key involved
-        if (is_null( $key )) {
+        if (is_null($key)) {
             //reindex the array
-            $list = array_values( $list );
+            $list = array_values($list);
         }
 
         //give it back
@@ -442,7 +442,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
     public function rewind()
     {
 
-        reset( $this->data );
+        reset($this->data);
     }
 
     /**
@@ -453,7 +453,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
     public function serialize()
     {
 
-        return json_encode( $this->data );
+        return json_encode($this->data);
     }
 
     /**
@@ -463,13 +463,13 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return Eden\Type\Type\ArrayType
      */
-    public function set( $value )
+    public function set($value)
     {
 
         //argument 1 must be an array
         //we test for array this way because the parent
         //does not specify data type
-        Argument::i()->test( 1, 'array' );
+        Argument::i()->test(1, 'array');
 
         $this->data = $value;
         return $this;
@@ -482,13 +482,13 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return Eden\Type\Type\ArrayType
      */
-    public function unserialize( $data )
+    public function unserialize($data)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        $this->data = json_decode( $data, true );
+        $this->data = json_decode($data, true);
 
         return $this;
     }
@@ -514,7 +514,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
     public function key()
     {
 
-        return key( $this->data );
+        return key($this->data);
     }
 
     /**
@@ -525,7 +525,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
      *
      * @return string
      */
-    protected function getMethodType( $name )
+    protected function getMethodType($name)
     {
 
         if (isset( self::$methods[$name] )) {
@@ -537,7 +537,7 @@ class ArrayType extends Base implements \ArrayAccess, \Iterator, \Serializable, 
             return self::$methods[$name];
         }
 
-        $uncamel = strtolower( preg_replace( "/([A-Z])/", "_$1", $name ) );
+        $uncamel = strtolower(preg_replace("/([A-Z])/", "_$1", $name));
 
         if (isset( self::$methods[$uncamel] )) {
             $name = $uncamel;

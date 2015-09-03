@@ -15,11 +15,13 @@ use Symfony\Component\HttpFoundation\AcceptHeaderItem;
 
 class AcceptHeaderItemTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider provideFromStringData
      */
     public function testFromString($string, $value, array $attributes)
     {
+
         $item = AcceptHeaderItem::fromString($string);
         $this->assertEquals($value, $item->getValue());
         $this->assertEquals($attributes, $item->getAttributes());
@@ -27,22 +29,27 @@ class AcceptHeaderItemTest extends \PHPUnit_Framework_TestCase
 
     public function provideFromStringData()
     {
+
         return array(
             array(
                 'text/html',
-                'text/html', array()
+                'text/html',
+                array()
             ),
             array(
                 '"this;should,not=matter"',
-                'this;should,not=matter', array()
+                'this;should,not=matter',
+                array()
             ),
             array(
                 "text/plain; charset=utf-8;param=\"this;should,not=matter\";\tfootnotes=true",
-                'text/plain', array('charset' => 'utf-8', 'param' => 'this;should,not=matter', 'footnotes' => 'true')
+                'text/plain',
+                array('charset' => 'utf-8', 'param' => 'this;should,not=matter', 'footnotes' => 'true')
             ),
             array(
                 '"this;should,not=matter";charset=utf-8',
-                'this;should,not=matter', array('charset' => 'utf-8')
+                'this;should,not=matter',
+                array('charset' => 'utf-8')
             ),
         );
     }
@@ -52,19 +59,23 @@ class AcceptHeaderItemTest extends \PHPUnit_Framework_TestCase
      */
     public function testToString($value, array $attributes, $string)
     {
+
         $item = new AcceptHeaderItem($value, $attributes);
-        $this->assertEquals($string, (string) $item);
+        $this->assertEquals($string, (string)$item);
     }
 
     public function provideToStringData()
     {
+
         return array(
             array(
-                'text/html', array(),
+                'text/html',
+                array(),
                 'text/html'
             ),
             array(
-                'text/plain', array('charset' => 'utf-8', 'param' => 'this;should,not=matter', 'footnotes' => 'true'),
+                'text/plain',
+                array('charset' => 'utf-8', 'param' => 'this;should,not=matter', 'footnotes' => 'true'),
                 'text/plain;charset=utf-8;param="this;should,not=matter";footnotes=true'
             ),
         );
@@ -72,6 +83,7 @@ class AcceptHeaderItemTest extends \PHPUnit_Framework_TestCase
 
     public function testValue()
     {
+
         $item = new AcceptHeaderItem('value', array());
         $this->assertEquals('value', $item->getValue());
 
@@ -84,6 +96,7 @@ class AcceptHeaderItemTest extends \PHPUnit_Framework_TestCase
 
     public function testQuality()
     {
+
         $item = new AcceptHeaderItem('value', array());
         $this->assertEquals(1.0, $item->getQuality());
 
@@ -97,6 +110,7 @@ class AcceptHeaderItemTest extends \PHPUnit_Framework_TestCase
 
     public function testAttribute()
     {
+
         $item = new AcceptHeaderItem('value', array());
         $this->assertEquals(array(), $item->getAttributes());
         $this->assertFalse($item->hasAttribute('test'));

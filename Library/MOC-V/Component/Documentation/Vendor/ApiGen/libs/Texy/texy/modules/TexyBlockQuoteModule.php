@@ -19,13 +19,13 @@
 final class TexyBlockQuoteModule extends TexyModule
 {
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
 
         $texy->registerBlockPattern(
-            array( $this, 'pattern' ),
+            array($this, 'pattern'),
             '#^(?:'.TEXY_MODIFIER_H.'\n)?\>(\ +|:)(\S.*)$#mU', // original
 //            '#^(?:'.TEXY_MODIFIER_H.'\n)?\>(?:(\>|\ +?|:)(.*))?()$#mU',  // >>>>
 //            '#^(?:'.TEXY_MODIFIER_H.'\n)?\>(?:(\ +?|:)(.*))()$#mU',       // only >
@@ -49,7 +49,7 @@ final class TexyBlockQuoteModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function pattern( $parser, $matches )
+    public function pattern($parser, $matches)
     {
 
         list( , $mMod, $mPrefix, $mContent ) = $matches;
@@ -59,24 +59,24 @@ final class TexyBlockQuoteModule extends TexyModule
 
         $tx = $this->texy;
 
-        $el = TexyHtml::el( 'blockquote' );
-        $mod = new TexyModifier( $mMod );
-        $mod->decorate( $tx, $el );
+        $el = TexyHtml::el('blockquote');
+        $mod = new TexyModifier($mMod);
+        $mod->decorate($tx, $el);
 
         $content = '';
         $spaces = '';
         do {
             if ($mPrefix === ':') {
-                $mod->cite = $tx->blockQuoteModule->citeLink( $mContent );
+                $mod->cite = $tx->blockQuoteModule->citeLink($mContent);
                 $content .= "\n";
             } else {
                 if ($spaces === '') {
-                    $spaces = max( 1, strlen( $mPrefix ) );
+                    $spaces = max(1, strlen($mPrefix));
                 }
                 $content .= $mContent."\n";
             }
 
-            if (!$parser->next( "#^>(?:|(\\ {1,$spaces}|:)(.*))()$#mA", $matches )) {
+            if (!$parser->next("#^>(?:|(\\ {1,$spaces}|:)(.*))()$#mA", $matches)) {
                 break;
             }
 
@@ -97,7 +97,7 @@ final class TexyBlockQuoteModule extends TexyModule
         } while (true);
 
         $el->attrs['cite'] = $mod->cite;
-        $el->parseBlock( $tx, $content, $parser->isIndented() );
+        $el->parseBlock($tx, $content, $parser->isIndented());
 
         // no content?
         if (!$el->count()) {
@@ -105,7 +105,7 @@ final class TexyBlockQuoteModule extends TexyModule
         }
 
         // event listener
-        $tx->invokeHandlers( 'afterBlockquote', array( $parser, $el, $mod ) );
+        $tx->invokeHandlers('afterBlockquote', array($parser, $el, $mod));
 
         return $el;
     }
@@ -118,7 +118,7 @@ final class TexyBlockQuoteModule extends TexyModule
      *
      * @return string|NULL
      */
-    public function citeLink( $link )
+    public function citeLink($link)
     {
 
         $tx = $this->texy;
@@ -128,19 +128,19 @@ final class TexyBlockQuoteModule extends TexyModule
         }
 
         if ($link{0} === '[') { // [ref]
-            $link = substr( $link, 1, -1 );
-            $ref = $tx->linkModule->getReference( $link );
+            $link = substr($link, 1, -1);
+            $ref = $tx->linkModule->getReference($link);
             if ($ref) {
-                return Texy::prependRoot( $ref->URL, $tx->linkModule->root );
+                return Texy::prependRoot($ref->URL, $tx->linkModule->root);
             }
         }
 
         // special supported case
-        if (strncasecmp( $link, 'www.', 4 ) === 0) {
+        if (strncasecmp($link, 'www.', 4) === 0) {
             return 'http://'.$link;
         }
 
-        return Texy::prependRoot( $link, $tx->linkModule->root );
+        return Texy::prependRoot($link, $tx->linkModule->root);
     }
 
 }

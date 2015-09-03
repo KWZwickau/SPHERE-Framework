@@ -13,6 +13,7 @@ namespace Prophecy\Exception\Doubler;
 
 class ClassNotFoundException extends DoubleException
 {
+
     private $classname;
 
     /**
@@ -21,6 +22,7 @@ class ClassNotFoundException extends DoubleException
      */
     public function __construct($message, $classname)
     {
+
         parent::__construct($message);
 
         $this->classname = $classname;
@@ -28,6 +30,7 @@ class ClassNotFoundException extends DoubleException
 
     public function getClassname()
     {
+
         return $this->classname;
     }
 }

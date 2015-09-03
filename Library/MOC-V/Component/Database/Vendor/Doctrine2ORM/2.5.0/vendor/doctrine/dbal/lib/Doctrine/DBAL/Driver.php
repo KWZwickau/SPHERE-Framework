@@ -27,6 +27,7 @@ namespace Doctrine\DBAL;
  */
 interface Driver
 {
+
     /**
      * Attempts to create a connection with the database.
      *

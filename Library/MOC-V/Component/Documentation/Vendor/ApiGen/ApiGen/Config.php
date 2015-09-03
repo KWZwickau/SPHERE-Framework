@@ -30,11 +30,11 @@ class Config
         'config'          => '',
         'source'          => array(),
         'destination'     => '',
-        'extensions'      => array( 'php' ),
+        'extensions'   => array('php'),
         'exclude'         => array(),
         'skipDocPath'     => array(),
         'skipDocPrefix'   => array(),
-        'charset'         => array( 'auto' ),
+        'charset'      => array('auto'),
         'main'            => '',
         'title'           => '',
         'baseUrl'         => '',
@@ -42,10 +42,10 @@ class Config
         'googleCseLabel'  => '',
         'googleAnalytics' => '',
         'templateConfig'  => '',
-        'allowedHtml'     => array( 'b', 'i', 'a', 'ul', 'ol', 'li', 'p', 'br', 'var', 'samp', 'kbd', 'tt' ),
+        'allowedHtml'  => array('b', 'i', 'a', 'ul', 'ol', 'li', 'p', 'br', 'var', 'samp', 'kbd', 'tt'),
         'groups'          => 'auto',
-        'autocomplete'    => array( 'classes', 'constants', 'functions' ),
-        'accessLevels'    => array( 'public', 'protected' ),
+        'autocomplete' => array('classes', 'constants', 'functions'),
+        'accessLevels' => array('public', 'protected'),
         'internal'        => false,
         'php'             => true,
         'tree'            => true,
@@ -80,9 +80,9 @@ class Config
      * @var array
      */
     private static $possibleOptionsValues = array(
-        'groups'       => array( 'auto', 'namespaces', 'packages', 'none' ),
-        'autocomplete' => array( 'classes', 'constants', 'functions', 'methods', 'properties', 'classconstants' ),
-        'accessLevels' => array( 'public', 'protected', 'private' )
+        'groups'       => array('auto', 'namespaces', 'packages', 'none'),
+        'autocomplete' => array('classes', 'constants', 'functions', 'methods', 'properties', 'classconstants'),
+        'accessLevels' => array('public', 'protected', 'private')
     );
     /**
      * Options.
@@ -103,9 +103,9 @@ class Config
     public function __construct()
     {
 
-        $templateDir = self::isInstalledByPear() ? '@data_dir@'.DIRECTORY_SEPARATOR.'ApiGen' : realpath( __DIR__.DIRECTORY_SEPARATOR.'..' );
+        $templateDir = self::isInstalledByPear() ? '@data_dir@'.DIRECTORY_SEPARATOR.'ApiGen' : realpath(__DIR__.DIRECTORY_SEPARATOR.'..');
         self::$defaultConfig['templateConfig'] = $templateDir.DIRECTORY_SEPARATOR.'templates'.DIRECTORY_SEPARATOR.'default'.DIRECTORY_SEPARATOR.'config.neon';
-        self::$defaultConfig['colors'] = 'WIN' !== substr( PHP_OS, 0, 3 );
+        self::$defaultConfig['colors'] = 'WIN' !== substr(PHP_OS, 0, 3);
         $this->config = self::$defaultConfig;
     }
 
@@ -117,7 +117,7 @@ class Config
     public static function isInstalledByPear()
     {
 
-        return false === strpos( '@data_dir@', '@data_dir' );
+        return false === strpos('@data_dir@', '@data_dir');
     }
 
     /**
@@ -138,21 +138,21 @@ class Config
      *
      * @return \ApiGen\Config
      */
-    public function processCliOptions( array $options )
+    public function processCliOptions(array $options)
     {
 
-        while ($option = current( $options )) {
-            if (preg_match( '~^--([a-z][-a-z]*[a-z])(?:=(.+))?$~', $option,
-                    $matches ) || preg_match( '~^-([a-z])=?(.*)~', $option, $matches )
+        while ($option = current($options)) {
+            if (preg_match('~^--([a-z][-a-z]*[a-z])(?:=(.+))?$~', $option,
+                    $matches) || preg_match('~^-([a-z])=?(.*)~', $option, $matches)
             ) {
                 $name = $matches[1];
 
                 if (!empty( $matches[2] )) {
                     $value = $matches[2];
                 } else {
-                    $next = next( $options );
+                    $next = next($options);
                     if (false === $next || '-' === $next{0}) {
-                        prev( $options );
+                        prev($options);
                         $value = '';
                     } else {
                         $value = $next;
@@ -162,15 +162,15 @@ class Config
                 $this->options[$name][] = $value;
             }
 
-            next( $options );
+            next($options);
         }
-        $this->options = array_map( function ( $value ) {
+        $this->options = array_map(function ($value) {
 
-            return 1 === count( $value ) ? $value[0] : $value;
-        }, $this->options );
+            return 1 === count($value) ? $value[0] : $value;
+        }, $this->options);
 
         // Compatibility with ApiGen 1.0
-        foreach (array( 'config', 'source', 'destination' ) as $option) {
+        foreach (array('config', 'source', 'destination') as $option) {
             if (isset( $this->options[$option{0}] ) && !isset( $this->options[$option] )) {
                 $this->options[$option] = $this->options[$option{0}];
             }
@@ -193,26 +193,26 @@ class Config
         $cli = array();
         $translator = array();
         foreach ($this->options as $option => $value) {
-            $converted = preg_replace_callback( '~-([a-z])~', function ( $matches ) {
+            $converted = preg_replace_callback('~-([a-z])~', function ($matches) {
 
-                return strtoupper( $matches[1] );
-            }, $option );
+                return strtoupper($matches[1]);
+            }, $option);
 
             $cli[$converted] = $value;
             $translator[$converted] = $option;
         }
 
-        $unknownOptions = array_keys( array_diff_key( $cli, self::$defaultConfig ) );
+        $unknownOptions = array_keys(array_diff_key($cli, self::$defaultConfig));
         if (!empty( $unknownOptions )) {
-            $originalOptions = array_map( function ( $option ) {
+            $originalOptions = array_map(function ($option) {
 
-                return ( 1 === strlen( $option ) ? '-' : '--' ).$option;
-            }, array_values( array_diff_key( $translator, self::$defaultConfig ) ) );
+                return ( 1 === strlen($option) ? '-' : '--' ).$option;
+            }, array_values(array_diff_key($translator, self::$defaultConfig)));
 
-            $message = count( $unknownOptions ) > 1
-                ? sprintf( 'Unknown command line options "%s"', implode( '", "', $originalOptions ) )
-                : sprintf( 'Unknown command line option "%s"', $originalOptions[0] );
-            throw new ConfigException( $message );
+            $message = count($unknownOptions) > 1
+                ? sprintf('Unknown command line options "%s"', implode('", "', $originalOptions))
+                : sprintf('Unknown command line option "%s"', $originalOptions[0]);
+            throw new ConfigException($message);
         }
 
         // Config file
@@ -220,31 +220,31 @@ class Config
         if (empty( $this->options ) && $this->defaultConfigExists()) {
             $this->options['config'] = $this->getDefaultConfigPath();
         }
-        if (isset( $this->options['config'] ) && is_file( $this->options['config'] )) {
-            $neon = Neon::decode( file_get_contents( $this->options['config'] ) );
+        if (isset( $this->options['config'] ) && is_file($this->options['config'])) {
+            $neon = Neon::decode(file_get_contents($this->options['config']));
             foreach (self::$pathOptions as $option) {
                 if (!empty( $neon[$option] )) {
-                    if (is_array( $neon[$option] )) {
+                    if (is_array($neon[$option])) {
                         foreach ($neon[$option] as $key => $value) {
-                            $neon[$option][$key] = $this->getAbsolutePath( $value );
+                            $neon[$option][$key] = $this->getAbsolutePath($value);
                         }
                     } else {
-                        $neon[$option] = $this->getAbsolutePath( $neon[$option] );
+                        $neon[$option] = $this->getAbsolutePath($neon[$option]);
                     }
                 }
             }
 
-            $unknownOptions = array_keys( array_diff_key( $neon, self::$defaultConfig ) );
+            $unknownOptions = array_keys(array_diff_key($neon, self::$defaultConfig));
             if (!empty( $unknownOptions )) {
-                $message = count( $unknownOptions ) > 1
-                    ? sprintf( 'Unknown config file options "%s"', implode( '", "', $unknownOptions ) )
-                    : sprintf( 'Unknown config file option "%s"', $unknownOptions[0] );
-                throw new ConfigException( $message );
+                $message = count($unknownOptions) > 1
+                    ? sprintf('Unknown config file options "%s"', implode('", "', $unknownOptions))
+                    : sprintf('Unknown config file option "%s"', $unknownOptions[0]);
+                throw new ConfigException($message);
             }
         }
 
         // Merge options
-        $this->config = array_merge( self::$defaultConfig, $neon, $cli );
+        $this->config = array_merge(self::$defaultConfig, $neon, $cli);
 
         // Compatibility with old option name "undocumented"
         if (!isset( $this->config['report'] ) && isset( $this->config['undocumented'] )) {
@@ -253,89 +253,89 @@ class Config
         }
 
         foreach (self::$defaultConfig as $option => $valueDefinition) {
-            if (is_array( $this->config[$option] ) && !is_array( $valueDefinition )) {
-                throw new ConfigException( sprintf( 'Option "%s" must be set only once', $option ) );
+            if (is_array($this->config[$option]) && !is_array($valueDefinition)) {
+                throw new ConfigException(sprintf('Option "%s" must be set only once', $option));
             }
 
-            if (is_bool( $this->config[$option] ) && !is_bool( $valueDefinition )) {
-                throw new ConfigException( sprintf( 'Option "%s" expects value', $option ) );
+            if (is_bool($this->config[$option]) && !is_bool($valueDefinition)) {
+                throw new ConfigException(sprintf('Option "%s" expects value', $option));
             }
 
-            if (is_bool( $valueDefinition ) && !is_bool( $this->config[$option] )) {
+            if (is_bool($valueDefinition) && !is_bool($this->config[$option])) {
                 // Boolean option
-                $value = strtolower( $this->config[$option] );
+                $value = strtolower($this->config[$option]);
                 if ('on' === $value || 'yes' === $value || 'true' === $value || '' === $value) {
                     $value = true;
                 } elseif ('off' === $value || 'no' === $value || 'false' === $value) {
                     $value = false;
                 }
                 $this->config[$option] = (bool)$value;
-            } elseif (is_array( $valueDefinition )) {
+            } elseif (is_array($valueDefinition)) {
                 // Array option
-                $this->config[$option] = array_unique( (array)$this->config[$option] );
+                $this->config[$option] = array_unique((array)$this->config[$option]);
                 foreach ($this->config[$option] as $key => $value) {
-                    $value = explode( ',', $value );
-                    while (count( $value ) > 1) {
-                        array_push( $this->config[$option], array_shift( $value ) );
+                    $value = explode(',', $value);
+                    while (count($value) > 1) {
+                        array_push($this->config[$option], array_shift($value));
                     }
-                    $this->config[$option][$key] = array_shift( $value );
+                    $this->config[$option][$key] = array_shift($value);
                 }
-                $this->config[$option] = array_filter( $this->config[$option] );
+                $this->config[$option] = array_filter($this->config[$option]);
             }
 
             // Check posssible values
             if (!empty( self::$possibleOptionsValues[$option] )) {
                 $values = self::$possibleOptionsValues[$option];
 
-                if (is_array( $valueDefinition )) {
-                    $this->config[$option] = array_filter( $this->config[$option], function ( $value ) use ( $values ) {
+                if (is_array($valueDefinition)) {
+                    $this->config[$option] = array_filter($this->config[$option], function ($value) use ($values) {
 
-                        return in_array( $value, $values );
-                    } );
-                } elseif (!in_array( $this->config[$option], $values )) {
+                        return in_array($value, $values);
+                    });
+                } elseif (!in_array($this->config[$option], $values)) {
                     $this->config[$option] = '';
                 }
             }
         }
 
         // Unify character sets
-        $this->config['charset'] = array_map( 'strtoupper', $this->config['charset'] );
+        $this->config['charset'] = array_map('strtoupper', $this->config['charset']);
 
         // Process options that specify a filesystem path
         foreach (self::$pathOptions as $option) {
-            if (is_array( $this->config[$option] )) {
-                array_walk( $this->config[$option], function ( &$value ) {
+            if (is_array($this->config[$option])) {
+                array_walk($this->config[$option], function (&$value) {
 
-                    if (file_exists( $value )) {
-                        $value = realpath( $value );
+                    if (file_exists($value)) {
+                        $value = realpath($value);
                     }
-                } );
-                usort( $this->config[$option], 'strcasecmp' );
+                });
+                usort($this->config[$option], 'strcasecmp');
             } else {
-                if (file_exists( $this->config[$option] )) {
-                    $this->config[$option] = realpath( $this->config[$option] );
+                if (file_exists($this->config[$option])) {
+                    $this->config[$option] = realpath($this->config[$option]);
                 }
             }
         }
 
         // Unify directory separators
-        foreach (array( 'exclude', 'skipDocPath' ) as $option) {
-            $this->config[$option] = array_map( function ( $mask ) {
+        foreach (array('exclude', 'skipDocPath') as $option) {
+            $this->config[$option] = array_map(function ($mask) {
 
-                return str_replace( array( '/', '\\' ), DIRECTORY_SEPARATOR, $mask );
-            }, $this->config[$option] );
-            usort( $this->config[$option], 'strcasecmp' );
+                return str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $mask);
+            }, $this->config[$option]);
+            usort($this->config[$option], 'strcasecmp');
         }
 
         // Unify prefixes
-        $this->config['skipDocPrefix'] = array_map( function ( $prefix ) {
+        $this->config['skipDocPrefix'] = array_map(function ($prefix) {
 
-            return ltrim( $prefix, '\\' );
-        }, $this->config['skipDocPrefix'] );
-        usort( $this->config['skipDocPrefix'], 'strcasecmp' );
+            return ltrim($prefix, '\\');
+        }, $this->config['skipDocPrefix']);
+        usort($this->config['skipDocPrefix'], 'strcasecmp');
 
         // Base url without slash at the end
-        $this->config['baseUrl'] = rtrim( $this->config['baseUrl'], '/' );
+        $this->config['baseUrl'] = rtrim($this->config['baseUrl'], '/');
 
         // No progressbar in quiet mode
         if ($this->config['quiet']) {
@@ -356,9 +356,9 @@ class Config
         );
 
         // Merge template config
-        $this->config = array_merge_recursive( $this->config,
-            array( 'template' => Neon::decode( file_get_contents( $fileName = $this->config['templateConfig'] ) ) ) );
-        $this->config['template']['config'] = realpath( $fileName );
+        $this->config = array_merge_recursive($this->config,
+            array('template' => Neon::decode(file_get_contents($fileName = $this->config['templateConfig']))));
+        $this->config['template']['config'] = realpath($fileName);
 
         // Check template
         $this->checkTemplate();
@@ -374,7 +374,7 @@ class Config
     private function defaultConfigExists()
     {
 
-        return is_file( $this->getDefaultConfigPath() );
+        return is_file($this->getDefaultConfigPath());
     }
 
     /**
@@ -395,14 +395,14 @@ class Config
      *
      * @return string
      */
-    private function getAbsolutePath( $path )
+    private function getAbsolutePath($path)
     {
 
-        if (preg_match( '~/|[a-z]:~Ai', $path )) {
+        if (preg_match('~/|[a-z]:~Ai', $path)) {
             return $path;
         }
 
-        return dirname( $this->options['config'] ).DIRECTORY_SEPARATOR.$path;
+        return dirname($this->options['config']).DIRECTORY_SEPARATOR.$path;
     }
 
     /**
@@ -414,64 +414,64 @@ class Config
     private function check()
     {
 
-        if (!empty( $this->config['config'] ) && !is_file( $this->config['config'] )) {
-            throw new ConfigException( sprintf( 'Config file "%s" doesn\'t exist', $this->config['config'] ) );
+        if (!empty( $this->config['config'] ) && !is_file($this->config['config'])) {
+            throw new ConfigException(sprintf('Config file "%s" doesn\'t exist', $this->config['config']));
         }
 
         if (empty( $this->config['source'] )) {
-            throw new ConfigException( 'Source is not set' );
+            throw new ConfigException('Source is not set');
         }
         foreach ($this->config['source'] as $source) {
-            if (!file_exists( $source )) {
-                throw new ConfigException( sprintf( 'Source "%s" doesn\'t exist', $source ) );
+            if (!file_exists($source)) {
+                throw new ConfigException(sprintf('Source "%s" doesn\'t exist', $source));
             }
         }
 
         if (empty( $this->config['destination'] )) {
-            throw new ConfigException( 'Destination is not set' );
+            throw new ConfigException('Destination is not set');
         }
 
         foreach ($this->config['extensions'] as $extension) {
-            if (!preg_match( '~^[a-z\\d]+$~i', $extension )) {
-                throw new ConfigException( sprintf( 'Invalid file extension "%s"', $extension ) );
+            if (!preg_match('~^[a-z\\d]+$~i', $extension)) {
+                throw new ConfigException(sprintf('Invalid file extension "%s"', $extension));
             }
         }
 
-        if (!is_file( $this->config['templateConfig'] )) {
-            throw new ConfigException( sprintf( 'Template config "%s" doesn\'t exist',
-                    $this->config['templateConfig'] ) );
+        if (!is_file($this->config['templateConfig'])) {
+            throw new ConfigException(sprintf('Template config "%s" doesn\'t exist',
+                $this->config['templateConfig']));
         }
 
-        if (!empty( $this->config['baseUrl'] ) && !preg_match( '~^https?://(?:[-a-z0-9]+\.)+[a-z]{2,6}(?:/.*)?$~i',
-                $this->config['baseUrl'] )
+        if (!empty( $this->config['baseUrl'] ) && !preg_match('~^https?://(?:[-a-z0-9]+\.)+[a-z]{2,6}(?:/.*)?$~i',
+                $this->config['baseUrl'])
         ) {
-            throw new ConfigException( sprintf( 'Invalid base url "%s"', $this->config['baseUrl'] ) );
+            throw new ConfigException(sprintf('Invalid base url "%s"', $this->config['baseUrl']));
         }
 
-        if (!empty( $this->config['googleCseId'] ) && !preg_match( '~^\d{21}:[-a-z0-9_]{11}$~',
-                $this->config['googleCseId'] )
+        if (!empty( $this->config['googleCseId'] ) && !preg_match('~^\d{21}:[-a-z0-9_]{11}$~',
+                $this->config['googleCseId'])
         ) {
-            throw new ConfigException( sprintf( 'Invalid Google Custom Search ID "%s"',
-                    $this->config['googleCseId'] ) );
+            throw new ConfigException(sprintf('Invalid Google Custom Search ID "%s"',
+                $this->config['googleCseId']));
         }
 
-        if (!empty( $this->config['googleAnalytics'] ) && !preg_match( '~^UA\\-\\d+\\-\\d+$~',
-                $this->config['googleAnalytics'] )
+        if (!empty( $this->config['googleAnalytics'] ) && !preg_match('~^UA\\-\\d+\\-\\d+$~',
+                $this->config['googleAnalytics'])
         ) {
-            throw new ConfigException( sprintf( 'Invalid Google Analytics tracking code "%s"',
-                    $this->config['googleAnalytics'] ) );
+            throw new ConfigException(sprintf('Invalid Google Analytics tracking code "%s"',
+                $this->config['googleAnalytics']));
         }
 
         if (empty( $this->config['groups'] )) {
-            throw new ConfigException( 'No supported groups value given' );
+            throw new ConfigException('No supported groups value given');
         }
 
         if (empty( $this->config['autocomplete'] )) {
-            throw new ConfigException( 'No supported autocomplete value given' );
+            throw new ConfigException('No supported autocomplete value given');
         }
 
         if (empty( $this->config['accessLevels'] )) {
-            throw new ConfigException( 'No supported access level given' );
+            throw new ConfigException('No supported access level given');
         }
 
         return $this;
@@ -487,45 +487,45 @@ class Config
     {
 
         $require = $this->config['template']['require'];
-        if (isset( $require['min'] ) && !preg_match( '~^\\d+(?:\\.\\d+){0,2}$~', $require['min'] )) {
-            throw new ConfigException( sprintf( 'Invalid minimal version definition "%s"', $require['min'] ) );
+        if (isset( $require['min'] ) && !preg_match('~^\\d+(?:\\.\\d+){0,2}$~', $require['min'])) {
+            throw new ConfigException(sprintf('Invalid minimal version definition "%s"', $require['min']));
         }
-        if (isset( $require['max'] ) && !preg_match( '~^\\d+(?:\\.\\d+){0,2}$~', $require['max'] )) {
-            throw new ConfigException( sprintf( 'Invalid maximal version definition "%s"', $require['max'] ) );
+        if (isset( $require['max'] ) && !preg_match('~^\\d+(?:\\.\\d+){0,2}$~', $require['max'])) {
+            throw new ConfigException(sprintf('Invalid maximal version definition "%s"', $require['max']));
         }
 
-        $isMinOk = function ( $min ) {
+        $isMinOk = function ($min) {
 
-            $min .= str_repeat( '.0', 2 - substr_count( $min, '.' ) );
-            return version_compare( $min, Generator::VERSION, '<=' );
+            $min .= str_repeat('.0', 2 - substr_count($min, '.'));
+            return version_compare($min, Generator::VERSION, '<=');
         };
-        $isMaxOk = function ( $max ) {
+        $isMaxOk = function ($max) {
 
-            $max .= str_repeat( '.0', 2 - substr_count( $max, '.' ) );
-            return version_compare( $max, Generator::VERSION, '>=' );
+            $max .= str_repeat('.0', 2 - substr_count($max, '.'));
+            return version_compare($max, Generator::VERSION, '>=');
         };
 
-        if (isset( $require['min'], $require['max'] ) && ( !$isMinOk( $require['min'] ) || !$isMaxOk( $require['max'] ) )) {
-            throw new ConfigException( sprintf( 'The template requires version from "%s" to "%s", you are using version "%s"',
-                    $require['min'], $require['max'], Generator::VERSION ) );
-        } elseif (isset( $require['min'] ) && !$isMinOk( $require['min'] )) {
-            throw new ConfigException( sprintf( 'The template requires version "%s" or newer, you are using version "%s"',
-                    $require['min'], Generator::VERSION ) );
-        } elseif (isset( $require['max'] ) && !$isMaxOk( $require['max'] )) {
-            throw new ConfigException( sprintf( 'The template requires version "%s" or older, you are using version "%s"',
-                    $require['max'], Generator::VERSION ) );
+        if (isset( $require['min'], $require['max'] ) && ( !$isMinOk($require['min']) || !$isMaxOk($require['max']) )) {
+            throw new ConfigException(sprintf('The template requires version from "%s" to "%s", you are using version "%s"',
+                $require['min'], $require['max'], Generator::VERSION));
+        } elseif (isset( $require['min'] ) && !$isMinOk($require['min'])) {
+            throw new ConfigException(sprintf('The template requires version "%s" or newer, you are using version "%s"',
+                $require['min'], Generator::VERSION));
+        } elseif (isset( $require['max'] ) && !$isMaxOk($require['max'])) {
+            throw new ConfigException(sprintf('The template requires version "%s" or older, you are using version "%s"',
+                $require['max'], Generator::VERSION));
         }
 
-        foreach (array( 'main', 'optional' ) as $section) {
+        foreach (array('main', 'optional') as $section) {
             foreach ($this->config['template']['templates'][$section] as $type => $config) {
                 if (!isset( $config['filename'] )) {
-                    throw new ConfigException( sprintf( 'Filename for "%s" is not defined', $type ) );
+                    throw new ConfigException(sprintf('Filename for "%s" is not defined', $type));
                 }
                 if (!isset( $config['template'] )) {
-                    throw new ConfigException( sprintf( 'Template for "%s" is not defined', $type ) );
+                    throw new ConfigException(sprintf('Template for "%s" is not defined', $type));
                 }
-                if (!is_file( dirname( $this->config['templateConfig'] ).DIRECTORY_SEPARATOR.$config['template'] )) {
-                    throw new ConfigException( sprintf( 'Template for "%s" doesn\'t exist', $type ) );
+                if (!is_file(dirname($this->config['templateConfig']).DIRECTORY_SEPARATOR.$config['template'])) {
+                    throw new ConfigException(sprintf('Template for "%s" doesn\'t exist', $type));
                 }
             }
         }
@@ -540,7 +540,7 @@ class Config
      *
      * @return boolean
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
         return isset( $this->config[$name] );
@@ -553,7 +553,7 @@ class Config
      *
      * @return mixed
      */
-    public function __get( $name )
+    public function __get($name)
     {
 
         return isset( $this->config[$name] ) ? $this->config[$name] : null;

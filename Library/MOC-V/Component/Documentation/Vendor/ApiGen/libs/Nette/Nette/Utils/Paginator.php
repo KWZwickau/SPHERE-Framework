@@ -64,7 +64,7 @@ class Paginator extends Nette\Object
      *
      * @return Paginator  provides a fluent interface
      */
-    public function setPage( $page )
+    public function setPage($page)
     {
 
         $this->page = (int)$page;
@@ -79,8 +79,8 @@ class Paginator extends Nette\Object
     protected function getPageIndex()
     {
 
-        $index = max( 0, $this->page - $this->base );
-        return $this->itemCount === null ? $index : min( $index, max( 0, $this->getPageCount() - 1 ) );
+        $index = max(0, $this->page - $this->base);
+        return $this->itemCount === null ? $index : min($index, max(0, $this->getPageCount() - 1));
     }
 
     /**
@@ -91,7 +91,7 @@ class Paginator extends Nette\Object
     public function getPageCount()
     {
 
-        return $this->itemCount === null ? null : (int)ceil( $this->itemCount / $this->itemsPerPage );
+        return $this->itemCount === null ? null : (int)ceil($this->itemCount / $this->itemsPerPage);
     }
 
     /**
@@ -113,7 +113,7 @@ class Paginator extends Nette\Object
     public function getLastPage()
     {
 
-        return $this->itemCount === null ? null : $this->base + max( 0, $this->getPageCount() - 1 );
+        return $this->itemCount === null ? null : $this->base + max(0, $this->getPageCount() - 1);
     }
 
     /**
@@ -134,7 +134,7 @@ class Paginator extends Nette\Object
      *
      * @return Paginator  provides a fluent interface
      */
-    public function setBase( $base )
+    public function setBase($base)
     {
 
         $this->base = (int)$base;
@@ -181,10 +181,10 @@ class Paginator extends Nette\Object
      *
      * @return Paginator  provides a fluent interface
      */
-    public function setItemsPerPage( $itemsPerPage )
+    public function setItemsPerPage($itemsPerPage)
     {
 
-        $this->itemsPerPage = max( 1, (int)$itemsPerPage );
+        $this->itemsPerPage = max(1, (int)$itemsPerPage);
         return $this;
     }
 
@@ -206,10 +206,10 @@ class Paginator extends Nette\Object
      *
      * @return Paginator  provides a fluent interface
      */
-    public function setItemCount( $itemCount )
+    public function setItemCount($itemCount)
     {
 
-        $this->itemCount = ( $itemCount === false || $itemCount === null ) ? null : max( 0, (int)$itemCount );
+        $this->itemCount = ( $itemCount === false || $itemCount === null ) ? null : max(0, (int)$itemCount);
         return $this;
     }
 
@@ -235,7 +235,7 @@ class Paginator extends Nette\Object
 
         return $this->itemCount === null
             ? null
-            : max( 0, $this->itemCount - ( $this->getPageIndex() + 1 ) * $this->itemsPerPage );
+            : max(0, $this->itemCount - ( $this->getPageIndex() + 1 ) * $this->itemsPerPage);
     }
 
 
@@ -249,7 +249,7 @@ class Paginator extends Nette\Object
 
         return $this->itemCount === null
             ? $this->itemsPerPage
-            : min( $this->itemsPerPage, $this->itemCount - $this->getPageIndex() * $this->itemsPerPage );
+            : min($this->itemsPerPage, $this->itemCount - $this->getPageIndex() * $this->itemsPerPage);
     }
 
 }

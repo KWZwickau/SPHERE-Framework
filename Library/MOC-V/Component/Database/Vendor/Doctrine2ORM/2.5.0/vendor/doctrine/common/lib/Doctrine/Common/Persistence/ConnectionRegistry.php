@@ -30,6 +30,7 @@ namespace Doctrine\Common\Persistence;
  */
 interface ConnectionRegistry
 {
+
     /**
      * Gets the default connection name.
      *

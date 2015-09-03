@@ -12,8 +12,10 @@ use Guzzle\Http\Message\RequestInterface;
  */
 class DefaultCacheKeyProvider implements CacheKeyProviderInterface
 {
+
     public function getCacheKey(RequestInterface $request)
     {
+
         // See if the key has already been calculated
         $key = $request->getParams()->get(self::CACHE_KEY);
 
@@ -25,7 +27,7 @@ class DefaultCacheKeyProvider implements CacheKeyProviderInterface
             // Check to see how and if the key should be filtered
             foreach (explode(';', $request->getParams()->get(self::CACHE_KEY_FILTER)) as $part) {
                 $pieces = array_map('trim', explode('=', $part));
-                if (isset($pieces[1])) {
+                if (isset( $pieces[1] )) {
                     foreach (array_map('trim', explode(',', $pieces[1])) as $remove) {
                         if ($pieces[0] == 'header') {
                             $cloned->removeHeader($remove);
@@ -36,8 +38,8 @@ class DefaultCacheKeyProvider implements CacheKeyProviderInterface
                 }
             }
 
-            $raw = (string) $cloned;
-            $key = 'GZ' . md5($raw);
+            $raw = (string)$cloned;
+            $key = 'GZ'.md5($raw);
             $request->getParams()->set(self::CACHE_KEY, $key)->set(self::CACHE_KEY_RAW, $raw);
         }
 

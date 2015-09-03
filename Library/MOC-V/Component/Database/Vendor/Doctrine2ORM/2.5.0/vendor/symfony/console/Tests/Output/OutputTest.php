@@ -11,20 +11,24 @@
 
 namespace Symfony\Component\Console\Tests\Output;
 
-use Symfony\Component\Console\Output\Output;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Output\Output;
 
 class OutputTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConstructor()
     {
+
         $output = new TestOutput(Output::VERBOSITY_QUIET, true);
-        $this->assertEquals(Output::VERBOSITY_QUIET, $output->getVerbosity(), '__construct() takes the verbosity as its first argument');
+        $this->assertEquals(Output::VERBOSITY_QUIET, $output->getVerbosity(),
+            '__construct() takes the verbosity as its first argument');
         $this->assertTrue($output->isDecorated(), '__construct() takes the decorated flag as its second argument');
     }
 
     public function testSetIsDecorated()
     {
+
         $output = new TestOutput();
         $output->setDecorated(true);
         $this->assertTrue($output->isDecorated(), 'setDecorated() sets the decorated flag');
@@ -32,6 +36,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
 
     public function testSetGetVerbosity()
     {
+
         $output = new TestOutput();
         $output->setVerbosity(Output::VERBOSITY_QUIET);
         $this->assertEquals(Output::VERBOSITY_QUIET, $output->getVerbosity(), '->setVerbosity() sets the verbosity');
@@ -68,6 +73,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
 
     public function testWriteWithVerbosityQuiet()
     {
+
         $output = new TestOutput(Output::VERBOSITY_QUIET);
         $output->writeln('foo');
         $this->assertEquals('', $output->output, '->writeln() outputs nothing if verbosity is set to VERBOSITY_QUIET');
@@ -75,6 +81,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
 
     public function testWriteAnArrayOfMessages()
     {
+
         $output = new TestOutput();
         $output->writeln(array('foo', 'bar'));
         $this->assertEquals("foo\nbar\n", $output->output, '->writeln() can take an array of messages to output');
@@ -85,6 +92,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
      */
     public function testWriteRawMessage($message, $type, $expectedOutput)
     {
+
         $output = new TestOutput();
         $output->writeln($message, $type);
         $this->assertEquals($expectedOutput, $output->output);
@@ -92,6 +100,7 @@ class OutputTest extends \PHPUnit_Framework_TestCase
 
     public function provideWriteArguments()
     {
+
         return array(
             array('<info>foo</info>', Output::OUTPUT_RAW, "<info>foo</info>\n"),
             array('<info>foo</info>', Output::OUTPUT_PLAIN, "foo\n"),
@@ -100,14 +109,17 @@ class OutputTest extends \PHPUnit_Framework_TestCase
 
     public function testWriteWithDecorationTurnedOff()
     {
+
         $output = new TestOutput();
         $output->setDecorated(false);
         $output->writeln('<info>foo</info>');
-        $this->assertEquals("foo\n", $output->output, '->writeln() strips decoration tags if decoration is set to false');
+        $this->assertEquals("foo\n", $output->output,
+            '->writeln() strips decoration tags if decoration is set to false');
     }
 
     public function testWriteDecoratedMessage()
     {
+
         $fooStyle = new OutputFormatterStyle('yellow', 'red', array('blink'));
         $output = new TestOutput();
         $output->getFormatter()->setStyle('FOO', $fooStyle);
@@ -122,12 +134,14 @@ class OutputTest extends \PHPUnit_Framework_TestCase
      */
     public function testWriteWithInvalidOutputType()
     {
+
         $output = new TestOutput();
         $output->writeln('<foo>foo</foo>', 24);
     }
 
     public function testWriteWithInvalidStyle()
     {
+
         $output = new TestOutput();
 
         $output->clear();
@@ -142,15 +156,18 @@ class OutputTest extends \PHPUnit_Framework_TestCase
 
 class TestOutput extends Output
 {
+
     public $output = '';
 
     public function clear()
     {
+
         $this->output = '';
     }
 
     protected function doWrite($message, $newline)
     {
-        $this->output .= $message.($newline ? "\n" : '');
+
+        $this->output .= $message.( $newline ? "\n" : '' );
     }
 }

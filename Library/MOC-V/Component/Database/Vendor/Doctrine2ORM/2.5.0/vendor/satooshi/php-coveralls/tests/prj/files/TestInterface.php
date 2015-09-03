@@ -2,5 +2,6 @@
 
 interface TestInterface
 {
+
     public function hello();
 }

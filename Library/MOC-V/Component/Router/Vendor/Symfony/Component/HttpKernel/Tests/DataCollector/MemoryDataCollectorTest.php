@@ -17,8 +17,10 @@ use Symfony\Component\HttpKernel\DataCollector\MemoryDataCollector;
 
 class MemoryDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testCollect()
     {
+
         $collector = new MemoryDataCollector();
         $collector->collect(new Request(), new Response());
 
@@ -30,6 +32,7 @@ class MemoryDataCollectorTest extends \PHPUnit_Framework_TestCase
     /** @dataProvider getBytesConversionTestData */
     public function testBytesConversion($limit, $bytes)
     {
+
         $collector = new MemoryDataCollector();
         $method = new \ReflectionMethod($collector, 'convertToBytes');
         $method->setAccessible(true);
@@ -38,6 +41,7 @@ class MemoryDataCollectorTest extends \PHPUnit_Framework_TestCase
 
     public function getBytesConversionTestData()
     {
+
         return array(
             array('2k', 2048),
             array('2 k', 2048),

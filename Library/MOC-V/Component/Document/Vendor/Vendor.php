@@ -18,10 +18,10 @@ class Vendor implements IVendorInterface
     /**
      * @param IBridgeInterface $BridgeInterface
      */
-    function __construct( IBridgeInterface $BridgeInterface )
+    public function __construct(IBridgeInterface $BridgeInterface)
     {
 
-        $this->setBridgeInterface( $BridgeInterface );
+        $this->setBridgeInterface($BridgeInterface);
     }
 
     /**
@@ -38,7 +38,7 @@ class Vendor implements IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface )
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface)
     {
 
         $this->BridgeInterface = $BridgeInterface;

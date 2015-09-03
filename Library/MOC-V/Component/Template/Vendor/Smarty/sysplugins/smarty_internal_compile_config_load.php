@@ -23,21 +23,21 @@ class Smarty_Internal_Compile_Config_Load extends Smarty_Internal_CompileBase
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $required_attributes = array( 'file' );
+    public $required_attributes = array('file');
     /**
      * Attribute definition: Overwrites base class.
      *
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $shorttag_order = array( 'file', 'section' );
+    public $shorttag_order = array('file', 'section');
     /**
      * Attribute definition: Overwrites base class.
      *
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $optional_attributes = array( 'section', 'scope' );
+    public $optional_attributes = array('section', 'scope');
 
     /**
      * Compiles code for the {config_load} tag
@@ -47,15 +47,15 @@ class Smarty_Internal_Compile_Config_Load extends Smarty_Internal_CompileBase
      *
      * @return string compiled code
      */
-    public function compile( $args, $compiler )
+    public function compile($args, $compiler)
     {
 
-        static $_is_legal_scope = array( 'local' => true, 'parent' => true, 'root' => true, 'global' => true );
+        static $_is_legal_scope = array('local' => true, 'parent' => true, 'root' => true, 'global' => true);
         // check and get attributes
-        $_attr = $this->getAttributes( $compiler, $args );
+        $_attr = $this->getAttributes($compiler, $args);
 
         if ($_attr['nocache'] === true) {
-            $compiler->trigger_template_error( 'nocache option not allowed', $compiler->lex->taglineno );
+            $compiler->trigger_template_error('nocache option not allowed', $compiler->lex->taglineno);
         }
 
         // save possible attributes
@@ -68,11 +68,11 @@ class Smarty_Internal_Compile_Config_Load extends Smarty_Internal_CompileBase
         $scope = 'local';
         // scope setup
         if (isset( $_attr['scope'] )) {
-            $_attr['scope'] = trim( $_attr['scope'], "'\"" );
+            $_attr['scope'] = trim($_attr['scope'], "'\"");
             if (isset( $_is_legal_scope[$_attr['scope']] )) {
                 $scope = $_attr['scope'];
             } else {
-                $compiler->trigger_template_error( 'illegal value for "scope" attribute', $compiler->lex->taglineno );
+                $compiler->trigger_template_error('illegal value for "scope" attribute', $compiler->lex->taglineno);
             }
         }
         // create config object

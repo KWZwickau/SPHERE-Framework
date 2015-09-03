@@ -68,7 +68,7 @@ class Line_Box
      *
      * @param Block_Frame_Decorator $frame the Block_Frame_Decorator containing this line
      */
-    function __construct( Block_Frame_Decorator $frame, $y = 0 )
+    function __construct(Block_Frame_Decorator $frame, $y = 0)
     {
 
         $this->_block_frame = $frame;
@@ -81,7 +81,7 @@ class Line_Box
     function get_float_offsets()
     {
 
-        $enable_css_float = $this->_block_frame->get_dompdf()->get_option( "enable_css_float" );
+        $enable_css_float = $this->_block_frame->get_dompdf()->get_option("enable_css_float");
         if (!$enable_css_float) {
             return;
         }
@@ -103,7 +103,7 @@ class Line_Box
             return;
         }
 
-        $floating_frames = $this->get_floats_inside( $root );
+        $floating_frames = $this->get_floats_inside($root);
 
         foreach ($floating_frames as $child_key => $floating_frame) {
             $id = $floating_frame->get_id();
@@ -118,7 +118,7 @@ class Line_Box
             $floating_width = $floating_frame->get_margin_width();
 
             if (!$cb_w) {
-                $cb_w = $floating_frame->get_containing_block( "w" );
+                $cb_w = $floating_frame->get_containing_block("w");
             }
 
             $line_w = $this->get_width();
@@ -130,8 +130,8 @@ class Line_Box
 
             // If the child is still shifted by the floating element
             if ($anti_infinite_loop-- > 0 &&
-                $floating_frame->get_position( "y" ) + $floating_frame->get_margin_height() > $this->y &&
-                $block->get_position( "x" ) + $block->get_margin_width() > $floating_frame->get_position( "x" )
+                $floating_frame->get_position("y") + $floating_frame->get_margin_height() > $this->y &&
+                $block->get_position("x") + $block->get_margin_width() > $floating_frame->get_position("x")
             ) {
                 if ($float === "left") {
                     $this->left += $floating_width;
@@ -142,7 +142,7 @@ class Line_Box
                 $this->floating_blocks[$id] = true;
             } // else, the floating element won't shift anymore
             else {
-                $root->remove_floating_frame( $child_key );
+                $root->remove_floating_frame($child_key);
             }
         }
     }
@@ -154,12 +154,12 @@ class Line_Box
      *
      * @return Frame[]
      */
-    function get_floats_inside( Page_Frame_Decorator $root )
+    function get_floats_inside(Page_Frame_Decorator $root)
     {
 
         $floating_frames = $root->get_floating_frames();
 
-        if (count( $floating_frames ) == 0) {
+        if (count($floating_frames) == 0) {
             return $floating_frames;
         }
 
@@ -228,7 +228,7 @@ class Line_Box
     /**
      * @param Frame $frame
      */
-    function add_frame( Frame $frame )
+    function add_frame(Frame $frame)
     {
 
         $this->_frames[] = $frame;
@@ -237,12 +237,12 @@ class Line_Box
     function __toString()
     {
 
-        $props = array( "wc", "y", "w", "h", "left", "right", "br" );
+        $props = array("wc", "y", "w", "h", "left", "right", "br");
         $s = "";
         foreach ($props as $prop) {
             $s .= "$prop: ".$this->$prop."\n";
         }
-        $s .= count( $this->_frames )." frames\n";
+        $s .= count($this->_frames)." frames\n";
         return $s;
     }
     /*function __get($prop) {

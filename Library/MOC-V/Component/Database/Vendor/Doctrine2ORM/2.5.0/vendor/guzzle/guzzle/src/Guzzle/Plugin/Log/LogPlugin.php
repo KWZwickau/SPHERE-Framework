@@ -3,11 +3,11 @@
 namespace Guzzle\Plugin\Log;
 
 use Guzzle\Common\Event;
-use Guzzle\Log\LogAdapterInterface;
-use Guzzle\Log\MessageFormatter;
-use Guzzle\Log\ClosureLogAdapter;
 use Guzzle\Http\EntityBody;
 use Guzzle\Http\Message\EntityEnclosingRequestInterface;
+use Guzzle\Log\ClosureLogAdapter;
+use Guzzle\Log\LogAdapterInterface;
+use Guzzle\Log\MessageFormatter;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -19,6 +19,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class LogPlugin implements EventSubscriberInterface
 {
+
     /** @var LogAdapterInterface Adapter responsible for writing log data */
     protected $logAdapter;
 
@@ -39,6 +40,7 @@ class LogPlugin implements EventSubscriberInterface
         $formatter = null,
         $wireBodies = false
     ) {
+
         $this->logAdapter = $logAdapter;
         $this->formatter = $formatter instanceof MessageFormatter ? $formatter : new MessageFormatter($formatter);
         $this->wireBodies = $wireBodies;
@@ -54,6 +56,7 @@ class LogPlugin implements EventSubscriberInterface
      */
     public static function getDebugPlugin($wireBodies = true, $stream = null)
     {
+
         if ($stream === null) {
             if (defined('STDERR')) {
                 $stream = STDERR;
@@ -63,12 +66,14 @@ class LogPlugin implements EventSubscriberInterface
         }
 
         return new self(new ClosureLogAdapter(function ($m) use ($stream) {
-            fwrite($stream, $m . PHP_EOL);
+
+            fwrite($stream, $m.PHP_EOL);
         }), "# Request:\n{request}\n\n# Response:\n{response}\n\n# Errors: {curl_code} {curl_error}", $wireBodies);
     }
 
     public static function getSubscribedEvents()
     {
+
         return array(
             'curl.callback.write' => array('onCurlWrite', 255),
             'curl.callback.read'  => array('onCurlRead', 255),
@@ -84,6 +89,7 @@ class LogPlugin implements EventSubscriberInterface
      */
     public function onCurlRead(Event $event)
     {
+
         // Stream the request body to the log if the body is not repeatable
         if ($wire = $event['request']->getParams()->get('request_wire')) {
             $wire->write($event['read']);
@@ -97,6 +103,7 @@ class LogPlugin implements EventSubscriberInterface
      */
     public function onCurlWrite(Event $event)
     {
+
         // Stream the response body to the log if the body is not repeatable
         if ($wire = $event['request']->getParams()->get('response_wire')) {
             $wire->write($event['write']);
@@ -110,13 +117,14 @@ class LogPlugin implements EventSubscriberInterface
      */
     public function onRequestBeforeSend(Event $event)
     {
+
         if ($this->wireBodies) {
             $request = $event['request'];
             // Ensure that curl IO events are emitted
             $request->getCurlOptions()->set('emit_io', true);
             // We need to make special handling for content wiring and non-repeatable streams.
             if ($request instanceof EntityEnclosingRequestInterface && $request->getBody()
-                && (!$request->getBody()->isSeekable() || !$request->getBody()->isReadable())
+                && ( !$request->getBody()->isSeekable() || !$request->getBody()->isReadable() )
             ) {
                 // The body of the request cannot be recalled so logging the body will require us to buffer it
                 $request->getParams()->set('request_wire', EntityBody::factory());
@@ -135,6 +143,7 @@ class LogPlugin implements EventSubscriberInterface
      */
     public function onRequestSent(Event $event)
     {
+
         $request = $event['request'];
         $response = $event['response'];
         $handle = $event['handle'];

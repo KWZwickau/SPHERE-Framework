@@ -13,13 +13,14 @@ namespace Symfony\Component\Finder\Tests\Iterator;
 
 abstract class RealIteratorTestCase extends IteratorTestCase
 {
+
     protected static $tmpDir;
     protected static $files;
 
     public static function setUpBeforeClass()
     {
 
-        self::$tmpDir = realpath( sys_get_temp_dir() ).DIRECTORY_SEPARATOR.'symfony_finder';
+        self::$tmpDir = realpath(sys_get_temp_dir()).DIRECTORY_SEPARATOR.'symfony_finder';
 
         self::$files = array(
             '.git/',
@@ -35,53 +36,54 @@ abstract class RealIteratorTestCase extends IteratorTestCase
             'foo bar',
         );
 
-        self::$files = self::toAbsolute( self::$files );
+        self::$files = self::toAbsolute(self::$files);
 
-        if (is_dir( self::$tmpDir )) {
+        if (is_dir(self::$tmpDir)) {
             self::tearDownAfterClass();
         } else {
-            mkdir( self::$tmpDir );
+            mkdir(self::$tmpDir);
         }
 
         foreach (self::$files as $file) {
-            if (DIRECTORY_SEPARATOR === $file[strlen( $file ) - 1]) {
-                mkdir( $file );
+            if (DIRECTORY_SEPARATOR === $file[strlen($file) - 1]) {
+                mkdir($file);
             } else {
-                touch( $file );
+                touch($file);
             }
         }
 
-        file_put_contents( self::toAbsolute( 'test.php' ), str_repeat( ' ', 800 ) );
-        file_put_contents( self::toAbsolute( 'test.py' ), str_repeat( ' ', 2000 ) );
+        file_put_contents(self::toAbsolute('test.php'), str_repeat(' ', 800));
+        file_put_contents(self::toAbsolute('test.py'), str_repeat(' ', 2000));
 
-        touch( self::toAbsolute( 'foo/bar.tmp' ), strtotime( '2005-10-15' ) );
-        touch( self::toAbsolute( 'test.php' ), strtotime( '2005-10-15' ) );
+        touch(self::toAbsolute('foo/bar.tmp'), strtotime('2005-10-15'));
+        touch(self::toAbsolute('test.php'), strtotime('2005-10-15'));
     }
 
-    protected static function toAbsolute( $files = null )
+    protected static function toAbsolute($files = null)
     {
+
         /*
          * Without the call to setUpBeforeClass() property can be null.
          */
         if (!self::$tmpDir) {
-            self::$tmpDir = realpath( sys_get_temp_dir() ).DIRECTORY_SEPARATOR.'symfony_finder';
+            self::$tmpDir = realpath(sys_get_temp_dir()).DIRECTORY_SEPARATOR.'symfony_finder';
         }
 
-        if (is_array( $files )) {
+        if (is_array($files)) {
             $f = array();
             foreach ($files as $file) {
-                if (is_array( $file )) {
-                    $f[] = self::toAbsolute( $file );
+                if (is_array($file)) {
+                    $f[] = self::toAbsolute($file);
                 } else {
-                    $f[] = self::$tmpDir.DIRECTORY_SEPARATOR.str_replace( '/', DIRECTORY_SEPARATOR, $file );
+                    $f[] = self::$tmpDir.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $file);
                 }
             }
 
             return $f;
         }
 
-        if (is_string( $files )) {
-            return self::$tmpDir.DIRECTORY_SEPARATOR.str_replace( '/', DIRECTORY_SEPARATOR, $files );
+        if (is_string($files)) {
+            return self::$tmpDir.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $files);
         }
 
         return self::$tmpDir;
@@ -90,20 +92,21 @@ abstract class RealIteratorTestCase extends IteratorTestCase
     public static function tearDownAfterClass()
     {
 
-        foreach (array_reverse( self::$files ) as $file) {
-            if (DIRECTORY_SEPARATOR === $file[strlen( $file ) - 1]) {
-                @rmdir( $file );
+        foreach (array_reverse(self::$files) as $file) {
+            if (DIRECTORY_SEPARATOR === $file[strlen($file) - 1]) {
+                @rmdir($file);
             } else {
-                @unlink( $file );
+                @unlink($file);
             }
         }
     }
 
-    protected static function toAbsoluteFixtures( $files )
+    protected static function toAbsoluteFixtures($files)
     {
+
         $f = array();
         foreach ($files as $file) {
-            $f[] = realpath( __DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'Fixtures'.DIRECTORY_SEPARATOR.$file );
+            $f[] = realpath(__DIR__.DIRECTORY_SEPARATOR.'..'.DIRECTORY_SEPARATOR.'Fixtures'.DIRECTORY_SEPARATOR.$file);
         }
 
         return $f;

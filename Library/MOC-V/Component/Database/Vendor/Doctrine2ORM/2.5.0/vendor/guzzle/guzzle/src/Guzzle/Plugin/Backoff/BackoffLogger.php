@@ -18,6 +18,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class BackoffLogger implements EventSubscriberInterface
 {
+
     /** @var string Default log message template */
     const DEFAULT_FORMAT = '[{ts}] {method} {url} - {code} {phrase} - Retries: {retries}, Delay: {delay}, Time: {connect_time}, {total_time}, cURL: {curl_code} {curl_error}';
 
@@ -33,12 +34,14 @@ class BackoffLogger implements EventSubscriberInterface
      */
     public function __construct(LogAdapterInterface $logger, MessageFormatter $formatter = null)
     {
+
         $this->logger = $logger;
         $this->formatter = $formatter ?: new MessageFormatter(self::DEFAULT_FORMAT);
     }
 
     public static function getSubscribedEvents()
     {
+
         return array(BackoffPlugin::RETRY_EVENT => 'onRequestRetry');
     }
 
@@ -51,6 +54,7 @@ class BackoffLogger implements EventSubscriberInterface
      */
     public function setTemplate($template)
     {
+
         $this->formatter->setTemplate($template);
 
         return $this;
@@ -63,6 +67,7 @@ class BackoffLogger implements EventSubscriberInterface
      */
     public function onRequestRetry(Event $event)
     {
+
         $this->logger->log($this->formatter->format(
             $event['request'],
             $event['response'],

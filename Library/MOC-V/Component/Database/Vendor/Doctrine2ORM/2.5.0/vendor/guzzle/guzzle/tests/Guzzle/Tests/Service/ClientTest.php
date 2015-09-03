@@ -2,34 +2,36 @@
 
 namespace Guzzle\Tests\Service;
 
-use Guzzle\Inflection\Inflector;
 use Guzzle\Http\Message\Response;
+use Guzzle\Inflection\Inflector;
 use Guzzle\Plugin\Mock\MockPlugin;
-use Guzzle\Service\Description\Operation;
 use Guzzle\Service\Client;
-use Guzzle\Service\Exception\CommandTransferException;
-use Guzzle\Service\Description\ServiceDescription;
-use Guzzle\Tests\Service\Mock\Command\MockCommand;
-use Guzzle\Service\Resource\ResourceIteratorClassFactory;
 use Guzzle\Service\Command\AbstractCommand;
+use Guzzle\Service\Description\Operation;
+use Guzzle\Service\Description\ServiceDescription;
+use Guzzle\Service\Exception\CommandTransferException;
+use Guzzle\Service\Resource\ResourceIteratorClassFactory;
+use Guzzle\Tests\Service\Mock\Command\MockCommand;
 
 /**
- * @group server
+ * @group  server
  * @covers Guzzle\Service\Client
  */
 class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $service;
     protected $serviceTest;
 
     public function setUp()
     {
+
         $this->serviceTest = new ServiceDescription(array(
             'test_command' => new Operation(array(
-                'doc' => 'documentationForCommand',
+                'doc'   => 'documentationForCommand',
                 'method' => 'DELETE',
                 'class' => 'Guzzle\\Tests\\Service\\Mock\\Command\\MockCommand',
-                'args' => array(
+                'args'  => array(
                     'bucket' => array(
                         'required' => true
                     ),
@@ -40,11 +42,12 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
             ))
         ));
 
-        $this->service = ServiceDescription::factory(__DIR__ . '/../TestData/test_service.json');
+        $this->service = ServiceDescription::factory(__DIR__.'/../TestData/test_service.json');
     }
 
     public function testAllowsCustomClientParameters()
     {
+
         $client = new Mock\MockClient(null, array(
             Client::COMMAND_PARAMS => array(AbstractCommand::RESPONSE_PROCESSING => 'foo')
         ));
@@ -54,6 +57,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testFactoryCreatesClient()
     {
+
         $client = Client::factory(array(
             'base_url' => 'http://www.test.com/',
             'test' => '123'
@@ -65,16 +69,19 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testFactoryDoesNotRequireBaseUrl()
     {
+
         $client = Client::factory();
     }
 
     public function testDescribesEvents()
     {
+
         $this->assertInternalType('array', Client::getAllEvents());
     }
 
     public function testExecutesCommands()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
 
@@ -89,6 +96,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testExecutesCommandsWithArray()
     {
+
         $client = new Client('http://www.test.com/');
         $client->getEventDispatcher()->addSubscriber(new MockPlugin(array(
             new Response(200),
@@ -109,6 +117,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenInvalidCommandIsExecuted()
     {
+
         $client = new Client();
         $client->execute(new \stdClass());
     }
@@ -118,13 +127,14 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenMissingCommand()
     {
+
         $client = new Client();
 
         $mock = $this->getMock('Guzzle\\Service\\Command\\Factory\\FactoryInterface');
         $mock->expects($this->any())
-             ->method('factory')
-             ->with($this->equalTo('test'))
-             ->will($this->returnValue(null));
+            ->method('factory')
+            ->with($this->equalTo('test'))
+            ->will($this->returnValue(null));
 
         $client->setCommandFactory($mock);
         $client->getCommand('test');
@@ -132,14 +142,15 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCreatesCommandsUsingCommandFactory()
     {
+
         $mockCommand = new MockCommand();
 
         $client = new Mock\MockClient();
         $mock = $this->getMock('Guzzle\\Service\\Command\\Factory\\FactoryInterface');
         $mock->expects($this->any())
-             ->method('factory')
-             ->with($this->equalTo('foo'))
-             ->will($this->returnValue($mockCommand));
+            ->method('factory')
+            ->with($this->equalTo('foo'))
+            ->will($this->returnValue($mockCommand));
 
         $client->setCommandFactory($mock);
 
@@ -152,6 +163,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testOwnsServiceDescription()
     {
+
         $client = new Mock\MockClient();
         $this->assertNull($client->getDescription());
 
@@ -162,10 +174,11 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testOwnsResourceIteratorFactory()
     {
+
         $client = new Mock\MockClient();
 
         $method = new \ReflectionMethod($client, 'getResourceIteratorFactory');
-        $method->setAccessible(TRUE);
+        $method->setAccessible(true);
         $rf1 = $method->invoke($client);
 
         $rf = $this->readAttribute($client, 'resourceIteratorFactory');
@@ -179,6 +192,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClientResetsRequestsBeforeExecutingCommands()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nHi",
@@ -195,6 +209,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClientCreatesIterators()
     {
+
         $client = new Mock\MockClient();
 
         $iterator = $client->getIterator('mock_command', array(
@@ -212,6 +227,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClientCreatesIteratorsWithNoOptions()
     {
+
         $client = new Mock\MockClient();
         $iterator = $client->getIterator('mock_command');
         $this->assertInstanceOf('Guzzle\Tests\Service\Mock\Model\MockCommandIterator', $iterator);
@@ -219,6 +235,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClientCreatesIteratorsWithCommands()
     {
+
         $client = new Mock\MockClient();
         $command = new MockCommand();
         $iterator = $client->getIterator($command);
@@ -229,6 +246,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClientHoldsInflector()
     {
+
         $client = new Mock\MockClient();
         $this->assertInstanceOf('Guzzle\Inflection\MemoizingInflector', $client->getInflector());
 
@@ -239,6 +257,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClientAddsGlobalCommandOptions()
     {
+
         $client = new Mock\MockClient('http://www.foo.com', array(
             Client::COMMAND_PARAMS => array(
                 'mesa' => 'bar'
@@ -250,6 +269,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSupportsServiceDescriptionBaseUrls()
     {
+
         $description = new ServiceDescription(array('baseUrl' => 'http://foo.com'));
         $client = new Client();
         $client->setDescription($description);
@@ -258,6 +278,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testMergesDefaultCommandParamsCorrectly()
     {
+
         $client = new Mock\MockClient('http://www.foo.com', array(
             Client::COMMAND_PARAMS => array(
                 'mesa' => 'bar',
@@ -274,6 +295,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testWrapsSingleCommandExceptions()
     {
+
         $client = new Mock\MockClient('http://foobaz.com');
         $mock = new MockPlugin(array(new Response(401)));
         $client->addSubscriber($mock);
@@ -282,6 +304,7 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testWrapsMultipleCommandExceptions()
     {
+
         $client = new Mock\MockClient('http://foobaz.com');
         $mock = new MockPlugin(array(new Response(200), new Response(200), new Response(404), new Response(500)));
         $client->addSubscriber($mock);
@@ -307,8 +330,9 @@ class ClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testGetCommandAfterTwoSetDescriptions()
     {
-        $service1 = ServiceDescription::factory(__DIR__ . '/../TestData/test_service.json');
-        $service2 = ServiceDescription::factory(__DIR__ . '/../TestData/test_service_3.json');
+
+        $service1 = ServiceDescription::factory(__DIR__.'/../TestData/test_service.json');
+        $service2 = ServiceDescription::factory(__DIR__.'/../TestData/test_service_3.json');
 
         $client = new Mock\MockClient();
 

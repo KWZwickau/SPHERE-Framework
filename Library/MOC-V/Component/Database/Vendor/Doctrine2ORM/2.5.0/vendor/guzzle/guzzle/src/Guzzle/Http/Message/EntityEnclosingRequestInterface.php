@@ -2,8 +2,8 @@
 
 namespace Guzzle\Http\Message;
 
-use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\EntityBodyInterface;
+use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\QueryString;
 
 /**
@@ -11,6 +11,7 @@ use Guzzle\Http\QueryString;
  */
 interface EntityEnclosingRequestInterface extends RequestInterface
 {
+
     const URL_ENCODED = 'application/x-www-form-urlencoded; charset=utf-8';
     const MULTIPART = 'multipart/form-data';
 
@@ -20,6 +21,7 @@ interface EntityEnclosingRequestInterface extends RequestInterface
      * @param string|resource|EntityBodyInterface $body        Body to use in the entity body of the request
      * @param string                              $contentType Content-Type to set. Leave null to use an existing
      *                                                         Content-Type or to guess the Content-Type
+     *
      * @return self
      * @throws RequestException if the protocol is < 1.1 and Content-Length can not be determined
      */
@@ -109,6 +111,7 @@ interface EntityEnclosingRequestInterface extends RequestInterface
      * @param string $contentType Optional Content-Type to add to the Content-Disposition.
      *                            Default behavior is to guess. Set to false to not specify.
      * @param string $postname    The name of the file, when posted. (e.g. rename the file)
+     *
      * @return self
      */
     public function addPostFile($field, $filename = null, $contentType = null, $postname = null);

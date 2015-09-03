@@ -36,11 +36,11 @@ class Statement extends \PDOStatement
     private $types;
 
 
-    protected function __construct( Connection $connection )
+    protected function __construct(Connection $connection)
     {
 
         $this->connection = $connection;
-        $this->setFetchMode( PDO::FETCH_CLASS, 'Nette\Database\Row', array( $this ) );
+        $this->setFetchMode(PDO::FETCH_CLASS, 'Nette\Database\Row', array($this));
     }
 
     /**
@@ -52,7 +52,7 @@ class Statement extends \PDOStatement
     {
 
         return new Nette\Reflection\ClassType(/*5.2*$this*//**/
-            get_called_class()/**/ );
+            get_called_class()/**/);
     }
 
     /**
@@ -71,7 +71,7 @@ class Statement extends \PDOStatement
      *
      * @return Statement  provides a fluent interface
      */
-    public function execute( $params = array() )
+    public function execute($params = array())
     {
 
         static $types = array(
@@ -82,20 +82,20 @@ class Statement extends \PDOStatement
         );
 
         foreach ($params as $key => $value) {
-            $type = gettype( $value );
-            $this->bindValue( is_int( $key ) ? $key + 1 : $key, $value,
-                isset( $types[$type] ) ? $types[$type] : PDO::PARAM_STR );
+            $type = gettype($value);
+            $this->bindValue(is_int($key) ? $key + 1 : $key, $value,
+                isset( $types[$type] ) ? $types[$type] : PDO::PARAM_STR);
         }
 
-        $time = microtime( true );
+        $time = microtime(true);
         try {
             parent::execute();
-        } catch( \PDOException $e ) {
+        } catch (\PDOException $e) {
             $e->queryString = $this->queryString;
             throw $e;
         }
-        $this->time = microtime( true ) - $time;
-        $this->connection->__call( 'onQuery', array( $this, $params ) ); // $this->connection->onQuery() in PHP 5.3
+        $this->time = microtime(true) - $time;
+        $this->connection->__call('onQuery', array($this, $params)); // $this->connection->onQuery() in PHP 5.3
 
         return $this;
     }
@@ -108,7 +108,7 @@ class Statement extends \PDOStatement
     public function fetchPairs()
     {
 
-        return $this->fetchAll( PDO::FETCH_KEY_PAIR ); // since PHP 5.2.3
+        return $this->fetchAll(PDO::FETCH_KEY_PAIR); // since PHP 5.2.3
     }
 
     /**
@@ -118,7 +118,7 @@ class Statement extends \PDOStatement
      *
      * @return array
      */
-    public function normalizeRow( $row )
+    public function normalizeRow($row)
     {
 
         foreach ($this->detectColumnTypes() as $key => $type) {
@@ -126,7 +126,7 @@ class Statement extends \PDOStatement
             if ($value === null || $value === false || $type === IReflection::FIELD_TEXT) {
 
             } elseif ($type === IReflection::FIELD_INTEGER) {
-                $row[$key] = is_float( $tmp = $value * 1 ) ? $value : $tmp;
+                $row[$key] = is_float($tmp = $value * 1) ? $value : $tmp;
 
             } elseif ($type === IReflection::FIELD_FLOAT) {
                 $row[$key] = (string)( $tmp = (float)$value ) === $value ? $tmp : $value;
@@ -135,12 +135,12 @@ class Statement extends \PDOStatement
                 $row[$key] = ( (bool)$value ) && $value !== 'f' && $value !== 'F';
 
             } elseif ($type === IReflection::FIELD_DATETIME || $type === IReflection::FIELD_DATE || $type === IReflection::FIELD_TIME) {
-                $row[$key] = new Nette\DateTime( $value );
+                $row[$key] = new Nette\DateTime($value);
 
             }
         }
 
-        return $this->connection->getSupplementalDriver()->normalizeRow( $row, $this );
+        return $this->connection->getSupplementalDriver()->normalizeRow($row, $this);
     }
 
     private function detectColumnTypes()
@@ -148,11 +148,11 @@ class Statement extends \PDOStatement
 
         if ($this->types === null) {
             $this->types = array();
-            if ($this->connection->getSupplementalDriver()->isSupported( ISupplementalDriver::META )) { // workaround for PHP bugs #53782, #54695
+            if ($this->connection->getSupplementalDriver()->isSupported(ISupplementalDriver::META)) { // workaround for PHP bugs #53782, #54695
                 $col = 0;
-                while ($meta = $this->getColumnMeta( $col++ )) {
+                while ($meta = $this->getColumnMeta($col++)) {
                     if (isset( $meta['native_type'] )) {
-                        $this->types[$meta['name']] = Helpers::detectType( $meta['native_type'] );
+                        $this->types[$meta['name']] = Helpers::detectType($meta['native_type']);
                     }
                 }
             }
@@ -185,41 +185,41 @@ class Statement extends \PDOStatement
     public function dump()
     {
 
-        Helpers::dumpResult( $this );
+        Helpers::dumpResult($this);
     }
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return ObjectMixin::call( $this, $name, $args );
-    }
-
-
-    public function &__get( $name )
-    {
-
-        return ObjectMixin::get( $this, $name );
+        return ObjectMixin::call($this, $name, $args);
     }
 
 
-    public function __set( $name, $value )
+    public function &__get($name)
     {
 
-        return ObjectMixin::set( $this, $name, $value );
+        return ObjectMixin::get($this, $name);
     }
 
 
-    public function __isset( $name )
+    public function __set($name, $value)
     {
 
-        return ObjectMixin::has( $this, $name );
+        return ObjectMixin::set($this, $name, $value);
     }
 
 
-    public function __unset( $name )
+    public function __isset($name)
     {
 
-        ObjectMixin::remove( $this, $name );
+        return ObjectMixin::has($this, $name);
+    }
+
+
+    public function __unset($name)
+    {
+
+        ObjectMixin::remove($this, $name);
     }
 
 }

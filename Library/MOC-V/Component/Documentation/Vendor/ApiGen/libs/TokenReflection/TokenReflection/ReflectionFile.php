@@ -40,10 +40,10 @@ class ReflectionFile extends ReflectionBase
      *
      * @throws \TokenReflection\Exception\RuntimeException If the method is called, because it's unsupported.
      */
-    public static function export( Broker $broker, $argument, $return = false )
+    public static function export(Broker $broker, $argument, $return = false)
     {
 
-        throw new Exception\RuntimeException( 'Export is not supported.', Exception\RuntimeException::UNSUPPORTED );
+        throw new Exception\RuntimeException('Export is not supported.', Exception\RuntimeException::UNSUPPORTED);
     }
 
     /**
@@ -65,8 +65,8 @@ class ReflectionFile extends ReflectionBase
     public function __toString()
     {
 
-        throw new Exception\RuntimeException( 'Casting to string is not supported.',
-            Exception\RuntimeException::UNSUPPORTED, $this );
+        throw new Exception\RuntimeException('Casting to string is not supported.',
+            Exception\RuntimeException::UNSUPPORTED, $this);
     }
 
     /**
@@ -77,7 +77,7 @@ class ReflectionFile extends ReflectionBase
     public function getSource()
     {
 
-        return (string)$this->broker->getFileTokens( $this->getName() );
+        return (string)$this->broker->getFileTokens($this->getName());
     }
 
     /**
@@ -88,21 +88,21 @@ class ReflectionFile extends ReflectionBase
      *
      * @return \TokenReflection\ReflectionFile
      */
-    protected function parseStream( Stream $tokenStream, IReflection $parent = null )
+    protected function parseStream(Stream $tokenStream, IReflection $parent = null)
     {
 
         $this->name = $tokenStream->getFileName();
 
         if (1 >= $tokenStream->count()) {
             // No PHP content
-            $this->docComment = new ReflectionAnnotation( $this, null );
+            $this->docComment = new ReflectionAnnotation($this, null);
             return $this;
         }
 
         $docCommentPosition = null;
 
-        if (!$tokenStream->is( T_OPEN_TAG )) {
-            $this->namespaces[] = new ReflectionFileNamespace( $tokenStream, $this->broker, $this );
+        if (!$tokenStream->is(T_OPEN_TAG)) {
+            $this->namespaces[] = new ReflectionFileNamespace($tokenStream, $this->broker, $this);
         } else {
             $tokenStream->skipWhitespaces();
 
@@ -128,7 +128,7 @@ class ReflectionFile extends ReflectionBase
                         break 2;
                     default:
                         $docCommentPosition = $docCommentPosition ?: -1;
-                        $this->namespaces[] = new ReflectionFileNamespace( $tokenStream, $this->broker, $this );
+                        $this->namespaces[] = new ReflectionFileNamespace($tokenStream, $this->broker, $this);
                         break 2;
                 }
 
@@ -137,7 +137,7 @@ class ReflectionFile extends ReflectionBase
 
             while (null !== ( $type = $tokenStream->getType() )) {
                 if (T_NAMESPACE === $type) {
-                    $this->namespaces[] = new ReflectionFileNamespace( $tokenStream, $this->broker, $this );
+                    $this->namespaces[] = new ReflectionFileNamespace($tokenStream, $this->broker, $this);
                 } else {
                     $tokenStream->skipWhitespaces();
                 }
@@ -147,8 +147,8 @@ class ReflectionFile extends ReflectionBase
         if (null !== $docCommentPosition && !empty( $this->namespaces ) && $docCommentPosition === $this->namespaces[0]->getStartPosition()) {
             $docCommentPosition = null;
         }
-        $this->docComment = new ReflectionAnnotation( $this,
-            null !== $docCommentPosition ? $tokenStream->getTokenValue( $docCommentPosition ) : null );
+        $this->docComment = new ReflectionAnnotation($this,
+            null !== $docCommentPosition ? $tokenStream->getTokenValue($docCommentPosition) : null);
 
         return $this;
     }

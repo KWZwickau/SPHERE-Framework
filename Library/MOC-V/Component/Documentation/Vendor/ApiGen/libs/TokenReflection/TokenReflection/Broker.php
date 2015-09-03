@@ -21,12 +21,12 @@ use TokenReflection\Broker;
 use TokenReflection\Exception;
 
 // Detect if we have native traits support
-define( 'NATIVE_TRAITS', defined( 'T_TRAIT' ) );
+define('NATIVE_TRAITS', defined('T_TRAIT'));
 if (!NATIVE_TRAITS) {
-    define( 'T_TRAIT', -1 );
-    define( 'T_TRAIT_C', -2 );
-    define( 'T_INSTEADOF', -3 );
-    define( 'T_CALLABLE', -4 );
+    define('T_TRAIT', -1);
+    define('T_TRAIT_C', -2);
+    define('T_INSTEADOF', -3);
+    define('T_CALLABLE', -4);
 }
 
 /**
@@ -115,7 +115,7 @@ class Broker
      * @param \TokenReflection\Broker\Backend $backend Broker backend instance
      * @param integer                         $options Broker/parsing options
      */
-    public function __construct( Broker\Backend $backend, $options = self::OPTION_DEFAULT )
+    public function __construct(Broker\Backend $backend, $options = self::OPTION_DEFAULT)
     {
 
         $this->cache = array(
@@ -128,8 +128,8 @@ class Broker
         $this->options = $options;
 
         $this->backend = $backend
-            ->setBroker( $this )
-            ->setStoringTokenStreams( (bool)( $options & self::OPTION_SAVE_TOKEN_STREAM ) );
+            ->setBroker($this)
+            ->setStoringTokenStreams((bool)( $options & self::OPTION_SAVE_TOKEN_STREAM ));
     }
 
     /**
@@ -139,13 +139,13 @@ class Broker
      *
      * @return string|boolean
      */
-    public static function getRealPath( $path )
+    public static function getRealPath($path)
     {
 
-        if (0 === strpos( $path, 'phar://' )) {
-            return is_file( $path ) || is_dir( $path ) ? $path : false;
+        if (0 === strpos($path, 'phar://')) {
+            return is_file($path) || is_dir($path) ? $path : false;
         } else {
-            return realpath( $path );
+            return realpath($path);
         }
     }
 
@@ -167,7 +167,7 @@ class Broker
      *
      * @return boolean
      */
-    public function isOptionSet( $option )
+    public function isOptionSet($option)
     {
 
         return (bool)( $this->options & $option );
@@ -182,26 +182,26 @@ class Broker
      *
      * @return boolean|\TokenReflection\ReflectionFile
      */
-    public function processString( $source, $fileName, $returnReflectionFile = false )
+    public function processString($source, $fileName, $returnReflectionFile = false)
     {
 
-        if ($this->backend->isFileProcessed( $fileName )) {
-            $tokens = $this->backend->getFileTokens( $fileName );
+        if ($this->backend->isFileProcessed($fileName)) {
+            $tokens = $this->backend->getFileTokens($fileName);
         } else {
-            $tokens = new Stream\StringStream( $source, $fileName );
+            $tokens = new Stream\StringStream($source, $fileName);
         }
 
-        $reflectionFile = new ReflectionFile( $tokens, $this );
-        if (!$this->backend->isFileProcessed( $fileName )) {
-            $this->backend->addFile( $tokens, $reflectionFile );
+        $reflectionFile = new ReflectionFile($tokens, $this);
+        if (!$this->backend->isFileProcessed($fileName)) {
+            $this->backend->addFile($tokens, $reflectionFile);
 
             // Clear the cache - leave only tokenized reflections
             foreach ($this->cache as $type => $cached) {
                 if (!empty( $cached )) {
-                    $this->cache[$type] = array_filter( $cached, function ( IReflection $reflection ) {
+                    $this->cache[$type] = array_filter($cached, function (IReflection $reflection) {
 
                         return $reflection->isTokenized();
-                    } );
+                    });
                 }
             }
         }
@@ -218,20 +218,20 @@ class Broker
      * @return boolean|array|\TokenReflection\ReflectionFile
      * @throws \TokenReflection\Exception\BrokerException If the target does not exist.
      */
-    public function process( $path, $returnReflectionFile = false )
+    public function process($path, $returnReflectionFile = false)
     {
 
-        if (is_dir( $path )) {
-            return $this->processDirectory( $path, array(), $returnReflectionFile );
-        } elseif (is_file( $path )) {
-            if (preg_match( '~\\.phar(?:$|\\.)~i', $path )) {
-                return $this->processPhar( $path, $returnReflectionFile );
+        if (is_dir($path)) {
+            return $this->processDirectory($path, array(), $returnReflectionFile);
+        } elseif (is_file($path)) {
+            if (preg_match('~\\.phar(?:$|\\.)~i', $path)) {
+                return $this->processPhar($path, $returnReflectionFile);
             }
 
-            return $this->processFile( $path, $returnReflectionFile );
+            return $this->processFile($path, $returnReflectionFile);
         } else {
-            throw new Exception\BrokerException( $this, 'The given directory/file does not exist.',
-                Exception\BrokerException::DOES_NOT_EXIST );
+            throw new Exception\BrokerException($this, 'The given directory/file does not exist.',
+                Exception\BrokerException::DOES_NOT_EXIST);
         }
     }
 
@@ -246,42 +246,42 @@ class Broker
      * @throws \TokenReflection\Exception\BrokerException If the given directory does not exist.
      * @throws \TokenReflection\Exception\BrokerException If the given directory could not be processed.
      */
-    public function processDirectory( $path, $filters = array(), $returnReflectionFile = false )
+    public function processDirectory($path, $filters = array(), $returnReflectionFile = false)
     {
 
-        $realPath = realpath( $path );
-        if (!is_dir( $realPath )) {
-            throw new Exception\BrokerException( $this, 'File does not exist.',
-                Exception\BrokerException::DOES_NOT_EXIST );
+        $realPath = realpath($path);
+        if (!is_dir($realPath)) {
+            throw new Exception\BrokerException($this, 'File does not exist.',
+                Exception\BrokerException::DOES_NOT_EXIST);
         }
 
         try {
             $result = array();
-            foreach (new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $realPath ) ) as $entry) {
+            foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($realPath)) as $entry) {
                 if ($entry->isFile()) {
                     $process = empty( $filters );
                     if (!$process) {
                         foreach ((array)$filters as $filter) {
                             $whitelisting = '!' !== $filter{0};
-                            if (fnmatch( $whitelisting ? $filter : substr( $filter, 1 ), $entry->getPathName(),
-                                FNM_NOESCAPE )) {
+                            if (fnmatch($whitelisting ? $filter : substr($filter, 1), $entry->getPathName(),
+                                FNM_NOESCAPE)) {
                                 $process = $whitelisting;
                             }
                         }
                     }
 
                     if ($process) {
-                        $result[$entry->getPathName()] = $this->processFile( $entry->getPathName(),
-                            $returnReflectionFile );
+                        $result[$entry->getPathName()] = $this->processFile($entry->getPathName(),
+                            $returnReflectionFile);
                     }
                 }
             }
 
             return $returnReflectionFile ? $result : true;
-        } catch( Exception\ParseException $e ) {
+        } catch (Exception\ParseException $e) {
             throw $e;
-        } catch( Exception\StreamException $e ) {
-            throw new Exception\BrokerException( $this, 'Could not process the directory.', 0, $e );
+        } catch (Exception\StreamException $e) {
+            throw new Exception\BrokerException($this, 'Could not process the directory.', 0, $e);
         }
     }
 
@@ -294,36 +294,36 @@ class Broker
      * @return boolean|\TokenReflection\ReflectionFile
      * @throws \TokenReflection\Exception\BrokerException If the file could not be processed.
      */
-    public function processFile( $fileName, $returnReflectionFile = false )
+    public function processFile($fileName, $returnReflectionFile = false)
     {
 
         try {
-            if ($this->backend->isFileProcessed( $fileName )) {
-                $tokens = $this->backend->getFileTokens( $fileName );
+            if ($this->backend->isFileProcessed($fileName)) {
+                $tokens = $this->backend->getFileTokens($fileName);
             } else {
-                $tokens = new Stream\FileStream( $fileName );
+                $tokens = new Stream\FileStream($fileName);
             }
 
-            $reflectionFile = new ReflectionFile( $tokens, $this );
-            if (!$this->backend->isFileProcessed( $fileName )) {
-                $this->backend->addFile( $tokens, $reflectionFile );
+            $reflectionFile = new ReflectionFile($tokens, $this);
+            if (!$this->backend->isFileProcessed($fileName)) {
+                $this->backend->addFile($tokens, $reflectionFile);
 
                 // Clear the cache - leave only tokenized reflections
                 foreach ($this->cache as $type => $cached) {
                     if (!empty( $cached )) {
-                        $this->cache[$type] = array_filter( $cached, function ( IReflection $reflection ) {
+                        $this->cache[$type] = array_filter($cached, function (IReflection $reflection) {
 
                             return $reflection->isTokenized();
-                        } );
+                        });
                     }
                 }
             }
 
             return $returnReflectionFile ? $reflectionFile : true;
-        } catch( Exception\ParseException $e ) {
+        } catch (Exception\ParseException $e) {
             throw $e;
-        } catch( Exception\StreamException $e ) {
-            throw new Exception\BrokerException( $this, 'Could not process the file.', 0, $e );
+        } catch (Exception\StreamException $e) {
+            throw new Exception\BrokerException($this, 'Could not process the file.', 0, $e);
         }
     }
 
@@ -338,32 +338,32 @@ class Broker
      * @throws \TokenReflection\Exception\BrokerException If the given archive could not be read.
      * @throws \TokenReflection\Exception\BrokerException If the given archive could not be processed.
      */
-    public function processPhar( $fileName, $returnReflectionFile = false )
+    public function processPhar($fileName, $returnReflectionFile = false)
     {
 
-        if (!is_file( $fileName )) {
-            throw new Exception\BrokerException( $this, 'File does not exist.',
-                Exception\BrokerException::DOES_NOT_EXIST );
+        if (!is_file($fileName)) {
+            throw new Exception\BrokerException($this, 'File does not exist.',
+                Exception\BrokerException::DOES_NOT_EXIST);
         }
 
-        if (!extension_loaded( 'Phar' )) {
-            throw new Exception\BrokerException( $this, 'The PHAR PHP extension is not loaded.',
-                Exception\BrokerException::PHP_EXT_MISSING );
+        if (!extension_loaded('Phar')) {
+            throw new Exception\BrokerException($this, 'The PHAR PHP extension is not loaded.',
+                Exception\BrokerException::PHP_EXT_MISSING);
         }
 
         try {
             $result = array();
-            foreach (new RecursiveIteratorIterator( new \Phar( $fileName ) ) as $entry) {
+            foreach (new RecursiveIteratorIterator(new \Phar($fileName)) as $entry) {
                 if ($entry->isFile()) {
-                    $result[$entry->getPathName()] = $this->processFile( $entry->getPathName(), $returnReflectionFile );
+                    $result[$entry->getPathName()] = $this->processFile($entry->getPathName(), $returnReflectionFile);
                 }
             }
 
             return $returnReflectionFile ? $result : true;
-        } catch( Exception\ParseException $e ) {
+        } catch (Exception\ParseException $e) {
             throw $e;
-        } catch( Exception\StreamException $e ) {
-            throw new Exception\BrokerException( $this, 'Could not process the archive.', 0, $e );
+        } catch (Exception\StreamException $e) {
+            throw new Exception\BrokerException($this, 'Could not process the archive.', 0, $e);
         }
     }
 
@@ -374,10 +374,10 @@ class Broker
      *
      * @return boolean
      */
-    public function hasNamespace( $namespaceName )
+    public function hasNamespace($namespaceName)
     {
 
-        return isset( $this->cache[self::CACHE_NAMESPACE][$namespaceName] ) || $this->backend->hasNamespace( $namespaceName );
+        return isset( $this->cache[self::CACHE_NAMESPACE][$namespaceName] ) || $this->backend->hasNamespace($namespaceName);
     }
 
     /**
@@ -387,16 +387,16 @@ class Broker
      *
      * @return \TokenReflection\ReflectionNamespace|null
      */
-    public function getNamespace( $namespaceName )
+    public function getNamespace($namespaceName)
     {
 
-        $namespaceName = ltrim( $namespaceName, '\\' );
+        $namespaceName = ltrim($namespaceName, '\\');
 
         if (isset( $this->cache[self::CACHE_NAMESPACE][$namespaceName] )) {
             return $this->cache[self::CACHE_NAMESPACE][$namespaceName];
         }
 
-        $namespace = $this->backend->getNamespace( $namespaceName );
+        $namespace = $this->backend->getNamespace($namespaceName);
         if (null !== $namespace) {
             $this->cache[self::CACHE_NAMESPACE][$namespaceName] = $namespace;
         }
@@ -411,10 +411,10 @@ class Broker
      *
      * @return boolean
      */
-    public function hasClass( $className )
+    public function hasClass($className)
     {
 
-        return isset( $this->cache[self::CACHE_CLASS][$className] ) || $this->backend->hasClass( $className );
+        return isset( $this->cache[self::CACHE_CLASS][$className] ) || $this->backend->hasClass($className);
     }
 
     /**
@@ -424,16 +424,16 @@ class Broker
      *
      * @return \TokenReflection\ReflectionClass|null
      */
-    public function getClass( $className )
+    public function getClass($className)
     {
 
-        $className = ltrim( $className, '\\' );
+        $className = ltrim($className, '\\');
 
         if (isset( $this->cache[self::CACHE_CLASS][$className] )) {
             return $this->cache[self::CACHE_CLASS][$className];
         }
 
-        $this->cache[self::CACHE_CLASS][$className] = $this->backend->getClass( $className );
+        $this->cache[self::CACHE_CLASS][$className] = $this->backend->getClass($className);
         return $this->cache[self::CACHE_CLASS][$className];
     }
 
@@ -444,10 +444,10 @@ class Broker
      *
      * @return array
      */
-    public function getClasses( $types = Broker\Backend::TOKENIZED_CLASSES )
+    public function getClasses($types = Broker\Backend::TOKENIZED_CLASSES)
     {
 
-        return $this->backend->getClasses( $types );
+        return $this->backend->getClasses($types);
     }
 
     /**
@@ -457,10 +457,10 @@ class Broker
      *
      * @return boolean
      */
-    public function hasConstant( $constantName )
+    public function hasConstant($constantName)
     {
 
-        return isset( $this->cache[self::CACHE_CONSTANT][$constantName] ) || $this->backend->hasConstant( $constantName );
+        return isset( $this->cache[self::CACHE_CONSTANT][$constantName] ) || $this->backend->hasConstant($constantName);
     }
 
     /**
@@ -470,16 +470,16 @@ class Broker
      *
      * @return \TokenReflection\ReflectionConstant|null
      */
-    public function getConstant( $constantName )
+    public function getConstant($constantName)
     {
 
-        $constantName = ltrim( $constantName, '\\' );
+        $constantName = ltrim($constantName, '\\');
 
         if (isset( $this->cache[self::CACHE_CONSTANT][$constantName] )) {
             return $this->cache[self::CACHE_CONSTANT][$constantName];
         }
 
-        if ($constant = $this->backend->getConstant( $constantName )) {
+        if ($constant = $this->backend->getConstant($constantName)) {
             $this->cache[self::CACHE_CONSTANT][$constantName] = $constant;
         }
 
@@ -504,10 +504,10 @@ class Broker
      *
      * @return boolean
      */
-    public function hasFunction( $functionName )
+    public function hasFunction($functionName)
     {
 
-        return isset( $this->cache[self::CACHE_FUNCTION][$functionName] ) || $this->backend->hasFunction( $functionName );
+        return isset( $this->cache[self::CACHE_FUNCTION][$functionName] ) || $this->backend->hasFunction($functionName);
     }
 
     /**
@@ -517,16 +517,16 @@ class Broker
      *
      * @return \TokenReflection\ReflectionFunction|null
      */
-    public function getFunction( $functionName )
+    public function getFunction($functionName)
     {
 
-        $functionName = ltrim( $functionName, '\\' );
+        $functionName = ltrim($functionName, '\\');
 
         if (isset( $this->cache[self::CACHE_FUNCTION][$functionName] )) {
             return $this->cache[self::CACHE_FUNCTION][$functionName];
         }
 
-        if ($function = $this->backend->getFunction( $functionName )) {
+        if ($function = $this->backend->getFunction($functionName)) {
             $this->cache[self::CACHE_FUNCTION][$functionName] = $function;
         }
 
@@ -551,10 +551,10 @@ class Broker
      *
      * @return boolean
      */
-    public function hasFile( $fileName )
+    public function hasFile($fileName)
     {
 
-        return $this->backend->hasFile( $fileName );
+        return $this->backend->hasFile($fileName);
     }
 
     /**
@@ -564,10 +564,10 @@ class Broker
      *
      * @return \TokenReflection\ReflectionFile|null
      */
-    public function getFile( $fileName )
+    public function getFile($fileName)
     {
 
-        return $this->backend->getFile( $fileName );
+        return $this->backend->getFile($fileName);
     }
 
     /**
@@ -588,9 +588,9 @@ class Broker
      *
      * @return \TokenReflection\Stream\StreamBase|null
      */
-    public function getFileTokens( $fileName )
+    public function getFileTokens($fileName)
     {
 
-        return $this->backend->getFileTokens( $fileName );
+        return $this->backend->getFileTokens($fileName);
     }
 }

@@ -21,6 +21,7 @@ namespace Doctrine\Common\Collections\Expr;
 
 class Value implements Expression
 {
+
     /**
      * @var mixed
      */
@@ -31,6 +32,7 @@ class Value implements Expression
      */
     public function __construct($value)
     {
+
         $this->value = $value;
     }
 
@@ -39,6 +41,7 @@ class Value implements Expression
      */
     public function getValue()
     {
+
         return $this->value;
     }
 
@@ -47,6 +50,7 @@ class Value implements Expression
      */
     public function visit(ExpressionVisitor $visitor)
     {
+
         return $visitor->walkValue($this);
     }
 }

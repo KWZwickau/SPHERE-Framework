@@ -21,6 +21,7 @@ namespace Symfony\Component\Routing\Annotation;
  */
 class Route
 {
+
     private $path;
     private $name;
     private $requirements = array();
@@ -40,15 +41,17 @@ class Route
      */
     public function __construct(array $data)
     {
-        if (isset($data['value'])) {
+
+        if (isset( $data['value'] )) {
             $data['path'] = $data['value'];
-            unset($data['value']);
+            unset( $data['value'] );
         }
 
         foreach ($data as $key => $value) {
             $method = 'set'.str_replace('_', '', $key);
             if (!method_exists($this, $method)) {
-                throw new \BadMethodCallException(sprintf("Unknown property '%s' on annotation '%s'.", $key, get_class($this)));
+                throw new \BadMethodCallException(sprintf("Unknown property '%s' on annotation '%s'.", $key,
+                    get_class($this)));
             }
             $this->$method($value);
         }
@@ -59,6 +62,7 @@ class Route
      */
     public function setPattern($pattern)
     {
+
         $this->path = $pattern;
     }
 
@@ -67,15 +71,17 @@ class Route
      */
     public function getPattern()
     {
+
         return $this->path;
     }
 
     public function getPath()
     {
+
         return $this->path;
     }
 
-    public function setPath( $path )
+    public function setPath($path)
     {
 
         $this->path = $path;
@@ -83,10 +89,11 @@ class Route
 
     public function getHost()
     {
+
         return $this->host;
     }
 
-    public function setHost( $pattern )
+    public function setHost($pattern)
     {
 
         $this->host = $pattern;
@@ -94,10 +101,11 @@ class Route
 
     public function getName()
     {
+
         return $this->name;
     }
 
-    public function setName( $name )
+    public function setName($name)
     {
 
         $this->name = $name;
@@ -105,10 +113,11 @@ class Route
 
     public function getRequirements()
     {
+
         return $this->requirements;
     }
 
-    public function setRequirements( $requirements )
+    public function setRequirements($requirements)
     {
 
         $this->requirements = $requirements;
@@ -116,10 +125,11 @@ class Route
 
     public function getOptions()
     {
+
         return $this->options;
     }
 
-    public function setOptions( $options )
+    public function setOptions($options)
     {
 
         $this->options = $options;
@@ -127,10 +137,11 @@ class Route
 
     public function getDefaults()
     {
+
         return $this->defaults;
     }
 
-    public function setDefaults( $defaults )
+    public function setDefaults($defaults)
     {
 
         $this->defaults = $defaults;
@@ -138,32 +149,35 @@ class Route
 
     public function getSchemes()
     {
+
         return $this->schemes;
     }
 
-    public function setSchemes( $schemes )
+    public function setSchemes($schemes)
     {
 
-        $this->schemes = is_array( $schemes ) ? $schemes : array( $schemes );
+        $this->schemes = is_array($schemes) ? $schemes : array($schemes);
     }
 
     public function getMethods()
     {
+
         return $this->methods;
     }
 
-    public function setMethods( $methods )
+    public function setMethods($methods)
     {
 
-        $this->methods = is_array( $methods ) ? $methods : array( $methods );
+        $this->methods = is_array($methods) ? $methods : array($methods);
     }
 
     public function getCondition()
     {
+
         return $this->condition;
     }
 
-    public function setCondition( $condition )
+    public function setCondition($condition)
     {
 
         $this->condition = $condition;

@@ -3,31 +3,35 @@
 namespace Guzzle\Tests\Plugin\Backoff;
 
 use Guzzle\Http\Message\Request;
-use Guzzle\Plugin\Backoff\TruncatedBackoffStrategy;
 use Guzzle\Plugin\Backoff\CallbackBackoffStrategy;
+use Guzzle\Plugin\Backoff\TruncatedBackoffStrategy;
 
 /**
  * @covers Guzzle\Plugin\Backoff\AbstractBackoffStrategy
  */
 class AbstractBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 {
-    protected function getMockStrategy()
-    {
-        return $this->getMockBuilder('Guzzle\Plugin\Backoff\AbstractBackoffStrategy')
-            ->setMethods(array('getDelay', 'makesDecision'))
-            ->getMockForAbstractClass();
-    }
 
     public function testReturnsZeroWhenNoNextAndGotNull()
     {
+
         $request = new Request('GET', 'http://www.foo.com');
         $mock = $this->getMockStrategy();
         $mock->expects($this->atLeastOnce())->method('getDelay')->will($this->returnValue(null));
         $this->assertEquals(0, $mock->getBackoffPeriod(0, $request));
     }
 
+    protected function getMockStrategy()
+    {
+
+        return $this->getMockBuilder('Guzzle\Plugin\Backoff\AbstractBackoffStrategy')
+            ->setMethods(array('getDelay', 'makesDecision'))
+            ->getMockForAbstractClass();
+    }
+
     public function testReturnsFalse()
     {
+
         $request = new Request('GET', 'http://www.foo.com');
         $mock = $this->getMockStrategy();
         $mock->expects($this->atLeastOnce())->method('getDelay')->will($this->returnValue(false));
@@ -36,6 +40,7 @@ class AbstractBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsNextValueWhenNullOrTrue()
     {
+
         $request = new Request('GET', 'http://www.foo.com');
         $mock = $this->getMockStrategy();
         $mock->expects($this->atLeastOnce())->method('getDelay')->will($this->returnValue(null));
@@ -51,6 +56,7 @@ class AbstractBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsFalseWhenNullAndNoNext()
     {
+
         $request = new Request('GET', 'http://www.foo.com');
         $s = new TruncatedBackoffStrategy(2);
         $this->assertFalse($s->getBackoffPeriod(0, $request));
@@ -58,6 +64,7 @@ class AbstractBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasNext()
     {
+
         $a = new TruncatedBackoffStrategy(2);
         $b = new TruncatedBackoffStrategy(2);
         $a->setNext($b);
@@ -66,10 +73,23 @@ class AbstractBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSkipsOtherDecisionsInChainWhenOneReturnsTrue()
     {
-        $a = new CallbackBackoffStrategy(function () { return null; }, true);
-        $b = new CallbackBackoffStrategy(function () { return true; }, true);
-        $c = new CallbackBackoffStrategy(function () { return null; }, true);
-        $d = new CallbackBackoffStrategy(function () { return 10; }, false);
+
+        $a = new CallbackBackoffStrategy(function () {
+
+            return null;
+        }, true);
+        $b = new CallbackBackoffStrategy(function () {
+
+            return true;
+        }, true);
+        $c = new CallbackBackoffStrategy(function () {
+
+            return null;
+        }, true);
+        $d = new CallbackBackoffStrategy(function () {
+
+            return 10;
+        }, false);
         $a->setNext($b);
         $b->setNext($c);
         $c->setNext($d);
@@ -78,8 +98,15 @@ class AbstractBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsZeroWhenDecisionMakerReturnsTrueButNoFurtherStrategiesAreInTheChain()
     {
-        $a = new CallbackBackoffStrategy(function () { return null; }, true);
-        $b = new CallbackBackoffStrategy(function () { return true; }, true);
+
+        $a = new CallbackBackoffStrategy(function () {
+
+            return null;
+        }, true);
+        $b = new CallbackBackoffStrategy(function () {
+
+            return true;
+        }, true);
         $a->setNext($b);
         $this->assertSame(0, $a->getBackoffPeriod(2, new Request('GET', 'http://www.foo.com')));
     }

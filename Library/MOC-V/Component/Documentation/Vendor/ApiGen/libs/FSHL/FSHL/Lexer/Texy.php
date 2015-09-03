@@ -65,9 +65,9 @@ class Texy implements FSHL\Lexer
         return array(
             'LINE_BODY'            => array(
                 array(
-                    '/---' => array( 'BLOCK_IN', Generator::NEXT ),
-                    '\---' => array( 'BLOCK_OUT', Generator::NEXT ),
-                    'LINE' => array( 'LINE', Generator::NEXT )
+                    '/---' => array('BLOCK_IN', Generator::NEXT),
+                    '\---' => array('BLOCK_OUT', Generator::NEXT),
+                    'LINE' => array('LINE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -75,8 +75,8 @@ class Texy implements FSHL\Lexer
             ),
             'LINE'                 => array(
                 array(
-                    'LINE'   => array( 'LINE_DOUBLE', Generator::NEXT ),
-                    '!SPACE' => array( 'LINE_SINGLE', Generator::BACK )
+                    'LINE'   => array('LINE_DOUBLE', Generator::NEXT),
+                    '!SPACE' => array('LINE_SINGLE', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -84,11 +84,11 @@ class Texy implements FSHL\Lexer
             ),
             'LINE_SINGLE'          => array(
                 array(
-                    '##'  => array( 'HEADER_IN', Generator::NEXT ),
-                    '**'  => array( 'HEADER_IN', Generator::NEXT ),
-                    '=='  => array( 'HEADER_IN', Generator::NEXT ),
-                    '--'  => array( 'HEADER_IN', Generator::NEXT ),
-                    'ALL' => array( 'LINE_BODY', Generator::BACK )
+                    '##'  => array('HEADER_IN', Generator::NEXT),
+                    '**'  => array('HEADER_IN', Generator::NEXT),
+                    '=='  => array('HEADER_IN', Generator::NEXT),
+                    '--'  => array('HEADER_IN', Generator::NEXT),
+                    'ALL' => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -96,14 +96,14 @@ class Texy implements FSHL\Lexer
             ),
             'LINE_DOUBLE'          => array(
                 array(
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '##'   => array( 'HEADER_IN', Generator::NEXT ),
-                    '=='   => array( 'HEADER_IN', Generator::NEXT ),
-                    '--'   => array( 'HORIZONTAL_LINE', Generator::NEXT ),
-                    '- -'  => array( 'HORIZONTAL_LINE', Generator::NEXT ),
-                    '**'   => array( 'HORIZONTAL_LINE', Generator::NEXT ),
-                    '* *'  => array( 'HORIZONTAL_LINE', Generator::NEXT ),
-                    'ALL'  => array( 'LINE_BODY', Generator::BACK )
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    '##'   => array('HEADER_IN', Generator::NEXT),
+                    '=='   => array('HEADER_IN', Generator::NEXT),
+                    '--'   => array('HORIZONTAL_LINE', Generator::NEXT),
+                    '- -'  => array('HORIZONTAL_LINE', Generator::NEXT),
+                    '**'   => array('HORIZONTAL_LINE', Generator::NEXT),
+                    '* *'  => array('HORIZONTAL_LINE', Generator::NEXT),
+                    'ALL'  => array('LINE_BODY', Generator::BACK)
                 ),
                 'texy-err',
                 null,
@@ -111,12 +111,12 @@ class Texy implements FSHL\Lexer
             ),
             'HEADER_IN'            => array(
                 array(
-                    '='    => array( 'HEADER_IN', Generator::NEXT ),
-                    '#'    => array( 'HEADER_IN', Generator::NEXT ),
-                    '-'    => array( 'HEADER_IN', Generator::NEXT ),
-                    '*'    => array( 'HEADER_IN', Generator::NEXT ),
-                    'LINE' => array( 'LINE_DOUBLE', Generator::NEXT ),
-                    'ALL'  => array( 'HEADER_BODY', Generator::BACK )
+                    '='    => array('HEADER_IN', Generator::NEXT),
+                    '#'    => array('HEADER_IN', Generator::NEXT),
+                    '-'    => array('HEADER_IN', Generator::NEXT),
+                    '*'    => array('HEADER_IN', Generator::NEXT),
+                    'LINE' => array('LINE_DOUBLE', Generator::NEXT),
+                    'ALL'  => array('HEADER_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hlead',
@@ -124,11 +124,11 @@ class Texy implements FSHL\Lexer
             ),
             'HEADER_BODY'          => array(
                 array(
-                    '='    => array( 'HEADER_OUT', Generator::NEXT ),
-                    '#'    => array( 'HEADER_OUT', Generator::NEXT ),
-                    '-'    => array( 'HEADER_OUT', Generator::NEXT ),
-                    '*'    => array( 'HEADER_OUT', Generator::NEXT ),
-                    'LINE' => array( 'LINE_DOUBLE', Generator::NEXT )
+                    '='    => array('HEADER_OUT', Generator::NEXT),
+                    '#'    => array('HEADER_OUT', Generator::NEXT),
+                    '-'    => array('HEADER_OUT', Generator::NEXT),
+                    '*'    => array('HEADER_OUT', Generator::NEXT),
+                    'LINE' => array('LINE_DOUBLE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hbody',
@@ -136,7 +136,7 @@ class Texy implements FSHL\Lexer
             ),
             'HEADER_OUT'           => array(
                 array(
-                    'LINE' => array( 'LINE_DOUBLE', Generator::NEXT )
+                    'LINE' => array('LINE_DOUBLE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hlead',
@@ -144,7 +144,7 @@ class Texy implements FSHL\Lexer
             ),
             'HORIZONTAL_LINE'      => array(
                 array(
-                    'LINE' => array( 'LINE_BODY', Generator::BACK )
+                    'LINE' => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -152,11 +152,11 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_IN'             => array(
                 array(
-                    'html' => array( 'BLOCK_HTML', Generator::NEXT ),
-                    'code' => array( 'BLOCK_CODE', Generator::NEXT ),
-                    'div'  => array( 'BLOCK_DUMMY', Generator::NEXT ),
-                    'text' => array( 'BLOCK_TEXT', Generator::NEXT ),
-                    'ALL'  => array( 'LINE_BODY', Generator::BACK )
+                    'html' => array('BLOCK_HTML', Generator::NEXT),
+                    'code' => array('BLOCK_CODE', Generator::NEXT),
+                    'div'  => array('BLOCK_DUMMY', Generator::NEXT),
+                    'text' => array('BLOCK_TEXT', Generator::NEXT),
+                    'ALL'  => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -164,7 +164,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_OUT'            => array(
                 array(
-                    'ALL' => array( 'LINE_BODY', Generator::BACK )
+                    'ALL' => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -172,7 +172,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_DUMMY'          => array(
                 array(
-                    'ALL' => array( 'LINE_BODY', Generator::BACK )
+                    'ALL' => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -180,7 +180,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_TEXT'           => array(
                 array(
-                    'LINE' => array( 'BLOCK_TEXT_BODY', Generator::BACK )
+                    'LINE' => array('BLOCK_TEXT_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -188,7 +188,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_TEXT_BODY'      => array(
                 array(
-                    'LINE' => array( 'BLOCK_TEXT_BODY_LINE', Generator::NEXT )
+                    'LINE' => array('BLOCK_TEXT_BODY_LINE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-text',
@@ -196,8 +196,8 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_TEXT_BODY_LINE' => array(
                 array(
-                    '\---' => array( 'BLOCK_TEXT_BODY_OUT', Generator::NEXT ),
-                    'ALL'  => array( 'BLOCK_TEXT_BODY', Generator::BACK )
+                    '\---' => array('BLOCK_TEXT_BODY_OUT', Generator::NEXT),
+                    'ALL'  => array('BLOCK_TEXT_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-text',
@@ -205,7 +205,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_TEXT_BODY_OUT'  => array(
                 array(
-                    'ALL' => array( 'LINE_BODY', Generator::BACK )
+                    'ALL' => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -213,7 +213,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_HTML'           => array(
                 array(
-                    'LINE' => array( 'BLOCK_HTML_BODY', Generator::BACK )
+                    'LINE' => array('BLOCK_HTML_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -221,7 +221,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_HTML_BODY'      => array(
                 array(
-                    'LINE' => array( 'BLOCK_HTML_BODY_LINE', Generator::NEXT )
+                    'LINE' => array('BLOCK_HTML_BODY_LINE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-html',
@@ -229,8 +229,8 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_HTML_BODY_LINE' => array(
                 array(
-                    '\---' => array( 'BLOCK_HTML_BODY_OUT', Generator::NEXT ),
-                    'ALL'  => array( 'BLOCK_HTML_BODY', Generator::BACK )
+                    '\---' => array('BLOCK_HTML_BODY_OUT', Generator::NEXT),
+                    'ALL'  => array('BLOCK_HTML_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-html',
@@ -238,7 +238,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_HTML_BODY_OUT'  => array(
                 array(
-                    'ALL' => array( 'LINE_BODY', Generator::BACK )
+                    'ALL' => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -246,7 +246,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_CODE'           => array(
                 array(
-                    'LINE' => array( 'BLOCK_CODE_BODY', Generator::BACK )
+                    'LINE' => array('BLOCK_CODE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',
@@ -254,7 +254,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_CODE_BODY'      => array(
                 array(
-                    'LINE' => array( 'BLOCK_CODE_BODY_LINE', Generator::NEXT )
+                    'LINE' => array('BLOCK_CODE_BODY_LINE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-code',
@@ -262,8 +262,8 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_CODE_BODY_LINE' => array(
                 array(
-                    '\---' => array( 'BLOCK_CODE_BODY_OUT', Generator::NEXT ),
-                    'ALL'  => array( 'BLOCK_CODE_BODY', Generator::BACK )
+                    '\---' => array('BLOCK_CODE_BODY_OUT', Generator::NEXT),
+                    'ALL'  => array('BLOCK_CODE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-code',
@@ -271,7 +271,7 @@ class Texy implements FSHL\Lexer
             ),
             'BLOCK_CODE_BODY_OUT'  => array(
                 array(
-                    'ALL' => array( 'LINE_BODY', Generator::BACK )
+                    'ALL' => array('LINE_BODY', Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'texy-hr',

@@ -4,17 +4,18 @@ namespace Guzzle\Http\Message;
 
 use Guzzle\Common\Collection;
 use Guzzle\Common\HasDispatcherInterface;
-use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\ClientInterface;
 use Guzzle\Http\EntityBodyInterface;
-use Guzzle\Http\Url;
+use Guzzle\Http\Exception\RequestException;
 use Guzzle\Http\QueryString;
+use Guzzle\Http\Url;
 
 /**
  * Generic HTTP request interface
  */
 interface RequestInterface extends MessageInterface, HasDispatcherInterface
 {
+
     const STATE_NEW = 'new';
     const STATE_COMPLETE = 'complete';
     const STATE_TRANSFER = 'transfer';
@@ -62,7 +63,7 @@ interface RequestInterface extends MessageInterface, HasDispatcherInterface
     /**
      * Set the URL of the request
      *
-     * @param string $url|Url Full URL to set including query string
+     * @param string $url |Url Full URL to set including query string
      *
      * @return self
      */
@@ -244,6 +245,7 @@ interface RequestInterface extends MessageInterface, HasDispatcherInterface
      *
      * @param EntityBodyInterface|string|resource $body Response body object. Pass a string to attempt to store the
      *                                                  response body in a local file.
+     *
      * @return Request
      */
     public function setResponseBody($body);

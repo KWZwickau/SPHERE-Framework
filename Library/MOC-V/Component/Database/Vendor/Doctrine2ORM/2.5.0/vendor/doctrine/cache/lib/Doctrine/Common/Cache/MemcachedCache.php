@@ -19,7 +19,7 @@
 
 namespace Doctrine\Common\Cache;
 
-use \Memcached;
+use Memcached;
 
 /**
  * Memcached cache provider.
@@ -34,10 +34,22 @@ use \Memcached;
  */
 class MemcachedCache extends CacheProvider
 {
+
     /**
      * @var Memcached|null
      */
     private $memcached;
+
+    /**
+     * Gets the memcached instance used by the cache.
+     *
+     * @return Memcached|null
+     */
+    public function getMemcached()
+    {
+
+        return $this->memcached;
+    }
 
     /**
      * Sets the memcache instance to use.
@@ -48,17 +60,8 @@ class MemcachedCache extends CacheProvider
      */
     public function setMemcached(Memcached $memcached)
     {
-        $this->memcached = $memcached;
-    }
 
-    /**
-     * Gets the memcached instance used by the cache.
-     *
-     * @return Memcached|null
-     */
-    public function getMemcached()
-    {
-        return $this->memcached;
+        $this->memcached = $memcached;
     }
 
     /**
@@ -66,6 +69,7 @@ class MemcachedCache extends CacheProvider
      */
     protected function doFetch($id)
     {
+
         return $this->memcached->get($id);
     }
 
@@ -74,6 +78,7 @@ class MemcachedCache extends CacheProvider
      */
     protected function doFetchMultiple(array $keys)
     {
+
         return $this->memcached->getMulti($keys);
     }
 
@@ -82,7 +87,8 @@ class MemcachedCache extends CacheProvider
      */
     protected function doContains($id)
     {
-        return (false !== $this->memcached->get($id));
+
+        return ( false !== $this->memcached->get($id) );
     }
 
     /**
@@ -90,10 +96,11 @@ class MemcachedCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         if ($lifeTime > 30 * 24 * 3600) {
             $lifeTime = time() + $lifeTime;
         }
-        return $this->memcached->set($id, $data, (int) $lifeTime);
+        return $this->memcached->set($id, $data, (int)$lifeTime);
     }
 
     /**
@@ -101,6 +108,7 @@ class MemcachedCache extends CacheProvider
      */
     protected function doDelete($id)
     {
+
         return $this->memcached->delete($id);
     }
 
@@ -109,6 +117,7 @@ class MemcachedCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         return $this->memcached->flush();
     }
 
@@ -117,10 +126,11 @@ class MemcachedCache extends CacheProvider
      */
     protected function doGetStats()
     {
-        $stats   = $this->memcached->getStats();
+
+        $stats = $this->memcached->getStats();
         $servers = $this->memcached->getServerList();
-        $key     = $servers[0]['host'] . ':' . $servers[0]['port'];
-        $stats   = $stats[$key];
+        $key = $servers[0]['host'].':'.$servers[0]['port'];
+        $stats = $stats[$key];
         return array(
             Cache::STATS_HITS   => $stats['get_hits'],
             Cache::STATS_MISSES => $stats['get_misses'],

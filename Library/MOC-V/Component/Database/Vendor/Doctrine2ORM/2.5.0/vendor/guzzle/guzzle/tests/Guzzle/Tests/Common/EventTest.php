@@ -9,20 +9,10 @@ use Guzzle\Common\Event;
  */
 class EventTest extends \Guzzle\Tests\GuzzleTestCase
 {
-    /**
-     * @return Event
-     */
-    private function getEvent()
-    {
-        return new Event(array(
-            'test'  => '123',
-            'other' => '456',
-            'event' => 'test.notify'
-        ));
-    }
 
     public function testAllowsParameterInjection()
     {
+
         $event = new Event(array(
             'test' => '123'
         ));
@@ -31,6 +21,7 @@ class EventTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testImplementsArrayAccess()
     {
+
         $event = $this->getEvent();
         $this->assertEquals('123', $event['test']);
         $this->assertNull($event['foobar']);
@@ -38,21 +29,36 @@ class EventTest extends \Guzzle\Tests\GuzzleTestCase
         $this->assertTrue($event->offsetExists('test'));
         $this->assertFalse($event->offsetExists('foobar'));
 
-        unset($event['test']);
+        unset( $event['test'] );
         $this->assertFalse($event->offsetExists('test'));
 
         $event['test'] = 'new';
         $this->assertEquals('new', $event['test']);
     }
 
+    /**
+     * @return Event
+     */
+    private function getEvent()
+    {
+
+        return new Event(array(
+            'test'  => '123',
+            'other' => '456',
+            'event' => 'test.notify'
+        ));
+    }
+
     public function testImplementsIteratorAggregate()
     {
+
         $event = $this->getEvent();
         $this->assertInstanceOf('ArrayIterator', $event->getIterator());
     }
 
     public function testConvertsToArray()
     {
+
         $this->assertEquals(array(
             'test'  => '123',
             'other' => '456',

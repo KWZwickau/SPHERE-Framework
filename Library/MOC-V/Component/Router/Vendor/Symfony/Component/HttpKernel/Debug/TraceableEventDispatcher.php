@@ -25,6 +25,7 @@ use Symfony\Component\HttpKernel\Profiler\Profiler;
  */
 class TraceableEventDispatcher extends BaseTraceableEventDispatcher
 {
+
     /**
      * Sets the profiler.
      *
@@ -45,6 +46,7 @@ class TraceableEventDispatcher extends BaseTraceableEventDispatcher
      */
     protected function preDispatch($eventName, Event $event)
     {
+
         switch ($eventName) {
             case KernelEvents::REQUEST:
                 $this->stopwatch->openSection();
@@ -65,7 +67,8 @@ class TraceableEventDispatcher extends BaseTraceableEventDispatcher
                 // which must be caught.
                 try {
                     $this->stopwatch->openSection($token);
-                } catch (\LogicException $e) {}
+                } catch (\LogicException $e) {
+                }
                 break;
         }
     }
@@ -75,6 +78,7 @@ class TraceableEventDispatcher extends BaseTraceableEventDispatcher
      */
     protected function postDispatch($eventName, Event $event)
     {
+
         switch ($eventName) {
             case KernelEvents::CONTROLLER:
                 $this->stopwatch->start('controller', 'section');
@@ -89,7 +93,8 @@ class TraceableEventDispatcher extends BaseTraceableEventDispatcher
                 $token = $event->getResponse()->headers->get('X-Debug-Token');
                 try {
                     $this->stopwatch->stopSection($token);
-                } catch (\LogicException $e) {}
+                } catch (\LogicException $e) {
+                }
                 break;
         }
     }

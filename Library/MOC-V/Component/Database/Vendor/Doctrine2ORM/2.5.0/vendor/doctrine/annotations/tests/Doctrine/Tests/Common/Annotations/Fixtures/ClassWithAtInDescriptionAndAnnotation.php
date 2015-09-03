@@ -2,10 +2,9 @@
 
 namespace Doctrine\Tests\Common\Annotations\Fixtures;
 
-use Doctrine\Tests\Common\Annotations\Fixtures\AnnotationTargetPropertyMethod;
-
 class ClassWithAtInDescriptionAndAnnotation
 {
+
     /**
      * Lala
      *
@@ -28,7 +27,7 @@ class ClassWithAtInDescriptionAndAnnotation
      *     "email3": "@example.com"
      * }
      *
-     *@AnnotationTargetPropertyMethod("Bar")
+     * @AnnotationTargetPropertyMethod("Bar")
      */
     public $bar;
 }

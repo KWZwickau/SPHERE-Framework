@@ -23,21 +23,21 @@ class Smarty_Internal_Compile_Eval extends Smarty_Internal_CompileBase
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $required_attributes = array( 'var' );
+    public $required_attributes = array('var');
     /**
      * Attribute definition: Overwrites base class.
      *
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $optional_attributes = array( 'assign' );
+    public $optional_attributes = array('assign');
     /**
      * Attribute definition: Overwrites base class.
      *
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $shorttag_order = array( 'var', 'assign' );
+    public $shorttag_order = array('var', 'assign');
 
     /**
      * Compiles code for the {eval} tag
@@ -47,13 +47,13 @@ class Smarty_Internal_Compile_Eval extends Smarty_Internal_CompileBase
      *
      * @return string compiled code
      */
-    public function compile( $args, $compiler )
+    public function compile($args, $compiler)
     {
 
-        $this->required_attributes = array( 'var' );
-        $this->optional_attributes = array( 'assign' );
+        $this->required_attributes = array('var');
+        $this->optional_attributes = array('assign');
         // check and get attributes
-        $_attr = $this->getAttributes( $compiler, $args );
+        $_attr = $this->getAttributes($compiler, $args);
         if (isset( $_attr['assign'] )) {
             // output will be stored in a smarty variable instead of being displayed
             $_assign = $_attr['assign'];

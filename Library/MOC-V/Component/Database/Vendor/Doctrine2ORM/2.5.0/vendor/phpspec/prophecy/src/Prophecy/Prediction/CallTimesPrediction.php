@@ -11,13 +11,13 @@
 
 namespace Prophecy\Prediction;
 
-use Prophecy\Call\Call;
-use Prophecy\Prophecy\ObjectProphecy;
-use Prophecy\Prophecy\MethodProphecy;
 use Prophecy\Argument\ArgumentsWildcard;
 use Prophecy\Argument\Token\AnyValuesToken;
-use Prophecy\Util\StringUtil;
+use Prophecy\Call\Call;
 use Prophecy\Exception\Prediction\UnexpectedCallsCountException;
+use Prophecy\Prophecy\MethodProphecy;
+use Prophecy\Prophecy\ObjectProphecy;
+use Prophecy\Util\StringUtil;
 
 /**
  * Prediction interface.
@@ -27,6 +27,7 @@ use Prophecy\Exception\Prediction\UnexpectedCallsCountException;
  */
 class CallTimesPrediction implements PredictionInterface
 {
+
     private $times;
     private $util;
 
@@ -38,8 +39,9 @@ class CallTimesPrediction implements PredictionInterface
      */
     public function __construct($times, StringUtil $util = null)
     {
+
         $this->times = intval($times);
-        $this->util  = $util ?: new StringUtil;
+        $this->util = $util ?: new StringUtil;
     }
 
     /**
@@ -53,6 +55,7 @@ class CallTimesPrediction implements PredictionInterface
      */
     public function check(array $calls, ObjectProphecy $object, MethodProphecy $method)
     {
+
         if ($this->times == count($calls)) {
             return;
         }

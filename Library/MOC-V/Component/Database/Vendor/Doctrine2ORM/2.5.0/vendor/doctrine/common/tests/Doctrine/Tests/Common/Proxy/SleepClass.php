@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Proxy;
  */
 class SleepClass
 {
+
     public $id;
 
     /**
@@ -14,6 +15,7 @@ class SleepClass
      */
     public function __sleep()
     {
+
         return array('id');
     }
 }

@@ -32,7 +32,7 @@ class Context extends Nette\Object
     private $response;
 
 
-    public function __construct( IRequest $request, IResponse $response )
+    public function __construct(IRequest $request, IResponse $response)
     {
 
         $this->request = $request;
@@ -48,24 +48,24 @@ class Context extends Nette\Object
      *
      * @return bool
      */
-    public function isModified( $lastModified = null, $etag = null )
+    public function isModified($lastModified = null, $etag = null)
     {
 
         if ($lastModified) {
-            $this->response->setHeader( 'Last-Modified', $this->response->date( $lastModified ) );
+            $this->response->setHeader('Last-Modified', $this->response->date($lastModified));
         }
         if ($etag) {
-            $this->response->setHeader( 'ETag', '"'.addslashes( $etag ).'"' );
+            $this->response->setHeader('ETag', '"'.addslashes($etag).'"');
         }
 
-        $ifNoneMatch = $this->request->getHeader( 'If-None-Match' );
+        $ifNoneMatch = $this->request->getHeader('If-None-Match');
         if ($ifNoneMatch === '*') {
             $match = true; // match, check if-modified-since
 
         } elseif ($ifNoneMatch !== null) {
-            $etag = $this->response->getHeader( 'ETag' );
+            $etag = $this->response->getHeader('ETag');
 
-            if ($etag == null || strpos( ' '.strtr( $ifNoneMatch, ",\t", '  ' ), ' '.$etag ) === false) {
+            if ($etag == null || strpos(' '.strtr($ifNoneMatch, ",\t", '  '), ' '.$etag) === false) {
                 return true;
 
             } else {
@@ -73,10 +73,10 @@ class Context extends Nette\Object
             }
         }
 
-        $ifModifiedSince = $this->request->getHeader( 'If-Modified-Since' );
+        $ifModifiedSince = $this->request->getHeader('If-Modified-Since');
         if ($ifModifiedSince !== null) {
-            $lastModified = $this->response->getHeader( 'Last-Modified' );
-            if ($lastModified != null && strtotime( $lastModified ) <= strtotime( $ifModifiedSince )) {
+            $lastModified = $this->response->getHeader('Last-Modified');
+            if ($lastModified != null && strtotime($lastModified) <= strtotime($ifModifiedSince)) {
                 $match = true;
 
             } else {
@@ -88,7 +88,7 @@ class Context extends Nette\Object
             return true;
         }
 
-        $this->response->setCode( IResponse::S304_NOT_MODIFIED );
+        $this->response->setCode(IResponse::S304_NOT_MODIFIED);
         return false;
     }
 

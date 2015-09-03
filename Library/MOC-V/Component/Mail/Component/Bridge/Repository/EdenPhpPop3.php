@@ -21,22 +21,22 @@ class EdenPhpPop3 extends Bridge implements IBridgeInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
-        AutoLoader::getNamespaceAutoLoader( 'Eden\Mail',
+        AutoLoader::getNamespaceAutoLoader('Eden\Mail',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master',
             'Eden\Mail'
         );
-        AutoLoader::getNamespaceAutoLoader( 'Eden\Core',
+        AutoLoader::getNamespaceAutoLoader('Eden\Core',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master/vendor/eden/core/Eden/Core',
             'Eden\Core'
         );
-        AutoLoader::getNamespaceAutoLoader( 'Eden\System',
+        AutoLoader::getNamespaceAutoLoader('Eden\System',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master/vendor/eden/system/Eden/System',
             'Eden\System'
         );
-        AutoLoader::getNamespaceAutoLoader( 'Eden\Type',
+        AutoLoader::getNamespaceAutoLoader('Eden\Type',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master/vendor/eden/type/Eden/Type',
             'Eden\Type'
         );
@@ -53,14 +53,14 @@ class EdenPhpPop3 extends Bridge implements IBridgeInterface
      * @return EdenPhpPop3
      * @throws MailException
      */
-    public function connectServer( $Host, $Username, $Password, $Port = null, $useSSL = false, $useTLS = false )
+    public function connectServer($Host, $Username, $Password, $Port = null, $useSSL = false, $useTLS = false)
     {
 
         try {
-            $this->Instance = new Pop3( $Host, $Username, $Password, $Port, $useSSL, $useTLS );
+            $this->Instance = new Pop3($Host, $Username, $Password, $Port, $useSSL, $useTLS);
             $this->Instance->connect();
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -74,8 +74,8 @@ class EdenPhpPop3 extends Bridge implements IBridgeInterface
 
         try {
             $this->Instance->disconnect();
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }

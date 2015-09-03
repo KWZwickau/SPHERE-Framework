@@ -16,6 +16,7 @@ namespace Symfony\Component\Finder\Expression;
  */
 class Glob implements ValueInterface
 {
+
     /**
      * @var string
      */
@@ -24,8 +25,9 @@ class Glob implements ValueInterface
     /**
      * @param string $pattern
      */
-    public function __construct( $pattern )
+    public function __construct($pattern)
     {
+
         $this->pattern = $pattern;
     }
 
@@ -34,6 +36,7 @@ class Glob implements ValueInterface
      */
     public function render()
     {
+
         return $this->pattern;
     }
 
@@ -42,6 +45,7 @@ class Glob implements ValueInterface
      */
     public function renderPattern()
     {
+
         return $this->pattern;
     }
 
@@ -50,6 +54,7 @@ class Glob implements ValueInterface
      */
     public function getType()
     {
+
         return Expression::TYPE_GLOB;
     }
 
@@ -58,14 +63,16 @@ class Glob implements ValueInterface
      */
     public function isCaseSensitive()
     {
+
         return true;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function prepend( $expr )
+    public function prepend($expr)
     {
+
         $this->pattern = $expr.$this->pattern;
 
         return $this;
@@ -74,8 +81,9 @@ class Glob implements ValueInterface
     /**
      * {@inheritdoc}
      */
-    public function append( $expr )
+    public function append($expr)
     {
+
         $this->pattern .= $expr;
 
         return $this;
@@ -89,8 +97,8 @@ class Glob implements ValueInterface
     public function isExpandable()
     {
 
-        return false !== strpos( $this->pattern, '{' )
-        && false !== strpos( $this->pattern, '}' );
+        return false !== strpos($this->pattern, '{')
+        && false !== strpos($this->pattern, '}');
     }
 
     /**
@@ -99,13 +107,14 @@ class Glob implements ValueInterface
      *
      * @return Regex
      */
-    public function toRegex( $strictLeadingDot = true, $strictWildcardSlash = true )
+    public function toRegex($strictLeadingDot = true, $strictWildcardSlash = true)
     {
+
         $firstByte = true;
         $escaping = false;
         $inCurlies = 0;
         $regex = '';
-        $sizeGlob = strlen( $this->pattern );
+        $sizeGlob = strlen($this->pattern);
         for ($i = 0; $i < $sizeGlob; $i++) {
             $car = $this->pattern[$i];
             if ($firstByte) {
@@ -153,6 +162,6 @@ class Glob implements ValueInterface
             $escaping = false;
         }
 
-        return new Regex( '^'.$regex.'$' );
+        return new Regex('^'.$regex.'$');
     }
 }

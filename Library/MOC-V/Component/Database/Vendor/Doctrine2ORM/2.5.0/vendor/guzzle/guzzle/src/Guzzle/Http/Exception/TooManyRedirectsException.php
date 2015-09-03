@@ -2,4 +2,7 @@
 
 namespace Guzzle\Http\Exception;
 
-class TooManyRedirectsException extends BadResponseException {}
+class TooManyRedirectsException extends BadResponseException
+{
+
+}

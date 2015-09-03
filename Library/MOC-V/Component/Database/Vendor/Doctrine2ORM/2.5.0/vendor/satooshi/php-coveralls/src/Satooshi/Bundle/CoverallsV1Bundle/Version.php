@@ -8,6 +8,7 @@ namespace Satooshi\Bundle\CoverallsV1Bundle;
  */
 final class Version
 {
+
     /**
      * CoverallsV1Bundle version.
      *

@@ -21,6 +21,7 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
 {
+
     /**
      * @var bool
      */
@@ -40,14 +41,14 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
      *
      * @throws \RuntimeException
      */
-    public function __construct( $path, $flags, $ignoreUnreadableDirs = false )
+    public function __construct($path, $flags, $ignoreUnreadableDirs = false)
     {
 
         if ($flags & ( self::CURRENT_AS_PATHNAME | self::CURRENT_AS_SELF )) {
-            throw new \RuntimeException( 'This iterator only support returning current as fileinfo.' );
+            throw new \RuntimeException('This iterator only support returning current as fileinfo.');
         }
 
-        parent::__construct( $path, $flags );
+        parent::__construct($path, $flags);
         $this->ignoreUnreadableDirs = $ignoreUnreadableDirs;
     }
 
@@ -59,7 +60,7 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
     public function current()
     {
 
-        return new SplFileInfo( parent::current()->getPathname(), $this->getSubPath(), $this->getSubPathname() );
+        return new SplFileInfo(parent::current()->getPathname(), $this->getSubPath(), $this->getSubPathname());
     }
 
     /**
@@ -69,6 +70,7 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
      */
     public function getChildren()
     {
+
         try {
             $children = parent::getChildren();
 
@@ -78,12 +80,12 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
             }
 
             return $children;
-        } catch( \UnexpectedValueException $e ) {
+        } catch (\UnexpectedValueException $e) {
             if ($this->ignoreUnreadableDirs) {
                 // If directory is unreadable and finder is set to ignore it, a fake empty content is returned.
-                return new \RecursiveArrayIterator( array() );
+                return new \RecursiveArrayIterator(array());
             } else {
-                throw new AccessDeniedException( $e->getMessage(), $e->getCode(), $e );
+                throw new AccessDeniedException($e->getMessage(), $e->getCode(), $e);
             }
         }
     }
@@ -93,6 +95,7 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
      */
     public function rewind()
     {
+
         if (false === $this->isRewindable()) {
             return;
         }
@@ -110,13 +113,14 @@ class RecursiveDirectoryIterator extends \RecursiveDirectoryIterator
      */
     public function isRewindable()
     {
+
         if (null !== $this->rewindable) {
             return $this->rewindable;
         }
 
-        if (false !== $stream = @opendir( $this->getPath() )) {
-            $infos = stream_get_meta_data( $stream );
-            closedir( $stream );
+        if (false !== $stream = @opendir($this->getPath())) {
+            $infos = stream_get_meta_data($stream);
+            closedir($stream);
 
             if ($infos['seekable']) {
                 return $this->rewindable = true;

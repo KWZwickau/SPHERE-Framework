@@ -58,10 +58,10 @@ class StreamException extends BaseException
      * @param string                             $message Exception message
      * @param integer                            $code    Exception code
      */
-    public function __construct( StreamBase $stream, $message, $code )
+    public function __construct(StreamBase $stream, $message, $code)
     {
 
-        parent::__construct( $message, $code );
+        parent::__construct($message, $code);
 
         $this->stream = $stream;
     }
@@ -85,7 +85,7 @@ class StreamException extends BaseException
     public function getDetail()
     {
 
-        return sprintf( 'Thrown when working with file "%s" token stream.', $this->getFileName() );
+        return sprintf('Thrown when working with file "%s" token stream.', $this->getFileName());
     }
 
     /**

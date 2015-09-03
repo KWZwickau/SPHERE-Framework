@@ -18,6 +18,7 @@ namespace Symfony\Component\Stopwatch;
  */
 class Stopwatch
 {
+
     /**
      * @var Section[]
      */
@@ -30,6 +31,7 @@ class Stopwatch
 
     public function __construct()
     {
+
         $this->sections = $this->activeSections = array('__root__' => new Section('__root__'));
     }
 
@@ -38,6 +40,7 @@ class Stopwatch
      */
     public function getSections()
     {
+
         return $this->sections;
     }
 
@@ -50,15 +53,31 @@ class Stopwatch
      */
     public function openSection($id = null)
     {
+
         $current = end($this->activeSections);
 
         if (null !== $id && null === $current->get($id)) {
-            throw new \LogicException(sprintf('The section "%s" has been started at an other level and can not be opened.', $id));
+            throw new \LogicException(sprintf('The section "%s" has been started at an other level and can not be opened.',
+                $id));
         }
 
         $this->start('__section__.child', 'section');
         $this->activeSections[] = $current->open($id);
         $this->start('__section__');
+    }
+
+    /**
+     * Starts an event.
+     *
+     * @param string $name     The event name
+     * @param string $category The event category
+     *
+     * @return StopwatchEvent A StopwatchEvent instance
+     */
+    public function start($name, $category = null)
+    {
+
+        return end($this->activeSections)->startEvent($name, $category);
     }
 
     /**
@@ -74,6 +93,7 @@ class Stopwatch
      */
     public function stopSection($id)
     {
+
         $this->stop('__section__');
 
         if (1 == count($this->activeSections)) {
@@ -85,16 +105,16 @@ class Stopwatch
     }
 
     /**
-     * Starts an event.
+     * Stops an event.
      *
-     * @param string $name     The event name
-     * @param string $category The event category
+     * @param string $name The event name
      *
      * @return StopwatchEvent A StopwatchEvent instance
      */
-    public function start($name, $category = null)
+    public function stop($name)
     {
-        return end($this->activeSections)->startEvent($name, $category);
+
+        return end($this->activeSections)->stopEvent($name);
     }
 
     /**
@@ -106,19 +126,8 @@ class Stopwatch
      */
     public function isStarted($name)
     {
-        return end($this->activeSections)->isEventStarted($name);
-    }
 
-    /**
-     * Stops an event.
-     *
-     * @param string $name The event name
-     *
-     * @return StopwatchEvent A StopwatchEvent instance
-     */
-    public function stop($name)
-    {
-        return end($this->activeSections)->stopEvent($name);
+        return end($this->activeSections)->isEventStarted($name);
     }
 
     /**
@@ -130,6 +139,7 @@ class Stopwatch
      */
     public function lap($name)
     {
+
         return end($this->activeSections)->stopEvent($name)->start();
     }
 
@@ -142,6 +152,7 @@ class Stopwatch
      */
     public function getEvent($name)
     {
+
         return end($this->activeSections)->getEvent($name);
     }
 
@@ -154,6 +165,7 @@ class Stopwatch
      */
     public function getSectionEvents($id)
     {
-        return isset($this->sections[$id]) ? $this->sections[$id]->getEvents() : array();
+
+        return isset( $this->sections[$id] ) ? $this->sections[$id]->getEvents() : array();
     }
 }

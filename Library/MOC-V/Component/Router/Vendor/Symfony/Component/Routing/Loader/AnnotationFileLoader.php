@@ -24,6 +24,7 @@ use Symfony\Component\Routing\RouteCollection;
  */
 class AnnotationFileLoader extends FileLoader
 {
+
     protected $loader;
 
     /**
@@ -36,6 +37,7 @@ class AnnotationFileLoader extends FileLoader
      */
     public function __construct(FileLocatorInterface $locator, AnnotationClassLoader $loader)
     {
+
         if (!function_exists('token_get_all')) {
             throw new \RuntimeException('The Tokenizer extension is required for the routing annotation loaders.');
         }
@@ -57,6 +59,7 @@ class AnnotationFileLoader extends FileLoader
      */
     public function load($file, $type = null)
     {
+
         $path = $this->locator->locate($file);
 
         $collection = new RouteCollection();
@@ -77,6 +80,7 @@ class AnnotationFileLoader extends FileLoader
      */
     protected function findClass($file)
     {
+
         $class = false;
         $namespace = false;
         $tokens = token_get_all(file_get_contents($file));
@@ -114,10 +118,10 @@ class AnnotationFileLoader extends FileLoader
     /**
      * {@inheritdoc}
      */
-    public function supports( $resource, $type = null )
+    public function supports($resource, $type = null)
     {
 
-        return is_string( $resource ) && 'php' === pathinfo( $resource,
-            PATHINFO_EXTENSION ) && ( !$type || 'annotation' === $type );
+        return is_string($resource) && 'php' === pathinfo($resource,
+            PATHINFO_EXTENSION) && ( !$type || 'annotation' === $type );
     }
 }

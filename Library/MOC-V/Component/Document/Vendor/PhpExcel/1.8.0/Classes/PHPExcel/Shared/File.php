@@ -60,7 +60,7 @@ class PHPExcel_Shared_File
      *
      * @param     boolean $useUploadTempDir Use File Upload Temporary directory (true or false)
      */
-    public static function setUseUploadTempDirectory( $useUploadTempDir = false )
+    public static function setUseUploadTempDirectory($useUploadTempDir = false)
     {
 
         self::$_useUploadTempDirectory = (boolean)$useUploadTempDir;
@@ -73,20 +73,20 @@ class PHPExcel_Shared_File
      *
      * @return bool
      */
-    public static function file_exists( $pFilename )
+    public static function file_exists($pFilename)
     {
 
         // Sick construction, but it seems that
         // file_exists returns strange values when
         // doing the original file_exists on ZIP archives...
-        if (strtolower( substr( $pFilename, 0, 3 ) ) == 'zip') {
+        if (strtolower(substr($pFilename, 0, 3)) == 'zip') {
             // Open ZIP file and verify if the file exists
-            $zipFile = substr( $pFilename, 6, strpos( $pFilename, '#' ) - 6 );
-            $archiveFile = substr( $pFilename, strpos( $pFilename, '#' ) + 1 );
+            $zipFile = substr($pFilename, 6, strpos($pFilename, '#') - 6);
+            $archiveFile = substr($pFilename, strpos($pFilename, '#') + 1);
 
             $zip = new ZipArchive();
-            if ($zip->open( $zipFile ) === true) {
-                $returnValue = ( $zip->getFromName( $archiveFile ) !== false );
+            if ($zip->open($zipFile) === true) {
+                $returnValue = ( $zip->getFromName($archiveFile) !== false );
                 $zip->close();
                 return $returnValue;
             } else {
@@ -94,7 +94,7 @@ class PHPExcel_Shared_File
             }
         } else {
             // Regular file_exists
-            return file_exists( $pFilename );
+            return file_exists($pFilename);
         }
     }
 
@@ -105,22 +105,22 @@ class PHPExcel_Shared_File
      *
      * @return string
      */
-    public static function realpath( $pFilename )
+    public static function realpath($pFilename)
     {
 
         // Returnvalue
         $returnValue = '';
 
         // Try using realpath()
-        if (file_exists( $pFilename )) {
-            $returnValue = realpath( $pFilename );
+        if (file_exists($pFilename)) {
+            $returnValue = realpath($pFilename);
         }
 
         // Found something?
         if ($returnValue == '' || ( $returnValue === null )) {
-            $pathArray = explode( '/', $pFilename );
-            while (in_array( '..', $pathArray ) && $pathArray[0] != '..') {
-                for ($i = 0; $i < count( $pathArray ); ++$i) {
+            $pathArray = explode('/', $pFilename);
+            while (in_array('..', $pathArray) && $pathArray[0] != '..') {
+                for ($i = 0; $i < count($pathArray); ++$i) {
                     if ($pathArray[$i] == '..' && $i > 0) {
                         unset( $pathArray[$i] );
                         unset( $pathArray[$i - 1] );
@@ -128,7 +128,7 @@ class PHPExcel_Shared_File
                     }
                 }
             }
-            $returnValue = implode( '/', $pathArray );
+            $returnValue = implode('/', $pathArray);
         }
 
         // Return
@@ -146,10 +146,10 @@ class PHPExcel_Shared_File
         if (self::$_useUploadTempDirectory) {
             //  use upload-directory when defined to allow running on environments having very restricted
             //      open_basedir configs
-            if (ini_get( 'upload_tmp_dir' ) !== false) {
-                if ($temp = ini_get( 'upload_tmp_dir' )) {
-                    if (file_exists( $temp )) {
-                        return realpath( $temp );
+            if (ini_get('upload_tmp_dir') !== false) {
+                if ($temp = ini_get('upload_tmp_dir')) {
+                    if (file_exists($temp)) {
+                        return realpath($temp);
                     }
                 }
             }
@@ -157,29 +157,29 @@ class PHPExcel_Shared_File
 
         // sys_get_temp_dir is only available since PHP 5.2.1
         // http://php.net/manual/en/function.sys-get-temp-dir.php#94119
-        if (!function_exists( 'sys_get_temp_dir' )) {
-            if ($temp = getenv( 'TMP' )) {
-                if (( !empty( $temp ) ) && ( file_exists( $temp ) )) {
-                    return realpath( $temp );
+        if (!function_exists('sys_get_temp_dir')) {
+            if ($temp = getenv('TMP')) {
+                if (( !empty( $temp ) ) && ( file_exists($temp) )) {
+                    return realpath($temp);
                 }
             }
-            if ($temp = getenv( 'TEMP' )) {
-                if (( !empty( $temp ) ) && ( file_exists( $temp ) )) {
-                    return realpath( $temp );
+            if ($temp = getenv('TEMP')) {
+                if (( !empty( $temp ) ) && ( file_exists($temp) )) {
+                    return realpath($temp);
                 }
             }
-            if ($temp = getenv( 'TMPDIR' )) {
-                if (( !empty( $temp ) ) && ( file_exists( $temp ) )) {
-                    return realpath( $temp );
+            if ($temp = getenv('TMPDIR')) {
+                if (( !empty( $temp ) ) && ( file_exists($temp) )) {
+                    return realpath($temp);
                 }
             }
 
             // trick for creating a file in system's temporary dir
             // without knowing the path of the system's temporary dir
-            $temp = tempnam( __FILE__, '' );
-            if (file_exists( $temp )) {
-                unlink( $temp );
-                return realpath( dirname( $temp ) );
+            $temp = tempnam(__FILE__, '');
+            if (file_exists($temp)) {
+                unlink($temp);
+                return realpath(dirname($temp));
             }
 
             return null;
@@ -188,7 +188,7 @@ class PHPExcel_Shared_File
         // use ordinary built-in PHP function
         //	There should be no problem with the 5.2.4 Suhosin realpath() bug, because this line should only
         //		be called if we're running 5.2.1 or earlier
-        return realpath( sys_get_temp_dir() );
+        return realpath(sys_get_temp_dir());
     }
 
 }

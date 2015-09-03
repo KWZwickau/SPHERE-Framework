@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpKernel;
  */
 class UriSigner
 {
+
     private $secret;
 
     /**
@@ -27,6 +28,7 @@ class UriSigner
      */
     public function __construct($secret)
     {
+
         $this->secret = $secret;
     }
 
@@ -42,13 +44,14 @@ class UriSigner
      */
     public function sign($uri)
     {
-        return $uri.(false === (strpos($uri, '?')) ? '?' : '&').'_hash='.$this->computeHash($uri);
+
+        return $uri.( false === ( strpos($uri, '?') ) ? '?' : '&' ).'_hash='.$this->computeHash($uri);
     }
 
-    private function computeHash( $uri )
+    private function computeHash($uri)
     {
 
-        return urlencode( base64_encode( hash_hmac( 'sha256', $uri, $this->secret, true ) ) );
+        return urlencode(base64_encode(hash_hmac('sha256', $uri, $this->secret, true)));
     }
 
     /**
@@ -64,6 +67,7 @@ class UriSigner
      */
     public function check($uri)
     {
+
         if (!preg_match('/^(.*)(?:\?|&)_hash=(.+?)$/', $uri, $matches)) {
             return false;
         }

@@ -17,19 +17,19 @@ use Symfony\Component\HttpKernel\Fragment\FragmentHandler;
 
 class FragmentHandlerTest extends \PHPUnit_Framework_TestCase
 {
+
     private $requestStack;
 
     public function setUp()
     {
+
         $this->requestStack = $this->getMockBuilder('Symfony\\Component\\HttpFoundation\\RequestStack')
             ->disableOriginalConstructor()
-            ->getMock()
-        ;
+            ->getMock();
         $this->requestStack
             ->expects($this->any())
             ->method('getCurrentRequest')
-            ->will($this->returnValue(Request::create('/')))
-        ;
+            ->will($this->returnValue(Request::create('/')));
     }
 
     /**
@@ -37,6 +37,7 @@ class FragmentHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testRenderWhenRendererDoesNotExist()
     {
+
         $handler = new FragmentHandler(array(), null, $this->requestStack);
         $handler->render('/', 'foo');
     }
@@ -46,6 +47,7 @@ class FragmentHandlerTest extends \PHPUnit_Framework_TestCase
      */
     public function testRenderWithUnknownRenderer()
     {
+
         $handler = $this->getHandler($this->returnValue(new Response('foo')));
 
         $handler->render('/', 'bar');
@@ -53,17 +55,16 @@ class FragmentHandlerTest extends \PHPUnit_Framework_TestCase
 
     protected function getHandler($returnValue, $arguments = array())
     {
+
         $renderer = $this->getMock('Symfony\Component\HttpKernel\Fragment\FragmentRendererInterface');
         $renderer
             ->expects($this->any())
             ->method('getName')
-            ->will($this->returnValue('foo'))
-        ;
+            ->will($this->returnValue('foo'));
         $e = $renderer
             ->expects($this->any())
             ->method('render')
-            ->will($returnValue)
-        ;
+            ->will($returnValue);
 
         if ($arguments) {
             call_user_func_array(array($e, 'with'), $arguments);
@@ -82,17 +83,17 @@ class FragmentHandlerTest extends \PHPUnit_Framework_TestCase
     public function testDeliverWithUnsuccessfulResponse()
     {
 
-        $handler = $this->getHandler( $this->returnValue( new Response( 'foo', 404 ) ) );
+        $handler = $this->getHandler($this->returnValue(new Response('foo', 404)));
 
-        $handler->render( '/', 'foo' );
+        $handler->render('/', 'foo');
     }
 
     public function testRender()
     {
 
-        $handler = $this->getHandler( $this->returnValue( new Response( 'foo' ) ),
-            array( '/', Request::create( '/' ), array( 'foo' => 'foo', 'ignore_errors' => true ) ) );
+        $handler = $this->getHandler($this->returnValue(new Response('foo')),
+            array('/', Request::create('/'), array('foo' => 'foo', 'ignore_errors' => true)));
 
-        $this->assertEquals( 'foo', $handler->render( '/', 'foo', array( 'foo' => 'foo' ) ) );
+        $this->assertEquals('foo', $handler->render('/', 'foo', array('foo' => 'foo')));
     }
 }

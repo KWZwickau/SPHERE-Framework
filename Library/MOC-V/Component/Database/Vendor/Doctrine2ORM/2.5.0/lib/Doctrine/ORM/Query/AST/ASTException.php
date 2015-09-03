@@ -26,6 +26,7 @@ use Doctrine\ORM\Query\QueryException;
  */
 class ASTException extends QueryException
 {
+
     /**
      * @param Node $node
      *
@@ -33,6 +34,7 @@ class ASTException extends QueryException
      */
     public static function noDispatchForNode($node)
     {
-        return new self("Double-dispatch for node " . get_class($node) . " is not supported.");
+
+        return new self("Double-dispatch for node ".get_class($node)." is not supported.");
     }
 }

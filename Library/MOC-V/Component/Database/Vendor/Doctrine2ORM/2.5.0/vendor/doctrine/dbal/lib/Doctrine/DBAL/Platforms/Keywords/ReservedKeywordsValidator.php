@@ -19,16 +19,17 @@
 
 namespace Doctrine\DBAL\Platforms\Keywords;
 
-use Doctrine\DBAL\Schema\Visitor\Visitor;
-use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Sequence;
-use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Schema\Visitor\Visitor;
 
 class ReservedKeywordsValidator implements Visitor
 {
+
     /**
      * @var KeywordList[]
      */
@@ -44,6 +45,7 @@ class ReservedKeywordsValidator implements Visitor
      */
     public function __construct(array $keywordLists)
     {
+
         $this->keywordLists = $keywordLists;
     }
 
@@ -52,7 +54,36 @@ class ReservedKeywordsValidator implements Visitor
      */
     public function getViolations()
     {
+
         return $this->violations;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function acceptColumn(Table $table, Column $column)
+    {
+
+        $this->addViolation(
+            'Table '.$table->getName().' column '.$column->getName(),
+            $this->isReservedWord($column->getName())
+        );
+    }
+
+    /**
+     * @param string $asset
+     * @param array  $violatedPlatforms
+     *
+     * @return void
+     */
+    private function addViolation($asset, $violatedPlatforms)
+    {
+
+        if (!$violatedPlatforms) {
+            return;
+        }
+
+        $this->violations[] = $asset.' keyword violations: '.implode(', ', $violatedPlatforms);
     }
 
     /**
@@ -62,6 +93,7 @@ class ReservedKeywordsValidator implements Visitor
      */
     private function isReservedWord($word)
     {
+
         if ($word[0] == "`") {
             $word = str_replace('`', '', $word);
         }
@@ -74,32 +106,6 @@ class ReservedKeywordsValidator implements Visitor
         }
 
         return $keywordLists;
-    }
-
-    /**
-     * @param string $asset
-     * @param array  $violatedPlatforms
-     *
-     * @return void
-     */
-    private function addViolation($asset, $violatedPlatforms)
-    {
-        if ( ! $violatedPlatforms) {
-            return;
-        }
-
-        $this->violations[] = $asset . ' keyword violations: ' . implode(', ', $violatedPlatforms);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function acceptColumn(Table $table, Column $column)
-    {
-        $this->addViolation(
-            'Table ' . $table->getName() . ' column ' . $column->getName(),
-            $this->isReservedWord($column->getName())
-        );
     }
 
     /**
@@ -135,8 +141,9 @@ class ReservedKeywordsValidator implements Visitor
      */
     public function acceptTable(Table $table)
     {
+
         $this->addViolation(
-            'Table ' . $table->getName(),
+            'Table '.$table->getName(),
             $this->isReservedWord($table->getName())
         );
     }

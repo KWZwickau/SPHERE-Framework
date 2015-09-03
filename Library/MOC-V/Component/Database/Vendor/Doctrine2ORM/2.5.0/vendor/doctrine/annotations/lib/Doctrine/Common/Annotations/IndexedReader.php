@@ -26,6 +26,7 @@ namespace Doctrine\Common\Annotations;
  */
 class IndexedReader implements Reader
 {
+
     /**
      * @var Reader
      */
@@ -38,6 +39,7 @@ class IndexedReader implements Reader
      */
     public function __construct(Reader $reader)
     {
+
         $this->delegate = $reader;
     }
 
@@ -46,6 +48,7 @@ class IndexedReader implements Reader
      */
     public function getClassAnnotations(\ReflectionClass $class)
     {
+
         $annotations = array();
         foreach ($this->delegate->getClassAnnotations($class) as $annot) {
             $annotations[get_class($annot)] = $annot;
@@ -59,6 +62,7 @@ class IndexedReader implements Reader
      */
     public function getClassAnnotation(\ReflectionClass $class, $annotation)
     {
+
         return $this->delegate->getClassAnnotation($class, $annotation);
     }
 
@@ -67,6 +71,7 @@ class IndexedReader implements Reader
      */
     public function getMethodAnnotations(\ReflectionMethod $method)
     {
+
         $annotations = array();
         foreach ($this->delegate->getMethodAnnotations($method) as $annot) {
             $annotations[get_class($annot)] = $annot;
@@ -80,6 +85,7 @@ class IndexedReader implements Reader
      */
     public function getMethodAnnotation(\ReflectionMethod $method, $annotation)
     {
+
         return $this->delegate->getMethodAnnotation($method, $annotation);
     }
 
@@ -88,6 +94,7 @@ class IndexedReader implements Reader
      */
     public function getPropertyAnnotations(\ReflectionProperty $property)
     {
+
         $annotations = array();
         foreach ($this->delegate->getPropertyAnnotations($property) as $annot) {
             $annotations[get_class($annot)] = $annot;
@@ -101,6 +108,7 @@ class IndexedReader implements Reader
      */
     public function getPropertyAnnotation(\ReflectionProperty $property, $annotation)
     {
+
         return $this->delegate->getPropertyAnnotation($property, $annotation);
     }
 
@@ -114,6 +122,7 @@ class IndexedReader implements Reader
      */
     public function __call($method, $args)
     {
+
         return call_user_func_array(array($this->delegate, $method), $args);
     }
 }

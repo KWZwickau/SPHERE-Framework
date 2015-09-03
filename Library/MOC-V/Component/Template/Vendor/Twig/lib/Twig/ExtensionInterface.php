@@ -16,6 +16,7 @@
  */
 interface Twig_ExtensionInterface
 {
+
     /**
      * Initializes the runtime environment.
      *

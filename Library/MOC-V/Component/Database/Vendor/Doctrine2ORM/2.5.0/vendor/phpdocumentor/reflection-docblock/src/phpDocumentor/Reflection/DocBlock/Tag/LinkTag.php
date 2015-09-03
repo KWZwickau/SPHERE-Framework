@@ -23,6 +23,7 @@ use phpDocumentor\Reflection\DocBlock\Tag;
  */
 class LinkTag extends Tag
 {
+
     /** @var string */
     protected $link = '';
 
@@ -31,6 +32,7 @@ class LinkTag extends Tag
      */
     public function getContent()
     {
+
         if (null === $this->content) {
             $this->content = "{$this->link} {$this->description}";
         }
@@ -43,36 +45,39 @@ class LinkTag extends Tag
      */
     public function setContent($content)
     {
+
         parent::setContent($content);
         $parts = preg_split('/\s+/Su', $this->description, 2);
 
         $this->link = $parts[0];
 
-        $this->setDescription(isset($parts[1]) ? $parts[1] : $parts[0]);
+        $this->setDescription(isset( $parts[1] ) ? $parts[1] : $parts[0]);
 
         $this->content = $content;
         return $this;
     }
 
     /**
-    * Gets the link
-    *
-    * @return string
-    */
+     * Gets the link
+     *
+     * @return string
+     */
     public function getLink()
     {
+
         return $this->link;
     }
 
     /**
-    * Sets the link
-    *
-    * @param string $link The link
-    *
-    * @return $this
-    */
+     * Sets the link
+     *
+     * @param string $link The link
+     *
+     * @return $this
+     */
     public function setLink($link)
     {
+
         $this->link = $link;
 
         $this->content = null;

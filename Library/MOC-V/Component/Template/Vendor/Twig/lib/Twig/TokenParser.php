@@ -16,6 +16,7 @@
  */
 abstract class Twig_TokenParser implements Twig_TokenParserInterface
 {
+
     /**
      * @var Twig_Parser
      */
@@ -28,6 +29,7 @@ abstract class Twig_TokenParser implements Twig_TokenParserInterface
      */
     public function setParser(Twig_Parser $parser)
     {
+
         $this->parser = $parser;
     }
 }

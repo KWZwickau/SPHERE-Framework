@@ -18,6 +18,7 @@ namespace Symfony\Component\Routing\Matcher\Dumper;
  */
 class DumperCollection implements \IteratorAggregate
 {
+
     /**
      * @var DumperCollection|null
      */
@@ -40,6 +41,7 @@ class DumperCollection implements \IteratorAggregate
      */
     public function all()
     {
+
         return $this->children;
     }
 
@@ -50,6 +52,7 @@ class DumperCollection implements \IteratorAggregate
      */
     public function add($child)
     {
+
         if ($child instanceof DumperCollection) {
             $child->setParent($this);
         }
@@ -63,6 +66,7 @@ class DumperCollection implements \IteratorAggregate
      */
     public function setAll(array $children)
     {
+
         foreach ($children as $child) {
             if ($child instanceof DumperCollection) {
                 $child->setParent($this);
@@ -78,6 +82,7 @@ class DumperCollection implements \IteratorAggregate
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->children);
     }
 
@@ -88,7 +93,8 @@ class DumperCollection implements \IteratorAggregate
      */
     public function getRoot()
     {
-        return (null !== $this->parent) ? $this->parent->getRoot() : $this;
+
+        return ( null !== $this->parent ) ? $this->parent->getRoot() : $this;
     }
 
     /**
@@ -99,10 +105,10 @@ class DumperCollection implements \IteratorAggregate
      *
      * @return mixed The attribute value
      */
-    public function getAttribute( $name, $default = null )
+    public function getAttribute($name, $default = null)
     {
 
-        return $this->hasAttribute( $name ) ? $this->attributes[$name] : $default;
+        return $this->hasAttribute($name) ? $this->attributes[$name] : $default;
     }
 
     /**
@@ -114,6 +120,7 @@ class DumperCollection implements \IteratorAggregate
      */
     public function hasAttribute($name)
     {
+
         return array_key_exists($name, $this->attributes);
     }
 
@@ -125,6 +132,7 @@ class DumperCollection implements \IteratorAggregate
      */
     public function setAttribute($name, $value)
     {
+
         $this->attributes[$name] = $value;
     }
 
@@ -135,6 +143,7 @@ class DumperCollection implements \IteratorAggregate
      */
     public function setAttributes($attributes)
     {
+
         $this->attributes = $attributes;
     }
 
@@ -154,7 +163,7 @@ class DumperCollection implements \IteratorAggregate
      *
      * @param DumperCollection $parent The parent collection
      */
-    protected function setParent( DumperCollection $parent )
+    protected function setParent(DumperCollection $parent)
     {
 
         $this->parent = $parent;

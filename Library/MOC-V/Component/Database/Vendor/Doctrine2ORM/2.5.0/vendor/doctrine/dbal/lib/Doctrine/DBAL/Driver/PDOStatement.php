@@ -27,6 +27,7 @@ namespace Doctrine\DBAL\Driver;
  */
 class PDOStatement extends \PDOStatement implements Statement
 {
+
     /**
      * Protected constructor.
      */
@@ -39,6 +40,7 @@ class PDOStatement extends \PDOStatement implements Statement
      */
     public function setFetchMode($fetchMode, $arg2 = null, $arg3 = null)
     {
+
         // This thin wrapper is necessary to shield against the weird signature
         // of PDOStatement::setFetchMode(): even if the second and third
         // parameters are optional, PHP will not let us remove it from this
@@ -63,6 +65,7 @@ class PDOStatement extends \PDOStatement implements Statement
      */
     public function bindValue($param, $value, $type = \PDO::PARAM_STR)
     {
+
         try {
             return parent::bindValue($param, $value, $type);
         } catch (\PDOException $exception) {
@@ -75,6 +78,7 @@ class PDOStatement extends \PDOStatement implements Statement
      */
     public function bindParam($column, &$variable, $type = \PDO::PARAM_STR, $length = null, $driverOptions = null)
     {
+
         try {
             return parent::bindParam($column, $variable, $type, $length, $driverOptions);
         } catch (\PDOException $exception) {
@@ -87,6 +91,7 @@ class PDOStatement extends \PDOStatement implements Statement
      */
     public function execute($params = null)
     {
+
         try {
             return parent::execute($params);
         } catch (\PDOException $exception) {
@@ -99,6 +104,7 @@ class PDOStatement extends \PDOStatement implements Statement
      */
     public function fetch($fetchMode = null, $cursorOrientation = null, $cursorOffset = null)
     {
+
         try {
             if ($fetchMode === null && $cursorOrientation === null && $cursorOffset === null) {
                 return parent::fetch();
@@ -123,6 +129,7 @@ class PDOStatement extends \PDOStatement implements Statement
      */
     public function fetchAll($fetchMode = null, $fetchArgument = null, $ctorArgs = null)
     {
+
         try {
             if ($fetchMode === null && $fetchArgument === null && $ctorArgs === null) {
                 return parent::fetchAll();
@@ -147,6 +154,7 @@ class PDOStatement extends \PDOStatement implements Statement
      */
     public function fetchColumn($columnIndex = 0)
     {
+
         try {
             return parent::fetchColumn($columnIndex);
         } catch (\PDOException $exception) {

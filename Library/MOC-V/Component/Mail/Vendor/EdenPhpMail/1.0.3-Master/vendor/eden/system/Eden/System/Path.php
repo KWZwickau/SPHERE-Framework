@@ -31,13 +31,13 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return void
      */
-    public function __construct( $path )
+    public function __construct($path)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        parent::__construct( $this->format( $path ) );
+        parent::__construct($this->format($path));
     }
 
     /**
@@ -50,25 +50,25 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return string
      */
-    protected function format( $path )
+    protected function format($path)
     {
 
         //replace back slash with forward
-        $path = str_replace( '\\', '/', $path );
+        $path = str_replace('\\', '/', $path);
 
         //replace double forward slash with 1 forward slash
-        $path = str_replace( '//', '/', $path );
+        $path = str_replace('//', '/', $path);
 
         //if there is a last forward slash
-        if (substr( $path, -1, 1 ) == '/') {
+        if (substr($path, -1, 1) == '/') {
             //remove it
-            $path = substr( $path, 0, -1 );
+            $path = substr($path, 0, -1);
         }
 
         //if the path does not start with a foward slash
         //and the path does not have a colon
         //(this is a test for windows)
-        if (substr( $path, 0, 1 ) != '/' && !preg_match( "/^[A-Za-z]+\:/", $path )) {
+        if (substr($path, 0, 1) != '/' && !preg_match("/^[A-Za-z]+\:/", $path)) {
             //it's safe to add a slash
             $path = '/'.$path;
         }
@@ -96,37 +96,37 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return Eden\System\Path
      */
-    public function absolute( $root = null )
+    public function absolute($root = null)
     {
 
         //argument 1 must be a string or null
-        Argument::i()->test( 1, 'string', 'null' );
+        Argument::i()->test(1, 'string', 'null');
 
         //if path is a directory or file
-        if (is_dir( $this->data ) || is_file( $this->data )) {
+        if (is_dir($this->data) || is_file($this->data)) {
             return $this;
         }
 
         //if root is null
-        if (is_null( $root )) {
+        if (is_null($root)) {
             //assume the root is doc root
             $root = $_SERVER['DOCUMENT_ROOT'];
         }
 
         //get the absolute path
-        $absolute = $this->format( $this->format( $root ).$this->data );
+        $absolute = $this->format($this->format($root).$this->data);
 
         //if absolute is a directory or file
-        if (is_dir( $absolute ) || is_file( $absolute )) {
+        if (is_dir($absolute) || is_file($absolute)) {
             $this->data = $absolute;
             return $this;
         }
 
         //if we are here then it means that no path was found so we should throw an exception
         Exception::i()
-            ->setMessage( self::ERROR_FULL_PATH_NOT_FOUND )
-            ->addVariable( $this->data )
-            ->addVariable( $absolute )
+            ->setMessage(self::ERROR_FULL_PATH_NOT_FOUND)
+            ->addVariable($this->data)
+            ->addVariable($absolute)
             ->trigger();
     }
 
@@ -137,13 +137,13 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return bool
      */
-    public function offsetExists( $offset )
+    public function offsetExists($offset)
     {
 
         //argument 1 must be scalar, null or bool
-        Argument::i()->test( 1, 'scalar', 'null', 'bool' );
+        Argument::i()->test(1, 'scalar', 'null', 'bool');
 
-        return in_array( $offset, $this->getArray() );
+        return in_array($offset, $this->getArray());
     }
 
     /**
@@ -154,7 +154,7 @@ class Path extends StringType implements \ArrayAccess
     public function getArray()
     {
 
-        return explode( '/', $this->data );
+        return explode('/', $this->data);
     }
 
     /**
@@ -164,11 +164,11 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return string|null
      */
-    public function offsetGet( $offset )
+    public function offsetGet($offset)
     {
 
         //argument 1 must be scalar, null or bool
-        Argument::i()->test( 1, 'scalar', 'null', 'bool' );
+        Argument::i()->test(1, 'scalar', 'null', 'bool');
 
         $pathArray = $this->getArray();
 
@@ -177,10 +177,10 @@ class Path extends StringType implements \ArrayAccess
         }
 
         if ($offset == 'last') {
-            $offset = count( $pathArray ) - 1;
+            $offset = count($pathArray) - 1;
         }
 
-        if (is_numeric( $offset )) {
+        if (is_numeric($offset)) {
 
             return isset( $pathArray[$offset] ) ? $pathArray[$offset] : null;
         }
@@ -196,25 +196,25 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return void
      */
-    public function offsetSet( $offset, $value )
+    public function offsetSet($offset, $value)
     {
 
         //argument 1 must be scalar, null or bool
-        Argument::i()->test( 1, 'scalar', 'null', 'bool' );
+        Argument::i()->test(1, 'scalar', 'null', 'bool');
 
-        if (is_null( $offset )) {
-            $this->append( $value );
+        if (is_null($offset)) {
+            $this->append($value);
         } else {
             if ($offset == 'prepend') {
-                $this->prepend( $value );
+                $this->prepend($value);
             } else {
                 if ($offset == 'replace') {
-                    $this->replace( $value );
+                    $this->replace($value);
                 } else {
                     $pathArray = $this->getArray();
-                    if ($offset > 0 && $offset < count( $pathArray )) {
+                    if ($offset > 0 && $offset < count($pathArray)) {
                         $pathArray[$offset] = $value;
-                        $this->data = implode( '/', $pathArray );
+                        $this->data = implode('/', $pathArray);
                     }
                 }
             }
@@ -228,11 +228,11 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return Eden\System\Path
      */
-    public function append( $path )
+    public function append($path)
     {
 
         //argument 1 must be a string
-        $argument = Argument::i()->test( 1, 'string' );
+        $argument = Argument::i()->test(1, 'string');
 
         //each argument will be a path
         $paths = func_get_args();
@@ -240,9 +240,9 @@ class Path extends StringType implements \ArrayAccess
         //for each path
         foreach ($paths as $i => $path) {
             //check for type errors
-            $argument->test( $i + 1, $path, 'string' );
+            $argument->test($i + 1, $path, 'string');
             //add to path
-            $this->data .= $this->format( $path );
+            $this->data .= $this->format($path);
         }
 
         return $this;
@@ -255,11 +255,11 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return Eden\System\Path
      */
-    public function prepend( $path )
+    public function prepend($path)
     {
 
         //argument 1 must be a string
-        $error = Argument::i()->test( 1, 'string' );
+        $error = Argument::i()->test(1, 'string');
 
         //each argument will be a path
         $paths = func_get_args();
@@ -267,9 +267,9 @@ class Path extends StringType implements \ArrayAccess
         //for each path
         foreach ($paths as $i => $path) {
             //check for type errors
-            $error->test( $i + 1, $path, 'string' );
+            $error->test($i + 1, $path, 'string');
             //add to path
-            $this->data = $this->format( $path ).$this->data;
+            $this->data = $this->format($path).$this->data;
         }
 
         return $this;
@@ -282,23 +282,23 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return Eden\System\Path
      */
-    public function replace( $path )
+    public function replace($path)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
         //get the path array
         $pathArray = $this->getArray();
 
         //pop out the last
-        array_pop( $pathArray );
+        array_pop($pathArray);
 
         //push in the new
         $pathArray[] = $path;
 
         //assign back to path
-        $this->data = implode( '/', $pathArray );
+        $this->data = implode('/', $pathArray);
 
         return $this;
     }
@@ -310,7 +310,7 @@ class Path extends StringType implements \ArrayAccess
      *
      * @return bool
      */
-    public function offsetUnset( $offset )
+    public function offsetUnset($offset)
     {
     }
 
@@ -326,10 +326,10 @@ class Path extends StringType implements \ArrayAccess
         $pathArray = $this->getArray();
 
         //remove the last
-        $path = array_pop( $pathArray );
+        $path = array_pop($pathArray);
 
         //set path
-        $this->data = implode( '/', $pathArray );
+        $this->data = implode('/', $pathArray);
 
         return $path;
     }

@@ -25,6 +25,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class DescriptorHelper extends Helper
 {
+
     /**
      * @var DescriptorInterface[]
      */
@@ -35,12 +36,28 @@ class DescriptorHelper extends Helper
      */
     public function __construct()
     {
+
         $this
             ->register('txt', new TextDescriptor())
             ->register('xml', new XmlDescriptor())
             ->register('json', new JsonDescriptor())
-            ->register('md', new MarkdownDescriptor())
-        ;
+            ->register('md', new MarkdownDescriptor());
+    }
+
+    /**
+     * Registers a descriptor.
+     *
+     * @param string              $format
+     * @param DescriptorInterface $descriptor
+     *
+     * @return DescriptorHelper
+     */
+    public function register($format, DescriptorInterface $descriptor)
+    {
+
+        $this->descriptors[$format] = $descriptor;
+
+        return $this;
     }
 
     /**
@@ -58,12 +75,13 @@ class DescriptorHelper extends Helper
      */
     public function describe(OutputInterface $output, $object, array $options = array())
     {
+
         $options = array_merge(array(
             'raw_text' => false,
             'format' => 'txt',
         ), $options);
 
-        if (!isset($this->descriptors[$options['format']])) {
+        if (!isset( $this->descriptors[$options['format']] )) {
             throw new \InvalidArgumentException(sprintf('Unsupported format "%s".', $options['format']));
         }
 
@@ -72,25 +90,11 @@ class DescriptorHelper extends Helper
     }
 
     /**
-     * Registers a descriptor.
-     *
-     * @param string              $format
-     * @param DescriptorInterface $descriptor
-     *
-     * @return DescriptorHelper
-     */
-    public function register($format, DescriptorInterface $descriptor)
-    {
-        $this->descriptors[$format] = $descriptor;
-
-        return $this;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return 'descriptor';
     }
 }

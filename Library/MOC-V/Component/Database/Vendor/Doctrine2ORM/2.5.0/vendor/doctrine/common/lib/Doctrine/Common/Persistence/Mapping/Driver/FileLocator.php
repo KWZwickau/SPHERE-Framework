@@ -30,6 +30,7 @@ namespace Doctrine\Common\Persistence\Mapping\Driver;
  */
 interface FileLocator
 {
+
     /**
      * Locates mapping file for the given class name.
      *

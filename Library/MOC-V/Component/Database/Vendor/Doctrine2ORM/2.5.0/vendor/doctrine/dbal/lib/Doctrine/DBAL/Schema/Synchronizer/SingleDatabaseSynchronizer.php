@@ -20,8 +20,8 @@
 namespace Doctrine\DBAL\Schema\Synchronizer;
 
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Comparator;
+use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Visitor\DropSchemaSqlCollector;
 
 /**
@@ -31,6 +31,7 @@ use Doctrine\DBAL\Schema\Visitor\DropSchemaSqlCollector;
  */
 class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
 {
+
     /**
      * @var \Doctrine\DBAL\Platforms\AbstractPlatform
      */
@@ -41,6 +42,7 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
      */
     public function __construct(Connection $conn)
     {
+
         parent::__construct($conn);
         $this->platform = $conn->getDatabasePlatform();
     }
@@ -48,19 +50,38 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
     /**
      * {@inheritdoc}
      */
+    public function createSchema(Schema $createSchema)
+    {
+
+        $this->processSql($this->getCreateSchema($createSchema));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getCreateSchema(Schema $createSchema)
     {
+
         return $createSchema->toSql($this->platform);
     }
 
+    /**
+     * {@inheritdoc}
+     */
+    public function updateSchema(Schema $toSchema, $noDrops = false)
+    {
+
+        $this->processSql($this->getUpdateSchema($toSchema, $noDrops));
+    }
 
     /**
      * {@inheritdoc}
      */
     public function getUpdateSchema(Schema $toSchema, $noDrops = false)
     {
+
         $comparator = new Comparator();
-        $sm         = $this->conn->getSchemaManager();
+        $sm = $this->conn->getSchemaManager();
 
         $fromSchema = $sm->createSchema();
         $schemaDiff = $comparator->compare($fromSchema, $toSchema);
@@ -75,10 +96,20 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
     /**
      * {@inheritdoc}
      */
+    public function dropSchema(Schema $dropSchema)
+    {
+
+        $this->processSqlSafely($this->getDropSchema($dropSchema));
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getDropSchema(Schema $dropSchema)
     {
-        $visitor    = new DropSchemaSqlCollector($this->platform);
-        $sm         = $this->conn->getSchemaManager();
+
+        $visitor = new DropSchemaSqlCollector($this->platform);
+        $sm = $this->conn->getSchemaManager();
 
         $fullSchema = $sm->createSchema();
 
@@ -88,11 +119,11 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
             }
 
             foreach ($table->getForeignKeys() as $foreignKey) {
-                if ( ! $dropSchema->hasTable($table->getName())) {
+                if (!$dropSchema->hasTable($table->getName())) {
                     continue;
                 }
 
-                if ( ! $dropSchema->hasTable($foreignKey->getForeignTableName())) {
+                if (!$dropSchema->hasTable($foreignKey->getForeignTableName())) {
                     continue;
                 }
 
@@ -100,7 +131,7 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
             }
         }
 
-        if ( ! $this->platform->supportsSequences()) {
+        if (!$this->platform->supportsSequences()) {
             return $visitor->getQueries();
         }
 
@@ -109,7 +140,7 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
         }
 
         foreach ($dropSchema->getTables() as $table) {
-            if ( ! $table->hasPrimaryKey()) {
+            if (!$table->hasPrimaryKey()) {
                 continue;
             }
 
@@ -118,7 +149,7 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
                 continue;
             }
 
-            $checkSequence = $table->getName() . "_" . $columns[0] . "_seq";
+            $checkSequence = $table->getName()."_".$columns[0]."_seq";
             if ($fullSchema->hasSequence($checkSequence)) {
                 $visitor->acceptSequence($fullSchema->getSequence($checkSequence));
             }
@@ -130,47 +161,25 @@ class SingleDatabaseSynchronizer extends AbstractSchemaSynchronizer
     /**
      * {@inheritdoc}
      */
+    public function dropAllSchema()
+    {
+
+        $this->processSql($this->getDropAllSchema());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getDropAllSchema()
     {
-        $sm      = $this->conn->getSchemaManager();
+
+        $sm = $this->conn->getSchemaManager();
         $visitor = new DropSchemaSqlCollector($this->platform);
 
         /* @var $schema \Doctrine\DBAL\Schema\Schema */
-        $schema  = $sm->createSchema();
+        $schema = $sm->createSchema();
         $schema->visit($visitor);
 
         return $visitor->getQueries();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function createSchema(Schema $createSchema)
-    {
-        $this->processSql($this->getCreateSchema($createSchema));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function updateSchema(Schema $toSchema, $noDrops = false)
-    {
-        $this->processSql($this->getUpdateSchema($toSchema, $noDrops));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function dropSchema(Schema $dropSchema)
-    {
-        $this->processSqlSafely($this->getDropSchema($dropSchema));
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function dropAllSchema()
-    {
-        $this->processSql($this->getDropAllSchema());
     }
 }

@@ -10,11 +10,13 @@ use Guzzle\Batch\Exception\BatchTransferException;
  */
 class ExceptionBufferingBatch extends AbstractBatchDecorator
 {
+
     /** @var array Array of BatchTransferException exceptions */
     protected $exceptions = array();
 
     public function flush()
     {
+
         $items = array();
 
         while (!$this->decoratedBatch->isEmpty()) {
@@ -37,6 +39,7 @@ class ExceptionBufferingBatch extends AbstractBatchDecorator
      */
     public function getExceptions()
     {
+
         return $this->exceptions;
     }
 
@@ -45,6 +48,7 @@ class ExceptionBufferingBatch extends AbstractBatchDecorator
      */
     public function clearExceptions()
     {
+
         $this->exceptions = array();
     }
 }

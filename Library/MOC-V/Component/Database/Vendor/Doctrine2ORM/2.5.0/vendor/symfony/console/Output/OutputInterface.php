@@ -22,6 +22,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
  */
 interface OutputInterface
 {
+
     const VERBOSITY_QUIET = 0;
     const VERBOSITY_NORMAL = 1;
     const VERBOSITY_VERBOSE = 2;

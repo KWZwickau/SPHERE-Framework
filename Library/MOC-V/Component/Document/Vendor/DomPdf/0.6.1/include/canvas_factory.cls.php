@@ -32,16 +32,16 @@ class Canvas_Factory
      *
      * @return Canvas
      */
-    static function get_instance( DOMPDF $dompdf, $paper = null, $orientation = null, $class = null )
+    static function get_instance(DOMPDF $dompdf, $paper = null, $orientation = null, $class = null)
     {
 
-        $backend = strtolower( DOMPDF_PDF_BACKEND );
+        $backend = strtolower(DOMPDF_PDF_BACKEND);
 
-        if (isset( $class ) && class_exists( $class, false )) {
+        if (isset( $class ) && class_exists($class, false)) {
             $class .= "_Adapter";
         } else {
             if (( DOMPDF_PDF_BACKEND === "auto" || $backend === "pdflib" ) &&
-                class_exists( "PDFLib", false )
+                class_exists("PDFLib", false)
             ) {
                 $class = "PDFLib_Adapter";
             }
@@ -63,6 +63,6 @@ class Canvas_Factory
             }
         }
 
-        return new $class( $paper, $orientation, $dompdf );
+        return new $class($paper, $orientation, $dompdf);
     }
 }

@@ -32,11 +32,13 @@ namespace Doctrine\Common\Cache;
  */
 class WinCacheCache extends CacheProvider
 {
+
     /**
      * {@inheritdoc}
      */
     protected function doFetch($id)
     {
+
         return wincache_ucache_get($id);
     }
 
@@ -45,6 +47,7 @@ class WinCacheCache extends CacheProvider
      */
     protected function doContains($id)
     {
+
         return wincache_ucache_exists($id);
     }
 
@@ -53,7 +56,8 @@ class WinCacheCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
-        return (bool) wincache_ucache_set($id, $data, (int) $lifeTime);
+
+        return (bool)wincache_ucache_set($id, $data, (int)$lifeTime);
     }
 
     /**
@@ -61,6 +65,7 @@ class WinCacheCache extends CacheProvider
      */
     protected function doDelete($id)
     {
+
         return wincache_ucache_delete($id);
     }
 
@@ -69,6 +74,7 @@ class WinCacheCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         return wincache_ucache_clear();
     }
 
@@ -77,7 +83,8 @@ class WinCacheCache extends CacheProvider
      */
     protected function doGetStats()
     {
-        $info    = wincache_ucache_info();
+
+        $info = wincache_ucache_info();
         $meminfo = wincache_ucache_meminfo();
 
         return array(

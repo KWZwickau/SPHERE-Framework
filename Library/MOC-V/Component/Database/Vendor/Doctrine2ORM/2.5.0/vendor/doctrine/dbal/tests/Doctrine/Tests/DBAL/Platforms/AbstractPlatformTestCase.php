@@ -16,23 +16,26 @@ use Doctrine\DBAL\Types\Type;
 
 abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 {
+
     /**
      * @var \Doctrine\DBAL\Platforms\AbstractPlatform
      */
     protected $_platform;
 
-    abstract public function createPlatform();
-
     public function setUp()
     {
+
         $this->_platform = $this->createPlatform();
     }
+
+    abstract public function createPlatform();
 
     /**
      * @group DDC-1360
      */
     public function testQuoteIdentifier()
     {
+
         if ($this->_platform->getName() == "mssql") {
             $this->markTestSkipped('Not working this way on mssql.');
         }
@@ -48,6 +51,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuoteSingleIdentifier()
     {
+
         if ($this->_platform->getName() == "mssql") {
             $this->markTestSkipped('Not working this way on mssql.');
         }
@@ -59,12 +63,13 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
     }
 
     /**
-     * @group DBAL-1029
+     * @group        DBAL-1029
      *
      * @dataProvider getReturnsForeignKeyReferentialActionSQL
      */
     public function testReturnsForeignKeyReferentialActionSQL($action, $expectedSQL)
     {
+
         $this->assertSame($expectedSQL, $this->_platform->getForeignKeyReferentialActionSQL($action));
     }
 
@@ -73,6 +78,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function getReturnsForeignKeyReferentialActionSQL()
     {
+
         return array(
             array('CASCADE', 'CASCADE'),
             array('SET NULL', 'SET NULL'),
@@ -85,30 +91,35 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGetInvalidtForeignKeyReferentialActionSQL()
     {
+
         $this->setExpectedException('InvalidArgumentException');
         $this->_platform->getForeignKeyReferentialActionSQL('unknown');
     }
 
     public function testGetUnknownDoctrineMappingType()
     {
+
         $this->setExpectedException('Doctrine\DBAL\DBALException');
         $this->_platform->getDoctrineTypeMapping('foobar');
     }
 
     public function testRegisterDoctrineMappingType()
     {
+
         $this->_platform->registerDoctrineTypeMapping('foo', 'integer');
         $this->assertEquals('integer', $this->_platform->getDoctrineTypeMapping('foo'));
     }
 
     public function testRegisterUnknownDoctrineMappingType()
     {
+
         $this->setExpectedException('Doctrine\DBAL\DBALException');
         $this->_platform->registerDoctrineTypeMapping('foo', 'bar');
     }
 
     public function testCreateWithNoColumns()
     {
+
         $table = new Table('test');
 
         $this->setExpectedException('Doctrine\DBAL\DBALException');
@@ -117,6 +128,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGeneratesTableCreationSql()
     {
+
         $table = new Table('test');
         $table->addColumn('id', 'integer', array('notnull' => true, 'autoincrement' => true));
         $table->addColumn('test', 'string', array('notnull' => false, 'length' => 255));
@@ -130,6 +142,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGenerateTableWithMultiColumnUniqueIndex()
     {
+
         $table = new Table('test');
         $table->addColumn('foo', 'string', array('notnull' => false, 'length' => 255));
         $table->addColumn('bar', 'string', array('notnull' => false, 'length' => 255));
@@ -143,6 +156,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGeneratesIndexCreationSql()
     {
+
         $indexDef = new \Doctrine\DBAL\Schema\Index('my_idx', array('user_name', 'last_login'));
 
         $this->assertEquals(
@@ -155,6 +169,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGeneratesUniqueIndexCreationSql()
     {
+
         $indexDef = new \Doctrine\DBAL\Schema\Index('index_name', array('test', 'test2'), true);
 
         $sql = $this->_platform->getCreateIndexSQL($indexDef, 'test');
@@ -165,20 +180,23 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGeneratesPartialIndexesSqlOnlyWhenSupportingPartialIndexes()
     {
-        $where = 'test IS NULL AND test2 IS NOT NULL';
-        $indexDef = new \Doctrine\DBAL\Schema\Index('name', array('test', 'test2'), false, false, array(), array('where' => $where));
-        $uniqueIndex = new \Doctrine\DBAL\Schema\Index('name', array('test', 'test2'), true, false, array(), array('where' => $where));
 
-        $expected = ' WHERE ' . $where;
+        $where = 'test IS NULL AND test2 IS NOT NULL';
+        $indexDef = new \Doctrine\DBAL\Schema\Index('name', array('test', 'test2'), false, false, array(),
+            array('where' => $where));
+        $uniqueIndex = new \Doctrine\DBAL\Schema\Index('name', array('test', 'test2'), true, false, array(),
+            array('where' => $where));
+
+        $expected = ' WHERE '.$where;
 
         $actuals = array();
 
         if ($this->supportsInlineIndexDeclaration()) {
-            $actuals []= $this->_platform->getIndexDeclarationSQL('name', $indexDef);
+            $actuals [] = $this->_platform->getIndexDeclarationSQL('name', $indexDef);
         }
 
-        $actuals []= $this->_platform->getUniqueConstraintDeclarationSQL('name', $uniqueIndex);
-        $actuals []= $this->_platform->getCreateIndexSQL($indexDef, 'table');
+        $actuals [] = $this->_platform->getUniqueConstraintDeclarationSQL('name', $uniqueIndex);
+        $actuals [] = $this->_platform->getCreateIndexSQL($indexDef, 'table');
 
         foreach ($actuals as $actual) {
             if ($this->_platform->supportsPartialIndexes()) {
@@ -189,8 +207,18 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         }
     }
 
+    /**
+     * @return boolean
+     */
+    protected function supportsInlineIndexDeclaration()
+    {
+
+        return true;
+    }
+
     public function testGeneratesForeignKeyCreationSql()
     {
+
         $fk = new \Doctrine\DBAL\Schema\ForeignKeyConstraint(array('fk_name_id'), 'other_table', array('id'), '');
 
         $sql = $this->_platform->getCreateForeignKeySQL($fk, 'test');
@@ -201,6 +229,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGeneratesConstraintCreationSql()
     {
+
         $idx = new \Doctrine\DBAL\Schema\Index('constraint_name', array('test'), true, false);
         $sql = $this->_platform->getCreateConstraintSQL($idx, 'test');
         $this->assertEquals($this->getGenerateConstraintUniqueIndexSql(), $sql);
@@ -214,8 +243,29 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $this->assertEquals($this->getGenerateConstraintForeignKeySql($fk), $sql);
     }
 
+    public function getGenerateConstraintUniqueIndexSql()
+    {
+
+        return 'ALTER TABLE test ADD CONSTRAINT constraint_name UNIQUE (test)';
+    }
+
+    public function getGenerateConstraintPrimaryIndexSql()
+    {
+
+        return 'ALTER TABLE test ADD CONSTRAINT constraint_name PRIMARY KEY (test)';
+    }
+
+    public function getGenerateConstraintForeignKeySql(ForeignKeyConstraint $fk)
+    {
+
+        $quotedForeignTable = $fk->getQuotedForeignTableName($this->_platform);
+
+        return "ALTER TABLE test ADD CONSTRAINT constraint_fk FOREIGN KEY (fk_name) REFERENCES $quotedForeignTable (id)";
+    }
+
     public function testGeneratesForeignKeySqlOnlyWhenSupportingForeignKeys()
     {
+
         $fk = new \Doctrine\DBAL\Schema\ForeignKeyConstraint(array('fk_name'), 'foreign', array('id'), 'constraint_fk');
 
         if ($this->_platform->supportsForeignKeyConstraints()) {
@@ -229,23 +279,20 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         }
     }
 
-    protected function getBitAndComparisonExpressionSql($value1, $value2)
-    {
-        return '(' . $value1 . ' & ' . $value2 . ')';
-    }
-
     /**
      * @group DDC-1213
      */
     public function testGeneratesBitAndComparisonExpressionSql()
     {
+
         $sql = $this->_platform->getBitAndComparisonExpression(2, 4);
         $this->assertEquals($this->getBitAndComparisonExpressionSql(2, 4), $sql);
     }
 
-    protected  function getBitOrComparisonExpressionSql($value1, $value2)
+    protected function getBitAndComparisonExpressionSql($value1, $value2)
     {
-        return '(' . $value1 . ' | ' . $value2 . ')';
+
+        return '('.$value1.' & '.$value2.')';
     }
 
     /**
@@ -253,31 +300,20 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testGeneratesBitOrComparisonExpressionSql()
     {
+
         $sql = $this->_platform->getBitOrComparisonExpression(2, 4);
         $this->assertEquals($this->getBitOrComparisonExpressionSql(2, 4), $sql);
     }
 
-    public function getGenerateConstraintUniqueIndexSql()
+    protected function getBitOrComparisonExpressionSql($value1, $value2)
     {
-        return 'ALTER TABLE test ADD CONSTRAINT constraint_name UNIQUE (test)';
+
+        return '('.$value1.' | '.$value2.')';
     }
-
-    public function getGenerateConstraintPrimaryIndexSql()
-    {
-        return 'ALTER TABLE test ADD CONSTRAINT constraint_name PRIMARY KEY (test)';
-    }
-
-    public function getGenerateConstraintForeignKeySql(ForeignKeyConstraint $fk)
-    {
-        $quotedForeignTable = $fk->getQuotedForeignTableName($this->_platform);
-
-        return "ALTER TABLE test ADD CONSTRAINT constraint_fk FOREIGN KEY (fk_name) REFERENCES $quotedForeignTable (id)";
-    }
-
-    abstract public function getGenerateAlterTableSql();
 
     public function testGeneratesTableAlterationSql()
     {
+
         $expectedSql = $this->getGenerateAlterTableSql();
 
         $table = new Table('mytable');
@@ -290,18 +326,20 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $tableDiff = new TableDiff('mytable');
         $tableDiff->fromTable = $table;
         $tableDiff->newName = 'userlist';
-        $tableDiff->addedColumns['quota'] = new \Doctrine\DBAL\Schema\Column('quota', \Doctrine\DBAL\Types\Type::getType('integer'), array('notnull' => false));
-        $tableDiff->removedColumns['foo'] = new \Doctrine\DBAL\Schema\Column('foo', \Doctrine\DBAL\Types\Type::getType('integer'));
+        $tableDiff->addedColumns['quota'] = new \Doctrine\DBAL\Schema\Column('quota',
+            \Doctrine\DBAL\Types\Type::getType('integer'), array('notnull' => false));
+        $tableDiff->removedColumns['foo'] = new \Doctrine\DBAL\Schema\Column('foo',
+            \Doctrine\DBAL\Types\Type::getType('integer'));
         $tableDiff->changedColumns['bar'] = new \Doctrine\DBAL\Schema\ColumnDiff(
             'bar', new \Doctrine\DBAL\Schema\Column(
-                'baz', \Doctrine\DBAL\Types\Type::getType('string'), array('default' => 'def')
-            ),
+            'baz', \Doctrine\DBAL\Types\Type::getType('string'), array('default' => 'def')
+        ),
             array('type', 'notnull', 'default')
         );
         $tableDiff->changedColumns['bloo'] = new \Doctrine\DBAL\Schema\ColumnDiff(
             'bloo', new \Doctrine\DBAL\Schema\Column(
-                'bloo', \Doctrine\DBAL\Types\Type::getType('boolean'), array('default' => false)
-            ),
+            'bloo', \Doctrine\DBAL\Types\Type::getType('boolean'), array('default' => false)
+        ),
             array('type', 'notnull', 'default')
         );
 
@@ -310,15 +348,20 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $this->assertEquals($expectedSql, $sql);
     }
 
+    abstract public function getGenerateAlterTableSql();
+
     public function testGetCustomColumnDeclarationSql()
     {
+
         $field = array('columnDefinition' => 'MEDIUMINT(6) UNSIGNED');
         $this->assertEquals('foo MEDIUMINT(6) UNSIGNED', $this->_platform->getColumnDeclarationSQL('foo', $field));
     }
 
     public function testGetCreateTableSqlDispatchEvent()
     {
-        $listenerMock = $this->getMock('GetCreateTableSqlDispatchEvenListener', array('onSchemaCreateTable', 'onSchemaCreateTableColumn'));
+
+        $listenerMock = $this->getMock('GetCreateTableSqlDispatchEvenListener',
+            array('onSchemaCreateTable', 'onSchemaCreateTableColumn'));
         $listenerMock
             ->expects($this->once())
             ->method('onSchemaCreateTable');
@@ -327,7 +370,8 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
             ->method('onSchemaCreateTableColumn');
 
         $eventManager = new EventManager();
-        $eventManager->addEventListener(array(Events::onSchemaCreateTable, Events::onSchemaCreateTableColumn), $listenerMock);
+        $eventManager->addEventListener(array(Events::onSchemaCreateTable, Events::onSchemaCreateTableColumn),
+            $listenerMock);
 
         $this->_platform->setEventManager($eventManager);
 
@@ -340,6 +384,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGetDropTableSqlDispatchEvent()
     {
+
         $listenerMock = $this->getMock('GetDropTableSqlDispatchEventListener', array('onSchemaDropTable'));
         $listenerMock
             ->expects($this->once())
@@ -355,6 +400,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGetAlterTableSqlDispatchEvent()
     {
+
         $events = array(
             'onSchemaAlterTable',
             'onSchemaAlterTableAddColumn',
@@ -399,15 +445,18 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
         $tableDiff = new TableDiff('mytable');
         $tableDiff->fromTable = $table;
-        $tableDiff->addedColumns['added'] = new \Doctrine\DBAL\Schema\Column('added', \Doctrine\DBAL\Types\Type::getType('integer'), array());
-        $tableDiff->removedColumns['removed'] = new \Doctrine\DBAL\Schema\Column('removed', \Doctrine\DBAL\Types\Type::getType('integer'), array());
+        $tableDiff->addedColumns['added'] = new \Doctrine\DBAL\Schema\Column('added',
+            \Doctrine\DBAL\Types\Type::getType('integer'), array());
+        $tableDiff->removedColumns['removed'] = new \Doctrine\DBAL\Schema\Column('removed',
+            \Doctrine\DBAL\Types\Type::getType('integer'), array());
         $tableDiff->changedColumns['changed'] = new \Doctrine\DBAL\Schema\ColumnDiff(
             'changed', new \Doctrine\DBAL\Schema\Column(
-                'changed2', \Doctrine\DBAL\Types\Type::getType('string'), array()
-            ),
+            'changed2', \Doctrine\DBAL\Types\Type::getType('string'), array()
+        ),
             array()
         );
-        $tableDiff->renamedColumns['renamed'] = new \Doctrine\DBAL\Schema\Column('renamed2', \Doctrine\DBAL\Types\Type::getType('integer'), array());
+        $tableDiff->renamedColumns['renamed'] = new \Doctrine\DBAL\Schema\Column('renamed2',
+            \Doctrine\DBAL\Types\Type::getType('integer'), array());
 
         $this->_platform->getAlterTableSQL($tableDiff);
     }
@@ -417,6 +466,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testCreateTableColumnComments()
     {
+
         $table = new Table('test');
         $table->addColumn('id', 'integer', array('comment' => 'This is a comment'));
         $table->setPrimaryKey(array('id'));
@@ -424,31 +474,46 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $this->assertEquals($this->getCreateTableColumnCommentsSQL(), $this->_platform->getCreateTableSQL($table));
     }
 
+    public function getCreateTableColumnCommentsSQL()
+    {
+
+        $this->markTestSkipped('Platform does not support Column comments.');
+    }
+
     /**
      * @group DBAL-42
      */
     public function testAlterTableColumnComments()
     {
+
         $tableDiff = new TableDiff('mytable');
-        $tableDiff->addedColumns['quota'] = new \Doctrine\DBAL\Schema\Column('quota', \Doctrine\DBAL\Types\Type::getType('integer'), array('comment' => 'A comment'));
+        $tableDiff->addedColumns['quota'] = new \Doctrine\DBAL\Schema\Column('quota',
+            \Doctrine\DBAL\Types\Type::getType('integer'), array('comment' => 'A comment'));
         $tableDiff->changedColumns['foo'] = new \Doctrine\DBAL\Schema\ColumnDiff(
             'foo', new \Doctrine\DBAL\Schema\Column(
-                'foo', \Doctrine\DBAL\Types\Type::getType('string')
-            ),
+            'foo', \Doctrine\DBAL\Types\Type::getType('string')
+        ),
             array('comment')
         );
         $tableDiff->changedColumns['bar'] = new \Doctrine\DBAL\Schema\ColumnDiff(
             'bar', new \Doctrine\DBAL\Schema\Column(
-                'baz', \Doctrine\DBAL\Types\Type::getType('string'), array('comment' => 'B comment')
-            ),
+            'baz', \Doctrine\DBAL\Types\Type::getType('string'), array('comment' => 'B comment')
+        ),
             array('comment')
         );
 
         $this->assertEquals($this->getAlterTableColumnCommentsSQL(), $this->_platform->getAlterTableSQL($tableDiff));
     }
 
+    public function getAlterTableColumnCommentsSQL()
+    {
+
+        $this->markTestSkipped('Platform does not support Column comments.');
+    }
+
     public function testCreateTableColumnTypeComments()
     {
+
         $table = new Table('test');
         $table->addColumn('id', 'integer');
         $table->addColumn('data', 'array');
@@ -457,23 +522,15 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $this->assertEquals($this->getCreateTableColumnTypeCommentsSQL(), $this->_platform->getCreateTableSQL($table));
     }
 
-    public function getCreateTableColumnCommentsSQL()
-    {
-        $this->markTestSkipped('Platform does not support Column comments.');
-    }
-
-    public function getAlterTableColumnCommentsSQL()
-    {
-        $this->markTestSkipped('Platform does not support Column comments.');
-    }
-
     public function getCreateTableColumnTypeCommentsSQL()
     {
+
         $this->markTestSkipped('Platform does not support Column comments.');
     }
 
     public function testGetDefaultValueDeclarationSQL()
     {
+
         // non-timestamp value will get single quotes
         $field = array(
             'type' => 'string',
@@ -485,6 +542,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
     public function testGetDefaultValueDeclarationSQLDateTime()
     {
+
         // timestamps on datetime types should not be quoted
         foreach (array('datetime', 'datetimetz') as $type) {
 
@@ -493,14 +551,16 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
                 'default' => $this->_platform->getCurrentTimestampSQL()
             );
 
-            $this->assertEquals(' DEFAULT ' . $this->_platform->getCurrentTimestampSQL(), $this->_platform->getDefaultValueDeclarationSQL($field));
+            $this->assertEquals(' DEFAULT '.$this->_platform->getCurrentTimestampSQL(),
+                $this->_platform->getDefaultValueDeclarationSQL($field));
 
         }
     }
 
     public function testGetDefaultValueDeclarationSQLForIntegerTypes()
     {
-        foreach(array('bigint', 'integer', 'smallint') as $type) {
+
+        foreach (array('bigint', 'integer', 'smallint') as $type) {
             $field = array(
                 'type'    => Type::getType($type),
                 'default' => 1
@@ -518,6 +578,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testKeywordList()
     {
+
         $keywordList = $this->_platform->getReservedKeywordsList();
         $this->assertInstanceOf('Doctrine\DBAL\Platforms\Keywords\KeywordList', $keywordList);
 
@@ -529,6 +590,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotedColumnInPrimaryKeyPropagation()
     {
+
         $table = new Table('`quoted`');
         $table->addColumn('create', 'string');
         $table->setPrimaryKey(array('create'));
@@ -538,15 +600,13 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
     }
 
     abstract protected function getQuotedColumnInPrimaryKeySQL();
-    abstract protected function getQuotedColumnInIndexSQL();
-    abstract protected function getQuotedNameInIndexSQL();
-    abstract protected function getQuotedColumnInForeignKeySQL();
 
     /**
      * @group DBAL-374
      */
     public function testQuotedColumnInIndexPropagation()
     {
+
         $table = new Table('`quoted`');
         $table->addColumn('create', 'string');
         $table->addIndex(array('create'));
@@ -555,8 +615,11 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $this->assertEquals($this->getQuotedColumnInIndexSQL(), $sql);
     }
 
+    abstract protected function getQuotedColumnInIndexSQL();
+
     public function testQuotedNameInIndexSQL()
     {
+
         $table = new Table('test');
         $table->addColumn('column1', 'string');
         $table->addIndex(array('column1'), '`key`');
@@ -565,11 +628,14 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $this->assertEquals($this->getQuotedNameInIndexSQL(), $sql);
     }
 
+    abstract protected function getQuotedNameInIndexSQL();
+
     /**
      * @group DBAL-374
      */
     public function testQuotedColumnInForeignKeyPropagation()
     {
+
         $table = new Table('`quoted`');
         $table->addColumn('create', 'string');
         $table->addColumn('foo', 'string');
@@ -577,37 +643,52 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
         // Foreign table with reserved keyword as name (needs quotation).
         $foreignTable = new Table('foreign');
-        $foreignTable->addColumn('create', 'string');    // Foreign column with reserved keyword as name (needs quotation).
-        $foreignTable->addColumn('bar', 'string');       // Foreign column with non-reserved keyword as name (does not need quotation).
-        $foreignTable->addColumn('`foo-bar`', 'string'); // Foreign table with special character in name (needs quotation on some platforms, e.g. Sqlite).
+        $foreignTable->addColumn('create',
+            'string');    // Foreign column with reserved keyword as name (needs quotation).
+        $foreignTable->addColumn('bar',
+            'string');       // Foreign column with non-reserved keyword as name (does not need quotation).
+        $foreignTable->addColumn('`foo-bar`',
+            'string'); // Foreign table with special character in name (needs quotation on some platforms, e.g. Sqlite).
 
-        $table->addForeignKeyConstraint($foreignTable, array('create', 'foo', '`bar`'), array('create', 'bar', '`foo-bar`'), array(), 'FK_WITH_RESERVED_KEYWORD');
+        $table->addForeignKeyConstraint($foreignTable, array('create', 'foo', '`bar`'),
+            array('create', 'bar', '`foo-bar`'), array(), 'FK_WITH_RESERVED_KEYWORD');
 
         // Foreign table with non-reserved keyword as name (does not need quotation).
         $foreignTable = new Table('foo');
-        $foreignTable->addColumn('create', 'string');    // Foreign column with reserved keyword as name (needs quotation).
-        $foreignTable->addColumn('bar', 'string');       // Foreign column with non-reserved keyword as name (does not need quotation).
-        $foreignTable->addColumn('`foo-bar`', 'string'); // Foreign table with special character in name (needs quotation on some platforms, e.g. Sqlite).
+        $foreignTable->addColumn('create',
+            'string');    // Foreign column with reserved keyword as name (needs quotation).
+        $foreignTable->addColumn('bar',
+            'string');       // Foreign column with non-reserved keyword as name (does not need quotation).
+        $foreignTable->addColumn('`foo-bar`',
+            'string'); // Foreign table with special character in name (needs quotation on some platforms, e.g. Sqlite).
 
-        $table->addForeignKeyConstraint($foreignTable, array('create', 'foo', '`bar`'), array('create', 'bar', '`foo-bar`'), array(), 'FK_WITH_NON_RESERVED_KEYWORD');
+        $table->addForeignKeyConstraint($foreignTable, array('create', 'foo', '`bar`'),
+            array('create', 'bar', '`foo-bar`'), array(), 'FK_WITH_NON_RESERVED_KEYWORD');
 
         // Foreign table with special character in name (needs quotation on some platforms, e.g. Sqlite).
         $foreignTable = new Table('`foo-bar`');
-        $foreignTable->addColumn('create', 'string');    // Foreign column with reserved keyword as name (needs quotation).
-        $foreignTable->addColumn('bar', 'string');       // Foreign column with non-reserved keyword as name (does not need quotation).
-        $foreignTable->addColumn('`foo-bar`', 'string'); // Foreign table with special character in name (needs quotation on some platforms, e.g. Sqlite).
+        $foreignTable->addColumn('create',
+            'string');    // Foreign column with reserved keyword as name (needs quotation).
+        $foreignTable->addColumn('bar',
+            'string');       // Foreign column with non-reserved keyword as name (does not need quotation).
+        $foreignTable->addColumn('`foo-bar`',
+            'string'); // Foreign table with special character in name (needs quotation on some platforms, e.g. Sqlite).
 
-        $table->addForeignKeyConstraint($foreignTable, array('create', 'foo', '`bar`'), array('create', 'bar', '`foo-bar`'), array(), 'FK_WITH_INTENDED_QUOTATION');
+        $table->addForeignKeyConstraint($foreignTable, array('create', 'foo', '`bar`'),
+            array('create', 'bar', '`foo-bar`'), array(), 'FK_WITH_INTENDED_QUOTATION');
 
         $sql = $this->_platform->getCreateTableSQL($table, AbstractPlatform::CREATE_FOREIGNKEYS);
         $this->assertEquals($this->getQuotedColumnInForeignKeySQL(), $sql);
     }
+
+    abstract protected function getQuotedColumnInForeignKeySQL();
 
     /**
      * @group DBAL-1051
      */
     public function testQuotesReservedKeywordInUniqueConstraintDeclarationSQL()
     {
+
         $index = new Index('select', array('foo'), true);
 
         $this->assertSame(
@@ -626,9 +707,10 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotesReservedKeywordInIndexDeclarationSQL()
     {
+
         $index = new Index('select', array('foo'));
 
-        if (! $this->supportsInlineIndexDeclaration()) {
+        if (!$this->supportsInlineIndexDeclaration()) {
             $this->setExpectedException('Doctrine\DBAL\DBALException');
         }
 
@@ -644,18 +726,11 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
     abstract protected function getQuotesReservedKeywordInIndexDeclarationSQL();
 
     /**
-     * @return boolean
-     */
-    protected function supportsInlineIndexDeclaration()
-    {
-        return true;
-    }
-
-    /**
      * @expectedException \Doctrine\DBAL\DBALException
      */
     public function testGetCreateSchemaSQL()
     {
+
         $this->_platform->getCreateSchemaSQL('schema');
     }
 
@@ -664,12 +739,13 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testAlterTableChangeQuotedColumn()
     {
+
         $tableDiff = new \Doctrine\DBAL\Schema\TableDiff('mytable');
         $tableDiff->fromTable = new \Doctrine\DBAL\Schema\Table('mytable');
         $tableDiff->changedColumns['foo'] = new \Doctrine\DBAL\Schema\ColumnDiff(
             'select', new \Doctrine\DBAL\Schema\Column(
-                'select', \Doctrine\DBAL\Types\Type::getType('string')
-            ),
+            'select', \Doctrine\DBAL\Types\Type::getType('string')
+        ),
             array('type')
         );
 
@@ -684,6 +760,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testUsesSequenceEmulatedIdentityColumns()
     {
+
         $this->assertFalse($this->_platform->usesSequenceEmulatedIdentityColumns());
     }
 
@@ -693,26 +770,31 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testReturnsIdentitySequenceName()
     {
+
         $this->_platform->getIdentitySequenceName('mytable', 'mycolumn');
     }
 
     public function testReturnsBinaryDefaultLength()
     {
+
         $this->assertSame($this->getBinaryDefaultLength(), $this->_platform->getBinaryDefaultLength());
     }
 
     protected function getBinaryDefaultLength()
     {
+
         return 255;
     }
 
     public function testReturnsBinaryMaxLength()
     {
+
         $this->assertSame($this->getBinaryMaxLength(), $this->_platform->getBinaryMaxLength());
     }
 
     protected function getBinaryMaxLength()
     {
+
         return 4000;
     }
 
@@ -721,6 +803,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testReturnsBinaryTypeDeclarationSQL()
     {
+
         $this->_platform->getBinaryTypeDeclarationSQL(array());
     }
 
@@ -729,6 +812,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function hasNativeJsonType()
     {
+
         $this->assertFalse($this->_platform->hasNativeJsonType());
     }
 
@@ -737,6 +821,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testReturnsJsonTypeDeclarationSQL()
     {
+
         $column = array(
             'length'  => 666,
             'notnull' => true,
@@ -754,6 +839,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testAlterTableRenameIndex()
     {
+
         $tableDiff = new TableDiff('mytable');
         $tableDiff->fromTable = new Table('mytable');
         $tableDiff->fromTable->addColumn('id', 'integer');
@@ -773,6 +859,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     protected function getAlterTableRenameIndexSQL()
     {
+
         return array(
             'DROP INDEX idx_foo',
             'CREATE INDEX idx_bar ON mytable (id)',
@@ -784,6 +871,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotesAlterTableRenameIndex()
     {
+
         $tableDiff = new TableDiff('table');
         $tableDiff->fromTable = new Table('table');
         $tableDiff->fromTable->addColumn('id', 'integer');
@@ -804,6 +892,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     protected function getQuotedAlterTableRenameIndexSQL()
     {
+
         return array(
             'DROP INDEX "create"',
             'CREATE INDEX "select" ON "table" (id)',
@@ -817,6 +906,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotesAlterTableRenameColumn()
     {
+
         $fromTable = new Table('mytable');
 
         $fromTable->addColumn('unquoted1', 'integer', array('comment' => 'Unquoted 1'));
@@ -837,8 +927,10 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         $toTable->addColumn('where', 'integer', array('comment' => 'Unquoted 2')); // unquoted -> reserved keyword
         $toTable->addColumn('`foo`', 'integer', array('comment' => 'Unquoted 3')); // unquoted -> quoted
 
-        $toTable->addColumn('reserved_keyword', 'integer', array('comment' => 'Reserved keyword 1')); // reserved keyword -> unquoted
-        $toTable->addColumn('from', 'integer', array('comment' => 'Reserved keyword 2')); // reserved keyword -> reserved keyword
+        $toTable->addColumn('reserved_keyword', 'integer',
+            array('comment' => 'Reserved keyword 1')); // reserved keyword -> unquoted
+        $toTable->addColumn('from', 'integer',
+            array('comment' => 'Reserved keyword 2')); // reserved keyword -> reserved keyword
         $toTable->addColumn('`bar`', 'integer', array('comment' => 'Reserved keyword 3')); // reserved keyword -> quoted
 
         $toTable->addColumn('quoted', 'integer', array('comment' => 'Quoted 1')); // quoted -> unquoted
@@ -867,6 +959,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotesAlterTableChangeColumnLength()
     {
+
         $fromTable = new Table('mytable');
 
         $fromTable->addColumn('unquoted1', 'string', array('comment' => 'Unquoted 1', 'length' => 10));
@@ -909,6 +1002,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testAlterTableRenameIndexInSchema()
     {
+
         $tableDiff = new TableDiff('myschema.mytable');
         $tableDiff->fromTable = new Table('myschema.mytable');
         $tableDiff->fromTable->addColumn('id', 'integer');
@@ -928,6 +1022,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     protected function getAlterTableRenameIndexInSchemaSQL()
     {
+
         return array(
             'DROP INDEX idx_foo',
             'CREATE INDEX idx_bar ON myschema.mytable (id)',
@@ -939,6 +1034,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotesAlterTableRenameIndexInSchema()
     {
+
         $tableDiff = new TableDiff('`schema`.table');
         $tableDiff->fromTable = new Table('`schema`.table');
         $tableDiff->fromTable->addColumn('id', 'integer');
@@ -959,6 +1055,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     protected function getQuotedAlterTableRenameIndexInSchemaSQL()
     {
+
         return array(
             'DROP INDEX "schema"."create"',
             'CREATE INDEX "select" ON "schema"."table" (id)',
@@ -967,56 +1064,56 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         );
     }
 
-    protected function getStringLiteralQuoteCharacter()
-    {
-        return "'";
-    }
-
     public function testGetStringLiteralQuoteCharacter()
     {
+
         $this->assertSame($this->getStringLiteralQuoteCharacter(), $this->_platform->getStringLiteralQuoteCharacter());
     }
 
-    protected function getQuotedCommentOnColumnSQLWithoutQuoteCharacter()
+    protected function getStringLiteralQuoteCharacter()
     {
-        return "COMMENT ON COLUMN mytable.id IS 'This is a comment'";
+
+        return "'";
     }
 
     public function testGetCommentOnColumnSQLWithoutQuoteCharacter()
     {
+
         $this->assertEquals(
             $this->getQuotedCommentOnColumnSQLWithoutQuoteCharacter(),
             $this->_platform->getCommentOnColumnSQL('mytable', 'id', 'This is a comment')
         );
     }
 
-    protected function getQuotedCommentOnColumnSQLWithQuoteCharacter()
+    protected function getQuotedCommentOnColumnSQLWithoutQuoteCharacter()
     {
-        return "COMMENT ON COLUMN mytable.id IS 'It''s a quote !'";
+
+        return "COMMENT ON COLUMN mytable.id IS 'This is a comment'";
     }
 
     public function testGetCommentOnColumnSQLWithQuoteCharacter()
     {
+
         $c = $this->getStringLiteralQuoteCharacter();
 
         $this->assertEquals(
             $this->getQuotedCommentOnColumnSQLWithQuoteCharacter(),
-            $this->_platform->getCommentOnColumnSQL('mytable', 'id', "It" . $c . "s a quote !")
+            $this->_platform->getCommentOnColumnSQL('mytable', 'id', "It".$c."s a quote !")
         );
     }
 
-    /**
-     * @return array
-     *
-     * @see testGetCommentOnColumnSQL
-     */
-    abstract protected function getCommentOnColumnSQL();
+    protected function getQuotedCommentOnColumnSQLWithQuoteCharacter()
+    {
+
+        return "COMMENT ON COLUMN mytable.id IS 'It''s a quote !'";
+    }
 
     /**
      * @group DBAL-1004
      */
     public function testGetCommentOnColumnSQL()
     {
+
         $this->assertSame(
             $this->getCommentOnColumnSQL(),
             array(
@@ -1027,23 +1124,16 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         );
     }
 
-    protected function getQuotedStringLiteralWithoutQuoteCharacter()
-    {
-        return "'No quote'";
-    }
-
-    protected function getQuotedStringLiteralWithQuoteCharacter()
-    {
-        return "'It''s a quote'";
-    }
-
-    protected function getQuotedStringLiteralQuoteCharacter()
-    {
-        return "''''";
-    }
+    /**
+     * @return array
+     *
+     * @see testGetCommentOnColumnSQL
+     */
+    abstract protected function getCommentOnColumnSQL();
 
     public function testQuoteStringLiteral()
     {
+
         $c = $this->getStringLiteralQuoteCharacter();
 
         $this->assertEquals(
@@ -1052,12 +1142,30 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
         );
         $this->assertEquals(
             $this->getQuotedStringLiteralWithQuoteCharacter(),
-            $this->_platform->quoteStringLiteral('It' . $c . 's a quote')
+            $this->_platform->quoteStringLiteral('It'.$c.'s a quote')
         );
         $this->assertEquals(
             $this->getQuotedStringLiteralQuoteCharacter(),
             $this->_platform->quoteStringLiteral($c)
         );
+    }
+
+    protected function getQuotedStringLiteralWithoutQuoteCharacter()
+    {
+
+        return "'No quote'";
+    }
+
+    protected function getQuotedStringLiteralWithQuoteCharacter()
+    {
+
+        return "'It''s a quote'";
+    }
+
+    protected function getQuotedStringLiteralQuoteCharacter()
+    {
+
+        return "''''";
     }
 
     /**
@@ -1067,6 +1175,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testReturnsGuidTypeDeclarationSQL()
     {
+
         $this->_platform->getGuidTypeDeclarationSQL(array());
     }
 
@@ -1075,6 +1184,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testGeneratesAlterTableRenameColumnSQL()
     {
+
         $table = new Table('foo');
         $table->addColumn(
             'bar',
@@ -1103,6 +1213,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotesTableIdentifiersInAlterTableSQL()
     {
+
         $table = new Table('"foo"');
         $table->addColumn('id', 'integer');
         $table->addColumn('fk', 'integer');
@@ -1154,8 +1265,8 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
 
         $tableDiff->changedColumns['name'] = new \Doctrine\DBAL\Schema\ColumnDiff(
             'name', new \Doctrine\DBAL\Schema\Column(
-                'name', \Doctrine\DBAL\Types\Type::getType('string'), array('fixed' => true, 'length' => 2)
-            ),
+            'name', \Doctrine\DBAL\Types\Type::getType('string'), array('fixed' => true, 'length' => 2)
+        ),
             array('fixed')
         );
 
@@ -1176,6 +1287,7 @@ abstract class AbstractPlatformTestCase extends \Doctrine\Tests\DbalTestCase
      */
     public function testGeneratesAlterTableRenameIndexUsedByForeignKeySQL()
     {
+
         $foreignTable = new Table('foreign_table');
         $foreignTable->addColumn('id', 'integer');
         $foreignTable->setPrimaryKey(array('id'));

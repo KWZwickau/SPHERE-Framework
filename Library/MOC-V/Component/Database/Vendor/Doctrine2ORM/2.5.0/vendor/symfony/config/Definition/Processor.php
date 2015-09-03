@@ -18,37 +18,6 @@ namespace Symfony\Component\Config\Definition;
  */
 class Processor
 {
-    /**
-     * Processes an array of configurations.
-     *
-     * @param NodeInterface $configTree The node tree describing the configuration
-     * @param array         $configs    An array of configuration items to process
-     *
-     * @return array The processed configuration
-     */
-    public function process(NodeInterface $configTree, array $configs)
-    {
-        $currentConfig = array();
-        foreach ($configs as $config) {
-            $config = $configTree->normalize($config);
-            $currentConfig = $configTree->merge($currentConfig, $config);
-        }
-
-        return $configTree->finalize($currentConfig);
-    }
-
-    /**
-     * Processes an array of configurations.
-     *
-     * @param ConfigurationInterface $configuration The configuration class
-     * @param array                  $configs       An array of configuration items to process
-     *
-     * @return array The processed configuration
-     */
-    public function processConfiguration(ConfigurationInterface $configuration, array $configs)
-    {
-        return $this->process($configuration->getConfigTreeBuilder()->buildTree(), $configs);
-    }
 
     /**
      * Normalizes a configuration entry.
@@ -75,23 +44,58 @@ class Processor
      */
     public static function normalizeConfig($config, $key, $plural = null)
     {
+
         if (null === $plural) {
             $plural = $key.'s';
         }
 
-        if (isset($config[$plural])) {
+        if (isset( $config[$plural] )) {
             return $config[$plural];
         }
 
-        if (isset($config[$key])) {
+        if (isset( $config[$key] )) {
             if (is_string($config[$key]) || !is_int(key($config[$key]))) {
                 // only one
-                return  array($config[$key]);
+                return array($config[$key]);
             }
 
-            return  $config[$key];
+            return $config[$key];
         }
 
         return array();
+    }
+
+    /**
+     * Processes an array of configurations.
+     *
+     * @param ConfigurationInterface $configuration The configuration class
+     * @param array                  $configs       An array of configuration items to process
+     *
+     * @return array The processed configuration
+     */
+    public function processConfiguration(ConfigurationInterface $configuration, array $configs)
+    {
+
+        return $this->process($configuration->getConfigTreeBuilder()->buildTree(), $configs);
+    }
+
+    /**
+     * Processes an array of configurations.
+     *
+     * @param NodeInterface $configTree The node tree describing the configuration
+     * @param array         $configs    An array of configuration items to process
+     *
+     * @return array The processed configuration
+     */
+    public function process(NodeInterface $configTree, array $configs)
+    {
+
+        $currentConfig = array();
+        foreach ($configs as $config) {
+            $config = $configTree->normalize($config);
+            $currentConfig = $configTree->merge($currentConfig, $config);
+        }
+
+        return $configTree->finalize($currentConfig);
     }
 }

@@ -9,6 +9,7 @@ use Guzzle\Http\Curl\CurlHandle;
  */
 class CurlException extends RequestException
 {
+
     private $curlError;
     private $curlErrorNo;
     private $handle;
@@ -24,6 +25,7 @@ class CurlException extends RequestException
      */
     public function setError($error, $number)
     {
+
         $this->curlError = $error;
         $this->curlErrorNo = $number;
 
@@ -39,6 +41,7 @@ class CurlException extends RequestException
      */
     public function setCurlHandle(CurlHandle $handle)
     {
+
         $this->handle = $handle;
 
         return $this;
@@ -51,6 +54,7 @@ class CurlException extends RequestException
      */
     public function getCurlHandle()
     {
+
         return $this->handle;
     }
 
@@ -61,6 +65,7 @@ class CurlException extends RequestException
      */
     public function getError()
     {
+
         return $this->curlError;
     }
 
@@ -71,6 +76,7 @@ class CurlException extends RequestException
      */
     public function getErrorNo()
     {
+
         return $this->curlErrorNo;
     }
 
@@ -81,6 +87,7 @@ class CurlException extends RequestException
      */
     public function getCurlInfo()
     {
+
         return $this->curlInfo;
     }
 
@@ -94,6 +101,7 @@ class CurlException extends RequestException
      */
     public function setCurlInfo(array $info)
     {
+
         $this->curlInfo = $info;
 
         return $this;

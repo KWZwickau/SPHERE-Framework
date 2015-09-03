@@ -8,6 +8,7 @@ namespace Satooshi\Bundle\CoverallsV1Bundle\Entity;
  */
 class Metrics
 {
+
     /**
      * Number of statements.
      *
@@ -36,12 +37,14 @@ class Metrics
      */
     public function __construct(array $coverage = array())
     {
-        if (!empty($coverage)) {
+
+        if (!empty( $coverage )) {
             // statements
             // not null
             $statementsArray = array_filter(
                 $coverage,
                 function ($line) {
+
                     return $line !== null;
                 }
             );
@@ -52,12 +55,13 @@ class Metrics
             $coveredArray = array_filter(
                 $statementsArray,
                 function ($line) {
+
                     return $line > 0;
                 }
             );
             $this->coveredStatements = count($coveredArray);
         } else {
-            $this->statements        = 0;
+            $this->statements = 0;
             $this->coveredStatements = 0;
         }
     }
@@ -73,12 +77,63 @@ class Metrics
      */
     public function merge(Metrics $that)
     {
-        $this->statements        += $that->statements;
+
+        $this->statements += $that->statements;
         $this->coveredStatements += $that->coveredStatements;
-        $this->lineCoverage       = null; // clear previous data
+        $this->lineCoverage = null; // clear previous data
     }
 
     // internal method
+
+    /**
+     * Return whether the source file has executable statements.
+     *
+     * @return boolean
+     */
+    public function hasStatements()
+    {
+
+        return $this->statements !== 0;
+    }
+
+    // accessor
+
+    /**
+     * Return number of statements.
+     *
+     * @return integer
+     */
+    public function getStatements()
+    {
+
+        return $this->statements;
+    }
+
+    /**
+     * Return number of covered statements.
+     *
+     * @return integer
+     */
+    public function getCoveredStatements()
+    {
+
+        return $this->coveredStatements;
+    }
+
+    /**
+     * Return line coverage.
+     *
+     * @return float
+     */
+    public function getLineCoverage()
+    {
+
+        if (!isset( $this->lineCoverage )) {
+            $this->lineCoverage = $this->calculateLineCoverage($this->statements, $this->coveredStatements);
+        }
+
+        return $this->lineCoverage;
+    }
 
     /**
      * Calculate line coverage.
@@ -90,56 +145,11 @@ class Metrics
      */
     protected function calculateLineCoverage($statements, $coveredStatements)
     {
+
         if ($statements === 0) {
             return 0;
         }
 
-        return ($coveredStatements / $statements) * 100;
-    }
-
-    // accessor
-
-    /**
-     * Return whether the source file has executable statements.
-     *
-     * @return boolean
-     */
-    public function hasStatements()
-    {
-        return $this->statements !== 0;
-    }
-
-    /**
-     * Return number of statements.
-     *
-     * @return integer
-     */
-    public function getStatements()
-    {
-        return $this->statements;
-    }
-
-    /**
-     * Return number of covered statements.
-     *
-     * @return integer
-     */
-    public function getCoveredStatements()
-    {
-        return $this->coveredStatements;
-    }
-
-    /**
-     * Return line coverage.
-     *
-     * @return float
-     */
-    public function getLineCoverage()
-    {
-        if (!isset($this->lineCoverage)) {
-            $this->lineCoverage = $this->calculateLineCoverage($this->statements, $this->coveredStatements);
-        }
-
-        return $this->lineCoverage;
+        return ( $coveredStatements / $statements ) * 100;
     }
 }

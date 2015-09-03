@@ -20,8 +20,8 @@
 
 namespace Doctrine\ORM\Cache;
 
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\PersistentCollection;
 
 /**
  * Hydrator cache entry for collections
@@ -31,6 +31,7 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  */
 interface CollectionHydrator
 {
+
     /**
      * @param \Doctrine\ORM\Mapping\ClassMetadata           $metadata   The entity metadata.
      * @param \Doctrine\ORM\Cache\CollectionCacheKey        $key        The cached collection key.
@@ -48,5 +49,10 @@ interface CollectionHydrator
      *
      * @return array
      */
-    public function loadCacheEntry(ClassMetadata $metadata, CollectionCacheKey $key, CollectionCacheEntry $entry, PersistentCollection $collection);
+    public function loadCacheEntry(
+        ClassMetadata $metadata,
+        CollectionCacheKey $key,
+        CollectionCacheEntry $entry,
+        PersistentCollection $collection
+    );
 }

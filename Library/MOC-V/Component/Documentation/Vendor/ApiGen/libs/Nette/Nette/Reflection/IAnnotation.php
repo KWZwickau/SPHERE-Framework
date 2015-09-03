@@ -21,6 +21,6 @@ use Nette;
 interface IAnnotation
 {
 
-    function __construct( array $values );
+    function __construct(array $values);
 
 }

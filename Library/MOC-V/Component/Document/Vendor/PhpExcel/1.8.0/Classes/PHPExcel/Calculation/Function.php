@@ -79,7 +79,7 @@ class PHPExcel_Calculation_Function
      *
      * @throws    PHPExcel_Calculation_Exception
      */
-    public function __construct( $pCategory = null, $pExcelName = null, $pPHPExcelName = null )
+    public function __construct($pCategory = null, $pExcelName = null, $pPHPExcelName = null)
     {
 
         if (( $pCategory !== null ) && ( $pExcelName !== null ) && ( $pPHPExcelName !== null )) {
@@ -88,7 +88,7 @@ class PHPExcel_Calculation_Function
             $this->_excelName = $pExcelName;
             $this->_phpExcelName = $pPHPExcelName;
         } else {
-            throw new PHPExcel_Calculation_Exception( "Invalid parameters passed." );
+            throw new PHPExcel_Calculation_Exception("Invalid parameters passed.");
         }
     }
 
@@ -110,13 +110,13 @@ class PHPExcel_Calculation_Function
      *
      * @throws    PHPExcel_Calculation_Exception
      */
-    public function setCategory( $value = null )
+    public function setCategory($value = null)
     {
 
-        if (!is_null( $value )) {
+        if (!is_null($value)) {
             $this->_category = $value;
         } else {
-            throw new PHPExcel_Calculation_Exception( "Invalid parameter passed." );
+            throw new PHPExcel_Calculation_Exception("Invalid parameter passed.");
         }
     }
 
@@ -136,7 +136,7 @@ class PHPExcel_Calculation_Function
      *
      * @param string $value
      */
-    public function setExcelName( $value )
+    public function setExcelName($value)
     {
 
         $this->_excelName = $value;
@@ -158,7 +158,7 @@ class PHPExcel_Calculation_Function
      *
      * @param string $value
      */
-    public function setPHPExcelName( $value )
+    public function setPHPExcelName($value)
     {
 
         $this->_phpExcelName = $value;

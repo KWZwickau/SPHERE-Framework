@@ -14,15 +14,11 @@ use PHPUnit_Framework_TestCase;
 
 class RuntimeTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @var \SebastianBergmann\Environment\Runtime
      */
     private $env;
-
-    protected function setUp()
-    {
-        $this->env = new Runtime;
-    }
 
     /**
      * @covers \SebastianBergmann\Environment\Runtime::canCollectCodeCoverage
@@ -32,6 +28,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testAbilityToCollectCodeCoverageCanBeAssessed()
     {
+
         $this->assertInternalType('boolean', $this->env->canCollectCodeCoverage());
     }
 
@@ -41,6 +38,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testBinaryCanBeRetrieved()
     {
+
         $this->assertInternalType('string', $this->env->getBinary());
     }
 
@@ -49,6 +47,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testCanBeDetected()
     {
+
         $this->assertInternalType('boolean', $this->env->isHHVM());
     }
 
@@ -58,6 +57,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testCanBeDetected2()
     {
+
         $this->assertInternalType('boolean', $this->env->isPHP());
     }
 
@@ -68,6 +68,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testXdebugCanBeDetected()
     {
+
         $this->assertInternalType('boolean', $this->env->hasXdebug());
     }
 
@@ -80,6 +81,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testNameAndVersionCanBeRetrieved()
     {
+
         $this->assertInternalType('string', $this->env->getNameWithVersion());
     }
 
@@ -89,6 +91,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testNameCanBeRetrieved()
     {
+
         $this->assertInternalType('string', $this->env->getName());
     }
 
@@ -98,6 +101,7 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testVersionCanBeRetrieved()
     {
+
         $this->assertInternalType('string', $this->env->getVersion());
     }
 
@@ -107,6 +111,13 @@ class RuntimeTest extends PHPUnit_Framework_TestCase
      */
     public function testVendorUrlCanBeRetrieved()
     {
+
         $this->assertInternalType('string', $this->env->getVendorUrl());
+    }
+
+    protected function setUp()
+    {
+
+        $this->env = new Runtime;
     }
 }

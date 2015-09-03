@@ -26,7 +26,7 @@ abstract class ReflectionElement
      *
      * @return \TokenReflection\Invalid\ReflectionElement
      */
-    public function addReason( BaseException $reason )
+    public function addReason(BaseException $reason)
     {
 
         $this->reasons[] = $reason;

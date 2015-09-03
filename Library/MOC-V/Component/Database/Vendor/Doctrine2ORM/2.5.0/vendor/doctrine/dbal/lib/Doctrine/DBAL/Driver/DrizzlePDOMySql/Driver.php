@@ -29,11 +29,13 @@ use Doctrine\DBAL\Schema\DrizzleSchemaManager;
  */
 class Driver extends \Doctrine\DBAL\Driver\PDOMySql\Driver
 {
+
     /**
      * {@inheritdoc}
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
+
         $conn = new Connection(
             $this->constructPdoDsn($params),
             $username,
@@ -49,6 +51,7 @@ class Driver extends \Doctrine\DBAL\Driver\PDOMySql\Driver
      */
     public function createDatabasePlatformForVersion($version)
     {
+
         return $this->getDatabasePlatform();
     }
 
@@ -57,6 +60,7 @@ class Driver extends \Doctrine\DBAL\Driver\PDOMySql\Driver
      */
     public function getDatabasePlatform()
     {
+
         return new DrizzlePlatform();
     }
 
@@ -65,6 +69,7 @@ class Driver extends \Doctrine\DBAL\Driver\PDOMySql\Driver
      */
     public function getSchemaManager(\Doctrine\DBAL\Connection $conn)
     {
+
         return new DrizzleSchemaManager($conn);
     }
 
@@ -73,6 +78,7 @@ class Driver extends \Doctrine\DBAL\Driver\PDOMySql\Driver
      */
     public function getName()
     {
+
         return 'drizzle_pdo_mysql';
     }
 }

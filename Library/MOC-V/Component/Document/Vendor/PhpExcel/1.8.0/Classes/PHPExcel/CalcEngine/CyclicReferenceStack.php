@@ -52,7 +52,7 @@ class PHPExcel_CalcEngine_CyclicReferenceStack
     public function count()
     {
 
-        return count( $this->_stack );
+        return count($this->_stack);
     }
 
     /**
@@ -60,7 +60,7 @@ class PHPExcel_CalcEngine_CyclicReferenceStack
      *
      * @param  mixed $value
      */
-    public function push( $value )
+    public function push($value)
     {
 
         $this->_stack[] = $value;
@@ -74,7 +74,7 @@ class PHPExcel_CalcEngine_CyclicReferenceStack
     public function pop()
     {
 
-        return array_pop( $this->_stack );
+        return array_pop($this->_stack);
     }    //	function pop()
 
     /**
@@ -82,10 +82,10 @@ class PHPExcel_CalcEngine_CyclicReferenceStack
      *
      * @param  mixed $value The value to test
      */
-    public function onStack( $value )
+    public function onStack($value)
     {
 
-        return in_array( $value, $this->_stack );
+        return in_array($value, $this->_stack);
     }
 
     /**

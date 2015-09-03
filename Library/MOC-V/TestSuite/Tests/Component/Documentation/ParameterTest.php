@@ -16,10 +16,10 @@ class ParameterTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Component\Documentation\Component\Parameter\Parameter $MockParameter */
-        $MockParameter = $this->getMockForAbstractClass( 'MOC\V\Component\Documentation\Component\Parameter\Parameter' );
+        $MockParameter = $this->getMockForAbstractClass('MOC\V\Component\Documentation\Component\Parameter\Parameter');
 
         $Parameter = new $MockParameter();
-        $this->assertInstanceOf( 'MOC\V\Component\Documentation\Component\Parameter\Parameter', $Parameter );
+        $this->assertInstanceOf('MOC\V\Component\Documentation\Component\Parameter\Parameter', $Parameter);
 
     }
 
@@ -27,20 +27,20 @@ class ParameterTest extends \PHPUnit_Framework_TestCase
     {
 
         try {
-            new DirectoryParameter( null );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Documentation\Component\Exception\Repository\EmptyDirectoryException',
-                $E );
+            new DirectoryParameter(null);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Documentation\Component\Exception\Repository\EmptyDirectoryException',
+                $E);
         }
 
-        $Parameter = new DirectoryParameter( __DIR__ );
-        $this->assertEquals( __DIR__, $Parameter->getDirectory() );
+        $Parameter = new DirectoryParameter(__DIR__);
+        $this->assertEquals(__DIR__, $Parameter->getDirectory());
 
         try {
-            $Parameter->setDirectory( __FILE__ );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Documentation\Component\Exception\Repository\TypeDirectoryException',
-                $E );
+            $Parameter->setDirectory(__FILE__);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Documentation\Component\Exception\Repository\TypeDirectoryException',
+                $E);
         }
 
     }
@@ -48,7 +48,7 @@ class ParameterTest extends \PHPUnit_Framework_TestCase
     public function testExcludeParameter()
     {
 
-        $Parameter = new ExcludeParameter( array( '/Test1/*', '/Test2/*' ) );
-        $this->assertEquals( '/Test1/*,/Test2/*', $Parameter->getGlobList() );
+        $Parameter = new ExcludeParameter(array('/Test1/*', '/Test2/*'));
+        $this->assertEquals('/Test1/*,/Test2/*', $Parameter->getGlobList());
     }
 }

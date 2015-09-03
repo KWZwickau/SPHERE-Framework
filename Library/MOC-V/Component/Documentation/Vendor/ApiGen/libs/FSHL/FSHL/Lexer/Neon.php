@@ -65,12 +65,12 @@ class Neon implements FSHL\Lexer
         return array(
             'OUT'          => array(
                 array(
-                    'SECTION' => array( 'SECTION', Generator::NEXT ),
-                    'KEY'     => array( 'KEY', Generator::NEXT ),
-                    '#'       => array( 'COMMENT', Generator::NEXT ),
-                    '-'       => array( 'LIST', Generator::NEXT ),
-                    'LINE'    => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'     => array( Generator::STATE_SELF, Generator::NEXT )
+                    'SECTION' => array('SECTION', Generator::NEXT),
+                    'KEY'     => array('KEY', Generator::NEXT),
+                    '#'       => array('COMMENT', Generator::NEXT),
+                    '-'       => array('LIST', Generator::NEXT),
+                    'LINE'    => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'     => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -78,13 +78,13 @@ class Neon implements FSHL\Lexer
             ),
             'SECTION'      => array(
                 array(
-                    '<'       => array( 'SEPARATOR', Generator::NEXT ),
-                    ':'       => array( 'SEPARATOR', Generator::NEXT ),
-                    'SECTION' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'KEY'     => array( 'KEY', Generator::NEXT ),
-                    '-'       => array( 'LIST', Generator::NEXT ),
-                    'LINE'    => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'     => array( Generator::STATE_SELF, Generator::NEXT )
+                    '<'       => array('SEPARATOR', Generator::NEXT),
+                    ':'       => array('SEPARATOR', Generator::NEXT),
+                    'SECTION' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'KEY'     => array('KEY', Generator::NEXT),
+                    '-'       => array('LIST', Generator::NEXT),
+                    'LINE'    => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'     => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'neon-section',
@@ -92,9 +92,9 @@ class Neon implements FSHL\Lexer
             ),
             'KEY'          => array(
                 array(
-                    ':'   => array( 'SEPARATOR', Generator::NEXT ),
-                    '='   => array( 'SEPARATOR', Generator::NEXT ),
-                    'ALL' => array( 'VALUE', Generator::NEXT )
+                    ':'   => array('SEPARATOR', Generator::NEXT),
+                    '='   => array('SEPARATOR', Generator::NEXT),
+                    'ALL' => array('VALUE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'neon-key',
@@ -102,7 +102,7 @@ class Neon implements FSHL\Lexer
             ),
             'LIST'         => array(
                 array(
-                    'ALL' => array( 'VALUE', Generator::NEXT )
+                    'ALL' => array('VALUE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'neon-sep',
@@ -110,24 +110,24 @@ class Neon implements FSHL\Lexer
             ),
             'VALUE'        => array(
                 array(
-                    'LINE'     => array( 'OUT', Generator::NEXT ),
-                    'KEY'      => array( 'KEY', Generator::NEXT ),
-                    '#'        => array( 'COMMENT', Generator::NEXT ),
-                    '"'        => array( 'QUOTE_DOUBLE', Generator::NEXT ),
-                    '\''       => array( 'QUOTE_SINGLE', Generator::NEXT ),
-                    '['        => array( 'SEPARATOR', Generator::NEXT ),
-                    ']'        => array( 'SEPARATOR', Generator::NEXT ),
-                    '{'        => array( 'SEPARATOR', Generator::NEXT ),
-                    '}'        => array( 'SEPARATOR', Generator::NEXT ),
-                    '='        => array( 'SEPARATOR', Generator::NEXT ),
-                    ','        => array( 'SEPARATOR', Generator::NEXT ),
-                    ':'        => array( 'SEPARATOR', Generator::NEXT ),
-                    'TEXT'     => array( 'TEXT', Generator::NEXT ),
-                    'NUM'      => array( 'NUMBER', Generator::NEXT ),
-                    'DOTNUM'   => array( 'NUMBER', Generator::NEXT ),
-                    'VARIABLE' => array( 'VARIABLE', Generator::NEXT ),
-                    '@'        => array( 'REFERENCE', Generator::NEXT ),
-                    'TAB'      => array( Generator::STATE_SELF, Generator::NEXT )
+                    'LINE'     => array('OUT', Generator::NEXT),
+                    'KEY'      => array('KEY', Generator::NEXT),
+                    '#'        => array('COMMENT', Generator::NEXT),
+                    '"'        => array('QUOTE_DOUBLE', Generator::NEXT),
+                    '\''       => array('QUOTE_SINGLE', Generator::NEXT),
+                    '['        => array('SEPARATOR', Generator::NEXT),
+                    ']'        => array('SEPARATOR', Generator::NEXT),
+                    '{'        => array('SEPARATOR', Generator::NEXT),
+                    '}'        => array('SEPARATOR', Generator::NEXT),
+                    '='        => array('SEPARATOR', Generator::NEXT),
+                    ','        => array('SEPARATOR', Generator::NEXT),
+                    ':'        => array('SEPARATOR', Generator::NEXT),
+                    'TEXT'     => array('TEXT', Generator::NEXT),
+                    'NUM'      => array('NUMBER', Generator::NEXT),
+                    'DOTNUM'   => array('NUMBER', Generator::NEXT),
+                    'VARIABLE' => array('VARIABLE', Generator::NEXT),
+                    '@'        => array('REFERENCE', Generator::NEXT),
+                    'TAB'      => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'neon-value',
@@ -135,9 +135,9 @@ class Neon implements FSHL\Lexer
             ),
             'TEXT'         => array(
                 array(
-                    'VARIABLE' => array( 'VARIABLE', Generator::NEXT ),
-                    '#'        => array( 'COMMENT', Generator::NEXT ),
-                    'LINE'     => array( 'OUT', Generator::NEXT ),
+                    'VARIABLE' => array('VARIABLE', Generator::NEXT),
+                    '#'        => array('COMMENT', Generator::NEXT),
+                    'LINE'     => array('OUT', Generator::NEXT),
                 ),
                 Generator::STATE_FLAG_NONE,
                 'neon-value',
@@ -145,7 +145,7 @@ class Neon implements FSHL\Lexer
             ),
             'SEPARATOR'    => array(
                 array(
-                    'ALL' => array( Generator::STATE_RETURN, Generator::BACK )
+                    'ALL' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'neon-sep',
@@ -153,8 +153,8 @@ class Neon implements FSHL\Lexer
             ),
             'COMMENT'      => array(
                 array(
-                    'LINE' => array( 'OUT', Generator::BACK ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    'LINE' => array('OUT', Generator::BACK),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'neon-comment',
@@ -162,9 +162,9 @@ class Neon implements FSHL\Lexer
             ),
             'QUOTE_DOUBLE' => array(
                 array(
-                    '"'        => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'VARIABLE' => array( 'VARIABLE', Generator::NEXT ),
-                    'TAB'      => array( Generator::STATE_SELF, Generator::NEXT )
+                    '"'        => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'VARIABLE' => array('VARIABLE', Generator::NEXT),
+                    'TAB'      => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'neon-quote',
@@ -172,9 +172,9 @@ class Neon implements FSHL\Lexer
             ),
             'QUOTE_SINGLE' => array(
                 array(
-                    '\''       => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'VARIABLE' => array( 'VARIABLE', Generator::NEXT ),
-                    'TAB'      => array( Generator::STATE_SELF, Generator::NEXT )
+                    '\''       => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'VARIABLE' => array('VARIABLE', Generator::NEXT),
+                    'TAB'      => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'neon-quote',
@@ -182,7 +182,7 @@ class Neon implements FSHL\Lexer
             ),
             'VARIABLE'     => array(
                 array(
-                    '%' => array( Generator::STATE_RETURN, Generator::CURRENT )
+                    '%' => array(Generator::STATE_RETURN, Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'neon-var',
@@ -190,8 +190,8 @@ class Neon implements FSHL\Lexer
             ),
             'NUMBER'       => array(
                 array(
-                    'DOTNUM' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'ALL'    => array( Generator::STATE_RETURN, Generator::BACK )
+                    'DOTNUM' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'ALL'    => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'neon-num',
@@ -199,7 +199,7 @@ class Neon implements FSHL\Lexer
             ),
             'REFERENCE'    => array(
                 array(
-                    '!ALNUM_' => array( Generator::STATE_RETURN, Generator::BACK )
+                    '!ALNUM_' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'neon-ref',

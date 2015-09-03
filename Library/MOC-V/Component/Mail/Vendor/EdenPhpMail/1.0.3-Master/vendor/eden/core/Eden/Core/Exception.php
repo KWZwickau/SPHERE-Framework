@@ -57,11 +57,11 @@ class Exception extends \Exception
      *
      * @return object
      */
-    public static function i( $message = null, $code = 0 )
+    public static function i($message = null, $code = 0)
     {
 
         $class = get_called_class();
-        return new $class( $message, $code );
+        return new $class($message, $code);
     }
 
     /**
@@ -71,7 +71,7 @@ class Exception extends \Exception
      *
      * @return Eden\Core\Exception
      */
-    public function addVariable( $variable )
+    public function addVariable($variable)
     {
 
         $this->variables[] = $variable;
@@ -96,7 +96,7 @@ class Exception extends \Exception
      *
      * @return Eden\Core\Exception
      */
-    public function setLevel( $level )
+    public function setLevel($level)
     {
 
         $this->level = $level;
@@ -154,7 +154,7 @@ class Exception extends \Exception
      *
      * @return Eden\Core\Exception
      */
-    public function setType( $type )
+    public function setType($type)
     {
 
         $this->type = $type;
@@ -180,7 +180,7 @@ class Exception extends \Exception
     public function setLevelDebug()
     {
 
-        return $this->setLevel( self::DEBUG );
+        return $this->setLevel(self::DEBUG);
     }
 
     /**
@@ -191,7 +191,7 @@ class Exception extends \Exception
     public function setLevelError()
     {
 
-        return $this->setLevel( self::WARNING );
+        return $this->setLevel(self::WARNING);
     }
 
     /**
@@ -202,7 +202,7 @@ class Exception extends \Exception
     public function setLevelInformation()
     {
 
-        return $this->setLevel( self::INFORMATION );
+        return $this->setLevel(self::INFORMATION);
     }
 
     /**
@@ -213,7 +213,7 @@ class Exception extends \Exception
     public function setLevelWarning()
     {
 
-        return $this->setLevel( self::WARNING );
+        return $this->setLevel(self::WARNING);
     }
 
     /**
@@ -223,7 +223,7 @@ class Exception extends \Exception
      *
      * @return Eden\Core\Exception
      */
-    public function setMessage( $message )
+    public function setMessage($message)
     {
 
         $this->message = $message;
@@ -235,7 +235,7 @@ class Exception extends \Exception
      *
      * @return Eden\Core\Exception
      */
-    public function setTraceOffset( $offset )
+    public function setTraceOffset($offset)
     {
 
         $this->offset = $offset;
@@ -250,7 +250,7 @@ class Exception extends \Exception
     public function setTypeArgument()
     {
 
-        return $this->setType( self::ARGUMENT );
+        return $this->setType(self::ARGUMENT);
     }
 
     /**
@@ -261,7 +261,7 @@ class Exception extends \Exception
     public function setTypeCritical()
     {
 
-        return $this->setType( self::CRITICAL );
+        return $this->setType(self::CRITICAL);
     }
 
     /**
@@ -272,7 +272,7 @@ class Exception extends \Exception
     public function setTypeGeneral()
     {
 
-        return $this->setType( self::GENERAL );
+        return $this->setType(self::GENERAL);
     }
 
     /**
@@ -283,7 +283,7 @@ class Exception extends \Exception
     public function setTypeLogic()
     {
 
-        return $this->setType( self::CRITICAL );
+        return $this->setType(self::CRITICAL);
     }
 
     /**
@@ -296,7 +296,7 @@ class Exception extends \Exception
 
         $this->trace = debug_backtrace();
 
-        $this->reporter = get_class( $this );
+        $this->reporter = get_class($this);
         if (isset( $this->trace[$this->offset]['class'] )) {
             $this->reporter = $this->trace[$this->offset]['class'];
         }
@@ -310,7 +310,7 @@ class Exception extends \Exception
         }
 
         if (!empty( $this->variables )) {
-            $this->message = vsprintf( $this->message, $this->variables );
+            $this->message = vsprintf($this->message, $this->variables);
             $this->variables = array();
         }
 

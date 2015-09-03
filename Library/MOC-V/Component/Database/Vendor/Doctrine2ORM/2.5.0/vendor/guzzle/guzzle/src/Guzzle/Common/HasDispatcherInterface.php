@@ -10,6 +10,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 interface HasDispatcherInterface
 {
+
     /**
      * Get a list of all of the events emitted from the class
      *

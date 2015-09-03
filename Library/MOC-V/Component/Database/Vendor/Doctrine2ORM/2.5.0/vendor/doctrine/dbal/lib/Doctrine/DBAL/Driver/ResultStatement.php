@@ -26,6 +26,7 @@ namespace Doctrine\DBAL\Driver;
  */
 interface ResultStatement extends \Traversable
 {
+
     /**
      * Closes the cursor, enabling the statement to be executed again.
      *

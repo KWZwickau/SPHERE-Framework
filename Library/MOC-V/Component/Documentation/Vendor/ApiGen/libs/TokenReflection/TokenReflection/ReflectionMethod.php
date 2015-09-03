@@ -158,20 +158,20 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      * @return string|null
      * @throws \TokenReflection\Exception\RuntimeException If requested parameter doesn't exist.
      */
-    public static function export( Broker $broker, $class, $method, $return = false )
+    public static function export(Broker $broker, $class, $method, $return = false)
     {
 
-        $className = is_object( $class ) ? get_class( $class ) : $class;
+        $className = is_object($class) ? get_class($class) : $class;
         $methodName = $method;
 
-        $class = $broker->getClass( $className );
+        $class = $broker->getClass($className);
         if ($class instanceof Invalid\ReflectionClass) {
-            throw new Exception\RuntimeException( 'Class is invalid.', Exception\RuntimeException::UNSUPPORTED );
+            throw new Exception\RuntimeException('Class is invalid.', Exception\RuntimeException::UNSUPPORTED);
         } elseif ($class instanceof Dummy\ReflectionClass) {
-            throw new Exception\RuntimeException( sprintf( 'Class %s does not exist.', $className ),
-                Exception\RuntimeException::DOES_NOT_EXIST );
+            throw new Exception\RuntimeException(sprintf('Class %s does not exist.', $className),
+                Exception\RuntimeException::DOES_NOT_EXIST);
         }
-        $method = $class->getMethod( $methodName );
+        $method = $class->getMethod($methodName);
 
         if ($return) {
             return $method->__toString();
@@ -195,14 +195,14 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
         $declaringClassParent = $this->getDeclaringClass()->getParentClass();
         try {
             $prototype = ', prototype '.$this->getPrototype()->getDeclaringClassName();
-        } catch( Exception\RuntimeException $e ) {
+        } catch (Exception\RuntimeException $e) {
             if ($declaringClassParent && $declaringClassParent->isInternal()) {
                 $internal = 'internal:'.$parentClass->getExtensionName();
             }
         }
 
-        if ($declaringClassParent && $declaringClassParent->hasMethod( $this->name )) {
-            $parentMethod = $declaringClassParent->getMethod( $this->name );
+        if ($declaringClassParent && $declaringClassParent->hasMethod($this->name)) {
+            $parentMethod = $declaringClassParent->getMethod($this->name);
             $overwrite = ', overwrites '.$parentMethod->getDeclaringClassName();
         }
 
@@ -257,7 +257,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
     public function getDeclaringClass()
     {
 
-        return null === $this->declaringClassName ? null : $this->getBroker()->getClass( $this->declaringClassName );
+        return null === $this->declaringClassName ? null : $this->getBroker()->getClass($this->declaringClassName);
     }
 
     /**
@@ -284,13 +284,13 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
             $prototype = null;
 
             $declaring = $this->getDeclaringClass();
-            if (( $parent = $declaring->getParentClass() ) && $parent->hasMethod( $this->name )) {
-                $method = $parent->getMethod( $this->name );
+            if (( $parent = $declaring->getParentClass() ) && $parent->hasMethod($this->name)) {
+                $method = $parent->getMethod($this->name);
 
                 if (!$method->isPrivate()) {
                     try {
                         $prototype = $method->getPrototype();
-                    } catch( Exception\RuntimeException $e ) {
+                    } catch (Exception\RuntimeException $e) {
                         $prototype = $method;
                     }
                 }
@@ -298,8 +298,8 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
 
             if (null === $prototype) {
                 foreach ($declaring->getOwnInterfaces() as $interface) {
-                    if ($interface->hasMethod( $this->name )) {
-                        $prototype = $interface->getMethod( $this->name );
+                    if ($interface->hasMethod($this->name)) {
+                        $prototype = $interface->getMethod($this->name);
                         break;
                     }
                 }
@@ -309,8 +309,8 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
         }
 
         if (empty( $this->prototype )) {
-            throw new Exception\RuntimeException( 'Method has no prototype.',
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+            throw new Exception\RuntimeException('Method has no prototype.',
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
         return $this->prototype;
@@ -425,7 +425,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
     public function getPrettyName()
     {
 
-        return sprintf( '%s::%s', $this->declaringClassName ?: $this->declaringTraitName, parent::getPrettyName() );
+        return sprintf('%s::%s', $this->declaringClassName ?: $this->declaringTraitName, parent::getPrettyName());
     }
 
     /**
@@ -436,11 +436,11 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      *
      * @return mixed
      */
-    public function invoke( $object, $args )
+    public function invoke($object, $args)
     {
 
         $params = func_get_args();
-        return $this->invokeArgs( array_shift( $params ), $params );
+        return $this->invokeArgs(array_shift($params), $params);
     }
 
     /**
@@ -452,30 +452,30 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      * @return mixed
      * @throws \TokenReflection\Exception\RuntimeException If it is not possible to invoke the method.
      */
-    public function invokeArgs( $object, array $args = array() )
+    public function invokeArgs($object, array $args = array())
     {
 
         $declaringClass = $this->getDeclaringClass();
-        if (!$declaringClass->isInstance( $object )) {
-            throw new Exception\RuntimeException( sprintf( 'Expected instance of or subclass of "%s".',
-                    $this->declaringClassName ), Exception\RuntimeException::INVALID_ARGUMENT, $this );
+        if (!$declaringClass->isInstance($object)) {
+            throw new Exception\RuntimeException(sprintf('Expected instance of or subclass of "%s".',
+                $this->declaringClassName), Exception\RuntimeException::INVALID_ARGUMENT, $this);
         }
 
         if ($this->isPublic()) {
-            return call_user_func_array( array( $object, $this->getName() ), $args );
+            return call_user_func_array(array($object, $this->getName()), $args);
         } elseif ($this->isAccessible()) {
-            $refClass = new InternalReflectionClass( $object );
-            $refMethod = $refClass->getMethod( $this->name );
+            $refClass = new InternalReflectionClass($object);
+            $refMethod = $refClass->getMethod($this->name);
 
-            $refMethod->setAccessible( true );
-            $value = $refMethod->invokeArgs( $object, $args );
-            $refMethod->setAccessible( false );
+            $refMethod->setAccessible(true);
+            $value = $refMethod->invokeArgs($object, $args);
+            $refMethod->setAccessible(false);
 
             return $value;
         }
 
-        throw new Exception\RuntimeException( 'Only public methods can be invoked.',
-            Exception\RuntimeException::NOT_ACCESSBILE, $this );
+        throw new Exception\RuntimeException('Only public methods can be invoked.',
+            Exception\RuntimeException::NOT_ACCESSBILE, $this);
     }
 
     /**
@@ -494,7 +494,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      *
      * @param boolean $accessible
      */
-    public function setAccessible( $accessible )
+    public function setAccessible($accessible)
     {
 
         $this->accessible = (bool)$accessible;
@@ -518,19 +518,19 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      *
      * @return \Closure
      */
-    public function getClosure( $object )
+    public function getClosure($object)
     {
 
         $declaringClass = $this->getDeclaringClass();
-        if (!$declaringClass->isInstance( $object )) {
-            throw new Exception\RuntimeException( sprintf( 'Expected instance of or subclass of "%s".',
-                    $this->declaringClassName ), Exception\RuntimeException::INVALID_ARGUMENT, $this );
+        if (!$declaringClass->isInstance($object)) {
+            throw new Exception\RuntimeException(sprintf('Expected instance of or subclass of "%s".',
+                $this->declaringClassName), Exception\RuntimeException::INVALID_ARGUMENT, $this);
         }
 
         $that = $this;
-        return function () use ( $object, $that ) {
+        return function () use ($object, $that) {
 
-            return $that->invokeArgs( $object, func_get_args() );
+            return $that->invokeArgs($object, func_get_args());
         };
     }
 
@@ -544,12 +544,13 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      * @return \TokenReflection\ReflectionMethod
      * @throws \TokenReflection\Exception\RuntimeException If an invalid method access level was found.
      */
-    public function alias( ReflectionClass $parent, $name = null, $accessLevel = null )
+    public function alias(ReflectionClass $parent, $name = null, $accessLevel = null)
     {
 
-        static $possibleLevels = array( InternalReflectionMethod::IS_PUBLIC    => true,
-                                        InternalReflectionMethod::IS_PROTECTED => true,
-                                        InternalReflectionMethod::IS_PRIVATE   => true
+        static $possibleLevels = array(
+            InternalReflectionMethod::IS_PUBLIC    => true,
+            InternalReflectionMethod::IS_PROTECTED => true,
+            InternalReflectionMethod::IS_PRIVATE   => true
         );
 
         $method = clone $this;
@@ -561,8 +562,8 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
         }
         if (null !== $accessLevel) {
             if (!isset( $possibleLevels[$accessLevel] )) {
-                throw new Exception\RuntimeException( sprintf( 'Invalid method access level: "%s".', $accessLevel ),
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException(sprintf('Invalid method access level: "%s".', $accessLevel),
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
 
             $method->modifiers &= ~( InternalReflectionMethod::IS_PUBLIC | InternalReflectionMethod::IS_PROTECTED | InternalReflectionMethod::IS_PRIVATE );
@@ -572,7 +573,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
         }
 
         foreach ($this->parameters as $parameterName => $parameter) {
-            $method->parameters[$parameterName] = $parameter->alias( $method );
+            $method->parameters[$parameterName] = $parameter->alias($method);
         }
 
         return $method;
@@ -589,11 +590,11 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
         if (!$this->modifiersComplete && !( $this->modifiers & ( self::ACCESS_LEVEL_CHANGED | self::IS_IMPLEMENTED_ABSTRACT ) )) {
             $declaringClass = $this->getDeclaringClass();
             $parentClass = $declaringClass->getParentClass();
-            if (false !== $parentClass && $parentClass->hasMethod( $this->name )) {
-                $parentClassMethod = $parentClass->getMethod( $this->name );
+            if (false !== $parentClass && $parentClass->hasMethod($this->name)) {
+                $parentClassMethod = $parentClass->getMethod($this->name);
 
                 // Access level changed
-                if (( $this->isPublic() || $this->isProtected() ) && $parentClassMethod->is( self::ACCESS_LEVEL_CHANGED | InternalReflectionMethod::IS_PRIVATE )) {
+                if (( $this->isPublic() || $this->isProtected() ) && $parentClassMethod->is(self::ACCESS_LEVEL_CHANGED | InternalReflectionMethod::IS_PRIVATE)) {
                     $this->modifiers |= self::ACCESS_LEVEL_CHANGED;
                 }
 
@@ -604,7 +605,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
             } else {
                 // Check if it is an implementation of an interface method
                 foreach ($declaringClass->getInterfaces() as $interface) {
-                    if ($interface->hasOwnMethod( $this->name )) {
+                    if ($interface->hasOwnMethod($this->name)) {
                         $this->modifiers |= self::IS_IMPLEMENTED_ABSTRACT;
                         break;
                     }
@@ -633,7 +634,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      *
      * @return boolean
      */
-    public function is( $filter = null )
+    public function is($filter = null)
     {
 
         // See self::ACCESS_LEVEL_CHANGED | self::IS_IMPLEMENTED_ABSTRACT
@@ -689,7 +690,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
     public function getDeclaringTrait()
     {
 
-        return null === $this->declaringTraitName ? null : $this->getBroker()->getClass( $this->declaringTraitName );
+        return null === $this->declaringTraitName ? null : $this->getBroker()->getClass($this->declaringTraitName);
     }
 
     /**
@@ -712,20 +713,20 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      * @return \TokenReflection\ReflectionElement
      * @throws \TokenReflection\Exception\ParseException If an invalid parent reflection object was provided.
      */
-    protected function processParent( IReflection $parent, Stream $tokenStream )
+    protected function processParent(IReflection $parent, Stream $tokenStream)
     {
 
         if (!$parent instanceof ReflectionClass) {
-            throw new Exception\ParseException( $this, $tokenStream,
+            throw new Exception\ParseException($this, $tokenStream,
                 'The parent object has to be an instance of TokenReflection\ReflectionClass.',
-                Exception\ParseException::INVALID_PARENT );
+                Exception\ParseException::INVALID_PARENT);
         }
 
         $this->declaringClassName = $parent->getName();
         if ($parent->isTrait()) {
             $this->declaringTraitName = $parent->getName();
         }
-        return parent::processParent( $parent, $tokenStream );
+        return parent::processParent($parent, $tokenStream);
     }
 
     /**
@@ -737,14 +738,14 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      * @return \TokenReflection\ReflectionMethod
      * @throws \TokenReflection\Exception\Parse If the class could not be parsed.
      */
-    protected function parse( Stream $tokenStream, IReflection $parent )
+    protected function parse(Stream $tokenStream, IReflection $parent)
     {
 
         return $this
-            ->parseBaseModifiers( $tokenStream )
-            ->parseReturnsReference( $tokenStream )
-            ->parseName( $tokenStream )
-            ->parseInternalModifiers( $parent );
+            ->parseBaseModifiers($tokenStream)
+            ->parseReturnsReference($tokenStream)
+            ->parseName($tokenStream)
+            ->parseInternalModifiers($parent);
     }
 
     /**
@@ -754,12 +755,12 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      *
      * @return \TokenReflection\ReflectionMethod
      */
-    private function parseInternalModifiers( ReflectionClass $class )
+    private function parseInternalModifiers(ReflectionClass $class)
     {
 
-        $name = strtolower( $this->name );
+        $name = strtolower($this->name);
         // In PHP 5.3.3+ the ctor can be named only __construct in namespaced classes
-        if ('__construct' === $name || ( ( !$class->inNamespace() || PHP_VERSION_ID < 50303 ) && strtolower( $class->getShortName() ) === $name )) {
+        if ('__construct' === $name || ( ( !$class->inNamespace() || PHP_VERSION_ID < 50303 ) && strtolower($class->getShortName()) === $name )) {
             $this->modifiers |= self::IS_CONSTRUCTOR;
         } elseif ('__destruct' === $name) {
             $this->modifiers |= self::IS_DESTRUCTOR;
@@ -771,12 +772,13 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
             $this->modifiers |= InternalReflectionMethod::IS_ABSTRACT;
         } else {
             // Can be called statically, see http://svn.php.net/viewvc/php/php-src/branches/PHP_5_3/Zend/zend_API.c?revision=309853&view=markup#l1795
-            static $notAllowed = array( '__clone'    => true,
-                                        '__tostring' => true,
-                                        '__get'      => true,
-                                        '__set'      => true,
-                                        '__isset'    => true,
-                                        '__unset'    => true
+            static $notAllowed = array(
+                '__clone'    => true,
+                '__tostring' => true,
+                '__get'      => true,
+                '__set'      => true,
+                '__isset'    => true,
+                '__unset'    => true
             );
             if (!$this->isStatic() && !$this->isConstructor() && !$this->isDestructor() && !isset( $notAllowed[$name] )) {
                 $this->modifiers |= self::IS_ALLOWED_STATIC;
@@ -793,7 +795,7 @@ class ReflectionMethod extends ReflectionFunctionBase implements IReflectionMeth
      *
      * @return \TokenReflection\ReflectionMethod
      */
-    private function parseBaseModifiers( Stream $tokenStream )
+    private function parseBaseModifiers(Stream $tokenStream)
     {
 
         while (true) {

@@ -31,8 +31,10 @@ use PHPUnit_Framework_TestCase;
  */
 class InvalidArgumentExceptionTest extends PHPUnit_Framework_TestCase
 {
+
     public function testFromEmptyCriteria()
     {
+
         $exception = InvalidArgumentException::fromEmptyCriteria();
 
         $this->assertInstanceOf('Doctrine\DBAL\Exception\InvalidArgumentException', $exception);

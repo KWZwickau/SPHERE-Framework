@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class LazyArrayCollection extends AbstractLazyCollection
 {
+
     /**
      * Do the initialization logic
      *
@@ -17,6 +18,7 @@ class LazyArrayCollection extends AbstractLazyCollection
      */
     protected function doInitialize()
     {
+
         $this->collection = new ArrayCollection(array('a', 'b', 'c'));
     }
 }

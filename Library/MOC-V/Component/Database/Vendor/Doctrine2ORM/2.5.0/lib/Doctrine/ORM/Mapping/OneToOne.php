@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class OneToOne implements Annotation
 {
+
     /**
      * @var string
      */

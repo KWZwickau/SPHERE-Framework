@@ -56,7 +56,7 @@ class Recursor extends \IteratorIterator implements \RecursiveIterator, \Countab
     public function count()
     {
 
-        return iterator_count( $this );
+        return iterator_count($this);
     }
 
 }

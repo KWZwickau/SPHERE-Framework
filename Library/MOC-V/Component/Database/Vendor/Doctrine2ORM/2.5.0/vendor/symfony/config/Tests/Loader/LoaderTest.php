@@ -15,8 +15,10 @@ use Symfony\Component\Config\Loader\Loader;
 
 class LoaderTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testGetSetResolver()
     {
+
         $resolver = $this->getMock('Symfony\Component\Config\Loader\LoaderResolverInterface');
 
         $loader = new ProjectLoader1();
@@ -27,6 +29,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testResolve()
     {
+
         $resolvedLoader = $this->getMock('Symfony\Component\Config\Loader\LoaderInterface');
 
         $resolver = $this->getMock('Symfony\Component\Config\Loader\LoaderResolverInterface');
@@ -47,6 +50,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
      */
     public function testResolveWhenResolverCannotFindLoader()
     {
+
         $resolver = $this->getMock('Symfony\Component\Config\Loader\LoaderResolverInterface');
         $resolver->expects($this->once())
             ->method('resolve')
@@ -61,6 +65,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testImport()
     {
+
         $resolvedLoader = $this->getMock('Symfony\Component\Config\Loader\LoaderInterface');
         $resolvedLoader->expects($this->once())
             ->method('load')
@@ -81,6 +86,7 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testImportWithType()
     {
+
         $resolvedLoader = $this->getMock('Symfony\Component\Config\Loader\LoaderInterface');
         $resolvedLoader->expects($this->once())
             ->method('load')
@@ -102,12 +108,14 @@ class LoaderTest extends \PHPUnit_Framework_TestCase
 
 class ProjectLoader1 extends Loader
 {
+
     public function load($resource, $type = null)
     {
     }
 
     public function supports($resource, $type = null)
     {
+
         return is_string($resource) && 'foo' === pathinfo($resource, PATHINFO_EXTENSION);
     }
 

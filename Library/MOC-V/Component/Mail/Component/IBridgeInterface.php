@@ -19,7 +19,7 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function connectServer( $Host, $Username, $Password, $Port = null, $useSSL = false, $useTLS = false );
+    public function connectServer($Host, $Username, $Password, $Port = null, $useSSL = false, $useTLS = false);
 
     /**
      * @return IBridgeInterface

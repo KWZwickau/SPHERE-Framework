@@ -22,8 +22,8 @@ namespace Doctrine\DBAL\Tools\Console\Command;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Task for executing arbitrary SQL that can come from a file or directly from
@@ -38,22 +38,24 @@ use Symfony\Component\Console\Input\InputOption;
  */
 class RunSqlCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
-        ->setName('dbal:run-sql')
-        ->setDescription('Executes arbitrary SQL directly from the command line.')
-        ->setDefinition(array(
-            new InputArgument('sql', InputArgument::REQUIRED, 'The SQL statement to execute.'),
-            new InputOption('depth', null, InputOption::VALUE_REQUIRED, 'Dumping depth of result set.', 7)
-        ))
-        ->setHelp(<<<EOT
+            ->setName('dbal:run-sql')
+            ->setDescription('Executes arbitrary SQL directly from the command line.')
+            ->setDefinition(array(
+                new InputArgument('sql', InputArgument::REQUIRED, 'The SQL statement to execute.'),
+                new InputOption('depth', null, InputOption::VALUE_REQUIRED, 'Dumping depth of result set.', 7)
+            ))
+            ->setHelp(<<<EOT
 Executes arbitrary SQL directly from the command line.
 EOT
-        );
+            );
     }
 
     /**
@@ -61,15 +63,16 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $conn = $this->getHelper('db')->getConnection();
 
-        if (($sql = $input->getArgument('sql')) === null) {
+        if (( $sql = $input->getArgument('sql') ) === null) {
             throw new \RuntimeException("Argument 'SQL' is required in order to execute this command correctly.");
         }
 
         $depth = $input->getOption('depth');
 
-        if ( ! is_numeric($depth)) {
+        if (!is_numeric($depth)) {
             throw new \LogicException("Option 'depth' must contains an integer value");
         }
 
@@ -80,7 +83,7 @@ EOT
         }
 
         ob_start();
-        \Doctrine\Common\Util\Debug::dump($resultSet, (int) $depth);
+        \Doctrine\Common\Util\Debug::dump($resultSet, (int)$depth);
         $message = ob_get_clean();
 
         $output->write($message);

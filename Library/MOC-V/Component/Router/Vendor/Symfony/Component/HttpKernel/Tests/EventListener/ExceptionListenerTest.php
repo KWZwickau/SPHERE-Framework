@@ -26,8 +26,10 @@ use Symfony\Component\HttpKernel\Tests\Logger;
  */
 class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConstruct()
     {
+
         $logger = new TestLogger();
         $l = new ExceptionListener('foo', $logger);
 
@@ -45,6 +47,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandleWithoutLogger($event, $event2)
     {
+
         // store the current error_log, and disable it temporarily
         $errorLog = ini_set('error_log', file_exists('/dev/null') ? '/dev/null' : 'nul');
 
@@ -68,6 +71,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandleWithLogger($event, $event2)
     {
+
         $logger = new TestLogger();
 
         $l = new ExceptionListener('foo', $logger);
@@ -87,6 +91,7 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function provider()
     {
+
         if (!class_exists('Symfony\Component\HttpFoundation\Request')) {
             return array(array(null, null));
         }
@@ -103,10 +108,12 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testSubRequestFormat()
     {
+
         $listener = new ExceptionListener('foo', $this->getMock('Psr\Log\LoggerInterface'));
 
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $kernel->expects($this->once())->method('handle')->will($this->returnCallback(function (Request $request) {
+
             return new Response($request->getRequestFormat());
         }));
 
@@ -123,24 +130,30 @@ class ExceptionListenerTest extends \PHPUnit_Framework_TestCase
 
 class TestLogger extends Logger implements DebugLoggerInterface
 {
+
     public function countErrors()
     {
+
         return count($this->logs['critical']);
     }
 }
 
 class TestKernel implements HttpKernelInterface
 {
+
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
+
         return new Response('foo');
     }
 }
 
 class TestKernelThatThrowsException implements HttpKernelInterface
 {
+
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
+
         throw new \Exception('bar');
     }
 }

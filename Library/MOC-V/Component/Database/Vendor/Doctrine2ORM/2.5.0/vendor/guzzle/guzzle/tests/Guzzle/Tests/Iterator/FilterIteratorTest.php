@@ -9,9 +9,12 @@ use Guzzle\Iterator\FilterIterator;
  */
 class FilterIteratorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testFiltersValues()
     {
+
         $i = new FilterIterator(new \ArrayIterator(range(0, 100)), function ($value) {
+
             return $value % 2;
         });
 
@@ -23,6 +26,7 @@ class FilterIteratorTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidatesCallable()
     {
+
         $i = new FilterIterator(new \ArrayIterator(), new \stdClass());
     }
 }

@@ -18,6 +18,7 @@ namespace Symfony\Component\Routing\Matcher\Dumper;
  */
 class DumperPrefixCollection extends DumperCollection
 {
+
     /**
      * @var string
      */
@@ -30,6 +31,7 @@ class DumperPrefixCollection extends DumperCollection
      */
     public function getPrefix()
     {
+
         return $this->prefix;
     }
 
@@ -40,6 +42,7 @@ class DumperPrefixCollection extends DumperCollection
      */
     public function setPrefix($prefix)
     {
+
         $this->prefix = $prefix;
     }
 
@@ -54,6 +57,7 @@ class DumperPrefixCollection extends DumperCollection
      */
     public function addPrefixRoute(DumperRoute $route)
     {
+
         $prefix = $route->getRoute()->compile()->getStaticPrefix();
 
         for ($collection = $this; null !== $collection; $collection = $collection->getParent()) {
@@ -68,7 +72,7 @@ class DumperPrefixCollection extends DumperCollection
             // Prefix starts with route's prefix
             if ('' === $collection->prefix || 0 === strpos($prefix, $collection->prefix)) {
                 $child = new DumperPrefixCollection();
-                $child->setPrefix(substr($prefix, 0, strlen($collection->prefix)+1));
+                $child->setPrefix(substr($prefix, 0, strlen($collection->prefix) + 1));
                 $collection->add($child);
 
                 return $child->addPrefixRoute($route);
@@ -86,6 +90,7 @@ class DumperPrefixCollection extends DumperCollection
      */
     public function mergeSlashNodes()
     {
+
         $children = array();
 
         foreach ($this as $child) {

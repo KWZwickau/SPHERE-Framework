@@ -58,7 +58,7 @@ class TexyBlockParser extends TexyParser
      * @param  Texy
      * @param  TexyHtml
      */
-    public function __construct( Texy $texy, TexyHtml $element, $indented )
+    public function __construct(Texy $texy, TexyHtml $element, $indented)
     {
 
         $this->texy = $texy;
@@ -67,7 +67,7 @@ class TexyBlockParser extends TexyParser
         $this->patterns = $texy->getBlockPatterns();
     }
 
-    public static function cmp( $a, $b )
+    public static function cmp($a, $b)
     {
 
         if ($a[0] === $b[0]) {
@@ -90,7 +90,7 @@ class TexyBlockParser extends TexyParser
         return $this->indented;
     }
 
-    public function next( $pattern, &$matches )
+    public function next($pattern, &$matches)
     {
 
         $matches = null;
@@ -103,7 +103,7 @@ class TexyBlockParser extends TexyParser
         );
 
         if ($ok) {
-            $this->offset += strlen( $matches[0][0] ) + 1;  // 1 = "\n"
+            $this->offset += strlen($matches[0][0]) + 1;  // 1 = "\n"
             foreach ($matches as $key => $value) {
                 $matches[$key] = $value[0];
             }
@@ -111,7 +111,7 @@ class TexyBlockParser extends TexyParser
         return $ok;
     }
 
-    public function moveBackward( $linesCount = 1 )
+    public function moveBackward($linesCount = 1)
     {
 
         while (--$this->offset > 0) {
@@ -123,7 +123,7 @@ class TexyBlockParser extends TexyParser
             }
         }
 
-        $this->offset = max( $this->offset, 0 );
+        $this->offset = max($this->offset, 0);
     }
 
     /**
@@ -131,12 +131,12 @@ class TexyBlockParser extends TexyParser
      *
      * @return void
      */
-    public function parse( $text )
+    public function parse($text)
     {
 
         $tx = $this->texy;
 
-        $tx->invokeHandlers( 'beforeBlockParse', array( $this, & $text ) );
+        $tx->invokeHandlers('beforeBlockParse', array($this, & $text));
 
         // parser initialization
         $this->text = $text;
@@ -158,14 +158,14 @@ class TexyBlockParser extends TexyParser
                 foreach ($m as $k => $v) {
                     $m[$k] = $v[0];
                 }
-                $matches[] = array( $offset, $name, $m, $priority );
+                $matches[] = array($offset, $name, $m, $priority);
             }
             $priority++;
         }
         unset( $name, $pattern, $ms, $m, $k, $v );
 
-        usort( $matches, array( __CLASS__, 'cmp' ) ); // generates strict error in PHP 5.1.2
-        $matches[] = array( strlen( $text ), null, null ); // terminal cap
+        usort($matches, array(__CLASS__, 'cmp')); // generates strict error in PHP 5.1.2
+        $matches[] = array(strlen($text), null, null); // terminal cap
 
         // process loop
         $el = $this->element;
@@ -184,9 +184,9 @@ class TexyBlockParser extends TexyParser
 
             // between-matches content
             if ($mOffset > $this->offset) {
-                $s = trim( substr( $text, $this->offset, $mOffset - $this->offset ) );
+                $s = trim(substr($text, $this->offset, $mOffset - $this->offset));
                 if ($s !== '') {
-                    $tx->paragraphModule->process( $this, $s, $el );
+                    $tx->paragraphModule->process($this, $s, $el);
                 }
             }
 
@@ -194,11 +194,11 @@ class TexyBlockParser extends TexyParser
                 break;
             } // finito
 
-            $this->offset = $mOffset + strlen( $mMatches[0] ) + 1;   // 1 = \n
+            $this->offset = $mOffset + strlen($mMatches[0]) + 1;   // 1 = \n
 
             $res = call_user_func_array(
                 $this->patterns[$mName]['handler'],
-                array( $this, $mMatches, $mName )
+                array($this, $mMatches, $mName)
             );
 
             if ($res === false || $this->offset <= $mOffset) { // module rejects text
@@ -207,10 +207,10 @@ class TexyBlockParser extends TexyParser
                 continue;
 
             } elseif ($res instanceof TexyHtml) {
-                $el->insert( null, $res );
+                $el->insert(null, $res);
 
-            } elseif (is_string( $res )) {
-                $el->insert( null, $res );
+            } elseif (is_string($res)) {
+                $el->insert(null, $res);
             }
 
         } while (1);
@@ -233,7 +233,7 @@ class TexyLineParser extends TexyParser
      * @param  Texy
      * @param  TexyHtml
      */
-    public function __construct( Texy $texy, TexyHtml $element )
+    public function __construct(Texy $texy, TexyHtml $element)
     {
 
         $this->texy = $texy;
@@ -247,7 +247,7 @@ class TexyLineParser extends TexyParser
      *
      * @return void
      */
-    public function parse( $text )
+    public function parse($text)
     {
 
         $tx = $this->texy;
@@ -256,12 +256,12 @@ class TexyLineParser extends TexyParser
         $pl = $this->patterns;
         if (!$pl) {
             // nothing to do
-            $this->element->insert( null, $text );
+            $this->element->insert(null, $text);
             return;
         }
 
         $offset = 0;
-        $names = array_keys( $pl );
+        $names = array_keys($pl);
         $arrMatches = $arrOffset = array();
         foreach ($names as $name) {
             $arrOffset[$name] = -1;
@@ -270,20 +270,20 @@ class TexyLineParser extends TexyParser
         // parse loop
         do {
             $min = null;
-            $minOffset = strlen( $text );
+            $minOffset = strlen($text);
 
             foreach ($names as $index => $name) {
                 if ($arrOffset[$name] < $offset) {
                     $delta = ( $arrOffset[$name] === -2 ) ? 1 : 0;
 
-                    if (preg_match( $pl[$name]['pattern'],
+                    if (preg_match($pl[$name]['pattern'],
                         $text,
                         $arrMatches[$name],
                         PREG_OFFSET_CAPTURE,
-                        $offset + $delta )
+                        $offset + $delta)
                     ) {
                         $m = &$arrMatches[$name];
-                        if (!strlen( $m[0][0] )) {
+                        if (!strlen($m[0][0])) {
                             continue;
                         }
                         $arrOffset[$name] = $m[0][1];
@@ -293,8 +293,8 @@ class TexyLineParser extends TexyParser
 
                     } else {
                         // try next time?
-                        if (!$pl[$name]['again'] || !preg_match( $pl[$name]['again'], $text, $foo, null,
-                                $offset + $delta )
+                        if (!$pl[$name]['again'] || !preg_match($pl[$name]['again'], $text, $foo, null,
+                                $offset + $delta)
                         ) {
                             unset( $names[$index] );
                         }
@@ -318,17 +318,17 @@ class TexyLineParser extends TexyParser
             $this->again = false;
             $res = call_user_func_array(
                 $px['handler'],
-                array( $this, $arrMatches[$min], $min )
+                array($this, $arrMatches[$min], $min)
             );
 
             if ($res instanceof TexyHtml) {
-                $res = $res->toString( $tx );
+                $res = $res->toString($tx);
             } elseif ($res === false) {
                 $arrOffset[$min] = -2;
                 continue;
             }
 
-            $len = strlen( $arrMatches[$min][0] );
+            $len = strlen($arrMatches[$min][0]);
             $text = substr_replace(
                 $text,
                 (string)$res,
@@ -336,7 +336,7 @@ class TexyLineParser extends TexyParser
                 $len
             );
 
-            $delta = strlen( $res ) - $len;
+            $delta = strlen($res) - $len;
             foreach ($names as $name) {
                 if ($arrOffset[$name] < $start + $len) {
                     $arrOffset[$name] = -1;
@@ -349,12 +349,12 @@ class TexyLineParser extends TexyParser
                 $arrOffset[$min] = -2;
             } else {
                 $arrOffset[$min] = -1;
-                $offset += strlen( $res );
+                $offset += strlen($res);
             }
 
         } while (1);
 
-        $this->element->insert( null, $text );
+        $this->element->insert(null, $text);
     }
 
 }

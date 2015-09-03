@@ -23,6 +23,7 @@ use Symfony\Component\EventDispatcher\Event;
  */
 class ConsoleEvent extends Event
 {
+
     protected $command;
 
     private $input;
@@ -30,6 +31,7 @@ class ConsoleEvent extends Event
 
     public function __construct(Command $command, InputInterface $input, OutputInterface $output)
     {
+
         $this->command = $command;
         $this->input = $input;
         $this->output = $output;
@@ -42,6 +44,7 @@ class ConsoleEvent extends Event
      */
     public function getCommand()
     {
+
         return $this->command;
     }
 
@@ -52,6 +55,7 @@ class ConsoleEvent extends Event
      */
     public function getInput()
     {
+
         return $this->input;
     }
 
@@ -62,6 +66,7 @@ class ConsoleEvent extends Event
      */
     public function getOutput()
     {
+
         return $this->output;
     }
 }

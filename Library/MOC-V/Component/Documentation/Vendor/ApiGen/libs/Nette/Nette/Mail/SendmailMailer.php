@@ -32,32 +32,32 @@ class SendmailMailer extends Nette\Object implements IMailer
      *
      * @return void
      */
-    public function send( Message $mail )
+    public function send(Message $mail)
     {
 
         $tmp = clone $mail;
-        $tmp->setHeader( 'Subject', null );
-        $tmp->setHeader( 'To', null );
+        $tmp->setHeader('Subject', null);
+        $tmp->setHeader('To', null);
 
-        $parts = explode( Message::EOL.Message::EOL, $tmp->generateMessage(), 2 );
+        $parts = explode(Message::EOL.Message::EOL, $tmp->generateMessage(), 2);
 
         Nette\Diagnostics\Debugger::tryError();
         $args = array(
-            str_replace( Message::EOL, PHP_EOL, $mail->getEncodedHeader( 'To' ) ),
-            str_replace( Message::EOL, PHP_EOL, $mail->getEncodedHeader( 'Subject' ) ),
-            str_replace( Message::EOL, PHP_EOL, $parts[1] ),
-            str_replace( Message::EOL, PHP_EOL, $parts[0] ),
+            str_replace(Message::EOL, PHP_EOL, $mail->getEncodedHeader('To')),
+            str_replace(Message::EOL, PHP_EOL, $mail->getEncodedHeader('Subject')),
+            str_replace(Message::EOL, PHP_EOL, $parts[1]),
+            str_replace(Message::EOL, PHP_EOL, $parts[0]),
         );
         if ($this->commandArgs) {
             $args[] = (string)$this->commandArgs;
         }
-        $res = call_user_func_array( 'mail', $args );
+        $res = call_user_func_array('mail', $args);
 
-        if (Nette\Diagnostics\Debugger::catchError( $e )) {
-            throw new Nette\InvalidStateException( 'mail(): '.$e->getMessage(), 0, $e );
+        if (Nette\Diagnostics\Debugger::catchError($e)) {
+            throw new Nette\InvalidStateException('mail(): '.$e->getMessage(), 0, $e);
 
         } elseif (!$res) {
-            throw new Nette\InvalidStateException( 'Unable to send email.' );
+            throw new Nette\InvalidStateException('Unable to send email.');
         }
     }
 

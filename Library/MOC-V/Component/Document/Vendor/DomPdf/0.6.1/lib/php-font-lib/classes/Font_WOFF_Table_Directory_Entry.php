@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
-require_once dirname( __FILE__ )."/Font_Table_Directory_Entry.php";
+require_once dirname(__FILE__)."/Font_Table_Directory_Entry.php";
 
 /**
  * WOFF font file table directory entry.
@@ -18,10 +18,10 @@ class Font_WOFF_Table_Directory_Entry extends Font_Table_Directory_Entry
 
     public $origLength;
 
-    function __construct( Font_WOFF $font )
+    function __construct(Font_WOFF $font)
     {
 
-        parent::__construct( $font );
+        parent::__construct($font);
     }
 
     function parse()

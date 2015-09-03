@@ -15,14 +15,14 @@ class VendorTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Component\Document\Component\Bridge\Bridge $MockBridge */
-        $MockBridge = $this->getMockForAbstractClass( 'MOC\V\Component\Document\Component\Bridge\Bridge' );
+        $MockBridge = $this->getMockForAbstractClass('MOC\V\Component\Document\Component\Bridge\Bridge');
 
-        $Vendor = new Vendor( $MockBridge );
+        $Vendor = new Vendor($MockBridge);
 
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface',
-            $Vendor->getBridgeInterface() );
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface',
+            $Vendor->getBridgeInterface());
 
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IVendorInterface',
-            $Vendor->setBridgeInterface( $MockBridge ) );
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IVendorInterface',
+            $Vendor->setBridgeInterface($MockBridge));
     }
 }

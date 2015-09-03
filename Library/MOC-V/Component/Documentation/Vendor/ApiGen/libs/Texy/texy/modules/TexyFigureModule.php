@@ -32,15 +32,15 @@ final class TexyFigureModule extends TexyModule
     public $widthDelta = 10;
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
 
-        $texy->addHandler( 'figure', array( $this, 'solve' ) );
+        $texy->addHandler('figure', array($this, 'solve'));
 
         $texy->registerBlockPattern(
-            array( $this, 'pattern' ),
+            array($this, 'pattern'),
             '#^'.TEXY_IMAGE.TEXY_LINK_N.'?? +\*\*\* +(.*)'.TEXY_MODIFIER_H.'?()$#mUu',
             'figure'
         );
@@ -56,7 +56,7 @@ final class TexyFigureModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function pattern( $parser, $matches )
+    public function pattern($parser, $matches)
     {
 
         list( , $mURLs, $mImgMod, $mAlign, $mLink, $mContent, $mMod ) = $matches;
@@ -68,23 +68,23 @@ final class TexyFigureModule extends TexyModule
         //    [6] => .(title)[class]{style}<>
 
         $tx = $this->texy;
-        $image = $tx->imageModule->factoryImage( $mURLs, $mImgMod.$mAlign );
-        $mod = new TexyModifier( $mMod );
-        $mContent = ltrim( $mContent );
+        $image = $tx->imageModule->factoryImage($mURLs, $mImgMod.$mAlign);
+        $mod = new TexyModifier($mMod);
+        $mContent = ltrim($mContent);
 
         if ($mLink) {
             if ($mLink === ':') {
-                $link = new TexyLink( $image->linkedURL === null ? $image->URL : $image->linkedURL );
+                $link = new TexyLink($image->linkedURL === null ? $image->URL : $image->linkedURL);
                 $link->raw = ':';
                 $link->type = TexyLink::IMAGE;
             } else {
-                $link = $tx->linkModule->factoryLink( $mLink, null, null );
+                $link = $tx->linkModule->factoryLink($mLink, null, null);
             }
         } else {
             $link = null;
         }
 
-        return $tx->invokeAroundHandlers( 'figure', $parser, array( $image, $link, $mContent, $mod ) );
+        return $tx->invokeAroundHandlers('figure', $parser, array($image, $link, $mContent, $mod));
     }
 
 
@@ -99,7 +99,7 @@ final class TexyFigureModule extends TexyModule
      *
      * @return TexyHtml|FALSE
      */
-    public function solve( $invocation, TexyImage $image, $link, $content, $mod )
+    public function solve($invocation, TexyImage $image, $link, $content, $mod)
     {
 
         $tx = $this->texy;
@@ -107,20 +107,20 @@ final class TexyFigureModule extends TexyModule
         $hAlign = $image->modifier->hAlign;
         $image->modifier->hAlign = null;
 
-        $elImg = $tx->imageModule->solve( null, $image, $link ); // returns TexyHtml or false!
+        $elImg = $tx->imageModule->solve(null, $image, $link); // returns TexyHtml or false!
         if (!$elImg) {
             return false;
         }
 
-        $el = TexyHtml::el( 'div' );
+        $el = TexyHtml::el('div');
         if (!empty( $image->width ) && $this->widthDelta !== false) {
             $el->attrs['style']['width'] = ( $image->width + $this->widthDelta ).'px';
         }
-        $mod->decorate( $tx, $el );
+        $mod->decorate($tx, $el);
 
         $el[0] = $elImg;
-        $el[1] = TexyHtml::el( 'p' );
-        $el[1]->parseLine( $tx, ltrim( $content ) );
+        $el[1] = TexyHtml::el('p');
+        $el[1]->parseLine($tx, ltrim($content));
 
         $class = $this->class;
         if ($hAlign) {

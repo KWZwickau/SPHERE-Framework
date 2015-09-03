@@ -56,7 +56,7 @@ class PHPExcel_Cell_Hyperlink
      * @param  string $pUrl     Url to link the cell to
      * @param  string $pTooltip Tooltip to display on the hyperlink
      */
-    public function __construct( $pUrl = '', $pTooltip = '' )
+    public function __construct($pUrl = '', $pTooltip = '')
     {
 
         // Initialise member variables
@@ -82,7 +82,7 @@ class PHPExcel_Cell_Hyperlink
      *
      * @return PHPExcel_Cell_Hyperlink
      */
-    public function setUrl( $value = '' )
+    public function setUrl($value = '')
     {
 
         $this->_url = $value;
@@ -107,7 +107,7 @@ class PHPExcel_Cell_Hyperlink
      *
      * @return PHPExcel_Cell_Hyperlink
      */
-    public function setTooltip( $value = '' )
+    public function setTooltip($value = '')
     {
 
         $this->_tooltip = $value;
@@ -122,7 +122,7 @@ class PHPExcel_Cell_Hyperlink
     public function isInternal()
     {
 
-        return strpos( $this->_url, 'sheet://' ) !== false;
+        return strpos($this->_url, 'sheet://') !== false;
     }
 
     /**

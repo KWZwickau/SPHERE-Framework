@@ -11,16 +11,13 @@ use Guzzle\Http\QueryString;
  */
 class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /** @var Collection */
     protected $coll;
 
-    protected function setUp()
-    {
-        $this->coll = new Collection();
-    }
-
     public function testConstructorCanBeCalledWithNoParams()
     {
+
         $this->coll = new Collection();
         $p = $this->coll->getAll();
         $this->assertEmpty($p, '-> Collection must be empty when no data is passed');
@@ -28,17 +25,20 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testConstructorCanBeCalledWithParams()
     {
+
         $testData = array(
             'test' => 'value',
             'test_2' => 'value2'
         );
         $this->coll = new Collection($testData);
-        $this->assertEquals($this->coll->getAll(), $testData, '-> getAll() must return the data passed in the constructor');
+        $this->assertEquals($this->coll->getAll(), $testData,
+            '-> getAll() must return the data passed in the constructor');
         $this->assertEquals($this->coll->getAll(), $this->coll->toArray());
     }
 
     public function testImplementsIteratorAggregate()
     {
+
         $this->coll->set('key', 'value');
         $this->assertInstanceOf('ArrayIterator', $this->coll->getIterator());
         $this->assertEquals(1, count($this->coll));
@@ -53,6 +53,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanAddValuesToExistingKeysByUsingArray()
     {
+
         $this->coll->add('test', 'value1');
         $this->assertEquals($this->coll->getAll(), array('test' => 'value1'));
         $this->coll->add('test', 'value2');
@@ -63,6 +64,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHandlesMergingInDisparateDataSources()
     {
+
         $params = array(
             'test' => 'value1',
             'test2' => 'value2',
@@ -77,6 +79,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanClearAllDataOrSpecificKeys()
     {
+
         $this->coll->merge(array(
             'test' => 'value1',
             'test2' => 'value2'
@@ -97,6 +100,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testGetsValuesByKey()
     {
+
         $this->assertNull($this->coll->get('test'));
         $this->coll->add('test', 'value');
         $this->assertEquals('value', $this->coll->get('test'));
@@ -110,6 +114,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testProvidesKeys()
     {
+
         $this->assertEquals(array(), $this->coll->getKeys());
         $this->coll->merge(array(
             'test1' => 'value1',
@@ -126,6 +131,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testChecksIfHasKey()
     {
+
         $this->assertFalse($this->coll->hasKey('test'));
         $this->coll->add('test', 'value');
         $this->assertEquals(true, $this->coll->hasKey('test'));
@@ -138,6 +144,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testChecksIfHasValue()
     {
+
         $this->assertFalse($this->coll->hasValue('value'));
         $this->coll->add('test', 'value');
         $this->assertEquals('test', $this->coll->hasValue('value'));
@@ -149,6 +156,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanGetAllValuesByArray()
     {
+
         $this->coll->add('foo', 'bar');
         $this->coll->add('tEsT', 'value');
         $this->coll->add('tesTing', 'v2');
@@ -159,12 +167,15 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
             'tEsT'    => 'value',
             'tesTing' => 'v2'
         ), $this->coll->getAll(array(
-            'foo', 'tesTing', 'tEsT'
+            'foo',
+            'tesTing',
+            'tEsT'
         )));
     }
 
     public function testImplementsCount()
     {
+
         $data = new Collection();
         $this->assertEquals(0, $data->count());
         $data->add('key', 'value');
@@ -177,6 +188,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddParamsByMerging()
     {
+
         $params = array(
             'test' => 'value1',
             'test2' => 'value2',
@@ -193,7 +205,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
         ));
 
         $this->assertEquals(array(
-            'test' => array('value1', 'another'),
+            'test'  => array('value1', 'another'),
             'test2' => 'value2',
             'test3' => array('value3', 'value4'),
             'different_key' => 'new value'
@@ -202,14 +214,16 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsFunctionalFilter()
     {
+
         $this->coll->merge(array(
-            'fruit' => 'apple',
-            'number' => 'ten',
+            'fruit'       => 'apple',
+            'number'      => 'ten',
             'prepositions' => array('about', 'above', 'across', 'after'),
             'same_number' => 'ten'
         ));
 
-        $filtered = $this->coll->filter(function($key, $value) {
+        $filtered = $this->coll->filter(function ($key, $value) {
+
             return $value == 'ten';
         });
 
@@ -223,13 +237,15 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsFunctionalMapping()
     {
+
         $this->coll->merge(array(
             'number_1' => 1,
             'number_2' => 2,
             'number_3' => 3
         ));
 
-        $mapped = $this->coll->map(function($key, $value) {
+        $mapped = $this->coll->map(function ($key, $value) {
+
             return $value * $value;
         });
 
@@ -244,6 +260,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testImplementsArrayAccess()
     {
+
         $this->coll->merge(array(
             'k1' => 'v1',
             'k2' => 'v2'
@@ -262,20 +279,26 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsesStaticWhenCreatingNew()
     {
+
         $qs = new QueryString(array(
             'a' => 'b',
             'c' => 'd'
         ));
 
-        $this->assertInstanceOf('Guzzle\\Http\\QueryString', $qs->map(function($a, $b) {}));
-        $this->assertInstanceOf('Guzzle\\Common\\Collection', $qs->map(function($a, $b) {}, array(), false));
+        $this->assertInstanceOf('Guzzle\\Http\\QueryString', $qs->map(function ($a, $b) {
+        }));
+        $this->assertInstanceOf('Guzzle\\Common\\Collection', $qs->map(function ($a, $b) {
+        }, array(), false));
 
-        $this->assertInstanceOf('Guzzle\\Http\\QueryString', $qs->filter(function($a, $b) {}));
-        $this->assertInstanceOf('Guzzle\\Common\\Collection', $qs->filter(function($a, $b) {}, false));
+        $this->assertInstanceOf('Guzzle\\Http\\QueryString', $qs->filter(function ($a, $b) {
+        }));
+        $this->assertInstanceOf('Guzzle\\Common\\Collection', $qs->filter(function ($a, $b) {
+        }, false));
     }
 
     public function testCanReplaceAllData()
     {
+
         $this->assertSame($this->coll, $this->coll->replace(array(
             'a' => '123'
         )));
@@ -287,22 +310,39 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function dataProvider()
     {
+
         return array(
-            array('this_is_a_test', '{a}_is_a_{b}', array(
-                'a' => 'this',
-                'b' => 'test'
-            )),
-            array('this_is_a_test', '{abc}_is_a_{0}', array(
-                'abc' => 'this',
-                0 => 'test'
-            )),
-            array('this_is_a_test', '{abc}_is_a_{0}', array(
-                'abc' => 'this',
-                0 => 'test'
-            )),
-            array('this_is_a_test', 'this_is_a_test', array(
-                'abc' => 'this'
-            )),
+            array(
+                'this_is_a_test',
+                '{a}_is_a_{b}',
+                array(
+                    'a' => 'this',
+                    'b' => 'test'
+                )
+            ),
+            array(
+                'this_is_a_test',
+                '{abc}_is_a_{0}',
+                array(
+                    'abc' => 'this',
+                    0     => 'test'
+                )
+            ),
+            array(
+                'this_is_a_test',
+                '{abc}_is_a_{0}',
+                array(
+                    'abc' => 'this',
+                    0     => 'test'
+                )
+            ),
+            array(
+                'this_is_a_test',
+                'this_is_a_test',
+                array(
+                    'abc' => 'this'
+                )
+            ),
             array('{abc}_is_{not_found}a_{0}', '{abc}_is_{not_found}a_{0}', array())
         );
     }
@@ -312,12 +352,14 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testInjectsConfigData($output, $input, $config)
     {
+
         $collection = new Collection($config);
         $this->assertEquals($output, $collection->inject($input));
     }
 
     public function testCanSearchByKey()
     {
+
         $collection = new Collection(array(
             'foo' => 'bar',
             'BaZ' => 'pho'
@@ -330,6 +372,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testPreparesFromConfig()
     {
+
         $c = Collection::fromConfig(array(
             'a' => '123',
             'base_url' => 'http://www.test.com/'
@@ -354,6 +397,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     function falseyDataProvider()
     {
+
         return array(
             array(false, false),
             array(null, null),
@@ -368,12 +412,14 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testReturnsCorrectData($a, $b)
     {
+
         $c = new Collection(array('value' => $a));
         $this->assertSame($b, $c->get('value'));
     }
 
     public function testRetrievesNestedKeysUsingPath()
     {
+
         $data = array(
             'foo' => 'bar',
             'baz' => array(
@@ -391,6 +437,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testFalseyKeysStillDescend()
     {
+
         $collection = new Collection(array(
             '0' => array(
                 'a' => 'jar'
@@ -403,6 +450,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function getPathProvider()
     {
+
         $data = array(
             'foo' => 'bar',
             'baz' => array(
@@ -410,7 +458,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
                     'jar' => 'jar',
                     'array' => array('a', 'b', 'c')
                 ),
-                'bar' => array(
+                'bar'  => array(
                     'baz' => 'bam',
                     'array' => array('d', 'e', 'f')
                 )
@@ -431,11 +479,15 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
             array($c, 'baz/mesa', $data['baz']['mesa']),
             array($c, 'baz/mesa/jar', 'jar'),
             // Merge everything two levels under baz
-            array($c, 'baz/*', array(
-                'jar' => 'jar',
-                'array' => array_merge($data['baz']['mesa']['array'], $data['baz']['bar']['array']),
-                'baz' => 'bam'
-            )),
+            array(
+                $c,
+                'baz/*',
+                array(
+                    'jar'   => 'jar',
+                    'array' => array_merge($data['baz']['mesa']['array'], $data['baz']['bar']['array']),
+                    'baz'   => 'bam'
+                )
+            ),
             // Does not barf on missing keys
             array($c, 'fefwfw', null),
             // Does not barf when a wildcard does not resolve correctly
@@ -452,12 +504,16 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
             // Merge of anything one level deep
             array($c, '*', array_merge(array('bar'), $data['baz'], $data['bam'])),
             // Funky merge of anything two levels deep
-            array($c, '*/*', array(
-                'jar' => 'jar',
-                'array' => array('a', 'b', 'c', 'd', 'e', 'f', 'h', 'i'),
-                'baz' => 'bam',
-                'foo' => array(1, 2)
-            )),
+            array(
+                $c,
+                '*/*',
+                array(
+                    'jar'   => 'jar',
+                    'array' => array('a', 'b', 'c', 'd', 'e', 'f', 'h', 'i'),
+                    'baz'   => 'bam',
+                    'foo'   => array(1, 2)
+                )
+            ),
             // Funky merge of all 'array' keys that are two levels deep
             array($c, '*/*/array', array('a', 'b', 'c', 'd', 'e', 'f', 'h', 'i'))
         );
@@ -468,11 +524,13 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testGetPath(Collection $c, $path, $expected, $separator = '/')
     {
+
         $this->assertEquals($expected, $c->getPath($path, $separator));
     }
 
     public function testOverridesSettings()
     {
+
         $c = new Collection(array('foo' => 1, 'baz' => 2, 'bar' => 3));
         $c->overwriteWith(array('foo' => 10, 'bar' => 300));
         $this->assertEquals(array('foo' => 10, 'baz' => 2, 'bar' => 300), $c->getAll());
@@ -480,6 +538,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testOverwriteWithCollection()
     {
+
         $c = new Collection(array('foo' => 1, 'baz' => 2, 'bar' => 3));
         $b = new Collection(array('foo' => 10, 'bar' => 300));
         $c->overwriteWith($b);
@@ -488,6 +547,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testOverwriteWithTraversable()
     {
+
         $c = new Collection(array('foo' => 1, 'baz' => 2, 'bar' => 3));
         $b = new Collection(array('foo' => 10, 'bar' => 300));
         $c->overwriteWith($b->getIterator());
@@ -496,6 +556,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanSetNestedPathValueThatDoesNotExist()
     {
+
         $c = new Collection(array());
         $c->setPath('foo/bar/baz/123', 'hi');
         $this->assertEquals('hi', $c['foo']['bar']['baz']['123']);
@@ -503,6 +564,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanSetNestedPathValueThatExists()
     {
+
         $c = new Collection(array('foo' => array('bar' => 'test')));
         $c->setPath('foo/bar', 'hi');
         $this->assertEquals('hi', $c['foo']['bar']);
@@ -513,6 +575,7 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testVerifiesNestedPathIsValidAtExactLevel()
     {
+
         $c = new Collection(array('foo' => 'bar'));
         $c->setPath('foo/bar', 'hi');
         $this->assertEquals('hi', $c['foo']['bar']);
@@ -523,7 +586,14 @@ class CollectionTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testVerifiesThatNestedPathIsValidAtAnyLevel()
     {
+
         $c = new Collection(array('foo' => 'bar'));
         $c->setPath('foo/bar/baz', 'test');
+    }
+
+    protected function setUp()
+    {
+
+        $this->coll = new Collection();
     }
 }

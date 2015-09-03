@@ -3,7 +3,6 @@
 namespace Guzzle\Tests\Plugin\History;
 
 use Guzzle\Http\Client;
-use Guzzle\Http\Message\Request;
 use Guzzle\Http\Message\Response;
 use Guzzle\Plugin\History\HistoryPlugin;
 use Guzzle\Plugin\Mock\MockPlugin;
@@ -13,16 +12,43 @@ use Guzzle\Plugin\Mock\MockPlugin;
  */
 class HistoryPluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
+    public function testDescribesSubscribedEvents()
+    {
+
+        $this->assertInternalType('array', HistoryPlugin::getSubscribedEvents());
+    }
+
+    public function testMaintainsLimitValue()
+    {
+
+        $h = new HistoryPlugin();
+        $this->assertSame($h, $h->setLimit(10));
+        $this->assertEquals(10, $h->getLimit());
+    }
+
+    public function testAddsRequests()
+    {
+
+        $h = new HistoryPlugin();
+        $requests = $this->addRequests($h, 1);
+        $this->assertEquals(1, count($h));
+        $i = $h->getIterator();
+        $this->assertEquals(1, count($i));
+        $this->assertEquals($requests[0], $i[0]);
+    }
+
     /**
      * Adds multiple requests to a plugin
      *
-     * @param HistoryPlugin $h Plugin
-     * @param int $num Number of requests to add
+     * @param HistoryPlugin $h   Plugin
+     * @param int           $num Number of requests to add
      *
      * @return array
      */
     protected function addRequests(HistoryPlugin $h, $num)
     {
+
         $requests = array();
         $client = new Client('http://127.0.0.1/');
         for ($i = 0; $i < $num; $i++) {
@@ -35,33 +61,12 @@ class HistoryPluginTest extends \Guzzle\Tests\GuzzleTestCase
         return $requests;
     }
 
-    public function testDescribesSubscribedEvents()
-    {
-        $this->assertInternalType('array', HistoryPlugin::getSubscribedEvents());
-    }
-
-    public function testMaintainsLimitValue()
-    {
-        $h = new HistoryPlugin();
-        $this->assertSame($h, $h->setLimit(10));
-        $this->assertEquals(10, $h->getLimit());
-    }
-
-    public function testAddsRequests()
-    {
-        $h = new HistoryPlugin();
-        $requests = $this->addRequests($h, 1);
-        $this->assertEquals(1, count($h));
-        $i = $h->getIterator();
-        $this->assertEquals(1, count($i));
-        $this->assertEquals($requests[0], $i[0]);
-    }
-
     /**
      * @depends testAddsRequests
      */
     public function testMaintainsLimit()
     {
+
         $h = new HistoryPlugin();
         $h->setLimit(2);
         $requests = $this->addRequests($h, 3);
@@ -76,6 +81,7 @@ class HistoryPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsLastRequest()
     {
+
         $h = new HistoryPlugin();
         $requests = $this->addRequests($h, 5);
         $this->assertSame(end($requests), $h->getLastRequest());
@@ -83,6 +89,7 @@ class HistoryPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsLastResponse()
     {
+
         $h = new HistoryPlugin();
         $requests = $this->addRequests($h, 5);
         $this->assertSame(end($requests)->getResponse(), $h->getLastResponse());
@@ -90,6 +97,7 @@ class HistoryPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClearsHistory()
     {
+
         $h = new HistoryPlugin();
         $requests = $this->addRequests($h, 5);
         $this->assertEquals(5, count($h));
@@ -102,6 +110,7 @@ class HistoryPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testUpdatesAddRequests()
     {
+
         $h = new HistoryPlugin();
         $client = new Client('http://127.0.0.1/');
         $client->getEventDispatcher()->addSubscriber($h);
@@ -115,6 +124,7 @@ class HistoryPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanCastToString()
     {
+
         $client = new Client('http://127.0.0.1/');
         $h = new HistoryPlugin();
         $client->getEventDispatcher()->addSubscriber($h);

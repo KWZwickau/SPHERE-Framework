@@ -7,8 +7,10 @@ namespace Doctrine\Tests\DBAL\Functional\Ticket;
  */
 class DBAL168Test extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     public function testDomainsTable()
     {
+
         if ($this->_conn->getDatabasePlatform()->getName() != "postgresql") {
             $this->markTestSkipped('PostgreSQL only test');
         }

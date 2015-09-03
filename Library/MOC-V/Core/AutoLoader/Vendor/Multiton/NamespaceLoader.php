@@ -25,7 +25,7 @@ class NamespaceLoader
      * @param string      $Path
      * @param string|null $Prefix
      */
-    function __construct( $Namespace, $Path, $Prefix = null )
+    function __construct($Namespace, $Path, $Prefix = null)
     {
 
         $this->Namespace = $Namespace;
@@ -40,37 +40,37 @@ class NamespaceLoader
      *
      * @return bool
      */
-    public function loadClass( $ClassName )
+    public function loadClass($ClassName)
     {
 
-        if ($this->checkExists( $ClassName )) {
+        if ($this->checkExists($ClassName)) {
             return true;
         }
 
-        if (function_exists( 'apc_fetch' )) {
-            $Hash = sha1( $this->Namespace.$this->Path.$this->Separator.$this->Extension.$this->Prefix );
+        if (function_exists('apc_fetch')) {
+            $Hash = sha1($this->Namespace.$this->Path.$this->Separator.$this->Extension.$this->Prefix);
             // @codeCoverageIgnoreStart
-            if (false === ( $Result = apc_fetch( $Hash.'#'.$ClassName ) )) {
-                $Result = $this->checkCanLoadClass( $ClassName );
-                apc_store( $Hash.'#'.$ClassName, ( $Result ? 1 : 0 ) );
+            if (false === ( $Result = apc_fetch($Hash.'#'.$ClassName) )) {
+                $Result = $this->checkCanLoadClass($ClassName);
+                apc_store($Hash.'#'.$ClassName, ( $Result ? 1 : 0 ));
             }
             if (!$Result) {
                 return false;
             }
         } else {
             // @codeCoverageIgnoreEnd
-            if (!$this->checkCanLoadClass( $ClassName )) {
+            if (!$this->checkCanLoadClass($ClassName)) {
                 return false;
             }
         }
 
         /** @noinspection PhpIncludeInspection */
         require( $this->Path.DIRECTORY_SEPARATOR
-            .trim( str_replace( array( $this->Prefix.$this->Separator, $this->Separator ),
-                array( '', DIRECTORY_SEPARATOR ), $ClassName ), DIRECTORY_SEPARATOR )
+            .trim(str_replace(array($this->Prefix.$this->Separator, $this->Separator),
+                array('', DIRECTORY_SEPARATOR), $ClassName), DIRECTORY_SEPARATOR)
             .$this->Extension
         );
-        return $this->checkExists( $ClassName );
+        return $this->checkExists($ClassName);
     }
 
     /**
@@ -79,11 +79,11 @@ class NamespaceLoader
      *
      * @return bool
      */
-    private function checkExists( $Name, $Load = false )
+    private function checkExists($Name, $Load = false)
     {
 
-        return class_exists( $Name, $Load )
-        || interface_exists( $Name, $Load )/*|| ( function_exists( 'trait_exists' ) && trait_exists( $Name, $Load ) )*/
+        return class_exists($Name, $Load)
+        || interface_exists($Name, $Load)/*|| ( function_exists( 'trait_exists' ) && trait_exists( $Name, $Load ) )*/
             ;
     }
 
@@ -92,19 +92,19 @@ class NamespaceLoader
      *
      * @return bool
      */
-    public function checkCanLoadClass( $ClassName )
+    public function checkCanLoadClass($ClassName)
     {
 
-        if ($this->Namespace !== null && strpos( $ClassName, $this->Namespace.$this->Separator ) !== 0) {
+        if ($this->Namespace !== null && strpos($ClassName, $this->Namespace.$this->Separator) !== 0) {
             return false;
         }
         $File = str_replace(
-                array( $this->Prefix.$this->Separator, $this->Separator ),
-                array( '', DIRECTORY_SEPARATOR ),
+                array($this->Prefix.$this->Separator, $this->Separator),
+                array('', DIRECTORY_SEPARATOR),
                 $ClassName
             ).$this->Extension;
         if ($this->Path !== null) {
-            return is_file( $this->Path.DIRECTORY_SEPARATOR.$File );
+            return is_file($this->Path.DIRECTORY_SEPARATOR.$File);
         }
         // @codeCoverageIgnoreStart
         return false;
@@ -119,7 +119,7 @@ class NamespaceLoader
 
         return sha1(
             serialize(
-                get_object_vars( $this )
+                get_object_vars($this)
             )
         );
     }

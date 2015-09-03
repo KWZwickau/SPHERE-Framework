@@ -36,7 +36,7 @@ class Font_Table_maxp extends Font_Table
     {
 
         $font = $this->getFont();
-        $this->data["numGlyphs"] = count( $font->getSubset() );
+        $this->data["numGlyphs"] = count($font->getSubset());
 
         return parent::_encode();
     }

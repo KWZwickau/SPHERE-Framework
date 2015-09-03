@@ -16,6 +16,7 @@ namespace Symfony\Component\Finder\Shell;
  */
 class Shell
 {
+
     const TYPE_UNIX = 1;
     const TYPE_DARWIN = 2;
     const TYPE_CYGWIN = 3;
@@ -34,6 +35,7 @@ class Shell
      */
     public function getType()
     {
+
         if (null === $this->type) {
             $this->type = $this->guessType();
         }
@@ -49,21 +51,21 @@ class Shell
     private function guessType()
     {
 
-        $os = strtolower( PHP_OS );
+        $os = strtolower(PHP_OS);
 
-        if (false !== strpos( $os, 'cygwin' )) {
+        if (false !== strpos($os, 'cygwin')) {
             return self::TYPE_CYGWIN;
         }
 
-        if (false !== strpos( $os, 'darwin' )) {
+        if (false !== strpos($os, 'darwin')) {
             return self::TYPE_DARWIN;
         }
 
-        if (false !== strpos( $os, 'bsd' )) {
+        if (false !== strpos($os, 'bsd')) {
             return self::TYPE_BSD;
         }
 
-        if (0 === strpos( $os, 'win' )) {
+        if (0 === strpos($os, 'win')) {
             return self::TYPE_WINDOWS;
         }
 
@@ -77,10 +79,10 @@ class Shell
      *
      * @return bool
      */
-    public function testCommand( $command )
+    public function testCommand($command)
     {
 
-        if (!function_exists( 'exec' )) {
+        if (!function_exists('exec')) {
             return false;
         }
 
@@ -90,10 +92,10 @@ class Shell
             $testCommand = 'where ';
         }
 
-        $command = escapeshellcmd( $command );
+        $command = escapeshellcmd($command);
 
-        exec( $testCommand.$command, $output, $code );
+        exec($testCommand.$command, $output, $code);
 
-        return 0 === $code && count( $output ) > 0;
+        return 0 === $code && count($output) > 0;
     }
 }

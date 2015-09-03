@@ -22,6 +22,7 @@ use Symfony\Component\HttpKernel\EventListener\FragmentListener;
  */
 abstract class RoutableFragmentRenderer implements FragmentRendererInterface
 {
+
     private $fragmentPath = '/_fragment';
 
     /**
@@ -33,21 +34,27 @@ abstract class RoutableFragmentRenderer implements FragmentRendererInterface
      */
     public function setFragmentPath($path)
     {
+
         $this->fragmentPath = $path;
     }
 
     /**
      * Generates a fragment URI for a given controller.
      *
-     * @param ControllerReference  $reference A ControllerReference instance
-     * @param Request              $request   A Request instance
-     * @param bool                 $absolute  Whether to generate an absolute URL or not
-     * @param bool                 $strict    Whether to allow non-scalar attributes or not
+     * @param ControllerReference $reference A ControllerReference instance
+     * @param Request             $request   A Request instance
+     * @param bool                $absolute  Whether to generate an absolute URL or not
+     * @param bool                $strict    Whether to allow non-scalar attributes or not
      *
      * @return string A fragment URI
      */
-    protected function generateFragmentUri(ControllerReference $reference, Request $request, $absolute = false, $strict = true)
-    {
+    protected function generateFragmentUri(
+        ControllerReference $reference,
+        Request $request,
+        $absolute = false,
+        $strict = true
+    ) {
+
         if ($strict) {
             $this->checkNonScalar($reference->attributes);
         }
@@ -57,10 +64,10 @@ abstract class RoutableFragmentRenderer implements FragmentRendererInterface
         // This makes things inconsistent if you switch from rendering a controller
         // to rendering a route if the route pattern does not contain the special
         // _format and _locale placeholders.
-        if (!isset($reference->attributes['_format'])) {
+        if (!isset( $reference->attributes['_format'] )) {
             $reference->attributes['_format'] = $request->getRequestFormat();
         }
-        if (!isset($reference->attributes['_locale'])) {
+        if (!isset( $reference->attributes['_locale'] )) {
             $reference->attributes['_locale'] = $request->getLocale();
         }
 
@@ -79,11 +86,13 @@ abstract class RoutableFragmentRenderer implements FragmentRendererInterface
 
     private function checkNonScalar($values)
     {
+
         foreach ($values as $key => $value) {
             if (is_array($value)) {
                 $this->checkNonScalar($value);
             } elseif (!is_scalar($value) && null !== $value) {
-                throw new \LogicException(sprintf('Controller attributes cannot contain non-scalar/non-null values (value for key "%s" is not a scalar or null).', $key));
+                throw new \LogicException(sprintf('Controller attributes cannot contain non-scalar/non-null values (value for key "%s" is not a scalar or null).',
+                    $key));
             }
         }
     }

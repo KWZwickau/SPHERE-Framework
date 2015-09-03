@@ -7,6 +7,7 @@ namespace Guzzle\Parser\Cookie;
  */
 class CookieParser implements CookieParserInterface
 {
+
     /** @var array Cookie part names to snake_case array values */
     protected static $cookieParts = array(
         'domain'      => 'Domain',
@@ -24,11 +25,12 @@ class CookieParser implements CookieParserInterface
 
     public function parseCookie($cookie, $host = null, $path = null, $decode = false)
     {
+
         // Explode the cookie string using a series of semicolons
         $pieces = array_filter(array_map('trim', explode(';', $cookie)));
 
         // The name of the cookie (first kvp) must include an equal sign.
-        if (empty($pieces) || !strpos($pieces[0], '=')) {
+        if (empty( $pieces ) || !strpos($pieces[0], '=')) {
             return false;
         }
 
@@ -61,7 +63,7 @@ class CookieParser implements CookieParserInterface
             }
 
             // Only check for non-cookies when cookies have been found
-            if (!empty($data['cookies'])) {
+            if (!empty( $data['cookies'] )) {
                 foreach (self::$cookieParts as $mapValue => $search) {
                     if (!strcasecmp($search, $key)) {
                         $data[$mapValue] = $mapValue == 'port' ? array_map('trim', explode(',', $value)) : $value;
@@ -78,7 +80,7 @@ class CookieParser implements CookieParserInterface
 
         // Calculate the expires date
         if (!$data['expires'] && $data['max_age']) {
-            $data['expires'] = time() + (int) $data['max_age'];
+            $data['expires'] = time() + (int)$data['max_age'];
         }
 
         // Check path attribute according RFC6265 http://tools.ietf.org/search/rfc6265#section-5.2.4
@@ -102,13 +104,15 @@ class CookieParser implements CookieParserInterface
      *
      * @return string
      */
-    protected function getDefaultPath($path) {
+    protected function getDefaultPath($path)
+    {
+
         // "The user agent MUST use an algorithm equivalent to the following algorithm
         // to compute the default-path of a cookie:"
 
         // "2. If the uri-path is empty or if the first character of the uri-path is not
         // a %x2F ("/") character, output %x2F ("/") and skip the remaining steps.
-        if (empty($path) || substr($path, 0, 1) !== '/') {
+        if (empty( $path ) || substr($path, 0, 1) !== '/') {
             return '/';
         }
 

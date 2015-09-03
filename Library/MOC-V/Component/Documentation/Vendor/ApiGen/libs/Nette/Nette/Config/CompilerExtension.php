@@ -30,7 +30,7 @@ abstract class CompilerExtension extends Nette\Object
     protected $name;
 
 
-    public function setCompiler( Compiler $compiler, $name )
+    public function setCompiler(Compiler $compiler, $name)
     {
 
         $this->compiler = $compiler;
@@ -47,14 +47,14 @@ abstract class CompilerExtension extends Nette\Object
      *
      * @return array
      */
-    public function getConfig( array $defaults = null, $expand = true )
+    public function getConfig(array $defaults = null, $expand = true)
     {
 
         $config = $this->compiler->getConfig();
         $config = isset( $config[$this->name] ) ? $config[$this->name] : array();
         unset( $config['services'], $config['factories'] );
-        $config = Helpers::merge( $config, $defaults );
-        return $expand ? $this->compiler->getContainerBuilder()->expand( $config ) : $config;
+        $config = Helpers::merge($config, $defaults);
+        return $expand ? $this->compiler->getContainerBuilder()->expand($config) : $config;
     }
 
 
@@ -75,14 +75,14 @@ abstract class CompilerExtension extends Nette\Object
      *
      * @return array
      */
-    public function loadFromFile( $file )
+    public function loadFromFile($file)
     {
 
         $loader = new Loader;
-        $res = $loader->load( $file );
+        $res = $loader->load($file);
         $container = $this->compiler->getContainerBuilder();
         foreach ($loader->getDependencies() as $file) {
-            $container->addDependency( $file );
+            $container->addDependency($file);
         }
         return $res;
     }
@@ -95,10 +95,10 @@ abstract class CompilerExtension extends Nette\Object
      *
      * @return string
      */
-    public function prefix( $id )
+    public function prefix($id)
     {
 
-        return substr_replace( $id, $this->name.'.', substr( $id, 0, 1 ) === '@' ? 1 : 0, 0 );
+        return substr_replace($id, $this->name.'.', substr($id, 0, 1) === '@' ? 1 : 0, 0);
     }
 
 
@@ -127,7 +127,7 @@ abstract class CompilerExtension extends Nette\Object
      *
      * @return void
      */
-    public function afterCompile( Nette\Utils\PhpGenerator\ClassType $class )
+    public function afterCompile(Nette\Utils\PhpGenerator\ClassType $class)
     {
     }
 

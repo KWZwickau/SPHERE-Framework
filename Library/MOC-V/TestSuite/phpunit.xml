@@ -10,14 +10,14 @@
             <directory suffix=".php">./Tests/Core/FileSystem</directory>
             <directory suffix=".php">./Tests/Core/HttpKernel</directory>
             <directory suffix=".php">./Tests/Core/SecureKernel</directory>
-            <directory suffix=".php">./Tests/Component/Router</directory>
-            <directory suffix=".php">./Tests/Component/Template</directory>
+            <directory suffix=".php">./Tests/Component/Captcha</directory>
             <directory suffix=".php">./Tests/Component/Database</directory>
             <directory suffix=".php">./Tests/Component/Document</directory>
             <directory suffix=".php" phpVersion="5.3.0" phpVersionOperator="&lt;=">./Tests/Component/Documentation
             </directory>
             <directory suffix=".php">./Tests/Component/Mail</directory>
-            <directory suffix=".php">./Tests/Component/Captcha</directory>
+            <directory suffix=".php">./Tests/Component/Router</directory>
+            <directory suffix=".php">./Tests/Component/Template</directory>
         </testsuite>
     </testsuites>
     <filter>
@@ -30,18 +30,18 @@
                 <directory>./../Core/FileSystem/Vendor/Symfony</directory>
                 <directory>./../Core/HttpKernel/Vendor/Symfony</directory>
                 <directory>./../Core/SecureKernel/Vendor/PhpSecLib</directory>
-                <directory>./../Component/Router/Vendor/Symfony</directory>
+                <directory>./../Component/Captcha/Vendor/SimplePhpCaptcha</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2DBAL</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2ORM</directory>
-                <directory>./../Component/Template/Vendor/Twig</directory>
-                <directory>./../Component/Template/Vendor/Smarty</directory>
-                <directory>./../Component/Documentation/Vendor/ApiGen</directory>
-                <directory>./../Component/Documentation/Vendor/Template</directory>
                 <directory>./../Component/Document/Vendor/PhpExcel</directory>
                 <directory>./../Component/Document/Vendor/DomPdf</directory>
                 <directory>./../Component/Document/Vendor/mPdf</directory>
+                <directory>./../Component/Documentation/Vendor/ApiGen</directory>
+                <directory>./../Component/Documentation/Vendor/Template</directory>
                 <directory>./../Component/Mail/Vendor/EdenPhpMail</directory>
-                <directory>./../Component/Captcha/Vendor/SimplePhpCaptcha</directory>
+                <directory>./../Component/Router/Vendor/Symfony</directory>
+                <directory>./../Component/Template/Vendor/Twig</directory>
+                <directory>./../Component/Template/Vendor/Smarty</directory>
             </exclude>
         </whitelist>
     </filter>

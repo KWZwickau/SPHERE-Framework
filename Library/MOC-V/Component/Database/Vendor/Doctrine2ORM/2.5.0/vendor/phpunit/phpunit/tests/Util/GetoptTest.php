@@ -12,8 +12,10 @@
  */
 class Util_GetoptTest extends PHPUnit_Framework_TestCase
 {
+
     public function testItIncludeTheLongOptionsAfterTheArgument()
     {
+
         $args = array(
             'command',
             'myArgument',
@@ -38,6 +40,7 @@ class Util_GetoptTest extends PHPUnit_Framework_TestCase
 
     public function testItIncludeTheShortOptionsAfterTheArgument()
     {
+
         $args = array(
             'command',
             'myArgument',

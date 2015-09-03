@@ -13,6 +13,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class Md5ValidatorPlugin implements EventSubscriberInterface
 {
+
     /** @var int Maximum Content-Length in bytes to validate */
     protected $contentLengthCutoff;
 
@@ -30,12 +31,14 @@ class Md5ValidatorPlugin implements EventSubscriberInterface
      */
     public function __construct($contentEncoded = true, $contentLengthCutoff = false)
     {
+
         $this->contentLengthCutoff = $contentLengthCutoff;
         $this->contentEncoded = $contentEncoded;
     }
 
     public static function getSubscribedEvents()
     {
+
         return array('request.complete' => array('onRequestComplete', 255));
     }
 
@@ -45,6 +48,7 @@ class Md5ValidatorPlugin implements EventSubscriberInterface
      */
     public function onRequestComplete(Event $event)
     {
+
         $response = $event['response'];
 
         if (!$contentMd5 = $response->getContentMd5()) {
@@ -81,7 +85,7 @@ class Md5ValidatorPlugin implements EventSubscriberInterface
         if ($contentMd5 !== $hash) {
             throw new UnexpectedValueException(
                 "The response entity body may have been modified over the wire.  The Content-MD5 "
-                . "received ({$contentMd5}) did not match the calculated MD5 hash ({$hash})."
+                ."received ({$contentMd5}) did not match the calculated MD5 hash ({$hash})."
             );
         }
     }

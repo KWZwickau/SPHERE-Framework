@@ -331,18 +331,18 @@ class MYANMAR
 
     );
 
-    public static function set_myanmar_properties( &$info )
+    public static function set_myanmar_properties(&$info)
     {
 
         $u = $info['uni'];
-        $type = self::myanmar_get_categories( $u );
+        $type = self::myanmar_get_categories($u);
         $cat = ( $type & 0x7F );
         $pos = ( $type >> 8 );
         /*
         * Re-assign category
         * http://www.microsoft.com/typography/OpenTypeDev/myanmar/intro.htm#analyze
         */
-        if (self::in_range( $u, 0xFE00, 0xFE0F )) {
+        if (self::in_range($u, 0xFE00, 0xFE0F)) {
             $cat = self::OT_VS;
         } else {
             if ($u == 0x200C) {
@@ -480,7 +480,7 @@ class MYANMAR
         $info['myanmar_position'] = $pos;
     }
 
-    public static function myanmar_get_categories( $u )
+    public static function myanmar_get_categories($u)
     {
 
         if (0x1000 <= $u && $u <= 0x109F) {
@@ -498,7 +498,7 @@ class MYANMAR
         return 3840;    // (ISC_x | (IMC_x << 8))
     }
 
-    public static function in_range( $u, $lo, $hi )
+    public static function in_range($u, $lo, $hi)
     {
 
         if (( ( $lo ^ $hi ) & $lo ) == 0 && ( ( $lo ^ $hi ) & $hi ) == ( $lo ^ $hi ) && ( ( $lo ^ $hi ) & ( ( $lo ^ $hi ) + 1 ) ) == 0) {
@@ -512,29 +512,29 @@ class MYANMAR
     /* Rules from:
      * https://www.microsoft.com/typography/otfntdev/devanot/shaping.aspx */
 
-    public static function set_syllables( &$o, $s, &$broken_syllables )
+    public static function set_syllables(&$o, $s, &$broken_syllables)
     {
 
         $ptr = 0;
         $syllable_serial = 1;
         $broken_syllables = false;
 
-        while ($ptr < strlen( $s )) {
+        while ($ptr < strlen($s)) {
             $match = '';
             $syllable_length = 1;
             $syllable_type = self::NON_MYANMAR_CLUSTER;
             // CONSONANT_SYLLABLE Consonant syllable
             // From OT spec:
-            if (preg_match( '/^(RaH)?([C|R]|V|d|D)[s]?(H([C|R|V])[s]?)*(H|[a]*[n]?[l]?((m[k]?|k)[a]?)?[e]*[v]*[b]*[A]*(N[a]?)?(t[k]?[a]*[v]*[A]*(N[a]?)?)*(p[A]*(N[a]?)?)*S*[J|Z]?)/',
-                substr( $s, $ptr ), $ma )) {
-                $syllable_length = strlen( $ma[0] );
+            if (preg_match('/^(RaH)?([C|R]|V|d|D)[s]?(H([C|R|V])[s]?)*(H|[a]*[n]?[l]?((m[k]?|k)[a]?)?[e]*[v]*[b]*[A]*(N[a]?)?(t[k]?[a]*[v]*[A]*(N[a]?)?)*(p[A]*(N[a]?)?)*S*[J|Z]?)/',
+                substr($s, $ptr), $ma)) {
+                $syllable_length = strlen($ma[0]);
                 $syllable_type = self::CONSONANT_SYLLABLE;
             } // BROKEN_CLUSTER syllable
             else {
-                if (preg_match( '/^(RaH)?s?(H|[a]*[n]?[l]?((m[k]?|k)[a]?)?[e]*[v]*[b]*[A]*(N[a]?)?(t[k]?[a]*[v]*[A]*(N[a]?)?)*(p[A]*(N[a]?)?)*S*[J|Z]?)/',
-                    substr( $s, $ptr ), $ma )) {
-                    if (strlen( $ma[0] )) {    // May match blank
-                        $syllable_length = strlen( $ma[0] );
+                if (preg_match('/^(RaH)?s?(H|[a]*[n]?[l]?((m[k]?|k)[a]?)?[e]*[v]*[b]*[A]*(N[a]?)?(t[k]?[a]*[v]*[A]*(N[a]?)?)*(p[A]*(N[a]?)?)*S*[J|Z]?)/',
+                    substr($s, $ptr), $ma)) {
+                    if (strlen($ma[0])) {    // May match blank
+                        $syllable_length = strlen($ma[0]);
                         $syllable_type = self::BROKEN_CLUSTER;
                         $broken_syllables = true;
                     }
@@ -551,13 +551,13 @@ class MYANMAR
         }
     }
 
-    public static function reordering( &$info, $GSUBdata, $broken_syllables, $dottedcircle )
+    public static function reordering(&$info, $GSUBdata, $broken_syllables, $dottedcircle)
     {
 
         if ($broken_syllables && $dottedcircle) {
-            self::insert_dotted_circles( $info, $dottedcircle );
+            self::insert_dotted_circles($info, $dottedcircle);
         }
-        $count = count( $info );
+        $count = count($info);
         if (!$count) {
             return;
         }
@@ -565,28 +565,28 @@ class MYANMAR
         $last_syllable = $info[0]['syllable'];
         for ($i = 1; $i < $count; $i++) {
             if ($last_syllable != $info[$i]['syllable']) {
-                self::reordering_syllable( $info, $GSUBdata, $last, $i );
+                self::reordering_syllable($info, $GSUBdata, $last, $i);
                 $last = $i;
                 $last_syllable = $info[$last]['syllable'];
             }
         }
-        self::reordering_syllable( $info, $GSUBdata, $last, $count );
+        self::reordering_syllable($info, $GSUBdata, $last, $count);
     }
 
     /* Vowels and placeholders treated as if they were consonants. */
 
-    public static function insert_dotted_circles( &$info, $dottedcircle )
+    public static function insert_dotted_circles(&$info, $dottedcircle)
     {
 
         $idx = 0;
         $last_syllable = 0;
-        while ($idx < count( $info )) {
+        while ($idx < count($info)) {
             $syllable = $info[$idx]['syllable'];
             $syllable_type = ( $syllable & 0x0F );
             if ($last_syllable != $syllable && $syllable_type == self::BROKEN_CLUSTER) {
                 $last_syllable = $syllable;
                 $dottedcircle[0]['syllable'] = $info[$idx]['syllable'];
-                array_splice( $info, $idx, 0, $dottedcircle );
+                array_splice($info, $idx, 0, $dottedcircle);
             } else {
                 $idx++;
             }
@@ -596,14 +596,14 @@ class MYANMAR
         $syllable_type = ( $syllable & 0x0F );
         if ($last_syllable != $syllable && $syllable_type == self::BROKEN_CLUSTER) {
             $dottedcircle[0]['syllable'] = $info[$idx]['syllable'];
-            array_splice( $info, $idx, 0, $dottedcircle );
+            array_splice($info, $idx, 0, $dottedcircle);
         }
     }
 
 
 // From hb-private.hh
 
-    public static function reordering_syllable( &$info, $GSUBdata, $start, $end )
+    public static function reordering_syllable(&$info, $GSUBdata, $start, $end)
     {
 
         /* vowel_syllable: We made the vowels look like consonants. So uses the consonant logic! */
@@ -642,7 +642,7 @@ class MYANMAR
         }
 
         for ($i = $limit; $i < $end; $i++) {
-            if (self::is_consonant( $info[$i] )) {
+            if (self::is_consonant($info[$i])) {
                 $base = $i;
                 break;
             }
@@ -695,26 +695,26 @@ class MYANMAR
         }
 
         /* Sit tight, rock 'n roll! */
-        self::bubble_sort( $info, $start, $end - $start );
+        self::bubble_sort($info, $start, $end - $start);
 
     }
 
 // From hb-private.hh
 
-    public static function is_consonant( $info )
+    public static function is_consonant($info)
     {
 
-        return self::is_one_of( $info,
-            ( self::FLAG( self::OT_C ) | self::FLAG( self::OT_CM ) | self::FLAG( self::OT_Ra ) | self::FLAG( self::OT_V ) | self::FLAG( self::OT_NBSP ) | self::FLAG( self::OT_GB ) ) );
+        return self::is_one_of($info,
+            ( self::FLAG(self::OT_C) | self::FLAG(self::OT_CM) | self::FLAG(self::OT_Ra) | self::FLAG(self::OT_V) | self::FLAG(self::OT_NBSP) | self::FLAG(self::OT_GB) ));
     }
 
-    public static function is_one_of( $info, $flags )
+    public static function is_one_of($info, $flags)
     {
 
         if (isset( $info['is_ligature'] ) && $info['is_ligature']) {
             return false;
         }    /* If it ligated, all bets are off. */
-        return !!( self::FLAG( $info['myanmar_category'] ) & $flags );
+        return !!( self::FLAG($info['myanmar_category']) & $flags );
     }
 
 
@@ -722,7 +722,7 @@ class MYANMAR
 // BELOW from hb-ot-shape-complex-indic.cc
 // see INDIC for details
 
-    public static function FLAG( $x )
+    public static function FLAG($x)
     {
 
         return ( 1 << ( $x ) );
@@ -730,7 +730,7 @@ class MYANMAR
 
 // from "hb-ot-shape-complex-indic-table.cc"
 
-    public static function bubble_sort( &$arr, $start, $len )
+    public static function bubble_sort(&$arr, $start, $len)
     {
 
         if ($len < 2) {
@@ -749,10 +749,10 @@ class MYANMAR
         }
     }
 
-    public static function FLAG_RANGE( $x, $y )
+    public static function FLAG_RANGE($x, $y)
     {
 
-        self::FLAG( y + 1 ) - self::FLAG( x );
+        self::FLAG(y + 1) - self::FLAG(x);
     }
 
 }    // end Class

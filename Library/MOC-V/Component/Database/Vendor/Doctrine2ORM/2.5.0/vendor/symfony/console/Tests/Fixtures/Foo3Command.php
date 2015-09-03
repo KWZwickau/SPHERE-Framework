@@ -6,16 +6,18 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Foo3Command extends Command
 {
+
     protected function configure()
     {
+
         $this
             ->setName('foo3:bar')
-            ->setDescription('The foo3:bar command')
-        ;
+            ->setDescription('The foo3:bar command');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         try {
             try {
                 throw new \Exception('First exception <p>this is html</p>');

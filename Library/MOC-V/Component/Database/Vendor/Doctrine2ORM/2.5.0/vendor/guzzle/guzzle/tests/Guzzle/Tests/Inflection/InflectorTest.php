@@ -9,13 +9,16 @@ use Guzzle\Inflection\Inflector;
  */
 class InflectorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testReturnsDefaultInstance()
     {
+
         $this->assertSame(Inflector::getDefault(), Inflector::getDefault());
     }
 
     public function testSnake()
     {
+
         $this->assertEquals('camel_case', Inflector::getDefault()->snake('camelCase'));
         $this->assertEquals('camel_case', Inflector::getDefault()->snake('CamelCase'));
         $this->assertEquals('camel_case_words', Inflector::getDefault()->snake('CamelCaseWords'));
@@ -27,6 +30,7 @@ class InflectorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCamel()
     {
+
         $this->assertEquals('CamelCase', Inflector::getDefault()->camel('camel_case'));
         $this->assertEquals('CamelCaseWords', Inflector::getDefault()->camel('camel_case_words'));
         $this->assertEquals('Test', Inflector::getDefault()->camel('test'));

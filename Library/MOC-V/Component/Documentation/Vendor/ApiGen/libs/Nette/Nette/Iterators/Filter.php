@@ -31,18 +31,18 @@ class Filter extends \FilterIterator
      * @param
      * @param  callable
      */
-    public function __construct( \Iterator $iterator, $callback )
+    public function __construct(\Iterator $iterator, $callback)
     {
 
-        parent::__construct( $iterator );
-        $this->callback = new Nette\Callback( $callback );
+        parent::__construct($iterator);
+        $this->callback = new Nette\Callback($callback);
     }
 
 
     public function accept()
     {
 
-        return $this->callback->invoke( $this );
+        return $this->callback->invoke($this);
     }
 
 }

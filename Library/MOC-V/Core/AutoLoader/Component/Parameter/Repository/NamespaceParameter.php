@@ -19,10 +19,10 @@ class NamespaceParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Namespace
      */
-    function __construct( $Namespace )
+    public function __construct($Namespace)
     {
 
-        $this->setNamespace( $Namespace );
+        $this->setNamespace($Namespace);
 
     }
 
@@ -40,13 +40,13 @@ class NamespaceParameter extends Parameter implements IParameterInterface
      *
      * @throws EmptyNamespaceException
      */
-    public function setNamespace( $Namespace )
+    public function setNamespace($Namespace)
     {
 
         if (null === $Namespace) {
             $this->Namespace = null;
         } else {
-            $Namespace = trim( $Namespace, '\\' );
+            $Namespace = trim($Namespace, '\\');
             if (empty( $Namespace )) {
                 throw new EmptyNamespaceException();
             } else {

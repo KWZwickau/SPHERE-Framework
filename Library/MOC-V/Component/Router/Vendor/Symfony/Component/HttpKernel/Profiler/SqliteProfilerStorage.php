@@ -18,17 +18,21 @@ namespace Symfony\Component\HttpKernel\Profiler;
  */
 class SqliteProfilerStorage extends PdoProfilerStorage
 {
+
     /**
      * @throws \RuntimeException When neither of SQLite3 or PDO_SQLite extension is enabled
      */
     protected function initDb()
     {
+
         if (null === $this->db || $this->db instanceof \SQLite3) {
             if (0 !== strpos($this->dsn, 'sqlite')) {
-                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Sqlite with an invalid dsn "%s". The expected format is "sqlite:/path/to/the/db/file".', $this->dsn));
+                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Sqlite with an invalid dsn "%s". The expected format is "sqlite:/path/to/the/db/file".',
+                    $this->dsn));
             }
             if (class_exists('SQLite3')) {
-                $db = new \SQLite3(substr($this->dsn, 7, strlen($this->dsn)), \SQLITE3_OPEN_READWRITE | \SQLITE3_OPEN_CREATE);
+                $db = new \SQLite3(substr($this->dsn, 7, strlen($this->dsn)),
+                    \SQLITE3_OPEN_READWRITE | \SQLITE3_OPEN_CREATE);
                 if (method_exists($db, 'busyTimeout')) {
                     // busyTimeout only exists for PHP >= 5.3.3
                     $db->busyTimeout(1000);
@@ -56,6 +60,7 @@ class SqliteProfilerStorage extends PdoProfilerStorage
 
     protected function exec($db, $query, array $args = array())
     {
+
         if ($db instanceof \SQLite3) {
             $stmt = $this->prepareStatement($db, $query);
             foreach ($args as $arg => $val) {
@@ -74,6 +79,7 @@ class SqliteProfilerStorage extends PdoProfilerStorage
 
     protected function fetch($db, $query, array $args = array())
     {
+
         $return = array();
 
         if ($db instanceof \SQLite3) {
@@ -99,6 +105,7 @@ class SqliteProfilerStorage extends PdoProfilerStorage
      */
     protected function buildCriteria($ip, $url, $start, $end, $limit, $method)
     {
+
         $criteria = array();
         $args = array();
 
@@ -117,12 +124,12 @@ class SqliteProfilerStorage extends PdoProfilerStorage
             $args[':method'] = $method;
         }
 
-        if (!empty($start)) {
+        if (!empty( $start )) {
             $criteria[] = 'time >= :start';
             $args[':start'] = $start;
         }
 
-        if (!empty($end)) {
+        if (!empty( $end )) {
             $criteria[] = 'time <= :end';
             $args[':end'] = $end;
         }
@@ -132,6 +139,7 @@ class SqliteProfilerStorage extends PdoProfilerStorage
 
     protected function close($db)
     {
+
         if ($db instanceof \SQLite3) {
             $db->close();
         }

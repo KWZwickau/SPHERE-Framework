@@ -34,6 +34,7 @@ use Doctrine\Common\Persistence\Mapping\MappingException;
  */
 class MappingDriverChain implements MappingDriver
 {
+
     /**
      * The default driver.
      *
@@ -53,6 +54,7 @@ class MappingDriverChain implements MappingDriver
      */
     public function getDefaultDriver()
     {
+
         return $this->defaultDriver;
     }
 
@@ -65,6 +67,7 @@ class MappingDriverChain implements MappingDriver
      */
     public function setDefaultDriver(MappingDriver $driver)
     {
+
         $this->defaultDriver = $driver;
     }
 
@@ -78,6 +81,7 @@ class MappingDriverChain implements MappingDriver
      */
     public function addDriver(MappingDriver $nestedDriver, $namespace)
     {
+
         $this->drivers[$namespace] = $nestedDriver;
     }
 
@@ -88,6 +92,7 @@ class MappingDriverChain implements MappingDriver
      */
     public function getDrivers()
     {
+
         return $this->drivers;
     }
 
@@ -96,6 +101,7 @@ class MappingDriverChain implements MappingDriver
      */
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
+
         /* @var $driver MappingDriver */
         foreach ($this->drivers as $namespace => $driver) {
             if (strpos($className, $namespace) === 0) {
@@ -117,6 +123,7 @@ class MappingDriverChain implements MappingDriver
      */
     public function getAllClassNames()
     {
+
         $classNames = array();
         $driverClasses = array();
 
@@ -124,7 +131,7 @@ class MappingDriverChain implements MappingDriver
         foreach ($this->drivers AS $namespace => $driver) {
             $oid = spl_object_hash($driver);
 
-            if (!isset($driverClasses[$oid])) {
+            if (!isset( $driverClasses[$oid] )) {
                 $driverClasses[$oid] = $driver->getAllClassNames();
             }
 
@@ -149,6 +156,7 @@ class MappingDriverChain implements MappingDriver
      */
     public function isTransient($className)
     {
+
         /* @var $driver MappingDriver */
         foreach ($this->drivers AS $namespace => $driver) {
             if (strpos($className, $namespace) === 0) {

@@ -2,11 +2,6 @@
 
 namespace Doctrine\Tests\Common\Annotations;
 
-use Doctrine\Tests\Common\Annotations\DummyAnnotation;
-use Doctrine\Tests\Common\Annotations\Name;
-use Doctrine\Tests\Common\Annotations\DummyJoinTable;
-use Doctrine\Tests\Common\Annotations\DummyJoinColumn;
-
 /**
  * A description of this class.
  *
@@ -14,11 +9,12 @@ use Doctrine\Tests\Common\Annotations\DummyJoinColumn;
  * annotation. Also make sure that @var \ is not concated to "@var\is".
  *
  * @author robo
- * @since 2.0
+ * @since  2.0
  * @DummyAnnotation(dummyValue="hello")
  */
 class DummyClass
 {
+
     /**
      * A nice property.
      *

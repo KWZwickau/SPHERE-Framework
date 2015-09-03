@@ -21,8 +21,10 @@
  */
 class Twig_Node_SandboxedPrint extends Twig_Node_Print
 {
+
     public function __construct(Twig_Node_Expression $expr, $lineno, $tag = null)
     {
+
         parent::__construct($expr, $lineno, $tag);
     }
 
@@ -33,12 +35,12 @@ class Twig_Node_SandboxedPrint extends Twig_Node_Print
      */
     public function compile(Twig_Compiler $compiler)
     {
+
         $compiler
             ->addDebugInfo($this)
             ->write('echo $this->env->getExtension(\'sandbox\')->ensureToStringAllowed(')
             ->subcompile($this->getNode('expr'))
-            ->raw(");\n")
-        ;
+            ->raw(");\n");
     }
 
     /**
@@ -50,6 +52,7 @@ class Twig_Node_SandboxedPrint extends Twig_Node_Print
      */
     protected function removeNodeFilter($node)
     {
+
         if ($node instanceof Twig_Node_Expression_Filter) {
             return $this->removeNodeFilter($node->getNode('node'));
         }

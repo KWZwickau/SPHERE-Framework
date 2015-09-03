@@ -2,17 +2,18 @@
 
 namespace Doctrine\Tests\Common\Persistence;
 
-use \PHPUnit_Framework_MockObject_Generator;
 use Doctrine\Common\Persistence\AbstractManagerRegistry;
 use Doctrine\Tests\Common\Persistence\Mapping\TestClassMetadataFactory;
 use Doctrine\Tests\DoctrineTestCase;
+use PHPUnit_Framework_MockObject_Generator;
 
 /**
  * @groups DCOM-270
- * @uses Doctrine\Tests\Common\Persistence\TestObject
+ * @uses   Doctrine\Tests\Common\Persistence\TestObject
  */
 class ManagerRegistryTest extends DoctrineTestCase
 {
+
     /**
      * @var TestManagerRegistry
      */
@@ -23,6 +24,7 @@ class ManagerRegistryTest extends DoctrineTestCase
      */
     public function setUp()
     {
+
         $this->mr = new TestManagerRegistry(
             'ORM',
             array('default_connection'),
@@ -35,11 +37,13 @@ class ManagerRegistryTest extends DoctrineTestCase
 
     public function testGetManagerForClass()
     {
+
         $this->mr->getManagerForClass('Doctrine\Tests\Common\Persistence\TestObject');
     }
 
     public function testGetManagerForInvalidClass()
     {
+
         $this->setExpectedException(
             'ReflectionException',
             'Class Doctrine\Tests\Common\Persistence\TestObjectInexistent does not exist'
@@ -50,11 +54,13 @@ class ManagerRegistryTest extends DoctrineTestCase
 
     public function testGetManagerForAliasedClass()
     {
+
         $this->mr->getManagerForClass('prefix:TestObject');
     }
 
     public function testGetManagerForInvalidAliasedClass()
     {
+
         $this->setExpectedException(
             'ReflectionException',
             'Class Doctrine\Tests\Common\Persistence\TestObject:Foo does not exist'
@@ -66,8 +72,10 @@ class ManagerRegistryTest extends DoctrineTestCase
 
 class TestManager
 {
+
     public function getMetadataFactory()
     {
+
         $driver = PHPUnit_Framework_MockObject_Generator::getMock('Doctrine\Common\Persistence\Mapping\Driver\MappingDriver');
         $metadata = PHPUnit_Framework_MockObject_Generator::getMock('Doctrine\Common\Persistence\Mapping\ClassMetadata');
 
@@ -77,8 +85,16 @@ class TestManager
 
 class TestManagerRegistry extends AbstractManagerRegistry
 {
+
+    public function getAliasNamespace($alias)
+    {
+
+        return __NAMESPACE__;
+    }
+
     protected function getService($name)
     {
+
         return new TestManager();
     }
 
@@ -88,10 +104,5 @@ class TestManagerRegistry extends AbstractManagerRegistry
     protected function resetService($name)
     {
 
-    }
-
-    public function getAliasNamespace($alias)
-    {
-        return __NAMESPACE__;
     }
 }

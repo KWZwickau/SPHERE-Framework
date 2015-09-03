@@ -19,7 +19,7 @@
 
 namespace Doctrine\Common\Cache;
 
-use \Couchbase;
+use Couchbase;
 
 /**
  * Couchbase cache provider.
@@ -30,10 +30,22 @@ use \Couchbase;
  */
 class CouchbaseCache extends CacheProvider
 {
+
     /**
      * @var Couchbase|null
      */
     private $couchbase;
+
+    /**
+     * Gets the Couchbase instance used by the cache.
+     *
+     * @return Couchbase|null
+     */
+    public function getCouchbase()
+    {
+
+        return $this->couchbase;
+    }
 
     /**
      * Sets the Couchbase instance to use.
@@ -44,17 +56,8 @@ class CouchbaseCache extends CacheProvider
      */
     public function setCouchbase(Couchbase $couchbase)
     {
-        $this->couchbase = $couchbase;
-    }
 
-    /**
-     * Gets the Couchbase instance used by the cache.
-     *
-     * @return Couchbase|null
-     */
-    public function getCouchbase()
-    {
-        return $this->couchbase;
+        $this->couchbase = $couchbase;
     }
 
     /**
@@ -62,6 +65,7 @@ class CouchbaseCache extends CacheProvider
      */
     protected function doFetch($id)
     {
+
         return $this->couchbase->get($id) ?: false;
     }
 
@@ -70,7 +74,8 @@ class CouchbaseCache extends CacheProvider
      */
     protected function doContains($id)
     {
-        return (null !== $this->couchbase->get($id));
+
+        return ( null !== $this->couchbase->get($id) );
     }
 
     /**
@@ -78,10 +83,11 @@ class CouchbaseCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         if ($lifeTime > 30 * 24 * 3600) {
             $lifeTime = time() + $lifeTime;
         }
-        return $this->couchbase->set($id, $data, (int) $lifeTime);
+        return $this->couchbase->set($id, $data, (int)$lifeTime);
     }
 
     /**
@@ -89,6 +95,7 @@ class CouchbaseCache extends CacheProvider
      */
     protected function doDelete($id)
     {
+
         return $this->couchbase->delete($id);
     }
 
@@ -97,6 +104,7 @@ class CouchbaseCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         return $this->couchbase->flush();
     }
 
@@ -105,11 +113,12 @@ class CouchbaseCache extends CacheProvider
      */
     protected function doGetStats()
     {
-        $stats   = $this->couchbase->getStats();
+
+        $stats = $this->couchbase->getStats();
         $servers = $this->couchbase->getServers();
-        $server  = explode(":", $servers[0]);
-        $key     = $server[0] . ":" . "11210";
-        $stats   = $stats[$key];
+        $server = explode(":", $servers[0]);
+        $key = $server[0].":"."11210";
+        $stats = $stats[$key];
         return array(
             Cache::STATS_HITS   => $stats['get_hits'],
             Cache::STATS_MISSES => $stats['get_misses'],

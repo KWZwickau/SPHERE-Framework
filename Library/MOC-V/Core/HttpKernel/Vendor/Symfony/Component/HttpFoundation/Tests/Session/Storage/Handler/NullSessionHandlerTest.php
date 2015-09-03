@@ -24,8 +24,10 @@ use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
  */
 class NullSessionHandlerTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testSaveHandlers()
     {
+
         $storage = $this->getStorage();
         $this->assertEquals('user', ini_get('session.save_handler'));
     }
@@ -33,11 +35,12 @@ class NullSessionHandlerTest extends \PHPUnit_Framework_TestCase
     public function getStorage()
     {
 
-        return new NativeSessionStorage( array(), new NullSessionHandler() );
+        return new NativeSessionStorage(array(), new NullSessionHandler());
     }
 
     public function testSession()
     {
+
         session_id('nullsessionstorage');
         $storage = $this->getStorage();
         $session = new Session($storage);
@@ -48,6 +51,7 @@ class NullSessionHandlerTest extends \PHPUnit_Framework_TestCase
 
     public function testNothingIsPersisted()
     {
+
         session_id('nullsessionstorage');
         $storage = $this->getStorage();
         $session = new Session($storage);

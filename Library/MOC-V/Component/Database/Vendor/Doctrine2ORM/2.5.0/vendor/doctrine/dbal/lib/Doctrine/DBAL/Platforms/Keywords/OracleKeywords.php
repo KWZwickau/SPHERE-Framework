@@ -29,11 +29,13 @@ namespace Doctrine\DBAL\Platforms\Keywords;
  */
 class OracleKeywords extends KeywordList
 {
+
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return 'Oracle';
     }
 
@@ -42,6 +44,7 @@ class OracleKeywords extends KeywordList
      */
     protected function getKeywords()
     {
+
         return array(
             'ACCESS',
             'ELSE',

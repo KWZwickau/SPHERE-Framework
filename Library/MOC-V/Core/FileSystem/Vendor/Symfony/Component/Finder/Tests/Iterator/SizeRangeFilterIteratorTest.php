@@ -16,21 +16,23 @@ use Symfony\Component\Finder\Iterator\SizeRangeFilterIterator;
 
 class SizeRangeFilterIteratorTest extends RealIteratorTestCase
 {
+
     /**
      * @dataProvider getAcceptData
      */
-    public function testAccept( $size, $expected )
+    public function testAccept($size, $expected)
     {
 
-        $inner = new InnerSizeIterator( self::$files );
+        $inner = new InnerSizeIterator(self::$files);
 
-        $iterator = new SizeRangeFilterIterator( $inner, $size );
+        $iterator = new SizeRangeFilterIterator($inner, $size);
 
-        $this->assertIterator( $expected, $iterator );
+        $this->assertIterator($expected, $iterator);
     }
 
     public function getAcceptData()
     {
+
         $lessThan1KGreaterThan05K = array(
             '.foo',
             '.git',
@@ -41,8 +43,8 @@ class SizeRangeFilterIteratorTest extends RealIteratorTestCase
 
         return array(
             array(
-                array( new NumberComparator( '< 1K' ), new NumberComparator( '> 0.5K' ) ),
-                $this->toAbsolute( $lessThan1KGreaterThan05K )
+                array(new NumberComparator('< 1K'), new NumberComparator('> 0.5K')),
+                $this->toAbsolute($lessThan1KGreaterThan05K)
             ),
         );
     }
@@ -50,24 +52,28 @@ class SizeRangeFilterIteratorTest extends RealIteratorTestCase
 
 class InnerSizeIterator extends \ArrayIterator
 {
+
     public function getFilename()
     {
+
         return parent::current();
     }
 
     public function isFile()
     {
+
         return $this->current()->isFile();
     }
 
     public function current()
     {
 
-        return new \SplFileInfo( parent::current() );
+        return new \SplFileInfo(parent::current());
     }
 
     public function getSize()
     {
+
         return $this->current()->getSize();
     }
 }

@@ -28,6 +28,7 @@ namespace Doctrine\ORM\Cache;
  */
 class CollectionCacheKey extends CacheKey
 {
+
     /**
      * READ-ONLY: Public only for performance reasons, it should be considered immutable.
      *
@@ -56,11 +57,13 @@ class CollectionCacheKey extends CacheKey
      */
     public function __construct($entityClass, $association, array $ownerIdentifier)
     {
+
         ksort($ownerIdentifier);
 
-        $this->ownerIdentifier  = $ownerIdentifier;
-        $this->entityClass      = (string) $entityClass;
-        $this->association      = (string) $association;
-        $this->hash             = str_replace('\\', '.', strtolower($entityClass)) . '_' . implode(' ', $ownerIdentifier) . '__' .  $association;
+        $this->ownerIdentifier = $ownerIdentifier;
+        $this->entityClass = (string)$entityClass;
+        $this->association = (string)$association;
+        $this->hash = str_replace('\\', '.', strtolower($entityClass)).'_'.implode(' ',
+                $ownerIdentifier).'__'.$association;
     }
 }

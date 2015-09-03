@@ -15,11 +15,13 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class RouteTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @expectedException \BadMethodCallException
      */
     public function testInvalidRouteParameter()
     {
+
         $route = new Route(array('foo' => 'bar'));
     }
 
@@ -28,12 +30,14 @@ class RouteTest extends \PHPUnit_Framework_TestCase
      */
     public function testRouteParameters($parameter, $value, $getter)
     {
+
         $route = new Route(array($parameter => $value));
         $this->assertEquals($route->$getter(), $value);
     }
 
     public function getValidParameters()
     {
+
         return array(
             array('value', '/Blog', 'getPattern'),
             array('value', '/Blog', 'getPath'),

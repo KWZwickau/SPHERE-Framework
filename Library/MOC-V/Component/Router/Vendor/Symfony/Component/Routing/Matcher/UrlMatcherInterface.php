@@ -24,6 +24,7 @@ use Symfony\Component\Routing\RequestContextAwareInterface;
  */
 interface UrlMatcherInterface extends RequestContextAwareInterface
 {
+
     /**
      * Tries to match a URL path with a set of routes.
      *

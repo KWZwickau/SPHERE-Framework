@@ -56,14 +56,14 @@ class Pop3 extends Base
     ) {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string' )
-            ->test( 3, 'string' )
-            ->test( 4, 'int', 'null' )
-            ->test( 5, 'bool' )
-            ->test( 6, 'bool' );
+            ->test(1, 'string')
+            ->test(2, 'string')
+            ->test(3, 'string')
+            ->test(4, 'int', 'null')
+            ->test(5, 'bool')
+            ->test(6, 'bool');
 
-        if (is_null( $port )) {
+        if (is_null($port)) {
             $port = $ssl ? 995 : 110;
         }
 
@@ -82,10 +82,10 @@ class Pop3 extends Base
      *
      * @return Eden\Mail\Pop3
      */
-    public function connect( $test = false )
+    public function connect($test = false)
     {
 
-        Argument::i()->test( 1, 'bool' );
+        Argument::i()->test(1, 'bool');
 
         if ($this->loggedin) {
             return $this;
@@ -100,28 +100,28 @@ class Pop3 extends Base
         $errno = 0;
         $errstr = '';
 
-        $this->socket = fsockopen( $host, $this->port, $errno, $errstr, self::TIMEOUT );
+        $this->socket = fsockopen($host, $this->port, $errno, $errstr, self::TIMEOUT);
 
         if (!$this->socket) {
             //throw exception
             Exception::i()
-                ->setMessage( Exception::SERVER_ERROR )
-                ->addVariable( $host.':'.$this->port )
+                ->setMessage(Exception::SERVER_ERROR)
+                ->addVariable($host.':'.$this->port)
                 ->trigger();
         }
 
         $welcome = $this->receive();
 
-        strtok( $welcome, '<' );
-        $this->timestamp = strtok( '>' );
-        if (!strpos( $this->timestamp, '@' )) {
+        strtok($welcome, '<');
+        $this->timestamp = strtok('>');
+        if (!strpos($this->timestamp, '@')) {
             $this->timestamp = null;
         } else {
             $this->timestamp = '<'.$this->timestamp.'>';
         }
 
         if ($this->tls) {
-            $this->call( 'STLS' );
+            $this->call('STLS');
             if (!stream_socket_enable_crypto(
                 $this->socket,
                 true,
@@ -131,8 +131,8 @@ class Pop3 extends Base
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::TLS_ERROR )
-                    ->addVariable( $host.':'.$this->port )
+                    ->setMessage(Exception::TLS_ERROR)
+                    ->addVariable($host.':'.$this->port)
                     ->trigger();
             }
         }
@@ -148,16 +148,16 @@ class Pop3 extends Base
                 $this->call(
                     'APOP '.$this->username
                     .' '
-                    .md5( $this->timestamp.$this->password )
+                    .md5($this->timestamp.$this->password)
                 );
                 return;
-            } catch( Argument $e ) {
+            } catch (Argument $e) {
                 // ignore
             }
         }
 
-        $this->call( 'USER '.$this->username );
-        $this->call( 'PASS '.$this->password );
+        $this->call('USER '.$this->username);
+        $this->call('PASS '.$this->password);
 
         $this->loggedin = true;
 
@@ -171,15 +171,15 @@ class Pop3 extends Base
      *
      * @return string
      */
-    protected function receive( $multiline = false )
+    protected function receive($multiline = false)
     {
 
-        $result = @fgets( $this->socket );
-        $status = $result = trim( $result );
+        $result = @fgets($this->socket);
+        $status = $result = trim($result);
         $message = '';
 
-        if (strpos( $result, ' ' )) {
-            list( $status, $message ) = explode( ' ', $result, 2 );
+        if (strpos($result, ' ')) {
+            list( $status, $message ) = explode(' ', $result, 2);
         }
 
         if ($status != '+OK') {
@@ -188,14 +188,14 @@ class Pop3 extends Base
 
         if ($multiline) {
             $message = '';
-            $line = fgets( $this->socket );
-            while ($line && rtrim( $line, "\r\n" ) != '.') {
+            $line = fgets($this->socket);
+            while ($line && rtrim($line, "\r\n") != '.') {
                 if ($line[0] == '.') {
-                    $line = substr( $line, 1 );
+                    $line = substr($line, 1);
                 }
-                $this->debug( 'Receiving: '.$line );
+                $this->debug('Receiving: '.$line);
                 $message .= $line;
-                $line = fgets( $this->socket );
+                $line = fgets($this->socket);
             };
         }
 
@@ -209,11 +209,11 @@ class Pop3 extends Base
      *
      * @return Eden\Mail\Imap
      */
-    private function debug( $string )
+    private function debug($string)
     {
 
         if ($this->debugging) {
-            $string = htmlspecialchars( $string );
+            $string = htmlspecialchars($string);
 
             echo '<pre>'.$string.'</pre>'."\n";
         }
@@ -228,14 +228,14 @@ class Pop3 extends Base
      *
      * @return string|false
      */
-    protected function call( $command, $multiline = false )
+    protected function call($command, $multiline = false)
     {
 
-        if (!$this->send( $command )) {
+        if (!$this->send($command)) {
             return false;
         }
 
-        return $this->receive( $multiline );
+        return $this->receive($multiline);
     }
 
     /**
@@ -245,12 +245,12 @@ class Pop3 extends Base
      *
      * @return bool
      */
-    protected function send( $command )
+    protected function send($command)
     {
 
-        $this->debug( 'Sending: '.$command );
+        $this->debug('Sending: '.$command);
 
-        return fputs( $this->socket, $command."\r\n" );
+        return fputs($this->socket, $command."\r\n");
     }
 
     /**
@@ -266,12 +266,12 @@ class Pop3 extends Base
         }
 
         try {
-            $this->send( 'QUIT' );
-        } catch( Argument $e ) {
+            $this->send('QUIT');
+        } catch (Argument $e) {
             // ignore error - we're closing the socket anyway
         }
 
-        fclose( $this->socket );
+        fclose($this->socket);
         $this->socket = null;
 
         return $this;
@@ -285,12 +285,12 @@ class Pop3 extends Base
      *
      * @return array
      */
-    public function getEmails( $start = 0, $range = 10 )
+    public function getEmails($start = 0, $range = 10)
     {
 
         Argument::i()
-            ->test( 1, 'int' )
-            ->test( 2, 'int' );
+            ->test(1, 'int')
+            ->test(2, 'int');
 
         $total = $this->getEmailTotal();
         $total = $total['messages'];
@@ -299,7 +299,7 @@ class Pop3 extends Base
             return array();
         }
 
-        if (!is_array( $start )) {
+        if (!is_array($start)) {
             $range = $range > 0 ? $range : 1;
             $start = $start >= 0 ? $start : 0;
             $max = $total - $start;
@@ -323,7 +323,7 @@ class Pop3 extends Base
 
         $emails = array();
         for ($i = $min; $i <= $max; $i++) {
-            $emails[] = $this->getEmailFormat( $this->call( 'RETR '.$i, true ) );
+            $emails[] = $this->getEmailFormat($this->call('RETR '.$i, true));
         }
 
         return $emails;
@@ -337,7 +337,7 @@ class Pop3 extends Base
     public function getEmailTotal()
     {
 
-        list( $messages, $octets ) = explode( ' ', $this->call( 'STAT' ) );
+        list( $messages, $octets ) = explode(' ', $this->call('STAT'));
 
         return $messages;
     }
@@ -351,51 +351,51 @@ class Pop3 extends Base
      *
      * @return array
      */
-    private function getEmailFormat( $email, array $flags = array() )
+    private function getEmailFormat($email, array $flags = array())
     {
 
         //if email is an array
-        if (is_array( $email )) {
+        if (is_array($email)) {
             //make it into a string
-            $email = implode( "\n", $email );
+            $email = implode("\n", $email);
         }
 
         //split the head and the body
-        $parts = preg_split( "/\n\s*\n/", $email, 2 );
+        $parts = preg_split("/\n\s*\n/", $email, 2);
 
         $head = $parts[0];
         $body = null;
-        if (isset( $parts[1] ) && trim( $parts[1] ) != ')') {
+        if (isset( $parts[1] ) && trim($parts[1]) != ')') {
             $body = $parts[1];
         }
 
-        $lines = explode( "\n", $head );
+        $lines = explode("\n", $head);
         $head = array();
         foreach ($lines as $line) {
-            if (trim( $line ) && preg_match( "/^\s+/", $line )) {
-                $head[count( $head ) - 1] .= ' '.trim( $line );
+            if (trim($line) && preg_match("/^\s+/", $line)) {
+                $head[count($head) - 1] .= ' '.trim($line);
                 continue;
             }
 
-            $head[] = trim( $line );
+            $head[] = trim($line);
         }
 
-        $head = implode( "\n", $head );
+        $head = implode("\n", $head);
 
         $recipientsTo = $recipientsCc = $recipientsBcc = $sender = array();
 
         //get the headers
-        $headers1 = imap_rfc822_parse_headers( $head );
-        $headers2 = $this->getHeaders( $head );
+        $headers1 = imap_rfc822_parse_headers($head);
+        $headers2 = $this->getHeaders($head);
 
         //set the from
         $sender['name'] = null;
         if (isset( $headers1->from[0]->personal )) {
             $sender['name'] = $headers1->from[0]->personal;
             //if the name is iso or utf encoded
-            if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $sender['name'] ) )) {
+            if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($sender['name']))) {
                 //decode the subject
-                $sender['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $sender['name'] ) );
+                $sender['name'] = str_replace('_', ' ', mb_decode_mimeheader($sender['name']));
             }
         }
 
@@ -408,13 +408,13 @@ class Pop3 extends Base
                     continue;
                 }
 
-                $recipient = array( 'name' => null );
+                $recipient = array('name' => null);
                 if (isset( $to->personal )) {
                     $recipient['name'] = $to->personal;
                     //if the name is iso or utf encoded
-                    if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $recipient['name'] ) )) {
+                    if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($recipient['name']))) {
                         //decode the subject
-                        $recipient['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $recipient['name'] ) );
+                        $recipient['name'] = str_replace('_', ' ', mb_decode_mimeheader($recipient['name']));
                     }
                 }
 
@@ -427,14 +427,14 @@ class Pop3 extends Base
         //set the cc
         if (isset( $headers1->cc )) {
             foreach ($headers1->cc as $cc) {
-                $recipient = array( 'name' => null );
+                $recipient = array('name' => null);
                 if (isset( $cc->personal )) {
                     $recipient['name'] = $cc->personal;
 
                     //if the name is iso or utf encoded
-                    if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $recipient['name'] ) )) {
+                    if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($recipient['name']))) {
                         //decode the subject
-                        $recipient['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $recipient['name'] ) );
+                        $recipient['name'] = str_replace('_', ' ', mb_decode_mimeheader($recipient['name']));
                     }
                 }
 
@@ -447,13 +447,13 @@ class Pop3 extends Base
         //set the bcc
         if (isset( $headers1->bcc )) {
             foreach ($headers1->bcc as $bcc) {
-                $recipient = array( 'name' => null );
+                $recipient = array('name' => null);
                 if (isset( $bcc->personal )) {
                     $recipient['name'] = $bcc->personal;
                     //if the name is iso or utf encoded
-                    if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $recipient['name'] ) )) {
+                    if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($recipient['name']))) {
                         //decode the subject
-                        $recipient['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $recipient['name'] ) );
+                        $recipient['name'] = str_replace('_', ' ', mb_decode_mimeheader($recipient['name']));
                     }
                 }
 
@@ -464,36 +464,36 @@ class Pop3 extends Base
         }
 
         //if subject is not set
-        if (!isset( $headers1->subject ) || strlen( trim( $headers1->subject ) ) === 0) {
+        if (!isset( $headers1->subject ) || strlen(trim($headers1->subject)) === 0) {
             //set subject
             $headers1->subject = self::NO_SUBJECT;
         }
 
         //trim the subject
-        $headers1->subject = str_replace( array( '<', '>' ), '', trim( $headers1->subject ) );
+        $headers1->subject = str_replace(array('<', '>'), '', trim($headers1->subject));
 
         //if the subject is iso or utf encoded
-        if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $headers1->subject ) )) {
+        if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($headers1->subject))) {
             //decode the subject
-            $headers1->subject = str_replace( '_', ' ', mb_decode_mimeheader( $headers1->subject ) );
+            $headers1->subject = str_replace('_', ' ', mb_decode_mimeheader($headers1->subject));
         }
 
         //set thread details
         $topic = isset( $headers2['thread-topic'] ) ? $headers2['thread-topic'] : $headers1->subject;
-        $parent = isset( $headers2['in-reply-to'] ) ? str_replace( '"', '', $headers2['in-reply-to'] ) : null;
+        $parent = isset( $headers2['in-reply-to'] ) ? str_replace('"', '', $headers2['in-reply-to']) : null;
 
         //set date
-        $date = isset( $headers1->date ) ? strtotime( $headers1->date ) : null;
+        $date = isset( $headers1->date ) ? strtotime($headers1->date) : null;
 
         //set message id
         if (isset( $headers2['message-id'] )) {
-            $messageId = str_replace( '"', '', $headers2['message-id'] );
+            $messageId = str_replace('"', '', $headers2['message-id']);
         } else {
-            $messageId = '<eden-no-id-'.md5( uniqid() ).'>';
+            $messageId = '<eden-no-id-'.md5(uniqid()).'>';
         }
 
         $attachment = isset( $headers2['content-type'] )
-            && strpos( $headers2['content-type'], 'multipart/mixed' ) === 0;
+            && strpos($headers2['content-type'], 'multipart/mixed') === 0;
 
         $format = array(
             'id'         => $messageId,
@@ -501,7 +501,7 @@ class Pop3 extends Base
             'topic'      => $topic,
             'mailbox'    => 'INBOX',
             'date'       => $date,
-            'subject'    => str_replace( '’', '\'', $headers1->subject ),
+            'subject' => str_replace('’', '\'', $headers1->subject),
             'from'       => $sender,
             'flags'      => $flags,
             'to'         => $recipientsTo,
@@ -510,14 +510,14 @@ class Pop3 extends Base
             'attachment' => $attachment
         );
 
-        if (trim( $body ) && $body != ')') {
+        if (trim($body) && $body != ')') {
             //get the body parts
-            $parts = $this->getParts( $email );
+            $parts = $this->getParts($email);
 
             //if there are no parts
             if (empty( $parts )) {
                 //just make the body as a single part
-                $parts = array( 'text/plain' => $body );
+                $parts = array('text/plain' => $body);
             }
 
             //set body to the body parts
@@ -547,35 +547,35 @@ class Pop3 extends Base
      *
      * @return array
      */
-    private function getHeaders( $rawData )
+    private function getHeaders($rawData)
     {
 
-        if (is_string( $rawData )) {
-            $rawData = explode( "\n", $rawData );
+        if (is_string($rawData)) {
+            $rawData = explode("\n", $rawData);
         }
 
         $key = null;
         $headers = array();
         foreach ($rawData as $line) {
-            $line = trim( $line );
-            if (preg_match( "/^([a-zA-Z0-9-]+):/i", $line, $matches )) {
-                $key = strtolower( $matches[1] );
+            $line = trim($line);
+            if (preg_match("/^([a-zA-Z0-9-]+):/i", $line, $matches)) {
+                $key = strtolower($matches[1]);
                 if (isset( $headers[$key] )) {
-                    if (!is_array( $headers[$key] )) {
-                        $headers[$key] = array( $headers[$key] );
+                    if (!is_array($headers[$key])) {
+                        $headers[$key] = array($headers[$key]);
                     }
 
-                    $headers[$key][] = trim( str_replace( $matches[0], '', $line ) );
+                    $headers[$key][] = trim(str_replace($matches[0], '', $line));
                     continue;
                 }
 
-                $headers[$key] = trim( str_replace( $matches[0], '', $line ) );
+                $headers[$key] = trim(str_replace($matches[0], '', $line));
                 continue;
             }
 
-            if (!is_null( $key ) && isset( $headers[$key] )) {
-                if (is_array( $headers[$key] )) {
-                    $headers[$key][count( $headers[$key] ) - 1] .= ' '.$line;
+            if (!is_null($key) && isset( $headers[$key] )) {
+                if (is_array($headers[$key])) {
+                    $headers[$key][count($headers[$key]) - 1] .= ' '.$line;
                     continue;
                 }
 
@@ -595,43 +595,43 @@ class Pop3 extends Base
      *
      * @return array
      */
-    private function getParts( $content, array $parts = array() )
+    private function getParts($content, array $parts = array())
     {
 
         //separate the head and the body
-        list( $head, $body ) = preg_split( "/\n\s*\n/", $content, 2 );
+        list( $head, $body ) = preg_split("/\n\s*\n/", $content, 2);
         //front()->output($head);
         //get the headers
-        $head = $this->getHeaders( $head );
+        $head = $this->getHeaders($head);
         //if content type is not set
         if (!isset( $head['content-type'] )) {
             return $parts;
         }
 
         //split the content type
-        if (is_array( $head['content-type'] )) {
-            $type = array( $head['content-type'][1] );
-            if (strpos( $type[0], ';' ) !== false) {
-                $type = explode( ';', $type[0], 2 );
+        if (is_array($head['content-type'])) {
+            $type = array($head['content-type'][1]);
+            if (strpos($type[0], ';') !== false) {
+                $type = explode(';', $type[0], 2);
             }
         } else {
-            $type = explode( ';', $head['content-type'], 2 );
+            $type = explode(';', $head['content-type'], 2);
         }
 
         //see if there are any extra stuff
         $extra = array();
-        if (count( $type ) == 2) {
-            $extra = explode( '; ', str_replace( array( '"', "'" ), '', trim( $type[1] ) ) );
+        if (count($type) == 2) {
+            $extra = explode('; ', str_replace(array('"', "'"), '', trim($type[1])));
         }
 
         //the content type is the first part of this
-        $type = trim( $type[0] );
+        $type = trim($type[0]);
 
         //foreach extra
         foreach ($extra as $i => $attr) {
             //transform the extra array to a key value pair
-            $attr = explode( '=', $attr, 2 );
-            if (count( $attr ) > 1) {
+            $attr = explode('=', $attr, 2);
+            if (count($attr) > 1) {
                 list( $key, $value ) = $attr;
                 $extra[$key] = $value;
             }
@@ -641,36 +641,36 @@ class Pop3 extends Base
         //if a boundary is set
         if (isset( $extra['boundary'] )) {
             //split the body into sections
-            $sections = explode( '--'.str_replace( array( '"', "'" ), '', $extra['boundary'] ), $body );
+            $sections = explode('--'.str_replace(array('"', "'"), '', $extra['boundary']), $body);
             //we only want what's in the middle of these sections
-            array_pop( $sections );
-            array_shift( $sections );
+            array_pop($sections);
+            array_shift($sections);
 
             //foreach section
             foreach ($sections as $section) {
                 //get the parts of that
-                $parts = $this->getParts( $section, $parts );
+                $parts = $this->getParts($section, $parts);
             }
         } else {
             //if name is set, it's an attachment
             //if encoding is set
             if (isset( $head['content-transfer-encoding'] )) {
                 //the goal here is to make everytihg utf-8 standard
-                switch (strtolower( $head['content-transfer-encoding'] )) {
+                switch (strtolower($head['content-transfer-encoding'])) {
                     case 'binary':
-                        $body = imap_binary( $body );
+                        $body = imap_binary($body);
                         break;
                     case 'base64':
-                        $body = base64_decode( $body );
+                        $body = base64_decode($body);
                         break;
                     case 'quoted-printable':
-                        $body = quoted_printable_decode( $body );
+                        $body = quoted_printable_decode($body);
                         break;
                     case '7bit':
-                        $body = mb_convert_encoding( $body, 'UTF-8', 'ISO-2022-JP' );
+                        $body = mb_convert_encoding($body, 'UTF-8', 'ISO-2022-JP');
                         break;
                     default:
-                        $body = str_replace( array( "\n", ' ' ), '', $body );
+                        $body = str_replace(array("\n", ' '), '', $body);
                         break;
                 }
             }
@@ -695,23 +695,23 @@ class Pop3 extends Base
      *
      * @return Eden\Mail\Pop3
      */
-    public function remove( $msgno )
+    public function remove($msgno)
     {
 
-        Argument::i()->test( 1, 'int', 'string' );
+        Argument::i()->test(1, 'int', 'string');
 
-        $this->call( "DELE $msgno" );
+        $this->call("DELE $msgno");
 
         if (!$this->loggedin || !$this->socket) {
             return false;
         }
 
-        if (!is_array( $msgno )) {
-            $msgno = array( $msgno );
+        if (!is_array($msgno)) {
+            $msgno = array($msgno);
         }
 
         foreach ($msgno as $number) {
-            $this->call( 'DELE '.$number );
+            $this->call('DELE '.$number);
 
         }
 

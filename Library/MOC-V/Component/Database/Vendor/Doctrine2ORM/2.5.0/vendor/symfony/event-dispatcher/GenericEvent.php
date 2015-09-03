@@ -20,6 +20,7 @@ namespace Symfony\Component\EventDispatcher;
  */
 class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
 {
+
     /**
      * Event subject.
      *
@@ -42,6 +43,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function __construct($subject = null, array $arguments = array())
     {
+
         $this->subject = $subject;
         $this->arguments = $arguments;
     }
@@ -53,40 +55,8 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function getSubject()
     {
+
         return $this->subject;
-    }
-
-    /**
-     * Get argument by key.
-     *
-     * @param string $key Key.
-     *
-     * @throws \InvalidArgumentException If key is not found.
-     *
-     * @return mixed Contents of array key.
-     */
-    public function getArgument($key)
-    {
-        if ($this->hasArgument($key)) {
-            return $this->arguments[$key];
-        }
-
-        throw new \InvalidArgumentException(sprintf('Argument "%s" not found.', $key));
-    }
-
-    /**
-     * Add argument to event.
-     *
-     * @param string $key   Argument name.
-     * @param mixed  $value Value.
-     *
-     * @return GenericEvent
-     */
-    public function setArgument($key, $value)
-    {
-        $this->arguments[$key] = $value;
-
-        return $this;
     }
 
     /**
@@ -96,6 +66,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function getArguments()
     {
+
         return $this->arguments;
     }
 
@@ -108,21 +79,10 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function setArguments(array $args = array())
     {
+
         $this->arguments = $args;
 
         return $this;
-    }
-
-    /**
-     * Has argument.
-     *
-     * @param string $key Key of arguments array.
-     *
-     * @return bool
-     */
-    public function hasArgument($key)
-    {
-        return array_key_exists($key, $this->arguments);
     }
 
     /**
@@ -136,7 +96,40 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function offsetGet($key)
     {
+
         return $this->getArgument($key);
+    }
+
+    /**
+     * Get argument by key.
+     *
+     * @param string $key Key.
+     *
+     * @throws \InvalidArgumentException If key is not found.
+     *
+     * @return mixed Contents of array key.
+     */
+    public function getArgument($key)
+    {
+
+        if ($this->hasArgument($key)) {
+            return $this->arguments[$key];
+        }
+
+        throw new \InvalidArgumentException(sprintf('Argument "%s" not found.', $key));
+    }
+
+    /**
+     * Has argument.
+     *
+     * @param string $key Key of arguments array.
+     *
+     * @return bool
+     */
+    public function hasArgument($key)
+    {
+
+        return array_key_exists($key, $this->arguments);
     }
 
     /**
@@ -147,7 +140,24 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function offsetSet($key, $value)
     {
+
         $this->setArgument($key, $value);
+    }
+
+    /**
+     * Add argument to event.
+     *
+     * @param string $key Argument name.
+     * @param mixed  $value Value.
+     *
+     * @return GenericEvent
+     */
+    public function setArgument($key, $value)
+    {
+
+        $this->arguments[$key] = $value;
+
+        return $this;
     }
 
     /**
@@ -157,8 +167,9 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function offsetUnset($key)
     {
+
         if ($this->hasArgument($key)) {
-            unset($this->arguments[$key]);
+            unset( $this->arguments[$key] );
         }
     }
 
@@ -171,6 +182,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function offsetExists($key)
     {
+
         return $this->hasArgument($key);
     }
 
@@ -181,6 +193,7 @@ class GenericEvent extends Event implements \ArrayAccess, \IteratorAggregate
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->arguments);
     }
 }

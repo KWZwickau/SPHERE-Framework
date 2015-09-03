@@ -2,19 +2,21 @@
 
 namespace Guzzle\Tests\Service\Command\LocationVisitor\Request;
 
-use Guzzle\Service\Command\LocationVisitor\Request\XmlVisitor;
-use Guzzle\Service\Client;
-use Guzzle\Service\Description\Parameter;
-use Guzzle\Service\Description\Operation;
 use Guzzle\Http\Message\EntityEnclosingRequest;
+use Guzzle\Service\Client;
+use Guzzle\Service\Command\LocationVisitor\Request\XmlVisitor;
+use Guzzle\Service\Description\Operation;
+use Guzzle\Service\Description\Parameter;
 
 /**
  * @covers Guzzle\Service\Command\LocationVisitor\Request\XmlVisitor
  */
 class XmlVisitorTest extends AbstractVisitorTestCase
 {
+
     public function xmlProvider()
     {
+
         return array(
             array(
                 array(
@@ -100,10 +102,12 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                         )
                     )
                 ),
-                array('Baz' => array(
-                    array('A' => '1', 'B' => '2'),
-                    array('A' => '3', 'B' => '4')
-                )),
+                array(
+                    'Baz' => array(
+                        array('A' => '1', 'B' => '2'),
+                        array('A' => '3', 'B' => '4')
+                    )
+                ),
                 '<Request><Baz><Bar><A>1</A><B>2</B></Bar><Bar><A>3</A><B>4</B></Bar></Baz></Request>'
             ),
             // Add an object of attributes
@@ -163,8 +167,8 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                 array(
                     'parameters' => array(
                         'Wrap' => array(
-                            'type' => 'object',
-                            'location' => 'xml',
+                            'type'       => 'object',
+                            'location'   => 'xml',
                             'properties' => array(
                                 'Foo' => array(
                                     'type' => 'string',
@@ -178,9 +182,11 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                         ),
                     )
                 ),
-                array('Wrap' => array(
-                    'Foo' => 'test'
-                )),
+                array(
+                    'Wrap' => array(
+                        'Foo' => 'test'
+                    )
+                ),
                 '<Request><Wrap xsi:baz="test" xmlns:xsi="http://foo.com"/></Request>'
             ),
             // Add nodes with custom namespace prefix
@@ -188,8 +194,8 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                 array(
                     'parameters' => array(
                         'Wrap' => array(
-                            'type' => 'object',
-                            'location' => 'xml',
+                            'type'       => 'object',
+                            'location'   => 'xml',
                             'properties' => array(
                                 'Foo' => array(
                                     'type' => 'string',
@@ -202,9 +208,11 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                         ),
                     )
                 ),
-                array('Wrap' => array(
-                    'Foo' => 'test'
-                )),
+                array(
+                    'Wrap' => array(
+                        'Foo' => 'test'
+                    )
+                ),
                 '<Request><Wrap><xsi:Foo xmlns:xsi="http://foobar.com">test</xsi:Foo></Wrap></Request>'
             ),
             array(
@@ -243,7 +251,7 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                             'type'     => 'array',
                             'data'     => array('xmlFlattened' => true),
                             'location' => 'xml',
-                            'items'  => array(
+                            'items' => array(
                                 'sentAs' => 'Boo',
                                 'type' => 'string'
                             )
@@ -264,8 +272,8 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                 array(
                     'parameters' => array(
                         'Delete' => array(
-                            'type'     => 'object',
-                            'location' => 'xml',
+                            'type'       => 'object',
+                            'location'   => 'xml',
                             'properties' => array(
                                 'Items' => array(
                                     'type' => 'array',
@@ -301,26 +309,28 @@ class XmlVisitorTest extends AbstractVisitorTestCase
      */
     public function testSerializesXml(array $operation, array $input, $xml)
     {
+
         $operation = new Operation($operation);
         $command = $this->getMockBuilder('Guzzle\Service\Command\OperationCommand')
             ->setConstructorArgs(array($input, $operation))
             ->getMockForAbstractClass();
         $command->setClient(new Client('http://www.test.com/some/path.php'));
         $request = $command->prepare();
-        if (!empty($input)) {
-            $this->assertEquals('application/xml', (string) $request->getHeader('Content-Type'));
+        if (!empty( $input )) {
+            $this->assertEquals('application/xml', (string)$request->getHeader('Content-Type'));
         } else {
             $this->assertNull($request->getHeader('Content-Type'));
         }
-        $body = str_replace(array("\n", "<?xml version=\"1.0\"?>"), '', (string) $request->getBody());
+        $body = str_replace(array("\n", "<?xml version=\"1.0\"?>"), '', (string)$request->getBody());
         $this->assertEquals($xml, $body);
     }
 
     public function testAddsContentTypeAndTopLevelValues()
     {
+
         $operation = new Operation(array(
             'data' => array(
-                'xmlRoot'      => array(
+                'xmlRoot' => array(
                     'name' => 'test',
                     'namespaces' => array(
                         'xsi' => 'http://foo.com'
@@ -334,24 +344,28 @@ class XmlVisitorTest extends AbstractVisitorTestCase
         ));
 
         $command = $this->getMockBuilder('Guzzle\Service\Command\OperationCommand')
-            ->setConstructorArgs(array(array(
-                'Foo' => 'test',
-                'Baz' => 'bar'
-            ), $operation))
+            ->setConstructorArgs(array(
+                array(
+                    'Foo' => 'test',
+                    'Baz' => 'bar'
+                ),
+                $operation
+            ))
             ->getMockForAbstractClass();
 
         $command->setClient(new Client());
         $request = $command->prepare();
-        $this->assertEquals('application/xml', (string) $request->getHeader('Content-Type'));
+        $this->assertEquals('application/xml', (string)$request->getHeader('Content-Type'));
         $this->assertEquals(
-            '<?xml version="1.0"?>' . "\n"
-            . '<test xmlns:xsi="http://foo.com"><Foo>test</Foo><Baz>bar</Baz></test>' . "\n",
-            (string) $request->getBody()
+            '<?xml version="1.0"?>'."\n"
+            .'<test xmlns:xsi="http://foo.com"><Foo>test</Foo><Baz>bar</Baz></test>'."\n",
+            (string)$request->getBody()
         );
     }
 
     public function testCanChangeContentType()
     {
+
         $visitor = new XmlVisitor();
         $visitor->setContentTypeHeader('application/foo');
         $this->assertEquals('application/foo', $this->readAttribute($visitor, 'contentType'));
@@ -359,6 +373,7 @@ class XmlVisitorTest extends AbstractVisitorTestCase
 
     public function testCanAddArrayOfSimpleTypes()
     {
+
         $request = new EntityEnclosingRequest('POST', 'http://foo.com');
         $visitor = new XmlVisitor();
         $param = new Parameter(array(
@@ -393,13 +408,14 @@ class XmlVisitorTest extends AbstractVisitorTestCase
 
         $this->assertEquals(
             "<?xml version=\"1.0\"?>\n"
-            . "<Test xmlns=\"https://foo/\"><Out><Nodes><Node>foo</Node><Node>baz</Node></Nodes></Out></Test>\n",
-            (string) $request->getBody()
+            ."<Test xmlns=\"https://foo/\"><Out><Nodes><Node>foo</Node><Node>baz</Node></Nodes></Out></Test>\n",
+            (string)$request->getBody()
         );
     }
 
     public function testCanAddMultipleNamespacesToRoot()
     {
+
         $operation = new Operation(array(
             'data' => array(
                 'xmlRoot' => array(
@@ -416,23 +432,27 @@ class XmlVisitorTest extends AbstractVisitorTestCase
         ));
 
         $command = $this->getMockBuilder('Guzzle\Service\Command\OperationCommand')
-            ->setConstructorArgs(array(array(
-                'Foo' => 'test'
-            ), $operation))
+            ->setConstructorArgs(array(
+                array(
+                    'Foo' => 'test'
+                ),
+                $operation
+            ))
             ->getMockForAbstractClass();
 
         $command->setClient(new Client());
         $request = $command->prepare();
-        $this->assertEquals('application/xml', (string) $request->getHeader('Content-Type'));
+        $this->assertEquals('application/xml', (string)$request->getHeader('Content-Type'));
         $this->assertEquals(
-            '<?xml version="1.0"?>' . "\n"
-            . '<Hi xmlns:xsi="http://foo.com" xmlns:foo="http://foobar.com"><Foo>test</Foo></Hi>' . "\n",
-            (string) $request->getBody()
+            '<?xml version="1.0"?>'."\n"
+            .'<Hi xmlns:xsi="http://foo.com" xmlns:foo="http://foobar.com"><Foo>test</Foo></Hi>'."\n",
+            (string)$request->getBody()
         );
     }
 
     public function testValuesAreFiltered()
     {
+
         $operation = new Operation(array(
             'parameters' => array(
                 'Foo' => array(
@@ -441,11 +461,11 @@ class XmlVisitorTest extends AbstractVisitorTestCase
                     'filters'  => array('strtoupper')
                 ),
                 'Bar' => array(
-                    'location' => 'xml',
-                    'type'     => 'object',
+                    'location'   => 'xml',
+                    'type'       => 'object',
                     'properties' => array(
                         'Baz' => array(
-                            'filters'  => array('strtoupper')
+                            'filters' => array('strtoupper')
                         )
                     )
                 )
@@ -453,25 +473,29 @@ class XmlVisitorTest extends AbstractVisitorTestCase
         ));
 
         $command = $this->getMockBuilder('Guzzle\Service\Command\OperationCommand')
-            ->setConstructorArgs(array(array(
-                'Foo' => 'test',
-                'Bar' => array(
-                    'Baz' => 'abc'
-                )
-            ), $operation))
+            ->setConstructorArgs(array(
+                array(
+                    'Foo' => 'test',
+                    'Bar' => array(
+                        'Baz' => 'abc'
+                    )
+                ),
+                $operation
+            ))
             ->getMockForAbstractClass();
 
         $command->setClient(new Client());
         $request = $command->prepare();
         $this->assertEquals(
-            '<?xml version="1.0"?>' . "\n"
-            . '<Request><Foo>TEST</Foo><Bar><Baz>ABC</Baz></Bar></Request>' . "\n",
-            (string) $request->getBody()
+            '<?xml version="1.0"?>'."\n"
+            .'<Request><Foo>TEST</Foo><Bar><Baz>ABC</Baz></Bar></Request>'."\n",
+            (string)$request->getBody()
         );
     }
 
     public function testSkipsNullValues()
     {
+
         $operation = new Operation(array(
             'parameters' => array(
                 'Foo' => array(
@@ -496,27 +520,31 @@ class XmlVisitorTest extends AbstractVisitorTestCase
         ));
 
         $command = $this->getMockBuilder('Guzzle\Service\Command\OperationCommand')
-            ->setConstructorArgs(array(array(
-                'Foo' => null,
-                'Bar' => array(
-                    'Bar' => null,
-                    'Bam' => 'test'
+            ->setConstructorArgs(array(
+                array(
+                    'Foo' => null,
+                    'Bar' => array(
+                        'Bar' => null,
+                        'Bam' => 'test'
+                    ),
+                    'Arr' => array(null)
                 ),
-                'Arr' => array(null)
-            ), $operation))
+                $operation
+            ))
             ->getMockForAbstractClass();
 
         $command->setClient(new Client());
         $request = $command->prepare();
         $this->assertEquals(
-            '<?xml version="1.0"?>' . "\n"
-            . '<Request><Bar><Bam>test</Bam></Bar></Request>' . "\n",
-            (string) $request->getBody()
+            '<?xml version="1.0"?>'."\n"
+            .'<Request><Bar><Bam>test</Bam></Bar></Request>'."\n",
+            (string)$request->getBody()
         );
     }
 
     public function testAllowsXmlEncoding()
     {
+
         $operation = new Operation(array(
             'data' => array(
                 'xmlEncoding' => 'UTF-8'
@@ -531,14 +559,15 @@ class XmlVisitorTest extends AbstractVisitorTestCase
         $command->setClient(new Client());
         $request = $command->prepare();
         $this->assertEquals(
-            '<?xml version="1.0" encoding="UTF-8"?>' . "\n"
-                . '<Request><Foo>test</Foo></Request>' . "\n",
-            (string) $request->getBody()
+            '<?xml version="1.0" encoding="UTF-8"?>'."\n"
+            .'<Request><Foo>test</Foo></Request>'."\n",
+            (string)$request->getBody()
         );
     }
 
     public function testAllowsSendingXmlPayloadIfNoXmlParamsWereSet()
     {
+
         $operation = new Operation(array(
             'httpMethod' => 'POST',
             'data' => array('xmlAllowEmpty' => true),
@@ -550,9 +579,9 @@ class XmlVisitorTest extends AbstractVisitorTestCase
         $command->setClient(new Client('http://foo.com'));
         $request = $command->prepare();
         $this->assertEquals(
-            '<?xml version="1.0"?>' . "\n"
-            . '<Request/>' . "\n",
-            (string) $request->getBody()
+            '<?xml version="1.0"?>'."\n"
+            .'<Request/>'."\n",
+            (string)$request->getBody()
         );
     }
 }

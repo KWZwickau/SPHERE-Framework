@@ -6,28 +6,21 @@ namespace Doctrine\Tests\Common\Annotations\Fixtures;
  * @Annotation
  * @Target("ALL")
  * @Attributes({
-      @Attribute("mixed",                type = "mixed"),
-      @Attribute("boolean",              type = "boolean"),
-      @Attribute("bool",                 type = "bool"),
-      @Attribute("float",                type = "float"),
-      @Attribute("string",               type = "string"),
-      @Attribute("integer",              type = "integer"),
-      @Attribute("array",                type = "array"),
-      @Attribute("arrayOfIntegers",      type = "array<integer>"),
-      @Attribute("arrayOfStrings",       type = "string[]"),
-      @Attribute("annotation",           type = "Doctrine\Tests\Common\Annotations\Fixtures\AnnotationTargetAll"),
-      @Attribute("arrayOfAnnotations",   type = "array<Doctrine\Tests\Common\Annotations\Fixtures\AnnotationTargetAll>"),
-  })
+@Attribute("mixed",                type = "mixed"),
+@Attribute("boolean",              type = "boolean"),
+@Attribute("bool",                 type = "bool"),
+@Attribute("float",                type = "float"),
+@Attribute("string",               type = "string"),
+@Attribute("integer",              type = "integer"),
+@Attribute("array",                type = "array"),
+@Attribute("arrayOfIntegers",      type = "array<integer>"),
+@Attribute("arrayOfStrings",       type = "string[]"),
+@Attribute("annotation",           type = "Doctrine\Tests\Common\Annotations\Fixtures\AnnotationTargetAll"),
+@Attribute("arrayOfAnnotations",   type = "array<Doctrine\Tests\Common\Annotations\Fixtures\AnnotationTargetAll>"),
+})
  */
 final class AnnotationWithAttributes
 {
-
-    public final function __construct(array $data)
-    {
-        foreach ($data as $key => $value) {
-            $this->$key = $value;
-        }
-    }
 
     private $mixed;
     private $boolean;
@@ -41,11 +34,20 @@ final class AnnotationWithAttributes
     private $arrayOfStrings;
     private $arrayOfAnnotations;
 
+    public final function __construct(array $data)
+    {
+
+        foreach ($data as $key => $value) {
+            $this->$key = $value;
+        }
+    }
+
     /**
      * @return mixed
      */
     public function getMixed()
     {
+
         return $this->mixed;
     }
 
@@ -54,6 +56,7 @@ final class AnnotationWithAttributes
      */
     public function getBoolean()
     {
+
         return $this->boolean;
     }
 
@@ -62,6 +65,7 @@ final class AnnotationWithAttributes
      */
     public function getBool()
     {
+
         return $this->bool;
     }
 
@@ -70,6 +74,7 @@ final class AnnotationWithAttributes
      */
     public function getFloat()
     {
+
         return $this->float;
     }
 
@@ -78,11 +83,13 @@ final class AnnotationWithAttributes
      */
     public function getString()
     {
+
         return $this->string;
     }
 
     public function getInteger()
     {
+
         return $this->integer;
     }
 
@@ -91,6 +98,7 @@ final class AnnotationWithAttributes
      */
     public function getArray()
     {
+
         return $this->array;
     }
 
@@ -99,6 +107,7 @@ final class AnnotationWithAttributes
      */
     public function getAnnotation()
     {
+
         return $this->annotation;
     }
 
@@ -107,6 +116,7 @@ final class AnnotationWithAttributes
      */
     public function getArrayOfStrings()
     {
+
         return $this->arrayOfIntegers;
     }
 
@@ -115,6 +125,7 @@ final class AnnotationWithAttributes
      */
     public function getArrayOfIntegers()
     {
+
         return $this->arrayOfIntegers;
     }
 
@@ -123,6 +134,7 @@ final class AnnotationWithAttributes
      */
     public function getArrayOfAnnotations()
     {
+
         return $this->arrayOfAnnotations;
     }
 

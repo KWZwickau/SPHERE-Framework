@@ -15,8 +15,8 @@ function auth_get_link()
 function get_php_self()
 {
 
-    return isset( $_SERVER['PHP_SELF'] ) ? htmlentities( strip_tags( $_SERVER['PHP_SELF'], '' ), ENT_QUOTES,
-        'UTF-8' ) : '';
+    return isset( $_SERVER['PHP_SELF'] ) ? htmlentities(strip_tags($_SERVER['PHP_SELF'], ''), ENT_QUOTES,
+        'UTF-8') : '';
 }
 
 // From apc.php
@@ -40,8 +40,8 @@ function auth_check()
 
             $PHP_SELF = get_php_self();
 
-            header( 'WWW-Authenticate: Basic realm="DOMPDF Login"' );
-            header( 'HTTP/1.0 401 Unauthorized' );
+            header('WWW-Authenticate: Basic realm="DOMPDF Login"');
+            header('HTTP/1.0 401 Unauthorized');
 
             echo <<<EOB
         <html><body>

@@ -19,10 +19,10 @@
 
 namespace Doctrine\DBAL\Schema\Visitor;
 
-use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\TableDiff;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
 use Doctrine\DBAL\Schema\Sequence;
+use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Schema\TableDiff;
 
 /**
  * Visit a SchemaDiff.
@@ -33,6 +33,7 @@ use Doctrine\DBAL\Schema\Sequence;
  */
 interface SchemaDiffVisitor
 {
+
     /**
      * Visit an orphaned foreign key whose table was deleted.
      *

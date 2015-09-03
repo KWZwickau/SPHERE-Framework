@@ -2,6 +2,7 @@
 
 class SingleClassLOC1000
 {
+
     const TEST1 = 1234567890;
     const TEST2 = 1234567890;
     const TEST3 = 1234567890;
@@ -24,12 +25,13 @@ class SingleClassLOC1000
 
     public function test1()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -49,12 +51,13 @@ class SingleClassLOC1000
 
     public function test2()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -74,12 +77,13 @@ class SingleClassLOC1000
 
     public function test3()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -99,12 +103,13 @@ class SingleClassLOC1000
 
     public function test4()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -124,12 +129,13 @@ class SingleClassLOC1000
 
     public function test5()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -149,12 +155,13 @@ class SingleClassLOC1000
 
     public function test6()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -174,12 +181,13 @@ class SingleClassLOC1000
 
     public function test7()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -199,12 +207,13 @@ class SingleClassLOC1000
 
     public function test8()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -225,12 +234,13 @@ class SingleClassLOC1000
 
     public function test9()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -250,12 +260,13 @@ class SingleClassLOC1000
 
     public function test10()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -275,12 +286,13 @@ class SingleClassLOC1000
 
     public function test11()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -300,12 +312,13 @@ class SingleClassLOC1000
 
     public function test12()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -325,12 +338,13 @@ class SingleClassLOC1000
 
     public function test13()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -350,12 +364,13 @@ class SingleClassLOC1000
 
     public function test14()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -375,12 +390,13 @@ class SingleClassLOC1000
 
     public function test15()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -400,12 +416,13 @@ class SingleClassLOC1000
 
     public function test16()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -425,12 +442,13 @@ class SingleClassLOC1000
 
     public function test17()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -451,12 +469,13 @@ class SingleClassLOC1000
 
     public function test18()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -476,12 +495,13 @@ class SingleClassLOC1000
 
     public function test19()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -501,12 +521,13 @@ class SingleClassLOC1000
 
     public function test20()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -526,12 +547,13 @@ class SingleClassLOC1000
 
     public function test21()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -551,12 +573,13 @@ class SingleClassLOC1000
 
     public function test22()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -576,12 +599,13 @@ class SingleClassLOC1000
 
     public function test23()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -601,12 +625,13 @@ class SingleClassLOC1000
 
     public function test24()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -626,12 +651,13 @@ class SingleClassLOC1000
 
     public function test25()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -651,12 +677,13 @@ class SingleClassLOC1000
 
     public function test26()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -676,12 +703,13 @@ class SingleClassLOC1000
 
     public function test27()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -702,12 +730,13 @@ class SingleClassLOC1000
 
     public function test28()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -727,12 +756,13 @@ class SingleClassLOC1000
 
     public function test29()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -752,12 +782,13 @@ class SingleClassLOC1000
 
     public function test30()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -777,12 +808,13 @@ class SingleClassLOC1000
 
     public function test31()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -802,12 +834,13 @@ class SingleClassLOC1000
 
     public function test32()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -827,12 +860,13 @@ class SingleClassLOC1000
 
     public function test33()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -852,12 +886,13 @@ class SingleClassLOC1000
 
     public function test34()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -877,12 +912,13 @@ class SingleClassLOC1000
 
     public function test35()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -902,12 +938,13 @@ class SingleClassLOC1000
 
     public function test36()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -927,12 +964,13 @@ class SingleClassLOC1000
 
     public function test37()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -953,12 +991,13 @@ class SingleClassLOC1000
 
     public function test38()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;
@@ -978,12 +1017,13 @@ class SingleClassLOC1000
 
     public function test39()
     {
+
         echo $this->test1;
         echo $this->test2;
         echo $this->test3;
         $array = array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
         foreach ($array as $key => $value) {
-            echo $key . ' => ' . $value;
+            echo $key.' => '.$value;
         }
 
         $val = (string)self::TEST1;

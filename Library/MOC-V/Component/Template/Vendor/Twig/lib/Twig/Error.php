@@ -33,6 +33,7 @@
  */
 class Twig_Error extends Exception
 {
+
     protected $lineno;
     protected $filename;
     protected $rawMessage;
@@ -57,6 +58,7 @@ class Twig_Error extends Exception
      */
     public function __construct($message, $lineno = -1, $filename = null, Exception $previous = null)
     {
+
         if (version_compare(PHP_VERSION, '5.3.0', '<')) {
             $this->previous = $previous;
             parent::__construct('');
@@ -82,19 +84,19 @@ class Twig_Error extends Exception
         $template = null;
         $templateClass = null;
 
-        if (version_compare( phpversion(), '5.3.6', '>=' )) {
-            $backtrace = debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS | DEBUG_BACKTRACE_PROVIDE_OBJECT );
+        if (version_compare(phpversion(), '5.3.6', '>=')) {
+            $backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS | DEBUG_BACKTRACE_PROVIDE_OBJECT);
         } else {
             $backtrace = debug_backtrace();
         }
 
         foreach ($backtrace as $trace) {
-            if (isset( $trace['object'] ) && $trace['object'] instanceof Twig_Template && 'Twig_Template' !== get_class( $trace['object'] )) {
-                $currentClass = get_class( $trace['object'] );
-                $isEmbedContainer = 0 === strpos( $templateClass, $currentClass );
+            if (isset( $trace['object'] ) && $trace['object'] instanceof Twig_Template && 'Twig_Template' !== get_class($trace['object'])) {
+                $currentClass = get_class($trace['object']);
+                $isEmbedContainer = 0 === strpos($templateClass, $currentClass);
                 if (null === $this->filename || ( $this->filename == $trace['object']->getTemplateName() && !$isEmbedContainer )) {
                     $template = $trace['object'];
-                    $templateClass = get_class( $trace['object'] );
+                    $templateClass = get_class($trace['object']);
                 }
             }
         }
@@ -108,22 +110,22 @@ class Twig_Error extends Exception
             return;
         }
 
-        $r = new ReflectionObject( $template );
+        $r = new ReflectionObject($template);
         $file = $r->getFileName();
 
         // hhvm has a bug where eval'ed files comes out as the current directory
-        if (is_dir( $file )) {
+        if (is_dir($file)) {
             $file = '';
         }
 
-        $exceptions = array( $e = $this );
-        while (( $e instanceof self || method_exists( $e, 'getPrevious' ) ) && $e = $e->getPrevious()) {
+        $exceptions = array($e = $this);
+        while (( $e instanceof self || method_exists($e, 'getPrevious') ) && $e = $e->getPrevious()) {
             $exceptions[] = $e;
         }
 
-        while ($e = array_pop( $exceptions )) {
+        while ($e = array_pop($exceptions)) {
             $traces = $e->getTrace();
-            while ($trace = array_shift( $traces )) {
+            while ($trace = array_shift($traces)) {
                 if (!isset( $trace['file'] ) || !isset( $trace['line'] ) || $file != $trace['file']) {
                     continue;
                 }
@@ -146,24 +148,24 @@ class Twig_Error extends Exception
         $this->message = $this->rawMessage;
 
         $dot = false;
-        if ('.' === substr( $this->message, -1 )) {
-            $this->message = substr( $this->message, 0, -1 );
+        if ('.' === substr($this->message, -1)) {
+            $this->message = substr($this->message, 0, -1);
             $dot = true;
         }
 
         if ($this->filename) {
-            if (is_string( $this->filename ) || ( is_object( $this->filename ) && method_exists( $this->filename,
-                        '__toString' ) )
+            if (is_string($this->filename) || ( is_object($this->filename) && method_exists($this->filename,
+                        '__toString') )
             ) {
-                $filename = sprintf( '"%s"', $this->filename );
+                $filename = sprintf('"%s"', $this->filename);
             } else {
-                $filename = json_encode( $this->filename );
+                $filename = json_encode($this->filename);
             }
-            $this->message .= sprintf( ' in %s', $filename );
+            $this->message .= sprintf(' in %s', $filename);
         }
 
         if ($this->lineno && $this->lineno >= 0) {
-            $this->message .= sprintf( ' at line %d', $this->lineno );
+            $this->message .= sprintf(' at line %d', $this->lineno);
         }
 
         if ($dot) {
@@ -178,6 +180,7 @@ class Twig_Error extends Exception
      */
     public function getRawMessage()
     {
+
         return $this->rawMessage;
     }
 
@@ -188,6 +191,7 @@ class Twig_Error extends Exception
      */
     public function getTemplateFile()
     {
+
         return $this->filename;
     }
 
@@ -198,6 +202,7 @@ class Twig_Error extends Exception
      */
     public function setTemplateFile($filename)
     {
+
         $this->filename = $filename;
 
         $this->updateRepr();
@@ -210,16 +215,18 @@ class Twig_Error extends Exception
      */
     public function getTemplateLine()
     {
+
         return $this->lineno;
     }
 
     /**
      * Sets the template line where the error occurred.
      *
-     * @param int     $lineno The template line
+     * @param int $lineno The template line
      */
     public function setTemplateLine($lineno)
     {
+
         $this->lineno = $lineno;
 
         $this->updateRepr();
@@ -227,6 +234,7 @@ class Twig_Error extends Exception
 
     public function guess()
     {
+
         $this->guessTemplateInfo();
         $this->updateRepr();
     }
@@ -243,6 +251,7 @@ class Twig_Error extends Exception
      */
     public function __call($method, $arguments)
     {
+
         if ('getprevious' == strtolower($method)) {
             return $this->previous;
         }

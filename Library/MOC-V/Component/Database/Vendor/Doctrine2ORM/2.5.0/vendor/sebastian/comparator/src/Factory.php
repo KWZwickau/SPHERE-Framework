@@ -15,21 +15,22 @@ namespace SebastianBergmann\Comparator;
  */
 class Factory
 {
+
+    /**
+     * @var Factory
+     */
+    private static $instance;
     /**
      * @var Comparator[]
      */
     private $comparators = array();
 
     /**
-     * @var Factory
-     */
-    private static $instance;
-
-    /**
      * Constructs a new factory.
      */
     public function __construct()
     {
+
         $this->register(new TypeComparator);
         $this->register(new ScalarComparator);
         $this->register(new NumericComparator);
@@ -45,34 +46,6 @@ class Factory
     }
 
     /**
-     * @return Factory
-     */
-    public static function getInstance()
-    {
-        if (self::$instance === null) {
-            self::$instance = new self;
-        }
-
-        return self::$instance;
-    }
-
-    /**
-     * Returns the correct comparator for comparing two values.
-     *
-     * @param  mixed      $expected The first value to compare
-     * @param  mixed      $actual   The second value to compare
-     * @return Comparator
-     */
-    public function getComparatorFor($expected, $actual)
-    {
-        foreach ($this->comparators as $comparator) {
-            if ($comparator->accepts($expected, $actual)) {
-                return $comparator;
-            }
-        }
-    }
-
-    /**
      * Registers a new comparator.
      *
      * This comparator will be returned by getInstance() if its accept() method
@@ -84,9 +57,41 @@ class Factory
      */
     public function register(Comparator $comparator)
     {
+
         array_unshift($this->comparators, $comparator);
 
         $comparator->setFactory($this);
+    }
+
+    /**
+     * @return Factory
+     */
+    public static function getInstance()
+    {
+
+        if (self::$instance === null) {
+            self::$instance = new self;
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Returns the correct comparator for comparing two values.
+     *
+     * @param  mixed $expected The first value to compare
+     * @param  mixed $actual   The second value to compare
+     *
+     * @return Comparator
+     */
+    public function getComparatorFor($expected, $actual)
+    {
+
+        foreach ($this->comparators as $comparator) {
+            if ($comparator->accepts($expected, $actual)) {
+                return $comparator;
+            }
+        }
     }
 
     /**
@@ -98,9 +103,10 @@ class Factory
      */
     public function unregister(Comparator $comparator)
     {
+
         foreach ($this->comparators as $key => $_comparator) {
             if ($comparator === $_comparator) {
-                unset($this->comparators[$key]);
+                unset( $this->comparators[$key] );
             }
         }
     }

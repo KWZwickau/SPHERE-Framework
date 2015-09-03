@@ -1,7 +1,7 @@
 <?php
 /**
  * phpDocumentor Param tag test.
- * 
+ *
  * PHP version 5.3
  *
  * @author    Mike van Riel <mike.vanriel@naenius.com>
@@ -22,9 +22,10 @@ namespace phpDocumentor\Reflection\DocBlock\Tag;
  */
 class ParamTagTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * Test that the \phpDocumentor\Reflection\DocBlock\Tag\ParamTag can
-     * understand the @param DocBlock.
+     * understand the @param DocBlock .
      *
      * @param string $type
      * @param string $content
@@ -33,7 +34,7 @@ class ParamTagTest extends \PHPUnit_Framework_TestCase
      * @param string $extractedVarName
      * @param string $extractedDescription
      *
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag\ParamTag
+     * @covers       \phpDocumentor\Reflection\DocBlock\Tag\ParamTag
      * @dataProvider provideDataForConstructor
      *
      * @return void
@@ -46,6 +47,7 @@ class ParamTagTest extends \PHPUnit_Framework_TestCase
         $extractedVarName,
         $extractedDescription
     ) {
+
         $tag = new ParamTag($type, $content);
 
         $this->assertEquals($type, $tag->getName());
@@ -62,6 +64,7 @@ class ParamTagTest extends \PHPUnit_Framework_TestCase
      */
     public function provideDataForConstructor()
     {
+
         return array(
             array('param', 'int', 'int', array('int'), '', ''),
             array('param', '$bob', '', array(), '$bob', ''),

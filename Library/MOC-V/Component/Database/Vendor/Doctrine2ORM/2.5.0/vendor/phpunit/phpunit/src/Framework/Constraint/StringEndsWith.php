@@ -16,6 +16,7 @@
  */
 class PHPUnit_Framework_Constraint_StringEndsWith extends PHPUnit_Framework_Constraint
 {
+
     /**
      * @var string
      */
@@ -26,20 +27,9 @@ class PHPUnit_Framework_Constraint_StringEndsWith extends PHPUnit_Framework_Cons
      */
     public function __construct($suffix)
     {
+
         parent::__construct();
         $this->suffix = $suffix;
-    }
-
-    /**
-     * Evaluates the constraint for parameter $other. Returns true if the
-     * constraint is met, false otherwise.
-     *
-     * @param  mixed $other Value or object to evaluate.
-     * @return bool
-     */
-    protected function matches($other)
-    {
-        return substr($other, 0 - strlen($this->suffix)) == $this->suffix;
     }
 
     /**
@@ -49,6 +39,21 @@ class PHPUnit_Framework_Constraint_StringEndsWith extends PHPUnit_Framework_Cons
      */
     public function toString()
     {
-        return 'ends with "' . $this->suffix . '"';
+
+        return 'ends with "'.$this->suffix.'"';
+    }
+
+    /**
+     * Evaluates the constraint for parameter $other. Returns true if the
+     * constraint is met, false otherwise.
+     *
+     * @param  mixed $other Value or object to evaluate.
+     *
+     * @return bool
+     */
+    protected function matches($other)
+    {
+
+        return substr($other, 0 - strlen($this->suffix)) == $this->suffix;
     }
 }

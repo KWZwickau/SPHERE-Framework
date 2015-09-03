@@ -69,12 +69,12 @@ class ReflectionMethodMagic extends ReflectionMethod
      * @param \TokenReflection\IReflection $reflection Inspected reflection
      * @param \ApiGen\Generator            $generator  ApiGen generator
      */
-    public function __construct( IReflection $reflection = null, Generator $generator = null )
+    public function __construct(IReflection $reflection = null, Generator $generator = null)
     {
 
-        $this->reflectionType = get_class( $this );
+        $this->reflectionType = get_class($this);
         if (!isset( self::$reflectionMethods[$this->reflectionType] )) {
-            self::$reflectionMethods[$this->reflectionType] = array_flip( get_class_methods( $this ) );
+            self::$reflectionMethods[$this->reflectionType] = array_flip(get_class_methods($this));
         }
     }
 
@@ -85,7 +85,7 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return \Apigen\ReflectionMethodMagic
      */
-    public function setReturnsReference( $returnsReference )
+    public function setReturnsReference($returnsReference)
     {
 
         $this->returnsReference = (bool)$returnsReference;
@@ -99,7 +99,7 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return \Apigen\ReflectionMethodMagic
      */
-    public function setParameters( array $parameters )
+    public function setParameters(array $parameters)
     {
 
         $this->parameters = $parameters;
@@ -157,7 +157,7 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return \Apigen\ReflectionMethodMagic
      */
-    public function setShortDescription( $shortDescription )
+    public function setShortDescription($shortDescription)
     {
 
         $this->shortDescription = (string)$shortDescription;
@@ -193,7 +193,7 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return \Apigen\ReflectionMethodMagic
      */
-    public function setStartLine( $startLine )
+    public function setStartLine($startLine)
     {
 
         $this->startLine = (int)$startLine;
@@ -218,7 +218,7 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return \Apigen\ReflectionMethodMagic
      */
-    public function setEndLine( $endLine )
+    public function setEndLine($endLine)
     {
 
         $this->endLine = (int)$endLine;
@@ -346,7 +346,7 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return \ApiGen\ReflectionMethodMagic
      */
-    public function setDeclaringClass( ReflectionClass $declaringClass )
+    public function setDeclaringClass(ReflectionClass $declaringClass)
     {
 
         $this->declaringClass = $declaringClass;
@@ -550,7 +550,7 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return \Apigen\ReflectionMethodMagic
      */
-    public function setName( $name )
+    public function setName($name)
     {
 
         $this->name = (string)$name;
@@ -610,7 +610,7 @@ class ReflectionMethodMagic extends ReflectionMethod
     public function getNumberOfParameters()
     {
 
-        return count( $this->parameters );
+        return count($this->parameters);
     }
 
     /**
@@ -622,12 +622,12 @@ class ReflectionMethodMagic extends ReflectionMethod
     {
 
         $count = 0;
-        array_walk( $this->parameters, function ( ReflectionParameter $parameter ) use ( &$count ) {
+        array_walk($this->parameters, function (ReflectionParameter $parameter) use (&$count) {
 
             if (!$parameter->isOptional()) {
                 $count++;
             }
-        } );
+        });
         return $count;
     }
 
@@ -650,7 +650,7 @@ class ReflectionMethodMagic extends ReflectionMethod
     public function getPrettyName()
     {
 
-        return sprintf( '%s::%s()', $this->declaringClass->getName(), $this->name );
+        return sprintf('%s::%s()', $this->declaringClass->getName(), $this->name);
     }
 
     /**
@@ -700,15 +700,15 @@ class ReflectionMethodMagic extends ReflectionMethod
             $docComment .= $this->shortDescription."\n\n";
         }
 
-        if ($annotations = $this->getAnnotation( 'param' )) {
+        if ($annotations = $this->getAnnotation('param')) {
             foreach ($annotations as $annotation) {
-                $docComment .= sprintf( "@param %s\n", $annotation );
+                $docComment .= sprintf("@param %s\n", $annotation);
             }
         }
 
-        if ($annotations = $this->getAnnotation( 'return' )) {
+        if ($annotations = $this->getAnnotation('return')) {
             foreach ($annotations as $annotation) {
-                $docComment .= sprintf( "@return %s\n", $annotation );
+                $docComment .= sprintf("@return %s\n", $annotation);
             }
         }
 
@@ -724,11 +724,11 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return string|array|null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         $annotations = $this->getAnnotations();
-        if (array_key_exists( $name, $annotations )) {
+        if (array_key_exists($name, $annotations)) {
             return $annotations[$name];
         }
         return null;
@@ -755,11 +755,11 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         $annotations = $this->getAnnotations();
-        return array_key_exists( $name, $annotations );
+        return array_key_exists($name, $annotations);
     }
 
     /**
@@ -769,10 +769,10 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return mixed
      */
-    public function __get( $name )
+    public function __get($name)
     {
 
-        $key = ucfirst( $name );
+        $key = ucfirst($name);
         if (isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] )) {
             return $this->{'get'.$key}();
         }
@@ -791,10 +791,10 @@ class ReflectionMethodMagic extends ReflectionMethod
      *
      * @return boolean
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        $key = ucfirst( $name );
+        $key = ucfirst($name);
         return isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] ) || isset( self::$reflectionMethods[$this->reflectionType]['is'.$key] );
     }
 }

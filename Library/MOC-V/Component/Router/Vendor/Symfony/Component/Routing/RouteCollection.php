@@ -27,6 +27,7 @@ use Symfony\Component\Config\Resource\ResourceInterface;
  */
 class RouteCollection implements \IteratorAggregate, \Countable
 {
+
     /**
      * @var Route[]
      */
@@ -39,6 +40,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
 
     public function __clone()
     {
+
         foreach ($this->routes as $name => $route) {
             $this->routes[$name] = clone $route;
         }
@@ -55,6 +57,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->routes);
     }
 
@@ -65,6 +68,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function count()
     {
+
         return count($this->routes);
     }
 
@@ -78,7 +82,8 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function add($name, Route $route)
     {
-        unset($this->routes[$name]);
+
+        unset( $this->routes[$name] );
 
         $this->routes[$name] = $route;
     }
@@ -92,7 +97,8 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function get($name)
     {
-        return isset($this->routes[$name]) ? $this->routes[$name] : null;
+
+        return isset( $this->routes[$name] ) ? $this->routes[$name] : null;
     }
 
     /**
@@ -102,8 +108,9 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function remove($name)
     {
-        foreach ((array) $name as $n) {
-            unset($this->routes[$n]);
+
+        foreach ((array)$name as $n) {
+            unset( $this->routes[$n] );
         }
     }
 
@@ -111,16 +118,17 @@ class RouteCollection implements \IteratorAggregate, \Countable
      * Adds a route collection at the end of the current set by appending all
      * routes of the added collection.
      *
-     * @param RouteCollection $collection      A RouteCollection instance
+     * @param RouteCollection $collection A RouteCollection instance
      *
      * @api
      */
     public function addCollection(RouteCollection $collection)
     {
+
         // we need to remove all routes with the same names first because just replacing them
         // would not place the new route at the end of the merged array
         foreach ($collection->all() as $name => $route) {
-            unset($this->routes[$name]);
+            unset( $this->routes[$name] );
             $this->routes[$name] = $route;
         }
 
@@ -146,7 +154,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
     public function getResources()
     {
 
-        return array_unique( $this->resources );
+        return array_unique($this->resources);
     }
 
     /**
@@ -160,6 +168,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function addPrefix($prefix, array $defaults = array(), array $requirements = array())
     {
+
         $prefix = trim(trim($prefix), '/');
 
         if ('' === $prefix) {
@@ -182,6 +191,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function setHost($pattern, array $defaults = array(), array $requirements = array())
     {
+
         foreach ($this->routes as $route) {
             $route->setHost($pattern);
             $route->addDefaults($defaults);
@@ -198,6 +208,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function setCondition($condition)
     {
+
         foreach ($this->routes as $route) {
             $route->setCondition($condition);
         }
@@ -212,6 +223,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function addDefaults(array $defaults)
     {
+
         if ($defaults) {
             foreach ($this->routes as $route) {
                 $route->addDefaults($defaults);
@@ -228,6 +240,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function addRequirements(array $requirements)
     {
+
         if ($requirements) {
             foreach ($this->routes as $route) {
                 $route->addRequirements($requirements);
@@ -244,6 +257,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function addOptions(array $options)
     {
+
         if ($options) {
             foreach ($this->routes as $route) {
                 $route->addOptions($options);
@@ -258,6 +272,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function setSchemes($schemes)
     {
+
         foreach ($this->routes as $route) {
             $route->setSchemes($schemes);
         }
@@ -270,6 +285,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function setMethods($methods)
     {
+
         foreach ($this->routes as $route) {
             $route->setMethods($methods);
         }
@@ -282,6 +298,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function addResource(ResourceInterface $resource)
     {
+
         $this->resources[] = $resource;
     }
 }

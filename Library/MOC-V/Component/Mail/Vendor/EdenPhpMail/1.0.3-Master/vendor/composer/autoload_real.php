@@ -7,7 +7,7 @@ class ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986
 
     private static $loader;
 
-    public static function loadClassLoader( $class )
+    public static function loadClassLoader($class)
     {
 
         if ('Composer\Autoload\ClassLoader' === $class) {
@@ -22,45 +22,45 @@ class ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986
             return self::$loader;
         }
 
-        spl_autoload_register( array( 'ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986', 'loadClassLoader' ),
-            true, true );
+        spl_autoload_register(array('ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986', 'loadClassLoader'),
+            true, true);
         self::$loader = $loader = new \Composer\Autoload\ClassLoader();
-        spl_autoload_unregister( array( 'ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986', 'loadClassLoader' ) );
+        spl_autoload_unregister(array('ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986', 'loadClassLoader'));
 
         $map = require __DIR__.'/autoload_namespaces.php';
         foreach ($map as $namespace => $path) {
-            $loader->set( $namespace, $path );
+            $loader->set($namespace, $path);
         }
 
         $map = require __DIR__.'/autoload_psr4.php';
         foreach ($map as $namespace => $path) {
-            $loader->setPsr4( $namespace, $path );
+            $loader->setPsr4($namespace, $path);
         }
 
         $classMap = require __DIR__.'/autoload_classmap.php';
         if ($classMap) {
-            $loader->addClassMap( $classMap );
+            $loader->addClassMap($classMap);
         }
 
-        spl_autoload_register( array( 'ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986', 'autoload' ), true,
-            true );
+        spl_autoload_register(array('ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986', 'autoload'), true,
+            true);
 
-        $loader->register( true );
+        $loader->register(true);
 
         return $loader;
     }
 
-    public static function autoload( $class )
+    public static function autoload($class)
     {
 
-        $dir = dirname( dirname( __DIR__ ) ).'/';
-        $prefixes = array( 'Eden\\Mail\\' );
+        $dir = dirname(dirname(__DIR__)).'/';
+        $prefixes = array('Eden\\Mail\\');
         foreach ($prefixes as $prefix) {
-            if (0 !== strpos( $class, $prefix )) {
+            if (0 !== strpos($class, $prefix)) {
                 continue;
             }
-            $path = $dir.implode( '/', array_slice( explode( '\\', $class ), 2 ) ).'.php';
-            if (!$path = stream_resolve_include_path( $path )) {
+            $path = $dir.implode('/', array_slice(explode('\\', $class), 2)).'.php';
+            if (!$path = stream_resolve_include_path($path)) {
                 return false;
             }
             require $path;
@@ -70,7 +70,7 @@ class ComposerAutoloaderInitb288e28ed2e9ea1d91d353a891550986
     }
 }
 
-function composerRequireb288e28ed2e9ea1d91d353a891550986( $file )
+function composerRequireb288e28ed2e9ea1d91d353a891550986($file)
 {
 
     require $file;

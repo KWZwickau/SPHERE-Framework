@@ -34,11 +34,11 @@ class Text_Renderer extends Abstract_Renderer
     /**
      * @param Text_Frame_Decorator $frame
      */
-    function render( Frame $frame )
+    function render(Frame $frame)
     {
 
         $text = $frame->get_text();
-        if (trim( $text ) === "") {
+        if (trim($text) === "") {
             return;
         }
 
@@ -58,13 +58,13 @@ class Text_Renderer extends Abstract_Renderer
             $bl = 0;
         }
 
-        $x += $style->length_in_pt( array( $ml, $pl, $bl ), $cb["w"] );
+        $x += $style->length_in_pt(array($ml, $pl, $bl), $cb["w"]);
 
         $font = $style->font_family;
         $size = $frame_font_size = $style->font_size;
         $height = $style->height;
-        $word_spacing = $frame->get_text_spacing() + $style->length_in_pt( $style->word_spacing );
-        $char_spacing = $style->length_in_pt( $style->letter_spacing );
+        $word_spacing = $frame->get_text_spacing() + $style->length_in_pt($style->word_spacing);
+        $char_spacing = $style->length_in_pt($style->letter_spacing);
         $width = $style->width;
 
         /*$text = str_replace(
@@ -73,9 +73,9 @@ class Text_Renderer extends Abstract_Renderer
           $text
         );*/
 
-        $this->_canvas->text( $x, $y, $text,
+        $this->_canvas->text($x, $y, $text,
             $font, $size,
-            $style->color, $word_spacing, $char_spacing );
+            $style->color, $word_spacing, $char_spacing);
 
         $line = $frame->get_containing_line();
 
@@ -120,7 +120,7 @@ class Text_Renderer extends Abstract_Renderer
         }
 
         while (isset( $stack[0] )) {
-            $f = array_pop( $stack );
+            $f = array_pop($stack);
 
             if (( $text_deco = $f->get_style()->text_decoration ) === "none") {
                 continue;
@@ -150,13 +150,13 @@ class Text_Renderer extends Abstract_Renderer
             $dx = 0;
             $x1 = $x - self::DECO_EXTENSION;
             $x2 = $x + $width + $dx + self::DECO_EXTENSION;
-            $this->_canvas->line( $x1, $deco_y, $x2, $deco_y, $color, $line_thickness );
+            $this->_canvas->line($x1, $deco_y, $x2, $deco_y, $color, $line_thickness);
         }
 
         if (DEBUG_LAYOUT && DEBUG_LAYOUT_LINES) {
-            $text_width = Font_Metrics::get_text_width( $text, $font, $frame_font_size );
-            $this->_debug_layout( array( $x, $y, $text_width + ( $line->wc - 1 ) * $word_spacing, $frame_font_size ),
-                "orange", array( 0.5, 0.5 ) );
+            $text_width = Font_Metrics::get_text_width($text, $font, $frame_font_size);
+            $this->_debug_layout(array($x, $y, $text_width + ( $line->wc - 1 ) * $word_spacing, $frame_font_size),
+                "orange", array(0.5, 0.5));
         }
     }
 }

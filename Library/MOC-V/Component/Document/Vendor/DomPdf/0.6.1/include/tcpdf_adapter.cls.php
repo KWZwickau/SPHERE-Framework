@@ -108,21 +108,21 @@ class TCPDF_Adapter implements Canvas
      * @param string $orientation The orientation of the document (either 'landscape' or 'portrait')
      * @param DOMPDF $dompdf
      */
-    function __construct( $paper = "letter", $orientation = "portrait", DOMPDF $dompdf )
+    function __construct($paper = "letter", $orientation = "portrait", DOMPDF $dompdf)
     {
 
-        if (is_array( $paper )) {
+        if (is_array($paper)) {
             $size = $paper;
         } else {
-            if (isset( self::$PAPER_SIZES[mb_strtolower( $paper )] )) {
+            if (isset( self::$PAPER_SIZES[mb_strtolower($paper)] )) {
                 $size = self::$PAPER_SIZES[$paper];
             } else {
                 $size = self::$PAPER_SIZES["letter"];
             }
         }
 
-        if (mb_strtolower( $orientation ) === "landscape") {
-            list( $size[2], $size[3] ) = array( $size[3], $size[2] );
+        if (mb_strtolower($orientation) === "landscape") {
+            list( $size[2], $size[3] ) = array($size[3], $size[2]);
         }
 
         $this->_width = $size[2] - $size[0];
@@ -130,8 +130,8 @@ class TCPDF_Adapter implements Canvas
 
         $this->_dompdf = $dompdf;
 
-        $this->_pdf = new TCPDF( "P", "pt", array( $this->_width, $this->_height ) );
-        $this->_pdf->Setcreator( "DOMPDF Converter" );
+        $this->_pdf = new TCPDF("P", "pt", array($this->_width, $this->_height));
+        $this->_pdf->Setcreator("DOMPDF Converter");
 
         $this->_pdf->AddPage();
 
@@ -187,7 +187,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @param int $count
      */
-    function set_page_count( $count )
+    function set_page_count($count)
     {
 
         $this->_page_count = (int)$count;
@@ -208,18 +208,18 @@ class TCPDF_Adapter implements Canvas
      * @param float $width
      * @param array $style
      */
-    function line( $x1, $y1, $x2, $y2, $color, $width, $style = null )
+    function line($x1, $y1, $x2, $y2, $color, $width, $style = null)
     {
 
-        if (is_null( $this->_last_line_width ) || $width != $this->_last_line_width) {
-            $this->_pdf->SetLineWidth( $width );
+        if (is_null($this->_last_line_width) || $width != $this->_last_line_width) {
+            $this->_pdf->SetLineWidth($width);
             $this->_last_line_width = $width;
         }
 
-        $this->_set_stroke_color( $color );
+        $this->_set_stroke_color($color);
 
         // FIXME: ugh, need to handle different styles here
-        $this->_pdf->line( $x1, $y1, $x2, $y2 );
+        $this->_pdf->line($x1, $y1, $x2, $y2);
     }
 
     /**
@@ -229,15 +229,15 @@ class TCPDF_Adapter implements Canvas
      *
      * @return void
      */
-    protected function _set_stroke_color( $color )
+    protected function _set_stroke_color($color)
     {
 
-        $color[0] = round( 255 * $color[0] );
-        $color[1] = round( 255 * $color[1] );
-        $color[2] = round( 255 * $color[2] );
+        $color[0] = round(255 * $color[0]);
+        $color[1] = round(255 * $color[1]);
+        $color[2] = round(255 * $color[2]);
 
-        if (is_null( $this->_last_stroke_color ) || $color != $this->_last_stroke_color) {
-            $this->_pdf->SetDrawColor( $color[0], $color[1], $color[2] );
+        if (is_null($this->_last_stroke_color) || $color != $this->_last_stroke_color) {
+            $this->_pdf->SetDrawColor($color[0], $color[1], $color[2]);
             $this->_last_stroke_color = $color;
         }
 
@@ -258,18 +258,18 @@ class TCPDF_Adapter implements Canvas
      * @param float $width
      * @param array $style
      */
-    function rectangle( $x1, $y1, $w, $h, $color, $width, $style = null )
+    function rectangle($x1, $y1, $w, $h, $color, $width, $style = null)
     {
 
-        if (is_null( $this->_last_line_width ) || $width != $this->_last_line_width) {
-            $this->_pdf->SetLineWidth( $width );
+        if (is_null($this->_last_line_width) || $width != $this->_last_line_width) {
+            $this->_pdf->SetLineWidth($width);
             $this->_last_line_width = $width;
         }
 
-        $this->_set_stroke_color( $color );
+        $this->_set_stroke_color($color);
 
         // FIXME: ugh, need to handle styles here
-        $this->_pdf->rect( $x1, $y1, $w, $h );
+        $this->_pdf->rect($x1, $y1, $w, $h);
 
     }
 
@@ -284,13 +284,13 @@ class TCPDF_Adapter implements Canvas
      * @param float $h
      * @param array $color
      */
-    function filled_rectangle( $x1, $y1, $w, $h, $color )
+    function filled_rectangle($x1, $y1, $w, $h, $color)
     {
 
-        $this->_set_fill_color( $color );
+        $this->_set_fill_color($color);
 
         // FIXME: ugh, need to handle styles here
-        $this->_pdf->rect( $x1, $y1, $w, $h, "F" );
+        $this->_pdf->rect($x1, $y1, $w, $h, "F");
     }
 
     /**
@@ -298,15 +298,15 @@ class TCPDF_Adapter implements Canvas
      *
      * @param array $color
      */
-    protected function _set_fill_color( $color )
+    protected function _set_fill_color($color)
     {
 
-        $color[0] = round( 255 * $color[0] );
-        $color[1] = round( 255 * $color[1] );
-        $color[2] = round( 255 * $color[2] );
+        $color[0] = round(255 * $color[0]);
+        $color[1] = round(255 * $color[1]);
+        $color[2] = round(255 * $color[2]);
 
-        if (is_null( $this->_last_fill_color ) || $color != $this->_last_fill_color) {
-            $this->_pdf->SetDrawColor( $color[0], $color[1], $color[2] );
+        if (is_null($this->_last_fill_color) || $color != $this->_last_fill_color) {
+            $this->_pdf->SetDrawColor($color[0], $color[1], $color[2]);
             $this->_last_fill_color = $color;
         }
 
@@ -336,7 +336,7 @@ class TCPDF_Adapter implements Canvas
      * @param array $style
      * @param bool  $fill Fills the polygon if true
      */
-    function polygon( $points, $color, $width = null, $style = null, $fill = false )
+    function polygon($points, $color, $width = null, $style = null, $fill = false)
     {
         // FIXME
     }
@@ -356,7 +356,7 @@ class TCPDF_Adapter implements Canvas
      * @param array $style
      * @param bool  $fill Fills the circle if true
      */
-    function circle( $x, $y, $r, $color, $width = null, $style = null, $fill = false )
+    function circle($x, $y, $r, $color, $width = null, $style = null, $fill = false)
     {
         // FIXME
     }
@@ -375,7 +375,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return void
      */
-    function image( $img_url, $x, $y, $w, $h, $resolution = "normal" )
+    function image($img_url, $x, $y, $w, $h, $resolution = "normal")
     {
         // FIXME
     }
@@ -402,7 +402,7 @@ class TCPDF_Adapter implements Canvas
         $text,
         $font,
         $size,
-        $color = array( 0, 0, 0 ),
+        $color = array(0, 0, 0),
         $word_space = 0.0,
         $char_space = 0.0,
         $angle = 0.0
@@ -410,7 +410,7 @@ class TCPDF_Adapter implements Canvas
         // FIXME
     }
 
-    function javascript( $code )
+    function javascript($code)
     {
         // FIXME
     }
@@ -420,7 +420,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @param string $anchorname The name of the named destination
      */
-    function add_named_dest( $anchorname )
+    function add_named_dest($anchorname)
     {
         // FIXME
     }
@@ -434,7 +434,7 @@ class TCPDF_Adapter implements Canvas
      * @param float  $width  The width of the link
      * @param float  $height The height of the link
      */
-    function add_link( $url, $x, $y, $width, $height )
+    function add_link($url, $x, $y, $width, $height)
     {
         // FIXME
     }
@@ -445,12 +445,12 @@ class TCPDF_Adapter implements Canvas
      * @param string $label label of the value (Creator, Producer, etc.)
      * @param string $value the text to set
      */
-    function add_info( $label, $value )
+    function add_info($label, $value)
     {
 
         $method = "Set$label";
-        if (in_array( "Title", "Author", "Keywords", "Subject" ) && method_exists( $this->_pdf, $method )) {
-            $this->_pdf->$method( $value );
+        if (in_array("Title", "Author", "Keywords", "Subject") && method_exists($this->_pdf, $method)) {
+            $this->_pdf->$method($value);
         }
     }
 
@@ -465,7 +465,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return float
      */
-    function get_text_width( $text, $font, $size, $word_spacing = 0.0, $char_spacing = 0.0 )
+    function get_text_width($text, $font, $size, $word_spacing = 0.0, $char_spacing = 0.0)
     {
         // FIXME
     }
@@ -478,7 +478,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return float
      */
-    function get_font_height( $font, $size )
+    function get_font_height($font, $size)
     {
         // FIXME
     }
@@ -499,7 +499,7 @@ class TCPDF_Adapter implements Canvas
      * @param string $filename the name of the PDF file
      * @param array  $options  associative array, 'Attachment' => 0 or 1, 'compress' => 1 or 0
      */
-    function stream( $filename, $options = null )
+    function stream($filename, $options = null)
     {
         // FIXME
     }
@@ -511,7 +511,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return string
      */
-    function output( $options = null )
+    function output($options = null)
     {
         // FIXME
     }
@@ -524,7 +524,7 @@ class TCPDF_Adapter implements Canvas
      * @param float $w
      * @param float $h
      */
-    function clipping_rectangle( $x1, $y1, $w, $h )
+    function clipping_rectangle($x1, $y1, $w, $h)
     {
         // TODO: Implement clipping_rectangle() method.
     }
@@ -543,7 +543,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return void
      */
-    function clipping_roundrectangle( $x1, $y1, $w, $h, $tl, $tr, $br, $bl )
+    function clipping_roundrectangle($x1, $y1, $w, $h, $tl, $tr, $br, $bl)
     {
         // TODO: Implement clipping_roundrectangle() method.
     }
@@ -575,7 +575,7 @@ class TCPDF_Adapter implements Canvas
     /**
      * Rotate
      */
-    function rotate( $angle, $x, $y )
+    function rotate($angle, $x, $y)
     {
         // TODO: Implement rotate() method.
     }
@@ -583,7 +583,7 @@ class TCPDF_Adapter implements Canvas
     /**
      * Skew
      */
-    function skew( $angle_x, $angle_y, $x, $y )
+    function skew($angle_x, $angle_y, $x, $y)
     {
         // TODO: Implement skew() method.
     }
@@ -591,7 +591,7 @@ class TCPDF_Adapter implements Canvas
     /**
      * Scale
      */
-    function scale( $s_x, $s_y, $x, $y )
+    function scale($s_x, $s_y, $x, $y)
     {
         // TODO: Implement scale() method.
     }
@@ -599,7 +599,7 @@ class TCPDF_Adapter implements Canvas
     /**
      * Translate
      */
-    function translate( $t_x, $t_y )
+    function translate($t_x, $t_y)
     {
         // TODO: Implement translate() method.
     }
@@ -607,7 +607,7 @@ class TCPDF_Adapter implements Canvas
     /**
      * Transform
      */
-    function transform( $a, $b, $c, $d, $e, $f )
+    function transform($a, $b, $c, $d, $e, $f)
     {
         // TODO: Implement transform() method.
     }
@@ -628,7 +628,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return void
      */
-    function arc( $x, $y, $r1, $r2, $astart, $aend, $color, $width, $style = array() )
+    function arc($x, $y, $r1, $r2, $astart, $aend, $color, $width, $style = array())
     {
         // TODO: Implement arc() method.
     }
@@ -641,7 +641,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return float
      */
-    function get_font_baseline( $font, $size )
+    function get_font_baseline($font, $size)
     {
         // TODO: Implement get_font_baseline() method.
     }
@@ -652,7 +652,7 @@ class TCPDF_Adapter implements Canvas
      * @param float  $opacity
      * @param string $mode
      */
-    function set_opacity( $opacity, $mode = "Normal" )
+    function set_opacity($opacity, $mode = "Normal")
     {
         // TODO: Implement set_opacity() method.
     }
@@ -673,7 +673,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return void
      */
-    function set_default_view( $view, $options = array() )
+    function set_default_view($view, $options = array())
     {
         // TODO: Implement set_default_view() method.
     }
@@ -685,7 +685,7 @@ class TCPDF_Adapter implements Canvas
      *
      * @return float
      */
-    protected function y( $y )
+    protected function y($y)
     {
 
         return $this->_height - $y;

@@ -37,25 +37,25 @@ class CachingIterator extends \CachingIterator implements \Countable
     private $counter = 0;
 
 
-    public function __construct( $iterator )
+    public function __construct($iterator)
     {
 
-        if (is_array( $iterator ) || $iterator instanceof \stdClass) {
-            $iterator = new \ArrayIterator( $iterator );
+        if (is_array($iterator) || $iterator instanceof \stdClass) {
+            $iterator = new \ArrayIterator($iterator);
 
         } elseif ($iterator instanceof \Traversable) {
             if ($iterator instanceof \IteratorAggregate) {
                 $iterator = $iterator->getIterator();
 
             } elseif (!$iterator instanceof \Iterator) {
-                $iterator = new \IteratorIterator( $iterator );
+                $iterator = new \IteratorIterator($iterator);
             }
 
         } else {
-            throw new Nette\InvalidArgumentException( "Invalid argument passed to foreach resp. ".__CLASS__."; array or Traversable expected, ".( is_object( $iterator ) ? get_class( $iterator ) : gettype( $iterator ) )." given." );
+            throw new Nette\InvalidArgumentException("Invalid argument passed to foreach resp. ".__CLASS__."; array or Traversable expected, ".( is_object($iterator) ? get_class($iterator) : gettype($iterator) )." given.");
         }
 
-        parent::__construct( $iterator, 0 );
+        parent::__construct($iterator, 0);
     }
 
 
@@ -66,7 +66,7 @@ class CachingIterator extends \CachingIterator implements \Countable
      *
      * @return bool
      */
-    public function isFirst( $width = null )
+    public function isFirst($width = null)
     {
 
         return $this->counter === 1 || ( $width && $this->counter !== 0 && ( ( $this->counter - 1 ) % $width ) === 0 );
@@ -80,7 +80,7 @@ class CachingIterator extends \CachingIterator implements \Countable
      *
      * @return bool
      */
-    public function isLast( $width = null )
+    public function isLast($width = null)
     {
 
         return !$this->hasNext() || ( $width && ( $this->counter % $width ) === 0 );
@@ -148,7 +148,7 @@ class CachingIterator extends \CachingIterator implements \Countable
             return $inner->count();
 
         } else {
-            throw new Nette\NotSupportedException( 'Iterator is not countable.' );
+            throw new Nette\NotSupportedException('Iterator is not countable.');
         }
     }
 
@@ -217,10 +217,10 @@ class CachingIterator extends \CachingIterator implements \Countable
      * @return mixed
      * @throws Nette\MemberAccessException
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return Nette\ObjectMixin::call( $this, $name, $args );
+        return Nette\ObjectMixin::call($this, $name, $args);
     }
 
 
@@ -232,10 +232,10 @@ class CachingIterator extends \CachingIterator implements \Countable
      * @return mixed   property value
      * @throws Nette\MemberAccessException if the property is not defined.
      */
-    public function &__get( $name )
+    public function &__get($name)
     {
 
-        return Nette\ObjectMixin::get( $this, $name );
+        return Nette\ObjectMixin::get($this, $name);
     }
 
 
@@ -248,10 +248,10 @@ class CachingIterator extends \CachingIterator implements \Countable
      * @return void
      * @throws Nette\MemberAccessException if the property is not defined or is read-only
      */
-    public function __set( $name, $value )
+    public function __set($name, $value)
     {
 
-        return Nette\ObjectMixin::set( $this, $name, $value );
+        return Nette\ObjectMixin::set($this, $name, $value);
     }
 
 
@@ -262,10 +262,10 @@ class CachingIterator extends \CachingIterator implements \Countable
      *
      * @return bool
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        return Nette\ObjectMixin::has( $this, $name );
+        return Nette\ObjectMixin::has($this, $name);
     }
 
 
@@ -277,10 +277,10 @@ class CachingIterator extends \CachingIterator implements \Countable
      * @return void
      * @throws Nette\MemberAccessException
      */
-    public function __unset( $name )
+    public function __unset($name)
     {
 
-        Nette\ObjectMixin::remove( $this, $name );
+        Nette\ObjectMixin::remove($this, $name);
     }
 
 }

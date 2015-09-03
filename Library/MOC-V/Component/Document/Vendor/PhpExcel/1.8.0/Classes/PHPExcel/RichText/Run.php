@@ -46,11 +46,11 @@ class PHPExcel_RichText_Run extends PHPExcel_RichText_TextElement implements PHP
      *
      * @param    string $pText Text
      */
-    public function __construct( $pText = '' )
+    public function __construct($pText = '')
     {
 
         // Initialise variables
-        $this->setText( $pText );
+        $this->setText($pText);
         $this->_font = new PHPExcel_Style_Font();
     }
 
@@ -73,7 +73,7 @@ class PHPExcel_RichText_Run extends PHPExcel_RichText_TextElement implements PHP
      * @throws    PHPExcel_Exception
      * @return PHPExcel_RichText_ITextElement
      */
-    public function setFont( PHPExcel_Style_Font $pFont = null )
+    public function setFont(PHPExcel_Style_Font $pFont = null)
     {
 
         $this->_font = $pFont;
@@ -101,9 +101,9 @@ class PHPExcel_RichText_Run extends PHPExcel_RichText_TextElement implements PHP
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

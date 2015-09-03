@@ -18,6 +18,7 @@ namespace Symfony\Component\Finder\Adapter;
  */
 abstract class AbstractAdapter implements AdapterInterface
 {
+
     private static $areSupported = array();
     protected $followLinks = false;
     protected $mode = 0;
@@ -41,9 +42,10 @@ abstract class AbstractAdapter implements AdapterInterface
      */
     public function isSupported()
     {
+
         $name = $this->getName();
 
-        if (!array_key_exists( $name, self::$areSupported )) {
+        if (!array_key_exists($name, self::$areSupported)) {
             self::$areSupported[$name] = $this->canBeUsed();
         }
 
@@ -66,8 +68,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setFollowLinks( $followLinks )
+    public function setFollowLinks($followLinks)
     {
+
         $this->followLinks = $followLinks;
 
         return $this;
@@ -76,8 +79,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setMode( $mode )
+    public function setMode($mode)
     {
+
         $this->mode = $mode;
 
         return $this;
@@ -86,8 +90,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setDepths( array $depths )
+    public function setDepths(array $depths)
     {
+
         $this->minDepth = 0;
         $this->maxDepth = PHP_INT_MAX;
 
@@ -116,8 +121,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setExclude( array $exclude )
+    public function setExclude(array $exclude)
     {
+
         $this->exclude = $exclude;
 
         return $this;
@@ -126,8 +132,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setNames( array $names )
+    public function setNames(array $names)
     {
+
         $this->names = $names;
 
         return $this;
@@ -136,8 +143,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setNotNames( array $notNames )
+    public function setNotNames(array $notNames)
     {
+
         $this->notNames = $notNames;
 
         return $this;
@@ -146,8 +154,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setContains( array $contains )
+    public function setContains(array $contains)
     {
+
         $this->contains = $contains;
 
         return $this;
@@ -156,8 +165,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setNotContains( array $notContains )
+    public function setNotContains(array $notContains)
     {
+
         $this->notContains = $notContains;
 
         return $this;
@@ -166,8 +176,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setSizes( array $sizes )
+    public function setSizes(array $sizes)
     {
+
         $this->sizes = $sizes;
 
         return $this;
@@ -176,8 +187,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setDates( array $dates )
+    public function setDates(array $dates)
     {
+
         $this->dates = $dates;
 
         return $this;
@@ -186,8 +198,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setFilters( array $filters )
+    public function setFilters(array $filters)
     {
+
         $this->filters = $filters;
 
         return $this;
@@ -196,8 +209,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setSort( $sort )
+    public function setSort($sort)
     {
+
         $this->sort = $sort;
 
         return $this;
@@ -206,8 +220,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setPath( array $paths )
+    public function setPath(array $paths)
     {
+
         $this->paths = $paths;
 
         return $this;
@@ -216,8 +231,9 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function setNotPath( array $notPaths )
+    public function setNotPath(array $notPaths)
     {
+
         $this->notPaths = $notPaths;
 
         return $this;
@@ -226,7 +242,7 @@ abstract class AbstractAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function ignoreUnreadableDirs( $ignore = true )
+    public function ignoreUnreadableDirs($ignore = true)
     {
 
         $this->ignoreUnreadableDirs = (bool)$ignore;

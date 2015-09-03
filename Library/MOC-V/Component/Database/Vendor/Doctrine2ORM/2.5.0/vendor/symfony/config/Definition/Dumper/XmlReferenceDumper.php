@@ -11,10 +11,10 @@
 
 namespace Symfony\Component\Config\Definition\Dumper;
 
-use Symfony\Component\Config\Definition\ConfigurationInterface;
-use Symfony\Component\Config\Definition\NodeInterface;
 use Symfony\Component\Config\Definition\ArrayNode;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\EnumNode;
+use Symfony\Component\Config\Definition\NodeInterface;
 use Symfony\Component\Config\Definition\PrototypedArrayNode;
 
 /**
@@ -24,15 +24,18 @@ use Symfony\Component\Config\Definition\PrototypedArrayNode;
  */
 class XmlReferenceDumper
 {
+
     private $reference;
 
     public function dump(ConfigurationInterface $configuration, $namespace = null)
     {
+
         return $this->dumpNode($configuration->getConfigTreeBuilder()->buildTree(), $namespace);
     }
 
     public function dumpNode(NodeInterface $node, $namespace = null)
     {
+
         $this->reference = '';
         $this->writeNode($node, 0, true, $namespace);
         $ref = $this->reference;
@@ -49,17 +52,19 @@ class XmlReferenceDumper
      */
     private function writeNode(NodeInterface $node, $depth = 0, $root = false, $namespace = null)
     {
-        $rootName = ($root ? 'config' : $node->getName());
-        $rootNamespace = ($namespace ?: ($root ? 'http://example.org/schema/dic/'.$node->getName() : null));
+
+        $rootName = ( $root ? 'config' : $node->getName() );
+        $rootNamespace = ( $namespace ?: ( $root ? 'http://example.org/schema/dic/'.$node->getName() : null ) );
 
         // xml remapping
         if ($node->getParent()) {
             $remapping = array_filter($node->getParent()->getXmlRemappings(), function ($mapping) use ($rootName) {
+
                 return $rootName === $mapping[1];
             });
 
             if (count($remapping)) {
-                list($singular) = current($remapping);
+                list( $singular ) = current($remapping);
                 $rootName = $singular;
             }
         }
@@ -182,7 +187,7 @@ class XmlReferenceDumper
             foreach ($rootAttributeComments as $attrName => $comment) {
                 $commentDepth = $depth + 4 + strlen($attrName) + 2;
                 $commentLines = explode("\n", $comment);
-                $multiline = (count($commentLines) > 1);
+                $multiline = ( count($commentLines) > 1 );
                 $comment = implode(PHP_EOL.str_repeat(' ', $commentDepth), $commentLines);
 
                 if ($multiline) {
@@ -196,12 +201,13 @@ class XmlReferenceDumper
         }
 
         // render start tag + attributes
-        $rootIsVariablePrototype = isset($prototypeValue);
-        $rootIsEmptyTag = (0 === count($rootChildren) && !$rootIsVariablePrototype);
+        $rootIsVariablePrototype = isset( $prototypeValue );
+        $rootIsEmptyTag = ( 0 === count($rootChildren) && !$rootIsVariablePrototype );
         $rootOpenTag = '<'.$rootName;
-        if (1 >= ($attributesCount = count($rootAttributes))) {
+        if (1 >= ( $attributesCount = count($rootAttributes) )) {
             if (1 === $attributesCount) {
-                $rootOpenTag .= sprintf(' %s="%s"', current(array_keys($rootAttributes)), $this->writeValue(current($rootAttributes)));
+                $rootOpenTag .= sprintf(' %s="%s"', current(array_keys($rootAttributes)),
+                    $this->writeValue(current($rootAttributes)));
             }
 
             $rootOpenTag .= $rootIsEmptyTag ? ' />' : '>';
@@ -254,6 +260,7 @@ class XmlReferenceDumper
      */
     private function writeLine($text, $indent = 0)
     {
+
         $indent = strlen($text) + $indent;
         $format = '%'.$indent.'s';
 
@@ -269,6 +276,7 @@ class XmlReferenceDumper
      */
     private function writeValue($value)
     {
+
         if ('%%%%not_defined%%%%' === $value) {
             return '';
         }
@@ -289,7 +297,7 @@ class XmlReferenceDumper
             return 'null';
         }
 
-        if (empty($value)) {
+        if (empty( $value )) {
             return '';
         }
 

@@ -11,8 +11,10 @@
 
 class Twig_Tests_Loader_ChainTest extends PHPUnit_Framework_TestCase
 {
+
     public function testGetSource()
     {
+
         $loader = new Twig_Loader_Chain(array(
             new Twig_Loader_Array(array('foo' => 'bar')),
             new Twig_Loader_Array(array('foo' => 'foobar', 'bar' => 'foo')),
@@ -27,6 +29,7 @@ class Twig_Tests_Loader_ChainTest extends PHPUnit_Framework_TestCase
      */
     public function testGetSourceWhenTemplateDoesNotExist()
     {
+
         $loader = new Twig_Loader_Chain(array());
 
         $loader->getSource('foo');
@@ -34,6 +37,7 @@ class Twig_Tests_Loader_ChainTest extends PHPUnit_Framework_TestCase
 
     public function testGetCacheKey()
     {
+
         $loader = new Twig_Loader_Chain(array(
             new Twig_Loader_Array(array('foo' => 'bar')),
             new Twig_Loader_Array(array('foo' => 'foobar', 'bar' => 'foo')),
@@ -48,6 +52,7 @@ class Twig_Tests_Loader_ChainTest extends PHPUnit_Framework_TestCase
      */
     public function testGetCacheKeyWhenTemplateDoesNotExist()
     {
+
         $loader = new Twig_Loader_Chain(array());
 
         $loader->getCacheKey('foo');
@@ -55,6 +60,7 @@ class Twig_Tests_Loader_ChainTest extends PHPUnit_Framework_TestCase
 
     public function testAddLoader()
     {
+
         $loader = new Twig_Loader_Chain();
         $loader->addLoader(new Twig_Loader_Array(array('foo' => 'bar')));
 
@@ -63,6 +69,7 @@ class Twig_Tests_Loader_ChainTest extends PHPUnit_Framework_TestCase
 
     public function testExists()
     {
+
         $loader1 = $this->getMock('Twig_Loader_Array', array('exists', 'getSource'), array(), '', false);
         $loader1->expects($this->once())->method('exists')->will($this->returnValue(false));
         $loader1->expects($this->never())->method('getSource');

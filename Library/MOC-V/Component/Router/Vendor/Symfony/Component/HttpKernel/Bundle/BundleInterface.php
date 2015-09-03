@@ -24,6 +24,7 @@ use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
  */
 interface BundleInterface extends ContainerAwareInterface
 {
+
     /**
      * Boots the Bundle.
      *

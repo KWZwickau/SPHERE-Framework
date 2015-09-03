@@ -27,6 +27,7 @@ namespace Doctrine\Common\Cache;
  */
 class PhpFileCache extends FileCache
 {
+
     const EXTENSION = '.doctrinecache.php';
 
     /**
@@ -34,6 +35,7 @@ class PhpFileCache extends FileCache
      */
     public function __construct($directory, $extension = self::EXTENSION)
     {
+
         parent::__construct($directory, $extension);
     }
 
@@ -42,9 +44,10 @@ class PhpFileCache extends FileCache
      */
     protected function doFetch($id)
     {
+
         $value = $this->includeFileForId($id);
 
-        if (! $value) {
+        if (!$value) {
             return false;
         }
 
@@ -56,13 +59,34 @@ class PhpFileCache extends FileCache
     }
 
     /**
+     * @param string $id
+     *
+     * @return array|false
+     */
+    private function includeFileForId($id)
+    {
+
+        $fileName = $this->getFilename($id);
+
+        // note: error suppression is still faster than `file_exists`, `is_file` and `is_readable`
+        $value = @include $fileName;
+
+        if (!isset( $value['lifetime'] )) {
+            return false;
+        }
+
+        return $value;
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function doContains($id)
     {
+
         $value = $this->includeFileForId($id);
 
-        if (! $value) {
+        if (!$value) {
             return false;
         }
 
@@ -74,47 +98,29 @@ class PhpFileCache extends FileCache
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         if ($lifeTime > 0) {
             $lifeTime = time() + $lifeTime;
         }
 
-        if (is_object($data) && ! method_exists($data, '__set_state')) {
+        if (is_object($data) && !method_exists($data, '__set_state')) {
             throw new \InvalidArgumentException(
-                "Invalid argument given, PhpFileCache only allows objects that implement __set_state() " .
-                "and fully support var_export(). You can use the FilesystemCache to save arbitrary object " .
+                "Invalid argument given, PhpFileCache only allows objects that implement __set_state() ".
+                "and fully support var_export(). You can use the FilesystemCache to save arbitrary object ".
                 "graphs using serialize()/deserialize()."
             );
         }
 
-        $filename  = $this->getFilename($id);
+        $filename = $this->getFilename($id);
 
         $value = array(
-            'lifetime'  => $lifeTime,
-            'data'      => $data
+            'lifetime' => $lifeTime,
+            'data'     => $data
         );
 
-        $value  = var_export($value, true);
-        $code   = sprintf('<?php return %s;', $value);
+        $value = var_export($value, true);
+        $code = sprintf('<?php return %s;', $value);
 
         return $this->writeFile($filename, $code);
-    }
-
-    /**
-     * @param string $id
-     *
-     * @return array|false
-     */
-    private function includeFileForId($id)
-    {
-        $fileName = $this->getFilename($id);
-
-        // note: error suppression is still faster than `file_exists`, `is_file` and `is_readable`
-        $value = @include $fileName;
-
-        if (! isset($value['lifetime'])) {
-            return false;
-        }
-
-        return $value;
     }
 }

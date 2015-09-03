@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\Expr;
  */
 abstract class Base
 {
+
     /**
      * @var string
      */
@@ -60,6 +61,7 @@ abstract class Base
      */
     public function __construct($args = array())
     {
+
         $this->addMultiple($args);
     }
 
@@ -70,7 +72,8 @@ abstract class Base
      */
     public function addMultiple($args = array())
     {
-        foreach ((array) $args as $arg) {
+
+        foreach ((array)$args as $arg) {
             $this->add($arg);
         }
 
@@ -86,12 +89,13 @@ abstract class Base
      */
     public function add($arg)
     {
-        if ( $arg !== null && (!$arg instanceof self || $arg->count() > 0) ) {
+
+        if ($arg !== null && ( !$arg instanceof self || $arg->count() > 0 )) {
             // If we decide to keep Expr\Base instances, we can use this check
-            if ( ! is_string($arg)) {
+            if (!is_string($arg)) {
                 $class = get_class($arg);
 
-                if ( ! in_array($class, $this->allowedClasses)) {
+                if (!in_array($class, $this->allowedClasses)) {
                     throw new \InvalidArgumentException("Expression of type '$class' not allowed in this context.");
                 }
             }
@@ -107,6 +111,7 @@ abstract class Base
      */
     public function count()
     {
+
         return count($this->parts);
     }
 
@@ -115,10 +120,11 @@ abstract class Base
      */
     public function __toString()
     {
+
         if ($this->count() == 1) {
-            return (string) $this->parts[0];
+            return (string)$this->parts[0];
         }
 
-        return $this->preSeparator . implode($this->separator, $this->parts) . $this->postSeparator;
+        return $this->preSeparator.implode($this->separator, $this->parts).$this->postSeparator;
     }
 }

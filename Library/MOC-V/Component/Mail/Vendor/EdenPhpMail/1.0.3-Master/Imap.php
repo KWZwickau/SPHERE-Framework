@@ -61,14 +61,14 @@ class Imap extends Base
     ) {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string' )
-            ->test( 3, 'string' )
-            ->test( 4, 'int', 'null' )
-            ->test( 5, 'bool' )
-            ->test( 6, 'bool' );
+            ->test(1, 'string')
+            ->test(2, 'string')
+            ->test(3, 'string')
+            ->test(4, 'int', 'null')
+            ->test(5, 'bool')
+            ->test(6, 'bool');
 
-        if (is_null( $port )) {
+        if (is_null($port)) {
             $port = $ssl ? 993 : 143;
         }
 
@@ -100,12 +100,12 @@ class Imap extends Base
      *
      * @return array
      */
-    public function getEmails( $start = 0, $range = 10, $body = false )
+    public function getEmails($start = 0, $range = 10, $body = false)
     {
 
         Argument::i()
-            ->test( 1, 'int', 'array' )
-            ->test( 2, 'int' );
+            ->test(1, 'int', 'array')
+            ->test(2, 'int');
 
         //if not connected
         if (!$this->socket) {
@@ -122,9 +122,9 @@ class Imap extends Base
         }
 
         //if start is an array
-        if (is_array( $start )) {
+        if (is_array($start)) {
             //it is a set of numbers
-            $set = implode( ',', $start );
+            $set = implode(',', $start);
             //just ignore the range parameter
         } else {
             //start is a number
@@ -161,18 +161,18 @@ class Imap extends Base
             }
         }
 
-        $items = array( 'UID', 'FLAGS', 'BODY[HEADER]' );
+        $items = array('UID', 'FLAGS', 'BODY[HEADER]');
 
         if ($body) {
-            $items = array( 'UID', 'FLAGS', 'BODY[]' );
+            $items = array('UID', 'FLAGS', 'BODY[]');
         }
 
         //now lets call this
-        $emails = $this->getEmailResponse( 'FETCH', array( $set, $this->getList( $items ) ) );
+        $emails = $this->getEmailResponse('FETCH', array($set, $this->getList($items)));
 
         //this will be in ascending order
         //we actually want to reverse this
-        $emails = array_reverse( $emails );
+        $emails = array_reverse($emails);
 
         return $emails;
     }
@@ -182,10 +182,10 @@ class Imap extends Base
      *
      * @return Eden\Mail\Imap
      */
-    public function connect( $timeout = self::TIMEOUT, $test = false )
+    public function connect($timeout = self::TIMEOUT, $test = false)
     {
 
-        Argument::i()->test( 1, 'int' )->test( 2, 'bool' );
+        Argument::i()->test(1, 'int')->test(2, 'bool');
 
         if ($this->socket) {
             return $this;
@@ -200,51 +200,51 @@ class Imap extends Base
         $errno = 0;
         $errstr = '';
 
-        $this->socket = @fsockopen( $host, $this->port, $errno, $errstr, $timeout );
+        $this->socket = @fsockopen($host, $this->port, $errno, $errstr, $timeout);
 
         if (!$this->socket) {
             //throw exception
             Exception::i()
-                ->setMessage( Exception::SERVER_ERROR )
-                ->addVariable( $host.':'.$this->port )
+                ->setMessage(Exception::SERVER_ERROR)
+                ->addVariable($host.':'.$this->port)
                 ->trigger();
         }
 
-        if (strpos( $this->getLine(), '* OK' ) === false) {
+        if (strpos($this->getLine(), '* OK') === false) {
             $this->disconnect();
             //throw exception
             Exception::i()
-                ->setMessage( Exception::SERVER_ERROR )
-                ->addVariable( $host.':'.$this->port )
+                ->setMessage(Exception::SERVER_ERROR)
+                ->addVariable($host.':'.$this->port)
                 ->trigger();
         }
 
         if ($this->tls) {
-            $this->send( 'STARTTLS' );
-            if (!stream_socket_enable_crypto( $this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT )) {
+            $this->send('STARTTLS');
+            if (!stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::TLS_ERROR )
-                    ->addVariable( $host.':'.$this->port )
+                    ->setMessage(Exception::TLS_ERROR)
+                    ->addVariable($host.':'.$this->port)
                     ->trigger();
             }
         }
 
         if ($test) {
-            fclose( $this->socket );
+            fclose($this->socket);
 
             $this->socket = null;
             return $this;
         }
 
         //login
-        $result = $this->call( 'LOGIN', $this->escape( $this->username, $this->password ) );
+        $result = $this->call('LOGIN', $this->escape($this->username, $this->password));
 
-        if (!is_array( $result ) || strpos( implode( ' ', $result ), 'OK' ) === false) {
+        if (!is_array($result) || strpos(implode(' ', $result), 'OK') === false) {
             $this->disconnect();
             //throw exception
-            Exception::i( Exception::LOGIN_ERROR )->trigger();
+            Exception::i(Exception::LOGIN_ERROR)->trigger();
         }
 
         return $this;
@@ -258,13 +258,13 @@ class Imap extends Base
     protected function getLine()
     {
 
-        $line = fgets( $this->socket );
+        $line = fgets($this->socket);
 
         if ($line === false) {
             $this->disconnect();
         }
 
-        $this->debug( 'Receiving: '.$line );
+        $this->debug('Receiving: '.$line);
 
         return $line;
     }
@@ -278,9 +278,9 @@ class Imap extends Base
     {
 
         if ($this->socket) {
-            $this->send( 'LOGOUT' );
+            $this->send('LOGOUT');
 
-            fclose( $this->socket );
+            fclose($this->socket);
 
             $this->socket = null;
         }
@@ -296,24 +296,24 @@ class Imap extends Base
      *
      * @return bool
      */
-    protected function send( $command, $parameters = array() )
+    protected function send($command, $parameters = array())
     {
 
         $this->tag++;
 
         $line = 'TAG'.$this->tag.' '.$command;
 
-        if (!is_array( $parameters )) {
-            $parameters = array( $parameters );
+        if (!is_array($parameters)) {
+            $parameters = array($parameters);
         }
 
         foreach ($parameters as $parameter) {
-            if (is_array( $parameter )) {
-                if (fputs( $this->socket, $line.' '.$parameter[0]."\r\n" ) === false) {
+            if (is_array($parameter)) {
+                if (fputs($this->socket, $line.' '.$parameter[0]."\r\n") === false) {
                     return false;
                 }
 
-                if (strpos( $this->getLine(), '+ ' ) === false) {
+                if (strpos($this->getLine(), '+ ') === false) {
                     return false;
                 }
 
@@ -323,9 +323,9 @@ class Imap extends Base
             }
         }
 
-        $this->debug( 'Sending: '.$line );
+        $this->debug('Sending: '.$line);
 
-        return fputs( $this->socket, $line."\r\n" );
+        return fputs($this->socket, $line."\r\n");
     }
 
     /**
@@ -335,11 +335,11 @@ class Imap extends Base
      *
      * @return Eden\Mail\Imap
      */
-    private function debug( $string )
+    private function debug($string)
     {
 
         if ($this->debugging) {
-            $string = htmlspecialchars( $string );
+            $string = htmlspecialchars($string);
 
             echo '<pre>'.$string.'</pre>'."\n";
         }
@@ -355,14 +355,14 @@ class Imap extends Base
      *
      * @return string|false
      */
-    protected function call( $command, $parameters = array() )
+    protected function call($command, $parameters = array())
     {
 
-        if (!$this->send( $command, $parameters )) {
+        if (!$this->send($command, $parameters)) {
             return false;
         }
 
-        return $this->receive( $this->tag );
+        return $this->receive($this->tag);
     }
 
     /**
@@ -372,7 +372,7 @@ class Imap extends Base
      *
      * @return string
      */
-    protected function receive( $sentTag )
+    protected function receive($sentTag)
     {
 
         $this->buffer = array();
@@ -380,8 +380,8 @@ class Imap extends Base
         $start = time();
 
         while (time() < ( $start + self::TIMEOUT )) {
-            list( $receivedTag, $line ) = explode( ' ', $this->getLine(), 2 );
-            $this->buffer[] = trim( $receivedTag.' '.$line );
+            list( $receivedTag, $line ) = explode(' ', $this->getLine(), 2);
+            $this->buffer[] = trim($receivedTag.' '.$line);
             if ($receivedTag == 'TAG'.$sentTag) {
                 return $this->buffer;
             }
@@ -399,20 +399,20 @@ class Imap extends Base
      *
      * @return string
      */
-    private function escape( $string )
+    private function escape($string)
     {
 
         if (func_num_args() < 2) {
-            if (strpos( $string, "\n" ) !== false) {
-                return array( '{'.strlen( $string ).'}', $string );
+            if (strpos($string, "\n") !== false) {
+                return array('{'.strlen($string).'}', $string);
             } else {
-                return '"'.str_replace( array( '\\', '"' ), array( '\\\\', '\\"' ), $string ).'"';
+                return '"'.str_replace(array('\\', '"'), array('\\\\', '\\"'), $string).'"';
             }
         }
 
         $result = array();
         foreach (func_get_args() as $string) {
-            $result[] = $this->escape( $string );
+            $result[] = $this->escape($string);
         }
 
         return $result;
@@ -427,11 +427,11 @@ class Imap extends Base
      *
      * @return array
      */
-    private function getEmailResponse( $command, $parameters = array(), $first = false )
+    private function getEmailResponse($command, $parameters = array(), $first = false)
     {
 
         //send out the command
-        if (!$this->send( $command, $parameters )) {
+        if (!$this->send($command, $parameters)) {
             return false;
         }
 
@@ -442,15 +442,15 @@ class Imap extends Base
         //while there is no hang
         while (time() < ( $start + self::TIMEOUT )) {
             //get a response line
-            $line = str_replace( "\n", '', $this->getLine() );
+            $line = str_replace("\n", '', $this->getLine());
 
             //if the line starts with a fetch
             //it means it's the end of getting an email
-            if (strpos( $line, 'FETCH' ) !== false && strpos( $line, 'TAG'.$this->tag ) === false) {
+            if (strpos($line, 'FETCH') !== false && strpos($line, 'TAG'.$this->tag) === false) {
                 //if there is email data
                 if (!empty( $email )) {
                     //create the email format and add it to emails
-                    $emails[$uniqueId] = $this->getEmailFormat( $email, $uniqueId, $flags );
+                    $emails[$uniqueId] = $this->getEmailFormat($email, $uniqueId, $flags);
 
                     //if all we want is the first one
                     if ($first) {
@@ -463,7 +463,7 @@ class Imap extends Base
                 }
 
                 //if just okay
-                if (strpos( $line, 'OK' ) !== false) {
+                if (strpos($line, 'OK') !== false) {
                     //then skip the rest
                     continue;
                 }
@@ -471,32 +471,32 @@ class Imap extends Base
                 //if it's not just ok
                 //it will contain the message id and the unique id and flags
                 $flags = array();
-                if (strpos( $line, '\Answered' ) !== false) {
+                if (strpos($line, '\Answered') !== false) {
                     $flags[] = 'answered';
                 }
 
-                if (strpos( $line, '\Flagged' ) !== false) {
+                if (strpos($line, '\Flagged') !== false) {
                     $flags[] = 'flagged';
                 }
 
-                if (strpos( $line, '\Deleted' ) !== false) {
+                if (strpos($line, '\Deleted') !== false) {
                     $flags[] = 'deleted';
                 }
 
-                if (strpos( $line, '\Seen' ) !== false) {
+                if (strpos($line, '\Seen') !== false) {
                     $flags[] = 'seen';
                 }
 
-                if (strpos( $line, '\Draft' ) !== false) {
+                if (strpos($line, '\Draft') !== false) {
                     $flags[] = 'draft';
                 }
 
-                $findUid = explode( ' ', $line );
+                $findUid = explode(' ', $line);
                 foreach ($findUid as $i => $uid) {
-                    if (is_numeric( $uid )) {
+                    if (is_numeric($uid)) {
                         $uniqueId = $uid;
                     }
-                    if (strpos( strtolower( $uid ), 'uid' ) !== false) {
+                    if (strpos(strtolower($uid), 'uid') !== false) {
                         $uniqueId = $findUid[$i + 1];
                         break;
                     }
@@ -507,18 +507,18 @@ class Imap extends Base
             }
 
             //if there is a tag it means we are at the end
-            if (strpos( $line, 'TAG'.$this->tag ) !== false) {
+            if (strpos($line, 'TAG'.$this->tag) !== false) {
 
                 //if email details are not empty and the last line is just a )
-                if (!empty( $email ) && strpos( trim( $email[count( $email ) - 1] ), ')' ) === 0) {
+                if (!empty( $email ) && strpos(trim($email[count($email) - 1]), ')') === 0) {
                     //take it out because that is not part of the details
-                    array_pop( $email );
+                    array_pop($email);
                 }
 
                 //if there is email data
                 if (!empty( $email )) {
                     //create the email format and add it to emails
-                    $emails[$uniqueId] = $this->getEmailFormat( $email, $uniqueId, $flags );
+                    $emails[$uniqueId] = $this->getEmailFormat($email, $uniqueId, $flags);
 
                     //if all we want is the first one
                     if ($first) {
@@ -549,51 +549,51 @@ class Imap extends Base
      *
      * @return array
      */
-    private function getEmailFormat( $email, $uniqueId = null, array $flags = array() )
+    private function getEmailFormat($email, $uniqueId = null, array $flags = array())
     {
 
         //if email is an array
-        if (is_array( $email )) {
+        if (is_array($email)) {
             //make it into a string
-            $email = implode( "\n", $email );
+            $email = implode("\n", $email);
         }
 
         //split the head and the body
-        $parts = preg_split( "/\n\s*\n/", $email, 2 );
+        $parts = preg_split("/\n\s*\n/", $email, 2);
 
         $head = $parts[0];
         $body = null;
-        if (isset( $parts[1] ) && trim( $parts[1] ) != ')') {
+        if (isset( $parts[1] ) && trim($parts[1]) != ')') {
             $body = $parts[1];
         }
 
-        $lines = explode( "\n", $head );
+        $lines = explode("\n", $head);
         $head = array();
         foreach ($lines as $line) {
-            if (trim( $line ) && preg_match( "/^\s+/", $line )) {
-                $head[count( $head ) - 1] .= ' '.trim( $line );
+            if (trim($line) && preg_match("/^\s+/", $line)) {
+                $head[count($head) - 1] .= ' '.trim($line);
                 continue;
             }
 
-            $head[] = trim( $line );
+            $head[] = trim($line);
         }
 
-        $head = implode( "\n", $head );
+        $head = implode("\n", $head);
 
         $recipientsTo = $recipientsCc = $recipientsBcc = $sender = array();
 
         //get the headers
-        $headers1 = imap_rfc822_parse_headers( $head );
-        $headers2 = $this->getHeaders( $head );
+        $headers1 = imap_rfc822_parse_headers($head);
+        $headers2 = $this->getHeaders($head);
 
         //set the from
         $sender['name'] = null;
         if (isset( $headers1->from[0]->personal )) {
             $sender['name'] = $headers1->from[0]->personal;
             //if the name is iso or utf encoded
-            if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $sender['name'] ) )) {
+            if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($sender['name']))) {
                 //decode the subject
-                $sender['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $sender['name'] ) );
+                $sender['name'] = str_replace('_', ' ', mb_decode_mimeheader($sender['name']));
             }
         }
 
@@ -606,13 +606,13 @@ class Imap extends Base
                     continue;
                 }
 
-                $recipient = array( 'name' => null );
+                $recipient = array('name' => null);
                 if (isset( $to->personal )) {
                     $recipient['name'] = $to->personal;
                     //if the name is iso or utf encoded
-                    if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $recipient['name'] ) )) {
+                    if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($recipient['name']))) {
                         //decode the subject
-                        $recipient['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $recipient['name'] ) );
+                        $recipient['name'] = str_replace('_', ' ', mb_decode_mimeheader($recipient['name']));
                     }
                 }
 
@@ -625,14 +625,14 @@ class Imap extends Base
         //set the cc
         if (isset( $headers1->cc )) {
             foreach ($headers1->cc as $cc) {
-                $recipient = array( 'name' => null );
+                $recipient = array('name' => null);
                 if (isset( $cc->personal )) {
                     $recipient['name'] = $cc->personal;
 
                     //if the name is iso or utf encoded
-                    if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $recipient['name'] ) )) {
+                    if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($recipient['name']))) {
                         //decode the subject
-                        $recipient['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $recipient['name'] ) );
+                        $recipient['name'] = str_replace('_', ' ', mb_decode_mimeheader($recipient['name']));
                     }
                 }
 
@@ -645,13 +645,13 @@ class Imap extends Base
         //set the bcc
         if (isset( $headers1->bcc )) {
             foreach ($headers1->bcc as $bcc) {
-                $recipient = array( 'name' => null );
+                $recipient = array('name' => null);
                 if (isset( $bcc->personal )) {
                     $recipient['name'] = $bcc->personal;
                     //if the name is iso or utf encoded
-                    if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $recipient['name'] ) )) {
+                    if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($recipient['name']))) {
                         //decode the subject
-                        $recipient['name'] = str_replace( '_', ' ', mb_decode_mimeheader( $recipient['name'] ) );
+                        $recipient['name'] = str_replace('_', ' ', mb_decode_mimeheader($recipient['name']));
                     }
                 }
 
@@ -662,36 +662,36 @@ class Imap extends Base
         }
 
         //if subject is not set
-        if (!isset( $headers1->subject ) || strlen( trim( $headers1->subject ) ) === 0) {
+        if (!isset( $headers1->subject ) || strlen(trim($headers1->subject)) === 0) {
             //set subject
             $headers1->subject = self::NO_SUBJECT;
         }
 
         //trim the subject
-        $headers1->subject = str_replace( array( '<', '>' ), '', trim( $headers1->subject ) );
+        $headers1->subject = str_replace(array('<', '>'), '', trim($headers1->subject));
 
         //if the subject is iso or utf encoded
-        if (preg_match( "/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower( $headers1->subject ) )) {
+        if (preg_match("/^\=\?[a-zA-Z]+\-[0-9]+.*\?/", strtolower($headers1->subject))) {
             //decode the subject
-            $headers1->subject = str_replace( '_', ' ', mb_decode_mimeheader( $headers1->subject ) );
+            $headers1->subject = str_replace('_', ' ', mb_decode_mimeheader($headers1->subject));
         }
 
         //set thread details
         $topic = isset( $headers2['thread-topic'] ) ? $headers2['thread-topic'] : $headers1->subject;
-        $parent = isset( $headers2['in-reply-to'] ) ? str_replace( '"', '', $headers2['in-reply-to'] ) : null;
+        $parent = isset( $headers2['in-reply-to'] ) ? str_replace('"', '', $headers2['in-reply-to']) : null;
 
         //set date
-        $date = isset( $headers1->date ) ? strtotime( $headers1->date ) : null;
+        $date = isset( $headers1->date ) ? strtotime($headers1->date) : null;
 
         //set message id
         if (isset( $headers2['message-id'] )) {
-            $messageId = str_replace( '"', '', $headers2['message-id'] );
+            $messageId = str_replace('"', '', $headers2['message-id']);
         } else {
-            $messageId = '<eden-no-id-'.md5( uniqid() ).'>';
+            $messageId = '<eden-no-id-'.md5(uniqid()).'>';
         }
 
         $attachment = isset( $headers2['content-type'] )
-            && strpos( $headers2['content-type'], 'multipart/mixed' ) === 0;
+            && strpos($headers2['content-type'], 'multipart/mixed') === 0;
 
         $format = array(
             'id'         => $messageId,
@@ -700,7 +700,7 @@ class Imap extends Base
             'mailbox'    => $this->mailbox,
             'uid'        => $uniqueId,
             'date'       => $date,
-            'subject'    => str_replace( '’', '\'', $headers1->subject ),
+            'subject' => str_replace('’', '\'', $headers1->subject),
             'from'       => $sender,
             'flags'      => $flags,
             'to'         => $recipientsTo,
@@ -709,14 +709,14 @@ class Imap extends Base
             'attachment' => $attachment
         );
 
-        if (trim( $body ) && $body != ')') {
+        if (trim($body) && $body != ')') {
             //get the body parts
-            $parts = $this->getParts( $email );
+            $parts = $this->getParts($email);
 
             //if there are no parts
             if (empty( $parts )) {
                 //just make the body as a single part
-                $parts = array( 'text/plain' => $body );
+                $parts = array('text/plain' => $body);
             }
 
             //set body to the body parts
@@ -746,35 +746,35 @@ class Imap extends Base
      *
      * @return array
      */
-    private function getHeaders( $rawData )
+    private function getHeaders($rawData)
     {
 
-        if (is_string( $rawData )) {
-            $rawData = explode( "\n", $rawData );
+        if (is_string($rawData)) {
+            $rawData = explode("\n", $rawData);
         }
 
         $key = null;
         $headers = array();
         foreach ($rawData as $line) {
-            $line = trim( $line );
-            if (preg_match( "/^([a-zA-Z0-9-]+):/i", $line, $matches )) {
-                $key = strtolower( $matches[1] );
+            $line = trim($line);
+            if (preg_match("/^([a-zA-Z0-9-]+):/i", $line, $matches)) {
+                $key = strtolower($matches[1]);
                 if (isset( $headers[$key] )) {
-                    if (!is_array( $headers[$key] )) {
-                        $headers[$key] = array( $headers[$key] );
+                    if (!is_array($headers[$key])) {
+                        $headers[$key] = array($headers[$key]);
                     }
 
-                    $headers[$key][] = trim( str_replace( $matches[0], '', $line ) );
+                    $headers[$key][] = trim(str_replace($matches[0], '', $line));
                     continue;
                 }
 
-                $headers[$key] = trim( str_replace( $matches[0], '', $line ) );
+                $headers[$key] = trim(str_replace($matches[0], '', $line));
                 continue;
             }
 
-            if (!is_null( $key ) && isset( $headers[$key] )) {
-                if (is_array( $headers[$key] )) {
-                    $headers[$key][count( $headers[$key] ) - 1] .= ' '.$line;
+            if (!is_null($key) && isset( $headers[$key] )) {
+                if (is_array($headers[$key])) {
+                    $headers[$key][count($headers[$key]) - 1] .= ' '.$line;
                     continue;
                 }
 
@@ -794,43 +794,43 @@ class Imap extends Base
      *
      * @return array
      */
-    private function getParts( $content, array $parts = array() )
+    private function getParts($content, array $parts = array())
     {
 
         //separate the head and the body
-        list( $head, $body ) = preg_split( "/\n\s*\n/", $content, 2 );
+        list( $head, $body ) = preg_split("/\n\s*\n/", $content, 2);
         //front()->output($head);
         //get the headers
-        $head = $this->getHeaders( $head );
+        $head = $this->getHeaders($head);
         //if content type is not set
         if (!isset( $head['content-type'] )) {
             return $parts;
         }
 
         //split the content type
-        if (is_array( $head['content-type'] )) {
-            $type = array( $head['content-type'][1] );
-            if (strpos( $type[0], ';' ) !== false) {
-                $type = explode( ';', $type[0], 2 );
+        if (is_array($head['content-type'])) {
+            $type = array($head['content-type'][1]);
+            if (strpos($type[0], ';') !== false) {
+                $type = explode(';', $type[0], 2);
             }
         } else {
-            $type = explode( ';', $head['content-type'], 2 );
+            $type = explode(';', $head['content-type'], 2);
         }
 
         //see if there are any extra stuff
         $extra = array();
-        if (count( $type ) == 2) {
-            $extra = explode( '; ', str_replace( array( '"', "'" ), '', trim( $type[1] ) ) );
+        if (count($type) == 2) {
+            $extra = explode('; ', str_replace(array('"', "'"), '', trim($type[1])));
         }
 
         //the content type is the first part of this
-        $type = trim( $type[0] );
+        $type = trim($type[0]);
 
         //foreach extra
         foreach ($extra as $i => $attr) {
             //transform the extra array to a key value pair
-            $attr = explode( '=', $attr, 2 );
-            if (count( $attr ) > 1) {
+            $attr = explode('=', $attr, 2);
+            if (count($attr) > 1) {
                 list( $key, $value ) = $attr;
                 $extra[$key] = $value;
             }
@@ -840,37 +840,37 @@ class Imap extends Base
         //if a boundary is set
         if (isset( $extra['boundary'] )) {
             //split the body into sections
-            $sections = explode( '--'.str_replace( array( '"', "'" ), '', $extra['boundary'] ), $body );
+            $sections = explode('--'.str_replace(array('"', "'"), '', $extra['boundary']), $body);
             //we only want what's in the middle of these sections
-            array_pop( $sections );
-            array_shift( $sections );
+            array_pop($sections);
+            array_shift($sections);
 
             //foreach section
             foreach ($sections as $section) {
                 //get the parts of that
-                $parts = $this->getParts( $section, $parts );
+                $parts = $this->getParts($section, $parts);
             }
         } else {
             //if name is set, it's an attachment
             //if encoding is set
             if (isset( $head['content-transfer-encoding'] )) {
                 //the goal here is to make everytihg utf-8 standard
-                if (is_array( $head['content-transfer-encoding'] )) {
-                    $head['content-transfer-encoding'] = array_pop( $head['content-transfer-encoding'] );
+                if (is_array($head['content-transfer-encoding'])) {
+                    $head['content-transfer-encoding'] = array_pop($head['content-transfer-encoding']);
                 }
 
-                switch (strtolower( $head['content-transfer-encoding'] )) {
+                switch (strtolower($head['content-transfer-encoding'])) {
                     case 'binary':
-                        $body = imap_binary( $body );
+                        $body = imap_binary($body);
                         break;
                     case 'base64':
-                        $body = base64_decode( $body );
+                        $body = base64_decode($body);
                         break;
                     case 'quoted-printable':
-                        $body = quoted_printable_decode( $body );
+                        $body = quoted_printable_decode($body);
                         break;
                     case '7bit':
-                        $body = mb_convert_encoding( $body, 'UTF-8', 'ISO-2022-JP' );
+                        $body = mb_convert_encoding($body, 'UTF-8', 'ISO-2022-JP');
                         break;
                     default:
                         break;
@@ -897,15 +897,15 @@ class Imap extends Base
      *
      * @return string
      */
-    private function getList( $array )
+    private function getList($array)
     {
 
         $list = array();
         foreach ($array as $key => $value) {
-            $list[] = !is_array( $value ) ? $value : $this->getList( $v );
+            $list[] = !is_array($value) ? $value : $this->getList($v);
         }
 
-        return '('.implode( ' ', $list ).')';
+        return '('.implode(' ', $list).')';
     }
 
     /**
@@ -942,21 +942,21 @@ class Imap extends Base
             $this->connect();
         }
 
-        $response = $this->call( 'LIST', $this->escape( '', '*' ) );
+        $response = $this->call('LIST', $this->escape('', '*'));
 
         $mailboxes = array();
         foreach ($response as $line) {
-            if (strpos( $line, 'Noselect' ) !== false || strpos( $line, 'LIST' ) == false) {
+            if (strpos($line, 'Noselect') !== false || strpos($line, 'LIST') == false) {
                 continue;
             }
 
-            $line = explode( '"', $line );
+            $line = explode('"', $line);
 
-            if (strpos( trim( $line[0] ), '*' ) !== 0) {
+            if (strpos(trim($line[0]), '*') !== 0) {
                 continue;
             }
 
-            $mailboxes[] = $line[count( $line ) - 2];
+            $mailboxes[] = $line[count($line) - 2];
         }
 
         return $mailboxes;
@@ -970,22 +970,22 @@ class Imap extends Base
      *
      * @return Eden\Mail\Imap
      */
-    public function move( $uid, $mailbox )
+    public function move($uid, $mailbox)
     {
 
-        Argument::i()->test( 1, 'int', 'string' )->test( 2, 'string' );
+        Argument::i()->test(1, 'int', 'string')->test(2, 'string');
 
         if (!$this->socket) {
             $this->connect();
         }
 
-        if (!is_array( $uid )) {
-            $uid = array( $uid );
+        if (!is_array($uid)) {
+            $uid = array($uid);
         }
 
-        $this->call( 'UID COPY '.implode( ',', $uid ).' '.$mailbox );
+        $this->call('UID COPY '.implode(',', $uid).' '.$mailbox);
 
-        return $this->remove( $uid );
+        return $this->remove($uid);
     }
 
     /**
@@ -995,20 +995,20 @@ class Imap extends Base
      *
      * @return Eden\Mail\Imap
      */
-    public function remove( $uid )
+    public function remove($uid)
     {
 
-        Argument::i()->test( 1, 'int', 'string' );
+        Argument::i()->test(1, 'int', 'string');
 
         if (!$this->socket) {
             $this->connect();
         }
 
-        if (!is_array( $uid )) {
-            $uid = array( $uid );
+        if (!is_array($uid)) {
+            $uid = array($uid);
         }
 
-        $this->call( 'UID STORE '.implode( ',', $uid ).' FLAGS.SILENT \Deleted' );
+        $this->call('UID STORE '.implode(',', $uid).' FLAGS.SILENT \Deleted');
 
         return $this;
     }
@@ -1021,7 +1021,7 @@ class Imap extends Base
     public function expunge()
     {
 
-        $this->call( 'expunge' );
+        $this->call('expunge');
 
         return $this;
     }
@@ -1047,10 +1047,10 @@ class Imap extends Base
     ) {
 
         Argument::i()
-            ->test( 2, 'int' )
-            ->test( 3, 'int' )
-            ->test( 4, 'bool' )
-            ->test( 5, 'bool' );
+            ->test(2, 'int')
+            ->test(3, 'int')
+            ->test(4, 'bool')
+            ->test(5, 'bool');
 
         if (!$this->socket) {
             $this->connect();
@@ -1059,7 +1059,7 @@ class Imap extends Base
         //build a search criteria
         $search = $not = array();
         foreach ($filter as $where) {
-            if (is_string( $where )) {
+            if (is_string($where)) {
                 $search[] = $where;
                 continue;
             }
@@ -1078,17 +1078,17 @@ class Imap extends Base
         }
 
         //if this is an or search
-        if ($or && count( $search ) > 1) {
+        if ($or && count($search) > 1) {
             //item1
             //OR (item1) (item2)
             //OR (item1) (OR (item2) (item3))
             //OR (item1) (OR (item2) (OR (item3) (item4)))
             $query = null;
-            while ($item = array_pop( $search )) {
-                if (is_null( $query )) {
+            while ($item = array_pop($search)) {
+                if (is_null($query)) {
                     $query = $item;
                 } else {
-                    if (strpos( $query, 'OR' ) !== 0) {
+                    if (strpos($query, 'OR') !== 0) {
                         $query = 'OR ('.$query.') ('.$item.')';
                     } else {
                         $query = 'OR ('.$item.') ('.$query.')';
@@ -1099,23 +1099,23 @@ class Imap extends Base
             $search = $query;
         } else {
             //this is an and search
-            $search = implode( ' ', $search );
+            $search = implode(' ', $search);
         }
 
         //do the search
-        $response = $this->call( 'UID SEARCH '.$search );
+        $response = $this->call('UID SEARCH '.$search);
 
         //get the result
-        $result = array_pop( $response );
+        $result = array_pop($response);
         //if we got some results
-        if (strpos( $result, 'OK' ) !== false) {
+        if (strpos($result, 'OK') !== false) {
             //parse out the uids
-            $uids = explode( ' ', $response[0] );
-            array_shift( $uids );
-            array_shift( $uids );
+            $uids = explode(' ', $response[0]);
+            array_shift($uids);
+            array_shift($uids);
 
             foreach ($uids as $i => $uid) {
-                if (in_array( $uid, $not )) {
+                if (in_array($uid, $not)) {
                     unset( $uids[$i] );
                 }
             }
@@ -1124,7 +1124,7 @@ class Imap extends Base
                 return array();
             }
 
-            $uids = array_reverse( $uids );
+            $uids = array_reverse($uids);
 
             //pagination
             $count = 0;
@@ -1143,7 +1143,7 @@ class Imap extends Base
             }
 
             //return the email details for this
-            return $this->getUniqueEmails( $uids, $body );
+            return $this->getUniqueEmails($uids, $body);
         }
 
         //it's not okay just return an empty set
@@ -1157,12 +1157,12 @@ class Imap extends Base
      *
      * @return array
      */
-    public function getUniqueEmails( $uid, $body = false )
+    public function getUniqueEmails($uid, $body = false)
     {
 
         Argument::i()
-            ->test( 1, 'int', 'string', 'array' )
-            ->test( 2, 'bool' );
+            ->test(1, 'int', 'string', 'array')
+            ->test(2, 'bool');
 
         //if not connected
         if (!$this->socket) {
@@ -1179,20 +1179,20 @@ class Imap extends Base
         }
 
         //if uid is an array
-        if (is_array( $uid )) {
-            $uid = implode( ',', $uid );
+        if (is_array($uid)) {
+            $uid = implode(',', $uid);
         }
 
         //lets call it
-        $items = array( 'UID', 'FLAGS', 'BODY[HEADER]' );
+        $items = array('UID', 'FLAGS', 'BODY[HEADER]');
 
         if ($body) {
-            $items = array( 'UID', 'FLAGS', 'BODY[]' );
+            $items = array('UID', 'FLAGS', 'BODY[]');
         }
 
-        $first = is_numeric( $uid ) ? true : false;
+        $first = is_numeric($uid) ? true : false;
 
-        return $this->getEmailResponse( 'UID FETCH', array( $uid, $this->getList( $items ) ), $first );
+        return $this->getEmailResponse('UID FETCH', array($uid, $this->getList($items)), $first);
     }
 
     /**
@@ -1202,10 +1202,10 @@ class Imap extends Base
      *
      * @return number
      */
-    public function searchTotal( array $filter, $or = false )
+    public function searchTotal(array $filter, $or = false)
     {
 
-        Argument::i()->test( 2, 'bool' );
+        Argument::i()->test(2, 'bool');
 
         if (!$this->socket) {
             $this->connect();
@@ -1224,25 +1224,25 @@ class Imap extends Base
 
         //if this is an or search
         if ($or) {
-            $search = 'OR ('.implode( ') (', $search ).')';
+            $search = 'OR ('.implode(') (', $search).')';
         } else {
             //this is an and search
-            $search = implode( ' ', $search );
+            $search = implode(' ', $search);
         }
 
-        $response = $this->call( 'UID SEARCH '.$search );
+        $response = $this->call('UID SEARCH '.$search);
 
         //get the result
-        $result = array_pop( $response );
+        $result = array_pop($response);
 
         //if we got some results
-        if (strpos( $result, 'OK' ) !== false) {
+        if (strpos($result, 'OK') !== false) {
             //parse out the uids
-            $uids = explode( ' ', $response[0] );
-            array_shift( $uids );
-            array_shift( $uids );
+            $uids = explode(' ', $response[0]);
+            array_shift($uids);
+            array_shift($uids);
 
-            return count( $uids );
+            return count($uids);
         }
 
         //it's not okay just return 0
@@ -1257,25 +1257,25 @@ class Imap extends Base
      *
      * @return false|Eden\Mail\Imap
      */
-    public function setActiveMailbox( $mailbox )
+    public function setActiveMailbox($mailbox)
     {
 
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
         if (!$this->socket) {
             $this->connect();
         }
 
-        $response = $this->call( 'SELECT', $this->escape( $mailbox ) );
-        $result = array_pop( $response );
+        $response = $this->call('SELECT', $this->escape($mailbox));
+        $result = array_pop($response);
 
         foreach ($response as $line) {
-            if (strpos( $line, 'EXISTS' ) !== false) {
-                list( $star, $this->total, $type ) = explode( ' ', $line, 3 );
+            if (strpos($line, 'EXISTS') !== false) {
+                list( $star, $this->total, $type ) = explode(' ', $line, 3);
             } else {
-                if (strpos( $line, 'UIDNEXT' ) !== false) {
-                    list( $star, $ok, $next, $this->next, $type ) = explode( ' ', $line, 5 );
-                    $this->next = substr( $this->next, 0, -1 );
+                if (strpos($line, 'UIDNEXT') !== false) {
+                    list( $star, $ok, $next, $this->next, $type ) = explode(' ', $line, 5);
+                    $this->next = substr($this->next, 0, -1);
                 }
             }
 
@@ -1284,7 +1284,7 @@ class Imap extends Base
             }
         }
 
-        if (strpos( $result, 'OK' ) !== false) {
+        if (strpos($result, 'OK') !== false) {
             $this->mailbox = $mailbox;
 
             return $this;
@@ -1295,24 +1295,24 @@ class Imap extends Base
 }
 
 // if IMAP PHP is not installed we still need these functions
-if (!function_exists( 'imap_rfc822_parse_headers' )) {
-    function imap_rfc822_parse_headers_decode( $from )
+if (!function_exists('imap_rfc822_parse_headers')) {
+    function imap_rfc822_parse_headers_decode($from)
     {
 
-        if (preg_match( '#\<([^\>]*)#', html_entity_decode( $from ) )) {
-            preg_match( '#([^<]*)\<([^\>]*)\>#', html_entity_decode( $from ), $From );
+        if (preg_match('#\<([^\>]*)#', html_entity_decode($from))) {
+            preg_match('#([^<]*)\<([^\>]*)\>#', html_entity_decode($from), $From);
             $from = array(
-                'personal' => trim( $From[1] ),
-                'email'    => trim( $From[2] )
+                'personal' => trim($From[1]),
+                'email'    => trim($From[2])
             );
         } else {
             $from = array(
                 'personal' => '',
-                'email'    => trim( $from )
+                'email' => trim($from)
             );
         }
 
-        preg_match( '#([^\@]*)@(.*)#', $from['email'], $from );
+        preg_match('#([^\@]*)@(.*)#', $from['email'], $from);
 
         if (empty( $from[1] )) {
             $from[1] = '';
@@ -1323,75 +1323,75 @@ if (!function_exists( 'imap_rfc822_parse_headers' )) {
         }
 
         $__from = array(
-            'mailbox' => trim( $from[1] ),
-            'host'    => trim( $from[2] )
+            'mailbox' => trim($from[1]),
+            'host'    => trim($from[2])
         );
 
-        return (object)array_merge( $from, $__from );
+        return (object)array_merge($from, $__from);
     }
 
-    function imap_rfc822_parse_headers( $header )
+    function imap_rfc822_parse_headers($header)
     {
 
-        $header = htmlentities( $header );
+        $header = htmlentities($header);
         $headers = new \stdClass();
         $tos = $ccs = $bccs = array();
         $headers->to = $headers->cc = $headers->bcc = array();
 
-        preg_match( '#Message\-(ID|id|Id)\:([^\n]*)#', $header, $ID );
-        $headers->ID = trim( $ID[2] );
+        preg_match('#Message\-(ID|id|Id)\:([^\n]*)#', $header, $ID);
+        $headers->ID = trim($ID[2]);
         unset( $ID );
 
-        preg_match( '#\nTo\:([^\n]*)#', $header, $to );
+        preg_match('#\nTo\:([^\n]*)#', $header, $to);
         if (isset( $to[1] )) {
-            $tos = array( trim( $to[1] ) );
-            if (strpos( $to[1], ',' ) !== false) {
-                explode( ',', trim( $to[1] ) );
+            $tos = array(trim($to[1]));
+            if (strpos($to[1], ',') !== false) {
+                explode(',', trim($to[1]));
             }
         }
 
-        $headers->from = array( new \stdClass() );
-        preg_match( '#\nFrom\:([^\n]*)#', $header, $from );
-        $headers->from[0] = imap_rfc822_parse_headers_decode( trim( $from[1] ) );
+        $headers->from = array(new \stdClass());
+        preg_match('#\nFrom\:([^\n]*)#', $header, $from);
+        $headers->from[0] = imap_rfc822_parse_headers_decode(trim($from[1]));
 
-        preg_match( '#\nCc\:([^\n]*)#', $header, $cc );
+        preg_match('#\nCc\:([^\n]*)#', $header, $cc);
         if (isset( $cc[1] )) {
-            $ccs = array( trim( $cc[1] ) );
-            if (strpos( $cc[1], ',' ) !== false) {
-                explode( ',', trim( $cc[1] ) );
+            $ccs = array(trim($cc[1]));
+            if (strpos($cc[1], ',') !== false) {
+                explode(',', trim($cc[1]));
             }
         }
 
-        preg_match( '#\nBcc\:([^\n]*)#', $header, $bcc );
+        preg_match('#\nBcc\:([^\n]*)#', $header, $bcc);
         if (isset( $bcc[1] )) {
-            $bccs = array( trim( $bcc[1] ) );
-            if (strpos( $bcc[1], ',' ) !== false) {
-                explode( ',', trim( $bcc[1] ) );
+            $bccs = array(trim($bcc[1]));
+            if (strpos($bcc[1], ',') !== false) {
+                explode(',', trim($bcc[1]));
             }
         }
 
-        preg_match( '#\nSubject\:([^\n]*)#', $header, $subject );
-        $headers->subject = trim( $subject[1] );
+        preg_match('#\nSubject\:([^\n]*)#', $header, $subject);
+        $headers->subject = trim($subject[1]);
         unset( $subject );
 
-        preg_match( '#\nDate\:([^\n]*)#', $header, $date );
-        $date = substr( trim( $date[0] ), 6 );
+        preg_match('#\nDate\:([^\n]*)#', $header, $date);
+        $date = substr(trim($date[0]), 6);
 
-        $date = preg_replace( '/\(.*\)/', '', $date );
+        $date = preg_replace('/\(.*\)/', '', $date);
 
-        $headers->date = trim( $date );
+        $headers->date = trim($date);
         unset( $date );
 
         foreach ($ccs as $k => $cc) {
-            $headers->cc[$k] = imap_rfc822_parse_headers_decode( trim( $cc ) );
+            $headers->cc[$k] = imap_rfc822_parse_headers_decode(trim($cc));
         }
 
         foreach ($bccs as $k => $bcc) {
-            $headers->bcc[$k] = imap_rfc822_parse_headers_decode( trim( $bcc ) );
+            $headers->bcc[$k] = imap_rfc822_parse_headers_decode(trim($bcc));
         }
 
         foreach ($tos as $k => $to) {
-            $headers->to[$k] = imap_rfc822_parse_headers_decode( trim( $to ) );
+            $headers->to[$k] = imap_rfc822_parse_headers_decode(trim($to));
         }
 
         return $headers;

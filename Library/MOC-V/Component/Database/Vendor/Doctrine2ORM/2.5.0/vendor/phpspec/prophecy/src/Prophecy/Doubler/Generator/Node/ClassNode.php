@@ -20,17 +20,19 @@ use Prophecy\Exception\InvalidArgumentException;
  */
 class ClassNode
 {
+
     private $parentClass = 'stdClass';
-    private $interfaces  = array();
-    private $properties  = array();
+    private $interfaces = array();
+    private $properties = array();
 
     /**
      * @var MethodNode[]
      */
-    private $methods     = array();
+    private $methods = array();
 
     public function getParentClass()
     {
+
         return $this->parentClass;
     }
 
@@ -39,6 +41,7 @@ class ClassNode
      */
     public function setParentClass($class)
     {
+
         $this->parentClass = $class ?: 'stdClass';
     }
 
@@ -47,6 +50,7 @@ class ClassNode
      */
     public function getInterfaces()
     {
+
         return $this->interfaces;
     }
 
@@ -55,6 +59,7 @@ class ClassNode
      */
     public function addInterface($interface)
     {
+
         if ($this->hasInterface($interface)) {
             return;
         }
@@ -69,16 +74,19 @@ class ClassNode
      */
     public function hasInterface($interface)
     {
+
         return in_array($interface, $this->interfaces);
     }
 
     public function getProperties()
     {
+
         return $this->properties;
     }
 
     public function addProperty($name, $visibility = 'public')
     {
+
         $visibility = strtolower($visibility);
 
         if (!in_array($visibility, array('public', 'private', 'protected'))) {
@@ -95,17 +103,20 @@ class ClassNode
      */
     public function getMethods()
     {
+
         return $this->methods;
     }
 
     public function addMethod(MethodNode $method)
     {
+
         $this->methods[$method->getName()] = $method;
     }
 
     public function removeMethod($name)
     {
-        unset($this->methods[$name]);
+
+        unset( $this->methods[$name] );
     }
 
     /**
@@ -115,6 +126,7 @@ class ClassNode
      */
     public function getMethod($name)
     {
+
         return $this->hasMethod($name) ? $this->methods[$name] : null;
     }
 
@@ -125,6 +137,7 @@ class ClassNode
      */
     public function hasMethod($name)
     {
-        return isset($this->methods[$name]);
+
+        return isset( $this->methods[$name] );
     }
 }

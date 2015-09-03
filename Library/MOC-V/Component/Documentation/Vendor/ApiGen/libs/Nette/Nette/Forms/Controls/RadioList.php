@@ -40,15 +40,15 @@ class RadioList extends BaseControl
      * @param  string  label
      * @param  array   options from which to choose
      */
-    public function __construct( $label = null, array $items = null )
+    public function __construct($label = null, array $items = null)
     {
 
-        parent::__construct( $label );
+        parent::__construct($label);
         $this->control->type = 'radio';
         $this->container = Html::el();
-        $this->separator = Html::el( 'br' );
+        $this->separator = Html::el('br');
         if ($items !== null) {
-            $this->setItems( $items );
+            $this->setItems($items);
         }
     }
 
@@ -70,10 +70,10 @@ class RadioList extends BaseControl
      *
      * @return mixed
      */
-    public function getValue( $raw = false )
+    public function getValue($raw = false)
     {
 
-        return is_scalar( $this->value ) && ( $raw || isset( $this->items[$this->value] ) ) ? $this->value : null;
+        return is_scalar($this->value) && ( $raw || isset( $this->items[$this->value] ) ) ? $this->value : null;
     }
 
     /**
@@ -94,7 +94,7 @@ class RadioList extends BaseControl
      *
      * @return RadioList  provides a fluent interface
      */
-    public function setItems( array $items )
+    public function setItems(array $items)
     {
 
         $this->items = $items;
@@ -132,7 +132,7 @@ class RadioList extends BaseControl
      *
      * @return Nette\Utils\Html
      */
-    public function getControl( $key = null )
+    public function getControl($key = null)
     {
 
         if ($key === null) {
@@ -147,7 +147,7 @@ class RadioList extends BaseControl
         $id = $control->id;
         $counter = -1;
         $value = $this->value === null ? null : (string)$this->getValue();
-        $label = Html::el( 'label' );
+        $label = Html::el('label');
 
         foreach ($this->items as $k => $val) {
             $counter++;
@@ -160,17 +160,17 @@ class RadioList extends BaseControl
             $control->value = $k;
 
             if ($val instanceof Html) {
-                $label->setHtml( $val );
+                $label->setHtml($val);
             } else {
-                $label->setText( $this->translate( (string)$val ) );
+                $label->setText($this->translate((string)$val));
             }
 
             if ($key !== null) {
-                return Html::el()->add( $control )->add( $label );
+                return Html::el()->add($control)->add($label);
             }
 
-            $container->add( (string)$control.(string)$label.$separator );
-            $control->data( 'nette-rules', null );
+            $container->add((string)$control.(string)$label.$separator);
+            $control->data('nette-rules', null);
             // TODO: separator after last item?
         }
 
@@ -185,10 +185,10 @@ class RadioList extends BaseControl
      *
      * @return void
      */
-    public function getLabel( $caption = null )
+    public function getLabel($caption = null)
     {
 
-        $label = parent::getLabel( $caption );
+        $label = parent::getLabel($caption);
         $label->for = null;
         return $label;
     }

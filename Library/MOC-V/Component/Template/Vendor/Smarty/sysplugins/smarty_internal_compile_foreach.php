@@ -23,21 +23,21 @@ class Smarty_Internal_Compile_Foreach extends Smarty_Internal_CompileBase
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $required_attributes = array( 'from', 'item' );
+    public $required_attributes = array('from', 'item');
     /**
      * Attribute definition: Overwrites base class.
      *
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $optional_attributes = array( 'name', 'key' );
+    public $optional_attributes = array('name', 'key');
     /**
      * Attribute definition: Overwrites base class.
      *
      * @var array
      * @see Smarty_Internal_CompileBase
      */
-    public $shorttag_order = array( 'from', 'item', 'key', 'name' );
+    public $shorttag_order = array('from', 'item', 'key', 'name');
 
     /**
      * Compiles code for the {foreach} tag
@@ -48,17 +48,17 @@ class Smarty_Internal_Compile_Foreach extends Smarty_Internal_CompileBase
      *
      * @return string compiled code
      */
-    public function compile( $args, $compiler, $parameter )
+    public function compile($args, $compiler, $parameter)
     {
 
         // check and get attributes
-        $_attr = $this->getAttributes( $compiler, $args );
+        $_attr = $this->getAttributes($compiler, $args);
 
         $from = $_attr['from'];
         $item = $_attr['item'];
-        if (!strncmp( "\$_smarty_tpl->tpl_vars[$item]", $from, strlen( $item ) + 24 )) {
-            $compiler->trigger_template_error( "item variable {$item} may not be the same variable as at 'from'",
-                $compiler->lex->taglineno );
+        if (!strncmp("\$_smarty_tpl->tpl_vars[$item]", $from, strlen($item) + 24)) {
+            $compiler->trigger_template_error("item variable {$item} may not be the same variable as at 'from'",
+                $compiler->lex->taglineno);
         }
 
         if (isset( $_attr['key'] )) {
@@ -67,27 +67,27 @@ class Smarty_Internal_Compile_Foreach extends Smarty_Internal_CompileBase
             $key = null;
         }
 
-        $this->openTag( $compiler, 'foreach', array( 'foreach', $compiler->nocache, $item, $key ) );
+        $this->openTag($compiler, 'foreach', array('foreach', $compiler->nocache, $item, $key));
         // maybe nocache because of nocache variables
         $compiler->nocache = $compiler->nocache | $compiler->tag_nocache;
 
         if (isset( $_attr['name'] )) {
             $name = $_attr['name'];
             $has_name = true;
-            $SmartyVarName = '$smarty.foreach.'.trim( $name, '\'"' ).'.';
+            $SmartyVarName = '$smarty.foreach.'.trim($name, '\'"').'.';
         } else {
             $name = null;
             $has_name = false;
         }
-        $ItemVarName = '$'.trim( $item, '\'"' ).'@';
+        $ItemVarName = '$'.trim($item, '\'"').'@';
         // evaluates which Smarty variables and properties have to be computed
         if ($has_name) {
-            $usesSmartyFirst = strpos( $compiler->lex->data, $SmartyVarName.'first' ) !== false;
-            $usesSmartyLast = strpos( $compiler->lex->data, $SmartyVarName.'last' ) !== false;
-            $usesSmartyIndex = strpos( $compiler->lex->data, $SmartyVarName.'index' ) !== false;
-            $usesSmartyIteration = strpos( $compiler->lex->data, $SmartyVarName.'iteration' ) !== false;
-            $usesSmartyShow = strpos( $compiler->lex->data, $SmartyVarName.'show' ) !== false;
-            $usesSmartyTotal = strpos( $compiler->lex->data, $SmartyVarName.'total' ) !== false;
+            $usesSmartyFirst = strpos($compiler->lex->data, $SmartyVarName.'first') !== false;
+            $usesSmartyLast = strpos($compiler->lex->data, $SmartyVarName.'last') !== false;
+            $usesSmartyIndex = strpos($compiler->lex->data, $SmartyVarName.'index') !== false;
+            $usesSmartyIteration = strpos($compiler->lex->data, $SmartyVarName.'iteration') !== false;
+            $usesSmartyShow = strpos($compiler->lex->data, $SmartyVarName.'show') !== false;
+            $usesSmartyTotal = strpos($compiler->lex->data, $SmartyVarName.'total') !== false;
         } else {
             $usesSmartyFirst = false;
             $usesSmartyLast = false;
@@ -95,13 +95,13 @@ class Smarty_Internal_Compile_Foreach extends Smarty_Internal_CompileBase
             $usesSmartyShow = false;
         }
 
-        $usesPropFirst = $usesSmartyFirst || strpos( $compiler->lex->data, $ItemVarName.'first' ) !== false;
-        $usesPropLast = $usesSmartyLast || strpos( $compiler->lex->data, $ItemVarName.'last' ) !== false;
-        $usesPropIndex = $usesPropFirst || strpos( $compiler->lex->data, $ItemVarName.'index' ) !== false;
-        $usesPropIteration = $usesPropLast || strpos( $compiler->lex->data, $ItemVarName.'iteration' ) !== false;
-        $usesPropShow = strpos( $compiler->lex->data, $ItemVarName.'show' ) !== false;
-        $usesPropTotal = $usesSmartyTotal || $usesSmartyShow || $usesPropShow || $usesPropLast || strpos( $compiler->lex->data,
-                $ItemVarName.'total' ) !== false;
+        $usesPropFirst = $usesSmartyFirst || strpos($compiler->lex->data, $ItemVarName.'first') !== false;
+        $usesPropLast = $usesSmartyLast || strpos($compiler->lex->data, $ItemVarName.'last') !== false;
+        $usesPropIndex = $usesPropFirst || strpos($compiler->lex->data, $ItemVarName.'index') !== false;
+        $usesPropIteration = $usesPropLast || strpos($compiler->lex->data, $ItemVarName.'iteration') !== false;
+        $usesPropShow = strpos($compiler->lex->data, $ItemVarName.'show') !== false;
+        $usesPropTotal = $usesSmartyTotal || $usesSmartyShow || $usesPropShow || $usesPropLast || strpos($compiler->lex->data,
+                $ItemVarName.'total') !== false;
         // generate output code
         $output = "<?php ";
         $output .= " \$_smarty_tpl->tpl_vars[$item] = new Smarty_Variable; \$_smarty_tpl->tpl_vars[$item]->_loop = false;\n";
@@ -189,14 +189,14 @@ class Smarty_Internal_Compile_Foreachelse extends Smarty_Internal_CompileBase
      *
      * @return string compiled code
      */
-    public function compile( $args, $compiler, $parameter )
+    public function compile($args, $compiler, $parameter)
     {
 
         // check and get attributes
-        $_attr = $this->getAttributes( $compiler, $args );
+        $_attr = $this->getAttributes($compiler, $args);
 
-        list( $openTag, $nocache, $item, $key ) = $this->closeTag( $compiler, array( 'foreach' ) );
-        $this->openTag( $compiler, 'foreachelse', array( 'foreachelse', $nocache, $item, $key ) );
+        list( $openTag, $nocache, $item, $key ) = $this->closeTag($compiler, array('foreach'));
+        $this->openTag($compiler, 'foreachelse', array('foreachelse', $nocache, $item, $key));
 
         return "<?php }\nif (!\$_smarty_tpl->tpl_vars[$item]->_loop) {\n?>";
     }
@@ -220,18 +220,18 @@ class Smarty_Internal_Compile_Foreachclose extends Smarty_Internal_CompileBase
      *
      * @return string compiled code
      */
-    public function compile( $args, $compiler, $parameter )
+    public function compile($args, $compiler, $parameter)
     {
 
         // check and get attributes
-        $_attr = $this->getAttributes( $compiler, $args );
+        $_attr = $this->getAttributes($compiler, $args);
         // must endblock be nocache?
         if ($compiler->nocache) {
             $compiler->tag_nocache = true;
         }
 
-        list( $openTag, $compiler->nocache, $item, $key ) = $this->closeTag( $compiler,
-            array( 'foreach', 'foreachelse' ) );
+        list( $openTag, $compiler->nocache, $item, $key ) = $this->closeTag($compiler,
+            array('foreach', 'foreachelse'));
 
         return "<?php } ?>";
     }

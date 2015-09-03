@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpKernel\CacheWarmer;
  */
 interface CacheWarmerInterface extends WarmableInterface
 {
+
     /**
      * Checks whether this warmer is optional or not.
      *

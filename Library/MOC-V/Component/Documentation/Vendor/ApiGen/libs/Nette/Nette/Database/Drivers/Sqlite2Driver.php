@@ -24,7 +24,7 @@ class Sqlite2Driver extends SqliteDriver
     /**
      * Encodes string for use in a LIKE statement.
      */
-    public function formatLike( $value, $pos )
+    public function formatLike($value, $pos)
     {
 
         throw new Nette\NotSupportedException;
@@ -34,20 +34,20 @@ class Sqlite2Driver extends SqliteDriver
     /**
      * Normalizes result row.
      */
-    public function normalizeRow( $row, $statement )
+    public function normalizeRow($row, $statement)
     {
 
-        if (!is_object( $row )) {
+        if (!is_object($row)) {
             $iterator = $row;
         } elseif ($row instanceof \Traversable) {
-            $iterator = iterator_to_array( $row );
+            $iterator = iterator_to_array($row);
         } else {
             $iterator = (array)$row;
         }
         foreach ($iterator as $key => $value) {
             unset( $row[$key] );
             if ($key[0] === '[' || $key[0] === '"') {
-                $key = substr( $key, 1, -1 );
+                $key = substr($key, 1, -1);
             }
             $row[$key] = $value;
         }
@@ -58,7 +58,7 @@ class Sqlite2Driver extends SqliteDriver
     /**
      * Returns metadata for all foreign keys in a table.
      */
-    public function getForeignKeys( $table )
+    public function getForeignKeys($table)
     {
 
         throw new NotSupportedException; // @see http://www.sqlite.org/foreignkeys.html

@@ -29,6 +29,7 @@ namespace Doctrine\DBAL\Query\Expression;
  */
 class CompositeExpression implements \Countable
 {
+
     /**
      * Constant that represents an AND composite expression.
      */
@@ -37,7 +38,7 @@ class CompositeExpression implements \Countable
     /**
      * Constant that represents an OR composite expression.
      */
-    const TYPE_OR  = 'OR';
+    const TYPE_OR = 'OR';
 
     /**
      * The instance type of composite expression.
@@ -61,6 +62,7 @@ class CompositeExpression implements \Countable
      */
     public function __construct($type, array $parts = array())
     {
+
         $this->type = $type;
 
         $this->addMultiple($parts);
@@ -75,7 +77,8 @@ class CompositeExpression implements \Countable
      */
     public function addMultiple(array $parts = array())
     {
-        foreach ((array) $parts as $part) {
+
+        foreach ((array)$parts as $part) {
             $this->add($part);
         }
 
@@ -91,7 +94,8 @@ class CompositeExpression implements \Countable
      */
     public function add($part)
     {
-        if ( ! empty($part) || ($part instanceof self && $part->count() > 0)) {
+
+        if (!empty( $part ) || ( $part instanceof self && $part->count() > 0 )) {
             $this->parts[] = $part;
         }
 
@@ -105,6 +109,7 @@ class CompositeExpression implements \Countable
      */
     public function count()
     {
+
         return count($this->parts);
     }
 
@@ -115,11 +120,12 @@ class CompositeExpression implements \Countable
      */
     public function __toString()
     {
+
         if (count($this->parts) === 1) {
-            return (string) $this->parts[0];
+            return (string)$this->parts[0];
         }
 
-        return '(' . implode(') ' . $this->type . ' (', $this->parts) . ')';
+        return '('.implode(') '.$this->type.' (', $this->parts).')';
     }
 
     /**
@@ -129,6 +135,7 @@ class CompositeExpression implements \Countable
      */
     public function getType()
     {
+
         return $this->type;
     }
 }

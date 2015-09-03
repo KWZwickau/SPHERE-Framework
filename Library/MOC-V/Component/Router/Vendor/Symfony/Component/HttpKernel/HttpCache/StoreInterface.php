@@ -24,6 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 interface StoreInterface
 {
+
     /**
      * Locates a cached Response for the Request provided.
      *

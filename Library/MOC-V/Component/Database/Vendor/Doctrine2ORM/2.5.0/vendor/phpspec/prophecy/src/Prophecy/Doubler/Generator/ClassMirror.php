@@ -11,8 +11,8 @@
 
 namespace Prophecy\Doubler\Generator;
 
-use Prophecy\Exception\InvalidArgumentException;
 use Prophecy\Exception\Doubler\ClassMirrorException;
+use Prophecy\Exception\InvalidArgumentException;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
@@ -25,6 +25,7 @@ use ReflectionParameter;
  */
 class ClassMirror
 {
+
     private static $reflectableMethods = array(
         '__construct',
         '__destruct',
@@ -46,6 +47,7 @@ class ClassMirror
      */
     public function reflect(ReflectionClass $class = null, array $interfaces)
     {
+
         $node = new Node\ClassNode;
 
         if (null !== $class) {
@@ -86,6 +88,7 @@ class ClassMirror
 
     private function reflectClassToNode(ReflectionClass $class, Node\ClassNode $node)
     {
+
         if (true === $class->isFinal()) {
             throw new ClassMirrorException(sprintf(
                 'Could not reflect class %s as it is marked final.', $class->getName()
@@ -104,7 +107,8 @@ class ClassMirror
 
         foreach ($class->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
             if (0 === strpos($method->getName(), '_')
-                && !in_array($method->getName(), self::$reflectableMethods)) {
+                && !in_array($method->getName(), self::$reflectableMethods)
+            ) {
                 continue;
             }
 
@@ -116,17 +120,9 @@ class ClassMirror
         }
     }
 
-    private function reflectInterfaceToNode(ReflectionClass $interface, Node\ClassNode $node)
-    {
-        $node->addInterface($interface->getName());
-
-        foreach ($interface->getMethods() as $method) {
-            $this->reflectMethodToNode($method, $node);
-        }
-    }
-
     private function reflectMethodToNode(ReflectionMethod $method, Node\ClassNode $classNode)
     {
+
         $node = new Node\MethodNode($method->getName());
 
         if (true === $method->isProtected()) {
@@ -152,6 +148,7 @@ class ClassMirror
 
     private function reflectArgumentToNode(ReflectionParameter $parameter, Node\MethodNode $methodNode)
     {
+
         $name = $parameter->getName() == '...' ? '__dot_dot_dot__' : $parameter->getName();
         $node = new Node\ArgumentNode($name);
 
@@ -161,7 +158,8 @@ class ClassMirror
         if (true === $parameter->isDefaultValueAvailable()) {
             $node->setDefault($parameter->getDefaultValue());
         } elseif (true === $parameter->isOptional()
-              || (true === $parameter->allowsNull() && $typeHint)) {
+            || ( true === $parameter->allowsNull() && $typeHint )
+        ) {
             $node->setDefault(null);
         }
 
@@ -174,6 +172,7 @@ class ClassMirror
 
     private function getTypeHint(ReflectionParameter $parameter)
     {
+
         if (null !== $className = $this->getParameterClassName($parameter)) {
             return $className;
         }
@@ -191,12 +190,23 @@ class ClassMirror
 
     private function getParameterClassName(ReflectionParameter $parameter)
     {
+
         try {
             return $parameter->getClass() ? $parameter->getClass()->getName() : null;
         } catch (\ReflectionException $e) {
             preg_match('/\[\s\<\w+?>\s([\w,\\\]+)/s', $parameter, $matches);
 
-            return isset($matches[1]) ? $matches[1] : null;
+            return isset( $matches[1] ) ? $matches[1] : null;
+        }
+    }
+
+    private function reflectInterfaceToNode(ReflectionClass $interface, Node\ClassNode $node)
+    {
+
+        $node->addInterface($interface->getName());
+
+        foreach ($interface->getMethods() as $method) {
+            $this->reflectMethodToNode($method, $node);
         }
     }
 }

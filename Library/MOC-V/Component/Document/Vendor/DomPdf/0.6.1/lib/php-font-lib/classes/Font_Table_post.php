@@ -33,7 +33,7 @@ class Font_Table_post extends Font_Table
         $data = $this->data;
         $data["format"] = 3;
 
-        $length = $font->pack( $this->def, $data );
+        $length = $font->pack($this->def, $data);
 
         return $length;
 
@@ -91,7 +91,7 @@ class Font_Table_post extends Font_Table
     {
 
         $font = $this->getFont();
-        $data = $font->unpack( $this->def );
+        $data = $font->unpack($this->def);
 
         $names = array();
 
@@ -113,7 +113,7 @@ class Font_Table_post extends Font_Table
                 $namesPascal = array();
                 for ($i = 0; $i < $data["numberOfGlyphs"]; $i++) {
                     $len = $font->readUInt8();
-                    $namesPascal[] = $font->read( $len );
+                    $namesPascal[] = $font->read($len);
                 }
 
                 foreach ($glyphNameIndex as $g => $index) {

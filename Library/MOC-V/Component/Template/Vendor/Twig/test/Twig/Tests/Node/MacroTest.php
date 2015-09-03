@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_MacroTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_Macro::__construct
      */
     public function testConstructor()
     {
+
         $body = new Twig_Node_Text('foo', 1);
         $arguments = new Twig_Node(array(new Twig_Node_Expression_Name('foo', 1)), array(), 1);
         $node = new Twig_Node_Macro('foo', $body, $arguments, 1);
@@ -26,16 +28,18 @@ class Twig_Tests_Node_MacroTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_Macro::compile
+     * @covers       Twig_Node_Macro::compile
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $body = new Twig_Node_Text('foo', 1);
         $arguments = new Twig_Node(array(
             'foo' => new Twig_Node_Expression_Constant(null, 1),
@@ -44,8 +48,10 @@ class Twig_Tests_Node_MacroTest extends Twig_Test_NodeTestCase
         $node = new Twig_Node_Macro('foo', $body, $arguments, 1);
 
         return array(
-            array($node, <<<EOF
-// line 1
+            array(
+                $node,
+                <<<EOF
+               // line 1
 public function getfoo(\$_foo = null, \$_bar = "Foo")
 {
     \$context = \$this->env->mergeGlobals(array(

@@ -47,7 +47,7 @@ interface IRequest
      *
      * @return mixed
      */
-    function getQuery( $key = null, $default = null );
+    function getQuery($key = null, $default = null);
 
     /**
      * Returns variable provided to the script via POST method ($_POST).
@@ -58,7 +58,7 @@ interface IRequest
      *
      * @return mixed
      */
-    function getPost( $key = null, $default = null );
+    function getPost($key = null, $default = null);
 
     /**
      * Returns uploaded file.
@@ -67,7 +67,7 @@ interface IRequest
      *
      * @return FileUpload
      */
-    function getFile( $key );
+    function getFile($key);
 
     /**
      * Returns uploaded files.
@@ -84,7 +84,7 @@ interface IRequest
      *
      * @return mixed
      */
-    function getCookie( $key, $default = null );
+    function getCookie($key, $default = null);
 
     /**
      * Returns variables provided to the script via HTTP cookies.
@@ -109,7 +109,7 @@ interface IRequest
      *
      * @return bool
      */
-    function isMethod( $method );
+    function isMethod($method);
 
     /**
      * Return the value of the HTTP header. Pass the header name as the
@@ -120,7 +120,7 @@ interface IRequest
      *
      * @return mixed
      */
-    function getHeader( $header, $default = null );
+    function getHeader($header, $default = null);
 
     /**
      * Returns all HTTP headers.

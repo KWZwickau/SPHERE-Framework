@@ -35,20 +35,20 @@ class SymfonyRouter extends Bridge implements IBridgeInterface
     /** @var null|HttpKernel $SymfonyHttpKernel */
     private $SymfonyHttpKernel = null;
 
-    function __construct( $BaseUrl = '' )
+    public function __construct($BaseUrl = '')
     {
 
-        AutoLoader::getNamespaceAutoLoader( 'Symfony\Component', __DIR__.'/../../../Vendor/' );
-        AutoLoader::getNamespaceAutoLoader( 'Symfony\Component', __DIR__.'/../../../../../Core/HttpKernel/Vendor/' );
+        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../../../Vendor/');
+        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../../../../../Core/HttpKernel/Vendor/');
 
         $this->SymfonyRouteCollection = new RouteCollection();
         $this->SymfonyRequestContext = new RequestContext();
-        $this->SymfonyRequestContext->setBaseUrl( $BaseUrl );
-        $this->SymfonyUrlMatcher = new UrlMatcher( $this->SymfonyRouteCollection, $this->SymfonyRequestContext );
+        $this->SymfonyRequestContext->setBaseUrl($BaseUrl);
+        $this->SymfonyUrlMatcher = new UrlMatcher($this->SymfonyRouteCollection, $this->SymfonyRequestContext);
 
         $this->SymfonyEventDispatcher = new EventDispatcher();
-        $this->SymfonyEventDispatcher->addSubscriber( new RouterListener( $this->SymfonyUrlMatcher ) );
-        $this->SymfonyHttpKernel = new HttpKernel( $this->SymfonyEventDispatcher, new ControllerResolver() );
+        $this->SymfonyEventDispatcher->addSubscriber(new RouterListener($this->SymfonyUrlMatcher));
+        $this->SymfonyHttpKernel = new HttpKernel($this->SymfonyEventDispatcher, new ControllerResolver());
     }
 
     /**
@@ -56,14 +56,14 @@ class SymfonyRouter extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function addRoute( RouteParameter $RouteOption )
+    public function addRoute(RouteParameter $RouteOption)
     {
 
-        $this->SymfonyRouteCollection->add( $RouteOption->getPath(),
+        $this->SymfonyRouteCollection->add($RouteOption->getPath(),
             new Route(
                 $RouteOption->getPath(),
                 array_merge(
-                    array( '_controller' => $RouteOption->getController() ),
+                    array('_controller' => $RouteOption->getController()),
                     $RouteOption->getParameterDefault()
                 ),
                 $RouteOption->getParameterPattern()
@@ -87,13 +87,13 @@ class SymfonyRouter extends Bridge implements IBridgeInterface
      * @return \Symfony\Component\HttpFoundation\Response
      * @throws \Exception
      */
-    public function getRoute( $Path = null )
+    public function getRoute($Path = null)
     {
 
         try {
-            return $this->SymfonyHttpKernel->handle( Request::createFromGlobals() )->getContent();
-        } catch( \Exception $E ) {
-            throw new ComponentException( $E->getMessage(), $E->getCode(), $E );
+            return $this->SymfonyHttpKernel->handle(Request::createFromGlobals())->getContent();
+        } catch (\Exception $E) {
+            throw new ComponentException($E->getMessage(), $E->getCode(), $E);
         }
     }
 }

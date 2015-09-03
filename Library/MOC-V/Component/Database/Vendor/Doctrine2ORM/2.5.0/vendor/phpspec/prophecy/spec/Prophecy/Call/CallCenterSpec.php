@@ -3,17 +3,19 @@
 namespace spec\Prophecy\Call;
 
 use PhpSpec\ObjectBehavior;
-use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Argument\ArgumentsWildcard;
+use Prophecy\Prophecy\ObjectProphecy;
 
 class CallCenterSpec extends ObjectBehavior
 {
+
     function let(ObjectProphecy $objectProphecy)
     {
     }
 
     function it_records_calls_made_through_makeCall_method(ObjectProphecy $objectProphecy, ArgumentsWildcard $wildcard)
     {
+
         $wildcard->scoreArguments(array(5, 2, 3))->willReturn(10);
         $objectProphecy->getMethodProphecies()->willReturn(array());
 
@@ -30,8 +32,8 @@ class CallCenterSpec extends ObjectBehavior
 
     function it_returns_null_for_any_call_through_makeCall_if_no_method_prophecies_added(
         $objectProphecy
-    )
-    {
+    ) {
+
         $objectProphecy->getMethodProphecies()->willReturn(array());
 
         $this->makeCall($objectProphecy, 'setValues', array(5, 2, 3))->shouldReturn(null);
@@ -47,10 +49,16 @@ class CallCenterSpec extends ObjectBehavior
      * @param \Prophecy\Promise\PromiseInterface   $promise
      */
     function it_executes_promise_of_method_prophecy_that_matches_signature_passed_to_makeCall(
-        $objectProphecy, $method1, $method2, $method3, $arguments1, $arguments2, $arguments3,
+        $objectProphecy,
+        $method1,
+        $method2,
+        $method3,
+        $arguments1,
+        $arguments2,
+        $arguments3,
         $promise
-    )
-    {
+    ) {
+
         $method1->getMethodName()->willReturn('getName');
         $method1->getArgumentsWildcard()->willReturn($arguments1);
         $arguments1->scoreArguments(array('world', 'everything'))->willReturn(false);
@@ -90,10 +98,16 @@ class CallCenterSpec extends ObjectBehavior
      * @param \Prophecy\Promise\PromiseInterface   $promise
      */
     function it_executes_promise_of_method_prophecy_that_matches_with_highest_score_to_makeCall(
-        $objectProphecy, $method1, $method2, $method3, $arguments1, $arguments2, $arguments3,
+        $objectProphecy,
+        $method1,
+        $method2,
+        $method3,
+        $arguments1,
+        $arguments2,
+        $arguments3,
         $promise
-    )
-    {
+    ) {
+
         $method1->getMethodName()->willReturn('getName');
         $method1->getArgumentsWildcard()->willReturn($arguments1);
         $arguments1->scoreArguments(array('world', 'everything'))->willReturn(50);
@@ -112,7 +126,9 @@ class CallCenterSpec extends ObjectBehavior
             'method2' => array($method2, $method3)
         ));
         $objectProphecy->getMethodProphecies('getName')->willReturn(array(
-            $method1, $method2, $method3
+            $method1,
+            $method2,
+            $method3
         ));
         $objectProphecy->reveal()->willReturn(new \stdClass());
 
@@ -128,9 +144,11 @@ class CallCenterSpec extends ObjectBehavior
      * @param \Prophecy\Argument\ArgumentsWildcard $arguments
      */
     function it_throws_exception_if_call_does_not_match_any_of_defined_method_prophecies(
-        $objectProphecy, $method, $arguments
-    )
-    {
+        $objectProphecy,
+        $method,
+        $arguments
+    ) {
+
         $method->getMethodName()->willReturn('getName');
         $method->getArgumentsWildcard()->willReturn($arguments);
         $arguments->scoreArguments(array('world', 'everything'))->willReturn(false);
@@ -148,9 +166,11 @@ class CallCenterSpec extends ObjectBehavior
      * @param \Prophecy\Argument\ArgumentsWildcard $arguments
      */
     function it_returns_null_if_method_prophecy_that_matches_makeCall_arguments_has_no_promise(
-        $objectProphecy, $method, $arguments
-    )
-    {
+        $objectProphecy,
+        $method,
+        $arguments
+    ) {
+
         $method->getMethodName()->willReturn('getName');
         $method->getArgumentsWildcard()->willReturn($arguments);
         $method->getPromise()->willReturn(null);
@@ -167,9 +187,10 @@ class CallCenterSpec extends ObjectBehavior
      * @param \Prophecy\Argument\ArgumentsWildcard $wildcard
      */
     function it_finds_recorded_calls_by_a_method_name_and_arguments_wildcard(
-        $objectProphecy, $wildcard
-    )
-    {
+        $objectProphecy,
+        $wildcard
+    ) {
+
         $objectProphecy->getMethodProphecies()->willReturn(array());
 
         $this->makeCall($objectProphecy, 'getName', array('world'));

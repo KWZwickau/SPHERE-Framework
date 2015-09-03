@@ -3,14 +3,15 @@
 namespace Guzzle\Service\Command\LocationVisitor\Request;
 
 use Guzzle\Http\Message\RequestInterface;
-use Guzzle\Service\Description\Parameter;
 use Guzzle\Service\Command\CommandInterface;
+use Guzzle\Service\Description\Parameter;
 
 /**
  * Location visitor used to add values to different locations in a request with different behaviors as needed
  */
 interface RequestVisitorInterface
 {
+
     /**
      * Called after visiting all parameters
      *

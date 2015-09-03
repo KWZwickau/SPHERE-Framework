@@ -9,6 +9,7 @@ use Doctrine\Tests\DbalTestCase;
 
 abstract class AbstractDriverTest extends DbalTestCase
 {
+
     const EXCEPTION_CONNECTION = 'Doctrine\DBAL\Exception\ConnectionException';
     const EXCEPTION_CONSTRAINT_VIOLATION = 'Doctrine\DBAL\Exception\ConstraintViolationException';
     const EXCEPTION_DATABASE_OBJECT_EXISTS = 'Doctrine\DBAL\Exception\DatabaseObjectExistsException';
@@ -32,27 +33,21 @@ abstract class AbstractDriverTest extends DbalTestCase
      */
     protected $driver;
 
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->driver = $this->createDriver();
-    }
-
     public function testConvertsException()
     {
-        if ( ! $this->driver instanceof ExceptionConverterDriver) {
+
+        if (!$this->driver instanceof ExceptionConverterDriver) {
             $this->markTestSkipped('This test is only intended for exception converter drivers.');
         }
 
         $data = $this->getExceptionConversions();
 
-        if (empty($data)) {
+        if (empty( $data )) {
             $this->fail(
                 sprintf(
                     'No test data found for test %s. You have to return test data from %s.',
-                    get_class($this) . '::' . __FUNCTION__,
-                    get_class($this) . '::getExceptionConversionData'
+                    get_class($this).'::'.__FUNCTION__,
+                    get_class($this).'::getExceptionConversionData'
                 )
             );
         }
@@ -77,7 +72,7 @@ abstract class AbstractDriverTest extends DbalTestCase
 
         foreach ($data as $item) {
             /** @var $driverException \Doctrine\DBAL\Driver\DriverException */
-            list($driverException, $convertedExceptionClassName) = $item;
+            list( $driverException, $convertedExceptionClassName ) = $item;
 
             $convertedException = $this->driver->convertException($message, $driverException);
 
@@ -89,120 +84,9 @@ abstract class AbstractDriverTest extends DbalTestCase
         }
     }
 
-    public function testCreatesDatabasePlatformForVersion()
-    {
-        if ( ! $this->driver instanceof VersionAwarePlatformDriver) {
-            $this->markTestSkipped('This test is only intended for version aware platform drivers.');
-        }
-
-        $data = $this->getDatabasePlatformsForVersions();
-
-        if (empty($data)) {
-            $this->fail(
-                sprintf(
-                    'No test data found for test %s. You have to return test data from %s.',
-                    get_class($this) . '::' . __FUNCTION__,
-                    get_class($this) . '::getDatabasePlatformsForVersions'
-                )
-            );
-        }
-
-        foreach ($data as $item) {
-            $this->assertSame($item[1], get_class($this->driver->createDatabasePlatformForVersion($item[0])));
-        }
-    }
-
-    /**
-     * @expectedException \Doctrine\DBAL\DBALException
-     */
-    public function testThrowsExceptionOnCreatingDatabasePlatformsForInvalidVersion()
-    {
-        if ( ! $this->driver instanceof VersionAwarePlatformDriver) {
-            $this->markTestSkipped('This test is only intended for version aware platform drivers.');
-        }
-
-        $this->driver->createDatabasePlatformForVersion('foo');
-    }
-
-    public function testReturnsDatabaseName()
-    {
-        $params = array(
-            'user'     => 'foo',
-            'password' => 'bar',
-            'dbname'   => 'baz',
-        );
-
-        $connection = $this->getConnectionMock();
-
-        $connection->expects($this->once())
-            ->method('getParams')
-            ->will($this->returnValue($params));
-
-        $this->assertSame($params['dbname'], $this->driver->getDatabase($connection));
-    }
-
-    public function testReturnsDatabasePlatform()
-    {
-        $this->assertEquals($this->createPlatform(), $this->driver->getDatabasePlatform());
-    }
-
-    public function testReturnsSchemaManager()
-    {
-        $connection    = $this->getConnectionMock();
-        $schemaManager = $this->driver->getSchemaManager($connection);
-
-        $this->assertEquals($this->createSchemaManager($connection), $schemaManager);
-        $this->assertAttributeSame($connection, '_conn', $schemaManager);
-    }
-
-    /**
-     * Factory method for creating the driver instance under test.
-     *
-     * @return \Doctrine\DBAL\Driver
-     */
-    abstract protected function createDriver();
-
-    /**
-     * Factory method for creating the the platform instance return by the driver under test.
-     *
-     * The platform instance returned by this method must be the same as returned by
-     * the driver's getDatabasePlatform() method.
-     *
-     * @return \Doctrine\DBAL\Platforms\AbstractPlatform
-     */
-    abstract protected function createPlatform();
-
-    /**
-     * Factory method for creating the the schema manager instance return by the driver under test.
-     *
-     * The schema manager instance returned by this method must be the same as returned by
-     * the driver's getSchemaManager() method.
-     *
-     * @param Connection $connection The underlying connection to use.
-     *
-     * @return \Doctrine\DBAL\Schema\AbstractSchemaManager
-     */
-    abstract protected function createSchemaManager(Connection $connection);
-
-    protected function getConnectionMock()
-    {
-        return $this->getMockBuilder('Doctrine\DBAL\Connection')
-            ->disableOriginalConstructor()
-            ->getMock();
-    }
-
-    protected function getDatabasePlatformsForVersions()
-    {
-        return array();
-    }
-
-    protected function getExceptionConversionData()
-    {
-        return array();
-    }
-
     private function getExceptionConversions()
     {
+
         $data = array();
 
         foreach ($this->getExceptionConversionData() as $convertedExceptionClassName => $errors) {
@@ -227,4 +111,132 @@ abstract class AbstractDriverTest extends DbalTestCase
 
         return $data;
     }
+
+    protected function getExceptionConversionData()
+    {
+
+        return array();
+    }
+
+    public function testCreatesDatabasePlatformForVersion()
+    {
+
+        if (!$this->driver instanceof VersionAwarePlatformDriver) {
+            $this->markTestSkipped('This test is only intended for version aware platform drivers.');
+        }
+
+        $data = $this->getDatabasePlatformsForVersions();
+
+        if (empty( $data )) {
+            $this->fail(
+                sprintf(
+                    'No test data found for test %s. You have to return test data from %s.',
+                    get_class($this).'::'.__FUNCTION__,
+                    get_class($this).'::getDatabasePlatformsForVersions'
+                )
+            );
+        }
+
+        foreach ($data as $item) {
+            $this->assertSame($item[1], get_class($this->driver->createDatabasePlatformForVersion($item[0])));
+        }
+    }
+
+    protected function getDatabasePlatformsForVersions()
+    {
+
+        return array();
+    }
+
+    /**
+     * @expectedException \Doctrine\DBAL\DBALException
+     */
+    public function testThrowsExceptionOnCreatingDatabasePlatformsForInvalidVersion()
+    {
+
+        if (!$this->driver instanceof VersionAwarePlatformDriver) {
+            $this->markTestSkipped('This test is only intended for version aware platform drivers.');
+        }
+
+        $this->driver->createDatabasePlatformForVersion('foo');
+    }
+
+    public function testReturnsDatabaseName()
+    {
+
+        $params = array(
+            'user'     => 'foo',
+            'password' => 'bar',
+            'dbname'   => 'baz',
+        );
+
+        $connection = $this->getConnectionMock();
+
+        $connection->expects($this->once())
+            ->method('getParams')
+            ->will($this->returnValue($params));
+
+        $this->assertSame($params['dbname'], $this->driver->getDatabase($connection));
+    }
+
+    protected function getConnectionMock()
+    {
+
+        return $this->getMockBuilder('Doctrine\DBAL\Connection')
+            ->disableOriginalConstructor()
+            ->getMock();
+    }
+
+    public function testReturnsDatabasePlatform()
+    {
+
+        $this->assertEquals($this->createPlatform(), $this->driver->getDatabasePlatform());
+    }
+
+    /**
+     * Factory method for creating the the platform instance return by the driver under test.
+     *
+     * The platform instance returned by this method must be the same as returned by
+     * the driver's getDatabasePlatform() method.
+     *
+     * @return \Doctrine\DBAL\Platforms\AbstractPlatform
+     */
+    abstract protected function createPlatform();
+
+    public function testReturnsSchemaManager()
+    {
+
+        $connection = $this->getConnectionMock();
+        $schemaManager = $this->driver->getSchemaManager($connection);
+
+        $this->assertEquals($this->createSchemaManager($connection), $schemaManager);
+        $this->assertAttributeSame($connection, '_conn', $schemaManager);
+    }
+
+    /**
+     * Factory method for creating the the schema manager instance return by the driver under test.
+     *
+     * The schema manager instance returned by this method must be the same as returned by
+     * the driver's getSchemaManager() method.
+     *
+     * @param Connection $connection The underlying connection to use.
+     *
+     * @return \Doctrine\DBAL\Schema\AbstractSchemaManager
+     */
+    abstract protected function createSchemaManager(Connection $connection);
+
+    protected function setUp()
+    {
+
+        parent::setUp();
+
+        $this->driver = $this->createDriver();
+    }
+
+    /**
+     * Factory method for creating the driver instance under test.
+     *
+     * @return \Doctrine\DBAL\Driver
+     */
+    abstract protected function createDriver();
 }

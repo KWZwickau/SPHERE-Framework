@@ -11,9 +11,9 @@ use Exception;
 class AutoLoaderException extends Exception
 {
 
-    public function __construct( $Message = "", $Code = 0, $Previous = null )
+    public function __construct($Message = "", $Code = 0, $Previous = null)
     {
 
-        parent::__construct( $Message, $Code, $Previous );
+        parent::__construct($Message, $Code, $Previous);
     }
 }

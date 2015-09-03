@@ -9,8 +9,10 @@ use Guzzle\Service\Builder\ServiceBuilderLoader;
  */
 class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testBuildsServiceBuilders()
     {
+
         $arrayFactory = new ServiceBuilderLoader();
 
         $data = array(
@@ -21,13 +23,13 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
                         'secret' => 'abc',
                     ),
                 ),
-                'foo' => array(
+                'foo'      => array(
                     'extends' => 'abstract',
                     'params' => array(
                         'baz' => 'bar',
                     ),
                 ),
-                'mock' => array(
+                'mock'     => array(
                     'extends' => 'abstract',
                     'params' => array(
                         'username' => 'foo',
@@ -41,10 +43,10 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
         $builder = $arrayFactory->load($data);
 
         // Ensure that services were parsed
-        $this->assertTrue(isset($builder['mock']));
-        $this->assertTrue(isset($builder['abstract']));
-        $this->assertTrue(isset($builder['foo']));
-        $this->assertFalse(isset($builder['jimmy']));
+        $this->assertTrue(isset( $builder['mock'] ));
+        $this->assertTrue(isset( $builder['abstract'] ));
+        $this->assertTrue(isset( $builder['foo'] ));
+        $this->assertFalse(isset( $builder['jimmy'] ));
     }
 
     /**
@@ -53,6 +55,7 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenExtendingNonExistentService()
     {
+
         $arrayFactory = new ServiceBuilderLoader();
 
         $data = array(
@@ -68,6 +71,7 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsGlobalParameterOverrides()
     {
+
         $arrayFactory = new ServiceBuilderLoader();
 
         $data = array(
@@ -96,6 +100,7 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function tstDoesNotErrorOnCircularReferences()
     {
+
         $arrayFactory = new ServiceBuilderLoader();
         $arrayFactory->load(array(
             'services' => array(
@@ -107,6 +112,7 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function configProvider()
     {
+
         $foo = array(
             'extends' => 'bar',
             'class'   => 'stdClass',
@@ -154,7 +160,7 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
                     'services' => array(
                         'foo' => array(
                             'extends' => 'bar',
-                            'class' => 'stdClass',
+                            'class'  => 'stdClass',
                             'params' => array('a' => 'test', 'b' => '123', 'c' => 'def')
                         ),
                         'bar' => array('params' => array('baz' => '123'))
@@ -169,6 +175,7 @@ class ServiceBuilderLoaderTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testCombinesConfigs($a, $b, $c)
     {
+
         $l = new ServiceBuilderLoader();
         $m = new \ReflectionMethod($l, 'mergeData');
         $m->setAccessible(true);

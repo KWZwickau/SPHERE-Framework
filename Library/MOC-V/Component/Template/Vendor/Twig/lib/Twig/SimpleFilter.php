@@ -16,6 +16,7 @@
  */
 class Twig_SimpleFilter
 {
+
     protected $name;
     protected $callable;
     protected $options;
@@ -23,6 +24,7 @@ class Twig_SimpleFilter
 
     public function __construct($name, $callable, array $options = array())
     {
+
         $this->name = $name;
         $this->callable = $callable;
         $this->options = array_merge(array(
@@ -38,16 +40,19 @@ class Twig_SimpleFilter
 
     public function getName()
     {
+
         return $this->name;
     }
 
     public function getCallable()
     {
+
         return $this->callable;
     }
 
     public function getNodeClass()
     {
+
         return $this->options['node_class'];
     }
 
@@ -57,7 +62,7 @@ class Twig_SimpleFilter
         return $this->arguments;
     }
 
-    public function setArguments( $arguments )
+    public function setArguments($arguments)
     {
 
         $this->arguments = $arguments;
@@ -65,16 +70,19 @@ class Twig_SimpleFilter
 
     public function needsEnvironment()
     {
+
         return $this->options['needs_environment'];
     }
 
     public function needsContext()
     {
+
         return $this->options['needs_context'];
     }
 
     public function getSafe(Twig_Node $filterArgs)
     {
+
         if (null !== $this->options['is_safe']) {
             return $this->options['is_safe'];
         }
@@ -86,11 +94,13 @@ class Twig_SimpleFilter
 
     public function getPreservesSafety()
     {
+
         return $this->options['preserves_safety'];
     }
 
     public function getPreEscape()
     {
+
         return $this->options['pre_escape'];
     }
 }

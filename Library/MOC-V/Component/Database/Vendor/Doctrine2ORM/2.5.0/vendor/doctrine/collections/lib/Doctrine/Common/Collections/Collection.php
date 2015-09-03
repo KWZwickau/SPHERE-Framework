@@ -48,6 +48,7 @@ use IteratorAggregate;
  */
 interface Collection extends Countable, IteratorAggregate, ArrayAccess
 {
+
     /**
      * Adds an element at the end of the collection.
      *

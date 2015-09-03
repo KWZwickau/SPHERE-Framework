@@ -24,7 +24,7 @@ use Doctrine\ORM\Query\Lexer;
 /**
  * "LOCATE" "(" StringPrimary "," StringPrimary ["," SimpleArithmeticExpression]")"
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -34,6 +34,7 @@ use Doctrine\ORM\Query\Lexer;
  */
 class LocateFunction extends FunctionNode
 {
+
     public $firstStringPrimary;
     public $secondStringPrimary;
 
@@ -51,7 +52,7 @@ class LocateFunction extends FunctionNode
         return $sqlWalker->getConnection()->getDatabasePlatform()->getLocateExpression(
             $sqlWalker->walkStringPrimary($this->secondStringPrimary), // its the other way around in platform
             $sqlWalker->walkStringPrimary($this->firstStringPrimary),
-            (($this->simpleArithmeticExpression)
+            ( ( $this->simpleArithmeticExpression )
                 ? $sqlWalker->walkSimpleArithmeticExpression($this->simpleArithmeticExpression)
                 : false
             )
@@ -63,6 +64,7 @@ class LocateFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
+
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

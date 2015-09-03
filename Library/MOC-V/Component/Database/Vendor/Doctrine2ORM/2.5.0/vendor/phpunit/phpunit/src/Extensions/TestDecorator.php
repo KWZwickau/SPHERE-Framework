@@ -19,6 +19,7 @@
  */
 class PHPUnit_Extensions_TestDecorator extends PHPUnit_Framework_Assert implements PHPUnit_Framework_Test, PHPUnit_Framework_SelfDescribing
 {
+
     /**
      * The Test to be decorated.
      *
@@ -33,6 +34,7 @@ class PHPUnit_Extensions_TestDecorator extends PHPUnit_Framework_Assert implemen
      */
     public function __construct(PHPUnit_Framework_Test $test)
     {
+
         $this->test = $test;
     }
 
@@ -43,18 +45,8 @@ class PHPUnit_Extensions_TestDecorator extends PHPUnit_Framework_Assert implemen
      */
     public function toString()
     {
-        return $this->test->toString();
-    }
 
-    /**
-     * Runs the test and collects the
-     * result in a TestResult.
-     *
-     * @param PHPUnit_Framework_TestResult $result
-     */
-    public function basicRun(PHPUnit_Framework_TestResult $result)
-    {
-        $this->test->run($result);
+        return $this->test->toString();
     }
 
     /**
@@ -65,17 +57,8 @@ class PHPUnit_Extensions_TestDecorator extends PHPUnit_Framework_Assert implemen
      */
     public function count()
     {
-        return count($this->test);
-    }
 
-    /**
-     * Creates a default TestResult object.
-     *
-     * @return PHPUnit_Framework_TestResult
-     */
-    protected function createResult()
-    {
-        return new PHPUnit_Framework_TestResult;
+        return count($this->test);
     }
 
     /**
@@ -85,6 +68,7 @@ class PHPUnit_Extensions_TestDecorator extends PHPUnit_Framework_Assert implemen
      */
     public function getTest()
     {
+
         return $this->test;
     }
 
@@ -93,10 +77,12 @@ class PHPUnit_Extensions_TestDecorator extends PHPUnit_Framework_Assert implemen
      * result in a TestResult.
      *
      * @param  PHPUnit_Framework_TestResult $result
+     *
      * @return PHPUnit_Framework_TestResult
      */
     public function run(PHPUnit_Framework_TestResult $result = null)
     {
+
         if ($result === null) {
             $result = $this->createResult();
         }
@@ -104,5 +90,28 @@ class PHPUnit_Extensions_TestDecorator extends PHPUnit_Framework_Assert implemen
         $this->basicRun($result);
 
         return $result;
+    }
+
+    /**
+     * Creates a default TestResult object.
+     *
+     * @return PHPUnit_Framework_TestResult
+     */
+    protected function createResult()
+    {
+
+        return new PHPUnit_Framework_TestResult;
+    }
+
+    /**
+     * Runs the test and collects the
+     * result in a TestResult.
+     *
+     * @param PHPUnit_Framework_TestResult $result
+     */
+    public function basicRun(PHPUnit_Framework_TestResult $result)
+    {
+
+        $this->test->run($result);
     }
 }

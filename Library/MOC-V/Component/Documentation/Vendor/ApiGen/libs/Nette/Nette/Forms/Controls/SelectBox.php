@@ -42,14 +42,14 @@ class SelectBox extends BaseControl
      * @param  array   items from which to choose
      * @param  int     number of rows that should be visible
      */
-    public function __construct( $label = null, array $items = null, $size = null )
+    public function __construct($label = null, array $items = null, $size = null)
     {
 
-        parent::__construct( $label );
-        $this->control->setName( 'select' );
+        parent::__construct($label);
+        $this->control->setName('select');
         $this->control->size = $size > 1 ? (int)$size : null;
         if ($items !== null) {
-            $this->setItems( $items );
+            $this->setItems($items);
         }
     }
 
@@ -61,7 +61,7 @@ class SelectBox extends BaseControl
     public function getRawValue()
     {
 
-        return is_scalar( $this->value ) ? $this->value : null;
+        return is_scalar($this->value) ? $this->value : null;
     }
 
     /**
@@ -73,7 +73,7 @@ class SelectBox extends BaseControl
     {
 
         $value = $this->getValue();
-        return is_array( $value ) ? count( $value ) > 0 : $value !== null;
+        return is_array($value) ? count($value) > 0 : $value !== null;
     }
 
     /**
@@ -84,15 +84,15 @@ class SelectBox extends BaseControl
     public function getValue()
     {
 
-        return is_scalar( $this->value ) && isset( $this->allowed[$this->value] ) ? $this->value : null;
+        return is_scalar($this->value) && isset( $this->allowed[$this->value] ) ? $this->value : null;
     }
 
     /** @deprecated */
-    function skipFirst( $v = null )
+    function skipFirst($v = null)
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use setPrompt() instead.', E_USER_WARNING );
-        return $this->setPrompt( $v );
+        trigger_error(__METHOD__.'() is deprecated; use setPrompt() instead.', E_USER_WARNING);
+        return $this->setPrompt($v);
     }
 
     /**
@@ -113,12 +113,12 @@ class SelectBox extends BaseControl
      *
      * @return SelectBox  provides a fluent interface
      */
-    public function setPrompt( $prompt )
+    public function setPrompt($prompt)
     {
 
         if ($prompt === true) { // back compatibility
-            $prompt = reset( $this->items );
-            unset( $this->allowed[key( $this->items )], $this->items[key( $this->items )] );
+            $prompt = reset($this->items);
+            unset( $this->allowed[key($this->items)], $this->items[key($this->items)] );
         }
         $this->prompt = $prompt;
         return $this;
@@ -154,21 +154,21 @@ class SelectBox extends BaseControl
      *
      * @return SelectBox  provides a fluent interface
      */
-    public function setItems( array $items, $useKeys = true )
+    public function setItems(array $items, $useKeys = true)
     {
 
         $allowed = array();
         foreach ($items as $k => $v) {
-            foreach (( is_array( $v ) ? $v : array( $k => $v ) ) as $key => $value) {
+            foreach (( is_array($v) ? $v : array($k => $v) ) as $key => $value) {
                 if (!$useKeys) {
-                    if (!is_scalar( $value )) {
-                        throw new Nette\InvalidArgumentException( "All items must be scalar." );
+                    if (!is_scalar($value)) {
+                        throw new Nette\InvalidArgumentException("All items must be scalar.");
                     }
                     $key = $value;
                 }
 
                 if (isset( $allowed[$key] )) {
-                    throw new Nette\InvalidArgumentException( "Items contain duplication for key '$key'." );
+                    throw new Nette\InvalidArgumentException("Items contain duplication for key '$key'.");
                 }
 
                 $allowed[$key] = $value;
@@ -203,35 +203,35 @@ class SelectBox extends BaseControl
     {
 
         $selected = $this->getValue();
-        $selected = is_array( $selected ) ? array_flip( $selected ) : array( $selected => true );
+        $selected = is_array($selected) ? array_flip($selected) : array($selected => true);
         $control = parent::getControl();
-        $option = Nette\Utils\Html::el( 'option' );
+        $option = Nette\Utils\Html::el('option');
 
         if ($this->prompt !== false) {
-            $control->add( $this->prompt instanceof Nette\Utils\Html
-                    ? $this->prompt->value( '' )
-                    : (string)$option->value( '' )->setText( $this->translate( (string)$this->prompt ) )
+            $control->add($this->prompt instanceof Nette\Utils\Html
+                ? $this->prompt->value('')
+                : (string)$option->value('')->setText($this->translate((string)$this->prompt))
             );
         }
 
         foreach ($this->items as $key => $value) {
-            if (!is_array( $value )) {
-                $value = array( $key => $value );
+            if (!is_array($value)) {
+                $value = array($key => $value);
                 $dest = $control;
             } else {
-                $dest = $control->create( 'optgroup' )->label( $this->translate( $key ) );
+                $dest = $control->create('optgroup')->label($this->translate($key));
             }
 
             foreach ($value as $key2 => $value2) {
                 if ($value2 instanceof Nette\Utils\Html) {
-                    $dest->add( (string)$value2->selected( isset( $selected[$key2] ) ) );
+                    $dest->add((string)$value2->selected(isset( $selected[$key2] )));
 
                 } else {
                     $key2 = $this->useKeys ? $key2 : $value2;
-                    $value2 = $this->translate( (string)$value2 );
-                    $dest->add( (string)$option->value( $key2 )
-                        ->selected( isset( $selected[$key2] ) )
-                        ->setText( $value2 ) );
+                    $value2 = $this->translate((string)$value2);
+                    $dest->add((string)$option->value($key2)
+                        ->selected(isset( $selected[$key2] ))
+                        ->setText($value2));
                 }
             }
         }

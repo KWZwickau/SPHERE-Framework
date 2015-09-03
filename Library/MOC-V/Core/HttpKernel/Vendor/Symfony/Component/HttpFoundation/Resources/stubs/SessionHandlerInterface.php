@@ -14,14 +14,15 @@
  *
  * Extensive documentation can be found at php.net, see links:
  *
- * @see http://php.net/sessionhandlerinterface
- * @see http://php.net/session.customhandler
- * @see http://php.net/session-set-save-handler
+ * @see    http://php.net/sessionhandlerinterface
+ * @see    http://php.net/session.customhandler
+ * @see    http://php.net/session-set-save-handler
  *
  * @author Drak <drak@zikula.org>
  */
 interface SessionHandlerInterface
 {
+
     /**
      * Re-initializes existing session, or creates a new one.
      *

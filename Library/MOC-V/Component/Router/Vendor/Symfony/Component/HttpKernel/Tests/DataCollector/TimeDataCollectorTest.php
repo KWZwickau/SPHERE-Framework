@@ -17,8 +17,10 @@ use Symfony\Component\HttpKernel\DataCollector\TimeDataCollector;
 
 class TimeDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testCollect()
     {
+
         $c = new TimeDataCollector();
 
         $request = new Request();

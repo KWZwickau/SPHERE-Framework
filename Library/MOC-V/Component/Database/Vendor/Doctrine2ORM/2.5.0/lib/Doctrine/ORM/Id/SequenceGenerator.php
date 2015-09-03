@@ -25,11 +25,12 @@ use Serializable;
 /**
  * Represents an ID generator that uses a database sequence.
  *
- * @since 2.0
+ * @since  2.0
  * @author Roman Borschel <roman@code-factory.org>
  */
 class SequenceGenerator extends AbstractIdGenerator implements Serializable
 {
+
     /**
      * The allocation size of the sequence.
      *
@@ -62,6 +63,7 @@ class SequenceGenerator extends AbstractIdGenerator implements Serializable
      */
     public function __construct($sequenceName, $allocationSize)
     {
+
         $this->_sequenceName = $sequenceName;
         $this->_allocationSize = $allocationSize;
     }
@@ -71,13 +73,14 @@ class SequenceGenerator extends AbstractIdGenerator implements Serializable
      */
     public function generate(EntityManager $em, $entity)
     {
+
         if ($this->_maxValue === null || $this->_nextValue == $this->_maxValue) {
             // Allocate new values
             $conn = $em->getConnection();
-            $sql  = $conn->getDatabasePlatform()->getSequenceNextValSQL($this->_sequenceName);
+            $sql = $conn->getDatabasePlatform()->getSequenceNextValSQL($this->_sequenceName);
 
             $this->_nextValue = (int)$conn->fetchColumn($sql);
-            $this->_maxValue  = $this->_nextValue + $this->_allocationSize;
+            $this->_maxValue = $this->_nextValue + $this->_allocationSize;
         }
 
         return $this->_nextValue++;
@@ -90,6 +93,7 @@ class SequenceGenerator extends AbstractIdGenerator implements Serializable
      */
     public function getCurrentMaxValue()
     {
+
         return $this->_maxValue;
     }
 
@@ -100,6 +104,7 @@ class SequenceGenerator extends AbstractIdGenerator implements Serializable
      */
     public function getNextValue()
     {
+
         return $this->_nextValue;
     }
 
@@ -108,6 +113,7 @@ class SequenceGenerator extends AbstractIdGenerator implements Serializable
      */
     public function serialize()
     {
+
         return serialize(array(
             'allocationSize' => $this->_allocationSize,
             'sequenceName'   => $this->_sequenceName
@@ -121,6 +127,7 @@ class SequenceGenerator extends AbstractIdGenerator implements Serializable
      */
     public function unserialize($serialized)
     {
+
         $array = unserialize($serialized);
 
         $this->_sequenceName = $array['sequenceName'];

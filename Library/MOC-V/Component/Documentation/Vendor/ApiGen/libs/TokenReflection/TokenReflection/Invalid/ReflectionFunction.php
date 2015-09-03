@@ -57,10 +57,10 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
      * @param string                  $fileName Original definiton file name
      * @param \TokenReflection\Broker $broker   Reflection broker
      */
-    public function __construct( $name, $fileName, Broker $broker )
+    public function __construct($name, $fileName, Broker $broker)
     {
 
-        $this->name = ltrim( $name, '\\' );
+        $this->name = ltrim($name, '\\');
         $this->broker = $broker;
         $this->fileName = $fileName;
     }
@@ -73,8 +73,8 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
     public function getShortName()
     {
 
-        $pos = strrpos( $this->name, '\\' );
-        return false === $pos ? $this->name : substr( $this->name, $pos + 1 );
+        $pos = strrpos($this->name, '\\');
+        return false === $pos ? $this->name : substr($this->name, $pos + 1);
     }
 
     /**
@@ -85,8 +85,8 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
     public function getNamespaceName()
     {
 
-        $pos = strrpos( $this->name, '\\' );
-        return false === $pos ? '' : substr( $this->name, 0, $pos );
+        $pos = strrpos($this->name, '\\');
+        return false === $pos ? '' : substr($this->name, 0, $pos);
     }
 
     /**
@@ -97,7 +97,7 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
     public function inNamespace()
     {
 
-        return false !== strrpos( $this->name, '\\' );
+        return false !== strrpos($this->name, '\\');
     }
 
     /**
@@ -164,9 +164,9 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
     public function getFileReflection()
     {
 
-        throw new Exception\BrokerException( $this->getBroker(),
-            sprintf( 'Function was not parsed from a file', $this->getPrettyName() ),
-            Exception\BrokerException::UNSUPPORTED );
+        throw new Exception\BrokerException($this->getBroker(),
+            sprintf('Function was not parsed from a file', $this->getPrettyName()),
+            Exception\BrokerException::UNSUPPORTED);
     }
 
     /**
@@ -231,7 +231,7 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -244,7 +244,7 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
      *
      * @return string|array|null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -288,15 +288,15 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
      *
      * @param integer|string $parameter Parameter name or position
      */
-    public function getParameter( $parameter )
+    public function getParameter($parameter)
     {
 
-        if (is_numeric( $parameter )) {
-            throw new Exception\RuntimeException( sprintf( 'There is no parameter at position "%d".', $parameter ),
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        if (is_numeric($parameter)) {
+            throw new Exception\RuntimeException(sprintf('There is no parameter at position "%d".', $parameter),
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         } else {
-            throw new Exception\RuntimeException( sprintf( 'There is no parameter "%s".', $parameter ),
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+            throw new Exception\RuntimeException(sprintf('There is no parameter "%s".', $parameter),
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
     }
 
@@ -363,7 +363,7 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
     public function invoke()
     {
 
-        return $this->invokeArgs( array() );
+        return $this->invokeArgs(array());
     }
 
     /**
@@ -373,11 +373,11 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
      *
      * @return mixed
      */
-    public function invokeArgs( array $args )
+    public function invokeArgs(array $args)
     {
 
-        throw new Exception\RuntimeException( 'Cannot invoke invalid functions',
-            Exception\RuntimeException::UNSUPPORTED, $this );
+        throw new Exception\RuntimeException('Cannot invoke invalid functions',
+            Exception\RuntimeException::UNSUPPORTED, $this);
     }
 
     /**
@@ -399,8 +399,8 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
     public function getClosure()
     {
 
-        throw new Exception\RuntimeException( 'Cannot invoke invalid functions',
-            Exception\RuntimeException::UNSUPPORTED, $this );
+        throw new Exception\RuntimeException('Cannot invoke invalid functions',
+            Exception\RuntimeException::UNSUPPORTED, $this);
     }
 
     /**
@@ -528,10 +528,10 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return ReflectionBase::get( $this, $key );
+        return ReflectionBase::get($this, $key);
     }
 
     /**
@@ -541,9 +541,9 @@ class ReflectionFunction extends ReflectionElement implements IReflectionFunctio
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return ReflectionBase::exists( $this, $key );
+        return ReflectionBase::exists($this, $key);
     }
 }

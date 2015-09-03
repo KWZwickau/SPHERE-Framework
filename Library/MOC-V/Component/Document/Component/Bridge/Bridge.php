@@ -35,7 +35,7 @@ abstract class Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    protected function setPaperOrientationParameter( PaperOrientationParameter $PaperOrientation )
+    protected function setPaperOrientationParameter(PaperOrientationParameter $PaperOrientation)
     {
 
         $this->PaperOrientationParameter = $PaperOrientation;
@@ -56,7 +56,7 @@ abstract class Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    protected function setPaperSizeParameter( PaperSizeParameter $PaperSize )
+    protected function setPaperSizeParameter(PaperSizeParameter $PaperSize)
     {
 
         $this->PaperSizeParameter = $PaperSize;
@@ -77,7 +77,7 @@ abstract class Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    protected function setFileParameter( FileParameter $FileParameter )
+    protected function setFileParameter(FileParameter $FileParameter)
     {
 
         $this->FileParameter = $FileParameter;

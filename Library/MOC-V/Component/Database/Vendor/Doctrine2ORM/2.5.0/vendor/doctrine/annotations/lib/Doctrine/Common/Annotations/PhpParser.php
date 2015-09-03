@@ -29,6 +29,7 @@ use SplFileObject;
  */
 final class PhpParser
 {
+
     /**
      * Parses a class.
      *
@@ -38,6 +39,7 @@ final class PhpParser
      */
     public function parseClass(\ReflectionClass $class)
     {
+
         if (method_exists($class, 'getUseStatements')) {
             return $class->getUseStatements();
         }
@@ -53,8 +55,8 @@ final class PhpParser
         }
 
         $namespace = preg_quote($class->getNamespaceName());
-        $content = preg_replace('/^.*?(\bnamespace\s+' . $namespace . '\s*[;{].*)$/s', '\\1', $content);
-        $tokenizer = new TokenParser('<?php ' . $content);
+        $content = preg_replace('/^.*?(\bnamespace\s+'.$namespace.'\s*[;{].*)$/s', '\\1', $content);
+        $tokenizer = new TokenParser('<?php '.$content);
 
         $statements = $tokenizer->parseUseStatements($class->getNamespaceName());
 
@@ -71,7 +73,8 @@ final class PhpParser
      */
     private function getFileContent($filename, $lineNumber)
     {
-        if ( ! is_file($filename)) {
+
+        if (!is_file($filename)) {
             return null;
         }
 

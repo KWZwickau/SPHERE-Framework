@@ -59,10 +59,10 @@ class ClassType extends \ReflectionClass
      *
      * @return ClassType
      */
-    public static function from( $class )
+    public static function from($class)
     {
 
-        return new static( $class );
+        return new static($class);
     }
 
     /**
@@ -74,7 +74,7 @@ class ClassType extends \ReflectionClass
     {
 
         return new ClassType(/*5.2*$this*//**/
-            get_called_class()/**/ );
+            get_called_class()/**/);
     }
 
     public function __toString()
@@ -86,11 +86,11 @@ class ClassType extends \ReflectionClass
     /**
      * @return bool
      */
-    public function hasEventProperty( $name )
+    public function hasEventProperty($name)
     {
 
-        if (preg_match( '#^on[A-Z]#', $name ) && $this->hasProperty( $name )) {
-            $rp = $this->getProperty( $name );
+        if (preg_match('#^on[A-Z]#', $name) && $this->hasProperty($name)) {
+            $rp = $this->getProperty($name);
             return $rp->isPublic() && !$rp->isStatic();
         }
         return false;
@@ -99,10 +99,10 @@ class ClassType extends \ReflectionClass
     /**
      * @return Property
      */
-    public function getProperty( $name )
+    public function getProperty($name)
     {
 
-        return new Property( $this->getName(), $name );
+        return new Property($this->getName(), $name);
     }
 
     /**
@@ -113,11 +113,11 @@ class ClassType extends \ReflectionClass
      *
      * @return ClassType  provides a fluent interface
      */
-    public function setExtensionMethod( $name, $callback )
+    public function setExtensionMethod($name, $callback)
     {
 
-        $l = &self::$extMethods[strtolower( $name )];
-        $l[strtolower( $this->getName() )] = new Nette\Callback( $callback );
+        $l = &self::$extMethods[strtolower($name)];
+        $l[strtolower($this->getName())] = new Nette\Callback($callback);
         $l[''] = null;
         return $this;
     }
@@ -133,7 +133,7 @@ class ClassType extends \ReflectionClass
      *
      * @return mixed
      */
-    public function getExtensionMethod( $name )
+    public function getExtensionMethod($name)
     {
 
         /*5.2* if (self::$extMethods === NULL || $name === NULL) { // for backwards compatibility
@@ -151,8 +151,8 @@ class ClassType extends \ReflectionClass
         }
         */
 
-        $class = strtolower( $this->getName() );
-        $l = &self::$extMethods[strtolower( $name )];
+        $class = strtolower($this->getName());
+        $l = &self::$extMethods[strtolower($name)];
 
         if (empty( $l )) {
             return false;
@@ -166,10 +166,10 @@ class ClassType extends \ReflectionClass
             if (isset( $l[$cl] )) {
                 return $l[''][$class] = $l[$cl];
             }
-        } while (( $cl = strtolower( get_parent_class( $cl ) ) ) !== '');
+        } while (( $cl = strtolower(get_parent_class($cl)) ) !== '');
 
-        foreach (class_implements( $class ) as $cl) {
-            $cl = strtolower( $cl );
+        foreach (class_implements($class) as $cl) {
+            $cl = strtolower($cl);
             if (isset( $l[$cl] )) {
                 return $l[''][$class] = $l[$cl];
             }
@@ -182,10 +182,10 @@ class ClassType extends \ReflectionClass
      *
      * @return bool
      */
-    public function is( $type )
+    public function is($type)
     {
 
-        return $this->isSubclassOf( $type ) || strcasecmp( $this->getName(), ltrim( $type, '\\' ) ) === 0;
+        return $this->isSubclassOf($type) || strcasecmp($this->getName(), ltrim($type, '\\')) === 0;
     }
 
     /**
@@ -194,7 +194,7 @@ class ClassType extends \ReflectionClass
     public function getConstructor()
     {
 
-        return ( $ref = parent::getConstructor() ) ? Method::from( $this->getName(), $ref->getName() ) : null;
+        return ( $ref = parent::getConstructor() ) ? Method::from($this->getName(), $ref->getName()) : null;
     }
 
     /**
@@ -203,7 +203,7 @@ class ClassType extends \ReflectionClass
     public function getExtension()
     {
 
-        return ( $name = $this->getExtensionName() ) ? new Extension( $name ) : null;
+        return ( $name = $this->getExtensionName() ) ? new Extension($name) : null;
     }
 
     /**
@@ -214,7 +214,7 @@ class ClassType extends \ReflectionClass
 
         $res = array();
         foreach (parent::getInterfaceNames() as $val) {
-            $res[$val] = new static( $val );
+            $res[$val] = new static($val);
         }
         return $res;
     }
@@ -222,20 +222,20 @@ class ClassType extends \ReflectionClass
     /**
      * @return Method
      */
-    public function getMethod( $name )
+    public function getMethod($name)
     {
 
-        return new Method( $this->getName(), $name );
+        return new Method($this->getName(), $name);
     }
 
     /**
      * @return Method[]
      */
-    public function getMethods( $filter = -1 )
+    public function getMethods($filter = -1)
     {
 
-        foreach ($res = parent::getMethods( $filter ) as $key => $val) {
-            $res[$key] = new Method( $this->getName(), $val->getName() );
+        foreach ($res = parent::getMethods($filter) as $key => $val) {
+            $res[$key] = new Method($this->getName(), $val->getName());
         }
         return $res;
     }
@@ -246,7 +246,7 @@ class ClassType extends \ReflectionClass
     public function getParentClass()
     {
 
-        return ( $ref = parent::getParentClass() ) ? new static( $ref->getName() ) : null;
+        return ( $ref = parent::getParentClass() ) ? new static($ref->getName()) : null;
     }
 
 
@@ -256,11 +256,11 @@ class ClassType extends \ReflectionClass
     /**
      * @return Property[]
      */
-    public function getProperties( $filter = -1 )
+    public function getProperties($filter = -1)
     {
 
-        foreach ($res = parent::getProperties( $filter ) as $key => $val) {
-            $res[$key] = new Property( $this->getName(), $val->getName() );
+        foreach ($res = parent::getProperties($filter) as $key => $val) {
+            $res[$key] = new Property($this->getName(), $val->getName());
         }
         return $res;
     }
@@ -272,10 +272,10 @@ class ClassType extends \ReflectionClass
      *
      * @return bool
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
-        $res = AnnotationsParser::getAll( $this );
+        $res = AnnotationsParser::getAll($this);
         return !empty( $res[$name] );
     }
 
@@ -287,7 +287,7 @@ class ClassType extends \ReflectionClass
     public function getAnnotations()
     {
 
-        return AnnotationsParser::getAll( $this );
+        return AnnotationsParser::getAll($this);
     }
 
 
@@ -299,7 +299,7 @@ class ClassType extends \ReflectionClass
     public function getDescription()
     {
 
-        return $this->getAnnotation( 'description' );
+        return $this->getAnnotation('description');
     }
 
 
@@ -313,45 +313,45 @@ class ClassType extends \ReflectionClass
      *
      * @return IAnnotation
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
-        $res = AnnotationsParser::getAll( $this );
-        return isset( $res[$name] ) ? end( $res[$name] ) : null;
+        $res = AnnotationsParser::getAll($this);
+        return isset( $res[$name] ) ? end($res[$name]) : null;
     }
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return ObjectMixin::call( $this, $name, $args );
-    }
-
-
-    public function &__get( $name )
-    {
-
-        return ObjectMixin::get( $this, $name );
+        return ObjectMixin::call($this, $name, $args);
     }
 
 
-    public function __set( $name, $value )
+    public function &__get($name)
     {
 
-        return ObjectMixin::set( $this, $name, $value );
+        return ObjectMixin::get($this, $name);
     }
 
 
-    public function __isset( $name )
+    public function __set($name, $value)
     {
 
-        return ObjectMixin::has( $this, $name );
+        return ObjectMixin::set($this, $name, $value);
     }
 
 
-    public function __unset( $name )
+    public function __isset($name)
     {
 
-        ObjectMixin::remove( $this, $name );
+        return ObjectMixin::has($this, $name);
+    }
+
+
+    public function __unset($name)
+    {
+
+        ObjectMixin::remove($this, $name);
     }
 
 }

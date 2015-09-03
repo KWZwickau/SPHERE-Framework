@@ -480,11 +480,11 @@ class SEA
 
     );
 
-    public static function set_sea_properties( &$info, $scriptblock )
+    public static function set_sea_properties(&$info, $scriptblock)
     {
 
         $u = $info['uni'];
-        $type = self::sea_get_categories( $u );
+        $type = self::sea_get_categories($u);
         $cat = ( $type & 0x7F );
         $pos = ( $type >> 8 );
 
@@ -520,7 +520,7 @@ class SEA
         $info['sea_position'] = $pos;
     }
 
-    public static function sea_get_categories( $u )
+    public static function sea_get_categories($u)
     {
 
         if (0x1980 <= $u && $u <= 0x19DF) {
@@ -541,25 +541,25 @@ class SEA
         return 3840;    // (ISC_x | (IMC_x << 8))
     }
 
-    public static function set_syllables( &$o, $s, &$broken_syllables )
+    public static function set_syllables(&$o, $s, &$broken_syllables)
     {
 
         $ptr = 0;
         $syllable_serial = 1;
         $broken_syllables = false;
-        while ($ptr < strlen( $s )) {
+        while ($ptr < strlen($s)) {
             $match = '';
             $syllable_length = 1;
             $syllable_type = self::NON_SEA_CLUSTER;
 
             // CONSONANT_SYLLABLE Consonant syllable
-            if (preg_match( '/^(C|V|G)(p|a|b|t|HC|M|R|T|A)*/', substr( $s, $ptr ), $ma )) {
-                $syllable_length = strlen( $ma[0] );
+            if (preg_match('/^(C|V|G)(p|a|b|t|HC|M|R|T|A)*/', substr($s, $ptr), $ma)) {
+                $syllable_length = strlen($ma[0]);
                 $syllable_type = self::CONSONANT_SYLLABLE;
             } // BROKEN_CLUSTER syllable
             else {
-                if (preg_match( '/^(p|a|b|t|HC|M|R|T|A)+/', substr( $s, $ptr ), $ma )) {
-                    $syllable_length = strlen( $ma[0] );
+                if (preg_match('/^(p|a|b|t|HC|M|R|T|A)+/', substr($s, $ptr), $ma)) {
+                    $syllable_length = strlen($ma[0]);
                     $syllable_type = self::BROKEN_CLUSTER;
                     $broken_syllables = true;
                 }
@@ -576,14 +576,14 @@ class SEA
         }
     }
 
-    public static function initial_reordering( &$info, $GSUBdata, $broken_syllables, $scriptblock, $dottedcircle )
+    public static function initial_reordering(&$info, $GSUBdata, $broken_syllables, $scriptblock, $dottedcircle)
     {
 
         if ($broken_syllables && $dottedcircle) {
-            self::insert_dotted_circles( $info, $dottedcircle );
+            self::insert_dotted_circles($info, $dottedcircle);
         }
 
-        $count = count( $info );
+        $count = count($info);
         if (!$count) {
             return;
         }
@@ -591,33 +591,33 @@ class SEA
         $last_syllable = $info[0]['syllable'];
         for ($i = 1; $i < $count; $i++) {
             if ($last_syllable != $info[$i]['syllable']) {
-                self::initial_reordering_syllable( $info, $GSUBdata, $scriptblock, $last, $i );
+                self::initial_reordering_syllable($info, $GSUBdata, $scriptblock, $last, $i);
                 $last = $i;
                 $last_syllable = $info[$last]['syllable'];
             }
         }
-        self::initial_reordering_syllable( $info, $GSUBdata, $scriptblock, $last, $count );
+        self::initial_reordering_syllable($info, $GSUBdata, $scriptblock, $last, $count);
     }
 
-    public static function insert_dotted_circles( &$info, $dottedcircle )
+    public static function insert_dotted_circles(&$info, $dottedcircle)
     {
 
         $idx = 0;
         $last_syllable = 0;
-        while ($idx < count( $info )) {
+        while ($idx < count($info)) {
             $syllable = $info[$idx]['syllable'];
             $syllable_type = ( $syllable & 0x0F );
             if ($last_syllable != $syllable && $syllable_type == self::BROKEN_CLUSTER) {
                 $last_syllable = $syllable;
                 $dottedcircle[0]['syllable'] = $info[$idx]['syllable'];
-                array_splice( $info, $idx, 0, $dottedcircle );
+                array_splice($info, $idx, 0, $dottedcircle);
             } else {
                 $idx++;
             }
         }
     }
 
-    public static function initial_reordering_syllable( &$info, $GSUBdata, $scriptblock, $start, $end )
+    public static function initial_reordering_syllable(&$info, $GSUBdata, $scriptblock, $start, $end)
     {
 
         /* broken_cluster: We already inserted dotted-circles, so just call the standalone_cluster. */
@@ -656,11 +656,11 @@ class SEA
         }
 
         /* Sit tight, rock 'n roll! */
-        self::bubble_sort( $info, $start, $end - $start );
+        self::bubble_sort($info, $start, $end - $start);
 
     }
 
-    public static function bubble_sort( &$arr, $start, $len )
+    public static function bubble_sort(&$arr, $start, $len)
     {
 
         if ($len < 2) {
@@ -679,10 +679,10 @@ class SEA
         }
     }
 
-    public static function final_reordering( &$info, $GSUBdata, $scriptblock )
+    public static function final_reordering(&$info, $GSUBdata, $scriptblock)
     {
 
-        $count = count( $info );
+        $count = count($info);
         if (!$count) {
             return;
         }
@@ -690,16 +690,16 @@ class SEA
         $last_syllable = $info[0]['syllable'];
         for ($i = 1; $i < $count; $i++) {
             if ($last_syllable != $info[$i]['syllable']) {
-                self::final_reordering_syllable( $info, $GSUBdata, $scriptblock, $last, $i );
+                self::final_reordering_syllable($info, $GSUBdata, $scriptblock, $last, $i);
                 $last = $i;
                 $last_syllable = $info[$last]['syllable'];
             }
         }
-        self::final_reordering_syllable( $info, $GSUBdata, $scriptblock, $last, $count );
+        self::final_reordering_syllable($info, $GSUBdata, $scriptblock, $last, $count);
 
     }
 
-    public static function final_reordering_syllable( &$info, $GSUBdata, $scriptblock, $start, $end )
+    public static function final_reordering_syllable(&$info, $GSUBdata, $scriptblock, $start, $end)
     {
         /*
         * Nothing to do here at present!

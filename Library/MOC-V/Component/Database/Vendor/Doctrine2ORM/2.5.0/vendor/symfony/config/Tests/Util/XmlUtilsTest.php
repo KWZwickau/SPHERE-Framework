@@ -13,10 +13,18 @@ namespace Symfony\Component\Config\Tests\Loader;
 
 use Symfony\Component\Config\Util\XmlUtils;
 
+interface Validator
+{
+
+    public function validate();
+}
+
 class XmlUtilsTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testLoadFile()
     {
+
         $fixtures = __DIR__.'/../Fixtures/Util/';
 
         try {
@@ -63,6 +71,7 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
 
     public function testLoadFileWithInternalErrorsEnabled()
     {
+
         libxml_use_internal_errors(true);
 
         $this->assertSame(array(), libxml_get_errors());
@@ -75,6 +84,7 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
      */
     public function testConvertDomToArray($expected, $xml, $root = false, $checkPrefix = true)
     {
+
         $dom = new \DOMDocument();
         $dom->loadXML($root ? $xml : '<root>'.$xml.'</root>');
 
@@ -83,6 +93,7 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
 
     public function getDataForConvertDomToArray()
     {
+
         return array(
             array(null, ''),
             array('bar', 'bar'),
@@ -95,12 +106,24 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
             array(array('foo' => array('foo' => 'bar', 'value' => 'text')), '<foo foo="bar">text</foo>'),
             array(array('foo' => array('attr' => 'bar', 'foo' => 'text')), '<foo attr="bar"><foo>text</foo></foo>'),
             array(array('foo' => array('bar', 'text')), '<foo>bar</foo><foo>text</foo>'),
-            array(array('foo' => array(array('foo' => 'bar'), array('foo' => 'text'))), '<foo foo="bar"/><foo foo="text" />'),
+            array(
+                array('foo' => array(array('foo' => 'bar'), array('foo' => 'text'))),
+                '<foo foo="bar"/><foo foo="text" />'
+            ),
             array(array('foo' => array('foo' => array('bar', 'text'))), '<foo foo="bar"><foo>text</foo></foo>'),
             array(array('foo' => 'bar'), '<foo><!-- Comment -->bar</foo>'),
             array(array('foo' => 'text'), '<foo xmlns:h="http://www.example.org/bar" h:bar="bar">text</foo>'),
-            array(array('foo' => array('bar' => 'bar', 'value' => 'text')), '<foo xmlns:h="http://www.example.org/bar" h:bar="bar">text</foo>', false, false),
-            array(array('attr' => 1, 'b' => 'hello'), '<foo:a xmlns:foo="http://www.example.org/foo" xmlns:h="http://www.example.org/bar" attr="1" h:bar="bar"><foo:b>hello</foo:b><h:c>2</h:c></foo:a>', true),
+            array(
+                array('foo' => array('bar' => 'bar', 'value' => 'text')),
+                '<foo xmlns:h="http://www.example.org/bar" h:bar="bar">text</foo>',
+                false,
+                false
+            ),
+            array(
+                array('attr' => 1, 'b' => 'hello'),
+                '<foo:a xmlns:foo="http://www.example.org/foo" xmlns:h="http://www.example.org/bar" attr="1" h:bar="bar"><foo:b>hello</foo:b><h:c>2</h:c></foo:a>',
+                true
+            ),
         );
     }
 
@@ -109,11 +132,13 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
      */
     public function testPhpize($expected, $value)
     {
+
         $this->assertSame($expected, XmlUtils::phpize($value));
     }
 
     public function getDataForPhpize()
     {
+
         return array(
             array('', ''),
             array(null, 'null'),
@@ -146,18 +171,22 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
 
     public function testLoadEmptyXmlFile()
     {
+
         $file = __DIR__.'/../Fixtures/foo.xml';
-        $this->setExpectedException('InvalidArgumentException', 'File '.$file.' does not contain valid XML, it is empty.');
+        $this->setExpectedException('InvalidArgumentException',
+            'File '.$file.' does not contain valid XML, it is empty.');
         XmlUtils::loadFile($file);
     }
 
     // test for issue https://github.com/symfony/symfony/issues/9731
     public function testLoadWrongEmptyXMLWithErrorHandler()
     {
+
         $originalDisableEntities = libxml_disable_entity_loader(false);
         $errorReporting = error_reporting(-1);
 
         set_error_handler(function ($errno, $errstr) {
+
             throw new \Exception($errstr, $errno);
         });
 
@@ -167,7 +196,8 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
                 XmlUtils::loadFile($file);
                 $this->fail('An exception should have been raised');
             } catch (\InvalidArgumentException $e) {
-                $this->assertEquals(sprintf('File %s does not contain valid XML, it is empty.', $file), $e->getMessage());
+                $this->assertEquals(sprintf('File %s does not contain valid XML, it is empty.', $file),
+                    $e->getMessage());
             }
         } catch (\Exception $e) {
             restore_error_handler();
@@ -189,9 +219,4 @@ class XmlUtilsTest extends \PHPUnit_Framework_TestCase
         // should not throw an exception
         XmlUtils::loadFile(__DIR__.'/../Fixtures/Util/valid.xml', __DIR__.'/../Fixtures/Util/schema.xsd');
     }
-}
-
-interface Validator
-{
-    public function validate();
 }

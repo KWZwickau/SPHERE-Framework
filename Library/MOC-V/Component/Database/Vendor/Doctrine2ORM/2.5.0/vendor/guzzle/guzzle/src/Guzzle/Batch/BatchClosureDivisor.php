@@ -9,6 +9,7 @@ use Guzzle\Common\Exception\InvalidArgumentException;
  */
 class BatchClosureDivisor implements BatchDivisorInterface
 {
+
     /** @var callable Method used to divide the batches */
     protected $callable;
 
@@ -24,6 +25,7 @@ class BatchClosureDivisor implements BatchDivisorInterface
      */
     public function __construct($callable, $context = null)
     {
+
         if (!is_callable($callable)) {
             throw new InvalidArgumentException('Must pass a callable');
         }
@@ -34,6 +36,7 @@ class BatchClosureDivisor implements BatchDivisorInterface
 
     public function createBatches(\SplQueue $queue)
     {
+
         return call_user_func($this->callable, $queue, $this->context);
     }
 }

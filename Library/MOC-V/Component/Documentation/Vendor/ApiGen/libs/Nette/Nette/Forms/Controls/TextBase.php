@@ -40,10 +40,10 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateMinLength( TextBase $control, $length )
+    public static function validateMinLength(TextBase $control, $length)
     {
 
-        return Strings::length( $control->getValue() ) >= $length;
+        return Strings::length($control->getValue()) >= $length;
     }
 
     /**
@@ -57,9 +57,9 @@ abstract class TextBase extends BaseControl
         $value = $this->value;
         foreach ($this->filters as $filter) {
             $value = (string)$filter/*5.2*->invoke*/
-            ( $value );
+            ($value);
         }
-        return $value === $this->translate( $this->emptyValue ) ? '' : $value;
+        return $value === $this->translate($this->emptyValue) ? '' : $value;
     }
 
     /**
@@ -70,10 +70,10 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateMaxLength( TextBase $control, $length )
+    public static function validateMaxLength(TextBase $control, $length)
     {
 
-        return Strings::length( $control->getValue() ) <= $length;
+        return Strings::length($control->getValue()) <= $length;
     }
 
     /**
@@ -84,13 +84,13 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateLength( TextBase $control, $range )
+    public static function validateLength(TextBase $control, $range)
     {
 
-        if (!is_array( $range )) {
-            $range = array( $range, $range );
+        if (!is_array($range)) {
+            $range = array($range, $range);
         }
-        return Validators::isInRange( Strings::length( $control->getValue() ), $range );
+        return Validators::isInRange(Strings::length($control->getValue()), $range);
     }
 
     /**
@@ -100,10 +100,10 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateEmail( TextBase $control )
+    public static function validateEmail(TextBase $control)
     {
 
-        return Validators::isEmail( $control->getValue() );
+        return Validators::isEmail($control->getValue());
     }
 
     /**
@@ -113,17 +113,17 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateUrl( TextBase $control )
+    public static function validateUrl(TextBase $control)
     {
 
-        return Validators::isUrl( $control->getValue() ) || Validators::isUrl( 'http://'.$control->getValue() );
+        return Validators::isUrl($control->getValue()) || Validators::isUrl('http://'.$control->getValue());
     }
 
     /** @deprecated */
-    public static function validateRegexp( TextBase $control, $regexp )
+    public static function validateRegexp(TextBase $control, $regexp)
     {
 
-        return (bool)Strings::match( $control->getValue(), $regexp );
+        return (bool)Strings::match($control->getValue(), $regexp);
     }
 
     /**
@@ -134,10 +134,10 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validatePattern( TextBase $control, $pattern )
+    public static function validatePattern(TextBase $control, $pattern)
     {
 
-        return (bool)Strings::match( $control->getValue(), "\x01^($pattern)$\x01u" );
+        return (bool)Strings::match($control->getValue(), "\x01^($pattern)$\x01u");
     }
 
     /**
@@ -147,10 +147,10 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateInteger( TextBase $control )
+    public static function validateInteger(TextBase $control)
     {
 
-        return Validators::isNumericInt( $control->getValue() );
+        return Validators::isNumericInt($control->getValue());
     }
 
     /**
@@ -160,10 +160,10 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateFloat( TextBase $control )
+    public static function validateFloat(TextBase $control)
     {
 
-        return Validators::isNumeric( static::filterFloat( $control->getValue() ) );
+        return Validators::isNumeric(static::filterFloat($control->getValue()));
     }
 
     /**
@@ -173,10 +173,10 @@ abstract class TextBase extends BaseControl
      *
      * @return string
      */
-    public static function filterFloat( $s )
+    public static function filterFloat($s)
     {
 
-        return str_replace( array( ' ', ',' ), array( '', '.' ), $s );
+        return str_replace(array(' ', ','), array('', '.'), $s);
     }
 
     /**
@@ -187,10 +187,10 @@ abstract class TextBase extends BaseControl
      *
      * @return bool
      */
-    public static function validateRange( TextBase $control, $range )
+    public static function validateRange(TextBase $control, $range)
     {
 
-        return Validators::isInRange( $control->getValue(), $range );
+        return Validators::isInRange($control->getValue(), $range);
     }
 
     /**
@@ -200,10 +200,10 @@ abstract class TextBase extends BaseControl
      *
      * @return TextBase  provides a fluent interface
      */
-    public function setValue( $value )
+    public function setValue($value)
     {
 
-        $this->value = is_array( $value ) ? '' : (string)$value;
+        $this->value = is_array($value) ? '' : (string)$value;
         return $this;
     }
 
@@ -225,7 +225,7 @@ abstract class TextBase extends BaseControl
      *
      * @return TextBase  provides a fluent interface
      */
-    public function setEmptyValue( $value )
+    public function setEmptyValue($value)
     {
 
         $this->emptyValue = (string)$value;
@@ -240,22 +240,22 @@ abstract class TextBase extends BaseControl
             if ($rule->type === Nette\Forms\Rule::VALIDATOR && !$rule->isNegative
                 && ( $rule->operation === Form::LENGTH || $rule->operation === Form::MAX_LENGTH )
             ) {
-                $control->maxlength = is_array( $rule->arg ) ? $rule->arg[1] : $rule->arg;
+                $control->maxlength = is_array($rule->arg) ? $rule->arg[1] : $rule->arg;
             }
         }
         if ($this->emptyValue !== '') {
-            $control->data( 'nette-empty-value', $this->translate( $this->emptyValue ) );
+            $control->data('nette-empty-value', $this->translate($this->emptyValue));
         }
         return $control;
     }
 
-    public function addRule( $operation, $message = null, $arg = null )
+    public function addRule($operation, $message = null, $arg = null)
     {
 
         if ($operation === Form::FLOAT) {
-            $this->addFilter( array( __CLASS__, 'filterFloat' ) );
+            $this->addFilter(array(__CLASS__, 'filterFloat'));
         }
-        return parent::addRule( $operation, $message, $arg );
+        return parent::addRule($operation, $message, $arg);
     }
 
     /**
@@ -265,10 +265,10 @@ abstract class TextBase extends BaseControl
      *
      * @return TextBase  provides a fluent interface
      */
-    public function addFilter( $filter )
+    public function addFilter($filter)
     {
 
-        $this->filters[] = new Nette\Callback( $filter );
+        $this->filters[] = new Nette\Callback($filter);
         return $this;
     }
 

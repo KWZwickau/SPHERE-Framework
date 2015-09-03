@@ -18,10 +18,10 @@ class PortParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Port
      */
-    function __construct( $Port )
+    public function __construct($Port)
     {
 
-        $this->setPort( $Port );
+        $this->setPort($Port);
     }
 
     /**
@@ -36,7 +36,7 @@ class PortParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Port
      */
-    public function setPort( $Port )
+    public function setPort($Port)
     {
 
         $this->Port = $Port;

@@ -76,12 +76,12 @@ class ReflectionParameterMagic extends ReflectionParameter
      * @param \TokenReflection\IReflection $reflection Inspected reflection
      * @param \ApiGen\Generator            $generator  ApiGen generator
      */
-    public function __construct( IReflection $reflection = null, Generator $generator = null )
+    public function __construct(IReflection $reflection = null, Generator $generator = null)
     {
 
-        $this->reflectionType = get_class( $this );
+        $this->reflectionType = get_class($this);
         if (!isset( self::$reflectionMethods[$this->reflectionType] )) {
-            self::$reflectionMethods[$this->reflectionType] = array_flip( get_class_methods( $this ) );
+            self::$reflectionMethods[$this->reflectionType] = array_flip(get_class_methods($this));
         }
     }
 
@@ -114,7 +114,7 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return \ApiGen\ReflectionParameterMagic
      */
-    public function setName( $name )
+    public function setName($name)
     {
 
         $this->name = (string)$name;
@@ -139,7 +139,7 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return \ApiGen\ReflectionParameterMagic
      */
-    public function setTypeHint( $typeHint )
+    public function setTypeHint($typeHint)
     {
 
         $this->typeHint = (string)$typeHint;
@@ -198,7 +198,7 @@ class ReflectionParameterMagic extends ReflectionParameter
     public function getPrettyName()
     {
 
-        return str_replace( '()', '($'.$this->name.')', $this->declaringFunction->getPrettyName() );
+        return str_replace('()', '($'.$this->name.')', $this->declaringFunction->getPrettyName());
     }
 
     /**
@@ -241,7 +241,7 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return \ApiGen\ReflectionParameterMagic
      */
-    public function setDeclaringFunction( ReflectionFunctionBase $declaringFunction )
+    public function setDeclaringFunction(ReflectionFunctionBase $declaringFunction)
     {
 
         $this->declaringFunction = $declaringFunction;
@@ -310,7 +310,7 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return \ApiGen\ReflectionParameterMagic
      */
-    public function setDefaultValueDefinition( $defaultValueDefinition )
+    public function setDefaultValueDefinition($defaultValueDefinition)
     {
 
         $this->defaultValueDefinition = $defaultValueDefinition;
@@ -335,7 +335,7 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return \ApiGen\ReflectionParameterMagic
      */
-    public function setPosition( $position )
+    public function setPosition($position)
     {
 
         $this->position = (int)$position;
@@ -399,7 +399,7 @@ class ReflectionParameterMagic extends ReflectionParameter
     {
 
         if ($this->isArray() || $this->isCallable()) {
-            return 'null' === strtolower( $this->defaultValueDefinition );
+            return 'null' === strtolower($this->defaultValueDefinition);
         }
 
         return !empty( $this->defaultValueDefinition );
@@ -445,7 +445,7 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return \ApiGen\ReflectionParameterMagic
      */
-    public function setPassedByReference( $passedByReference )
+    public function setPassedByReference($passedByReference)
     {
 
         $this->passedByReference = (bool)$passedByReference;
@@ -481,7 +481,7 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return \ApiGen\ReflectionParameterMagic
      */
-    public function setUnlimited( $unlimited )
+    public function setUnlimited($unlimited)
     {
 
         $this->unlimited = (bool)$unlimited;
@@ -495,10 +495,10 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return mixed
      */
-    public function __get( $name )
+    public function __get($name)
     {
 
-        $key = ucfirst( $name );
+        $key = ucfirst($name);
         if (isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] )) {
             return $this->{'get'.$key}();
         }
@@ -517,10 +517,10 @@ class ReflectionParameterMagic extends ReflectionParameter
      *
      * @return boolean
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        $key = ucfirst( $name );
+        $key = ucfirst($name);
         return isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] ) || isset( self::$reflectionMethods[$this->reflectionType]['is'.$key] );
     }
 }

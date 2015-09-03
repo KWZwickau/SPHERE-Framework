@@ -52,7 +52,7 @@ class Cache extends Nette\Object implements \ArrayAccess
     private $data;
 
 
-    public function __construct( IStorage $storage, $namespace = null )
+    public function __construct(IStorage $storage, $namespace = null)
     {
 
         $this->storage = $storage;
@@ -66,12 +66,12 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return bool
      */
-    public static function checkCallbacks( $callbacks )
+    public static function checkCallbacks($callbacks)
     {
 
         foreach ($callbacks as $callback) {
-            $func = array_shift( $callback );
-            if (!call_user_func_array( $func, $callback )) {
+            $func = array_shift($callback);
+            if (!call_user_func_array($func, $callback)) {
                 return false;
             }
         }
@@ -86,10 +86,10 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return bool
      */
-    private static function checkConst( $const, $value )
+    private static function checkConst($const, $value)
     {
 
-        return defined( $const ) && constant( $const ) === $value;
+        return defined($const) && constant($const) === $value;
     }
 
     /**
@@ -100,10 +100,10 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return bool
      */
-    private static function checkFile( $file, $time )
+    private static function checkFile($file, $time)
     {
 
-        return @filemtime( $file ) == $time; // @ - stat may fail
+        return @filemtime($file) == $time; // @ - stat may fail
     }
 
     /**
@@ -114,10 +114,10 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return bool
      */
-    private static function checkSerializationVersion( $class, $value )
+    private static function checkSerializationVersion($class, $value)
     {
 
-        return Nette\Reflection\ClassType::from( $class )->getAnnotation( 'serializationVersion' ) === $value;
+        return Nette\Reflection\ClassType::from($class)->getAnnotation('serializationVersion') === $value;
     }
 
     /**
@@ -139,7 +139,7 @@ class Cache extends Nette\Object implements \ArrayAccess
     public function getNamespace()
     {
 
-        return (string)substr( $this->namespace, 0, -1 );
+        return (string)substr($this->namespace, 0, -1);
     }
 
     /**
@@ -149,10 +149,10 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return Cache
      */
-    public function derive( $namespace )
+    public function derive($namespace)
     {
 
-        $derived = new static( $this->storage, $this->namespace.$namespace );
+        $derived = new static($this->storage, $this->namespace.$namespace);
         return $derived;
     }
 
@@ -163,10 +163,10 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return void
      */
-    public function remove( $key )
+    public function remove($key)
     {
 
-        $this->save( $key, null );
+        $this->save($key, null);
     }
 
     /**
@@ -187,21 +187,21 @@ class Cache extends Nette\Object implements \ArrayAccess
      * @return mixed  value itself
      * @throws Nette\InvalidArgumentException
      */
-    public function save( $key, $data, array $dp = null )
+    public function save($key, $data, array $dp = null)
     {
 
         $this->release();
-        $key = $this->generateKey( $key );
+        $key = $this->generateKey($key);
 
         if ($data instanceof Nette\Callback || $data instanceof \Closure) {
-            $this->storage->lock( $key );
-            $data = Nette\Callback::create( $data )->invokeArgs( array( &$dp ) );
+            $this->storage->lock($key);
+            $data = Nette\Callback::create($data)->invokeArgs(array(&$dp));
         }
 
         if ($data === null) {
-            $this->storage->remove( $key );
+            $this->storage->remove($key);
         } else {
-            $this->storage->write( $key, $data, $this->completeDependencies( $dp, $data ) );
+            $this->storage->write($key, $data, $this->completeDependencies($dp, $data));
             return $data;
         }
     }
@@ -224,36 +224,36 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return string
      */
-    protected function generateKey( $key )
+    protected function generateKey($key)
     {
 
-        return $this->namespace.md5( is_scalar( $key ) ? $key : serialize( $key ) );
+        return $this->namespace.md5(is_scalar($key) ? $key : serialize($key));
     }
 
-    private function completeDependencies( $dp, $data )
+    private function completeDependencies($dp, $data)
     {
 
-        if (is_object( $data )) {
+        if (is_object($data)) {
             $dp[self::CALLBACKS][] = array(
-                array( __CLASS__, 'checkSerializationVersion' ),
-                get_class( $data ),
-                Nette\Reflection\ClassType::from( $data )->getAnnotation( 'serializationVersion' )
+                array(__CLASS__, 'checkSerializationVersion'),
+                get_class($data),
+                Nette\Reflection\ClassType::from($data)->getAnnotation('serializationVersion')
             );
         }
 
         // convert expire into relative amount of seconds
         if (isset( $dp[Cache::EXPIRATION] )) {
-            $dp[Cache::EXPIRATION] = Nette\DateTime::from( $dp[Cache::EXPIRATION] )->format( 'U' ) - time();
+            $dp[Cache::EXPIRATION] = Nette\DateTime::from($dp[Cache::EXPIRATION])->format('U') - time();
         }
 
         // convert FILES into CALLBACKS
         if (isset( $dp[self::FILES] )) {
             //clearstatcache();
-            foreach (array_unique( (array)$dp[self::FILES] ) as $item) {
+            foreach (array_unique((array)$dp[self::FILES]) as $item) {
                 $dp[self::CALLBACKS][] = array(
-                    array( __CLASS__, 'checkFile' ),
+                    array(__CLASS__, 'checkFile'),
                     $item,
-                    @filemtime( $item )
+                    @filemtime($item)
                 ); // @ - stat may fail
             }
             unset( $dp[self::FILES] );
@@ -261,21 +261,21 @@ class Cache extends Nette\Object implements \ArrayAccess
 
         // add namespaces to items
         if (isset( $dp[self::ITEMS] )) {
-            $dp[self::ITEMS] = array_unique( (array)$dp[self::ITEMS] );
+            $dp[self::ITEMS] = array_unique((array)$dp[self::ITEMS]);
             foreach ($dp[self::ITEMS] as $k => $item) {
-                $dp[self::ITEMS][$k] = $this->generateKey( $item );
+                $dp[self::ITEMS][$k] = $this->generateKey($item);
             }
         }
 
         // convert CONSTS into CALLBACKS
         if (isset( $dp[self::CONSTS] )) {
-            foreach (array_unique( (array)$dp[self::CONSTS] ) as $item) {
-                $dp[self::CALLBACKS][] = array( array( __CLASS__, 'checkConst' ), $item, constant( $item ) );
+            foreach (array_unique((array)$dp[self::CONSTS]) as $item) {
+                $dp[self::CALLBACKS][] = array(array(__CLASS__, 'checkConst'), $item, constant($item));
             }
             unset( $dp[self::CONSTS] );
         }
 
-        if (!is_array( $dp )) {
+        if (!is_array($dp)) {
             $dp = array();
         }
         return $dp;
@@ -296,11 +296,11 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return void
      */
-    public function clean( array $conds = null )
+    public function clean(array $conds = null)
     {
 
         $this->release();
-        $this->storage->clean( (array)$conds );
+        $this->storage->clean((array)$conds);
     }
 
     /**
@@ -310,15 +310,15 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return mixed
      */
-    public function call( $function )
+    public function call($function)
     {
 
         $key = func_get_args();
-        return $this->load( $key, function () use ( $function, $key ) {
+        return $this->load($key, function () use ($function, $key) {
 
-            array_shift( $key );
-            return Nette\Callback::create( $function )->invokeArgs( $key );
-        } );
+            array_shift($key);
+            return Nette\Callback::create($function)->invokeArgs($key);
+        });
     }
 
     /**
@@ -329,12 +329,12 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return mixed|NULL
      */
-    public function load( $key, $fallback = null )
+    public function load($key, $fallback = null)
     {
 
-        $data = $this->storage->read( $this->generateKey( $key ) );
+        $data = $this->storage->read($this->generateKey($key));
         if ($data === null && $fallback) {
-            return $this->save( $key, new Nette\Callback( $fallback ) );
+            return $this->save($key, new Nette\Callback($fallback));
         }
         return $data;
     }
@@ -347,16 +347,16 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return Closure
      */
-    public function wrap( $function, array $dp = null )
+    public function wrap($function, array $dp = null)
     {
 
         $cache = $this;
-        return function () use ( $cache, $function, $dp ) {
+        return function () use ($cache, $function, $dp) {
 
-            $key = array( $function, func_get_args() );
-            $data = $cache->load( $key );
+            $key = array($function, func_get_args());
+            $data = $cache->load($key);
             if ($data === null) {
-                $data = $cache->save( $key, Nette\Callback::create( $function )->invokeArgs( $key[1] ), $dp );
+                $data = $cache->save($key, Nette\Callback::create($function)->invokeArgs($key[1]), $dp);
             }
             return $data;
         };
@@ -369,12 +369,12 @@ class Cache extends Nette\Object implements \ArrayAccess
      *
      * @return OutputHelper|NULL
      */
-    public function start( $key )
+    public function start($key)
     {
 
-        $data = $this->load( $key );
+        $data = $this->load($key);
         if ($data === null) {
-            return new OutputHelper( $this, $key );
+            return new OutputHelper($this, $key);
         }
         echo $data;
     }
@@ -392,10 +392,10 @@ class Cache extends Nette\Object implements \ArrayAccess
      * @return void
      * @throws Nette\InvalidArgumentException
      */
-    public function offsetSet( $key, $data )
+    public function offsetSet($key, $data)
     {
 
-        $this->save( $key, $data );
+        $this->save($key, $data);
     }
 
     /**
@@ -406,11 +406,11 @@ class Cache extends Nette\Object implements \ArrayAccess
      * @return bool
      * @throws Nette\InvalidArgumentException
      */
-    public function offsetExists( $key )
+    public function offsetExists($key)
     {
 
         $this->release();
-        return $this->offsetGet( $key ) !== null;
+        return $this->offsetGet($key) !== null;
     }
 
     /**
@@ -421,13 +421,13 @@ class Cache extends Nette\Object implements \ArrayAccess
      * @return mixed|NULL
      * @throws Nette\InvalidArgumentException
      */
-    public function offsetGet( $key )
+    public function offsetGet($key)
     {
 
-        $key = is_scalar( $key ) ? (string)$key : serialize( $key );
+        $key = is_scalar($key) ? (string)$key : serialize($key);
         if ($this->key !== $key) {
             $this->key = $key;
-            $this->data = $this->load( $key );
+            $this->data = $this->load($key);
         }
         return $this->data;
     }
@@ -440,10 +440,10 @@ class Cache extends Nette\Object implements \ArrayAccess
      * @return void
      * @throws Nette\InvalidArgumentException
      */
-    public function offsetUnset( $key )
+    public function offsetUnset($key)
     {
 
-        $this->save( $key, null );
+        $this->save($key, null);
     }
 
 }

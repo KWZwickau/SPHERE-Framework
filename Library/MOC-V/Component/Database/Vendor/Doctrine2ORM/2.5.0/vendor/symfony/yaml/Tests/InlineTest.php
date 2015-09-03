@@ -15,12 +15,15 @@ use Symfony\Component\Yaml\Inline;
 
 class InlineTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getTestsForParse
      */
     public function testParse($yaml, $value)
     {
-        $this->assertSame($value, Inline::parse($yaml), sprintf('::parse() converts an inline YAML to a PHP structure (%s)', $yaml));
+
+        $this->assertSame($value, Inline::parse($yaml),
+            sprintf('::parse() converts an inline YAML to a PHP structure (%s)', $yaml));
     }
 
     /**
@@ -28,6 +31,7 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseWithMapObjects($yaml, $value)
     {
+
         $actual = Inline::parse($yaml, false, false, true);
 
         $this->assertSame(serialize($value), serialize($actual));
@@ -38,13 +42,16 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testDump($yaml, $value)
     {
-        $this->assertEquals($yaml, Inline::dump($value), sprintf('::dump() converts a PHP structure to an inline YAML (%s)', $yaml));
+
+        $this->assertEquals($yaml, Inline::dump($value),
+            sprintf('::dump() converts a PHP structure to an inline YAML (%s)', $yaml));
 
         $this->assertSame($value, Inline::parse(Inline::dump($value)), 'check consistency');
     }
 
     public function testDumpNumericValueWithLocale()
     {
+
         $locale = setlocale(LC_NUMERIC, 0);
         if (false === $locale) {
             $this->markTestSkipped('Your platform does not support locales.');
@@ -67,6 +74,7 @@ class InlineTest extends \PHPUnit_Framework_TestCase
 
     public function testHashStringsResemblingExponentialNumericsShouldNotBeChangedToINF()
     {
+
         $value = '686e444';
 
         $this->assertSame($value, Inline::parse(Inline::dump($value)));
@@ -77,6 +85,7 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseScalarWithIncorrectlyQuotedStringShouldThrowException()
     {
+
         $value = "'don't do somthin' like that'";
         Inline::parse($value);
     }
@@ -86,6 +95,7 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseScalarWithIncorrectlyDoubleQuotedStringShouldThrowException()
     {
+
         $value = '"don"t do somthin" like that"';
         Inline::parse($value);
     }
@@ -95,6 +105,7 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseInvalidMappingKeyShouldThrowException()
     {
+
         $value = '{ "foo " bar": "bar" }';
         Inline::parse($value);
     }
@@ -104,6 +115,7 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseInvalidMappingShouldThrowException()
     {
+
         Inline::parse('[foo] bar');
     }
 
@@ -112,11 +124,13 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseInvalidSequenceShouldThrowException()
     {
+
         Inline::parse('{ foo: bar } bar');
     }
 
     public function testParseScalarWithCorrectlyQuotedStringShouldReturnString()
     {
+
         $value = "'don''t do somthin'' like that'";
         $expect = "don't do somthin' like that";
 
@@ -128,25 +142,28 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseReferences($yaml, $expected)
     {
+
         $this->assertSame($expected, Inline::parse($yaml, false, false, false, array('var' => 'var-value')));
     }
 
     public function getDataForParseReferences()
     {
+
         return array(
-            'scalar' => array('*var', 'var-value'),
-            'list' => array('[ *var ]', array('var-value')),
+            'scalar'       => array('*var', 'var-value'),
+            'list'         => array('[ *var ]', array('var-value')),
             'list-in-list' => array('[[ *var ]]', array(array('var-value'))),
-            'map-in-list' => array('[ { key: *var } ]', array(array('key' => 'var-value'))),
+            'map-in-list'  => array('[ { key: *var } ]', array(array('key' => 'var-value'))),
             'embedded-mapping-in-list' => array('[ key: *var ]', array(array('key' => 'var-value'))),
-            'map' => array('{ key: *var }', array('key' => 'var-value')),
-            'list-in-map' => array('{ key: [*var] }', array('key' => array('var-value'))),
-            'map-in-map' => array('{ foo: { bar: *var } }', array('foo' => array('bar' => 'var-value'))),
+            'map'          => array('{ key: *var }', array('key' => 'var-value')),
+            'list-in-map'  => array('{ key: [*var] }', array('key' => array('var-value'))),
+            'map-in-map'   => array('{ foo: { bar: *var } }', array('foo' => array('bar' => 'var-value'))),
         );
     }
 
     public function testParseMapReferenceInSequence()
     {
+
         $foo = array(
             'a' => 'Steve',
             'b' => 'Clark',
@@ -161,6 +178,7 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseUnquotedAsterisk()
     {
+
         Inline::parse('{ foo: * }');
     }
 
@@ -170,11 +188,13 @@ class InlineTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseUnquotedAsteriskFollowedByAComment()
     {
+
         Inline::parse('{ foo: * #foo }');
     }
 
     public function getTestsForParse()
     {
+
         return array(
             array('', ''),
             array('null', null),
@@ -197,7 +217,6 @@ class InlineTest extends \PHPUnit_Framework_TestCase
             array("'foo # bar'", 'foo # bar'),
             array("'#cfcfcf'", '#cfcfcf'),
             array('::form_base.html.twig', '::form_base.html.twig'),
-
             // Pre-YAML-1.2 booleans
             array("'y'", 'y'),
             array("'n'", 'n'),
@@ -205,51 +224,64 @@ class InlineTest extends \PHPUnit_Framework_TestCase
             array("'no'", 'no'),
             array("'on'", 'on'),
             array("'off'", 'off'),
-
             array('2007-10-30', mktime(0, 0, 0, 10, 30, 2007)),
             array('2007-10-30T02:59:43Z', gmmktime(2, 59, 43, 10, 30, 2007)),
             array('2007-10-30 02:59:43 Z', gmmktime(2, 59, 43, 10, 30, 2007)),
             array('1960-10-30 02:59:43 Z', gmmktime(2, 59, 43, 10, 30, 1960)),
             array('1730-10-30T02:59:43Z', gmmktime(2, 59, 43, 10, 30, 1730)),
-
             array('"a \\"string\\" with \'quoted strings inside\'"', 'a "string" with \'quoted strings inside\''),
             array("'a \"string\" with ''quoted strings inside'''", 'a "string" with \'quoted strings inside\''),
-
             // sequences
             // urls are no key value mapping. see #3609. Valid yaml "key: value" mappings require a space after the colon
-            array('[foo, http://urls.are/no/mappings, false, null, 12]', array('foo', 'http://urls.are/no/mappings', false, null, 12)),
+            array(
+                '[foo, http://urls.are/no/mappings, false, null, 12]',
+                array('foo', 'http://urls.are/no/mappings', false, null, 12)
+            ),
             array('[  foo  ,   bar , false  ,  null     ,  12  ]', array('foo', 'bar', false, null, 12)),
             array('[\'foo,bar\', \'foo bar\']', array('foo,bar', 'foo bar')),
-
             // mappings
-            array('{foo:bar,bar:foo,false:false,null:null,integer:12}', array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)),
-            array('{ foo  : bar, bar : foo,  false  :   false,  null  :   null,  integer :  12  }', array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)),
+            array(
+                '{foo:bar,bar:foo,false:false,null:null,integer:12}',
+                array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)
+            ),
+            array(
+                '{ foo  : bar, bar : foo,  false  :   false,  null  :   null,  integer :  12  }',
+                array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)
+            ),
             array('{foo: \'bar\', bar: \'foo: bar\'}', array('foo' => 'bar', 'bar' => 'foo: bar')),
             array('{\'foo\': \'bar\', "bar": \'foo: bar\'}', array('foo' => 'bar', 'bar' => 'foo: bar')),
             array('{\'foo\'\'\': \'bar\', "bar\"": \'foo: bar\'}', array('foo\'' => 'bar', 'bar"' => 'foo: bar')),
             array('{\'foo: \': \'bar\', "bar: ": \'foo: bar\'}', array('foo: ' => 'bar', 'bar: ' => 'foo: bar')),
-
             // nested sequences and mappings
             array('[foo, [bar, foo]]', array('foo', array('bar', 'foo'))),
             array('[foo, {bar: foo}]', array('foo', array('bar' => 'foo'))),
             array('{ foo: {bar: foo} }', array('foo' => array('bar' => 'foo'))),
             array('{ foo: [bar, foo] }', array('foo' => array('bar', 'foo'))),
-
             array('[  foo, [  bar, foo  ]  ]', array('foo', array('bar', 'foo'))),
-
             array('[{ foo: {bar: foo} }]', array(array('foo' => array('bar' => 'foo')))),
-
-            array('[foo, [bar, [foo, [bar, foo]], foo]]', array('foo', array('bar', array('foo', array('bar', 'foo')), 'foo'))),
-
-            array('[foo, {bar: foo, foo: [foo, {bar: foo}]}, [foo, {bar: foo}]]', array('foo', array('bar' => 'foo', 'foo' => array('foo', array('bar' => 'foo'))), array('foo', array('bar' => 'foo')))),
-
+            array(
+                '[foo, [bar, [foo, [bar, foo]], foo]]',
+                array('foo', array('bar', array('foo', array('bar', 'foo')), 'foo'))
+            ),
+            array(
+                '[foo, {bar: foo, foo: [foo, {bar: foo}]}, [foo, {bar: foo}]]',
+                array(
+                    'foo',
+                    array('bar' => 'foo', 'foo' => array('foo', array('bar' => 'foo'))),
+                    array('foo', array('bar' => 'foo'))
+                )
+            ),
             array('[foo, bar: { foo: bar }]', array('foo', '1' => array('bar' => array('foo' => 'bar')))),
-            array('[foo, \'@foo.baz\', { \'%foo%\': \'foo is %foo%\', bar: \'%foo%\' }, true, \'@service_container\']', array('foo', '@foo.baz', array('%foo%' => 'foo is %foo%', 'bar' => '%foo%'), true, '@service_container')),
+            array(
+                '[foo, \'@foo.baz\', { \'%foo%\': \'foo is %foo%\', bar: \'%foo%\' }, true, \'@service_container\']',
+                array('foo', '@foo.baz', array('%foo%' => 'foo is %foo%', 'bar' => '%foo%'), true, '@service_container')
+            ),
         );
     }
 
     public function getTestsForParseWithMapObjects()
     {
+
         return array(
             array('', ''),
             array('null', null),
@@ -272,63 +304,92 @@ class InlineTest extends \PHPUnit_Framework_TestCase
             array("'foo # bar'", 'foo # bar'),
             array("'#cfcfcf'", '#cfcfcf'),
             array('::form_base.html.twig', '::form_base.html.twig'),
-
             array('2007-10-30', mktime(0, 0, 0, 10, 30, 2007)),
             array('2007-10-30T02:59:43Z', gmmktime(2, 59, 43, 10, 30, 2007)),
             array('2007-10-30 02:59:43 Z', gmmktime(2, 59, 43, 10, 30, 2007)),
             array('1960-10-30 02:59:43 Z', gmmktime(2, 59, 43, 10, 30, 1960)),
             array('1730-10-30T02:59:43Z', gmmktime(2, 59, 43, 10, 30, 1730)),
-
             array('"a \\"string\\" with \'quoted strings inside\'"', 'a "string" with \'quoted strings inside\''),
             array("'a \"string\" with ''quoted strings inside'''", 'a "string" with \'quoted strings inside\''),
-
             // sequences
             // urls are no key value mapping. see #3609. Valid yaml "key: value" mappings require a space after the colon
-            array('[foo, http://urls.are/no/mappings, false, null, 12]', array('foo', 'http://urls.are/no/mappings', false, null, 12)),
+            array(
+                '[foo, http://urls.are/no/mappings, false, null, 12]',
+                array('foo', 'http://urls.are/no/mappings', false, null, 12)
+            ),
             array('[  foo  ,   bar , false  ,  null     ,  12  ]', array('foo', 'bar', false, null, 12)),
             array('[\'foo,bar\', \'foo bar\']', array('foo,bar', 'foo bar')),
-
             // mappings
-            array('{foo:bar,bar:foo,false:false,null:null,integer:12}', (object) array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)),
-            array('{ foo  : bar, bar : foo,  false  :   false,  null  :   null,  integer :  12  }', (object) array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)),
-            array('{foo: \'bar\', bar: \'foo: bar\'}', (object) array('foo' => 'bar', 'bar' => 'foo: bar')),
-            array('{\'foo\': \'bar\', "bar": \'foo: bar\'}', (object) array('foo' => 'bar', 'bar' => 'foo: bar')),
-            array('{\'foo\'\'\': \'bar\', "bar\"": \'foo: bar\'}', (object) array('foo\'' => 'bar', "bar\"" => 'foo: bar')),
-            array('{\'foo: \': \'bar\', "bar: ": \'foo: bar\'}', (object) array('foo: ' => 'bar', "bar: " => 'foo: bar')),
-
+            array(
+                '{foo:bar,bar:foo,false:false,null:null,integer:12}',
+                (object)array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)
+            ),
+            array(
+                '{ foo  : bar, bar : foo,  false  :   false,  null  :   null,  integer :  12  }',
+                (object)array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)
+            ),
+            array('{foo: \'bar\', bar: \'foo: bar\'}', (object)array('foo' => 'bar', 'bar' => 'foo: bar')),
+            array('{\'foo\': \'bar\', "bar": \'foo: bar\'}', (object)array('foo' => 'bar', 'bar' => 'foo: bar')),
+            array(
+                '{\'foo\'\'\': \'bar\', "bar\"": \'foo: bar\'}',
+                (object)array('foo\'' => 'bar', "bar\"" => 'foo: bar')
+            ),
+            array(
+                '{\'foo: \': \'bar\', "bar: ": \'foo: bar\'}',
+                (object)array('foo: ' => 'bar', "bar: " => 'foo: bar')
+            ),
             // nested sequences and mappings
             array('[foo, [bar, foo]]', array('foo', array('bar', 'foo'))),
-            array('[foo, {bar: foo}]', array('foo', (object) array('bar' => 'foo'))),
-            array('{ foo: {bar: foo} }', (object) array('foo' => (object) array('bar' => 'foo'))),
-            array('{ foo: [bar, foo] }', (object) array('foo' => array('bar', 'foo'))),
-
+            array('[foo, {bar: foo}]', array('foo', (object)array('bar' => 'foo'))),
+            array('{ foo: {bar: foo} }', (object)array('foo' => (object)array('bar' => 'foo'))),
+            array('{ foo: [bar, foo] }', (object)array('foo' => array('bar', 'foo'))),
             array('[  foo, [  bar, foo  ]  ]', array('foo', array('bar', 'foo'))),
-
-            array('[{ foo: {bar: foo} }]', array((object) array('foo' => (object) array('bar' => 'foo')))),
-
-            array('[foo, [bar, [foo, [bar, foo]], foo]]', array('foo', array('bar', array('foo', array('bar', 'foo')), 'foo'))),
-
-            array('[foo, {bar: foo, foo: [foo, {bar: foo}]}, [foo, {bar: foo}]]', array('foo', (object) array('bar' => 'foo', 'foo' => array('foo', (object) array('bar' => 'foo'))), array('foo', (object) array('bar' => 'foo')))),
-
-            array('[foo, bar: { foo: bar }]', array('foo', '1' => (object) array('bar' => (object) array('foo' => 'bar')))),
-            array('[foo, \'@foo.baz\', { \'%foo%\': \'foo is %foo%\', bar: \'%foo%\' }, true, \'@service_container\']', array('foo', '@foo.baz', (object) array('%foo%' => 'foo is %foo%', 'bar' => '%foo%'), true, '@service_container')),
-
+            array('[{ foo: {bar: foo} }]', array((object)array('foo' => (object)array('bar' => 'foo')))),
+            array(
+                '[foo, [bar, [foo, [bar, foo]], foo]]',
+                array('foo', array('bar', array('foo', array('bar', 'foo')), 'foo'))
+            ),
+            array(
+                '[foo, {bar: foo, foo: [foo, {bar: foo}]}, [foo, {bar: foo}]]',
+                array(
+                    'foo',
+                    (object)array('bar' => 'foo', 'foo' => array('foo', (object)array('bar' => 'foo'))),
+                    array('foo', (object)array('bar' => 'foo'))
+                )
+            ),
+            array(
+                '[foo, bar: { foo: bar }]',
+                array('foo', '1' => (object)array('bar' => (object)array('foo' => 'bar')))
+            ),
+            array(
+                '[foo, \'@foo.baz\', { \'%foo%\': \'foo is %foo%\', bar: \'%foo%\' }, true, \'@service_container\']',
+                array(
+                    'foo',
+                    '@foo.baz',
+                    (object)array('%foo%' => 'foo is %foo%', 'bar' => '%foo%'),
+                    true,
+                    '@service_container'
+                )
+            ),
             array('{}', new \stdClass()),
-            array('{ foo  : bar, bar : {}  }', (object) array('foo' => 'bar', 'bar' => new \stdClass())),
-            array('{ foo  : [], bar : {}  }', (object) array('foo' => array(), 'bar' => new \stdClass())),
-            array('{foo: \'bar\', bar: {} }', (object) array('foo' => 'bar', 'bar' => new \stdClass())),
-            array('{\'foo\': \'bar\', "bar": {}}', (object) array('foo' => 'bar', 'bar' => new \stdClass())),
-            array('{\'foo\': \'bar\', "bar": \'{}\'}', (object) array('foo' => 'bar', 'bar' => '{}')),
-
+            array('{ foo  : bar, bar : {}  }', (object)array('foo' => 'bar', 'bar' => new \stdClass())),
+            array('{ foo  : [], bar : {}  }', (object)array('foo' => array(), 'bar' => new \stdClass())),
+            array('{foo: \'bar\', bar: {} }', (object)array('foo' => 'bar', 'bar' => new \stdClass())),
+            array('{\'foo\': \'bar\', "bar": {}}', (object)array('foo' => 'bar', 'bar' => new \stdClass())),
+            array('{\'foo\': \'bar\', "bar": \'{}\'}', (object)array('foo' => 'bar', 'bar' => '{}')),
             array('[foo, [{}, {}]]', array('foo', array(new \stdClass(), new \stdClass()))),
             array('[foo, [[], {}]]', array('foo', array(array(), new \stdClass()))),
-            array('[foo, [[{}, {}], {}]]', array('foo', array(array(new \stdClass(), new \stdClass()), new \stdClass()))),
-            array('[foo, {bar: {}}]', array('foo', '1' => (object) array('bar' => new \stdClass()))),
+            array(
+                '[foo, [[{}, {}], {}]]',
+                array('foo', array(array(new \stdClass(), new \stdClass()), new \stdClass()))
+            ),
+            array('[foo, {bar: {}}]', array('foo', '1' => (object)array('bar' => new \stdClass()))),
         );
     }
 
     public function getTestsForDump()
     {
+
         return array(
             array('null', null),
             array('false', false),
@@ -345,12 +406,9 @@ class InlineTest extends \PHPUnit_Framework_TestCase
             array("'foo#bar'", 'foo#bar'),
             array("'foo # bar'", 'foo # bar'),
             array("'#cfcfcf'", '#cfcfcf'),
-
             array("'a \"string\" with ''quoted strings inside'''", 'a "string" with \'quoted strings inside\''),
-
             array("'-dash'", '-dash'),
             array("'-'", '-'),
-
             // Pre-YAML-1.2 booleans
             array("'y'", 'y'),
             array("'n'", 'n'),
@@ -358,27 +416,35 @@ class InlineTest extends \PHPUnit_Framework_TestCase
             array("'no'", 'no'),
             array("'on'", 'on'),
             array("'off'", 'off'),
-
             // sequences
             array('[foo, bar, false, null, 12]', array('foo', 'bar', false, null, 12)),
             array('[\'foo,bar\', \'foo bar\']', array('foo,bar', 'foo bar')),
-
             // mappings
-            array('{ foo: bar, bar: foo, \'false\': false, \'null\': null, integer: 12 }', array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)),
+            array(
+                '{ foo: bar, bar: foo, \'false\': false, \'null\': null, integer: 12 }',
+                array('foo' => 'bar', 'bar' => 'foo', 'false' => false, 'null' => null, 'integer' => 12)
+            ),
             array('{ foo: bar, bar: \'foo: bar\' }', array('foo' => 'bar', 'bar' => 'foo: bar')),
-
             // nested sequences and mappings
             array('[foo, [bar, foo]]', array('foo', array('bar', 'foo'))),
-
-            array('[foo, [bar, [foo, [bar, foo]], foo]]', array('foo', array('bar', array('foo', array('bar', 'foo')), 'foo'))),
-
+            array(
+                '[foo, [bar, [foo, [bar, foo]], foo]]',
+                array('foo', array('bar', array('foo', array('bar', 'foo')), 'foo'))
+            ),
             array('{ foo: { bar: foo } }', array('foo' => array('bar' => 'foo'))),
-
             array('[foo, { bar: foo }]', array('foo', array('bar' => 'foo'))),
-
-            array('[foo, { bar: foo, foo: [foo, { bar: foo }] }, [foo, { bar: foo }]]', array('foo', array('bar' => 'foo', 'foo' => array('foo', array('bar' => 'foo'))), array('foo', array('bar' => 'foo')))),
-
-            array('[foo, \'@foo.baz\', { \'%foo%\': \'foo is %foo%\', bar: \'%foo%\' }, true, \'@service_container\']', array('foo', '@foo.baz', array('%foo%' => 'foo is %foo%', 'bar' => '%foo%'), true, '@service_container')),
+            array(
+                '[foo, { bar: foo, foo: [foo, { bar: foo }] }, [foo, { bar: foo }]]',
+                array(
+                    'foo',
+                    array('bar' => 'foo', 'foo' => array('foo', array('bar' => 'foo'))),
+                    array('foo', array('bar' => 'foo'))
+                )
+            ),
+            array(
+                '[foo, \'@foo.baz\', { \'%foo%\': \'foo is %foo%\', bar: \'%foo%\' }, true, \'@service_container\']',
+                array('foo', '@foo.baz', array('%foo%' => 'foo is %foo%', 'bar' => '%foo%'), true, '@service_container')
+            ),
         );
     }
 }

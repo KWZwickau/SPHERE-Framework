@@ -30,13 +30,15 @@ use Doctrine\DBAL\Schema\Sequence;
  */
 class SQLServer2012Platform extends SQLServer2008Platform
 {
+
     /**
      * {@inheritdoc}
      */
     public function getAlterSequenceSQL(Sequence $sequence)
     {
-        return 'ALTER SEQUENCE ' . $sequence->getQuotedName($this) .
-               ' INCREMENT BY ' . $sequence->getAllocationSize();
+
+        return 'ALTER SEQUENCE '.$sequence->getQuotedName($this).
+        ' INCREMENT BY '.$sequence->getAllocationSize();
     }
 
     /**
@@ -44,10 +46,11 @@ class SQLServer2012Platform extends SQLServer2008Platform
      */
     public function getCreateSequenceSQL(Sequence $sequence)
     {
-        return 'CREATE SEQUENCE ' . $sequence->getQuotedName($this) .
-               ' START WITH ' . $sequence->getInitialValue() .
-               ' INCREMENT BY ' . $sequence->getAllocationSize() .
-               ' MINVALUE ' . $sequence->getInitialValue();
+
+        return 'CREATE SEQUENCE '.$sequence->getQuotedName($this).
+        ' START WITH '.$sequence->getInitialValue().
+        ' INCREMENT BY '.$sequence->getAllocationSize().
+        ' MINVALUE '.$sequence->getInitialValue();
     }
 
     /**
@@ -55,11 +58,12 @@ class SQLServer2012Platform extends SQLServer2008Platform
      */
     public function getDropSequenceSQL($sequence)
     {
+
         if ($sequence instanceof Sequence) {
             $sequence = $sequence->getQuotedName($this);
         }
 
-        return 'DROP SEQUENCE ' . $sequence;
+        return 'DROP SEQUENCE '.$sequence;
     }
 
     /**
@@ -67,6 +71,7 @@ class SQLServer2012Platform extends SQLServer2008Platform
      */
     public function getListSequencesSQL($database)
     {
+
         return 'SELECT seq.name,
                        CAST(
                            seq.increment AS VARCHAR(MAX)
@@ -82,7 +87,8 @@ class SQLServer2012Platform extends SQLServer2008Platform
      */
     public function getSequenceNextValSQL($sequenceName)
     {
-        return 'SELECT NEXT VALUE FOR ' . $sequenceName;
+
+        return 'SELECT NEXT VALUE FOR '.$sequenceName;
     }
 
     /**
@@ -90,6 +96,7 @@ class SQLServer2012Platform extends SQLServer2008Platform
      */
     public function supportsSequences()
     {
+
         return true;
     }
 
@@ -100,6 +107,7 @@ class SQLServer2012Platform extends SQLServer2008Platform
      */
     protected function getReservedKeywordsClass()
     {
+
         return 'Doctrine\DBAL\Platforms\Keywords\SQLServer2012Keywords';
     }
 }

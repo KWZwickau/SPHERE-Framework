@@ -21,16 +21,16 @@ use Nette;
 interface ISessionStorage
 {
 
-    function open( $savePath, $sessionName );
+    function open($savePath, $sessionName);
 
     function close();
 
-    function read( $id );
+    function read($id);
 
-    function write( $id, $data );
+    function write($id, $data);
 
-    function remove( $id );
+    function remove($id);
 
-    function clean( $maxlifetime );
+    function clean($maxlifetime);
 
 }

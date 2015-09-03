@@ -11,8 +11,10 @@ use Guzzle\Http\Curl\CurlMulti;
  */
 class BatchRequestTransferTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testCreatesBatchesBasedOnCurlMultiHandles()
     {
+
         $client1 = new Client('http://www.example.com');
         $client1->setCurlMulti(new CurlMulti());
 
@@ -45,6 +47,7 @@ class BatchRequestTransferTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testEnsuresAllItemsAreRequests()
     {
+
         $queue = new \SplQueue();
         $queue[] = 'foo';
         $batch = new BatchRequestTransfer(2);
@@ -53,6 +56,7 @@ class BatchRequestTransferTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testTransfersBatches()
     {
+
         $client = new Client('http://127.0.0.1:123');
         $request = $client->get();
         // For some reason... PHP unit clones the request, which emits a request.clone event. This causes the
@@ -74,6 +78,7 @@ class BatchRequestTransferTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesNotTransfersEmptyBatches()
     {
+
         $batch = new BatchRequestTransfer(2);
         $batch->transfer(array());
     }

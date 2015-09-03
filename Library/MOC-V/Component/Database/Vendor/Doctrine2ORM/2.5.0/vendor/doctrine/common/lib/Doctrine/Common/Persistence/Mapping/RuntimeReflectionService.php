@@ -32,12 +32,14 @@ use ReflectionProperty;
  */
 class RuntimeReflectionService implements ReflectionService
 {
+
     /**
      * {@inheritDoc}
      */
     public function getParentClasses($class)
     {
-        if ( ! class_exists($class)) {
+
+        if (!class_exists($class)) {
             throw MappingException::nonExistingClass($class);
         }
 
@@ -49,6 +51,7 @@ class RuntimeReflectionService implements ReflectionService
      */
     public function getClassShortName($class)
     {
+
         $reflectionClass = new ReflectionClass($class);
 
         return $reflectionClass->getShortName();
@@ -59,6 +62,7 @@ class RuntimeReflectionService implements ReflectionService
      */
     public function getClassNamespace($class)
     {
+
         $reflectionClass = new ReflectionClass($class);
 
         return $reflectionClass->getNamespaceName();
@@ -69,6 +73,7 @@ class RuntimeReflectionService implements ReflectionService
      */
     public function getClass($class)
     {
+
         return new ReflectionClass($class);
     }
 
@@ -77,6 +82,7 @@ class RuntimeReflectionService implements ReflectionService
      */
     public function getAccessibleProperty($class, $property)
     {
+
         $reflectionProperty = new ReflectionProperty($class, $property);
 
         if ($reflectionProperty->isPublic()) {
@@ -93,6 +99,7 @@ class RuntimeReflectionService implements ReflectionService
      */
     public function hasPublicMethod($class, $method)
     {
+
         try {
             $reflectionMethod = new ReflectionMethod($class, $method);
         } catch (ReflectionException $e) {

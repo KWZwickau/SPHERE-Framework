@@ -22,6 +22,7 @@ use Symfony\Component\Routing\RouteCollection;
  */
 class AnnotationDirectoryLoader extends AnnotationFileLoader
 {
+
     /**
      * Loads from annotations from a directory.
      *
@@ -34,13 +35,16 @@ class AnnotationDirectoryLoader extends AnnotationFileLoader
      */
     public function load($path, $type = null)
     {
+
         $dir = $this->locator->locate($path);
 
         $collection = new RouteCollection();
         $collection->addResource(new DirectoryResource($dir, '/\.php$/'));
-        $files = iterator_to_array(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir), \RecursiveIteratorIterator::LEAVES_ONLY));
+        $files = iterator_to_array(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir),
+            \RecursiveIteratorIterator::LEAVES_ONLY));
         usort($files, function (\SplFileInfo $a, \SplFileInfo $b) {
-            return (string) $a > (string) $b ? 1 : -1;
+
+            return (string)$a > (string)$b ? 1 : -1;
         });
 
         foreach ($files as $file) {
@@ -66,12 +70,13 @@ class AnnotationDirectoryLoader extends AnnotationFileLoader
      */
     public function supports($resource, $type = null)
     {
+
         try {
             $path = $this->locator->locate($resource);
         } catch (\Exception $e) {
             return false;
         }
 
-        return is_string($resource) && is_dir($path) && (!$type || 'annotation' === $type);
+        return is_string($resource) && is_dir($path) && ( !$type || 'annotation' === $type );
     }
 }

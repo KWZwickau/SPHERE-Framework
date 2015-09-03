@@ -24,6 +24,7 @@ use Symfony\Component\HttpKernel\UriSigner;
  */
 class EsiFragmentRenderer extends RoutableFragmentRenderer
 {
+
     private $esi;
     private $inlineStrategy;
     private $signer;
@@ -40,6 +41,7 @@ class EsiFragmentRenderer extends RoutableFragmentRenderer
      */
     public function __construct(Esi $esi = null, InlineFragmentRenderer $inlineStrategy, UriSigner $signer = null)
     {
+
         $this->esi = $esi;
         $this->inlineStrategy = $inlineStrategy;
         $this->signer = $signer;
@@ -60,6 +62,7 @@ class EsiFragmentRenderer extends RoutableFragmentRenderer
      */
     public function render($uri, Request $request, array $options = array())
     {
+
         if (!$this->esi || !$this->esi->hasSurrogateEsiCapability($request)) {
             return $this->inlineStrategy->render($uri, $request, $options);
         }
@@ -68,18 +71,21 @@ class EsiFragmentRenderer extends RoutableFragmentRenderer
             $uri = $this->generateSignedFragmentUri($uri, $request);
         }
 
-        $alt = isset($options['alt']) ? $options['alt'] : null;
+        $alt = isset( $options['alt'] ) ? $options['alt'] : null;
         if ($alt instanceof ControllerReference) {
             $alt = $this->generateSignedFragmentUri($alt, $request);
         }
 
-        $tag = $this->esi->renderIncludeTag($uri, $alt, isset($options['ignore_errors']) ? $options['ignore_errors'] : false, isset($options['comment']) ? $options['comment'] : '');
+        $tag = $this->esi->renderIncludeTag($uri, $alt,
+            isset( $options['ignore_errors'] ) ? $options['ignore_errors'] : false,
+            isset( $options['comment'] ) ? $options['comment'] : '');
 
         return new Response($tag);
     }
 
     private function generateSignedFragmentUri($uri, Request $request)
     {
+
         if (null === $this->signer) {
             throw new \LogicException('You must use a URI when using the ESI rendering strategy or set a URL signer.');
         }

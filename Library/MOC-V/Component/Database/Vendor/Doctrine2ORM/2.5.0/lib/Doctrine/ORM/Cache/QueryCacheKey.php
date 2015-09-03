@@ -30,6 +30,7 @@ use Doctrine\ORM\Cache;
  */
 class QueryCacheKey extends CacheKey
 {
+
     /**
      * READ-ONLY: Public only for performance reasons, it should be considered immutable.
      *
@@ -51,8 +52,9 @@ class QueryCacheKey extends CacheKey
      */
     public function __construct($hash, $lifetime = 0, $cacheMode = Cache::MODE_NORMAL)
     {
-        $this->hash      = $hash;
-        $this->lifetime  = $lifetime;
+
+        $this->hash = $hash;
+        $this->lifetime = $lifetime;
         $this->cacheMode = $cacheMode;
     }
 }

@@ -26,13 +26,13 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
     /**
      * Application form constructor.
      */
-    public function __construct( Nette\ComponentModel\IContainer $parent = null, $name = null )
+    public function __construct(Nette\ComponentModel\IContainer $parent = null, $name = null)
     {
 
         parent::__construct();
-        $this->monitor( 'Nette\Application\UI\Presenter' );
+        $this->monitor('Nette\Application\UI\Presenter');
         if ($parent !== null) {
-            $parent->addComponent( $this, $name );
+            $parent->addComponent($this, $name);
         }
     }
 
@@ -44,7 +44,7 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
     public function isAnchored()
     {
 
-        return (bool)$this->getPresenter( false );
+        return (bool)$this->getPresenter(false);
     }
 
     /**
@@ -54,10 +54,10 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
      *
      * @return Presenter|NULL
      */
-    public function getPresenter( $need = true )
+    public function getPresenter($need = true)
     {
 
-        return $this->lookup( 'Nette\Application\UI\Presenter', $need );
+        return $this->lookup('Nette\Application\UI\Presenter', $need);
     }
 
     /**
@@ -67,16 +67,16 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
      *
      * @return void
      */
-    public function signalReceived( $signal )
+    public function signalReceived($signal)
     {
 
         if ($signal === 'submit') {
-            if (!$this->getPresenter()->getRequest()->hasFlag( Nette\Application\Request::RESTORED )) {
+            if (!$this->getPresenter()->getRequest()->hasFlag(Nette\Application\Request::RESTORED)) {
                 $this->fireEvents();
             }
         } else {
-            $class = get_class( $this );
-            throw new BadSignalException( "Missing handler for signal '$signal' in $class." );
+            $class = get_class($this);
+            throw new BadSignalException("Missing handler for signal '$signal' in $class.");
         }
     }
 
@@ -88,21 +88,21 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
      *
      * @return void
      */
-    protected function attached( $presenter )
+    protected function attached($presenter)
     {
 
         if ($presenter instanceof Presenter) {
-            $name = $this->lookupPath( 'Nette\Application\UI\Presenter' );
+            $name = $this->lookupPath('Nette\Application\UI\Presenter');
 
             if (!isset( $this->getElementPrototype()->id )) {
                 $this->getElementPrototype()->id = 'frm-'.$name;
             }
 
-            $this->setAction( new Link(
+            $this->setAction(new Link(
                 $presenter,
                 $name.self::NAME_SEPARATOR.'submit!',
                 array()
-            ) );
+            ));
 
             // fill-in the form with HTTP data
             if ($this->isSubmitted()) {
@@ -113,7 +113,7 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
                 }
             }
         }
-        parent::attached( $presenter );
+        parent::attached($presenter);
     }
 
 
@@ -129,18 +129,18 @@ class Form extends Nette\Forms\Form implements ISignalReceiver
     {
 
         $presenter = $this->getPresenter();
-        if (!$presenter->isSignalReceiver( $this, 'submit' )) {
+        if (!$presenter->isSignalReceiver($this, 'submit')) {
             return;
         }
 
         $isPost = $this->getMethod() === self::POST;
         $request = $presenter->getRequest();
-        if ($request->isMethod( 'forward' ) || $request->isMethod( 'post' ) !== $isPost) {
+        if ($request->isMethod('forward') || $request->isMethod('post') !== $isPost) {
             return;
         }
 
         if ($isPost) {
-            return Nette\Utils\Arrays::mergeTree( $request->getPost(), $request->getFiles() );
+            return Nette\Utils\Arrays::mergeTree($request->getPost(), $request->getFiles());
         } else {
             return $request->getParameters();
         }

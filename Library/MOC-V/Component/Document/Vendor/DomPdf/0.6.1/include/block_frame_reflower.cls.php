@@ -24,21 +24,21 @@ class Block_Frame_Reflower extends Frame_Reflower
      */
     protected $_frame;
 
-    function __construct( Block_Frame_Decorator $frame )
+    function __construct(Block_Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     /**
      * @param Frame_Decorator $block
      */
-    function reflow( Block_Frame_Decorator $block = null )
+    function reflow(Block_Frame_Decorator $block = null)
     {
 
         // Check if a page break is forced
         $page = $this->_frame->get_root();
-        $page->check_forced_page_break( $this->_frame );
+        $page->check_forced_page_break($this->_frame);
 
         // Bail if the page is full
         if ($page->is_full()) {
@@ -74,26 +74,26 @@ class Block_Frame_Reflower extends Frame_Reflower
         list( $x, $y ) = $this->_frame->get_position();
 
         // Adjust the first line based on the text-indent property
-        $indent = $style->length_in_pt( $style->text_indent, $cb["w"] );
-        $this->_frame->increase_line_width( $indent );
+        $indent = $style->length_in_pt($style->text_indent, $cb["w"]);
+        $this->_frame->increase_line_width($indent);
 
         // Determine the content edge
-        $top = $style->length_in_pt( array(
+        $top = $style->length_in_pt(array(
             $style->margin_top,
             $style->padding_top,
             $style->border_top_width
-        ), $cb["h"] );
+        ), $cb["h"]);
 
-        $bottom = $style->length_in_pt( array(
+        $bottom = $style->length_in_pt(array(
             $style->border_bottom_width,
             $style->margin_bottom,
             $style->padding_bottom
-        ), $cb["h"] );
+        ), $cb["h"]);
 
-        $cb_x = $x + $left_margin + $style->length_in_pt( array(
+        $cb_x = $x + $left_margin + $style->length_in_pt(array(
                 $style->border_left_width,
                 $style->padding_left
-            ), $cb["w"] );
+            ), $cb["w"]);
 
         $cb_y = $y + $top;
 
@@ -112,18 +112,18 @@ class Block_Frame_Reflower extends Frame_Reflower
                 break;
             }
 
-            $child->set_containing_block( $cb_x, $cb_y, $w, $cb_h );
+            $child->set_containing_block($cb_x, $cb_y, $w, $cb_h);
 
-            $this->process_clear( $child );
+            $this->process_clear($child);
 
-            $child->reflow( $this->_frame );
+            $child->reflow($this->_frame);
 
             // Don't add the child to the line if a page break has occurred
-            if ($page->check_page_break( $child )) {
+            if ($page->check_page_break($child)) {
                 break;
             }
 
-            $this->process_float( $child, $cb_x, $w );
+            $this->process_float($child, $cb_x, $w);
         }
 
         // Determine our height
@@ -142,7 +142,7 @@ class Block_Frame_Reflower extends Frame_Reflower
             if ($orig_style->width === "auto" && ( $orig_style->left === "auto" || $orig_style->right === "auto" )) {
                 $width = 0;
                 foreach ($this->_frame->get_line_boxes() as $line) {
-                    $width = max( $line->w, $width );
+                    $width = max($line->w, $width);
                 }
                 $style->width = $width;
             }
@@ -159,11 +159,11 @@ class Block_Frame_Reflower extends Frame_Reflower
             list( $x, $y ) = $this->_frame->get_position();
             $this->_frame->position();
             list( $new_x, $new_y ) = $this->_frame->get_position();
-            $this->_frame->move( $new_x - $x, $new_y - $y, true );
+            $this->_frame->move($new_x - $x, $new_y - $y, true);
         }
 
         if ($block && $this->_frame->is_in_flow()) {
-            $block->add_frame_to_line( $this->_frame );
+            $block->add_frame_to_line($this->_frame);
 
             // May be inline-block
             if ($style->display === "block") {
@@ -193,35 +193,35 @@ class Block_Frame_Reflower extends Frame_Reflower
         //  $cb = $frame->find_positionned_parent()->get_containing_block();
 
         if (!isset( $cb["w"] )) {
-            throw new DOMPDF_Exception( "Box property calculation requires containing block width" );
+            throw new DOMPDF_Exception("Box property calculation requires containing block width");
         }
 
         // Treat width 100% as auto
         if ($style->width === "100%") {
             $width = "auto";
         } else {
-            $width = $style->length_in_pt( $style->width, $cb["w"] );
+            $width = $style->length_in_pt($style->width, $cb["w"]);
         }
 
-        extract( $this->_calculate_width( $width ) );
+        extract($this->_calculate_width($width));
 
         // Handle min/max width
-        $min_width = $style->length_in_pt( $style->min_width, $cb["w"] );
-        $max_width = $style->length_in_pt( $style->max_width, $cb["w"] );
+        $min_width = $style->length_in_pt($style->min_width, $cb["w"]);
+        $max_width = $style->length_in_pt($style->max_width, $cb["w"]);
 
         if ($max_width !== "none" && $min_width > $max_width) {
-            list( $max_width, $min_width ) = array( $min_width, $max_width );
+            list( $max_width, $min_width ) = array($min_width, $max_width);
         }
 
         if ($max_width !== "none" && $width > $max_width) {
-            extract( $this->_calculate_width( $max_width ) );
+            extract($this->_calculate_width($max_width));
         }
 
         if ($width < $min_width) {
-            extract( $this->_calculate_width( $min_width ) );
+            extract($this->_calculate_width($min_width));
         }
 
-        return array( $width, $margin_left, $margin_right, $left, $right );
+        return array($width, $margin_left, $margin_right, $left, $right);
     }
 
     /**
@@ -232,22 +232,22 @@ class Block_Frame_Reflower extends Frame_Reflower
      *
      * @return array
      */
-    protected function _calculate_width( $width )
+    protected function _calculate_width($width)
     {
 
         $frame = $this->_frame;
         $style = $frame->get_style();
-        $w = $frame->get_containing_block( "w" );
+        $w = $frame->get_containing_block("w");
 
         if ($style->position === "fixed") {
-            $w = $frame->get_parent()->get_containing_block( "w" );
+            $w = $frame->get_parent()->get_containing_block("w");
         }
 
-        $rm = $style->length_in_pt( $style->margin_right, $w );
-        $lm = $style->length_in_pt( $style->margin_left, $w );
+        $rm = $style->length_in_pt($style->margin_right, $w);
+        $lm = $style->length_in_pt($style->margin_left, $w);
 
-        $left = $style->length_in_pt( $style->left, $w );
-        $right = $style->length_in_pt( $style->right, $w );
+        $left = $style->length_in_pt($style->left, $w);
+        $right = $style->length_in_pt($style->right, $w);
 
         // Handle 'auto' values
         $dims = array(
@@ -269,7 +269,7 @@ class Block_Frame_Reflower extends Frame_Reflower
             $absolute = false;
         }
 
-        $sum = $style->length_in_pt( $dims, $w );
+        $sum = $style->length_in_pt($dims, $w);
 
         // Compare to the containing block
         $diff = $w - $sum;
@@ -350,7 +350,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                     $width = $diff;
                 } else {
                     if ($lm === "auto" && $rm === "auto") {
-                        $lm = $rm = round( $diff / 2 );
+                        $lm = $rm = round($diff / 2);
                     } else {
                         if ($lm === "auto") {
                             $lm = $diff;
@@ -384,10 +384,10 @@ class Block_Frame_Reflower extends Frame_Reflower
     /**
      * @param Frame $child
      */
-    function process_clear( Frame $child )
+    function process_clear(Frame $child)
     {
 
-        $enable_css_float = $this->get_dompdf()->get_option( "enable_css_float" );
+        $enable_css_float = $this->get_dompdf()->get_option("enable_css_float");
         if (!$enable_css_float) {
             return;
         }
@@ -397,7 +397,7 @@ class Block_Frame_Reflower extends Frame_Reflower
 
         // Handle "clear"
         if ($child_style->clear !== "none") {
-            $lowest_y = $root->get_lowest_float_offset( $child );
+            $lowest_y = $root->get_lowest_float_offset($child);
 
             // If a float is still applying, we handle it
             if ($lowest_y) {
@@ -408,7 +408,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                     $line_box->right = 0;
                 }
 
-                $child->move( 0, $lowest_y - $child->get_position( "y" ) );
+                $child->move(0, $lowest_y - $child->get_position("y"));
             }
         }
     }
@@ -418,10 +418,10 @@ class Block_Frame_Reflower extends Frame_Reflower
      * @param float $cb_x
      * @param float $cb_w
      */
-    function process_float( Frame $child, $cb_x, $cb_w )
+    function process_float(Frame $child, $cb_x, $cb_w)
     {
 
-        $enable_css_float = $this->_frame->get_dompdf()->get_option( "enable_css_float" );
+        $enable_css_float = $this->_frame->get_dompdf()->get_option("enable_css_float");
         if (!$enable_css_float) {
             return;
         }
@@ -431,12 +431,12 @@ class Block_Frame_Reflower extends Frame_Reflower
 
         // Handle "float"
         if ($child_style->float !== "none") {
-            $root->add_floating_frame( $child );
+            $root->add_floating_frame($child);
 
             // Remove next frame's beginning whitespace
             $next = $child->get_next_sibling();
             if ($next && $next instanceof Text_Frame_Decorator) {
-                $next->set_text( ltrim( $next->get_text() ) );
+                $next->set_text(ltrim($next->get_text()));
             }
 
             $line_box = $this->_frame->get_current_line_box();
@@ -471,8 +471,8 @@ class Block_Frame_Reflower extends Frame_Reflower
                 $float_y += $line_box->h;
             }
 
-            $child->set_position( $float_x, $float_y );
-            $child->move( $float_x - $old_x, $float_y - $old_y, true );
+            $child->set_position($float_x, $float_y);
+            $child->move($float_x - $old_x, $float_y - $old_y, true);
         }
     }
 
@@ -489,13 +489,13 @@ class Block_Frame_Reflower extends Frame_Reflower
         $content_height = $this->_calculate_content_height();
         $cb = $frame->get_containing_block();
 
-        $height = $style->length_in_pt( $style->height, $cb["h"] );
+        $height = $style->length_in_pt($style->height, $cb["h"]);
 
-        $top = $style->length_in_pt( $style->top, $cb["h"] );
-        $bottom = $style->length_in_pt( $style->bottom, $cb["h"] );
+        $top = $style->length_in_pt($style->top, $cb["h"]);
+        $bottom = $style->length_in_pt($style->bottom, $cb["h"]);
 
-        $margin_top = $style->length_in_pt( $style->margin_top, $cb["h"] );
-        $margin_bottom = $style->length_in_pt( $style->margin_bottom, $cb["h"] );
+        $margin_top = $style->length_in_pt($style->margin_top, $cb["h"]);
+        $margin_bottom = $style->length_in_pt($style->margin_bottom, $cb["h"]);
 
         if ($frame->is_absolute()) {
 
@@ -513,7 +513,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                 $bottom !== "auto" ? $bottom : 0
             );
 
-            $sum = $style->length_in_pt( $dims, $cb["h"] );
+            $sum = $style->length_in_pt($dims, $cb["h"]);
 
             $diff = $cb["h"] - $sum;
 
@@ -648,29 +648,29 @@ class Block_Frame_Reflower extends Frame_Reflower
                 $max_height = $style->max_height;
 
                 if (isset( $cb["h"] )) {
-                    $min_height = $style->length_in_pt( $min_height, $cb["h"] );
-                    $max_height = $style->length_in_pt( $max_height, $cb["h"] );
+                    $min_height = $style->length_in_pt($min_height, $cb["h"]);
+                    $max_height = $style->length_in_pt($max_height, $cb["h"]);
 
                 } else {
                     if (isset( $cb["w"] )) {
 
-                        if (mb_strpos( $min_height, "%" ) !== false) {
+                        if (mb_strpos($min_height, "%") !== false) {
                             $min_height = 0;
                         } else {
-                            $min_height = $style->length_in_pt( $min_height, $cb["w"] );
+                            $min_height = $style->length_in_pt($min_height, $cb["w"]);
                         }
 
-                        if (mb_strpos( $max_height, "%" ) !== false) {
+                        if (mb_strpos($max_height, "%") !== false) {
                             $max_height = "none";
                         } else {
-                            $max_height = $style->length_in_pt( $max_height, $cb["w"] );
+                            $max_height = $style->length_in_pt($max_height, $cb["w"]);
                         }
                     }
                 }
 
                 if ($max_height !== "none" && $min_height > $max_height) {
                     // Swap 'em
-                    list( $max_height, $min_height ) = array( $min_height, $max_height );
+                    list( $max_height, $min_height ) = array($min_height, $max_height);
                 }
 
                 if ($max_height !== "none" && $height > $max_height) {
@@ -684,7 +684,7 @@ class Block_Frame_Reflower extends Frame_Reflower
 
         }
 
-        return array( $height, $margin_top, $margin_bottom, $top, $bottom );
+        return array($height, $margin_top, $margin_bottom, $top, $bottom);
 
     }
 
@@ -722,8 +722,8 @@ class Block_Frame_Reflower extends Frame_Reflower
     {
 
         $style = $this->_frame->get_style();
-        $w = $this->_frame->get_containing_block( "w" );
-        $width = $style->length_in_pt( $style->width, $w );
+        $w = $this->_frame->get_containing_block("w");
+        $width = $style->length_in_pt($style->width, $w);
 
         switch ($style->text_align) {
             default:
@@ -737,7 +737,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                         if ($frame instanceof Block_Frame_Decorator) {
                             continue;
                         }
-                        $frame->set_position( $frame->get_position( "x" ) + $line->left );
+                        $frame->set_position($frame->get_position("x") + $line->left);
                     }
                 }
                 return;
@@ -753,7 +753,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                             continue;
                         }
 
-                        $frame->set_position( $frame->get_position( "x" ) + $dx );
+                        $frame->set_position($frame->get_position("x") + $dx);
                     }
                 }
                 break;
@@ -761,7 +761,7 @@ class Block_Frame_Reflower extends Frame_Reflower
             case "justify":
                 // We justify all lines except the last one
                 $lines = $this->_frame->get_line_boxes(); // needs to be a variable (strict standards)
-                array_pop( $lines );
+                array_pop($lines);
 
                 foreach ($lines as $i => $line) {
                     if ($line->br) {
@@ -770,7 +770,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                 }
 
                 // One space character's width. Will be used to get a more accurate spacing
-                $space_width = Font_Metrics::get_text_width( " ", $style->font_family, $style->font_size );
+                $space_width = Font_Metrics::get_text_width(" ", $style->font_family, $style->font_size);
 
                 foreach ($lines as $line) {
                     if ($line->left) {
@@ -779,7 +779,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                                 continue;
                             }
 
-                            $frame->set_position( $frame->get_position( "x" ) + $line->left );
+                            $frame->set_position($frame->get_position("x") + $line->left);
                         }
                     }
 
@@ -801,13 +801,13 @@ class Block_Frame_Reflower extends Frame_Reflower
                         }
 
                         $text = $frame->get_text();
-                        $spaces = mb_substr_count( $text, " " );
+                        $spaces = mb_substr_count($text, " ");
 
-                        $char_spacing = $style->length_in_pt( $style->letter_spacing );
+                        $char_spacing = $style->length_in_pt($style->letter_spacing);
                         $_spacing = $spacing + $char_spacing;
 
-                        $frame->set_position( $frame->get_position( "x" ) + $dx );
-                        $frame->set_text_spacing( $_spacing );
+                        $frame->set_position($frame->get_position("x") + $dx);
+                        $frame->set_text_spacing($_spacing);
 
                         $dx += $spaces * $_spacing;
                     }
@@ -831,7 +831,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                             continue;
                         }
 
-                        $frame->set_position( $frame->get_position( "x" ) + $dx );
+                        $frame->set_position($frame->get_position("x") + $dx);
                     }
                 }
                 break;
@@ -864,7 +864,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                     $canvas = $frame->get_root()->get_dompdf()->get_canvas();
                 }
 
-                $baseline = $canvas->get_font_baseline( $style->font_family, $style->font_size );
+                $baseline = $canvas->get_font_baseline($style->font_family, $style->font_size);
                 $y_offset = 0;
 
                 switch ($align) {
@@ -895,7 +895,7 @@ class Block_Frame_Reflower extends Frame_Reflower
                 }
 
                 if ($y_offset) {
-                    $frame->move( 0, $y_offset );
+                    $frame->move(0, $y_offset);
                 }
             }
         }

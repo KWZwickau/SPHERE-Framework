@@ -15,15 +15,15 @@
 class List_Bullet_Frame_Reflower extends Frame_Reflower
 {
 
-    function __construct( Frame_Decorator $frame )
+    function __construct(Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     //........................................................................
 
-    function reflow( Block_Frame_Decorator $block = null )
+    function reflow(Block_Frame_Decorator $block = null)
     {
 
         $style = $this->_frame->get_style();
@@ -33,7 +33,7 @@ class List_Bullet_Frame_Reflower extends Frame_Reflower
 
         if ($style->list_style_position === "inside") {
             $p = $this->_frame->find_block_parent();
-            $p->add_frame_to_line( $this->_frame );
+            $p->add_frame_to_line($this->_frame);
         }
 
     }

@@ -32,11 +32,13 @@ use Doctrine\DBAL\Schema\DB2SchemaManager;
  */
 abstract class AbstractDB2Driver implements Driver
 {
+
     /**
      * {@inheritdoc}
      */
     public function getDatabase(\Doctrine\DBAL\Connection $conn)
     {
+
         $params = $conn->getParams();
 
         return $params['dbname'];
@@ -47,6 +49,7 @@ abstract class AbstractDB2Driver implements Driver
      */
     public function getDatabasePlatform()
     {
+
         return new DB2Platform();
     }
 
@@ -55,6 +58,7 @@ abstract class AbstractDB2Driver implements Driver
      */
     public function getSchemaManager(\Doctrine\DBAL\Connection $conn)
     {
+
         return new DB2SchemaManager($conn);
     }
 }

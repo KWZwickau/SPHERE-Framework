@@ -33,6 +33,7 @@ use Doctrine\DBAL\Schema\SqliteSchemaManager;
  */
 abstract class AbstractSQLiteDriver implements Driver, ExceptionConverterDriver
 {
+
     /**
      * {@inheritdoc}
      *
@@ -40,6 +41,7 @@ abstract class AbstractSQLiteDriver implements Driver, ExceptionConverterDriver
      */
     public function convertException($message, DriverException $exception)
     {
+
         if (strpos($exception->getMessage(), 'must be unique') !== false ||
             strpos($exception->getMessage(), 'is not unique') !== false ||
             strpos($exception->getMessage(), 'are not unique') !== false ||
@@ -90,9 +92,10 @@ abstract class AbstractSQLiteDriver implements Driver, ExceptionConverterDriver
      */
     public function getDatabase(\Doctrine\DBAL\Connection $conn)
     {
+
         $params = $conn->getParams();
 
-        return isset($params['path']) ? $params['path'] : null;
+        return isset( $params['path'] ) ? $params['path'] : null;
     }
 
     /**
@@ -100,6 +103,7 @@ abstract class AbstractSQLiteDriver implements Driver, ExceptionConverterDriver
      */
     public function getDatabasePlatform()
     {
+
         return new SqlitePlatform();
     }
 
@@ -108,6 +112,7 @@ abstract class AbstractSQLiteDriver implements Driver, ExceptionConverterDriver
      */
     public function getSchemaManager(\Doctrine\DBAL\Connection $conn)
     {
+
         return new SqliteSchemaManager($conn);
     }
 }

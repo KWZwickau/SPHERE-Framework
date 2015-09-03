@@ -12,6 +12,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class CookiePlugin implements EventSubscriberInterface
 {
+
     /** @var CookieJarInterface Cookie cookieJar used to hold cookies */
     protected $cookieJar;
 
@@ -20,11 +21,13 @@ class CookiePlugin implements EventSubscriberInterface
      */
     public function __construct(CookieJarInterface $cookieJar = null)
     {
+
         $this->cookieJar = $cookieJar ?: new ArrayCookieJar();
     }
 
     public static function getSubscribedEvents()
     {
+
         return array(
             'request.before_send' => array('onRequestBeforeSend', 125),
             'request.sent'        => array('onRequestSent', 125)
@@ -38,6 +41,7 @@ class CookiePlugin implements EventSubscriberInterface
      */
     public function getCookieJar()
     {
+
         return $this->cookieJar;
     }
 
@@ -48,6 +52,7 @@ class CookiePlugin implements EventSubscriberInterface
      */
     public function onRequestBeforeSend(Event $event)
     {
+
         $request = $event['request'];
         if (!$request->getParams()->get('cookies.disable')) {
             $request->removeHeader('Cookie');
@@ -65,6 +70,7 @@ class CookiePlugin implements EventSubscriberInterface
      */
     public function onRequestSent(Event $event)
     {
+
         $this->cookieJar->addCookiesFromResponse($event['response'], $event['request']);
     }
 }

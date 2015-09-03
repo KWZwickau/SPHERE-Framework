@@ -15,23 +15,25 @@ use Symfony\Component\Finder\Iterator\FilePathsIterator;
 
 class FilePathsIteratorTest extends RealIteratorTestCase
 {
+
     /**
      * @dataProvider getSubPathData
      */
-    public function testSubPath( $baseDir, array $paths, array $subPaths, array $subPathnames )
+    public function testSubPath($baseDir, array $paths, array $subPaths, array $subPathnames)
     {
 
-        $iterator = new FilePathsIterator( $paths, $baseDir );
+        $iterator = new FilePathsIterator($paths, $baseDir);
 
         foreach ($iterator as $index => $file) {
-            $this->assertEquals( $paths[$index], $file->getPathname() );
-            $this->assertEquals( $subPaths[$index], $iterator->getSubPath() );
-            $this->assertEquals( $subPathnames[$index], $iterator->getSubPathname() );
+            $this->assertEquals($paths[$index], $file->getPathname());
+            $this->assertEquals($subPaths[$index], $iterator->getSubPath());
+            $this->assertEquals($subPathnames[$index], $iterator->getSubPathname());
         }
     }
 
     public function getSubPathData()
     {
+
         $tmpDir = sys_get_temp_dir().'/symfony_finder';
 
         return array(

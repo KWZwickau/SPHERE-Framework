@@ -10,8 +10,8 @@
  */
 
 // for Texy 1 backward compatibility
-define( 'TEXY_HEADING_DYNAMIC', 1 );
-define( 'TEXY_HEADING_FIXED', 2 );
+define('TEXY_HEADING_DYNAMIC', 1);
+define('TEXY_HEADING_FIXED', 2);
 
 
 /**
@@ -60,24 +60,24 @@ final class TexyHeadingModule extends TexyModule
     private $usedID;
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
 
-        $texy->addHandler( 'heading', array( $this, 'solve' ) );
-        $texy->addHandler( 'beforeParse', array( $this, 'beforeParse' ) );
-        $texy->addHandler( 'afterParse', array( $this, 'afterParse' ) );
+        $texy->addHandler('heading', array($this, 'solve'));
+        $texy->addHandler('beforeParse', array($this, 'beforeParse'));
+        $texy->addHandler('afterParse', array($this, 'afterParse'));
 
         $texy->registerBlockPattern(
-            array( $this, 'patternUnderline' ),
+            array($this, 'patternUnderline'),
             '#^(\S.*)'.TEXY_MODIFIER_H.'?\n'
             .'(\#{3,}|\*{3,}|={3,}|-{3,})$#mU',
             'heading/underlined'
         );
 
         $texy->registerBlockPattern(
-            array( $this, 'patternSurround' ),
+            array($this, 'patternSurround'),
             '#^(\#{2,}+|={2,}+)(.+)'.TEXY_MODIFIER_H.'?()$#mU',
             'heading/surrounded'
         );
@@ -100,7 +100,7 @@ final class TexyHeadingModule extends TexyModule
      *
      * @return void
      */
-    public function afterParse( $texy, $DOM, $isSingleLine )
+    public function afterParse($texy, $DOM, $isSingleLine)
     {
 
         if ($isSingleLine) {
@@ -114,7 +114,7 @@ final class TexyHeadingModule extends TexyModule
             foreach ($this->TOC as $item) {
                 $level = $item['level'];
                 if ($item['type'] === 'surrounded') {
-                    $min = min( $level, $min );
+                    $min = min($level, $min);
                     $top = $this->top - $min;
 
                 } elseif ($item['type'] === 'underlined') {
@@ -122,8 +122,8 @@ final class TexyHeadingModule extends TexyModule
                 }
             }
 
-            asort( $map );
-            $map = array_flip( array_values( $map ) );
+            asort($map);
+            $map = array_flip(array_values($map));
         }
 
         foreach ($this->TOC as $key => $item) {
@@ -138,15 +138,15 @@ final class TexyHeadingModule extends TexyModule
                     $level = $item['level'];
                 }
 
-                $item['el']->setName( 'h'.min( 6, max( 1, $level ) ) );
+                $item['el']->setName('h'.min(6, max(1, $level)));
                 $this->TOC[$key]['level'] = $level;
             }
 
             if ($this->generateID && empty( $item['el']->attrs['id'] )) {
-                $title = trim( $item['el']->toText( $this->texy ) );
+                $title = trim($item['el']->toText($this->texy));
                 if ($title !== '') {
                     $this->TOC[$key]['title'] = $title;
-                    $id = $this->idPrefix.Texy::webalize( $title );
+                    $id = $this->idPrefix.Texy::webalize($title);
                     $counter = '';
                     if (isset( $this->usedID[$id.$counter] )) {
                         $counter = 2;
@@ -162,9 +162,9 @@ final class TexyHeadingModule extends TexyModule
         }
 
         // document title
-        if ($this->title === null && count( $this->TOC )) {
-            $item = reset( $this->TOC );
-            $this->title = isset( $item['title'] ) ? $item['title'] : trim( $item['el']->toText( $this->texy ) );
+        if ($this->title === null && count($this->TOC)) {
+            $item = reset($this->TOC);
+            $this->title = isset( $item['title'] ) ? $item['title'] : trim($item['el']->toText($this->texy));
         }
     }
 
@@ -181,7 +181,7 @@ final class TexyHeadingModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function patternUnderline( $parser, $matches )
+    public function patternUnderline($parser, $matches)
     {
 
         list( , $mContent, $mMod, $mLine ) = $matches;
@@ -190,9 +190,9 @@ final class TexyHeadingModule extends TexyModule
         //    [2] => .(title)[class]{style}<>
         //    [3] => ...
 
-        $mod = new TexyModifier( $mMod );
+        $mod = new TexyModifier($mMod);
         $level = $this->levels[$mLine[0]];
-        return $this->texy->invokeAroundHandlers( 'heading', $parser, array( $level, $mContent, $mod, false ) );
+        return $this->texy->invokeAroundHandlers('heading', $parser, array($level, $mContent, $mod, false));
     }
 
 
@@ -207,7 +207,7 @@ final class TexyHeadingModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function patternSurround( $parser, $matches )
+    public function patternSurround($parser, $matches)
     {
 
         list( , $mLine, $mContent, $mMod ) = $matches;
@@ -215,11 +215,11 @@ final class TexyHeadingModule extends TexyModule
         //    [2] => ...
         //    [3] => .(title)[class]{style}<>
 
-        $mod = new TexyModifier( $mMod );
-        $level = min( 7, max( 2, strlen( $mLine ) ) );
+        $mod = new TexyModifier($mMod);
+        $level = min(7, max(2, strlen($mLine)));
         $level = $this->moreMeansHigher ? 7 - $level : $level - 2;
-        $mContent = rtrim( $mContent, $mLine[0].' ' );
-        return $this->texy->invokeAroundHandlers( 'heading', $parser, array( $level, $mContent, $mod, true ) );
+        $mContent = rtrim($mContent, $mLine[0].' ');
+        return $this->texy->invokeAroundHandlers('heading', $parser, array($level, $mContent, $mod, true));
     }
 
 
@@ -234,14 +234,14 @@ final class TexyHeadingModule extends TexyModule
      *
      * @return TexyHtml
      */
-    public function solve( $invocation, $level, $content, $mod, $isSurrounded )
+    public function solve($invocation, $level, $content, $mod, $isSurrounded)
     {
 
         // as fixed balancing, for block/texysource & correct decorating
-        $el = TexyHtml::el( 'h'.min( 6, max( 1, $level + $this->top ) ) );
-        $mod->decorate( $this->texy, $el );
+        $el = TexyHtml::el('h'.min(6, max(1, $level + $this->top)));
+        $mod->decorate($this->texy, $el);
 
-        $el->parseLine( $this->texy, trim( $content ) );
+        $el->parseLine($this->texy, trim($content));
 
         $this->TOC[] = array(
             'el'    => $el,

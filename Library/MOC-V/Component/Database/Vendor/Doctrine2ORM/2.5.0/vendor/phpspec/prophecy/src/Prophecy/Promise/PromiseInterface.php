@@ -11,8 +11,8 @@
 
 namespace Prophecy\Promise;
 
-use Prophecy\Prophecy\ObjectProphecy;
 use Prophecy\Prophecy\MethodProphecy;
+use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Promise interface.
@@ -22,6 +22,7 @@ use Prophecy\Prophecy\MethodProphecy;
  */
 interface PromiseInterface
 {
+
     /**
      * Evaluates promise.
      *

@@ -50,10 +50,10 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
      * @param string                                                       $propertyName Property name
      * @param \TokenReflection\Broker                                      $broker       Reflection broker
      */
-    public function __construct( $class, $propertyName, Broker $broker )
+    public function __construct($class, $propertyName, Broker $broker)
     {
 
-        parent::__construct( $class, $propertyName );
+        parent::__construct($class, $propertyName);
         $this->broker = $broker;
     }
 
@@ -66,20 +66,20 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
      * @return \TokenReflection\Php\ReflectionProperty
      * @throws \TokenReflection\Exception\RuntimeException If an invalid internal reflection object was provided.
      */
-    public static function create( Reflector $internalReflection, Broker $broker )
+    public static function create(Reflector $internalReflection, Broker $broker)
     {
 
         static $cache = array();
 
         if (!$internalReflection instanceof InternalReflectionProperty) {
-            throw new Exception\RuntimeException( 'Invalid reflection instance provided, ReflectionProperty expected.',
-                Exception\RuntimeException::INVALID_ARGUMENT );
+            throw new Exception\RuntimeException('Invalid reflection instance provided, ReflectionProperty expected.',
+                Exception\RuntimeException::INVALID_ARGUMENT);
         }
 
         $key = $internalReflection->getDeclaringClass()->getName().'::'.$internalReflection->getName();
         if (!isset( $cache[$key] )) {
-            $cache[$key] = new self( $internalReflection->getDeclaringClass()->getName(),
-                $internalReflection->getName(), $broker );
+            $cache[$key] = new self($internalReflection->getDeclaringClass()->getName(),
+                $internalReflection->getName(), $broker);
         }
 
         return $cache[$key];
@@ -125,7 +125,7 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -138,7 +138,7 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -164,7 +164,7 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
     {
 
         $value = $this->getDefaultValue();
-        return null === $value ? null : var_export( $value, true );
+        return null === $value ? null : var_export($value, true);
     }
 
     /**
@@ -187,7 +187,7 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
     public function getDeclaringClass()
     {
 
-        return ReflectionClass::create( parent::getDeclaringClass(), $this->broker );
+        return ReflectionClass::create(parent::getDeclaringClass(), $this->broker);
     }
 
     /**
@@ -294,12 +294,12 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
      *
      * @param boolean $accessible If the property should be accessible.
      */
-    public function setAccessible( $accessible )
+    public function setAccessible($accessible)
     {
 
         $this->accessible = (bool)$accessible;
 
-        parent::setAccessible( $accessible );
+        parent::setAccessible($accessible);
     }
 
     /**
@@ -344,7 +344,7 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
     public function getPrettyName()
     {
 
-        return sprintf( '%s::$%s', $this->getDeclaringClassName(), $this->getName() );
+        return sprintf('%s::$%s', $this->getDeclaringClassName(), $this->getName());
     }
 
     /**
@@ -365,10 +365,10 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return TokenReflection\ReflectionElement::get( $this, $key );
+        return TokenReflection\ReflectionElement::get($this, $key);
     }
 
     /**
@@ -378,9 +378,9 @@ class ReflectionProperty extends InternalReflectionProperty implements IReflecti
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return TokenReflection\ReflectionElement::exists( $this, $key );
+        return TokenReflection\ReflectionElement::exists($this, $key);
     }
 }

@@ -23,7 +23,8 @@ use phpDocumentor\Reflection\DocBlock\Tag;
  */
 class ExampleTag extends SourceTag
 {
-    /** 
+
+    /**
      * @var string Path to a file to use as an example.
      *     May also be an absolute URI.
      */
@@ -40,6 +41,7 @@ class ExampleTag extends SourceTag
      */
     public function getContent()
     {
+
         if (null === $this->content) {
             $filePath = '';
             if ($this->isURI) {
@@ -53,19 +55,21 @@ class ExampleTag extends SourceTag
                     $filePath = $this->filePath;
                 }
             } else {
-                $filePath = '"' . $this->filePath . '"';
+                $filePath = '"'.$this->filePath.'"';
             }
 
-            $this->content = $filePath . ' ' . parent::getContent();
+            $this->content = $filePath.' '.parent::getContent();
         }
 
         return $this->content;
     }
+
     /**
      * {@inheritdoc}
      */
     public function setContent($content)
     {
+
         Tag::setContent($content);
         if (preg_match(
             '/^
@@ -89,7 +93,7 @@ class ExampleTag extends SourceTag
                 $this->setFileURI($matches[2]);
             }
 
-            if (isset($matches[3])) {
+            if (isset( $matches[3] )) {
                 parent::setContent($matches[3]);
             } else {
                 $this->setDescription('');
@@ -101,44 +105,18 @@ class ExampleTag extends SourceTag
     }
 
     /**
-     * Returns the file path.
-     *
-     * @return string Path to a file to use as an example.
-     *     May also be an absolute URI.
-     */
-    public function getFilePath()
-    {
-        return $this->filePath;
-    }
-    
-    /**
-     * Sets the file path.
-     * 
-     * @param string $filePath The new file path to use for the example.
-     * 
-     * @return $this
-     */
-    public function setFilePath($filePath)
-    {
-        $this->isURI = false;
-        $this->filePath = trim($filePath);
-
-        $this->content = null;
-        return $this;
-    }
-    
-    /**
      * Sets the file path as an URI.
-     * 
+     *
      * This function is equivalent to {@link setFilePath()}, except that it
      * convers an URI to a file path before that.
-     * 
+     *
      * There is no getFileURI(), as {@link getFilePath()} is compatible.
-     * 
+     *
      * @param type $uri The new file URI to use as an example.
      */
     public function setFileURI($uri)
     {
+
         $this->isURI = true;
         if (false === strpos($uri, ':')) {
             //Relative URL
@@ -149,6 +127,35 @@ class ExampleTag extends SourceTag
             //Absolute URL or URI.
             $this->filePath = $uri;
         }
+
+        $this->content = null;
+        return $this;
+    }
+
+    /**
+     * Returns the file path.
+     *
+     * @return string Path to a file to use as an example.
+     *     May also be an absolute URI.
+     */
+    public function getFilePath()
+    {
+
+        return $this->filePath;
+    }
+
+    /**
+     * Sets the file path.
+     *
+     * @param string $filePath The new file path to use for the example.
+     *
+     * @return $this
+     */
+    public function setFilePath($filePath)
+    {
+
+        $this->isURI = false;
+        $this->filePath = trim($filePath);
 
         $this->content = null;
         return $this;

@@ -30,8 +30,8 @@ PHPExcel_Autoloader::Register();
 //        simple checks and initialisations
 //PHPExcel_Shared_ZipStreamWrapper::register();
 // check mbstring.func_overload
-if (ini_get( 'mbstring.func_overload' ) & 2) {
-    throw new PHPExcel_Exception( 'Multibyte function overloading in PHP must be disabled for string functions (2).' );
+if (ini_get('mbstring.func_overload') & 2) {
+    throw new PHPExcel_Exception('Multibyte function overloading in PHP must be disabled for string functions (2).');
 }
 PHPExcel_Shared_String::buildCharacterSets();
 
@@ -53,12 +53,12 @@ class PHPExcel_Autoloader
     public static function Register()
     {
 
-        if (function_exists( '__autoload' )) {
+        if (function_exists('__autoload')) {
             //    Register any existing autoloader function with SPL, so we don't get any clashes
-            spl_autoload_register( '__autoload' );
+            spl_autoload_register('__autoload');
         }
         //    Register ourselves with SPL
-        return spl_autoload_register( array( 'PHPExcel_Autoloader', 'Load' ) );
+        return spl_autoload_register(array('PHPExcel_Autoloader', 'Load'));
     }   //    function Register()
 
 
@@ -67,19 +67,19 @@ class PHPExcel_Autoloader
      *
      * @param    string $pClassName Name of the object to load
      */
-    public static function Load( $pClassName )
+    public static function Load($pClassName)
     {
 
-        if (( class_exists( $pClassName, false ) ) || ( strpos( $pClassName, 'PHPExcel' ) !== 0 )) {
+        if (( class_exists($pClassName, false) ) || ( strpos($pClassName, 'PHPExcel') !== 0 )) {
             //    Either already loaded, or not a PHPExcel class request
             return false;
         }
 
         $pClassFilePath = PHPEXCEL_ROOT.
-            str_replace( '_', DIRECTORY_SEPARATOR, $pClassName ).
+            str_replace('_', DIRECTORY_SEPARATOR, $pClassName).
             '.php';
 
-        if (( file_exists( $pClassFilePath ) === false ) || ( is_readable( $pClassFilePath ) === false )) {
+        if (( file_exists($pClassFilePath) === false ) || ( is_readable($pClassFilePath) === false )) {
             //    Can't load
             return false;
         }

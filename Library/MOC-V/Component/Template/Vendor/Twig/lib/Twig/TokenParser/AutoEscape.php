@@ -29,6 +29,7 @@
  */
 class Twig_TokenParser_AutoEscape extends Twig_TokenParser
 {
+
     /**
      * Parses a token and returns a node.
      *
@@ -38,6 +39,7 @@ class Twig_TokenParser_AutoEscape extends Twig_TokenParser
      */
     public function parse(Twig_Token $token)
     {
+
         $lineno = $token->getLine();
         $stream = $this->parser->getStream();
 
@@ -46,7 +48,8 @@ class Twig_TokenParser_AutoEscape extends Twig_TokenParser
         } else {
             $expr = $this->parser->getExpressionParser()->parseExpression();
             if (!$expr instanceof Twig_Node_Expression_Constant) {
-                throw new Twig_Error_Syntax('An escaping strategy must be a string or a Boolean.', $stream->getCurrent()->getLine(), $stream->getFilename());
+                throw new Twig_Error_Syntax('An escaping strategy must be a string or a Boolean.',
+                    $stream->getCurrent()->getLine(), $stream->getFilename());
             }
             $value = $expr->getAttribute('value');
 
@@ -58,7 +61,8 @@ class Twig_TokenParser_AutoEscape extends Twig_TokenParser
 
             if ($compat && $stream->test(Twig_Token::NAME_TYPE)) {
                 if (false === $value) {
-                    throw new Twig_Error_Syntax('Unexpected escaping strategy as you set autoescaping to false.', $stream->getCurrent()->getLine(), $stream->getFilename());
+                    throw new Twig_Error_Syntax('Unexpected escaping strategy as you set autoescaping to false.',
+                        $stream->getCurrent()->getLine(), $stream->getFilename());
                 }
 
                 $value = $stream->next()->getValue();
@@ -79,12 +83,13 @@ class Twig_TokenParser_AutoEscape extends Twig_TokenParser
      */
     public function getTag()
     {
+
         return 'autoescape';
     }
 
-    public function decideBlockEnd( Twig_Token $token )
+    public function decideBlockEnd(Twig_Token $token)
     {
 
-        return $token->test( 'endautoescape' );
+        return $token->test('endautoescape');
     }
 }

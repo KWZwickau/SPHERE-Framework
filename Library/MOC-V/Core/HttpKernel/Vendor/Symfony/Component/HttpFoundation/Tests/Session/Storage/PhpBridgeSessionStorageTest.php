@@ -25,30 +25,32 @@ use Symfony\Component\HttpFoundation\Session\Storage\PhpBridgeSessionStorage;
  */
 class PhpBridgeSessionStorageTest extends \PHPUnit_Framework_TestCase
 {
+
     private $savePath;
 
     public function testPhpSession53()
     {
+
         if (version_compare(phpversion(), '5.4.0', '>=')) {
             $this->markTestSkipped('Test skipped, for PHP 5.3 only.');
         }
 
         $storage = $this->getStorage();
 
-        $this->assertFalse(isset($_SESSION));
+        $this->assertFalse(isset( $_SESSION ));
         $this->assertFalse($storage->getSaveHandler()->isActive());
 
         session_start();
-        $this->assertTrue(isset($_SESSION));
+        $this->assertTrue(isset( $_SESSION ));
         // in PHP 5.3 we cannot reliably tell if a session has started
         $this->assertFalse($storage->getSaveHandler()->isActive());
         // PHP session might have started, but the storage driver has not, so false is correct here
         $this->assertFalse($storage->isStarted());
 
         $key = $storage->getMetadataBag()->getStorageKey();
-        $this->assertFalse(isset($_SESSION[$key]));
+        $this->assertFalse(isset( $_SESSION[$key] ));
         $storage->start();
-        $this->assertTrue(isset($_SESSION[$key]));
+        $this->assertTrue(isset( $_SESSION[$key] ));
     }
 
     /**
@@ -58,38 +60,40 @@ class PhpBridgeSessionStorageTest extends \PHPUnit_Framework_TestCase
     {
 
         $storage = new PhpBridgeSessionStorage();
-        $storage->registerBag( new AttributeBag() );
+        $storage->registerBag(new AttributeBag());
 
         return $storage;
     }
 
     public function testPhpSession54()
     {
+
         if (version_compare(phpversion(), '5.4.0', '<')) {
             $this->markTestSkipped('Test skipped, for PHP 5.4 only.');
         }
 
         $storage = $this->getStorage();
 
-        $this->assertFalse(isset($_SESSION));
+        $this->assertFalse(isset( $_SESSION ));
         $this->assertFalse($storage->getSaveHandler()->isActive());
         $this->assertFalse($storage->isStarted());
 
         session_start();
-        $this->assertTrue(isset($_SESSION));
+        $this->assertTrue(isset( $_SESSION ));
         // in PHP 5.4 we can reliably detect a session started
         $this->assertTrue($storage->getSaveHandler()->isActive());
         // PHP session might have started, but the storage driver has not, so false is correct here
         $this->assertFalse($storage->isStarted());
 
         $key = $storage->getMetadataBag()->getStorageKey();
-        $this->assertFalse(isset($_SESSION[$key]));
+        $this->assertFalse(isset( $_SESSION[$key] ));
         $storage->start();
-        $this->assertTrue(isset($_SESSION[$key]));
+        $this->assertTrue(isset( $_SESSION[$key] ));
     }
 
     public function testClear()
     {
+
         $storage = $this->getStorage();
         session_start();
         $_SESSION['drak'] = 'loves symfony';
@@ -105,10 +109,10 @@ class PhpBridgeSessionStorageTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
 
-        ini_set( 'session.save_handler', 'files' );
-        ini_set( 'session.save_path', $this->savePath = sys_get_temp_dir().'/sf2test' );
-        if (!is_dir( $this->savePath )) {
-            mkdir( $this->savePath );
+        ini_set('session.save_handler', 'files');
+        ini_set('session.save_path', $this->savePath = sys_get_temp_dir().'/sf2test');
+        if (!is_dir($this->savePath)) {
+            mkdir($this->savePath);
         }
     }
 
@@ -116,9 +120,9 @@ class PhpBridgeSessionStorageTest extends \PHPUnit_Framework_TestCase
     {
 
         session_write_close();
-        array_map( 'unlink', glob( $this->savePath.'/*' ) );
-        if (is_dir( $this->savePath )) {
-            rmdir( $this->savePath );
+        array_map('unlink', glob($this->savePath.'/*'));
+        if (is_dir($this->savePath)) {
+            rmdir($this->savePath);
         }
 
         $this->savePath = null;

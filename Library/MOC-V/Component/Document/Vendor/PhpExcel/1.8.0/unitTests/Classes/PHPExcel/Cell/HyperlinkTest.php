@@ -7,8 +7,8 @@ class HyperlinkTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
 
-        if (!defined( 'PHPEXCEL_ROOT' )) {
-            define( 'PHPEXCEL_ROOT', APPLICATION_PATH.'/' );
+        if (!defined('PHPEXCEL_ROOT')) {
+            define('PHPEXCEL_ROOT', APPLICATION_PATH.'/');
         }
         require_once( PHPEXCEL_ROOT.'PHPExcel/Autoloader.php' );
     }
@@ -18,10 +18,10 @@ class HyperlinkTest extends PHPUnit_Framework_TestCase
 
         $urlValue = 'http://www.phpexcel.net';
 
-        $testInstance = new PHPExcel_Cell_Hyperlink( $urlValue );
+        $testInstance = new PHPExcel_Cell_Hyperlink($urlValue);
 
         $result = $testInstance->getUrl();
-        $this->assertEquals( $urlValue, $result );
+        $this->assertEquals($urlValue, $result);
     }
 
     public function testSetUrl()
@@ -30,12 +30,12 @@ class HyperlinkTest extends PHPUnit_Framework_TestCase
         $initialUrlValue = 'http://www.phpexcel.net';
         $newUrlValue = 'http://github.com/PHPOffice/PHPExcel';
 
-        $testInstance = new PHPExcel_Cell_Hyperlink( $initialUrlValue );
-        $result = $testInstance->setUrl( $newUrlValue );
-        $this->assertTrue( $result instanceof PHPExcel_Cell_Hyperlink );
+        $testInstance = new PHPExcel_Cell_Hyperlink($initialUrlValue);
+        $result = $testInstance->setUrl($newUrlValue);
+        $this->assertTrue($result instanceof PHPExcel_Cell_Hyperlink);
 
         $result = $testInstance->getUrl();
-        $this->assertEquals( $newUrlValue, $result );
+        $this->assertEquals($newUrlValue, $result);
     }
 
     public function testGetTooltip()
@@ -43,10 +43,10 @@ class HyperlinkTest extends PHPUnit_Framework_TestCase
 
         $tooltipValue = 'PHPExcel Web Site';
 
-        $testInstance = new PHPExcel_Cell_Hyperlink( null, $tooltipValue );
+        $testInstance = new PHPExcel_Cell_Hyperlink(null, $tooltipValue);
 
         $result = $testInstance->getTooltip();
-        $this->assertEquals( $tooltipValue, $result );
+        $this->assertEquals($tooltipValue, $result);
     }
 
     public function testSetTooltip()
@@ -55,12 +55,12 @@ class HyperlinkTest extends PHPUnit_Framework_TestCase
         $initialTooltipValue = 'PHPExcel Web Site';
         $newTooltipValue = 'PHPExcel Repository on Github';
 
-        $testInstance = new PHPExcel_Cell_Hyperlink( null, $initialTooltipValue );
-        $result = $testInstance->setTooltip( $newTooltipValue );
-        $this->assertTrue( $result instanceof PHPExcel_Cell_Hyperlink );
+        $testInstance = new PHPExcel_Cell_Hyperlink(null, $initialTooltipValue);
+        $result = $testInstance->setTooltip($newTooltipValue);
+        $this->assertTrue($result instanceof PHPExcel_Cell_Hyperlink);
 
         $result = $testInstance->getTooltip();
-        $this->assertEquals( $newTooltipValue, $result );
+        $this->assertEquals($newTooltipValue, $result);
     }
 
     public function testIsInternal()
@@ -69,13 +69,13 @@ class HyperlinkTest extends PHPUnit_Framework_TestCase
         $initialUrlValue = 'http://www.phpexcel.net';
         $newUrlValue = 'sheet://Worksheet1!A1';
 
-        $testInstance = new PHPExcel_Cell_Hyperlink( $initialUrlValue );
+        $testInstance = new PHPExcel_Cell_Hyperlink($initialUrlValue);
         $result = $testInstance->isInternal();
-        $this->assertFalse( $result );
+        $this->assertFalse($result);
 
-        $testInstance->setUrl( $newUrlValue );
+        $testInstance->setUrl($newUrlValue);
         $result = $testInstance->isInternal();
-        $this->assertTrue( $result );
+        $this->assertTrue($result);
     }
 
     public function testGetHashCode()
@@ -85,10 +85,10 @@ class HyperlinkTest extends PHPUnit_Framework_TestCase
         $tooltipValue = 'PHPExcel Web Site';
         $initialExpectedHash = 'd84d713aed1dbbc8a7c5af183d6c7dbb';
 
-        $testInstance = new PHPExcel_Cell_Hyperlink( $urlValue, $tooltipValue );
+        $testInstance = new PHPExcel_Cell_Hyperlink($urlValue, $tooltipValue);
 
         $result = $testInstance->getHashCode();
-        $this->assertEquals( $initialExpectedHash, $result );
+        $this->assertEquals($initialExpectedHash, $result);
     }
 
 }

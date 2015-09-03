@@ -16,10 +16,12 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 
 class FileTest extends \PHPUnit_Framework_TestCase
 {
+
     protected $file;
 
     public function testGetMimeTypeUsesMimeTypeGuessers()
     {
+
         $file = new File(__DIR__.'/Fixtures/test.gif');
         $guesser = $this->createMockGuesser($file->getPathname(), 'image/gif');
 
@@ -28,21 +30,22 @@ class FileTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('image/gif', $file->getMimeType());
     }
 
-    protected function createMockGuesser( $path, $mimeType )
+    protected function createMockGuesser($path, $mimeType)
     {
 
-        $guesser = $this->getMock( 'Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface' );
+        $guesser = $this->getMock('Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesserInterface');
         $guesser
-            ->expects( $this->once() )
-            ->method( 'guess' )
-            ->with( $this->equalTo( $path ) )
-            ->will( $this->returnValue( $mimeType ) );
+            ->expects($this->once())
+            ->method('guess')
+            ->with($this->equalTo($path))
+            ->will($this->returnValue($mimeType));
 
         return $guesser;
     }
 
     public function testGuessExtensionWithoutGuesser()
     {
+
         $file = new File(__DIR__.'/Fixtures/directory/.empty');
 
         $this->assertNull($file->guessExtension());
@@ -50,6 +53,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     public function testGuessExtensionIsBasedOnMimeType()
     {
+
         $file = new File(__DIR__.'/Fixtures/test');
         $guesser = $this->createMockGuesser($file->getPathname(), 'image/gif');
 
@@ -60,6 +64,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructWhenFileNotExists()
     {
+
         $this->setExpectedException('Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException');
 
         new File(__DIR__.'/Fixtures/not_here');
@@ -67,6 +72,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     public function testMove()
     {
+
         $path = __DIR__.'/Fixtures/test.copy.gif';
         $targetDir = __DIR__.'/Fixtures/directory';
         $targetPath = $targetDir.'/test.copy.gif';
@@ -87,6 +93,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     public function testMoveWithNewName()
     {
+
         $path = __DIR__.'/Fixtures/test.copy.gif';
         $targetDir = __DIR__.'/Fixtures/directory';
         $targetPath = $targetDir.'/test.newname.gif';
@@ -106,6 +113,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     public function getFilenameFixtures()
     {
+
         return array(
             array('original.gif', 'original.gif'),
             array('..\\..\\original.gif', 'original.gif'),
@@ -121,6 +129,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
      */
     public function testMoveWithNonLatinName($filename, $sanitizedFilename)
     {
+
         $path = __DIR__.'/Fixtures/'.$sanitizedFilename;
         $targetDir = __DIR__.'/Fixtures/directory/';
         $targetPath = $targetDir.$sanitizedFilename;
@@ -129,7 +138,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
         copy(__DIR__.'/Fixtures/test.gif', $path);
 
         $file = new File($path);
-        $movedFile = $file->move($targetDir,$filename);
+        $movedFile = $file->move($targetDir, $filename);
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\File\File', $movedFile);
 
         $this->assertTrue(file_exists($targetPath));
@@ -141,6 +150,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     public function testMoveToAnUnexistentDirectory()
     {
+
         $sourcePath = __DIR__.'/Fixtures/test.copy.gif';
         $targetDir = __DIR__.'/Fixtures/directory/sub';
         $targetPath = $targetDir.'/test.copy.gif';
@@ -163,6 +173,7 @@ class FileTest extends \PHPUnit_Framework_TestCase
 
     public function testGetExtension()
     {
+
         $file = new File(__DIR__.'/Fixtures/test.gif');
         $this->assertEquals('gif', $file->getExtension());
     }

@@ -8,21 +8,14 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Types\Type;
 
-require_once __DIR__ . '/../../../TestInit.php';
+require_once __DIR__.'/../../../TestInit.php';
 
 class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-
-        if (!Type::hasType('point')) {
-            Type::addType('point', 'Doctrine\Tests\Types\MySqlPointType');
-        }
-    }
 
     public function testSwitchPrimaryKeyColumns()
     {
+
         $tableOld = new Table("switch_primary_key_columns");
         $tableOld->addColumn('foo_id', 'integer');
         $tableOld->addColumn('bar_id', 'integer');
@@ -39,6 +32,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testDiffTableBug()
     {
+
         $schema = new Schema();
         $table = $schema->createTable('diffbug_routing_translations');
         $table->addColumn('id', 'integer');
@@ -62,6 +56,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testFulltextIndex()
     {
+
         $table = new Table('fulltext_index');
         $table->addColumn('text', 'text');
         $table->addIndex(array('text'), 'f_index');
@@ -79,6 +74,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testSpatialIndex()
     {
+
         $table = new Table('spatial_index');
         $table->addColumn('point', 'point');
         $table->addIndex(array('point'), 's_index');
@@ -99,6 +95,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testAlterTableAddPrimaryKey()
     {
+
         $table = new Table('alter_table_add_pk');
         $table->addColumn('id', 'integer');
         $table->addColumn('foo', 'integer');
@@ -107,7 +104,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $this->_sm->createTable($table);
 
         $comparator = new Comparator();
-        $diffTable  = clone $table;
+        $diffTable = clone $table;
 
         $diffTable->dropIndex('idx_id');
         $diffTable->setPrimaryKey(array('id'));
@@ -125,6 +122,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testDropPrimaryKeyWithAutoincrementColumn()
     {
+
         $table = new Table("drop_primary_key");
         $table->addColumn('id', 'integer', array('primary' => true, 'autoincrement' => true));
         $table->addColumn('foo', 'integer', array('primary' => true));
@@ -151,6 +149,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testDoesNotPropagateDefaultValuesForUnsupportedColumnTypes()
     {
+
         $table = new Table("text_blob_default_value");
         $table->addColumn('def_text', 'text', array('default' => 'def'));
         $table->addColumn('def_text_null', 'text', array('notnull' => false, 'default' => 'def'));
@@ -184,6 +183,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testColumnCollation()
     {
+
         $table = new Table('test_collation');
         $table->addOption('collate', $collation = 'latin1_swedish_ci');
         $table->addOption('charset', 'latin1');
@@ -206,6 +206,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testListLobTypeColumns()
     {
+
         $tableName = 'lob_type_columns';
         $table = new Table($tableName);
 
@@ -265,6 +266,7 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testDiffListGuidTableColumn()
     {
+
         $offlineTable = new Table('list_guid_table_column');
         $offlineTable->addColumn('col_guid', 'guid');
 
@@ -278,5 +280,15 @@ class MySqlSchemaManagerTest extends SchemaManagerFunctionalTestCase
             $comparator->diffTable($offlineTable, $onlineTable),
             "No differences should be detected with the offline vs online schema."
         );
+    }
+
+    protected function setUp()
+    {
+
+        parent::setUp();
+
+        if (!Type::hasType('point')) {
+            Type::addType('point', 'Doctrine\Tests\Types\MySqlPointType');
+        }
     }
 }

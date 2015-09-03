@@ -4,14 +4,42 @@ namespace Doctrine\Tests\DBAL\Functional;
 
 use Doctrine\DBAL\Types\Type;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 class TypeConversionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     static private $typeCounter = 0;
+
+    static public function dataIdempotentDataConversion()
+    {
+
+        $obj = new \stdClass();
+        $obj->foo = "bar";
+        $obj->bar = "baz";
+
+        return array(
+            array('string', 'ABCDEFGaaaBBB', 'string'),
+            array('boolean', true, 'bool'),
+            array('boolean', false, 'bool'),
+            array('bigint', 12345678, 'string'),
+            array('smallint', 123, 'int'),
+            array('datetime', new \DateTime('2010-04-05 10:10:10'), 'DateTime'),
+            array('datetimetz', new \DateTime('2010-04-05 10:10:10'), 'DateTime'),
+            array('date', new \DateTime('2010-04-05'), 'DateTime'),
+            array('time', new \DateTime('1970-01-01 10:10:10'), 'DateTime'),
+            array('text', str_repeat('foo ', 1000), 'string'),
+            array('array', array('foo' => 'bar'), 'array'),
+            array('json_array', array('foo' => 'bar'), 'array'),
+            array('object', $obj, 'object'),
+            array('float', 1.5, 'float'),
+            array('decimal', 1.55, 'string'),
+        );
+    }
 
     public function setUp()
     {
+
         parent::setUp();
 
         /* @var $sm \Doctrine\DBAL\Schema\AbstractSchemaManager */
@@ -39,64 +67,46 @@ class TypeConversionTest extends \Doctrine\Tests\DbalFunctionalTestCase
             foreach ($this->_conn->getDatabasePlatform()->getCreateTableSQL($table) as $sql) {
                 $this->_conn->executeQuery($sql);
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
         }
     }
 
-    static public function dataIdempotentDataConversion()
-    {
-        $obj = new \stdClass();
-        $obj->foo = "bar";
-        $obj->bar = "baz";
-
-        return array(
-            array('string',     'ABCDEFGaaaBBB', 'string'),
-            array('boolean',    true, 'bool'),
-            array('boolean',    false, 'bool'),
-            array('bigint',     12345678, 'string'),
-            array('smallint',   123, 'int'),
-            array('datetime',   new \DateTime('2010-04-05 10:10:10'), 'DateTime'),
-            array('datetimetz', new \DateTime('2010-04-05 10:10:10'), 'DateTime'),
-            array('date',       new \DateTime('2010-04-05'), 'DateTime'),
-            array('time',       new \DateTime('1970-01-01 10:10:10'), 'DateTime'),
-            array('text',       str_repeat('foo ', 1000), 'string'),
-            array('array',      array('foo' => 'bar'), 'array'),
-            array('json_array', array('foo' => 'bar'), 'array'),
-            array('object',     $obj, 'object'),
-            array('float',      1.5, 'float'),
-            array('decimal',    1.55, 'string'),
-        );
-    }
-
     /**
      * @dataProvider dataIdempotentDataConversion
+     *
      * @param string $type
-     * @param mixed $originalValue
+     * @param mixed  $originalValue
      * @param string $expectedPhpType
      */
     public function testIdempotentDataConversion($type, $originalValue, $expectedPhpType)
     {
-        $columnName = "test_" . $type;
+
+        $columnName = "test_".$type;
         $typeInstance = Type::getType($type);
         $insertionValue = $typeInstance->convertToDatabaseValue($originalValue, $this->_conn->getDatabasePlatform());
 
         $this->_conn->insert('type_conversion', array('id' => ++self::$typeCounter, $columnName => $insertionValue));
 
-        $sql = "SELECT " . $columnName . " FROM type_conversion WHERE id = " . self::$typeCounter;
-        $actualDbValue = $typeInstance->convertToPHPValue($this->_conn->fetchColumn($sql), $this->_conn->getDatabasePlatform());
+        $sql = "SELECT ".$columnName." FROM type_conversion WHERE id = ".self::$typeCounter;
+        $actualDbValue = $typeInstance->convertToPHPValue($this->_conn->fetchColumn($sql),
+            $this->_conn->getDatabasePlatform());
 
         if ($originalValue instanceof \DateTime) {
-            $this->assertInstanceOf($expectedPhpType, $actualDbValue, "The expected type from the conversion to and back from the database should be " . $expectedPhpType);
+            $this->assertInstanceOf($expectedPhpType, $actualDbValue,
+                "The expected type from the conversion to and back from the database should be ".$expectedPhpType);
         } else {
-            $this->assertInternalType($expectedPhpType, $actualDbValue, "The expected type from the conversion to and back from the database should be " . $expectedPhpType);
+            $this->assertInternalType($expectedPhpType, $actualDbValue,
+                "The expected type from the conversion to and back from the database should be ".$expectedPhpType);
         }
 
         if ($type !== "datetimetz") {
-            $this->assertEquals($originalValue, $actualDbValue, "Conversion between values should produce the same out as in value, but doesnt!");
+            $this->assertEquals($originalValue, $actualDbValue,
+                "Conversion between values should produce the same out as in value, but doesnt!");
 
             if ($originalValue instanceof \DateTime) {
-                $this->assertEquals($originalValue->getTimezone()->getName(), $actualDbValue->getTimezone()->getName(), "Timezones should be the same.");
+                $this->assertEquals($originalValue->getTimezone()->getName(), $actualDbValue->getTimezone()->getName(),
+                    "Timezones should be the same.");
             }
         }
     }

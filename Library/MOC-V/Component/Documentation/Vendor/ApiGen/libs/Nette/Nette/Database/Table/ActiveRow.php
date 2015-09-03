@@ -32,7 +32,7 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
     private $modified = array();
 
 
-    public function __construct( array $data, Selection $table )
+    public function __construct(array $data, Selection $table)
     {
 
         $this->data = $data;
@@ -53,7 +53,7 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      * @internal
      * @ignore
      */
-    public function setTable( Selection $table )
+    public function setTable(Selection $table)
     {
 
         $this->table = $table;
@@ -64,8 +64,8 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
 
         try {
             return (string)$this->getPrimary();
-        } catch( \Exception $e ) {
-            Nette\Diagnostics\Debugger::toStringException( $e );
+        } catch (\Exception $e) {
+            Nette\Diagnostics\Debugger::toStringException($e);
         }
     }
 
@@ -78,7 +78,7 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
     {
 
         if (!isset( $this->data[$this->table->getPrimary()] )) {
-            throw new Nette\NotSupportedException( "Table {$this->table->getName()} does not have any primary key." );
+            throw new Nette\NotSupportedException("Table {$this->table->getName()} does not have any primary key.");
         }
         return $this[$this->table->getPrimary()];
     }
@@ -89,18 +89,18 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
     public function toArray()
     {
 
-        $this->access( null );
+        $this->access(null);
         return $this->data;
     }
 
     /**
      * @internal
      */
-    public function access( $key, $cache = true )
+    public function access($key, $cache = true)
     {
 
-        if ($this->table->getConnection()->getCache() && !isset( $this->modified[$key] ) && $this->table->access( $key,
-                $cache )
+        if ($this->table->getConnection()->getCache() && !isset( $this->modified[$key] ) && $this->table->access($key,
+                $cache)
         ) {
             $id = ( isset( $this->data[$this->table->getPrimary()] ) ? $this->data[$this->table->getPrimary()] : $this->data );
             $this->data = $this->table[$id]->data;
@@ -115,27 +115,27 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      *
      * @return ActiveRow or NULL if the row does not exist
      */
-    public function ref( $key, $throughColumn = null )
+    public function ref($key, $throughColumn = null)
     {
 
         if (!$throughColumn) {
-            list( $key, $throughColumn ) = $this->table->getConnection()->getDatabaseReflection()->getBelongsToReference( $this->table->getName(),
-                $key );
+            list( $key, $throughColumn ) = $this->table->getConnection()->getDatabaseReflection()->getBelongsToReference($this->table->getName(),
+                $key);
         }
 
-        return $this->getReference( $key, $throughColumn );
+        return $this->getReference($key, $throughColumn);
     }
 
-    protected function getReference( $table, $column )
+    protected function getReference($table, $column)
     {
 
-        if (array_key_exists( $column, $this->data )) {
-            $this->access( $column );
+        if (array_key_exists($column, $this->data)) {
+            $this->access($column);
 
             $value = $this->data[$column];
             $value = $value instanceof ActiveRow ? $value->getPrimary() : $value;
 
-            $referenced = $this->table->getReferencedTable( $table, $column, !empty( $this->modified[$column] ) );
+            $referenced = $this->table->getReferencedTable($table, $column, !empty( $this->modified[$column] ));
             $referenced = isset( $referenced[$value] ) ? $referenced[$value] : null; // referenced row may not exist
 
             if (!empty( $this->modified[$column] )) { // cause saving changed column and prevent regenerating referenced table for $column
@@ -156,17 +156,17 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      *
      * @return GroupedSelection
      */
-    public function related( $key, $throughColumn = null )
+    public function related($key, $throughColumn = null)
     {
 
-        if (strpos( $key, '.' ) !== false) {
-            list( $key, $throughColumn ) = explode( '.', $key );
+        if (strpos($key, '.') !== false) {
+            list( $key, $throughColumn ) = explode('.', $key);
         } elseif (!$throughColumn) {
-            list( $key, $throughColumn ) = $this->table->getConnection()->getDatabaseReflection()->getHasManyReference( $this->table->getName(),
-                $key );
+            list( $key, $throughColumn ) = $this->table->getConnection()->getDatabaseReflection()->getHasManyReference($this->table->getName(),
+                $key);
         }
 
-        return $this->table->getReferencingTable( $key, $throughColumn, $this[$this->table->getPrimary()] );
+        return $this->table->getReferencingTable($key, $throughColumn, $this[$this->table->getPrimary()]);
     }
 
     /**
@@ -176,15 +176,15 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      *
      * @return int number of affected rows or FALSE in case of an error
      */
-    public function update( $data = null )
+    public function update($data = null)
     {
 
         if ($data === null) {
             $data = $this->modified;
         }
-        return $this->table->getConnection()->table( $this->table->getName() )
-            ->where( $this->table->getPrimary(), $this[$this->table->getPrimary()] )
-            ->update( $data );
+        return $this->table->getConnection()->table($this->table->getName())
+            ->where($this->table->getPrimary(), $this[$this->table->getPrimary()])
+            ->update($data);
     }
 
 
@@ -199,8 +199,8 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
     public function delete()
     {
 
-        return $this->table->getConnection()->table( $this->table->getName() )
-            ->where( $this->table->getPrimary(), $this[$this->table->getPrimary()] )
+        return $this->table->getConnection()->table($this->table->getName())
+            ->where($this->table->getPrimary(), $this[$this->table->getPrimary()])
             ->delete();
     }
 
@@ -209,8 +209,8 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
     public function getIterator()
     {
 
-        $this->access( null );
-        return new \ArrayIterator( $this->data );
+        $this->access(null);
+        return new \ArrayIterator($this->data);
     }
 
     /**
@@ -221,10 +221,10 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      *
      * @return void
      */
-    public function offsetSet( $key, $value )
+    public function offsetSet($key, $value)
     {
 
-        $this->__set( $key, $value );
+        $this->__set($key, $value);
     }
 
     /**
@@ -234,33 +234,33 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      *
      * @return string
      */
-    public function offsetGet( $key )
+    public function offsetGet($key)
     {
 
-        return $this->__get( $key );
+        return $this->__get($key);
     }
 
-    public function &__get( $key )
+    public function &__get($key)
     {
 
-        $this->access( $key );
-        if (array_key_exists( $key, $this->data )) {
+        $this->access($key);
+        if (array_key_exists($key, $this->data)) {
             return $this->data[$key];
         }
 
-        list( $table, $column ) = $this->table->getConnection()->getDatabaseReflection()->getBelongsToReference( $this->table->getName(),
-            $key );
-        $referenced = $this->getReference( $table, $column );
+        list( $table, $column ) = $this->table->getConnection()->getDatabaseReflection()->getBelongsToReference($this->table->getName(),
+            $key);
+        $referenced = $this->getReference($table, $column);
         if ($referenced !== false) {
-            $this->access( $key, false );
+            $this->access($key, false);
             return $referenced;
         }
 
-        $this->access( $key, null );
-        throw new Nette\MemberAccessException( "Cannot read an undeclared column \"$key\"." );
+        $this->access($key, null);
+        throw new Nette\MemberAccessException("Cannot read an undeclared column \"$key\".");
     }
 
-    public function __set( $key, $value )
+    public function __set($key, $value)
     {
 
         $this->data[$key] = $value;
@@ -274,20 +274,20 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      *
      * @return bool
      */
-    public function offsetExists( $key )
+    public function offsetExists($key)
     {
 
-        return $this->__isset( $key );
+        return $this->__isset($key);
     }
 
-    public function __isset( $key )
+    public function __isset($key)
     {
 
-        $this->access( $key );
-        if (array_key_exists( $key, $this->data )) {
+        $this->access($key);
+        if (array_key_exists($key, $this->data)) {
             return isset( $this->data[$key] );
         }
-        $this->access( $key, null );
+        $this->access($key, null);
         return false;
     }
 
@@ -298,13 +298,13 @@ class ActiveRow extends Nette\Object implements \IteratorAggregate, \ArrayAccess
      *
      * @return void
      */
-    public function offsetUnset( $key )
+    public function offsetUnset($key)
     {
 
-        $this->__unset( $key );
+        $this->__unset($key);
     }
 
-    public function __unset( $key )
+    public function __unset($key)
     {
 
         unset( $this->data[$key] );

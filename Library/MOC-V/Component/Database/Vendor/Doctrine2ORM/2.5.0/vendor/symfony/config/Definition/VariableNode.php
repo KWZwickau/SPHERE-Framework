@@ -23,6 +23,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
  */
 class VariableNode extends BaseNode implements PrototypeNodeInterface
 {
+
     protected $defaultValueSet = false;
     protected $defaultValue;
     protected $allowEmptyValue = true;
@@ -30,17 +31,9 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     /**
      * {@inheritdoc}
      */
-    public function setDefaultValue($value)
-    {
-        $this->defaultValueSet = true;
-        $this->defaultValue = $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function hasDefaultValue()
     {
+
         return $this->defaultValueSet;
     }
 
@@ -49,9 +42,20 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
      */
     public function getDefaultValue()
     {
+
         $v = $this->defaultValue;
 
         return $v instanceof \Closure ? $v() : $v;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setDefaultValue($value)
+    {
+
+        $this->defaultValueSet = true;
+        $this->defaultValue = $value;
     }
 
     /**
@@ -61,7 +65,8 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
      */
     public function setAllowEmptyValue($boolean)
     {
-        $this->allowEmptyValue = (bool) $boolean;
+
+        $this->allowEmptyValue = (bool)$boolean;
     }
 
     /**
@@ -69,6 +74,7 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
      */
     public function setName($name)
     {
+
         $this->name = $name;
     }
 
@@ -84,6 +90,7 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
      */
     protected function finalizeValue($value)
     {
+
         if (!$this->allowEmptyValue && $this->isValueEmpty($value)) {
             $ex = new InvalidConfigurationException(sprintf(
                 'The path "%s" cannot contain an empty value, but got %s.',
@@ -102,22 +109,6 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
     }
 
     /**
-     * {@inheritdoc}
-     */
-    protected function normalizeValue($value)
-    {
-        return $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function mergeValues($leftSide, $rightSide)
-    {
-        return $rightSide;
-    }
-
-    /**
      * Evaluates if the given value is to be treated as empty.
      *
      * By default, PHP's empty() function is used to test for emptiness. This
@@ -130,6 +121,25 @@ class VariableNode extends BaseNode implements PrototypeNodeInterface
      */
     protected function isValueEmpty($value)
     {
-        return empty($value);
+
+        return empty( $value );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function normalizeValue($value)
+    {
+
+        return $value;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function mergeValues($leftSide, $rightSide)
+    {
+
+        return $rightSide;
     }
 }

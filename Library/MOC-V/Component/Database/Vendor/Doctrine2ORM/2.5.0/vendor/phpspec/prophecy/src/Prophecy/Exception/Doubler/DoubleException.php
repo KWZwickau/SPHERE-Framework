@@ -15,4 +15,5 @@ use RuntimeException;
 
 class DoubleException extends RuntimeException implements DoublerException
 {
+
 }

@@ -9,6 +9,7 @@ use MongoCollection;
 
 class MongoDBCacheTest extends CacheTest
 {
+
     /**
      * @var MongoCollection
      */
@@ -16,8 +17,9 @@ class MongoDBCacheTest extends CacheTest
 
     public function setUp()
     {
-        if ( ! version_compare(phpversion('mongo'), '1.3.0', '>=')) {
-            $this->markTestSkipped('The ' . __CLASS__ .' requires the use of mongo >= 1.3.0');
+
+        if (!version_compare(phpversion('mongo'), '1.3.0', '>=')) {
+            $this->markTestSkipped('The '.__CLASS__.' requires the use of mongo >= 1.3.0');
         }
 
         $mongo = new MongoClient();
@@ -26,6 +28,7 @@ class MongoDBCacheTest extends CacheTest
 
     public function tearDown()
     {
+
         if ($this->collection instanceof MongoCollection) {
             $this->collection->drop();
         }
@@ -33,6 +36,7 @@ class MongoDBCacheTest extends CacheTest
 
     public function testSaveWithNonUtf8String()
     {
+
         // Invalid 2-octet sequence
         $data = "\xc3\x28";
 
@@ -42,8 +46,15 @@ class MongoDBCacheTest extends CacheTest
         $this->assertEquals($data, $cache->fetch('key'));
     }
 
+    protected function _getCacheDriver()
+    {
+
+        return new MongoDBCache($this->collection);
+    }
+
     public function testGetStats()
     {
+
         $cache = $this->_getCacheDriver();
         $stats = $cache->getStats();
 
@@ -52,10 +63,5 @@ class MongoDBCacheTest extends CacheTest
         $this->assertGreaterThan(0, $stats[Cache::STATS_UPTIME]);
         $this->assertEquals(0, $stats[Cache::STATS_MEMORY_USAGE]);
         $this->assertNull($stats[Cache::STATS_MEMORY_AVAILABLE]);
-    }
-
-    protected function _getCacheDriver()
-    {
-        return new MongoDBCache($this->collection);
     }
 }

@@ -62,19 +62,19 @@ class ReflectionProperty extends ReflectionElement
     public function getTypeHint()
     {
 
-        if ($annotations = $this->getAnnotation( 'var' )) {
-            list( $types ) = preg_split( '~\s+|$~', $annotations[0], 2 );
+        if ($annotations = $this->getAnnotation('var')) {
+            list( $types ) = preg_split('~\s+|$~', $annotations[0], 2);
             if (!empty( $types ) && '$' !== $types[0]) {
                 return $types;
             }
         }
 
         try {
-            $type = gettype( $this->getDefaultValue() );
-            if ('null' !== strtolower( $type )) {
+            $type = gettype($this->getDefaultValue());
+            if ('null' !== strtolower($type)) {
                 return $type;
             }
-        } catch( \Exception $e ) {
+        } catch (\Exception $e) {
             // Nothing
         }
 

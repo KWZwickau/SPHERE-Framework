@@ -42,12 +42,12 @@ class Tokenizer extends Nette\Object
      * @param  array   of [(int) symbol type => pattern]
      * @param  string  regular expression flag
      */
-    public function __construct( array $patterns, $flags = '' )
+    public function __construct(array $patterns, $flags = '')
     {
 
-        $this->re = '~('.implode( ')|(', $patterns ).')~A'.$flags;
-        $keys = array_keys( $patterns );
-        $this->types = $keys === range( 0, count( $patterns ) - 1 ) ? false : $keys;
+        $this->re = '~('.implode(')|(', $patterns).')~A'.$flags;
+        $keys = array_keys($patterns);
+        $this->types = $keys === range(0, count($patterns) - 1) ? false : $keys;
     }
 
 
@@ -58,14 +58,14 @@ class Tokenizer extends Nette\Object
      *
      * @return array
      */
-    public function tokenize( $input )
+    public function tokenize($input)
     {
 
         $this->input = $input;
         if ($this->types) {
-            $this->tokens = Strings::matchAll( $input, $this->re );
+            $this->tokens = Strings::matchAll($input, $this->re);
             $len = 0;
-            $count = count( $this->types );
+            $count = count($this->types);
             $line = 1;
             foreach ($this->tokens as & $match) {
                 $type = null;
@@ -77,36 +77,36 @@ class Tokenizer extends Nette\Object
                         break;
                     }
                 }
-                $match = self::createToken( $match[0], $type, $line );
-                $len += strlen( $match['value'] );
-                $line += substr_count( $match['value'], "\n" );
+                $match = self::createToken($match[0], $type, $line);
+                $len += strlen($match['value']);
+                $line += substr_count($match['value'], "\n");
             }
-            if ($len !== strlen( $input )) {
+            if ($len !== strlen($input)) {
                 $errorOffset = $len;
             }
 
         } else {
-            $this->tokens = Strings::split( $input, $this->re, PREG_SPLIT_NO_EMPTY );
-            if ($this->tokens && !Strings::match( end( $this->tokens ), $this->re )) {
-                $tmp = Strings::split( $this->input, $this->re, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE );
-                list( , $errorOffset ) = end( $tmp );
+            $this->tokens = Strings::split($input, $this->re, PREG_SPLIT_NO_EMPTY);
+            if ($this->tokens && !Strings::match(end($this->tokens), $this->re)) {
+                $tmp = Strings::split($this->input, $this->re, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE);
+                list( , $errorOffset ) = end($tmp);
             }
         }
 
         if (isset( $errorOffset )) {
-            $line = $errorOffset ? substr_count( $this->input, "\n", 0, $errorOffset ) + 1 : 1;
-            $col = $errorOffset - strrpos( substr( $this->input, 0, $errorOffset ), "\n" ) + 1;
-            $token = str_replace( "\n", '\n', substr( $input, $errorOffset, 10 ) );
-            throw new TokenizerException( "Unexpected '$token' on line $line, column $col." );
+            $line = $errorOffset ? substr_count($this->input, "\n", 0, $errorOffset) + 1 : 1;
+            $col = $errorOffset - strrpos(substr($this->input, 0, $errorOffset), "\n") + 1;
+            $token = str_replace("\n", '\n', substr($input, $errorOffset, 10));
+            throw new TokenizerException("Unexpected '$token' on line $line, column $col.");
         }
         return $this->tokens;
     }
 
 
-    public static function createToken( $value, $type = null, $line = null )
+    public static function createToken($value, $type = null, $line = null)
     {
 
-        return array( 'value' => $value, 'type' => $type, 'line' => $line );
+        return array('value' => $value, 'type' => $type, 'line' => $line);
     }
 
 
@@ -117,15 +117,15 @@ class Tokenizer extends Nette\Object
      *
      * @return array [offset, line, column]
      */
-    public function getOffset( $i )
+    public function getOffset($i)
     {
 
-        $tokens = Strings::split( $this->input, $this->re, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE );
-        $offset = isset( $tokens[$i] ) ? $tokens[$i][1] : strlen( $this->input );
+        $tokens = Strings::split($this->input, $this->re, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_OFFSET_CAPTURE);
+        $offset = isset( $tokens[$i] ) ? $tokens[$i][1] : strlen($this->input);
         return array(
             $offset,
-            ( $offset ? substr_count( $this->input, "\n", 0, $offset ) + 1 : 1 ),
-            $offset - strrpos( substr( $this->input, 0, $offset ), "\n" ),
+            ( $offset ? substr_count($this->input, "\n", 0, $offset) + 1 : 1 ),
+            $offset - strrpos(substr($this->input, 0, $offset), "\n"),
         );
     }
 
@@ -141,7 +141,7 @@ class Tokenizer extends Nette\Object
     {
 
         $args = func_get_args();
-        return $this->scan( $args, true );
+        return $this->scan($args, true);
     }
 
     /**
@@ -151,7 +151,7 @@ class Tokenizer extends Nette\Object
      *
      * @return array
      */
-    private function scan( $wanted, $first, $advance = true, $neg = false, $prev = false )
+    private function scan($wanted, $first, $advance = true, $neg = false, $prev = false)
     {
 
         $res = false;
@@ -159,9 +159,9 @@ class Tokenizer extends Nette\Object
         while (isset( $this->tokens[$pos] )) {
             $token = $this->tokens[$pos];
             $pos += $prev ? -1 : 1;
-            $value = is_array( $token ) ? $token['value'] : $token;
-            $type = is_array( $token ) ? $token['type'] : $token;
-            if (!$wanted || ( in_array( $value, $wanted, true ) || in_array( $type, $wanted, true ) ) ^ $neg) {
+            $value = is_array($token) ? $token['value'] : $token;
+            $type = is_array($token) ? $token['type'] : $token;
+            if (!$wanted || ( in_array($value, $wanted, true) || in_array($type, $wanted, true) ) ^ $neg) {
                 if ($advance) {
                     $this->position = $pos;
                     $this->current = $token;
@@ -171,7 +171,7 @@ class Tokenizer extends Nette\Object
                     break;
                 }
 
-            } elseif ($neg || !in_array( $type, $this->ignored, true )) {
+            } elseif ($neg || !in_array($type, $this->ignored, true)) {
                 break;
             }
         }
@@ -189,7 +189,7 @@ class Tokenizer extends Nette\Object
     {
 
         $args = func_get_args();
-        return $this->scan( $args, true ) === false ? false : $this->current;
+        return $this->scan($args, true) === false ? false : $this->current;
     }
 
     /**
@@ -203,7 +203,7 @@ class Tokenizer extends Nette\Object
     {
 
         $args = func_get_args();
-        return $this->scan( $args, false );
+        return $this->scan($args, false);
     }
 
     /**
@@ -213,11 +213,11 @@ class Tokenizer extends Nette\Object
      *
      * @return string
      */
-    public function fetchUntil( $arg )
+    public function fetchUntil($arg)
     {
 
         $args = func_get_args();
-        return $this->scan( $args, false, true, true );
+        return $this->scan($args, false, true, true);
     }
 
     /**
@@ -227,11 +227,11 @@ class Tokenizer extends Nette\Object
      *
      * @return string
      */
-    public function isNext( $arg )
+    public function isNext($arg)
     {
 
         $args = func_get_args();
-        return (bool)$this->scan( $args, true, false );
+        return (bool)$this->scan($args, true, false);
     }
 
     /**
@@ -241,11 +241,11 @@ class Tokenizer extends Nette\Object
      *
      * @return string
      */
-    public function isPrev( $arg )
+    public function isPrev($arg)
     {
 
         $args = func_get_args();
-        return (bool)$this->scan( $args, true, false, false, true );
+        return (bool)$this->scan($args, true, false, false, true);
     }
 
     /**
@@ -277,15 +277,15 @@ class Tokenizer extends Nette\Object
      *
      * @return string
      */
-    public function isCurrent( $arg )
+    public function isCurrent($arg)
     {
 
         $args = func_get_args();
-        if (is_array( $this->current )) {
-            return in_array( $this->current['value'], $args, true )
-            || in_array( $this->current['type'], $args, true );
+        if (is_array($this->current)) {
+            return in_array($this->current['value'], $args, true)
+            || in_array($this->current['type'], $args, true);
         } else {
-            return in_array( $this->current, $args, true );
+            return in_array($this->current, $args, true);
         }
     }
 

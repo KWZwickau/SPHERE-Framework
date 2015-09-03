@@ -37,13 +37,13 @@ final class TexyHandlerInvocation extends TexyObject
      * @param  TexyParser
      * @param  array    arguments
      */
-    public function __construct( $handlers, TexyParser $parser, $args )
+    public function __construct($handlers, TexyParser $parser, $args)
     {
 
         $this->handlers = $handlers;
-        $this->pos = count( $handlers );
+        $this->pos = count($handlers);
         $this->parser = $parser;
-        array_unshift( $args, $this );
+        array_unshift($args, $this);
         $this->args = $args;
     }
 
@@ -57,19 +57,19 @@ final class TexyHandlerInvocation extends TexyObject
     {
 
         if ($this->pos === 0) {
-            throw new InvalidStateException( 'No more handlers.' );
+            throw new InvalidStateException('No more handlers.');
         }
 
         if (func_num_args()) {
             $this->args = func_get_args();
-            array_unshift( $this->args, $this );
+            array_unshift($this->args, $this);
         }
 
         $this->pos--;
-        $res = call_user_func_array( $this->handlers[$this->pos], $this->args );
+        $res = call_user_func_array($this->handlers[$this->pos], $this->args);
         if ($res === null) {
-            throw new UnexpectedValueException( "Invalid value returned from handler '".print_r( $this->handlers[$this->pos],
-                    true )."'." );
+            throw new UnexpectedValueException("Invalid value returned from handler '".print_r($this->handlers[$this->pos],
+                    true)."'.");
         }
         return $res;
     }

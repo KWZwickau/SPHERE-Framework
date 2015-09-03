@@ -3,11 +3,10 @@
 namespace Guzzle\Service\Command;
 
 use Guzzle\Http\Message\Response;
-use Guzzle\Service\Command\LocationVisitor\VisitorFlyweight;
 use Guzzle\Service\Command\LocationVisitor\Response\ResponseVisitorInterface;
-use Guzzle\Service\Description\Parameter;
+use Guzzle\Service\Command\LocationVisitor\VisitorFlyweight;
 use Guzzle\Service\Description\OperationInterface;
-use Guzzle\Service\Description\Operation;
+use Guzzle\Service\Description\Parameter;
 use Guzzle\Service\Exception\ResponseClassException;
 use Guzzle\Service\Resource\Model;
 
@@ -16,27 +15,13 @@ use Guzzle\Service\Resource\Model;
  */
 class OperationResponseParser extends DefaultResponseParser
 {
-    /** @var VisitorFlyweight $factory Visitor factory */
-    protected $factory;
 
     /** @var self */
     protected static $instance;
-
+    /** @var VisitorFlyweight $factory Visitor factory */
+    protected $factory;
     /** @var bool */
     private $schemaInModels;
-
-    /**
-     * @return self
-     * @codeCoverageIgnore
-     */
-    public static function getInstance()
-    {
-        if (!static::$instance) {
-            static::$instance = new static(VisitorFlyweight::getInstance());
-        }
-
-        return static::$instance;
-    }
 
     /**
      * @param VisitorFlyweight $factory        Factory to use when creating visitors
@@ -44,8 +29,23 @@ class OperationResponseParser extends DefaultResponseParser
      */
     public function __construct(VisitorFlyweight $factory, $schemaInModels = false)
     {
+
         $this->factory = $factory;
         $this->schemaInModels = $schemaInModels;
+    }
+
+    /**
+     * @return self
+     * @codeCoverageIgnore
+     */
+    public static function getInstance()
+    {
+
+        if (!static::$instance) {
+            static::$instance = new static(VisitorFlyweight::getInstance());
+        }
+
+        return static::$instance;
     }
 
     /**
@@ -58,6 +58,7 @@ class OperationResponseParser extends DefaultResponseParser
      */
     public function addVisitor($location, ResponseVisitorInterface $visitor)
     {
+
         $this->factory->addResponseVisitor($location, $visitor);
 
         return $this;
@@ -65,6 +66,7 @@ class OperationResponseParser extends DefaultResponseParser
 
     protected function handleParsing(CommandInterface $command, Response $response, $contentType)
     {
+
         $operation = $command->getOperation();
         $type = $operation->getResponseType();
         $model = null;
@@ -97,6 +99,7 @@ class OperationResponseParser extends DefaultResponseParser
      */
     protected function parseClass(CommandInterface $command)
     {
+
         // Emit the operation.parse_class event. If a listener injects a 'result' property, then that will be the result
         $event = new CreateResponseClassEvent(array('command' => $command));
         $command->getClient()->getEventDispatcher()->dispatch('command.parse_response', $event);
@@ -123,13 +126,14 @@ class OperationResponseParser extends DefaultResponseParser
      */
     protected function visitResult(Parameter $model, CommandInterface $command, Response $response)
     {
+
         $foundVisitors = $result = $knownProps = array();
         $props = $model->getProperties();
 
         foreach ($props as $schema) {
             if ($location = $schema->getLocation()) {
                 // Trigger the before method on the first found visitor of this type
-                if (!isset($foundVisitors[$location])) {
+                if (!isset( $foundVisitors[$location] )) {
                     $foundVisitors[$location] = $this->factory->getResponseVisitor($location);
                     $foundVisitors[$location]->before($command, $result);
                 }
@@ -137,7 +141,7 @@ class OperationResponseParser extends DefaultResponseParser
         }
 
         // Visit additional properties when it is an actual schema
-        if (($additional = $model->getAdditionalProperties()) instanceof Parameter) {
+        if (( $additional = $model->getAdditionalProperties() ) instanceof Parameter) {
             $this->visitAdditionalProperties($model, $command, $response, $additional, $result, $foundVisitors);
         }
 
@@ -170,9 +174,10 @@ class OperationResponseParser extends DefaultResponseParser
         &$result,
         array &$foundVisitors
     ) {
+
         // Only visit when a location is specified
         if ($location = $additional->getLocation()) {
-            if (!isset($foundVisitors[$location])) {
+            if (!isset( $foundVisitors[$location] )) {
                 $foundVisitors[$location] = $this->factory->getResponseVisitor($location);
                 $foundVisitors[$location]->before($command, $result);
             }

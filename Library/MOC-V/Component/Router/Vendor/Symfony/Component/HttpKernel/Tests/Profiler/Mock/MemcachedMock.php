@@ -18,33 +18,36 @@ namespace Symfony\Component\HttpKernel\Tests\Profiler\Mock;
  */
 class MemcachedMock
 {
+
     private $connected = false;
     private $storage = array();
 
     /**
      * Set a Memcached option
      *
-     * @param int     $option
-     * @param mixed   $value
+     * @param int   $option
+     * @param mixed $value
      *
      * @return bool
      */
     public function setOption($option, $value)
     {
+
         return true;
     }
 
     /**
      * Add a memcached server to connection pool
      *
-     * @param string  $host
-     * @param int     $port
-     * @param int     $weight
+     * @param string $host
+     * @param int    $port
+     * @param int    $weight
      *
      * @return bool
      */
     public function addServer($host, $port = 11211, $weight = 0)
     {
+
         if ('127.0.0.1' == $host && 11211 == $port) {
             $this->connected = true;
 
@@ -57,19 +60,20 @@ class MemcachedMock
     /**
      * Add an item to the server only if such key doesn't exist at the server yet.
      *
-     * @param string  $key
-     * @param mixed   $value
-     * @param int     $expiration
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $expiration
      *
      * @return bool
      */
     public function add($key, $value, $expiration = 0)
     {
+
         if (!$this->connected) {
             return false;
         }
 
-        if (!isset($this->storage[$key])) {
+        if (!isset( $this->storage[$key] )) {
             $this->storeData($key, $value);
 
             return true;
@@ -78,10 +82,10 @@ class MemcachedMock
         return false;
     }
 
-    private function storeData( $key, $value )
+    private function storeData($key, $value)
     {
 
-        $this->storage[$key] = serialize( $value );
+        $this->storage[$key] = serialize($value);
 
         return true;
     }
@@ -89,14 +93,15 @@ class MemcachedMock
     /**
      * Store data at the server.
      *
-     * @param string  $key
-     * @param mixed   $value
-     * @param int     $expiration
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $expiration
      *
      * @return bool
      */
     public function set($key, $value, $expiration = null)
     {
+
         if (!$this->connected) {
             return false;
         }
@@ -109,19 +114,20 @@ class MemcachedMock
     /**
      * Replace value of the existing item.
      *
-     * @param string  $key
-     * @param mixed   $value
-     * @param int     $expiration
+     * @param string $key
+     * @param mixed  $value
+     * @param int    $expiration
      *
      * @return bool
      */
     public function replace($key, $value, $expiration = null)
     {
+
         if (!$this->connected) {
             return false;
         }
 
-        if (isset($this->storage[$key])) {
+        if (isset( $this->storage[$key] )) {
             $this->storeData($key, $value);
 
             return true;
@@ -141,6 +147,7 @@ class MemcachedMock
      */
     public function get($key, $cache_cb = null, &$cas_token = null)
     {
+
         if (!$this->connected) {
             return false;
         }
@@ -148,11 +155,11 @@ class MemcachedMock
         return $this->getData($key);
     }
 
-    private function getData( $key )
+    private function getData($key)
     {
 
         if (isset( $this->storage[$key] )) {
-            return unserialize( $this->storage[$key] );
+            return unserialize($this->storage[$key]);
         }
 
         return false;
@@ -168,11 +175,12 @@ class MemcachedMock
      */
     public function append($key, $value)
     {
+
         if (!$this->connected) {
             return false;
         }
 
-        if (isset($this->storage[$key])) {
+        if (isset( $this->storage[$key] )) {
             $this->storeData($key, $this->getData($key).$value);
 
             return true;
@@ -190,12 +198,13 @@ class MemcachedMock
      */
     public function delete($key)
     {
+
         if (!$this->connected) {
             return false;
         }
 
-        if (isset($this->storage[$key])) {
-            unset($this->storage[$key]);
+        if (isset( $this->storage[$key] )) {
+            unset( $this->storage[$key] );
 
             return true;
         }
@@ -210,6 +219,7 @@ class MemcachedMock
      */
     public function flush()
     {
+
         if (!$this->connected) {
             return false;
         }

@@ -49,19 +49,19 @@ final class Json
      *
      * @return string
      */
-    public static function encode( $value )
+    public static function encode($value)
     {
 
         Nette\Diagnostics\Debugger::tryError();
-        if (function_exists( 'ini_set' )) {
-            $old = ini_set( 'display_errors', 0 ); // needed to receive 'Invalid UTF-8 sequence' error
-            $json = json_encode( $value );
-            ini_set( 'display_errors', $old );
+        if (function_exists('ini_set')) {
+            $old = ini_set('display_errors', 0); // needed to receive 'Invalid UTF-8 sequence' error
+            $json = json_encode($value);
+            ini_set('display_errors', $old);
         } else {
-            $json = json_encode( $value );
+            $json = json_encode($value);
         }
-        if (Nette\Diagnostics\Debugger::catchError( $e )) { // needed to receive 'recursion detected' error
-            throw new JsonException( $e->getMessage() );
+        if (Nette\Diagnostics\Debugger::catchError($e)) { // needed to receive 'recursion detected' error
+            throw new JsonException($e->getMessage());
         }
         return $json;
     }
@@ -75,15 +75,15 @@ final class Json
      *
      * @return mixed
      */
-    public static function decode( $json, $options = 0 )
+    public static function decode($json, $options = 0)
     {
 
         $json = (string)$json;
-        $value = json_decode( $json, (bool)( $options & self::FORCE_ARRAY ) );
-        if ($value === null && $json !== '' && strcasecmp( $json, 'null' )) { // '' do not clean json_last_error
+        $value = json_decode($json, (bool)( $options & self::FORCE_ARRAY ));
+        if ($value === null && $json !== '' && strcasecmp($json, 'null')) { // '' do not clean json_last_error
             $error = PHP_VERSION_ID >= 50300 ? json_last_error() : 0;
-            throw new JsonException( isset( static::$messages[$error] ) ? static::$messages[$error] : 'Unknown error',
-                $error );
+            throw new JsonException(isset( static::$messages[$error] ) ? static::$messages[$error] : 'Unknown error',
+                $error);
         }
         return $value;
     }

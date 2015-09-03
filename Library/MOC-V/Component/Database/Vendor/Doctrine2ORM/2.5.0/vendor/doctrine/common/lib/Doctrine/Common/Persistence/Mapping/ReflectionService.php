@@ -29,6 +29,7 @@ namespace Doctrine\Common\Persistence\Mapping;
  */
 interface ReflectionService
 {
+
     /**
      * Returns an array of the parent classes (not interfaces) for the given class.
      *

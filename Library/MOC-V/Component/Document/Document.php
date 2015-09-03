@@ -24,10 +24,10 @@ class Document implements IVendorInterface
     /**
      * @param IVendorInterface $VendorInterface
      */
-    function __construct( IVendorInterface $VendorInterface )
+    public function __construct(IVendorInterface $VendorInterface)
     {
 
-        $this->setVendorInterface( $VendorInterface );
+        $this->setVendorInterface($VendorInterface);
     }
 
     /**
@@ -36,18 +36,18 @@ class Document implements IVendorInterface
      * @return IBridgeInterface
      * @throws DocumentTypeException
      */
-    public static function getDocument( $Location )
+    public static function getDocument($Location)
     {
 
-        $FileInfo = new \SplFileInfo( $Location );
+        $FileInfo = new \SplFileInfo($Location);
         switch ($FileInfo->getExtension()) {
             case 'pdf': {
-                return self::getPdfDocument( $Location );
+                return self::getPdfDocument($Location);
             }
             case 'csv':
             case 'xls':
             case 'xlsx': {
-                return self::getExcelDocument( $Location );
+            return self::getExcelDocument($Location);
             }
             default:
                 throw new DocumentTypeException();
@@ -59,7 +59,7 @@ class Document implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getPdfDocument( $Location )
+    public static function getPdfDocument($Location)
     {
 
         $Document = new Document(
@@ -68,8 +68,8 @@ class Document implements IVendorInterface
             )
         );
 
-        if (file_exists( new FileParameter( $Location ) )) {
-            $Document->getBridgeInterface()->loadFile( new FileParameter( $Location ) );
+        if (file_exists(new FileParameter($Location))) {
+            $Document->getBridgeInterface()->loadFile(new FileParameter($Location));
         }
 
         return $Document->getBridgeInterface();
@@ -89,7 +89,7 @@ class Document implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getExcelDocument( $Location )
+    public static function getExcelDocument($Location)
     {
 
         $Document = new Document(
@@ -99,10 +99,10 @@ class Document implements IVendorInterface
         );
         /** @var PhpExcel $Bridge */
         $Bridge = $Document->getBridgeInterface();
-        if (file_exists( new FileParameter( $Location ) )) {
-            $Bridge->loadFile( new FileParameter( $Location ) );
+        if (file_exists(new FileParameter($Location))) {
+            $Bridge->loadFile(new FileParameter($Location));
         } else {
-            $Bridge->newFile( new FileParameter( $Location ) );
+            $Bridge->newFile(new FileParameter($Location));
         }
 
         return $Bridge;
@@ -113,7 +113,7 @@ class Document implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getPdfCreator( $Location )
+    public static function getPdfCreator($Location)
     {
 
         $Document = new Document(
@@ -122,8 +122,8 @@ class Document implements IVendorInterface
             )
         );
 
-        if (file_exists( new FileParameter( $Location ) )) {
-            $Document->getBridgeInterface()->loadFile( new FileParameter( $Location ) );
+        if (file_exists(new FileParameter($Location))) {
+            $Document->getBridgeInterface()->loadFile(new FileParameter($Location));
         }
 
         return $Document->getBridgeInterface();
@@ -143,7 +143,7 @@ class Document implements IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setVendorInterface( IVendorInterface $VendorInterface )
+    public function setVendorInterface(IVendorInterface $VendorInterface)
     {
 
         $this->VendorInterface = $VendorInterface;
@@ -155,9 +155,9 @@ class Document implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface )
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface)
     {
 
-        return $this->VendorInterface->setBridgeInterface( $BridgeInterface );
+        return $this->VendorInterface->setBridgeInterface($BridgeInterface);
     }
 }

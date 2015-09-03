@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_Expression_ConditionalTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_Expression_Conditional::__construct
      */
     public function testConstructor()
     {
+
         $expr1 = new Twig_Node_Expression_Constant(1, 1);
         $expr2 = new Twig_Node_Expression_Constant(2, 1);
         $expr3 = new Twig_Node_Expression_Constant(3, 1);
@@ -27,16 +29,18 @@ class Twig_Tests_Node_Expression_ConditionalTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_Expression_Conditional::compile
+     * @covers       Twig_Node_Expression_Conditional::compile
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $tests = array();
 
         $expr1 = new Twig_Node_Expression_Constant(1, 1);

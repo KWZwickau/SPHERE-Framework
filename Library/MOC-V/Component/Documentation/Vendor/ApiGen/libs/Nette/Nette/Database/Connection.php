@@ -20,9 +20,9 @@ use PDO;
  *
  * @author     David Grudl
  *
- * @property       IReflection          $databaseReflection
- * @property-read  ISupplementalDriver  $supplementalDriver
- * @property-read  string               $dsn
+ * @property       IReflection         $databaseReflection
+ * @property-read  ISupplementalDriver $supplementalDriver
+ * @property-read  string              $dsn
  */
 class Connection extends PDO
 {
@@ -40,17 +40,17 @@ class Connection extends PDO
     /** @var Nette\Caching\Cache */
     private $cache;
 
-    public function __construct( $dsn, $username = null, $password = null, array $options = null, $driverClass = null )
+    public function __construct($dsn, $username = null, $password = null, array $options = null, $driverClass = null)
     {
 
-        parent::__construct( $this->dsn = $dsn, $username, $password, $options );
-        $this->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
-        $this->setAttribute( PDO::ATTR_STATEMENT_CLASS, array( 'Nette\Database\Statement', array( $this ) ) );
+        parent::__construct($this->dsn = $dsn, $username, $password, $options);
+        $this->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->setAttribute(PDO::ATTR_STATEMENT_CLASS, array('Nette\Database\Statement', array($this)));
 
-        $driverClass = $driverClass ?: 'Nette\Database\Drivers\\'.ucfirst( str_replace( 'sql', 'Sql',
-                $this->getAttribute( PDO::ATTR_DRIVER_NAME ) ) ).'Driver';
-        $this->driver = new $driverClass( $this, (array)$options );
-        $this->preprocessor = new SqlPreprocessor( $this );
+        $driverClass = $driverClass ?: 'Nette\Database\Drivers\\'.ucfirst(str_replace('sql', 'Sql',
+                $this->getAttribute(PDO::ATTR_DRIVER_NAME))).'Driver';
+        $this->driver = new $driverClass($this, (array)$options);
+        $this->preprocessor = new SqlPreprocessor($this);
     }
 
     /**
@@ -62,7 +62,7 @@ class Connection extends PDO
     {
 
         return new Nette\Reflection\ClassType(/*5.2*$this*//**/
-            get_called_class()/**/ );
+            get_called_class()/**/);
     }
 
     public function getDsn()
@@ -83,7 +83,7 @@ class Connection extends PDO
     {
 
         if (!$this->databaseReflection) {
-            $this->setDatabaseReflection( new Reflection\ConventionalReflection );
+            $this->setDatabaseReflection(new Reflection\ConventionalReflection);
         }
         return $this->databaseReflection;
     }
@@ -95,10 +95,10 @@ class Connection extends PDO
      *
      * @return Connection   provides a fluent interface
      */
-    public function setDatabaseReflection( IReflection $databaseReflection )
+    public function setDatabaseReflection(IReflection $databaseReflection)
     {
 
-        $databaseReflection->setConnection( $this );
+        $databaseReflection->setConnection($this);
         $this->databaseReflection = $databaseReflection;
         return $this;
     }
@@ -110,10 +110,10 @@ class Connection extends PDO
      *
      * @return Connection   provides a fluent interface
      */
-    public function setCacheStorage( Nette\Caching\IStorage $storage = null )
+    public function setCacheStorage(Nette\Caching\IStorage $storage = null)
     {
 
-        $this->cache = $storage ? new Nette\Caching\Cache( $storage, 'Nette.Database.'.md5( $this->dsn ) ) : null;
+        $this->cache = $storage ? new Nette\Caching\Cache($storage, 'Nette.Database.'.md5($this->dsn)) : null;
         return $this;
     }
 
@@ -131,11 +131,11 @@ class Connection extends PDO
      *
      * @return Statement
      */
-    public function query( $statement )
+    public function query($statement)
     {
 
         $args = func_get_args();
-        return $this->queryArgs( array_shift( $args ), $args );
+        return $this->queryArgs(array_shift($args), $args);
     }
 
     /**
@@ -144,20 +144,20 @@ class Connection extends PDO
      *
      * @return Statement
      */
-    public function queryArgs( $statement, $params )
+    public function queryArgs($statement, $params)
     {
 
         foreach ($params as $value) {
-            if (is_array( $value ) || is_object( $value )) {
+            if (is_array($value) || is_object($value)) {
                 $need = true;
                 break;
             }
         }
         if (isset( $need ) && $this->preprocessor !== null) {
-            list( $statement, $params ) = $this->preprocessor->process( $statement, $params );
+            list( $statement, $params ) = $this->preprocessor->process($statement, $params);
         }
 
-        return $this->prepare( $statement )->execute( $params );
+        return $this->prepare($statement)->execute($params);
     }
 
 
@@ -172,11 +172,11 @@ class Connection extends PDO
      *
      * @return int     number of affected rows
      */
-    public function exec( $statement )
+    public function exec($statement)
     {
 
         $args = func_get_args();
-        return $this->queryArgs( array_shift( $args ), $args )->rowCount();
+        return $this->queryArgs(array_shift($args), $args)->rowCount();
     }
 
     /**
@@ -187,11 +187,11 @@ class Connection extends PDO
      *
      * @return Row
      */
-    public function fetch( $args )
+    public function fetch($args)
     {
 
         $args = func_get_args();
-        return $this->queryArgs( array_shift( $args ), $args )->fetch();
+        return $this->queryArgs(array_shift($args), $args)->fetch();
     }
 
     /**
@@ -202,11 +202,11 @@ class Connection extends PDO
      *
      * @return mixed
      */
-    public function fetchColumn( $args )
+    public function fetchColumn($args)
     {
 
         $args = func_get_args();
-        return $this->queryArgs( array_shift( $args ), $args )->fetchColumn();
+        return $this->queryArgs(array_shift($args), $args)->fetchColumn();
     }
 
     /**
@@ -217,11 +217,11 @@ class Connection extends PDO
      *
      * @return array
      */
-    public function fetchPairs( $args )
+    public function fetchPairs($args)
     {
 
         $args = func_get_args();
-        return $this->queryArgs( array_shift( $args ), $args )->fetchPairs();
+        return $this->queryArgs(array_shift($args), $args)->fetchPairs();
     }
 
 
@@ -236,11 +236,11 @@ class Connection extends PDO
      *
      * @return array
      */
-    public function fetchAll( $args )
+    public function fetchAll($args)
     {
 
         $args = func_get_args();
-        return $this->queryArgs( array_shift( $args ), $args )->fetchAll();
+        return $this->queryArgs(array_shift($args), $args)->fetchAll();
     }
 
 
@@ -254,44 +254,44 @@ class Connection extends PDO
      *
      * @return Nette\Database\Table\Selection
      */
-    public function table( $table )
+    public function table($table)
     {
 
-        return new Table\Selection( $table, $this );
+        return new Table\Selection($table, $this);
     }
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return ObjectMixin::call( $this, $name, $args );
-    }
-
-
-    public function &__get( $name )
-    {
-
-        return ObjectMixin::get( $this, $name );
+        return ObjectMixin::call($this, $name, $args);
     }
 
 
-    public function __set( $name, $value )
+    public function &__get($name)
     {
 
-        return ObjectMixin::set( $this, $name, $value );
+        return ObjectMixin::get($this, $name);
     }
 
 
-    public function __isset( $name )
+    public function __set($name, $value)
     {
 
-        return ObjectMixin::has( $this, $name );
+        return ObjectMixin::set($this, $name, $value);
     }
 
 
-    public function __unset( $name )
+    public function __isset($name)
     {
 
-        ObjectMixin::remove( $this, $name );
+        return ObjectMixin::has($this, $name);
+    }
+
+
+    public function __unset($name)
+    {
+
+        ObjectMixin::remove($this, $name);
     }
 
 }

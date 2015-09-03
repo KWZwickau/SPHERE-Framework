@@ -19,7 +19,7 @@
  *
  * @return string with compiled code
  */
-function smarty_modifiercompiler_count_words( $params )
+function smarty_modifiercompiler_count_words($params)
 {
 
     if (Smarty::$_MBSTRING) {

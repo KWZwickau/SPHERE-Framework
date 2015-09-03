@@ -11,10 +11,10 @@
 
 namespace Symfony\Component\Console\Tests\Helper;
 
-use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Helper\DialogHelper;
-use Symfony\Component\Console\Helper\HelperSet;
 use Symfony\Component\Console\Helper\FormatterHelper;
+use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
 
 /**
@@ -22,8 +22,10 @@ use Symfony\Component\Console\Output\StreamOutput;
  */
 class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testSelect()
     {
+
         $dialog = new DialogHelper();
 
         $helperSet = new HelperSet(array(new FormatterHelper()));
@@ -32,30 +34,64 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
         $heroes = array('Superman', 'Batman', 'Spiderman');
 
         $dialog->setInputStream($this->getInputStream("\n1\n  1  \nFabien\n1\nFabien\n1\n0,2\n 0 , 2  \n\n\n"));
-        $this->assertEquals('2', $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, '2'));
-        $this->assertEquals('1', $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes));
-        $this->assertEquals('1', $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes));
-        $this->assertEquals('1', $dialog->select($output = $this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, false, 'Input "%s" is not a superhero!', false));
+        $this->assertEquals('2',
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, '2'));
+        $this->assertEquals('1',
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes));
+        $this->assertEquals('1',
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes));
+        $this->assertEquals('1',
+            $dialog->select($output = $this->getOutputStream(), 'What is your favorite superhero?', $heroes, null,
+                false, 'Input "%s" is not a superhero!', false));
 
         rewind($output->getStream());
         $this->assertContains('Input "Fabien" is not a superhero!', stream_get_contents($output->getStream()));
 
         try {
-            $this->assertEquals('1', $dialog->select($output = $this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, 1));
+            $this->assertEquals('1',
+                $dialog->select($output = $this->getOutputStream(), 'What is your favorite superhero?', $heroes, null,
+                    1));
             $this->fail();
         } catch (\InvalidArgumentException $e) {
             $this->assertEquals('Value "Fabien" is invalid', $e->getMessage());
         }
 
-        $this->assertEquals(array('1'), $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, false, 'Input "%s" is not a superhero!', true));
-        $this->assertEquals(array('0', '2'), $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, false, 'Input "%s" is not a superhero!', true));
-        $this->assertEquals(array('0', '2'), $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, false, 'Input "%s" is not a superhero!', true));
-        $this->assertEquals(array('0', '1'), $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, '0,1', false, 'Input "%s" is not a superhero!', true));
-        $this->assertEquals(array('0', '1'), $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, ' 0 , 1 ', false, 'Input "%s" is not a superhero!', true));
+        $this->assertEquals(array('1'),
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, false,
+                'Input "%s" is not a superhero!', true));
+        $this->assertEquals(array('0', '2'),
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, false,
+                'Input "%s" is not a superhero!', true));
+        $this->assertEquals(array('0', '2'),
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, null, false,
+                'Input "%s" is not a superhero!', true));
+        $this->assertEquals(array('0', '1'),
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, '0,1', false,
+                'Input "%s" is not a superhero!', true));
+        $this->assertEquals(array('0', '1'),
+            $dialog->select($this->getOutputStream(), 'What is your favorite superhero?', $heroes, ' 0 , 1 ', false,
+                'Input "%s" is not a superhero!', true));
+    }
+
+    protected function getInputStream($input)
+    {
+
+        $stream = fopen('php://memory', 'r+', false);
+        fwrite($stream, $input);
+        rewind($stream);
+
+        return $stream;
+    }
+
+    protected function getOutputStream()
+    {
+
+        return new StreamOutput(fopen('php://memory', 'r+', false));
     }
 
     public function testAsk()
     {
+
         $dialog = new DialogHelper();
 
         $dialog->setInputStream($this->getInputStream("\n8AM\n"));
@@ -69,6 +105,7 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testAskWithAutocomplete()
     {
+
         if (!$this->hasSttyAvailable()) {
             $this->markTestSkipped('`stty` is required to test autocomplete functionality');
         }
@@ -88,14 +125,30 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
 
         $bundles = array('AcmeDemoBundle', 'AsseticBundle', 'SecurityBundle', 'FooBundle');
 
-        $this->assertEquals('AcmeDemoBundle', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
-        $this->assertEquals('AsseticBundleTest', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
-        $this->assertEquals('FrameworkBundle', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
-        $this->assertEquals('SecurityBundle', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
-        $this->assertEquals('FooBundleTest', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
-        $this->assertEquals('AcmeDemoBundle', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
-        $this->assertEquals('AsseticBundle', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
-        $this->assertEquals('FooBundle', $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('AcmeDemoBundle',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('AsseticBundleTest',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('FrameworkBundle',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('SecurityBundle',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('FooBundleTest',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('AcmeDemoBundle',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('AsseticBundle',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+        $this->assertEquals('FooBundle',
+            $dialog->ask($this->getOutputStream(), 'Please select a bundle', 'FrameworkBundle', $bundles));
+    }
+
+    private function hasSttyAvailable()
+    {
+
+        exec('stty 2>&1', $output, $exitcode);
+
+        return $exitcode === 0;
     }
 
     /**
@@ -103,6 +156,7 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
      */
     public function testAskHiddenResponse()
     {
+
         if ('\\' === DIRECTORY_SEPARATOR) {
             $this->markTestSkipped('This test is not supported on Windows');
         }
@@ -116,6 +170,7 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testAskConfirmation()
     {
+
         $dialog = new DialogHelper();
 
         $dialog->setInputStream($this->getInputStream("\n\n"));
@@ -133,6 +188,7 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testAskAndValidate()
     {
+
         $dialog = new DialogHelper();
         $helperSet = new HelperSet(array(new FormatterHelper()));
         $dialog->setHelperSet($helperSet);
@@ -140,6 +196,7 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
         $question = 'What color was the white horse of Henry IV?';
         $error = 'This is not a color!';
         $validator = function ($color) use ($error) {
+
             if (!in_array($color, array('white', 'black'))) {
                 throw new \InvalidArgumentException($error);
             }
@@ -148,12 +205,15 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
         };
 
         $dialog->setInputStream($this->getInputStream("\nblack\n"));
-        $this->assertEquals('white', $dialog->askAndValidate($this->getOutputStream(), $question, $validator, 2, 'white'));
-        $this->assertEquals('black', $dialog->askAndValidate($this->getOutputStream(), $question, $validator, 2, 'white'));
+        $this->assertEquals('white',
+            $dialog->askAndValidate($this->getOutputStream(), $question, $validator, 2, 'white'));
+        $this->assertEquals('black',
+            $dialog->askAndValidate($this->getOutputStream(), $question, $validator, 2, 'white'));
 
         $dialog->setInputStream($this->getInputStream("green\nyellow\norange\n"));
         try {
-            $this->assertEquals('white', $dialog->askAndValidate($this->getOutputStream(), $question, $validator, 2, 'white'));
+            $this->assertEquals('white',
+                $dialog->askAndValidate($this->getOutputStream(), $question, $validator, 2, 'white'));
             $this->fail();
         } catch (\InvalidArgumentException $e) {
             $this->assertEquals($error, $e->getMessage());
@@ -162,6 +222,7 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testNoInteraction()
     {
+
         $dialog = new DialogHelper();
 
         $input = new ArrayInput(array());
@@ -170,26 +231,5 @@ class LegacyDialogHelperTest extends \PHPUnit_Framework_TestCase
         $dialog->setInput($input);
 
         $this->assertEquals('not yet', $dialog->ask($this->getOutputStream(), 'Do you have a job?', 'not yet'));
-    }
-
-    protected function getInputStream($input)
-    {
-        $stream = fopen('php://memory', 'r+', false);
-        fwrite($stream, $input);
-        rewind($stream);
-
-        return $stream;
-    }
-
-    protected function getOutputStream()
-    {
-        return new StreamOutput(fopen('php://memory', 'r+', false));
-    }
-
-    private function hasSttyAvailable()
-    {
-        exec('stty 2>&1', $output, $exitcode);
-
-        return $exitcode === 0;
     }
 }

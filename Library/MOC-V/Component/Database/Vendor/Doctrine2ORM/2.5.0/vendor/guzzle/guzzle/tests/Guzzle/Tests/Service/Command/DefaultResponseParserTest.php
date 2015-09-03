@@ -4,7 +4,6 @@ namespace Guzzle\Tests\Service\Command;
 
 use Guzzle\Http\Message\Response;
 use Guzzle\Service\Client;
-use Guzzle\Service\Command\DefaultResponseParser;
 use Guzzle\Service\Command\OperationCommand;
 use Guzzle\Service\Description\Operation;
 
@@ -13,8 +12,10 @@ use Guzzle\Service\Description\Operation;
  */
 class DefaultResponseParserTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testParsesXmlResponses()
     {
+
         $op = new OperationCommand(array(), new Operation());
         $op->setClient(new Client());
         $request = $op->prepare();
@@ -26,6 +27,7 @@ class DefaultResponseParserTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testParsesJsonResponses()
     {
+
         $op = new OperationCommand(array(), new Operation());
         $op->setClient(new Client());
         $request = $op->prepare();
@@ -40,6 +42,7 @@ class DefaultResponseParserTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenParsingJsonFails()
     {
+
         $op = new OperationCommand(array(), new Operation());
         $op->setClient(new Client());
         $request = $op->prepare();
@@ -49,6 +52,7 @@ class DefaultResponseParserTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsContentTypeWhenExpectsIsSetOnCommand()
     {
+
         $op = new OperationCommand(array(), new Operation());
         $op['command.expects'] = 'application/json';
         $op->setClient(new Client());

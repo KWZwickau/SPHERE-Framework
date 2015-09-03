@@ -9,8 +9,10 @@ use Guzzle\Plugin\Backoff\LinearBackoffStrategy;
  */
 class LinearBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testRetriesWithLinearDelay()
     {
+
         $strategy = new LinearBackoffStrategy(5);
         $this->assertFalse($strategy->makesDecision());
         $request = $this->getMock('Guzzle\Http\Message\Request', array(), array(), '', false);

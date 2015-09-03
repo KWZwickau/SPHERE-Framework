@@ -26,6 +26,7 @@ namespace Doctrine\Common\Collections\Expr;
  */
 interface Expression
 {
+
     /**
      * @param ExpressionVisitor $visitor
      *

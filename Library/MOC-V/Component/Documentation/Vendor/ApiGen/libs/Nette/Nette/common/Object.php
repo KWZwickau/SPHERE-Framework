@@ -67,7 +67,7 @@ abstract class Object
     {
 
         return new Reflection\ClassType(/*5.2*$this*//**/
-            get_called_class()/**/ );
+            get_called_class()/**/);
     }
 
     /**
@@ -79,10 +79,10 @@ abstract class Object
      * @return mixed
      * @throws MemberAccessException
      */
-    public static function __callStatic( $name, $args )
+    public static function __callStatic($name, $args)
     {
 
-        return ObjectMixin::callStatic( get_called_class(), $name, $args );
+        return ObjectMixin::callStatic(get_called_class(), $name, $args);
     }
 
     /**
@@ -93,19 +93,19 @@ abstract class Object
      *
      * @return mixed
      */
-    public static function extensionMethod( $name, $callback = null )
+    public static function extensionMethod($name, $callback = null)
     {
 
-        if (strpos( $name, '::' ) === false) {
+        if (strpos($name, '::') === false) {
             $class = get_called_class();
         } else {
-            list( $class, $name ) = explode( '::', $name );
+            list( $class, $name ) = explode('::', $name);
         }
-        $class = new Reflection\ClassType( $class );
+        $class = new Reflection\ClassType($class);
         if ($callback === null) {
-            return $class->getExtensionMethod( $name );
+            return $class->getExtensionMethod($name);
         } else {
-            $class->setExtensionMethod( $name, $callback );
+            $class->setExtensionMethod($name, $callback);
         }
     }
 
@@ -118,10 +118,10 @@ abstract class Object
      * @return mixed
      * @throws MemberAccessException
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return ObjectMixin::call( $this, $name, $args );
+        return ObjectMixin::call($this, $name, $args);
     }
 
     /**
@@ -132,10 +132,10 @@ abstract class Object
      * @return mixed   property value
      * @throws MemberAccessException if the property is not defined.
      */
-    public function &__get( $name )
+    public function &__get($name)
     {
 
-        return ObjectMixin::get( $this, $name );
+        return ObjectMixin::get($this, $name);
     }
 
 
@@ -148,10 +148,10 @@ abstract class Object
      * @return void
      * @throws MemberAccessException if the property is not defined or is read-only
      */
-    public function __set( $name, $value )
+    public function __set($name, $value)
     {
 
-        return ObjectMixin::set( $this, $name, $value );
+        return ObjectMixin::set($this, $name, $value);
     }
 
 
@@ -162,10 +162,10 @@ abstract class Object
      *
      * @return bool
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        return ObjectMixin::has( $this, $name );
+        return ObjectMixin::has($this, $name);
     }
 
 
@@ -177,10 +177,10 @@ abstract class Object
      * @return void
      * @throws MemberAccessException
      */
-    public function __unset( $name )
+    public function __unset($name)
     {
 
-        ObjectMixin::remove( $this, $name );
+        ObjectMixin::remove($this, $name);
     }
 
 }

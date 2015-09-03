@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class RangeVariableDeclaration extends Node
 {
+
     /**
      * @var string
      */
@@ -52,9 +53,10 @@ class RangeVariableDeclaration extends Node
      */
     public function __construct($abstractSchemaName, $aliasIdentificationVar, $isRoot = true)
     {
-        $this->abstractSchemaName          = $abstractSchemaName;
+
+        $this->abstractSchemaName = $abstractSchemaName;
         $this->aliasIdentificationVariable = $aliasIdentificationVar;
-        $this->isRoot                      = $isRoot;
+        $this->isRoot = $isRoot;
     }
 
     /**
@@ -62,6 +64,7 @@ class RangeVariableDeclaration extends Node
      */
     public function dispatch($walker)
     {
+
         return $walker->walkRangeVariableDeclaration($this);
     }
 }

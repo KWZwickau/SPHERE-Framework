@@ -43,7 +43,7 @@ interface PHPExcel_Reader_IReader
      *
      * @return    boolean
      */
-    public function canRead( $pFilename );
+    public function canRead($pFilename);
 
     /**
      * Loads PHPExcel from file
@@ -52,5 +52,5 @@ interface PHPExcel_Reader_IReader
      *
      * @throws    PHPExcel_Reader_Exception
      */
-    public function load( $pFilename );
+    public function load($pFilename);
 }

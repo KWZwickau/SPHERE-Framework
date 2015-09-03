@@ -77,7 +77,7 @@ interface IReflectionProperty extends IReflection
      *
      * @return mixed
      */
-    public function getValue( $object );
+    public function getValue($object);
 
     /**
      * Returns property modifiers.
@@ -126,7 +126,7 @@ interface IReflectionProperty extends IReflection
      *
      * @param boolean $accessible If the property should be accessible.
      */
-    public function setAccessible( $accessible );
+    public function setAccessible($accessible);
 
     /**
      * Returns if the property is set accessible.
@@ -141,7 +141,7 @@ interface IReflectionProperty extends IReflection
      * @param object $object Class instance
      * @param mixed  $value  Poperty value
      */
-    public function setValue( $object, $value );
+    public function setValue($object, $value);
 
     /**
      * Returns the string representation of the reflection object.

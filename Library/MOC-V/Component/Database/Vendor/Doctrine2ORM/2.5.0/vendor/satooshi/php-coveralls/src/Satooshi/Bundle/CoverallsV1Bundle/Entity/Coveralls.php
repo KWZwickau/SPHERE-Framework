@@ -10,6 +10,7 @@ use Satooshi\Bundle\CoverallsBundle\Entity\ArrayConvertable;
  */
 abstract class Coveralls implements ArrayConvertable
 {
+
     /**
      * String expression (convert to json).
      *
@@ -17,6 +18,7 @@ abstract class Coveralls implements ArrayConvertable
      */
     public function __toString()
     {
+
         return json_encode($this->toArray());
     }
 }

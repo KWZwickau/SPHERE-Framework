@@ -2,16 +2,18 @@
 
 namespace Guzzle\Tests\Inflection;
 
-use Guzzle\Inflection\MemoizingInflector;
 use Guzzle\Inflection\Inflector;
+use Guzzle\Inflection\MemoizingInflector;
 
 /**
  * @covers Guzzle\Inflection\MemoizingInflector
  */
 class MemoizingInflectorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testUsesCache()
     {
+
         $mock = $this->getMock('Guzzle\Inflection\Inflector', array('snake', 'camel'));
         $mock->expects($this->once())->method('snake')->will($this->returnValue('foo_bar'));
         $mock->expects($this->once())->method('camel')->will($this->returnValue('FooBar'));
@@ -25,10 +27,11 @@ class MemoizingInflectorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testProtectsAgainstCacheOverflow()
     {
+
         $inflector = new MemoizingInflector(new Inflector(), 10);
         for ($i = 1; $i < 11; $i++) {
-            $inflector->camel('foo_' . $i);
-            $inflector->snake('Foo' . $i);
+            $inflector->camel('foo_'.$i);
+            $inflector->snake('Foo'.$i);
         }
 
         $cache = $this->readAttribute($inflector, 'cache');

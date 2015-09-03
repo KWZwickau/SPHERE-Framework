@@ -25,8 +25,8 @@ class TexyConfigurator
 {
 
     public static $safeTags = array(
-        'a'       => array( 'href', 'title' ),
-        'acronym' => array( 'title' ),
+        'a'       => array('href', 'title'),
+        'acronym' => array('title'),
         'b'       => array(),
         'br'      => array(),
         'cite'    => array(),
@@ -47,7 +47,7 @@ class TexyConfigurator
     final public function __construct()
     {
 
-        throw new LogicException( "Cannot instantiate static class ".get_class( $this ) );
+        throw new LogicException("Cannot instantiate static class ".get_class($this));
     }
 
 
@@ -58,7 +58,7 @@ class TexyConfigurator
      *
      * @return void
      */
-    public static function safeMode( Texy $texy )
+    public static function safeMode(Texy $texy)
     {
 
         $texy->allowedClasses = Texy::NONE;                 // no class or ID are allowed
@@ -80,7 +80,7 @@ class TexyConfigurator
      *
      * @return void
      */
-    public static function disableLinks( Texy $texy )
+    public static function disableLinks(Texy $texy)
     {
 
         $texy->allowed['link/reference'] = false;
@@ -89,7 +89,7 @@ class TexyConfigurator
         $texy->allowed['link/definition'] = false;
         $texy->phraseModule->linksAllowed = false;
 
-        if (is_array( $texy->allowedTags )) {
+        if (is_array($texy->allowedTags)) {
             unset( $texy->allowedTags['a'] );
         } // TODO: else...
     }
@@ -102,14 +102,14 @@ class TexyConfigurator
      *
      * @return void
      */
-    public static function disableImages( Texy $texy )
+    public static function disableImages(Texy $texy)
     {
 
         $texy->allowed['image'] = false;
         $texy->allowed['figure'] = false;
         $texy->allowed['image/definition'] = false;
 
-        if (is_array( $texy->allowedTags )) {
+        if (is_array($texy->allowedTags)) {
             unset( $texy->allowedTags['img'], $texy->allowedTags['object'], $texy->allowedTags['embed'], $texy->allowedTags['applet'] );
         } // TODO: else...
     }

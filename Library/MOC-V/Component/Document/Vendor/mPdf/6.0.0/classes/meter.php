@@ -9,7 +9,7 @@ class meter
 
     }
 
-    function makeSVG( $tag, $type, $value, $max, $min, $optimum, $low, $high )
+    function makeSVG($tag, $type, $value, $max, $min, $optimum, $low, $high)
     {
 
         $svg = '';

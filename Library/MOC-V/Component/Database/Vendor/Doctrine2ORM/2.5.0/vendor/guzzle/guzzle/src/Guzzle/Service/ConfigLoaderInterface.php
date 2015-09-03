@@ -10,6 +10,7 @@ namespace Guzzle\Service;
  */
 interface ConfigLoaderInterface
 {
+
     /**
      * Loads configuration data and returns an array of the loaded result
      *

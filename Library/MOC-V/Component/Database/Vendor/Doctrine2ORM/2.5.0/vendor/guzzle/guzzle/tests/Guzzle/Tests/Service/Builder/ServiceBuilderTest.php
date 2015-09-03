@@ -11,18 +11,19 @@ use Guzzle\Service\Client;
  */
 class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $arrayData = array(
-        'michael.mock' => array(
-            'class' => 'Guzzle\Tests\Service\Mock\MockClient',
+        'michael.mock'  => array(
+            'class'  => 'Guzzle\Tests\Service\Mock\MockClient',
             'params' => array(
                 'username' => 'michael',
                 'password' => 'testing123',
                 'subdomain' => 'michael',
             ),
         ),
-        'billy.mock' => array(
-            'alias' => 'Hello!',
-            'class' => 'Guzzle\Tests\Service\Mock\MockClient',
+        'billy.mock'    => array(
+            'alias'  => 'Hello!',
+            'class'  => 'Guzzle\Tests\Service\Mock\MockClient',
             'params' => array(
                 'username' => 'billy',
                 'password' => 'passw0rd',
@@ -42,6 +43,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsSerialization()
     {
+
         $builder = ServiceBuilder::factory($this->arrayData);
         $cached = unserialize(serialize($builder));
         $this->assertEquals($cached, $builder);
@@ -49,6 +51,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDelegatesFactoryMethodToAbstractFactory()
     {
+
         $builder = ServiceBuilder::factory($this->arrayData);
         $c = $builder->get('michael.mock');
         $this->assertInstanceOf('Guzzle\Tests\Service\Mock\MockClient', $c);
@@ -60,11 +63,13 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenGettingInvalidClient()
     {
+
         ServiceBuilder::factory($this->arrayData)->get('foobar');
     }
 
     public function testStoresClientCopy()
     {
+
         $builder = ServiceBuilder::factory($this->arrayData);
         $client = $builder->get('michael.mock');
         $this->assertInstanceOf('Guzzle\Tests\Service\Mock\MockClient', $client);
@@ -91,14 +96,15 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testBuildersPassOptionsThroughToClients()
     {
+
         $s = new ServiceBuilder(array(
             'michael.mock' => array(
-                'class' => 'Guzzle\Tests\Service\Mock\MockClient',
+                'class'  => 'Guzzle\Tests\Service\Mock\MockClient',
                 'params' => array(
-                    'base_url' => 'http://www.test.com/',
+                    'base_url'  => 'http://www.test.com/',
                     'subdomain' => 'michael',
-                    'password' => 'test',
-                    'username' => 'michael',
+                    'password'  => 'test',
+                    'username'  => 'michael',
                     'curl.curlopt_proxyport' => 8080
                 )
             )
@@ -110,14 +116,15 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsesTheDefaultBuilderWhenNoBuilderIsSpecified()
     {
+
         $s = new ServiceBuilder(array(
             'michael.mock' => array(
-                'class' => 'Guzzle\Tests\Service\Mock\MockClient',
+                'class'  => 'Guzzle\Tests\Service\Mock\MockClient',
                 'params' => array(
-                    'base_url' => 'http://www.test.com/',
+                    'base_url'  => 'http://www.test.com/',
                     'subdomain' => 'michael',
-                    'password' => 'test',
-                    'username' => 'michael',
+                    'password'  => 'test',
+                    'username'  => 'michael',
                     'curl.curlopt_proxyport' => 8080
                 )
             )
@@ -129,12 +136,13 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsedAsArray()
     {
+
         $b = ServiceBuilder::factory($this->arrayData);
         $this->assertTrue($b->offsetExists('michael.mock'));
         $this->assertFalse($b->offsetExists('not_there'));
         $this->assertInstanceOf('Guzzle\Service\Client', $b['michael.mock']);
 
-        unset($b['michael.mock']);
+        unset( $b['michael.mock'] );
         $this->assertFalse($b->offsetExists('michael.mock'));
 
         $b['michael.mock'] = new Client('http://www.test.com/');
@@ -143,7 +151,8 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testFactoryCanCreateFromJson()
     {
-        $tmp = sys_get_temp_dir() . '/test.js';
+
+        $tmp = sys_get_temp_dir().'/test.js';
         file_put_contents($tmp, json_encode($this->arrayData));
         $b = ServiceBuilder::factory($tmp);
         unlink($tmp);
@@ -154,6 +163,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testFactoryCanCreateFromArray()
     {
+
         $b = ServiceBuilder::factory($this->arrayData);
         $s = $b->get('billy.testing');
         $this->assertEquals('test.billy', $s->getConfig('subdomain'));
@@ -162,6 +172,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testFactoryDoesNotRequireParams()
     {
+
         $b = ServiceBuilder::factory($this->arrayData);
         $s = $b->get('missing_params');
         $this->assertEquals('billy', $s->getConfig('username'));
@@ -169,6 +180,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testBuilderAllowsReferencesBetweenClients()
     {
+
         $builder = ServiceBuilder::factory(array(
             'a' => array(
                 'class' => 'Guzzle\Tests\Service\Mock\MockClient',
@@ -197,6 +209,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEmitsEventsWhenClientsAreCreated()
     {
+
         // Ensure that the client signals that it emits an event
         $this->assertEquals(array('service_builder.create_client'), ServiceBuilder::getAllEvents());
 
@@ -214,7 +227,8 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
         // Add an event listener to pick up client creation events
         $emits = 0;
-        $builder->getEventDispatcher()->addListener('service_builder.create_client', function($event) use (&$emits) {
+        $builder->getEventDispatcher()->addListener('service_builder.create_client', function ($event) use (&$emits) {
+
             $emits++;
         });
 
@@ -228,6 +242,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanAddGlobalParametersToServicesOnLoad()
     {
+
         $builder = ServiceBuilder::factory($this->arrayData, array(
             'username'  => 'fred',
             'new_value' => 'test'
@@ -243,6 +258,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsGlobalPlugins()
     {
+
         $b = new ServiceBuilder($this->arrayData);
         $b->addGlobalPlugin(new HistoryPlugin());
         $s = $b->get('michael.mock');
@@ -251,6 +267,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanGetData()
     {
+
         $b = new ServiceBuilder($this->arrayData);
         $this->assertEquals($this->arrayData['michael.mock'], $b->getData('michael.mock'));
         $this->assertNull($b->getData('ewofweoweofe'));
@@ -258,12 +275,14 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanGetByAlias()
     {
+
         $b = new ServiceBuilder($this->arrayData);
         $this->assertSame($b->get('billy.mock'), $b->get('Hello!'));
     }
 
     public function testCanOverwriteParametersForThrowawayClients()
     {
+
         $b = new ServiceBuilder($this->arrayData);
 
         $c1 = $b->get('michael.mock');
@@ -275,6 +294,7 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testGettingAThrowawayClientWithParametersDoesNotAffectGettingOtherClients()
     {
+
         $b = new ServiceBuilder($this->arrayData);
 
         $c1 = $b->get('michael.mock', array('username' => 'jeremy'));
@@ -286,30 +306,32 @@ class ServiceBuilderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanUseArbitraryData()
     {
+
         $b = new ServiceBuilder();
         $b['a'] = 'foo';
-        $this->assertTrue(isset($b['a']));
+        $this->assertTrue(isset( $b['a'] ));
         $this->assertEquals('foo', $b['a']);
-        unset($b['a']);
-        $this->assertFalse(isset($b['a']));
+        unset( $b['a'] );
+        $this->assertFalse(isset( $b['a'] ));
     }
 
     public function testCanRegisterServiceData()
     {
+
         $b = new ServiceBuilder();
         $b['a'] = array(
-            'class' => 'Guzzle\Tests\Service\Mock\MockClient',
+            'class'  => 'Guzzle\Tests\Service\Mock\MockClient',
             'params' => array(
                 'username' => 'billy',
                 'password' => 'passw0rd',
                 'subdomain' => 'billy',
             )
         );
-        $this->assertTrue(isset($b['a']));
+        $this->assertTrue(isset( $b['a'] ));
         $this->assertInstanceOf('Guzzle\Tests\Service\Mock\MockClient', $b['a']);
         $client = $b['a'];
-        unset($b['a']);
-        $this->assertFalse(isset($b['a']));
+        unset( $b['a'] );
+        $this->assertFalse(isset( $b['a'] ));
         // Ensure that instantiated clients can be registered
         $b['mock'] = $client;
         $this->assertSame($client, $b['mock']);

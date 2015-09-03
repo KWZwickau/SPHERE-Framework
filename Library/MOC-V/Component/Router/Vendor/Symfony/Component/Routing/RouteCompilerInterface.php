@@ -18,6 +18,7 @@ namespace Symfony\Component\Routing;
  */
 interface RouteCompilerInterface
 {
+
     /**
      * Compiles the current route instance.
      *

@@ -16,11 +16,13 @@ use Symfony\Component\Config\Definition\Builder\VariableNodeDefinition as BaseVa
 
 class NodeBuilderTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @expectedException \RuntimeException
      */
     public function testThrowsAnExceptionWhenTryingToCreateANonRegisteredNodeType()
     {
+
         $builder = new BaseNodeBuilder();
         $builder->node('', 'foobar');
     }
@@ -30,6 +32,7 @@ class NodeBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testThrowsAnExceptionWhenTheNodeClassIsNotFound()
     {
+
         $builder = new BaseNodeBuilder();
         $builder
             ->setNodeClass('noclasstype', '\\foo\\bar\\noclass')
@@ -38,6 +41,7 @@ class NodeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testAddingANewNodeType()
     {
+
         $class = __NAMESPACE__.'\\SomeNodeDefinition';
 
         $builder = new BaseNodeBuilder();
@@ -50,6 +54,7 @@ class NodeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testOverridingAnExistingNodeType()
     {
+
         $class = __NAMESPACE__.'\\SomeNodeDefinition';
 
         $builder = new BaseNodeBuilder();
@@ -62,6 +67,7 @@ class NodeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testNodeTypesAreNotCaseSensitive()
     {
+
         $builder = new BaseNodeBuilder();
 
         $node1 = $builder->node('', 'VaRiAbLe');
@@ -79,6 +85,7 @@ class NodeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testNumericNodeCreation()
     {
+
         $builder = new BaseNodeBuilder();
 
         $node = $builder->integerNode('foo')->min(3)->max(5);
@@ -91,4 +98,5 @@ class NodeBuilderTest extends \PHPUnit_Framework_TestCase
 
 class SomeNodeDefinition extends BaseVariableNodeDefinition
 {
+
 }

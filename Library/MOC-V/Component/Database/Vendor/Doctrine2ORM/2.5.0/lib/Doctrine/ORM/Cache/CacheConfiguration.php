@@ -30,6 +30,7 @@ use Doctrine\ORM\Cache\Logging\CacheLogger;
  */
 class CacheConfiguration
 {
+
     /**
      * @var \Doctrine\ORM\Cache\CacheFactory|null
      */
@@ -55,6 +56,7 @@ class CacheConfiguration
      */
     public function getCacheFactory()
     {
+
         return $this->cacheFactory;
     }
 
@@ -65,6 +67,7 @@ class CacheConfiguration
      */
     public function setCacheFactory(CacheFactory $factory)
     {
+
         $this->cacheFactory = $factory;
     }
 
@@ -73,7 +76,8 @@ class CacheConfiguration
      */
     public function getCacheLogger()
     {
-         return $this->cacheLogger;
+
+        return $this->cacheLogger;
     }
 
     /**
@@ -81,6 +85,7 @@ class CacheConfiguration
      */
     public function setCacheLogger(CacheLogger $logger)
     {
+
         $this->cacheLogger = $logger;
     }
 
@@ -89,6 +94,7 @@ class CacheConfiguration
      */
     public function getRegionsConfiguration()
     {
+
         if ($this->regionsConfig === null) {
             $this->regionsConfig = new RegionsConfiguration();
         }
@@ -101,6 +107,7 @@ class CacheConfiguration
      */
     public function setRegionsConfiguration(RegionsConfiguration $regionsConfig)
     {
+
         $this->regionsConfig = $regionsConfig;
     }
 
@@ -109,11 +116,12 @@ class CacheConfiguration
      */
     public function getQueryValidator()
     {
+
         if ($this->queryValidator === null) {
             $this->queryValidator = new TimestampQueryCacheValidator();
         }
 
-         return $this->queryValidator;
+        return $this->queryValidator;
     }
 
     /**
@@ -121,6 +129,7 @@ class CacheConfiguration
      */
     public function setQueryValidator(QueryCacheValidator $validator)
     {
+
         $this->queryValidator = $validator;
     }
 }

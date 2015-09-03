@@ -16,117 +16,118 @@ namespace Symfony\Component\Finder\Adapter;
  */
 interface AdapterInterface
 {
+
     /**
      * @param bool $followLinks
      *
      * @return AdapterInterface Current instance
      */
-    public function setFollowLinks( $followLinks );
+    public function setFollowLinks($followLinks);
 
     /**
      * @param int $mode
      *
      * @return AdapterInterface Current instance
      */
-    public function setMode( $mode );
+    public function setMode($mode);
 
     /**
      * @param array $exclude
      *
      * @return AdapterInterface Current instance
      */
-    public function setExclude( array $exclude );
+    public function setExclude(array $exclude);
 
     /**
      * @param array $depths
      *
      * @return AdapterInterface Current instance
      */
-    public function setDepths( array $depths );
+    public function setDepths(array $depths);
 
     /**
      * @param array $names
      *
      * @return AdapterInterface Current instance
      */
-    public function setNames( array $names );
+    public function setNames(array $names);
 
     /**
      * @param array $notNames
      *
      * @return AdapterInterface Current instance
      */
-    public function setNotNames( array $notNames );
+    public function setNotNames(array $notNames);
 
     /**
      * @param array $contains
      *
      * @return AdapterInterface Current instance
      */
-    public function setContains( array $contains );
+    public function setContains(array $contains);
 
     /**
      * @param array $notContains
      *
      * @return AdapterInterface Current instance
      */
-    public function setNotContains( array $notContains );
+    public function setNotContains(array $notContains);
 
     /**
      * @param array $sizes
      *
      * @return AdapterInterface Current instance
      */
-    public function setSizes( array $sizes );
+    public function setSizes(array $sizes);
 
     /**
      * @param array $dates
      *
      * @return AdapterInterface Current instance
      */
-    public function setDates( array $dates );
+    public function setDates(array $dates);
 
     /**
      * @param array $filters
      *
      * @return AdapterInterface Current instance
      */
-    public function setFilters( array $filters );
+    public function setFilters(array $filters);
 
     /**
      * @param \Closure|int $sort
      *
      * @return AdapterInterface Current instance
      */
-    public function setSort( $sort );
+    public function setSort($sort);
 
     /**
      * @param array $paths
      *
      * @return AdapterInterface Current instance
      */
-    public function setPath( array $paths );
+    public function setPath(array $paths);
 
     /**
      * @param array $notPaths
      *
      * @return AdapterInterface Current instance
      */
-    public function setNotPath( array $notPaths );
+    public function setNotPath(array $notPaths);
 
     /**
      * @param bool $ignore
      *
      * @return AdapterInterface Current instance
      */
-    public function ignoreUnreadableDirs( $ignore = true );
+    public function ignoreUnreadableDirs($ignore = true);
 
     /**
      * @param string $dir
      *
      * @return \Iterator Result iterator
      */
-    public function searchInDirectory( $dir );
+    public function searchInDirectory($dir);
 
     /**
      * Tests adapter support for current platform.

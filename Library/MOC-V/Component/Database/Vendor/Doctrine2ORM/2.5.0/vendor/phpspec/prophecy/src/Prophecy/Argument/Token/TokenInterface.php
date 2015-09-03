@@ -18,6 +18,7 @@ namespace Prophecy\Argument\Token;
  */
 interface TokenInterface
 {
+
     /**
      * Calculates token match score for provided argument.
      *

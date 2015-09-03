@@ -6,6 +6,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 //Ensure has proper line ending before outputing a text block like with SymfonyStyle::listing() or SymfonyStyle::text()
 return function (InputInterface $input, OutputInterface $output) {
+
     $output = new SymfonyStyle($input, $output);
 
     $output->writeln('Lorem ipsum dolor sit amet');

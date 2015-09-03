@@ -14,6 +14,7 @@ use Guzzle\Batch\Exception\BatchTransferException;
  */
 class Batch implements BatchInterface
 {
+
     /** @var \SplQueue Queue of items in the queue */
     protected $queue;
 
@@ -32,6 +33,7 @@ class Batch implements BatchInterface
      */
     public function __construct(BatchTransferInterface $transferStrategy, BatchDivisorInterface $divisionStrategy)
     {
+
         $this->transferStrategy = $transferStrategy;
         $this->divisionStrategy = $divisionStrategy;
         $this->queue = new \SplQueue();
@@ -41,6 +43,7 @@ class Batch implements BatchInterface
 
     public function add($item)
     {
+
         $this->queue->enqueue($item);
 
         return $this;
@@ -48,6 +51,7 @@ class Batch implements BatchInterface
 
     public function flush()
     {
+
         $this->createBatches();
 
         $items = array();
@@ -59,19 +63,15 @@ class Batch implements BatchInterface
                     $this->transferStrategy->transfer($batch);
                     $items = array_merge($items, $batch);
                 } catch (\Exception $e) {
-                    throw new BatchTransferException($batch, $items, $e, $this->transferStrategy, $this->divisionStrategy);
+                    throw new BatchTransferException($batch, $items, $e, $this->transferStrategy,
+                        $this->divisionStrategy);
                 }
             }
             // Keep the divided batch down to a minimum in case of a later exception
-            unset($this->dividedBatches[$batchIndex]);
+            unset( $this->dividedBatches[$batchIndex] );
         }
 
         return $items;
-    }
-
-    public function isEmpty()
-    {
-        return count($this->queue) == 0 && count($this->dividedBatches) == 0;
     }
 
     /**
@@ -79,6 +79,7 @@ class Batch implements BatchInterface
      */
     protected function createBatches()
     {
+
         if (count($this->queue)) {
             if ($batches = $this->divisionStrategy->createBatches($this->queue)) {
                 // Convert arrays into iterators
@@ -88,5 +89,11 @@ class Batch implements BatchInterface
                 $this->dividedBatches[] = $batches;
             }
         }
+    }
+
+    public function isEmpty()
+    {
+
+        return count($this->queue) == 0 && count($this->dividedBatches) == 0;
     }
 }

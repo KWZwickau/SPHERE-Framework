@@ -22,14 +22,14 @@ class List_Bullet_Frame_Decorator extends Frame_Decorator
     const BULLET_DESCENT = 0.3;  //descent of font below baseline. Todo: Guessed for now.
     const BULLET_SIZE = 0.35;   // bullet diameter. For now 0.5 of font_size without descent.
 
-    static $BULLET_TYPES = array( "disc", "circle", "square" );
+    static $BULLET_TYPES = array("disc", "circle", "square");
 
     //........................................................................
 
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
-        parent::__construct( $frame, $dompdf );
+        parent::__construct($frame, $dompdf);
     }
 
     function get_margin_width()

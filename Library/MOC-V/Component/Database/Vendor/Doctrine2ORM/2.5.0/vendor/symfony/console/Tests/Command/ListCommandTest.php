@@ -11,30 +11,36 @@
 
 namespace Symfony\Component\Console\Tests\Command;
 
-use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Tester\CommandTester;
 
 class ListCommandTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testExecuteListsCommands()
     {
+
         $application = new Application();
         $commandTester = new CommandTester($command = $application->get('list'));
         $commandTester->execute(array('command' => $command->getName()), array('decorated' => false));
 
-        $this->assertRegExp('/help\s{2,}Displays help for a command/', $commandTester->getDisplay(), '->execute() returns a list of available commands');
+        $this->assertRegExp('/help\s{2,}Displays help for a command/', $commandTester->getDisplay(),
+            '->execute() returns a list of available commands');
     }
 
     public function testExecuteListsCommandsWithXmlOption()
     {
+
         $application = new Application();
         $commandTester = new CommandTester($command = $application->get('list'));
         $commandTester->execute(array('command' => $command->getName(), '--format' => 'xml'));
-        $this->assertRegExp('/<command id="list" name="list">/', $commandTester->getDisplay(), '->execute() returns a list of available commands in XML if --xml is passed');
+        $this->assertRegExp('/<command id="list" name="list">/', $commandTester->getDisplay(),
+            '->execute() returns a list of available commands in XML if --xml is passed');
     }
 
     public function testExecuteListsCommandsWithRawOption()
     {
+
         $application = new Application();
         $commandTester = new CommandTester($command = $application->get('list'));
         $commandTester->execute(array('command' => $command->getName(), '--raw' => true));
@@ -49,6 +55,7 @@ EOF;
 
     public function testExecuteListsCommandsWithNamespaceArgument()
     {
+
         require_once realpath(__DIR__.'/../Fixtures/FooCommand.php');
         $application = new Application();
         $application->add(new \FooCommand());

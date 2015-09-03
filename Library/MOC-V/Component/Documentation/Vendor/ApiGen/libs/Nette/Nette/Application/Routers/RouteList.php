@@ -29,7 +29,7 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
     private $module;
 
 
-    public function __construct( $module = null )
+    public function __construct($module = null)
     {
 
         $this->module = $module ? $module.':' : '';
@@ -43,13 +43,13 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
      *
      * @return Nette\Application\Request|NULL
      */
-    public function match( Nette\Http\IRequest $httpRequest )
+    public function match(Nette\Http\IRequest $httpRequest)
     {
 
         foreach ($this as $route) {
-            $appRequest = $route->match( $httpRequest );
+            $appRequest = $route->match($httpRequest);
             if ($appRequest !== null) {
-                $appRequest->setPresenterName( $this->module.$appRequest->getPresenterName() );
+                $appRequest->setPresenterName($this->module.$appRequest->getPresenterName());
                 return $appRequest;
             }
         }
@@ -65,7 +65,7 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
      *
      * @return string|NULL
      */
-    public function constructUrl( Nette\Application\Request $appRequest, Nette\Http\Url $refUrl )
+    public function constructUrl(Nette\Application\Request $appRequest, Nette\Http\Url $refUrl)
     {
 
         if ($this->cachedRoutes === null) {
@@ -79,8 +79,8 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
                     continue;
                 }
 
-                if (is_string( $presenter )) {
-                    $presenter = strtolower( $presenter );
+                if (is_string($presenter)) {
+                    $presenter = strtolower($presenter);
                     if (!isset( $routes[$presenter] )) {
                         $routes[$presenter] = $routes['*'];
                     }
@@ -97,21 +97,21 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
         }
 
         if ($this->module) {
-            if (strncasecmp( $tmp = $appRequest->getPresenterName(), $this->module, strlen( $this->module ) ) === 0) {
+            if (strncasecmp($tmp = $appRequest->getPresenterName(), $this->module, strlen($this->module)) === 0) {
                 $appRequest = clone $appRequest;
-                $appRequest->setPresenterName( substr( $tmp, strlen( $this->module ) ) );
+                $appRequest->setPresenterName(substr($tmp, strlen($this->module)));
             } else {
                 return null;
             }
         }
 
-        $presenter = strtolower( $appRequest->getPresenterName() );
+        $presenter = strtolower($appRequest->getPresenterName());
         if (!isset( $this->cachedRoutes[$presenter] )) {
             $presenter = '*';
         }
 
         foreach ($this->cachedRoutes[$presenter] as $route) {
-            $url = $route->constructUrl( $appRequest, $refUrl );
+            $url = $route->constructUrl($appRequest, $refUrl);
             if ($url !== null) {
                 return $url;
             }
@@ -129,13 +129,13 @@ class RouteList extends Nette\ArrayList implements Nette\Application\IRouter
      *
      * @return void
      */
-    public function offsetSet( $index, $route )
+    public function offsetSet($index, $route)
     {
 
         if (!$route instanceof Nette\Application\IRouter) {
-            throw new Nette\InvalidArgumentException( "Argument must be IRouter descendant." );
+            throw new Nette\InvalidArgumentException("Argument must be IRouter descendant.");
         }
-        parent::offsetSet( $index, $route );
+        parent::offsetSet($index, $route);
     }
 
 

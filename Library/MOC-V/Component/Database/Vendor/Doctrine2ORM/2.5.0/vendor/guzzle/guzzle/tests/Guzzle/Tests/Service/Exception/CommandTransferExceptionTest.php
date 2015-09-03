@@ -12,8 +12,10 @@ use Guzzle\Tests\Service\Mock\Command\MockCommand;
  */
 class CommandTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testStoresCommands()
     {
+
         $c1 = new MockCommand();
         $c2 = new MockCommand();
         $e = new CommandTransferException('Test');
@@ -25,6 +27,7 @@ class CommandTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testConvertsMultiExceptionIntoCommandTransfer()
     {
+
         $r1 = new Request('GET', 'http://foo.com');
         $r2 = new Request('GET', 'http://foobaz.com');
         $e = new MultiTransferException('Test', 123);
@@ -40,6 +43,7 @@ class CommandTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanRetrieveExceptionForCommand()
     {
+
         $r1 = new Request('GET', 'http://foo.com');
         $e1 = new \Exception('foo');
         $c1 = $this->getMockBuilder('Guzzle\Tests\Service\Mock\Command\MockCommand')
@@ -57,6 +61,7 @@ class CommandTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsNonRequestExceptions()
     {
+
         $e = new MultiTransferException();
         $e->add(new \Exception('bar'));
         $e->addFailedRequestWithException(new Request('GET', 'http://www.foo.com'), new \Exception('foo'));

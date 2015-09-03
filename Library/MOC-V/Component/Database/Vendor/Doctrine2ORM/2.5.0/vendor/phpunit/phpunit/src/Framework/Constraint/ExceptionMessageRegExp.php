@@ -13,6 +13,7 @@
  */
 class PHPUnit_Framework_Constraint_ExceptionMessageRegExp extends PHPUnit_Framework_Constraint
 {
+
     /**
      * @var int
      */
@@ -23,8 +24,18 @@ class PHPUnit_Framework_Constraint_ExceptionMessageRegExp extends PHPUnit_Framew
      */
     public function __construct($expected)
     {
+
         parent::__construct();
         $this->expectedMessageRegExp = $expected;
+    }
+
+    /**
+     * @return string
+     */
+    public function toString()
+    {
+
+        return 'exception message matches ';
     }
 
     /**
@@ -32,10 +43,12 @@ class PHPUnit_Framework_Constraint_ExceptionMessageRegExp extends PHPUnit_Framew
      * constraint is met, false otherwise.
      *
      * @param  Exception $other
+     *
      * @return bool
      */
     protected function matches($other)
     {
+
         $match = PHPUnit_Util_Regex::pregMatchSafe($this->expectedMessageRegExp, $other->getMessage());
 
         if (false === $match) {
@@ -53,23 +66,17 @@ class PHPUnit_Framework_Constraint_ExceptionMessageRegExp extends PHPUnit_Framew
      * The beginning of failure messages is "Failed asserting that" in most
      * cases. This method should return the second part of that sentence.
      *
-     * @param  mixed  $other Evaluated value or object.
+     * @param  mixed $other Evaluated value or object.
+     *
      * @return string
      */
     protected function failureDescription($other)
     {
+
         return sprintf(
             "exception message '%s' matches '%s'",
             $other->getMessage(),
             $this->expectedMessageRegExp
         );
-    }
-
-    /**
-     * @return string
-     */
-    public function toString()
-    {
-        return 'exception message matches ';
     }
 }

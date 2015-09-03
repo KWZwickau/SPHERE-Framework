@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
  */
 class FileBinaryMimeTypeGuesser implements MimeTypeGuesserInterface
 {
+
     private $cmd;
 
     /**
@@ -35,6 +36,7 @@ class FileBinaryMimeTypeGuesser implements MimeTypeGuesserInterface
      */
     public function __construct($cmd = 'file -b --mime %s 2>/dev/null')
     {
+
         $this->cmd = $cmd;
     }
 
@@ -43,6 +45,7 @@ class FileBinaryMimeTypeGuesser implements MimeTypeGuesserInterface
      */
     public function guess($path)
     {
+
         if (!is_file($path)) {
             throw new FileNotFoundException($path);
         }
@@ -83,6 +86,6 @@ class FileBinaryMimeTypeGuesser implements MimeTypeGuesserInterface
     public static function isSupported()
     {
 
-        return !defined( 'PHP_WINDOWS_VERSION_BUILD' ) && function_exists( 'passthru' ) && function_exists( 'escapeshellarg' );
+        return !defined('PHP_WINDOWS_VERSION_BUILD') && function_exists('passthru') && function_exists('escapeshellarg');
     }
 }

@@ -33,7 +33,7 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
     private $request;
 
 
-    public function __construct( Nette\DI\Container $context )
+    public function __construct(Nette\DI\Container $context)
     {
 
         $this->context = $context;
@@ -57,17 +57,17 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
      *
      * @return Nette\Application\IResponse
      */
-    public function run( Application\Request $request )
+    public function run(Application\Request $request)
     {
 
         $this->request = $request;
 
-        $httpRequest = $this->context->getByType( 'Nette\Http\IRequest' );
-        if (!$httpRequest->isAjax() && ( $request->isMethod( 'get' ) || $request->isMethod( 'head' ) )) {
+        $httpRequest = $this->context->getByType('Nette\Http\IRequest');
+        if (!$httpRequest->isAjax() && ( $request->isMethod('get') || $request->isMethod('head') )) {
             $refUrl = clone $httpRequest->getUrl();
-            $url = $this->context->router->constructUrl( $request, $refUrl->setPath( $refUrl->getScriptPath() ) );
-            if ($url !== null && !$httpRequest->getUrl()->isEqual( $url )) {
-                return new Responses\RedirectResponse( $url, Http\IResponse::S301_MOVED_PERMANENTLY );
+            $url = $this->context->router->constructUrl($request, $refUrl->setPath($refUrl->getScriptPath()));
+            if ($url !== null && !$httpRequest->getUrl()->isEqual($url)) {
+                return new Responses\RedirectResponse($url, Http\IResponse::S301_MOVED_PERMANENTLY);
             }
         }
 
@@ -76,24 +76,24 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
             return;
         }
         $params['presenter'] = $this;
-        $callback = new Nette\Callback( $params['callback'] );
-        $response = $callback->invokeArgs( Application\UI\PresenterComponentReflection::combineArgs( $callback->toReflection(),
-                $params ) );
+        $callback = new Nette\Callback($params['callback']);
+        $response = $callback->invokeArgs(Application\UI\PresenterComponentReflection::combineArgs($callback->toReflection(),
+            $params));
 
-        if (is_string( $response )) {
-            $response = array( $response, array() );
+        if (is_string($response)) {
+            $response = array($response, array());
         }
-        if (is_array( $response )) {
+        if (is_array($response)) {
             if ($response[0] instanceof \SplFileInfo) {
-                $response = $this->createTemplate( 'Nette\Templating\FileTemplate' )
-                    ->setParameters( $response[1] )->setFile( $response[0] );
+                $response = $this->createTemplate('Nette\Templating\FileTemplate')
+                    ->setParameters($response[1])->setFile($response[0]);
             } else {
-                $response = $this->createTemplate( 'Nette\Templating\Template' )
-                    ->setParameters( $response[1] )->setSource( $response[0] );
+                $response = $this->createTemplate('Nette\Templating\Template')
+                    ->setParameters($response[1])->setSource($response[0]);
             }
         }
         if ($response instanceof Nette\Templating\ITemplate) {
-            return new Responses\TextResponse( $response );
+            return new Responses\TextResponse($response);
         } else {
             return $response;
         }
@@ -108,23 +108,23 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
      *
      * @return Nette\Templating\ITemplate
      */
-    public function createTemplate( $class = null, $latteFactory = null )
+    public function createTemplate($class = null, $latteFactory = null)
     {
 
         $template = $class ? new $class : new Nette\Templating\FileTemplate;
 
-        $template->setParameters( $this->request->getParameters() );
+        $template->setParameters($this->request->getParameters());
         $template->presenter = $this;
         $template->context = $context = $this->context;
-        $url = $context->getByType( 'Nette\Http\IRequest' )->getUrl();
-        $template->baseUrl = rtrim( $url->getBaseUrl(), '/' );
-        $template->basePath = rtrim( $url->getBasePath(), '/' );
+        $url = $context->getByType('Nette\Http\IRequest')->getUrl();
+        $template->baseUrl = rtrim($url->getBaseUrl(), '/');
+        $template->basePath = rtrim($url->getBasePath(), '/');
 
-        $template->registerHelperLoader( 'Nette\Templating\Helpers::loader' );
-        $template->setCacheStorage( $context->nette->templateCacheStorage );
-        $template->onPrepareFilters[] = function ( $template ) use ( $latteFactory, $context ) {
+        $template->registerHelperLoader('Nette\Templating\Helpers::loader');
+        $template->setCacheStorage($context->nette->templateCacheStorage);
+        $template->onPrepareFilters[] = function ($template) use ($latteFactory, $context) {
 
-            $template->registerFilter( $latteFactory ? $latteFactory() : new Nette\Latte\Engine );
+            $template->registerFilter($latteFactory ? $latteFactory() : new Nette\Latte\Engine);
         };
         return $template;
     }
@@ -138,10 +138,10 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
      *
      * @return void
      */
-    public function redirectUrl( $url, $code = Http\IResponse::S302_FOUND )
+    public function redirectUrl($url, $code = Http\IResponse::S302_FOUND)
     {
 
-        return new Responses\RedirectResponse( $url, $code );
+        return new Responses\RedirectResponse($url, $code);
     }
 
 
@@ -154,10 +154,10 @@ class MicroPresenter extends Nette\Object implements Application\IPresenter
      * @return void
      * @throws Nette\Application\BadRequestException
      */
-    public function error( $message = null, $code = Http\IResponse::S404_NOT_FOUND )
+    public function error($message = null, $code = Http\IResponse::S404_NOT_FOUND)
     {
 
-        throw new Application\BadRequestException( $message, $code );
+        throw new Application\BadRequestException($message, $code);
     }
 
 

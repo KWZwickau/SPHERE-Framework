@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class InheritanceType implements Annotation
 {
+
     /**
      * The inheritance type used by the class and its subclasses.
      *

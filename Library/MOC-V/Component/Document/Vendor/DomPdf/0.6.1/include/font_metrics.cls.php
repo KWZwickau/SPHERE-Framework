@@ -21,7 +21,7 @@ require_once DOMPDF_LIB_DIR."/class.pdf.php";
  *
  * Declared here because PHP5 prevents constants from being declared with expressions
  */
-define( '__DOMPDF_FONT_CACHE_FILE', DOMPDF_FONT_DIR."dompdf_font_family_cache.php" );
+define('__DOMPDF_FONT_CACHE_FILE', DOMPDF_FONT_DIR."dompdf_font_family_cache.php");
 
 /**
  * The font metrics class
@@ -62,12 +62,12 @@ class Font_Metrics
      * Class initialization
      *
      */
-    static function init( Canvas $canvas = null )
+    static function init(Canvas $canvas = null)
     {
 
         if (!self::$_pdf) {
             if (!$canvas) {
-                $canvas = Canvas_Factory::get_instance( new DOMPDF() );
+                $canvas = Canvas_Factory::get_instance(new DOMPDF());
             }
 
             self::$_pdf = $canvas;
@@ -86,7 +86,7 @@ class Font_Metrics
      * @internal param float $spacing word spacing, if any
      * @return float
      */
-    static function get_text_width( $text, $font, $size, $word_spacing = 0.0, $char_spacing = 0.0 )
+    static function get_text_width($text, $font, $size, $word_spacing = 0.0, $char_spacing = 0.0)
     {
 
         //return self::$_pdf->get_text_width($text, $font, $size, $word_spacing, $char_spacing);
@@ -107,7 +107,7 @@ class Font_Metrics
             return $cache[$key]["$text"];
         }
 
-        $width = self::$_pdf->get_text_width( $text, $font, $size, $word_spacing, $char_spacing );
+        $width = self::$_pdf->get_text_width($text, $font, $size, $word_spacing, $char_spacing);
 
         if ($use_cache) {
             $cache[$key][$text] = $width;
@@ -124,10 +124,10 @@ class Font_Metrics
      *
      * @return float
      */
-    static function get_font_height( $font, $size )
+    static function get_font_height($font, $size)
     {
 
-        return self::$_pdf->get_font_height( $font, $size );
+        return self::$_pdf->get_font_height($font, $size);
     }
 
     /**
@@ -142,7 +142,7 @@ class Font_Metrics
      *
      * @return string
      */
-    static function get_font( $family_raw, $subtype_raw = "normal" )
+    static function get_font($family_raw, $subtype_raw = "normal")
     {
 
         static $cache = array();
@@ -159,10 +159,10 @@ class Font_Metrics
          * Only on checking the fallback font, check various subtypes on same font.
          */
 
-        $subtype = strtolower( $subtype_raw );
+        $subtype = strtolower($subtype_raw);
 
         if ($family_raw) {
-            $family = str_replace( array( "'", '"' ), "", strtolower( $family_raw ) );
+            $family = str_replace(array("'", '"'), "", strtolower($family_raw));
 
             if (isset( self::$_font_lookup[$family][$subtype] )) {
                 return $cache[$family_raw][$subtype_raw] = self::$_font_lookup[$family][$subtype];
@@ -184,7 +184,7 @@ class Font_Metrics
         $family = self::$_font_lookup[$family];
 
         foreach ($family as $sub => $font) {
-            if (strpos( $subtype, $sub ) !== false) {
+            if (strpos($subtype, $sub) !== false) {
                 return $cache[$family_raw][$subtype_raw] = $font;
             }
         }
@@ -206,10 +206,10 @@ class Font_Metrics
         return null;
     }
 
-    static function get_family( $family )
+    static function get_family($family)
     {
 
-        $family = str_replace( array( "'", '"' ), "", mb_strtolower( $family ) );
+        $family = str_replace(array("'", '"'), "", mb_strtolower($family));
 
         if (isset( self::$_font_lookup[$family] )) {
             return self::$_font_lookup[$family];
@@ -229,18 +229,18 @@ class Font_Metrics
         $dist_fonts = require_once DOMPDF_DIR."/lib/fonts/dompdf_font_family_cache.dist.php";
 
         // FIXME: temporary step for font cache created before the font cache fix
-        if (is_readable( DOMPDF_FONT_DIR."dompdf_font_family_cache" )) {
+        if (is_readable(DOMPDF_FONT_DIR."dompdf_font_family_cache")) {
             $old_fonts = require_once DOMPDF_FONT_DIR."dompdf_font_family_cache";
             // If the font family cache is still in the old format
             if ($old_fonts === 1) {
-                $cache_data = file_get_contents( DOMPDF_FONT_DIR."dompdf_font_family_cache" );
-                file_put_contents( DOMPDF_FONT_DIR."dompdf_font_family_cache", "<"."?php return $cache_data ?".">" );
+                $cache_data = file_get_contents(DOMPDF_FONT_DIR."dompdf_font_family_cache");
+                file_put_contents(DOMPDF_FONT_DIR."dompdf_font_family_cache", "<"."?php return $cache_data ?".">");
                 $old_fonts = require_once DOMPDF_FONT_DIR."dompdf_font_family_cache";
             }
             $dist_fonts += $old_fonts;
         }
 
-        if (!is_readable( self::CACHE_FILE )) {
+        if (!is_readable(self::CACHE_FILE)) {
             self::$_font_lookup = $dist_fonts;
             return;
         }
@@ -249,8 +249,8 @@ class Font_Metrics
 
         // If the font family cache is still in the old format
         if (self::$_font_lookup === 1) {
-            $cache_data = file_get_contents( self::CACHE_FILE );
-            file_put_contents( self::CACHE_FILE, "<"."?php return $cache_data ?".">" );
+            $cache_data = file_get_contents(self::CACHE_FILE);
+            file_put_contents(self::CACHE_FILE, "<"."?php return $cache_data ?".">");
             self::$_font_lookup = require_once self::CACHE_FILE;
         }
 
@@ -261,41 +261,41 @@ class Font_Metrics
     static function get_system_fonts()
     {
 
-        $files = glob( "/usr/share/fonts/truetype/*.ttf" ) +
-            glob( "/usr/share/fonts/truetype/*/*.ttf" ) +
-            glob( "/usr/share/fonts/truetype/*/*/*.ttf" ) +
-            glob( "C:\\Windows\\fonts\\*.ttf" ) +
-            glob( "C:\\WinNT\\fonts\\*.ttf" ) +
-            glob( "/mnt/c_drive/WINDOWS/Fonts/" );
+        $files = glob("/usr/share/fonts/truetype/*.ttf") +
+            glob("/usr/share/fonts/truetype/*/*.ttf") +
+            glob("/usr/share/fonts/truetype/*/*/*.ttf") +
+            glob("C:\\Windows\\fonts\\*.ttf") +
+            glob("C:\\WinNT\\fonts\\*.ttf") +
+            glob("/mnt/c_drive/WINDOWS/Fonts/");
 
-        return self::install_fonts( $files );
+        return self::install_fonts($files);
     }
 
-    static function install_fonts( $files )
+    static function install_fonts($files)
     {
 
         $names = array();
 
         foreach ($files as $file) {
-            $font = Font::load( $file );
-            $records = $font->getData( "name", "records" );
-            $type = self::get_type( $records[2] );
-            $names[mb_strtolower( $records[1] )][$type] = $file;
+            $font = Font::load($file);
+            $records = $font->getData("name", "records");
+            $type = self::get_type($records[2]);
+            $names[mb_strtolower($records[1])][$type] = $file;
         }
 
         return $names;
     }
 
-    static function get_type( $type )
+    static function get_type($type)
     {
 
-        if (preg_match( "/bold/i", $type )) {
-            if (preg_match( "/italic|oblique/i", $type )) {
+        if (preg_match("/bold/i", $type)) {
+            if (preg_match("/italic|oblique/i", $type)) {
                 $type = "bold_italic";
             } else {
                 $type = "bold";
             }
-        } elseif (preg_match( "/italic|oblique/i", $type )) {
+        } elseif (preg_match("/italic|oblique/i", $type)) {
             $type = "italic";
         } else {
             $type = "normal";
@@ -304,10 +304,10 @@ class Font_Metrics
         return $type;
     }
 
-    static function register_font( $style, $remote_file )
+    static function register_font($style, $remote_file)
     {
 
-        $fontname = mb_strtolower( $style["family"] );
+        $fontname = mb_strtolower($style["family"]);
         $families = Font_Metrics::get_font_families();
 
         $entry = array();
@@ -315,30 +315,30 @@ class Font_Metrics
             $entry = $families[$fontname];
         }
 
-        $local_file = DOMPDF_FONT_DIR.md5( $remote_file );
+        $local_file = DOMPDF_FONT_DIR.md5($remote_file);
         $cache_entry = $local_file;
         $local_file .= ".ttf";
 
-        $style_string = Font_Metrics::get_type( "{$style['weight']} {$style['style']}" );
+        $style_string = Font_Metrics::get_type("{$style['weight']} {$style['style']}");
 
         if (!isset( $entry[$style_string] )) {
             $entry[$style_string] = $cache_entry;
 
-            Font_Metrics::set_font_family( $fontname, $entry );
+            Font_Metrics::set_font_family($fontname, $entry);
 
             // Download the remote file
-            if (!is_file( $local_file )) {
-                file_put_contents( $local_file, file_get_contents( $remote_file ) );
+            if (!is_file($local_file)) {
+                file_put_contents($local_file, file_get_contents($remote_file));
             }
 
-            $font = Font::load( $local_file );
+            $font = Font::load($local_file);
 
             if (!$font) {
                 return false;
             }
 
             $font->parse();
-            $font->saveAdobeFontMetrics( "$cache_entry.ufm" );
+            $font->saveAdobeFontMetrics("$cache_entry.ufm");
 
             // Save the changes
             Font_Metrics::save_font_families();
@@ -358,10 +358,10 @@ class Font_Metrics
         return self::$_font_lookup;
     }
 
-    static function set_font_family( $fontname, $entry )
+    static function set_font_family($fontname, $entry)
     {
 
-        self::$_font_lookup[mb_strtolower( $fontname )] = $entry;
+        self::$_font_lookup[mb_strtolower($fontname)] = $entry;
     }
 
     /**
@@ -377,11 +377,11 @@ class Font_Metrics
     {
 
         // replace the path to the DOMPDF font directories with the corresponding constants (allows for more portability)
-        $cache_data = var_export( self::$_font_lookup, true );
-        $cache_data = str_replace( '\''.DOMPDF_FONT_DIR, 'DOMPDF_FONT_DIR . \'', $cache_data );
-        $cache_data = str_replace( '\''.DOMPDF_DIR, 'DOMPDF_DIR . \'', $cache_data );
+        $cache_data = var_export(self::$_font_lookup, true);
+        $cache_data = str_replace('\''.DOMPDF_FONT_DIR, 'DOMPDF_FONT_DIR . \'', $cache_data);
+        $cache_data = str_replace('\''.DOMPDF_DIR, 'DOMPDF_DIR . \'', $cache_data);
         $cache_data = "<"."?php return $cache_data ?".">";
-        file_put_contents( self::CACHE_FILE, $cache_data );
+        file_put_contents(self::CACHE_FILE, $cache_data);
     }
 }
 

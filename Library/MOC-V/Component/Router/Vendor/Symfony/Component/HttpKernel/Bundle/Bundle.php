@@ -28,6 +28,7 @@ use Symfony\Component\Finder\Finder;
  */
 abstract class Bundle extends ContainerAware implements BundleInterface
 {
+
     protected $name;
     protected $extension;
     protected $path;
@@ -71,6 +72,7 @@ abstract class Bundle extends ContainerAware implements BundleInterface
      */
     public function getContainerExtension()
     {
+
         if (null === $this->extension) {
             $basename = preg_replace('/Bundle$/', '', $this->getName());
 
@@ -114,10 +116,10 @@ abstract class Bundle extends ContainerAware implements BundleInterface
             return $this->name;
         }
 
-        $name = get_class( $this );
-        $pos = strrpos( $name, '\\' );
+        $name = get_class($this);
+        $pos = strrpos($name, '\\');
 
-        return $this->name = false === $pos ? $name : substr( $name, $pos + 1 );
+        return $this->name = false === $pos ? $name : substr($name, $pos + 1);
     }
 
     /**
@@ -130,9 +132,9 @@ abstract class Bundle extends ContainerAware implements BundleInterface
     public function getNamespace()
     {
 
-        $class = get_class( $this );
+        $class = get_class($this);
 
-        return substr( $class, 0, strrpos( $class, '\\' ) );
+        return substr($class, 0, strrpos($class, '\\'));
     }
 
     /**
@@ -158,6 +160,7 @@ abstract class Bundle extends ContainerAware implements BundleInterface
      */
     public function registerCommands(Application $application)
     {
+
         if (!is_dir($dir = $this->getPath().'/Command')) {
             return;
         }
@@ -196,8 +199,8 @@ abstract class Bundle extends ContainerAware implements BundleInterface
     {
 
         if (null === $this->path) {
-            $reflected = new \ReflectionObject( $this );
-            $this->path = dirname( $reflected->getFileName() );
+            $reflected = new \ReflectionObject($this);
+            $this->path = dirname($reflected->getFileName());
         }
 
         return $this->path;

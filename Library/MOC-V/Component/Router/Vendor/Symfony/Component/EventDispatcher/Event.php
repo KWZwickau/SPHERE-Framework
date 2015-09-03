@@ -29,6 +29,7 @@ namespace Symfony\Component\EventDispatcher;
  */
 class Event
 {
+
     /**
      * @var bool    Whether no further event listeners should be triggered
      */
@@ -54,6 +55,7 @@ class Event
      */
     public function isPropagationStopped()
     {
+
         return $this->propagationStopped;
     }
 
@@ -68,6 +70,7 @@ class Event
      */
     public function stopPropagation()
     {
+
         $this->propagationStopped = true;
     }
 
@@ -95,7 +98,7 @@ class Event
      *
      * @api
      */
-    public function setDispatcher( EventDispatcherInterface $dispatcher )
+    public function setDispatcher(EventDispatcherInterface $dispatcher)
     {
 
         $this->dispatcher = $dispatcher;
@@ -112,6 +115,7 @@ class Event
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -126,6 +130,7 @@ class Event
      */
     public function setName($name)
     {
+
         $this->name = $name;
     }
 }

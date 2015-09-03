@@ -206,7 +206,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setOddHeader( $pValue )
+    public function setOddHeader($pValue)
     {
 
         $this->_oddHeader = $pValue;
@@ -231,7 +231,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setOddFooter( $pValue )
+    public function setOddFooter($pValue)
     {
 
         $this->_oddFooter = $pValue;
@@ -256,7 +256,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setEvenHeader( $pValue )
+    public function setEvenHeader($pValue)
     {
 
         $this->_evenHeader = $pValue;
@@ -281,7 +281,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setEvenFooter( $pValue )
+    public function setEvenFooter($pValue)
     {
 
         $this->_evenFooter = $pValue;
@@ -306,7 +306,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setFirstHeader( $pValue )
+    public function setFirstHeader($pValue)
     {
 
         $this->_firstHeader = $pValue;
@@ -331,7 +331,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setFirstFooter( $pValue )
+    public function setFirstFooter($pValue)
     {
 
         $this->_firstFooter = $pValue;
@@ -356,7 +356,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setDifferentOddEven( $pValue = false )
+    public function setDifferentOddEven($pValue = false)
     {
 
         $this->_differentOddEven = $pValue;
@@ -381,7 +381,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setDifferentFirst( $pValue = false )
+    public function setDifferentFirst($pValue = false)
     {
 
         $this->_differentFirst = $pValue;
@@ -406,7 +406,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setScaleWithDocument( $pValue = true )
+    public function setScaleWithDocument($pValue = true)
     {
 
         $this->_scaleWithDocument = $pValue;
@@ -431,7 +431,7 @@ class PHPExcel_Worksheet_HeaderFooter
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setAlignWithMargins( $pValue = true )
+    public function setAlignWithMargins($pValue = true)
     {
 
         $this->_alignWithMargins = $pValue;
@@ -464,7 +464,7 @@ class PHPExcel_Worksheet_HeaderFooter
      * @throws PHPExcel_Exception
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function removeImage( $location = self::IMAGE_HEADER_LEFT )
+    public function removeImage($location = self::IMAGE_HEADER_LEFT)
     {
 
         if (isset( $this->_headerFooterImages[$location] )) {
@@ -481,11 +481,11 @@ class PHPExcel_Worksheet_HeaderFooter
      * @throws PHPExcel_Exception
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setImages( $images )
+    public function setImages($images)
     {
 
-        if (!is_array( $images )) {
-            throw new PHPExcel_Exception( 'Invalid parameter!' );
+        if (!is_array($images)) {
+            throw new PHPExcel_Exception('Invalid parameter!');
         }
 
         $this->_headerFooterImages = $images;
@@ -531,9 +531,9 @@ class PHPExcel_Worksheet_HeaderFooter
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

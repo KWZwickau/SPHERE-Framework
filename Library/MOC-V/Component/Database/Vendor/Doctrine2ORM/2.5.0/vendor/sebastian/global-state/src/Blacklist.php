@@ -17,6 +17,7 @@ use ReflectionClass;
  */
 class Blacklist
 {
+
     /**
      * @var array
      */
@@ -52,6 +53,7 @@ class Blacklist
      */
     public function addGlobalVariable($variableName)
     {
+
         $this->globalVariables[$variableName] = true;
     }
 
@@ -60,6 +62,7 @@ class Blacklist
      */
     public function addClass($className)
     {
+
         $this->classes[] = $className;
     }
 
@@ -68,6 +71,7 @@ class Blacklist
      */
     public function addSubclassesOf($className)
     {
+
         $this->parentClasses[] = $className;
     }
 
@@ -76,6 +80,7 @@ class Blacklist
      */
     public function addImplementorsOf($interfaceName)
     {
+
         $this->interfaces[] = $interfaceName;
     }
 
@@ -84,6 +89,7 @@ class Blacklist
      */
     public function addClassNamePrefix($classNamePrefix)
     {
+
         $this->classNamePrefixes[] = $classNamePrefix;
     }
 
@@ -93,7 +99,8 @@ class Blacklist
      */
     public function addStaticAttribute($className, $attributeName)
     {
-        if (!isset($this->staticAttributes[$className])) {
+
+        if (!isset( $this->staticAttributes[$className] )) {
             $this->staticAttributes[$className] = array();
         }
 
@@ -102,20 +109,24 @@ class Blacklist
 
     /**
      * @param  string $variableName
+     *
      * @return bool
      */
     public function isGlobalVariableBlacklisted($variableName)
     {
-        return isset($this->globalVariables[$variableName]);
+
+        return isset( $this->globalVariables[$variableName] );
     }
 
     /**
      * @param  string $className
      * @param  string $attributeName
+     *
      * @return bool
      */
     public function isStaticAttributeBlacklisted($className, $attributeName)
     {
+
         if (in_array($className, $this->classes)) {
             return true;
         }
@@ -140,7 +151,7 @@ class Blacklist
             }
         }
 
-        if (isset($this->staticAttributes[$className][$attributeName])) {
+        if (isset( $this->staticAttributes[$className][$attributeName] )) {
             return true;
         }
 

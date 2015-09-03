@@ -87,7 +87,7 @@ abstract class ReflectionBase
      * @param \TokenReflection\IReflection $reflection Inspected reflection
      * @param \ApiGen\Generator            $generator  ApiGen generator
      */
-    public function __construct( IReflection $reflection, Generator $generator )
+    public function __construct(IReflection $reflection, Generator $generator)
     {
 
         if (null === self::$generator) {
@@ -98,9 +98,9 @@ abstract class ReflectionBase
             self::$parsedFunctions = $generator->getParsedFunctions();
         }
 
-        $this->reflectionType = get_class( $this );
+        $this->reflectionType = get_class($this);
         if (!isset( self::$reflectionMethods[$this->reflectionType] )) {
-            self::$reflectionMethods[$this->reflectionType] = array_flip( get_class_methods( $this ) );
+            self::$reflectionMethods[$this->reflectionType] = array_flip(get_class_methods($this));
         }
 
         $this->reflection = $reflection;
@@ -116,10 +116,10 @@ abstract class ReflectionBase
      *
      * @return mixed
      */
-    public function __get( $name )
+    public function __get($name)
     {
 
-        $key = ucfirst( $name );
+        $key = ucfirst($name);
         if (isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] )) {
             return $this->{'get'.$key}();
         }
@@ -128,7 +128,7 @@ abstract class ReflectionBase
             return $this->{'is'.$key}();
         }
 
-        return $this->reflection->__get( $name );
+        return $this->reflection->__get($name);
     }
 
     /**
@@ -141,11 +141,11 @@ abstract class ReflectionBase
      *
      * @return boolean
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        $key = ucfirst( $name );
-        return isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] ) || isset( self::$reflectionMethods[$this->reflectionType]['is'.$key] ) || $this->reflection->__isset( $name );
+        $key = ucfirst($name);
+        return isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] ) || isset( self::$reflectionMethods[$this->reflectionType]['is'.$key] ) || $this->reflection->__isset($name);
     }
 
     /**
@@ -236,7 +236,7 @@ abstract class ReflectionBase
         $startLine = $this->reflection->getStartLine();
 
         if ($doc = $this->getDocComment()) {
-            $startLine -= substr_count( $doc, "\n" ) + 1;
+            $startLine -= substr_count($doc, "\n") + 1;
         }
 
         return $startLine;

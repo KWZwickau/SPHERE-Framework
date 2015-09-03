@@ -29,7 +29,7 @@ class Directory
      * @param SFTP  $Connection
      * @param array $Attributes
      */
-    function __construct(SFTP $Connection, $Attributes)
+    public function __construct(SFTP $Connection, $Attributes)
     {
 
         $this->Name = $Attributes['filename'];

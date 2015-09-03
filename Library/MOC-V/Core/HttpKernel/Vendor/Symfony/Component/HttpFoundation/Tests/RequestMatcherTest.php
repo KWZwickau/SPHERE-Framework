@@ -16,11 +16,13 @@ use Symfony\Component\HttpFoundation\RequestMatcher;
 
 class RequestMatcherTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider testMethodFixtures
      */
     public function testMethod($requestMethod, $matcherMethod, $isMatch)
     {
+
         $matcher = new RequestMatcher();
         $matcher->matchMethod($matcherMethod);
         $request = Request::create('', $requestMethod);
@@ -33,6 +35,7 @@ class RequestMatcherTest extends \PHPUnit_Framework_TestCase
 
     public function testMethodFixtures()
     {
+
         return array(
             array('get', 'get', true),
             array('get', array('get', 'post'), true),
@@ -48,18 +51,20 @@ class RequestMatcherTest extends \PHPUnit_Framework_TestCase
      */
     public function testHost($pattern, $isMatch)
     {
+
         $matcher = new RequestMatcher();
         $request = Request::create('', 'get', array(), array(), array(), array('HTTP_HOST' => 'foo.example.com'));
 
         $matcher->matchHost($pattern);
         $this->assertSame($isMatch, $matcher->matches($request));
 
-        $matcher= new RequestMatcher(null, $pattern);
+        $matcher = new RequestMatcher(null, $pattern);
         $this->assertSame($isMatch, $matcher->matches($request));
     }
 
     public function testHostFixture()
     {
+
         return array(
             array('.*\.example\.com', true),
             array('\.example\.com$', true),
@@ -68,11 +73,13 @@ class RequestMatcherTest extends \PHPUnit_Framework_TestCase
             array('.*\.example\.COM', true),
             array('\.example\.COM$', true),
             array('^.*\.example\.COM$', true),
-            array('.*\.sensio\.COM', false),        );
+            array('.*\.sensio\.COM', false),
+        );
     }
 
     public function testPath()
     {
+
         $matcher = new RequestMatcher();
 
         $request = Request::create('/admin/foo');
@@ -92,6 +99,7 @@ class RequestMatcherTest extends \PHPUnit_Framework_TestCase
 
     public function testPathWithLocaleIsNotSupported()
     {
+
         $matcher = new RequestMatcher();
         $request = Request::create('/en/login');
         $request->setLocale('en');
@@ -102,6 +110,7 @@ class RequestMatcherTest extends \PHPUnit_Framework_TestCase
 
     public function testPathWithEncodedCharacters()
     {
+
         $matcher = new RequestMatcher();
         $request = Request::create('/admin/fo%20o');
         $matcher->matchPath('^/admin/fo o*$');
@@ -110,6 +119,7 @@ class RequestMatcherTest extends \PHPUnit_Framework_TestCase
 
     public function testAttributes()
     {
+
         $matcher = new RequestMatcher();
 
         $request = Request::create('/admin/foo');

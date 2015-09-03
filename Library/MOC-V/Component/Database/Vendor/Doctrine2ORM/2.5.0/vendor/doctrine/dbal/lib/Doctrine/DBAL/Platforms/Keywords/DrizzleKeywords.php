@@ -26,11 +26,13 @@ namespace Doctrine\DBAL\Platforms\Keywords;
  */
 class DrizzleKeywords extends KeywordList
 {
+
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return 'drizzle';
     }
 
@@ -39,6 +41,7 @@ class DrizzleKeywords extends KeywordList
      */
     protected function getKeywords()
     {
+
         return array(
             'ABS',
             'ALL',

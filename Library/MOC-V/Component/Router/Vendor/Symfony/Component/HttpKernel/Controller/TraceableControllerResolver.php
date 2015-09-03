@@ -21,6 +21,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  */
 class TraceableControllerResolver implements ControllerResolverInterface
 {
+
     private $resolver;
     private $stopwatch;
 
@@ -32,6 +33,7 @@ class TraceableControllerResolver implements ControllerResolverInterface
      */
     public function __construct(ControllerResolverInterface $resolver, Stopwatch $stopwatch)
     {
+
         $this->resolver = $resolver;
         $this->stopwatch = $stopwatch;
     }
@@ -41,6 +43,7 @@ class TraceableControllerResolver implements ControllerResolverInterface
      */
     public function getController(Request $request)
     {
+
         $e = $this->stopwatch->start('controller.get_callable');
 
         $ret = $this->resolver->getController($request);
@@ -55,6 +58,7 @@ class TraceableControllerResolver implements ControllerResolverInterface
      */
     public function getArguments(Request $request, $controller)
     {
+
         $e = $this->stopwatch->start('controller.get_arguments');
 
         $ret = $this->resolver->getArguments($request, $controller);

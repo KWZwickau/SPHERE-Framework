@@ -9,8 +9,10 @@ use Doctrine\DBAL\Schema\Visitor\DropSchemaSqlCollector;
  */
 class DropSchemaSqlCollectorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testGetQueriesUsesAcceptedForeignKeys()
     {
+
         $tableOne = $this->getTableMock();
         $tableTwo = $this->getTableMock();
 
@@ -42,16 +44,19 @@ class DropSchemaSqlCollectorTest extends \PHPUnit_Framework_TestCase
 
     private function getTableMock()
     {
+
         return $this->getMockWithoutArguments('Doctrine\DBAL\Schema\Table');
     }
 
     private function getMockWithoutArguments($className)
     {
+
         return $this->getMockBuilder($className)->disableOriginalConstructor()->getMock();
     }
 
     private function getStubKeyConstraint($name)
     {
+
         $constraint = $this->getMockWithoutArguments('Doctrine\DBAL\Schema\ForeignKeyConstraint');
 
         $constraint->expects($this->any())
@@ -71,11 +76,12 @@ class DropSchemaSqlCollectorTest extends \PHPUnit_Framework_TestCase
 
     public function testGivenForeignKeyWithZeroLength_acceptForeignKeyThrowsException()
     {
+
         $collector = new DropSchemaSqlCollector(
             $this->getMockForAbstractClass('Doctrine\DBAL\Platforms\AbstractPlatform')
         );
 
-        $this->setExpectedException( 'Doctrine\DBAL\Schema\SchemaException' );
+        $this->setExpectedException('Doctrine\DBAL\Schema\SchemaException');
         $collector->acceptForeignKey($this->getTableMock(), $this->getStubKeyConstraint(''));
     }
 }

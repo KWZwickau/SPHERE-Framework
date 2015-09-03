@@ -20,7 +20,7 @@ abstract class Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function setVariable( $Identifier, $Value )
+    public function setVariable($Identifier, $Value)
     {
 
         $this->VariableList[$Identifier] = $Value;

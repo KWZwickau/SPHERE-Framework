@@ -15,8 +15,18 @@
  */
 class PHPUnit_Runner_Version
 {
+
     private static $pharVersion;
     private static $version;
+
+    /**
+     * @return string
+     */
+    public static function getVersionString()
+    {
+
+        return 'PHPUnit '.self::id().' by Sebastian Bergmann and contributors.';
+    }
 
     /**
      * Returns the current version of PHPUnit.
@@ -25,12 +35,13 @@ class PHPUnit_Runner_Version
      */
     public static function id()
     {
+
         if (self::$pharVersion !== null) {
             return self::$pharVersion;
         }
 
         if (self::$version === null) {
-            $version       = new SebastianBergmann\Version('4.8', dirname(dirname(__DIR__)));
+            $version = new SebastianBergmann\Version('4.8', dirname(dirname(__DIR__)));
             self::$version = $version->getVersion();
         }
 
@@ -39,18 +50,11 @@ class PHPUnit_Runner_Version
 
     /**
      * @return string
-     */
-    public static function getVersionString()
-    {
-        return 'PHPUnit ' . self::id() . ' by Sebastian Bergmann and contributors.';
-    }
-
-    /**
-     * @return string
      * @since  Method available since Release 4.0.0
      */
     public static function getReleaseChannel()
     {
+
         if (strpos(self::$pharVersion, 'alpha') !== false) {
             return '-alpha';
         }

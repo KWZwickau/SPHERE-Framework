@@ -25,6 +25,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 interface EsiResponseCacheStrategyInterface
 {
+
     /**
      * Adds a Response.
      *

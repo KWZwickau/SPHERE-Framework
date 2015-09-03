@@ -30,6 +30,7 @@ use ReflectionProperty;
  */
 class RuntimePublicReflectionProperty extends ReflectionProperty
 {
+
     /**
      * {@inheritDoc}
      *
@@ -39,18 +40,19 @@ class RuntimePublicReflectionProperty extends ReflectionProperty
      */
     public function getValue($object = null)
     {
+
         $name = $this->getName();
 
-        if ($object instanceof Proxy && ! $object->__isInitialized()) {
+        if ($object instanceof Proxy && !$object->__isInitialized()) {
             $originalInitializer = $object->__getInitializer();
             $object->__setInitializer(null);
-            $val = isset($object->$name) ? $object->$name : null;
+            $val = isset( $object->$name ) ? $object->$name : null;
             $object->__setInitializer($originalInitializer);
 
             return $val;
         }
 
-        return isset($object->$name) ? parent::getValue($object) : null;
+        return isset( $object->$name ) ? parent::getValue($object) : null;
     }
 
     /**
@@ -58,11 +60,13 @@ class RuntimePublicReflectionProperty extends ReflectionProperty
      *
      * Avoids triggering lazy loading via `__set` if the provided object
      * is a {@see \Doctrine\Common\Proxy\Proxy}.
+     *
      * @link https://bugs.php.net/bug.php?id=63463
      */
     public function setValue($object, $value = null)
     {
-        if ( ! ($object instanceof Proxy && ! $object->__isInitialized())) {
+
+        if (!( $object instanceof Proxy && !$object->__isInitialized() )) {
             parent::setValue($object, $value);
 
             return;

@@ -35,24 +35,24 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
     /** @var Nette\Application\Request */
     private $request;
 
-    public function __construct( Nette\Application\IRouter $router, Nette\Http\IRequest $httpRequest )
+    public function __construct(Nette\Application\IRouter $router, Nette\Http\IRequest $httpRequest)
     {
 
         $this->router = $router;
         $this->httpRequest = $httpRequest;
     }
 
-    public static function initializePanel( Nette\Application\Application $application )
+    public static function initializePanel(Nette\Application\Application $application)
     {
 
-        Debugger::$blueScreen->addPanel( function ( $e ) use ( $application ) {
+        Debugger::$blueScreen->addPanel(function ($e) use ($application) {
 
             return $e ? null : array(
                 'tab'   => 'Nette Application',
-                'panel' => '<h3>Requests</h3>'.Nette\Diagnostics\Helpers::clickableDump( $application->getRequests() )
-                    .'<h3>Presenter</h3>'.Nette\Diagnostics\Helpers::clickableDump( $application->getPresenter() )
+                'panel' => '<h3>Requests</h3>'.Nette\Diagnostics\Helpers::clickableDump($application->getRequests())
+                    .'<h3>Presenter</h3>'.Nette\Diagnostics\Helpers::clickableDump($application->getPresenter())
             );
-        } );
+        });
     }
 
     /**
@@ -63,7 +63,7 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
     public function getTab()
     {
 
-        $this->analyse( $this->router );
+        $this->analyse($this->router);
         ob_start();
         require __DIR__.'/templates/RoutingPanel.tab.phtml';
         return ob_get_clean();
@@ -76,20 +76,20 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
      *
      * @return void
      */
-    private function analyse( $router, $module = '' )
+    private function analyse($router, $module = '')
     {
 
         if ($router instanceof Routers\RouteList) {
             foreach ($router as $subRouter) {
-                $this->analyse( $subRouter, $module.$router->getModule() );
+                $this->analyse($subRouter, $module.$router->getModule());
             }
             return;
         }
 
         $matched = 'no';
-        $request = $router->match( $this->httpRequest );
+        $request = $router->match($this->httpRequest);
         if ($request) {
-            $request->setPresenterName( $module.$request->getPresenterName() );
+            $request->setPresenterName($module.$request->getPresenterName());
             $matched = 'may';
             if (empty( $this->request )) {
                 $this->request = $request;
@@ -99,11 +99,11 @@ class RoutingPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
 
         $this->routers[] = array(
             'matched'  => $matched,
-            'class'    => get_class( $router ),
+            'class'  => get_class($router),
             'defaults' => $router instanceof Routers\Route || $router instanceof Routers\SimpleRouter ? $router->getDefaults() : array(),
             'mask'     => $router instanceof Routers\Route ? $router->getMask() : null,
             'request'  => $request,
-            'module'   => rtrim( $module, ':' )
+            'module' => rtrim($module, ':')
         );
     }
 

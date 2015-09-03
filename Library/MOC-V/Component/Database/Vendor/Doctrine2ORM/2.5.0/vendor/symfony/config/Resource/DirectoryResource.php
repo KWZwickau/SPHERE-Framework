@@ -18,6 +18,7 @@ namespace Symfony\Component\Config\Resource;
  */
 class DirectoryResource implements ResourceInterface, \Serializable
 {
+
     private $resource;
     private $pattern;
 
@@ -29,6 +30,7 @@ class DirectoryResource implements ResourceInterface, \Serializable
      */
     public function __construct($resource, $pattern = null)
     {
+
         $this->resource = $resource;
         $this->pattern = $pattern;
     }
@@ -38,7 +40,8 @@ class DirectoryResource implements ResourceInterface, \Serializable
      */
     public function __toString()
     {
-        return (string) $this->resource;
+
+        return (string)$this->resource;
     }
 
     /**
@@ -46,6 +49,7 @@ class DirectoryResource implements ResourceInterface, \Serializable
      */
     public function getResource()
     {
+
         return $this->resource;
     }
 
@@ -56,6 +60,7 @@ class DirectoryResource implements ResourceInterface, \Serializable
      */
     public function getPattern()
     {
+
         return $this->pattern;
     }
 
@@ -64,12 +69,14 @@ class DirectoryResource implements ResourceInterface, \Serializable
      */
     public function isFresh($timestamp)
     {
+
         if (!is_dir($this->resource)) {
             return false;
         }
 
         $newestMTime = filemtime($this->resource);
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->resource), \RecursiveIteratorIterator::SELF_FIRST) as $file) {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->resource),
+            \RecursiveIteratorIterator::SELF_FIRST) as $file) {
             // if regex filtering is enabled only check matching files
             if ($this->pattern && $file->isFile() && !preg_match($this->pattern, $file->getBasename())) {
                 continue;
@@ -89,11 +96,13 @@ class DirectoryResource implements ResourceInterface, \Serializable
 
     public function serialize()
     {
+
         return serialize(array($this->resource, $this->pattern));
     }
 
     public function unserialize($serialized)
     {
-        list($this->resource, $this->pattern) = unserialize($serialized);
+
+        list( $this->resource, $this->pattern ) = unserialize($serialized);
     }
 }

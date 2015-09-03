@@ -30,6 +30,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 interface Constraint
 {
+
     /**
      * @return string
      */

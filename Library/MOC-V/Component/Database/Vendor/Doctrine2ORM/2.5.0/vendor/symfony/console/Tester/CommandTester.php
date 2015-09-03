@@ -13,9 +13,9 @@ namespace Symfony\Component\Console\Tester;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArrayInput;
-use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\StreamOutput;
 
 /**
  * Eases the testing of console commands.
@@ -24,6 +24,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class CommandTester
 {
+
     private $command;
     private $input;
     private $output;
@@ -36,6 +37,7 @@ class CommandTester
      */
     public function __construct(Command $command)
     {
+
         $this->command = $command;
     }
 
@@ -55,25 +57,26 @@ class CommandTester
      */
     public function execute(array $input, array $options = array())
     {
+
         // set the command name automatically if the application requires
         // this argument and no command name was passed
-        if (!isset($input['command'])
-            && (null !== $application = $this->command->getApplication())
+        if (!isset( $input['command'] )
+            && ( null !== $application = $this->command->getApplication() )
             && $application->getDefinition()->hasArgument('command')
         ) {
             $input = array_merge(array('command' => $this->command->getName()), $input);
         }
 
         $this->input = new ArrayInput($input);
-        if (isset($options['interactive'])) {
+        if (isset( $options['interactive'] )) {
             $this->input->setInteractive($options['interactive']);
         }
 
         $this->output = new StreamOutput(fopen('php://memory', 'w', false));
-        if (isset($options['decorated'])) {
+        if (isset( $options['decorated'] )) {
             $this->output->setDecorated($options['decorated']);
         }
-        if (isset($options['verbosity'])) {
+        if (isset( $options['verbosity'] )) {
             $this->output->setVerbosity($options['verbosity']);
         }
 
@@ -89,6 +92,7 @@ class CommandTester
      */
     public function getDisplay($normalize = false)
     {
+
         rewind($this->output->getStream());
 
         $display = stream_get_contents($this->output->getStream());
@@ -107,6 +111,7 @@ class CommandTester
      */
     public function getInput()
     {
+
         return $this->input;
     }
 
@@ -117,6 +122,7 @@ class CommandTester
      */
     public function getOutput()
     {
+
         return $this->output;
     }
 
@@ -127,6 +133,7 @@ class CommandTester
      */
     public function getStatusCode()
     {
+
         return $this->statusCode;
     }
 }

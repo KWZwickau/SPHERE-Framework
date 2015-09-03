@@ -9,9 +9,14 @@ namespace Satooshi\Bundle\CoverallsV1Bundle\Entity\Git;
  */
 class RemoteTest extends \PHPUnit_Framework_TestCase
 {
-    protected function setUp()
+
+    /**
+     * @test
+     */
+    public function shouldNotHaveRemoteNameOnConstruction()
     {
-        $this->object = new Remote();
+
+        $this->assertNull($this->object->getName());
     }
 
     // getName()
@@ -19,9 +24,10 @@ class RemoteTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function shouldNotHaveRemoteNameOnConstruction()
+    public function shouldNotHaveUrlOnConstruction()
     {
-        $this->assertNull($this->object->getName());
+
+        $this->assertNull($this->object->getUrl());
     }
 
     // getUrl()
@@ -29,18 +35,9 @@ class RemoteTest extends \PHPUnit_Framework_TestCase
     /**
      * @test
      */
-    public function shouldNotHaveUrlOnConstruction()
-    {
-        $this->assertNull($this->object->getUrl());
-    }
-
-    // setName()
-
-    /**
-     * @test
-     */
     public function shouldSetRemoteName()
     {
+
         $expected = 'remote_name';
 
         $obj = $this->object->setName($expected);
@@ -49,13 +46,14 @@ class RemoteTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($obj, $this->object);
     }
 
-    // setUrl()
+    // setName()
 
     /**
      * @test
      */
     public function shouldSetRemoteUrl()
     {
+
         $expected = 'git@github.com:satooshi/php-coveralls.git';
 
         $obj = $this->object->setUrl($expected);
@@ -64,13 +62,14 @@ class RemoteTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($obj, $this->object);
     }
 
-    // toArray()
+    // setUrl()
 
     /**
      * @test
      */
     public function shouldConvertToArray()
     {
+
         $expected = array(
             'name' => null,
             'url'  => null,
@@ -80,17 +79,20 @@ class RemoteTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(json_encode($expected), (string)$this->object);
     }
 
+    // toArray()
+
     /**
      * @test
      */
     public function shouldConvertToFilledArray()
     {
+
         $name = 'name';
-        $url  = 'url';
+        $url = 'url';
 
         $this->object
-        ->setName($name)
-        ->setUrl($url);
+            ->setName($name)
+            ->setUrl($url);
 
         $expected = array(
             'name' => $name,
@@ -99,5 +101,11 @@ class RemoteTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame($expected, $this->object->toArray());
         $this->assertSame(json_encode($expected), (string)$this->object);
+    }
+
+    protected function setUp()
+    {
+
+        $this->object = new Remote();
     }
 }

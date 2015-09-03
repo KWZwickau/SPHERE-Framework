@@ -8,14 +8,17 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getAttributeExceptions
      */
     public function testGetAttributeExceptions($template, $message, $useExt)
     {
-        $name = 'index_'.($useExt ? 1 : 0);
+
+        $name = 'index_'.( $useExt ? 1 : 0 );
         $templates = array(
             $name => $template.$useExt, // appending $useExt makes the template content unique
         );
@@ -44,18 +47,55 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 
     public function getAttributeExceptions()
     {
+
         $tests = array(
-            array('{{ string["a"] }}', 'Impossible to access a key ("a") on a string variable ("foo") in "%s" at line 1', false),
+            array(
+                '{{ string["a"] }}',
+                'Impossible to access a key ("a") on a string variable ("foo") in "%s" at line 1',
+                false
+            ),
             array('{{ array["a"] }}', 'Key "a" for array with keys "foo" does not exist in "%s" at line 1', false),
-            array('{{ array_access["a"] }}', 'Key "a" in object with ArrayAccess of class "Twig_TemplateArrayAccessObject" does not exist in "%s" at line 1', false),
-            array('{{ string.a }}', 'Impossible to access an attribute ("a") on a string variable ("foo") in "%s" at line 1', false),
-            array('{{ string.a() }}', 'Impossible to invoke a method ("a") on a string variable ("foo") in "%s" at line 1', false),
+            array(
+                '{{ array_access["a"] }}',
+                'Key "a" in object with ArrayAccess of class "Twig_TemplateArrayAccessObject" does not exist in "%s" at line 1',
+                false
+            ),
+            array(
+                '{{ string.a }}',
+                'Impossible to access an attribute ("a") on a string variable ("foo") in "%s" at line 1',
+                false
+            ),
+            array(
+                '{{ string.a() }}',
+                'Impossible to invoke a method ("a") on a string variable ("foo") in "%s" at line 1',
+                false
+            ),
             array('{{ array.a }}', 'Key "a" for array with keys "foo" does not exist in "%s" at line 1', false),
-            array('{{ attribute(array, -10) }}', 'Key "-10" for array with keys "foo" does not exist in "%s" at line 1', false),
-            array('{{ array_access.a }}', 'Method "a" for object "Twig_TemplateArrayAccessObject" does not exist in "%s" at line 1', false),
-            array('{% macro foo(obj) %}{{ obj.missing_method() }}{% endmacro %}{{ _self.foo(array_access) }}', 'Method "missing_method" for object "Twig_TemplateArrayAccessObject" does not exist in "%s" at line 1', false),
-            array('{{ magic_exception.test }}', 'An exception has been thrown during the rendering of a template ("Hey! Don\'t try to isset me!") in "%s" at line 1.', false),
-            array('{{ object["a"] }}', 'Impossible to access a key "a" on an object of class "stdClass" that does not implement ArrayAccess interface in "%s" at line 1', false),
+            array(
+                '{{ attribute(array, -10) }}',
+                'Key "-10" for array with keys "foo" does not exist in "%s" at line 1',
+                false
+            ),
+            array(
+                '{{ array_access.a }}',
+                'Method "a" for object "Twig_TemplateArrayAccessObject" does not exist in "%s" at line 1',
+                false
+            ),
+            array(
+                '{% macro foo(obj) %}{{ obj.missing_method() }}{% endmacro %}{{ _self.foo(array_access) }}',
+                'Method "missing_method" for object "Twig_TemplateArrayAccessObject" does not exist in "%s" at line 1',
+                false
+            ),
+            array(
+                '{{ magic_exception.test }}',
+                'An exception has been thrown during the rendering of a template ("Hey! Don\'t try to isset me!") in "%s" at line 1.',
+                false
+            ),
+            array(
+                '{{ object["a"] }}',
+                'Impossible to access a key "a" on an object of class "stdClass" that does not implement ArrayAccess interface in "%s" at line 1',
+                false
+            ),
         );
 
         if (function_exists('twig_template_get_attributes')) {
@@ -73,6 +113,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttributeWithSandbox($object, $item, $allowed, $useExt)
     {
+
         $twig = new Twig_Environment();
         $policy = new Twig_Sandbox_SecurityPolicy(array(), array(), array(/*method*/), array(/*prop*/), array());
         $twig->addExtension(new Twig_Extension_Sandbox($policy, !$allowed));
@@ -95,6 +136,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 
     public function getGetAttributeWithSandbox()
     {
+
         $tests = array(
             array(new Twig_TemplatePropertyObject(), 'defined', false, false),
             array(new Twig_TemplatePropertyObject(), 'defined', true, false),
@@ -117,6 +159,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttributeWithTemplateAsObject($useExt)
     {
+
         $template = new Twig_TemplateTest(new Twig_Environment(), $useExt);
         $template1 = new Twig_TemplateTest(new Twig_Environment(), false);
 
@@ -135,6 +178,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 
     public function getGetAttributeWithTemplateAsObject()
     {
+
         $bools = array(
             array(false),
         );
@@ -151,12 +195,20 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttributeOnArrayWithConfusableKey($useExt = false)
     {
+
         $template = new Twig_TemplateTest(
             new Twig_Environment(),
             $useExt
         );
 
-        $array = array('Zero', 'One', -1 => 'MinusOne', '' => 'EmptyString', '1.5' => 'FloatButString', '01' => 'IntegerButStringWithLeadingZeros');
+        $array = array(
+            'Zero',
+            'One',
+            -1    => 'MinusOne',
+            ''    => 'EmptyString',
+            '1.5' => 'FloatButString',
+            '01'  => 'IntegerButStringWithLeadingZeros'
+        );
 
         $this->assertSame('Zero', $array[false]);
         $this->assertSame('One', $array[true]);
@@ -167,18 +219,27 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
         $this->assertSame('IntegerButStringWithLeadingZeros', $array['01']);
         $this->assertSame('EmptyString', $array[null]);
 
-        $this->assertSame('Zero', $template->getAttribute($array, false), 'false is treated as 0 when accessing an array (equals PHP behavior)');
-        $this->assertSame('One', $template->getAttribute($array, true), 'true is treated as 1 when accessing an array (equals PHP behavior)');
-        $this->assertSame('One', $template->getAttribute($array, 1.5), 'float is casted to int when accessing an array (equals PHP behavior)');
-        $this->assertSame('One', $template->getAttribute($array, '1'), '"1" is treated as integer 1 when accessing an array (equals PHP behavior)');
-        $this->assertSame('MinusOne', $template->getAttribute($array, -1.5), 'negative float is casted to int when accessing an array (equals PHP behavior)');
-        $this->assertSame('FloatButString', $template->getAttribute($array, '1.5'), '"1.5" is treated as-is when accessing an array (equals PHP behavior)');
-        $this->assertSame('IntegerButStringWithLeadingZeros', $template->getAttribute($array, '01'), '"01" is treated as-is when accessing an array (equals PHP behavior)');
-        $this->assertSame('EmptyString', $template->getAttribute($array, null), 'null is treated as "" when accessing an array (equals PHP behavior)');
+        $this->assertSame('Zero', $template->getAttribute($array, false),
+            'false is treated as 0 when accessing an array (equals PHP behavior)');
+        $this->assertSame('One', $template->getAttribute($array, true),
+            'true is treated as 1 when accessing an array (equals PHP behavior)');
+        $this->assertSame('One', $template->getAttribute($array, 1.5),
+            'float is casted to int when accessing an array (equals PHP behavior)');
+        $this->assertSame('One', $template->getAttribute($array, '1'),
+            '"1" is treated as integer 1 when accessing an array (equals PHP behavior)');
+        $this->assertSame('MinusOne', $template->getAttribute($array, -1.5),
+            'negative float is casted to int when accessing an array (equals PHP behavior)');
+        $this->assertSame('FloatButString', $template->getAttribute($array, '1.5'),
+            '"1.5" is treated as-is when accessing an array (equals PHP behavior)');
+        $this->assertSame('IntegerButStringWithLeadingZeros', $template->getAttribute($array, '01'),
+            '"01" is treated as-is when accessing an array (equals PHP behavior)');
+        $this->assertSame('EmptyString', $template->getAttribute($array, null),
+            'null is treated as "" when accessing an array (equals PHP behavior)');
     }
 
     public function getTestsDependingOnExtensionAvailability()
     {
+
         if (function_exists('twig_template_get_attributes')) {
             return array(array(false), array(true));
         }
@@ -191,6 +252,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttribute($defined, $value, $object, $item, $arguments, $type, $useExt = false)
     {
+
         $template = new Twig_TemplateTest(new Twig_Environment(), $useExt);
 
         $this->assertEquals($value, $template->getAttribute($object, $item, $arguments, $type));
@@ -199,8 +261,17 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
     /**
      * @dataProvider getGetAttributeTests
      */
-    public function testGetAttributeStrict($defined, $value, $object, $item, $arguments, $type, $useExt = false, $exceptionMessage = null)
-    {
+    public function testGetAttributeStrict(
+        $defined,
+        $value,
+        $object,
+        $item,
+        $arguments,
+        $type,
+        $useExt = false,
+        $exceptionMessage = null
+    ) {
+
         $template = new Twig_TemplateTest(new Twig_Environment(null, array('strict_variables' => true)), $useExt);
 
         if ($defined) {
@@ -223,6 +294,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttributeDefined($defined, $value, $object, $item, $arguments, $type, $useExt = false)
     {
+
         $template = new Twig_TemplateTest(new Twig_Environment(), $useExt);
 
         $this->assertEquals($defined, $template->getAttribute($object, $item, $arguments, $type, true));
@@ -233,6 +305,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttributeDefinedStrict($defined, $value, $object, $item, $arguments, $type, $useExt = false)
     {
+
         $template = new Twig_TemplateTest(new Twig_Environment(null, array('strict_variables' => true)), $useExt);
 
         $this->assertEquals($defined, $template->getAttribute($object, $item, $arguments, $type, true));
@@ -243,6 +316,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
      */
     public function testGetAttributeCallExceptions($useExt = false)
     {
+
         $template = new Twig_TemplateTest(new Twig_Environment(), $useExt);
 
         $object = new Twig_TemplateMagicMethodExceptionObject();
@@ -252,6 +326,7 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 
     public function getGetAttributeTests()
     {
+
         $array = array(
             'defined' => 'defined',
             'zero'    => 0,
@@ -262,52 +337,52 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
             '+4'      => '+4',
         );
 
-        $objectArray         = new Twig_TemplateArrayAccessObject();
-        $stdObject           = (object) $array;
+        $objectArray = new Twig_TemplateArrayAccessObject();
+        $stdObject = (object)$array;
         $magicPropertyObject = new Twig_TemplateMagicPropertyObject();
-        $propertyObject      = new Twig_TemplatePropertyObject();
-        $propertyObject1     = new Twig_TemplatePropertyObjectAndIterator();
-        $propertyObject2     = new Twig_TemplatePropertyObjectAndArrayAccess();
-        $propertyObject3     = new Twig_TemplatePropertyObjectDefinedWithUndefinedValue();
-        $methodObject        = new Twig_TemplateMethodObject();
-        $magicMethodObject   = new Twig_TemplateMagicMethodObject();
+        $propertyObject = new Twig_TemplatePropertyObject();
+        $propertyObject1 = new Twig_TemplatePropertyObjectAndIterator();
+        $propertyObject2 = new Twig_TemplatePropertyObjectAndArrayAccess();
+        $propertyObject3 = new Twig_TemplatePropertyObjectDefinedWithUndefinedValue();
+        $methodObject = new Twig_TemplateMethodObject();
+        $magicMethodObject = new Twig_TemplateMagicMethodObject();
 
-        $anyType    = Twig_Template::ANY_CALL;
+        $anyType = Twig_Template::ANY_CALL;
         $methodType = Twig_Template::METHOD_CALL;
-        $arrayType  = Twig_Template::ARRAY_CALL;
+        $arrayType = Twig_Template::ARRAY_CALL;
 
         $basicTests = array(
             // array(defined, value, property to fetch)
-            array(true,  'defined', 'defined'),
-            array(false, null,      'undefined'),
-            array(false, null,      'protected'),
-            array(true,  0,         'zero'),
-            array(true,  1,         1),
-            array(true,  1,         1.0),
-            array(true,  null,      'null'),
-            array(true,  true,      'bar'),
-            array(true,  '09',      '09'),
-            array(true,  '+4',      '+4'),
+            array(true, 'defined', 'defined'),
+            array(false, null, 'undefined'),
+            array(false, null, 'protected'),
+            array(true, 0, 'zero'),
+            array(true, 1, 1),
+            array(true, 1, 1.0),
+            array(true, null, 'null'),
+            array(true, true, 'bar'),
+            array(true, '09', '09'),
+            array(true, '+4', '+4'),
         );
         $testObjects = array(
             // array(object, type of fetch)
-            array($array,               $arrayType),
-            array($objectArray,         $arrayType),
-            array($stdObject,           $anyType),
+            array($array, $arrayType),
+            array($objectArray, $arrayType),
+            array($stdObject, $anyType),
             array($magicPropertyObject, $anyType),
-            array($methodObject,        $methodType),
-            array($methodObject,        $anyType),
-            array($propertyObject,      $anyType),
-            array($propertyObject1,     $anyType),
-            array($propertyObject2,     $anyType),
+            array($methodObject, $methodType),
+            array($methodObject, $anyType),
+            array($propertyObject, $anyType),
+            array($propertyObject1, $anyType),
+            array($propertyObject2, $anyType),
         );
 
         $tests = array();
         foreach ($testObjects as $testObject) {
             foreach ($basicTests as $test) {
                 // properties cannot be numbers
-                if (($testObject[0] instanceof stdClass || $testObject[0] instanceof Twig_TemplatePropertyObject) && is_numeric($test[2])) {
-                     continue;
+                if (( $testObject[0] instanceof stdClass || $testObject[0] instanceof Twig_TemplatePropertyObject ) && is_numeric($test[2])) {
+                    continue;
                 }
 
                 if ('+4' === $test[2] && $methodObject === $testObject[0]) {
@@ -325,13 +400,12 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 
         // additional method tests
         $tests = array_merge($tests, array(
-            array(true, 'defined', $methodObject, 'defined',    array(), $methodType),
-            array(true, 'defined', $methodObject, 'DEFINED',    array(), $methodType),
+            array(true, 'defined', $methodObject, 'defined', array(), $methodType),
+            array(true, 'defined', $methodObject, 'DEFINED', array(), $methodType),
             array(true, 'defined', $methodObject, 'getDefined', array(), $methodType),
             array(true, 'defined', $methodObject, 'GETDEFINED', array(), $methodType),
-            array(true, 'static',  $methodObject, 'static',     array(), $methodType),
-            array(true, 'static',  $methodObject, 'getStatic',  array(), $methodType),
-
+            array(true, 'static', $methodObject, 'static', array(), $methodType),
+            array(true, 'static', $methodObject, 'getStatic', array(), $methodType),
             array(true, '__call_undefined', $magicMethodObject, 'undefined', array(), $methodType),
             array(true, '__call_UNDEFINED', $magicMethodObject, 'UNDEFINED', array(), $methodType),
         ));
@@ -351,13 +425,11 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
             array(true, 'a', $methodAndPropObject, 'a', array(), $anyType),
             array(true, 'a', $methodAndPropObject, 'a', array(), $methodType),
             array(false, null, $methodAndPropObject, 'a', array(), $arrayType),
-
             array(true, 'b_prop', $methodAndPropObject, 'b', array(), $anyType),
             array(true, 'b', $methodAndPropObject, 'B', array(), $anyType),
             array(true, 'b', $methodAndPropObject, 'b', array(), $methodType),
             array(true, 'b', $methodAndPropObject, 'B', array(), $methodType),
             array(false, null, $methodAndPropObject, 'b', array(), $arrayType),
-
             array(false, null, $methodAndPropObject, 'c', array(), $anyType),
             array(false, null, $methodAndPropObject, 'c', array(), $methodType),
             array(false, null, $methodAndPropObject, 'c', array(), $arrayType),
@@ -366,8 +438,26 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 
         // tests when input is not an array or object
         $tests = array_merge($tests, array(
-            array(false, null, 42, 'a', array(), $anyType, false, 'Impossible to access an attribute ("a") on a integer variable ("42")'),
-            array(false, null, "string", 'a', array(), $anyType, false, 'Impossible to access an attribute ("a") on a string variable ("string")'),
+            array(
+                false,
+                null,
+                42,
+                'a',
+                array(),
+                $anyType,
+                false,
+                'Impossible to access an attribute ("a") on a integer variable ("42")'
+            ),
+            array(
+                false,
+                null,
+                "string",
+                'a',
+                array(),
+                $anyType,
+                false,
+                'Impossible to access an attribute ("a") on a string variable ("string")'
+            ),
             array(false, null, array(), 'a', array(), $anyType, false, 'Key "a" for array with keys "" does not exist'),
         ));
 
@@ -387,10 +477,12 @@ class Twig_Tests_TemplateTest extends PHPUnit_Framework_TestCase
 
 class Twig_TemplateTest extends Twig_Template
 {
+
     protected $useExtGetAttribute = false;
 
     public function __construct(Twig_Environment $env, $useExtGetAttribute = false)
     {
+
         parent::__construct($env);
         $this->useExtGetAttribute = $useExtGetAttribute;
         Twig_Template::clearCache();
@@ -398,21 +490,25 @@ class Twig_TemplateTest extends Twig_Template
 
     public function getZero()
     {
+
         return 0;
     }
 
     public function getEmpty()
     {
+
         return '';
     }
 
     public function getString()
     {
+
         return 'some_string';
     }
 
     public function getTrue()
     {
+
         return true;
     }
 
@@ -422,29 +518,39 @@ class Twig_TemplateTest extends Twig_Template
 
     public function getDebugInfo()
     {
+
         return array();
     }
 
-    public function getAttribute($object, $item, array $arguments = array(), $type = Twig_Template::ANY_CALL, $isDefinedTest = false, $ignoreStrictCheck = false)
-    {
+    public function getAttribute(
+        $object,
+        $item,
+        array $arguments = array(),
+        $type = Twig_Template::ANY_CALL,
+        $isDefinedTest = false,
+        $ignoreStrictCheck = false
+    ) {
+
         if ($this->useExtGetAttribute) {
-            return twig_template_get_attributes($this, $object, $item, $arguments, $type, $isDefinedTest, $ignoreStrictCheck);
+            return twig_template_get_attributes($this, $object, $item, $arguments, $type, $isDefinedTest,
+                $ignoreStrictCheck);
         } else {
             return parent::getAttribute($object, $item, $arguments, $type, $isDefinedTest, $ignoreStrictCheck);
         }
     }
 
-    protected function doGetParent( array $context )
+    protected function doGetParent(array $context)
     {
     }
 
-    protected function doDisplay( array $context, array $blocks = array() )
+    protected function doDisplay(array $context, array $blocks = array())
     {
     }
 }
 
 class Twig_TemplateArrayAccessObject implements ArrayAccess
 {
+
     public $attributes = array(
         'defined' => 'defined',
         'zero'    => 0,
@@ -458,11 +564,13 @@ class Twig_TemplateArrayAccessObject implements ArrayAccess
 
     public function offsetExists($name)
     {
+
         return array_key_exists($name, $this->attributes);
     }
 
     public function offsetGet($name)
     {
+
         return array_key_exists($name, $this->attributes) ? $this->attributes[$name] : null;
     }
 
@@ -477,70 +585,79 @@ class Twig_TemplateArrayAccessObject implements ArrayAccess
 
 class Twig_TemplateMagicPropertyObject
 {
+
     public $defined = 'defined';
 
     public $attributes = array(
-        'zero'    => 0,
-        'null'    => null,
-        '1'       => 1,
-        'bar'     => true,
-        '09'      => '09',
-        '+4'      => '+4',
+        'zero' => 0,
+        'null' => null,
+        '1'    => 1,
+        'bar'  => true,
+        '09'   => '09',
+        '+4'   => '+4',
     );
 
     protected $protected = 'protected';
 
     public function __isset($name)
     {
+
         return array_key_exists($name, $this->attributes);
     }
 
     public function __get($name)
     {
+
         return array_key_exists($name, $this->attributes) ? $this->attributes[$name] : null;
     }
 }
 
 class Twig_TemplateMagicPropertyObjectWithException
 {
+
     public function __isset($key)
     {
+
         throw new Exception("Hey! Don't try to isset me!");
     }
 }
 
 class Twig_TemplatePropertyObject
 {
+
     public $defined = 'defined';
-    public $zero    = 0;
-    public $null    = null;
-    public $bar     = true;
+    public $zero = 0;
+    public $null = null;
+    public $bar = true;
 
     protected $protected = 'protected';
 }
 
 class Twig_TemplatePropertyObjectAndIterator extends Twig_TemplatePropertyObject implements IteratorAggregate
 {
+
     public function getIterator()
     {
+
         return new ArrayIterator(array('foo', 'bar'));
     }
 }
 
 class Twig_TemplatePropertyObjectAndArrayAccess extends Twig_TemplatePropertyObject implements ArrayAccess
 {
+
     private $data = array();
 
-    public function offsetGet( $offset )
+    public function offsetGet($offset)
     {
 
-        return $this->offsetExists( $offset ) ? $this->data[$offset] : 'n/a';
+        return $this->offsetExists($offset) ? $this->data[$offset] : 'n/a';
     }
 
-    public function offsetExists( $offset )
+    public function offsetExists($offset)
     {
 
-        return array_key_exists( $offset, $this->data );
+        return array_key_exists($offset, $this->data);
     }
 
     public function offsetSet($offset, $value)
@@ -554,10 +671,12 @@ class Twig_TemplatePropertyObjectAndArrayAccess extends Twig_TemplatePropertyObj
 
 class Twig_TemplatePropertyObjectDefinedWithUndefinedValue
 {
+
     public $foo;
 
     public function __construct()
     {
+
         $this->foo = @$notExist;
     }
 }
@@ -573,21 +692,25 @@ class Twig_TemplateMethodObject
 
     public function getDefined()
     {
+
         return 'defined';
     }
 
     public function get1()
     {
+
         return 1;
     }
 
     public function get09()
     {
+
         return '09';
     }
 
     public function getZero()
     {
+
         return 0;
     }
 
@@ -597,11 +720,13 @@ class Twig_TemplateMethodObject
 
     public function isBar()
     {
+
         return true;
     }
 
     protected function getProtected()
     {
+
         return 'protected';
     }
 }
@@ -615,40 +740,49 @@ class Twig_TemplateMethodAndPropObject
 
     public function getA()
     {
+
         return 'a';
     }
 
     public function getB()
     {
+
         return 'b';
     }
 
     private function getC()
     {
+
         return 'c';
     }
 }
 
 class Twig_TemplateMagicMethodObject
 {
+
     public function __call($method, $arguments)
     {
+
         return '__call_'.$method;
     }
 }
 
 class Twig_TemplateMagicMethodExceptionObject
 {
+
     public function __call($method, $arguments)
     {
+
         throw new BadMethodCallException(sprintf('Unkown method %s', $method));
     }
 }
 
 class CExtDisablingNodeVisitor implements Twig_NodeVisitorInterface
 {
+
     public function enterNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         if ($node instanceof Twig_Node_Expression_GetAttr) {
             $node->setAttribute('disable_c_ext', true);
         }
@@ -658,11 +792,13 @@ class CExtDisablingNodeVisitor implements Twig_NodeVisitorInterface
 
     public function leaveNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         return $node;
     }
 
     public function getPriority()
     {
+
         return 0;
     }
 }

@@ -16,6 +16,7 @@ namespace Symfony\Component\Finder\Shell;
  */
 class Command
 {
+
     /**
      * @var Command|null
      */
@@ -41,8 +42,9 @@ class Command
      *
      * @param Command|null $parent Parent command
      */
-    public function __construct( Command $parent = null )
+    public function __construct(Command $parent = null)
     {
+
         $this->parent = $parent;
     }
 
@@ -53,6 +55,7 @@ class Command
      */
     public function __toString()
     {
+
         return $this->join();
     }
 
@@ -64,16 +67,16 @@ class Command
     public function join()
     {
 
-        return implode( ' ', array_filter(
-            array_map( function ( $bit ) {
+        return implode(' ', array_filter(
+            array_map(function ($bit) {
 
                 return $bit instanceof Command ? $bit->join() : ( $bit ?: null );
-            }, $this->bits ),
-            function ( $bit ) {
+            }, $this->bits),
+            function ($bit) {
 
                 return null !== $bit;
             }
-        ) );
+        ));
     }
 
     /**
@@ -83,8 +86,9 @@ class Command
      *
      * @return Command The current Command instance
      */
-    public function add( $bit )
+    public function add($bit)
     {
+
         $this->bits[] = $bit;
 
         return $this;
@@ -97,10 +101,10 @@ class Command
      *
      * @return Command The current Command instance
      */
-    public function top( $bit )
+    public function top($bit)
     {
 
-        array_unshift( $this->bits, $bit );
+        array_unshift($this->bits, $bit);
 
         foreach ($this->labels as $label => $index) {
             $this->labels[$label] += 1;
@@ -116,10 +120,10 @@ class Command
      *
      * @return Command The current Command instance
      */
-    public function arg( $arg )
+    public function arg($arg)
     {
 
-        $this->bits[] = self::quote( $arg );
+        $this->bits[] = self::quote($arg);
 
         return $this;
     }
@@ -131,10 +135,10 @@ class Command
      *
      * @return string The quoted string
      */
-    public static function quote( $input )
+    public static function quote($input)
     {
 
-        return escapeshellarg( $input );
+        return escapeshellarg($input);
     }
 
     /**
@@ -144,10 +148,10 @@ class Command
      *
      * @return Command The current Command instance
      */
-    public function cmd( $esc )
+    public function cmd($esc)
     {
 
-        $this->bits[] = self::escape( $esc );
+        $this->bits[] = self::escape($esc);
 
         return $this;
     }
@@ -159,10 +163,10 @@ class Command
      *
      * @return string The escaped string
      */
-    public static function escape( $input )
+    public static function escape($input)
     {
 
-        return escapeshellcmd( $input );
+        return escapeshellcmd($input);
     }
 
     /**
@@ -174,15 +178,15 @@ class Command
      *
      * @throws \RuntimeException If label already exists
      */
-    public function ins( $label )
+    public function ins($label)
     {
 
         if (isset( $this->labels[$label] )) {
-            throw new \RuntimeException( sprintf( 'Label "%s" already exists.', $label ) );
+            throw new \RuntimeException(sprintf('Label "%s" already exists.', $label));
         }
 
-        $this->bits[] = self::create( $this );
-        $this->labels[$label] = count( $this->bits ) - 1;
+        $this->bits[] = self::create($this);
+        $this->labels[$label] = count($this->bits) - 1;
 
         return $this->bits[$this->labels[$label]];
     }
@@ -194,10 +198,10 @@ class Command
      *
      * @return Command New Command instance
      */
-    public static function create( Command $parent = null )
+    public static function create(Command $parent = null)
     {
 
-        return new self( $parent );
+        return new self($parent);
     }
 
     /**
@@ -209,11 +213,11 @@ class Command
      *
      * @throws \RuntimeException
      */
-    public function get( $label )
+    public function get($label)
     {
 
         if (!isset( $this->labels[$label] )) {
-            throw new \RuntimeException( sprintf( 'Label "%s" does not exist.', $label ) );
+            throw new \RuntimeException(sprintf('Label "%s" does not exist.', $label));
         }
 
         return $this->bits[$this->labels[$label]];
@@ -228,8 +232,9 @@ class Command
      */
     public function end()
     {
+
         if (null === $this->parent) {
-            throw new \RuntimeException( 'Calling end on root command doesn\'t make sense.' );
+            throw new \RuntimeException('Calling end on root command doesn\'t make sense.');
         }
 
         return $this->parent;
@@ -243,7 +248,7 @@ class Command
     public function length()
     {
 
-        return count( $this->bits );
+        return count($this->bits);
     }
 
     /**
@@ -251,6 +256,7 @@ class Command
      */
     public function getErrorHandler()
     {
+
         return $this->errorHandler;
     }
 
@@ -259,8 +265,9 @@ class Command
      *
      * @return Command
      */
-    public function setErrorHandler( \Closure $errorHandler )
+    public function setErrorHandler(\Closure $errorHandler)
     {
+
         $this->errorHandler = $errorHandler;
 
         return $this;
@@ -275,18 +282,19 @@ class Command
      */
     public function execute()
     {
-        if (null === $errorHandler = $this->errorHandler) {
-            exec( $this->join(), $output );
-        } else {
-            $process = proc_open( $this->join(),
-                array( 0 => array( 'pipe', 'r' ), 1 => array( 'pipe', 'w' ), 2 => array( 'pipe', 'w' ) ), $pipes );
-            $output = preg_split( '~(\r\n|\r|\n)~', stream_get_contents( $pipes[1] ), -1, PREG_SPLIT_NO_EMPTY );
 
-            if ($error = stream_get_contents( $pipes[2] )) {
-                $errorHandler( $error );
+        if (null === $errorHandler = $this->errorHandler) {
+            exec($this->join(), $output);
+        } else {
+            $process = proc_open($this->join(),
+                array(0 => array('pipe', 'r'), 1 => array('pipe', 'w'), 2 => array('pipe', 'w')), $pipes);
+            $output = preg_split('~(\r\n|\r|\n)~', stream_get_contents($pipes[1]), -1, PREG_SPLIT_NO_EMPTY);
+
+            if ($error = stream_get_contents($pipes[2])) {
+                $errorHandler($error);
             }
 
-            proc_close( $process );
+            proc_close($process);
         }
 
         return $output ?: array();
@@ -300,10 +308,10 @@ class Command
      *
      * @return Command The current Command instance
      */
-    public function addAtIndex( $bit, $index )
+    public function addAtIndex($bit, $index)
     {
 
-        array_splice( $this->bits, $index, 0, $bit );
+        array_splice($this->bits, $index, 0, $bit);
 
         return $this;
     }

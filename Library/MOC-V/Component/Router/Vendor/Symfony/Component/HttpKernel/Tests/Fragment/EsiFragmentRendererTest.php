@@ -19,19 +19,21 @@ use Symfony\Component\HttpKernel\UriSigner;
 
 class EsiFragmentRendererTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testRenderFallbackToInlineStrategyIfNoRequest()
     {
+
         $strategy = new EsiFragmentRenderer(new Esi(), $this->getInlineStrategy(true));
         $strategy->render('/', Request::create('/'));
     }
 
-    private function getInlineStrategy( $called = false )
+    private function getInlineStrategy($called = false)
     {
 
-        $inline = $this->getMockBuilder( 'Symfony\Component\HttpKernel\Fragment\InlineFragmentRenderer' )->disableOriginalConstructor()->getMock();
+        $inline = $this->getMockBuilder('Symfony\Component\HttpKernel\Fragment\InlineFragmentRenderer')->disableOriginalConstructor()->getMock();
 
         if ($called) {
-            $inline->expects( $this->once() )->method( 'render' );
+            $inline->expects($this->once())->method('render');
         }
 
         return $inline;
@@ -39,12 +41,14 @@ class EsiFragmentRendererTest extends \PHPUnit_Framework_TestCase
 
     public function testRenderFallbackToInlineStrategyIfEsiNotSupported()
     {
+
         $strategy = new EsiFragmentRenderer(new Esi(), $this->getInlineStrategy(true));
         $strategy->render('/', Request::create('/'));
     }
 
     public function testRender()
     {
+
         $strategy = new EsiFragmentRenderer(new Esi(), $this->getInlineStrategy());
 
         $request = Request::create('/');
@@ -52,12 +56,15 @@ class EsiFragmentRendererTest extends \PHPUnit_Framework_TestCase
         $request->headers->set('Surrogate-Capability', 'ESI/1.0');
 
         $this->assertEquals('<esi:include src="/" />', $strategy->render('/', $request)->getContent());
-        $this->assertEquals("<esi:comment text=\"This is a comment\" />\n<esi:include src=\"/\" />", $strategy->render('/', $request, array('comment' => 'This is a comment'))->getContent());
-        $this->assertEquals('<esi:include src="/" alt="foo" />', $strategy->render('/', $request, array('alt' => 'foo'))->getContent());
+        $this->assertEquals("<esi:comment text=\"This is a comment\" />\n<esi:include src=\"/\" />",
+            $strategy->render('/', $request, array('comment' => 'This is a comment'))->getContent());
+        $this->assertEquals('<esi:include src="/" alt="foo" />',
+            $strategy->render('/', $request, array('alt' => 'foo'))->getContent());
     }
 
     public function testRenderControllerReference()
     {
+
         $signer = new UriSigner('foo');
         $strategy = new EsiFragmentRenderer(new Esi(), $this->getInlineStrategy(), $signer);
 
@@ -79,6 +86,7 @@ class EsiFragmentRendererTest extends \PHPUnit_Framework_TestCase
      */
     public function testRenderControllerReferenceWithoutSignerThrowsException()
     {
+
         $strategy = new EsiFragmentRenderer(new Esi(), $this->getInlineStrategy());
 
         $request = Request::create('/');
@@ -93,6 +101,7 @@ class EsiFragmentRendererTest extends \PHPUnit_Framework_TestCase
      */
     public function testRenderAltControllerReferenceWithoutSignerThrowsException()
     {
+
         $strategy = new EsiFragmentRenderer(new Esi(), $this->getInlineStrategy());
 
         $request = Request::create('/');

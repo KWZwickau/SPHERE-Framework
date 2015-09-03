@@ -18,6 +18,7 @@ namespace Prophecy\Argument\Token;
  */
 class ArrayEveryEntryToken implements TokenInterface
 {
+
     /**
      * @var TokenInterface
      */
@@ -28,6 +29,7 @@ class ArrayEveryEntryToken implements TokenInterface
      */
     public function __construct($value)
     {
+
         if (!$value instanceof TokenInterface) {
             $value = new ExactValueToken($value);
         }
@@ -40,6 +42,7 @@ class ArrayEveryEntryToken implements TokenInterface
      */
     public function scoreArgument($argument)
     {
+
         if (!$argument instanceof \Traversable && !is_array($argument)) {
             return false;
         }
@@ -49,7 +52,7 @@ class ArrayEveryEntryToken implements TokenInterface
             $scores[] = $this->value->scoreArgument($argumentEntry);
         }
 
-        if (empty($scores) || in_array(false, $scores, true)) {
+        if (empty( $scores ) || in_array(false, $scores, true)) {
             return false;
         }
 
@@ -61,6 +64,7 @@ class ArrayEveryEntryToken implements TokenInterface
      */
     public function isLast()
     {
+
         return false;
     }
 
@@ -69,6 +73,7 @@ class ArrayEveryEntryToken implements TokenInterface
      */
     public function __toString()
     {
+
         return sprintf('[%s, ..., %s]', $this->value, $this->value);
     }
 
@@ -77,6 +82,7 @@ class ArrayEveryEntryToken implements TokenInterface
      */
     public function getValue()
     {
+
         return $this->value;
     }
 }

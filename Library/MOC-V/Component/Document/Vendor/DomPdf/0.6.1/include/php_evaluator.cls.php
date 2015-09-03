@@ -20,22 +20,22 @@ class PHP_Evaluator
      */
     protected $_canvas;
 
-    function __construct( Canvas $canvas )
+    function __construct(Canvas $canvas)
     {
 
         $this->_canvas = $canvas;
     }
 
-    function render( Frame $frame )
+    function render(Frame $frame)
     {
 
-        $this->evaluate( $frame->get_node()->nodeValue );
+        $this->evaluate($frame->get_node()->nodeValue);
     }
 
-    function evaluate( $code, $vars = array() )
+    function evaluate($code, $vars = array())
     {
 
-        if (!$this->_canvas->get_dompdf()->get_option( "enable_php" )) {
+        if (!$this->_canvas->get_dompdf()->get_option("enable_php")) {
             return;
         }
 

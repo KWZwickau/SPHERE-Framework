@@ -18,6 +18,7 @@ namespace Symfony\Component\Config\Loader;
  */
 interface LoaderInterface
 {
+
     /**
      * Loads a resource.
      *

@@ -31,11 +31,12 @@ use Doctrine\DBAL\Connection;
  */
 class ExpressionBuilder
 {
-    const EQ  = '=';
+
+    const EQ = '=';
     const NEQ = '<>';
-    const LT  = '<';
+    const LT = '<';
     const LTE = '<=';
-    const GT  = '>';
+    const GT = '>';
     const GTE = '>=';
 
     /**
@@ -52,6 +53,7 @@ class ExpressionBuilder
      */
     public function __construct(Connection $connection)
     {
+
         $this->connection = $connection;
     }
 
@@ -71,6 +73,7 @@ class ExpressionBuilder
      */
     public function andX($x = null)
     {
+
         return new CompositeExpression(CompositeExpression::TYPE_AND, func_get_args());
     }
 
@@ -90,21 +93,8 @@ class ExpressionBuilder
      */
     public function orX($x = null)
     {
-        return new CompositeExpression(CompositeExpression::TYPE_OR, func_get_args());
-    }
 
-    /**
-     * Creates a comparison expression.
-     *
-     * @param mixed  $x        The left expression.
-     * @param string $operator One of the ExpressionBuilder::* constants.
-     * @param mixed  $y        The right expression.
-     *
-     * @return string
-     */
-    public function comparison($x, $operator, $y)
-    {
-        return $x . ' ' . $operator . ' ' . $y;
+        return new CompositeExpression(CompositeExpression::TYPE_OR, func_get_args());
     }
 
     /**
@@ -124,7 +114,23 @@ class ExpressionBuilder
      */
     public function eq($x, $y)
     {
+
         return $this->comparison($x, self::EQ, $y);
+    }
+
+    /**
+     * Creates a comparison expression.
+     *
+     * @param mixed  $x        The left expression.
+     * @param string $operator One of the ExpressionBuilder::* constants.
+     * @param mixed  $y        The right expression.
+     *
+     * @return string
+     */
+    public function comparison($x, $operator, $y)
+    {
+
+        return $x.' '.$operator.' '.$y;
     }
 
     /**
@@ -143,6 +149,7 @@ class ExpressionBuilder
      */
     public function neq($x, $y)
     {
+
         return $this->comparison($x, self::NEQ, $y);
     }
 
@@ -162,6 +169,7 @@ class ExpressionBuilder
      */
     public function lt($x, $y)
     {
+
         return $this->comparison($x, self::LT, $y);
     }
 
@@ -181,6 +189,7 @@ class ExpressionBuilder
      */
     public function lte($x, $y)
     {
+
         return $this->comparison($x, self::LTE, $y);
     }
 
@@ -200,6 +209,7 @@ class ExpressionBuilder
      */
     public function gt($x, $y)
     {
+
         return $this->comparison($x, self::GT, $y);
     }
 
@@ -219,6 +229,7 @@ class ExpressionBuilder
      */
     public function gte($x, $y)
     {
+
         return $this->comparison($x, self::GTE, $y);
     }
 
@@ -231,7 +242,8 @@ class ExpressionBuilder
      */
     public function isNull($x)
     {
-        return $x . ' IS NULL';
+
+        return $x.' IS NULL';
     }
 
     /**
@@ -243,7 +255,8 @@ class ExpressionBuilder
      */
     public function isNotNull($x)
     {
-        return $x . ' IS NOT NULL';
+
+        return $x.' IS NOT NULL';
     }
 
     /**
@@ -256,6 +269,7 @@ class ExpressionBuilder
      */
     public function like($x, $y)
     {
+
         return $this->comparison($x, 'LIKE', $y);
     }
 
@@ -269,6 +283,7 @@ class ExpressionBuilder
      */
     public function notLike($x, $y)
     {
+
         return $this->comparison($x, 'NOT LIKE', $y);
     }
 
@@ -282,7 +297,8 @@ class ExpressionBuilder
      */
     public function in($x, $y)
     {
-        return $this->comparison($x, 'IN', '('.implode(', ', (array) $y).')');
+
+        return $this->comparison($x, 'IN', '('.implode(', ', (array)$y).')');
     }
 
     /**
@@ -295,7 +311,8 @@ class ExpressionBuilder
      */
     public function notIn($x, $y)
     {
-        return $this->comparison($x, 'NOT IN', '('.implode(', ', (array) $y).')');
+
+        return $this->comparison($x, 'NOT IN', '('.implode(', ', (array)$y).')');
     }
 
     /**
@@ -308,6 +325,7 @@ class ExpressionBuilder
      */
     public function literal($input, $type = null)
     {
+
         return $this->connection->quote($input, $type);
     }
 }

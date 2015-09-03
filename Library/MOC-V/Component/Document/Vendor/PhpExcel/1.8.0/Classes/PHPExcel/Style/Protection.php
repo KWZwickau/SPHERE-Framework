@@ -65,11 +65,11 @@ class PHPExcel_Style_Protection extends PHPExcel_Style_Supervisor implements PHP
      *                                        Leave this value at default unless you understand exactly what
      *                                        its ramifications are
      */
-    public function __construct( $isSupervisor = false, $isConditional = false )
+    public function __construct($isSupervisor = false, $isConditional = false)
     {
 
         // Supervisor?
-        parent::__construct( $isSupervisor );
+        parent::__construct($isSupervisor);
 
         // Initialise values
         if (!$isConditional) {
@@ -95,22 +95,22 @@ class PHPExcel_Style_Protection extends PHPExcel_Style_Supervisor implements PHP
      * @throws    PHPExcel_Exception
      * @return PHPExcel_Style_Protection
      */
-    public function applyFromArray( $pStyles = null )
+    public function applyFromArray($pStyles = null)
     {
 
-        if (is_array( $pStyles )) {
+        if (is_array($pStyles)) {
             if ($this->_isSupervisor) {
-                $this->getActiveSheet()->getStyle( $this->getSelectedCells() )->applyFromArray( $this->getStyleArray( $pStyles ) );
+                $this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($this->getStyleArray($pStyles));
             } else {
                 if (isset( $pStyles['locked'] )) {
-                    $this->setLocked( $pStyles['locked'] );
+                    $this->setLocked($pStyles['locked']);
                 }
                 if (isset( $pStyles['hidden'] )) {
-                    $this->setHidden( $pStyles['hidden'] );
+                    $this->setHidden($pStyles['hidden']);
                 }
             }
         } else {
-            throw new PHPExcel_Exception( "Invalid style array passed." );
+            throw new PHPExcel_Exception("Invalid style array passed.");
         }
         return $this;
     }
@@ -122,10 +122,10 @@ class PHPExcel_Style_Protection extends PHPExcel_Style_Supervisor implements PHP
      *
      * @return array
      */
-    public function getStyleArray( $array )
+    public function getStyleArray($array)
     {
 
-        return array( 'protection' => $array );
+        return array('protection' => $array);
     }
 
     /**
@@ -149,12 +149,12 @@ class PHPExcel_Style_Protection extends PHPExcel_Style_Supervisor implements PHP
      *
      * @return PHPExcel_Style_Protection
      */
-    public function setLocked( $pValue = self::PROTECTION_INHERIT )
+    public function setLocked($pValue = self::PROTECTION_INHERIT)
     {
 
         if ($this->_isSupervisor) {
-            $styleArray = $this->getStyleArray( array( 'locked' => $pValue ) );
-            $this->getActiveSheet()->getStyle( $this->getSelectedCells() )->applyFromArray( $styleArray );
+            $styleArray = $this->getStyleArray(array('locked' => $pValue));
+            $this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
         } else {
             $this->_locked = $pValue;
         }
@@ -194,12 +194,12 @@ class PHPExcel_Style_Protection extends PHPExcel_Style_Supervisor implements PHP
      *
      * @return PHPExcel_Style_Protection
      */
-    public function setHidden( $pValue = self::PROTECTION_INHERIT )
+    public function setHidden($pValue = self::PROTECTION_INHERIT)
     {
 
         if ($this->_isSupervisor) {
-            $styleArray = $this->getStyleArray( array( 'hidden' => $pValue ) );
-            $this->getActiveSheet()->getStyle( $this->getSelectedCells() )->applyFromArray( $styleArray );
+            $styleArray = $this->getStyleArray(array('hidden' => $pValue));
+            $this->getActiveSheet()->getStyle($this->getSelectedCells())->applyFromArray($styleArray);
         } else {
             $this->_hidden = $pValue;
         }

@@ -11,18 +11,21 @@
 
 class Twig_Tests_EnvironmentTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @expectedException        LogicException
      * @expectedExceptionMessage You must set a loader first.
      */
     public function testRenderNoLoader()
     {
+
         $env = new Twig_Environment();
         $env->render('test');
     }
 
     public function testAutoescapeOption()
     {
+
         $loader = new Twig_Loader_Array(array(
             'html' => '{{ foo }} {{ foo }}',
             'js'   => '{{ bar }} {{ bar }}',
@@ -35,16 +38,19 @@ class Twig_Tests_EnvironmentTest extends PHPUnit_Framework_TestCase
         ));
 
         $this->assertEquals('foo&lt;br/ &gt; foo&lt;br/ &gt;', $twig->render('html', array('foo' => 'foo<br/ >')));
-        $this->assertEquals('foo\x3Cbr\x2F\x20\x3E foo\x3Cbr\x2F\x20\x3E', $twig->render('js', array('bar' => 'foo<br/ >')));
+        $this->assertEquals('foo\x3Cbr\x2F\x20\x3E foo\x3Cbr\x2F\x20\x3E',
+            $twig->render('js', array('bar' => 'foo<br/ >')));
     }
 
     public function escapingStrategyCallback($filename)
     {
+
         return $filename;
     }
 
     public function testGlobals()
     {
+
         // globals can be added after calling getGlobals
         $twig = new Twig_Environment(new Twig_Loader_String());
         $twig->addGlobal('foo', 'foo');
@@ -139,6 +145,7 @@ class Twig_Tests_EnvironmentTest extends PHPUnit_Framework_TestCase
 
     public function testExtensionsAreNotInitializedWhenRenderingACompiledTemplate()
     {
+
         $options = array('cache' => sys_get_temp_dir().'/twig', 'auto_reload' => false, 'debug' => false);
 
         // force compilation
@@ -154,8 +161,7 @@ class Twig_Tests_EnvironmentTest extends PHPUnit_Framework_TestCase
             ->getMockBuilder('Twig_Environment')
             ->setConstructorArgs(array(new Twig_Loader_String(), $options))
             ->setMethods(array('initExtensions'))
-            ->getMock()
-        ;
+            ->getMock();
 
         $twig->expects($this->never())->method('initExtensions');
 
@@ -168,6 +174,7 @@ class Twig_Tests_EnvironmentTest extends PHPUnit_Framework_TestCase
 
     public function testAddExtension()
     {
+
         $twig = new Twig_Environment(new Twig_Loader_String());
         $twig->addExtension(new Twig_Tests_EnvironmentTest_Extension());
 
@@ -184,6 +191,7 @@ class Twig_Tests_EnvironmentTest extends PHPUnit_Framework_TestCase
 
     public function testRemoveExtension()
     {
+
         $twig = new Twig_Environment(new Twig_Loader_String());
         $twig->addExtension(new Twig_Tests_EnvironmentTest_Extension());
         $twig->removeExtension('environment_test');
@@ -201,8 +209,10 @@ class Twig_Tests_EnvironmentTest extends PHPUnit_Framework_TestCase
 
 class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 {
+
     public function getTokenParsers()
     {
+
         return array(
             new Twig_Tests_EnvironmentTest_TokenParser(),
         );
@@ -210,6 +220,7 @@ class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 
     public function getNodeVisitors()
     {
+
         return array(
             new Twig_Tests_EnvironmentTest_NodeVisitor(),
         );
@@ -217,6 +228,7 @@ class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 
     public function getFilters()
     {
+
         return array(
             new Twig_SimpleFilter('foo_filter', 'foo_filter'),
         );
@@ -224,6 +236,7 @@ class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 
     public function getTests()
     {
+
         return array(
             new Twig_SimpleTest('foo_test', 'foo_test'),
         );
@@ -231,6 +244,7 @@ class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 
     public function getFunctions()
     {
+
         return array(
             new Twig_SimpleFunction('foo_function', 'foo_function'),
         );
@@ -238,6 +252,7 @@ class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 
     public function getOperators()
     {
+
         return array(
             array('foo_unary' => array()),
             array('foo_binary' => array()),
@@ -246,6 +261,7 @@ class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 
     public function getGlobals()
     {
+
         return array(
             'foo_global' => 'foo_global',
         );
@@ -253,36 +269,43 @@ class Twig_Tests_EnvironmentTest_Extension extends Twig_Extension
 
     public function getName()
     {
+
         return 'environment_test';
     }
 }
 
 class Twig_Tests_EnvironmentTest_TokenParser extends Twig_TokenParser
 {
+
     public function parse(Twig_Token $token)
     {
     }
 
     public function getTag()
     {
+
         return 'test';
     }
 }
 
 class Twig_Tests_EnvironmentTest_NodeVisitor implements Twig_NodeVisitorInterface
 {
+
     public function enterNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         return $node;
     }
 
     public function leaveNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         return $node;
     }
 
     public function getPriority()
     {
+
         return 0;
     }
 }

@@ -19,7 +19,7 @@
 
 namespace Doctrine\DBAL\Schema;
 
-use \Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 
 /**
  * Schema Diff.
@@ -32,6 +32,7 @@ use \Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class SchemaDiff
 {
+
     /**
      * @var \Doctrine\DBAL\Schema\Schema
      */
@@ -100,12 +101,17 @@ class SchemaDiff
      * @param \Doctrine\DBAL\Schema\Table[]     $removedTables
      * @param \Doctrine\DBAL\Schema\Schema|null $fromSchema
      */
-    public function __construct($newTables = array(), $changedTables = array(), $removedTables = array(), Schema $fromSchema = null)
-    {
-        $this->newTables     = $newTables;
+    public function __construct(
+        $newTables = array(),
+        $changedTables = array(),
+        $removedTables = array(),
+        Schema $fromSchema = null
+    ) {
+
+        $this->newTables = $newTables;
         $this->changedTables = $changedTables;
         $this->removedTables = $removedTables;
-        $this->fromSchema    = $fromSchema;
+        $this->fromSchema = $fromSchema;
     }
 
     /**
@@ -123,17 +129,8 @@ class SchemaDiff
      */
     public function toSaveSql(AbstractPlatform $platform)
     {
-        return $this->_toSql($platform, true);
-    }
 
-    /**
-     * @param \Doctrine\DBAL\Platforms\AbstractPlatform $platform
-     *
-     * @return array
-     */
-    public function toSql(AbstractPlatform $platform)
-    {
-        return $this->_toSql($platform, false);
+        return $this->_toSql($platform, true);
     }
 
     /**
@@ -144,6 +141,7 @@ class SchemaDiff
      */
     protected function _toSql(AbstractPlatform $platform, $saveMode = false)
     {
+
         $sql = array();
 
         if ($platform->supportsSchemas()) {
@@ -200,5 +198,16 @@ class SchemaDiff
         }
 
         return $sql;
+    }
+
+    /**
+     * @param \Doctrine\DBAL\Platforms\AbstractPlatform $platform
+     *
+     * @return array
+     */
+    public function toSql(AbstractPlatform $platform)
+    {
+
+        return $this->_toSql($platform, false);
     }
 }

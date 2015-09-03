@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 interface ControllerResolverInterface
 {
+
     /**
      * Returns the Controller instance associated with a Request.
      *

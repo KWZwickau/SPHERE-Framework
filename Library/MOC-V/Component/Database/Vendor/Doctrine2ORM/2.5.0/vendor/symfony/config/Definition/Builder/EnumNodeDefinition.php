@@ -20,6 +20,7 @@ use Symfony\Component\Config\Definition\EnumNode;
  */
 class EnumNodeDefinition extends ScalarNodeDefinition
 {
+
     private $values;
 
     /**
@@ -29,6 +30,7 @@ class EnumNodeDefinition extends ScalarNodeDefinition
      */
     public function values(array $values)
     {
+
         $values = array_unique($values);
 
         if (count($values) <= 1) {
@@ -49,6 +51,7 @@ class EnumNodeDefinition extends ScalarNodeDefinition
      */
     protected function instantiateNode()
     {
+
         if (null === $this->values) {
             throw new \RuntimeException('You must call ->values() on enum nodes.');
         }

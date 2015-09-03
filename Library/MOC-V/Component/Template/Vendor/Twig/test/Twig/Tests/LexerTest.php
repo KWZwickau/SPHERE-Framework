@@ -8,10 +8,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 {
+
     public function testNameLabelForTag()
     {
+
         $template = '{% § %}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -23,6 +26,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testNameLabelForFunction()
     {
+
         $template = '{{ §() }}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -34,6 +38,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testBracketsNesting()
     {
+
         $template = '{{ {"a":{"b":"c"}} }}';
 
         $this->assertEquals(2, $this->countToken($template, Twig_Token::PUNCTUATION_TYPE, '{'));
@@ -42,6 +47,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     protected function countToken($template, $type, $value = null)
     {
+
         $lexer = new Twig_Lexer(new Twig_Environment());
         $stream = $lexer->tokenize($template);
 
@@ -61,6 +67,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testLineDirective()
     {
+
         $template = "foo\n"
             ."bar\n"
             ."{% line 10 %}\n"
@@ -83,6 +90,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testLineDirectiveInline()
     {
+
         $template = "foo\n"
             ."bar{% line 10 %}{{\n"
             ."baz\n"
@@ -101,6 +109,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testLongComments()
     {
+
         $template = '{# '.str_repeat('*', 100000).' #}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -111,6 +120,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testLongRaw()
     {
+
         $template = '{% raw %}'.str_repeat('*', 100000).'{% endraw %}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -121,6 +131,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testLongVar()
     {
+
         $template = '{{ '.str_repeat('x', 100000).' }}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -131,6 +142,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testLongBlock()
     {
+
         $template = '{% '.str_repeat('x', 100000).' %}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -141,6 +153,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testBigNumbers()
     {
+
         if ('hiphop' === substr(PHP_VERSION, -6)) {
             $this->markTestSkipped('hhvm thinks that the number is actually a T_CONSTANT_ENCAPSED_STRING!');
         }
@@ -156,6 +169,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testStringWithEscapedDelimiter()
     {
+
         $tests = array(
             "{{ 'foo \' bar' }}" => 'foo \' bar',
             '{{ "foo \" bar" }}' => "foo \" bar",
@@ -170,6 +184,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testStringWithInterpolation()
     {
+
         $template = 'foo {{ "bar #{ baz + 1 }" }}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -187,6 +202,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testStringWithEscapedInterpolation()
     {
+
         $template = '{{ "bar \#{baz+1}" }}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -198,6 +214,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testStringWithHash()
     {
+
         $template = '{{ "bar # baz" }}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -213,6 +230,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
      */
     public function testStringWithUnterminatedInterpolation()
     {
+
         $template = '{{ "bar #{x" }}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -221,6 +239,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testStringWithNestedInterpolations()
     {
+
         $template = '{{ "bar #{ "foo#{bar}" }" }}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -238,6 +257,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testStringWithNestedInterpolationsInBlock()
     {
+
         $template = '{% foo "bar #{ "foo#{bar}" }" %}';
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -256,6 +276,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
 
     public function testOperatorEndingWithALetterAtTheEndOfALine()
     {
+
         $template = "{{ 1 and\n0}}";
 
         $lexer = new Twig_Lexer(new Twig_Environment());
@@ -271,6 +292,7 @@ class Twig_Tests_LexerTest extends PHPUnit_Framework_TestCase
      */
     public function testUnterminatedVariable()
     {
+
         $template = '
 
 {{
@@ -290,6 +312,7 @@ bar
      */
     public function testUnterminatedBlock()
     {
+
         $template = '
 
 {%

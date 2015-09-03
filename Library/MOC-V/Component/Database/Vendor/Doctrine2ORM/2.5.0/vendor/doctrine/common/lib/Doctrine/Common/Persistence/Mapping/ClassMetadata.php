@@ -29,6 +29,7 @@ namespace Doctrine\Common\Persistence\Mapping;
  */
 interface ClassMetadata
 {
+
     /**
      * Gets the fully-qualified class name of this persistent class.
      *

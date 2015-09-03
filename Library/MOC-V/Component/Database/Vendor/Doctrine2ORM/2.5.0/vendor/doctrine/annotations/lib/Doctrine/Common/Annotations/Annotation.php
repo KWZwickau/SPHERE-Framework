@@ -29,6 +29,7 @@ namespace Doctrine\Common\Annotations;
  */
 class Annotation
 {
+
     /**
      * Value property. Common among all derived classes.
      *
@@ -43,6 +44,7 @@ class Annotation
      */
     public final function __construct(array $data)
     {
+
         foreach ($data as $key => $value) {
             $this->$key = $value;
         }
@@ -57,6 +59,7 @@ class Annotation
      */
     public function __get($name)
     {
+
         throw new \BadMethodCallException(
             sprintf("Unknown property '%s' on annotation '%s'.", $name, get_class($this))
         );
@@ -72,6 +75,7 @@ class Annotation
      */
     public function __set($name, $value)
     {
+
         throw new \BadMethodCallException(
             sprintf("Unknown property '%s' on annotation '%s'.", $name, get_class($this))
         );

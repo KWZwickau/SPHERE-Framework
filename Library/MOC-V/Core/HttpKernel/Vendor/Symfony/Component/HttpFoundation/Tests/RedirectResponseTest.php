@@ -15,8 +15,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class RedirectResponseTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testGenerateMetaRedirect()
     {
+
         $response = new RedirectResponse('foo.bar');
 
         $this->assertEquals(1, preg_match(
@@ -30,6 +32,7 @@ class RedirectResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testRedirectResponseConstructorNullUrl()
     {
+
         $response = new RedirectResponse(null);
     }
 
@@ -38,11 +41,13 @@ class RedirectResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testRedirectResponseConstructorWrongStatusCode()
     {
+
         $response = new RedirectResponse('foo.bar', 404);
     }
 
     public function testGenerateLocationHeader()
     {
+
         $response = new RedirectResponse('foo.bar');
 
         $this->assertTrue($response->headers->has('Location'));
@@ -51,6 +56,7 @@ class RedirectResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testGetTargetUrl()
     {
+
         $response = new RedirectResponse('foo.bar');
 
         $this->assertEquals('foo.bar', $response->getTargetUrl());
@@ -58,6 +64,7 @@ class RedirectResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testSetTargetUrl()
     {
+
         $response = new RedirectResponse('foo.bar');
         $response->setTargetUrl('baz.beep');
 
@@ -69,12 +76,14 @@ class RedirectResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetTargetUrlNull()
     {
+
         $response = new RedirectResponse('foo.bar');
         $response->setTargetUrl(null);
     }
 
     public function testCreate()
     {
+
         $response = RedirectResponse::create('foo', 301);
 
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\RedirectResponse', $response);

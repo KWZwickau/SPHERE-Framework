@@ -9,8 +9,10 @@ use Guzzle\Service\Description\SchemaFormatter;
  */
 class SchemaFormatterTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function dateTimeProvider()
     {
+
         $dateUtc = 'October 13, 2012 16:15:46 UTC';
         $dateOffset = 'October 13, 2012 10:15:46 -06:00';
         $expectedDateTime = '2012-10-13T16:15:46Z';
@@ -40,6 +42,7 @@ class SchemaFormatterTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testFilters($value, $format, $result)
     {
+
         $this->assertEquals($result, SchemaFormatter::format($format, $value));
     }
 
@@ -48,11 +51,13 @@ class SchemaFormatterTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testValidatesDateTimeInput()
     {
+
         SchemaFormatter::format('date-time', false);
     }
 
     public function testEnsuresTimestampsAreIntegers()
     {
+
         $t = time();
         $result = SchemaFormatter::format('timestamp', $t);
         $this->assertSame($t, $result);

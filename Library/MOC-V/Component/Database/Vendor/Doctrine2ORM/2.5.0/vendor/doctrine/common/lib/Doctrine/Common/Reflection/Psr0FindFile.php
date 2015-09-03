@@ -26,6 +26,7 @@ namespace Doctrine\Common\Reflection;
  */
 class Psr0FindFile implements ClassFinderInterface
 {
+
     /**
      * The PSR-0 prefixes.
      *
@@ -39,6 +40,7 @@ class Psr0FindFile implements ClassFinderInterface
      */
     public function __construct($prefixes)
     {
+
         $this->prefixes = $prefixes;
     }
 
@@ -47,6 +49,7 @@ class Psr0FindFile implements ClassFinderInterface
      */
     public function findFile($class)
     {
+
         $lastNsPos = strrpos($class, '\\');
         if ('\\' == $class[0]) {
             $class = substr($class, 1);
@@ -54,7 +57,7 @@ class Psr0FindFile implements ClassFinderInterface
 
         if (false !== $lastNsPos) {
             // namespaced class name
-            $classPath = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 0, $lastNsPos)) . DIRECTORY_SEPARATOR;
+            $classPath = str_replace('\\', DIRECTORY_SEPARATOR, substr($class, 0, $lastNsPos)).DIRECTORY_SEPARATOR;
             $className = substr($class, $lastNsPos + 1);
         } else {
             // PEAR-like class name
@@ -62,13 +65,13 @@ class Psr0FindFile implements ClassFinderInterface
             $className = $class;
         }
 
-        $classPath .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+        $classPath .= str_replace('_', DIRECTORY_SEPARATOR, $className).'.php';
 
         foreach ($this->prefixes as $prefix => $dirs) {
             if (0 === strpos($class, $prefix)) {
                 foreach ($dirs as $dir) {
-                    if (is_file($dir . DIRECTORY_SEPARATOR . $classPath)) {
-                        return $dir . DIRECTORY_SEPARATOR . $classPath;
+                    if (is_file($dir.DIRECTORY_SEPARATOR.$classPath)) {
+                        return $dir.DIRECTORY_SEPARATOR.$classPath;
                     }
                 }
             }

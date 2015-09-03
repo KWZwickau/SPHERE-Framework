@@ -27,6 +27,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class GetResponseForControllerResultEvent extends GetResponseEvent
 {
+
     /**
      * The return value of the controller
      *
@@ -36,6 +37,7 @@ class GetResponseForControllerResultEvent extends GetResponseEvent
 
     public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, $controllerResult)
     {
+
         parent::__construct($kernel, $request, $requestType);
 
         $this->controllerResult = $controllerResult;
@@ -50,6 +52,7 @@ class GetResponseForControllerResultEvent extends GetResponseEvent
      */
     public function getControllerResult()
     {
+
         return $this->controllerResult;
     }
 
@@ -62,6 +65,7 @@ class GetResponseForControllerResultEvent extends GetResponseEvent
      */
     public function setControllerResult($controllerResult)
     {
+
         $this->controllerResult = $controllerResult;
     }
 }

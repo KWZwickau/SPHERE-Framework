@@ -22,16 +22,19 @@ require_once __DIR__.'/ClockMock.php';
  */
 class StopwatchEventTest extends \PHPUnit_Framework_TestCase
 {
+
     const DELTA = 37;
 
     public function testGetOrigin()
     {
+
         $event = new StopwatchEvent(12);
         $this->assertEquals(12, $event->getOrigin());
     }
 
     public function testGetCategory()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $this->assertEquals('default', $event->getCategory());
 
@@ -41,6 +44,7 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
 
     public function testGetPeriods()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $this->assertEquals(array(), $event->getPeriods());
 
@@ -59,6 +63,7 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
 
     public function testLap()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $event->start();
         $event->lap();
@@ -68,6 +73,7 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
 
     public function testDuration()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $event->start();
         usleep(200000);
@@ -87,6 +93,7 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
 
     public function testDurationBeforeStop()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $event->start();
         usleep(200000);
@@ -107,12 +114,14 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
      */
     public function testStopWithoutStart()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $event->stop();
     }
 
     public function testIsStarted()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $event->start();
         $this->assertTrue($event->isStarted());
@@ -120,12 +129,14 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
 
     public function testIsNotStarted()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $this->assertFalse($event->isStarted());
     }
 
     public function testEnsureStopped()
     {
+
         // this also test overlap between two periods
         $event = new StopwatchEvent(microtime(true) * 1000);
         $event->start();
@@ -138,6 +149,7 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
 
     public function testStartTime()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
         $this->assertLessThanOrEqual(0.5, $event->getStartTime());
 
@@ -158,18 +170,20 @@ class StopwatchEventTest extends \PHPUnit_Framework_TestCase
      */
     public function testInvalidOriginThrowsAnException()
     {
+
         new StopwatchEvent('abc');
     }
 
     public function testHumanRepresentation()
     {
+
         $event = new StopwatchEvent(microtime(true) * 1000);
-        $this->assertEquals('default: 0.00 MiB - 0 ms', (string) $event);
+        $this->assertEquals('default: 0.00 MiB - 0 ms', (string)$event);
         $event->start();
         $event->stop();
-        $this->assertEquals(1, preg_match('/default: [0-9\.]+ MiB - [0-9]+ ms/', (string) $event));
+        $this->assertEquals(1, preg_match('/default: [0-9\.]+ MiB - [0-9]+ ms/', (string)$event));
 
         $event = new StopwatchEvent(microtime(true) * 1000, 'foo');
-        $this->assertEquals('foo: 0.00 MiB - 0 ms', (string) $event);
+        $this->assertEquals('foo: 0.00 MiB - 0 ms', (string)$event);
     }
 }

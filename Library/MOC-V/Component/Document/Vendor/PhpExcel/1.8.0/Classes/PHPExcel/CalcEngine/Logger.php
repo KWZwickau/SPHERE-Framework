@@ -74,7 +74,7 @@ class PHPExcel_CalcEngine_Logger
      *
      * @param  PHPExcel_CalcEngine_CyclicReferenceStack $stack
      */
-    public function __construct( PHPExcel_CalcEngine_CyclicReferenceStack $stack )
+    public function __construct(PHPExcel_CalcEngine_CyclicReferenceStack $stack)
     {
 
         $this->_cellStack = $stack;
@@ -96,7 +96,7 @@ class PHPExcel_CalcEngine_Logger
      *
      * @param  boolean $pValue
      */
-    public function setWriteDebugLog( $pValue = false )
+    public function setWriteDebugLog($pValue = false)
     {
 
         $this->_writeDebugLog = $pValue;
@@ -118,7 +118,7 @@ class PHPExcel_CalcEngine_Logger
      *
      * @param  boolean $pValue
      */
-    public function setEchoDebugLog( $pValue = false )
+    public function setEchoDebugLog($pValue = false)
     {
 
         $this->_echoDebugLog = $pValue;
@@ -132,8 +132,8 @@ class PHPExcel_CalcEngine_Logger
 
         //	Only write the debug log if logging is enabled
         if ($this->_writeDebugLog) {
-            $message = implode( func_get_args() );
-            $cellReference = implode( ' -> ', $this->_cellStack->showStack() );
+            $message = implode(func_get_args());
+            $cellReference = implode(' -> ', $this->_cellStack->showStack());
             if ($this->_echoDebugLog) {
                 echo $cellReference,
                 ( $this->_cellStack->count() > 0 ? ' => ' : '' ),

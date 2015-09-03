@@ -31,6 +31,7 @@ use Doctrine\Common\Persistence\Proxy as BaseProxy;
  */
 interface Proxy extends BaseProxy
 {
+
     /**
      * Marks the proxy as initialized or not.
      *

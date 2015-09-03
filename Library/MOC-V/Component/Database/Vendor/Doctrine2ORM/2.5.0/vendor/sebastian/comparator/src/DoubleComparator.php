@@ -15,6 +15,7 @@ namespace SebastianBergmann\Comparator;
  */
 class DoubleComparator extends NumericComparator
 {
+
     /**
      * Smallest value available in PHP.
      *
@@ -27,30 +28,34 @@ class DoubleComparator extends NumericComparator
      *
      * @param  mixed $expected The first value to compare
      * @param  mixed $actual   The second value to compare
+     *
      * @return bool
      */
     public function accepts($expected, $actual)
     {
-        return (is_double($expected) || is_double($actual)) && is_numeric($expected) && is_numeric($actual);
+
+        return ( is_double($expected) || is_double($actual) ) && is_numeric($expected) && is_numeric($actual);
     }
 
     /**
      * Asserts that two values are equal.
      *
-     * @param  mixed             $expected     The first value to compare
-     * @param  mixed             $actual       The second value to compare
-     * @param  float             $delta        The allowed numerical distance between two values to
+     * @param  mixed $expected                 The first value to compare
+     * @param  mixed $actual                   The second value to compare
+     * @param  float $delta                    The allowed numerical distance between two values to
      *                                         consider them equal
-     * @param  bool              $canonicalize If set to TRUE, arrays are sorted before
+     * @param  bool  $canonicalize             If set to TRUE, arrays are sorted before
      *                                         comparison
-     * @param  bool              $ignoreCase   If set to TRUE, upper- and lowercasing is
+     * @param  bool  $ignoreCase               If set to TRUE, upper- and lowercasing is
      *                                         ignored when comparing string values
+     *
      * @throws ComparisonFailure Thrown when the comparison
      *                                        fails. Contains information about the
      *                                        specific errors that lead to the failure.
      */
     public function assertEquals($expected, $actual, $delta = 0.0, $canonicalize = false, $ignoreCase = false)
     {
+
         if ($delta == 0) {
             $delta = self::EPSILON;
         }

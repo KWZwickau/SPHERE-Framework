@@ -8,13 +8,16 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @expectedException Twig_Error_Syntax
      */
     public function testSetMacroThrowsExceptionOnReservedMethods()
     {
+
         $parser = $this->getParser();
         $parser->setMacro('display', $this->getMock('Twig_Node_Macro', array(), array(), '', null));
     }
@@ -22,9 +25,9 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
     protected function getParser()
     {
 
-        $parser = new TestParser( new Twig_Environment() );
-        $parser->setParent( new Twig_Node() );
-        $parser->stream = $this->getMockBuilder( 'Twig_TokenStream' )->disableOriginalConstructor()->getMock();
+        $parser = new TestParser(new Twig_Environment());
+        $parser->setParent(new Twig_Node());
+        $parser->stream = $this->getMockBuilder('Twig_TokenStream')->disableOriginalConstructor()->getMock();
 
         return $parser;
     }
@@ -35,6 +38,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testUnknownTag()
     {
+
         $stream = new Twig_TokenStream(array(
             new Twig_Token(Twig_Token::BLOCK_START_TYPE, '', 1),
             new Twig_Token(Twig_Token::NAME_TYPE, 'foo', 1),
@@ -50,6 +54,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testFilterBodyNodes($input, $expected)
     {
+
         $parser = $this->getParser();
 
         $this->assertEquals($expected, $parser->filterBodyNodes($input));
@@ -57,6 +62,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
 
     public function getFilterBodyNodesData()
     {
+
         return array(
             array(
                 new Twig_Node(array(new Twig_Node_Text('   ', 1))),
@@ -67,7 +73,10 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
                 $input,
             ),
             array(
-                $input = new Twig_Node(array(new Twig_Node_Set(true, new Twig_Node(), new Twig_Node(array(new Twig_Node(array(new Twig_Node_Text('foo', 1))))), 1))),
+                $input = new Twig_Node(array(
+                    new Twig_Node_Set(true, new Twig_Node(),
+                        new Twig_Node(array(new Twig_Node(array(new Twig_Node_Text('foo', 1))))), 1)
+                )),
                 $input,
             ),
         );
@@ -79,6 +88,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testFilterBodyNodesThrowsException($input)
     {
+
         $parser = $this->getParser();
 
         $parser->filterBodyNodes($input);
@@ -86,6 +96,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
 
     public function getFilterBodyNodesDataThrowsException()
     {
+
         return array(
             array(new Twig_Node_Text('foo', 1)),
             array(new Twig_Node(array(new Twig_Node(array(new Twig_Node_Text('foo', 1)))))),
@@ -98,6 +109,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
      */
     public function testFilterBodyNodesWithBOM()
     {
+
         $parser = $this->getParser();
         $parser->filterBodyNodes(new Twig_Node_Text(chr(0xEF).chr(0xBB).chr(0xBF), 1));
     }
@@ -108,6 +120,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
 
     public function testParseIsReentrant()
     {
+
         $twig = new Twig_Environment(null, array(
             'autoescape' => false,
             'optimizations' => 0,
@@ -131,6 +144,7 @@ class Twig_Tests_ParserTest extends PHPUnit_Framework_TestCase
 
     public function testGetVarName()
     {
+
         $twig = new Twig_Environment(null, array(
             'autoescape' => false,
             'optimizations' => 0,
@@ -149,18 +163,22 @@ EOF
 
 class TestParser extends Twig_Parser
 {
+
     public $stream;
 
     public function filterBodyNodes(Twig_NodeInterface $node)
     {
+
         return parent::filterBodyNodes($node);
     }
 }
 
 class TestTokenParser extends Twig_TokenParser
 {
+
     public function parse(Twig_Token $token)
     {
+
         // simulate the parsing of another template right in the middle of the parsing of the current template
         $this->parser->parse(new Twig_TokenStream(array(
             new Twig_Token(Twig_Token::BLOCK_START_TYPE, '', 1),
@@ -177,6 +195,7 @@ class TestTokenParser extends Twig_TokenParser
 
     public function getTag()
     {
+
         return 'test';
     }
 }

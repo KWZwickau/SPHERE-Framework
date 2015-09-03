@@ -28,7 +28,7 @@ interface IFileTemplate extends ITemplate
      *
      * @return void
      */
-    function setFile( $file );
+    function setFile($file);
 
     /**
      * Returns the path to the template file.

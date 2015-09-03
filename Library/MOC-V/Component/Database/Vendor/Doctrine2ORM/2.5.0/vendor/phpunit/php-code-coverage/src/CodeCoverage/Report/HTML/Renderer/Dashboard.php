@@ -15,26 +15,28 @@
  */
 class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_Report_HTML_Renderer
 {
+
     /**
      * @param PHP_CodeCoverage_Report_Node_Directory $node
      * @param string                                 $file
      */
     public function render(PHP_CodeCoverage_Report_Node_Directory $node, $file)
     {
-        $classes  = $node->getClassesAndTraits();
+
+        $classes = $node->getClassesAndTraits();
         $template = new Text_Template(
-            $this->templatePath . 'dashboard.html',
+            $this->templatePath.'dashboard.html',
             '{{',
             '}}'
         );
 
         $this->setCommonTemplateVariables($template, $node);
 
-        $baseLink             = $node->getId() . '/';
-        $complexity           = $this->complexity($classes, $baseLink);
+        $baseLink = $node->getId().'/';
+        $complexity = $this->complexity($classes, $baseLink);
         $coverageDistribution = $this->coverageDistribution($classes);
         $insufficientCoverage = $this->insufficientCoverage($classes, $baseLink);
-        $projectRisks         = $this->projectRisks($classes, $baseLink);
+        $projectRisks = $this->projectRisks($classes, $baseLink);
 
         $template->setVar(
             array(
@@ -57,16 +59,18 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
      *
      * @param  array  $classes
      * @param  string $baseLink
+     *
      * @return array
      */
     protected function complexity(array $classes, $baseLink)
     {
+
         $result = array('class' => array(), 'method' => array());
 
         foreach ($classes as $className => $class) {
             foreach ($class['methods'] as $methodName => $method) {
                 if ($className != '*') {
-                    $methodName = $className . '::' . $methodName;
+                    $methodName = $className.'::'.$methodName;
                 }
 
                 $result['method'][] = array(
@@ -101,10 +105,12 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
      * Returns the data for the Class / Method Coverage Distribution chart.
      *
      * @param  array $classes
+     *
      * @return array
      */
     protected function coverageDistribution(array $classes)
     {
+
         $result = array(
             'class' => array(
                 '0%'      => 0,
@@ -144,7 +150,7 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
                     $result['method']['100%']++;
                 } else {
                     $key = floor($method['coverage'] / 10) * 10;
-                    $key = $key . '-' . ($key + 10) . '%';
+                    $key = $key.'-'.( $key + 10 ).'%';
                     $result['method'][$key]++;
                 }
             }
@@ -155,7 +161,7 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
                 $result['class']['100%']++;
             } else {
                 $key = floor($class['coverage'] / 10) * 10;
-                $key = $key . '-' . ($key + 10) . '%';
+                $key = $key.'-'.( $key + 10 ).'%';
                 $result['class'][$key]++;
             }
         }
@@ -171,19 +177,21 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
      *
      * @param  array  $classes
      * @param  string $baseLink
+     *
      * @return array
      */
     protected function insufficientCoverage(array $classes, $baseLink)
     {
+
         $leastTestedClasses = array();
         $leastTestedMethods = array();
-        $result             = array('class' => '', 'method' => '');
+        $result = array('class' => '', 'method' => '');
 
         foreach ($classes as $className => $class) {
             foreach ($class['methods'] as $methodName => $method) {
                 if ($method['coverage'] < $this->highLowerBound) {
                     if ($className != '*') {
-                        $key = $className . '::' . $methodName;
+                        $key = $className.'::'.$methodName;
                     } else {
                         $key = $methodName;
                     }
@@ -202,7 +210,7 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
 
         foreach ($leastTestedClasses as $className => $coverage) {
             $result['class'] .= sprintf(
-                '       <tr><td><a href="%s">%s</a></td><td class="text-right">%d%%</td></tr>' . "\n",
+                '       <tr><td><a href="%s">%s</a></td><td class="text-right">%d%%</td></tr>'."\n",
                 str_replace($baseLink, '', $classes[$className]['link']),
                 $className,
                 $coverage
@@ -210,10 +218,10 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
         }
 
         foreach ($leastTestedMethods as $methodName => $coverage) {
-            list($class, $method) = explode('::', $methodName);
+            list( $class, $method ) = explode('::', $methodName);
 
             $result['method'] .= sprintf(
-                '       <tr><td><a href="%s"><abbr title="%s">%s</a></a></td><td class="text-right">%d%%</td></tr>' . "\n",
+                '       <tr><td><a href="%s"><abbr title="%s">%s</a></a></td><td class="text-right">%d%%</td></tr>'."\n",
                 str_replace($baseLink, '', $classes[$class]['methods'][$method]['link']),
                 $methodName,
                 $method,
@@ -229,20 +237,23 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
      *
      * @param  array  $classes
      * @param  string $baseLink
+     *
      * @return array
      */
     protected function projectRisks(array $classes, $baseLink)
     {
-        $classRisks  = array();
+
+        $classRisks = array();
         $methodRisks = array();
-        $result      = array('class' => '', 'method' => '');
+        $result = array('class' => '', 'method' => '');
 
         foreach ($classes as $className => $class) {
             foreach ($class['methods'] as $methodName => $method) {
                 if ($method['coverage'] < $this->highLowerBound &&
-                    $method['ccn'] > 1) {
+                    $method['ccn'] > 1
+                ) {
                     if ($className != '*') {
-                        $key = $className . '::' . $methodName;
+                        $key = $className.'::'.$methodName;
                     } else {
                         $key = $methodName;
                     }
@@ -252,7 +263,8 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
             }
 
             if ($class['coverage'] < $this->highLowerBound &&
-                $class['ccn'] > count($class['methods'])) {
+                $class['ccn'] > count($class['methods'])
+            ) {
                 $classRisks[$className] = $class['crap'];
             }
         }
@@ -262,7 +274,7 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
 
         foreach ($classRisks as $className => $crap) {
             $result['class'] .= sprintf(
-                '       <tr><td><a href="%s">%s</a></td><td class="text-right">%d</td></tr>' . "\n",
+                '       <tr><td><a href="%s">%s</a></td><td class="text-right">%d</td></tr>'."\n",
                 str_replace($baseLink, '', $classes[$className]['link']),
                 $className,
                 $crap
@@ -270,10 +282,10 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
         }
 
         foreach ($methodRisks as $methodName => $crap) {
-            list($class, $method) = explode('::', $methodName);
+            list( $class, $method ) = explode('::', $methodName);
 
             $result['method'] .= sprintf(
-                '       <tr><td><a href="%s"><abbr title="%s">%s</abbr></a></td><td class="text-right">%d</td></tr>' . "\n",
+                '       <tr><td><a href="%s"><abbr title="%s">%s</abbr></a></td><td class="text-right">%d</td></tr>'."\n",
                 str_replace($baseLink, '', $classes[$class]['methods'][$method]['link']),
                 $methodName,
                 $method,
@@ -286,9 +298,10 @@ class PHP_CodeCoverage_Report_HTML_Renderer_Dashboard extends PHP_CodeCoverage_R
 
     protected function getActiveBreadcrumb(PHP_CodeCoverage_Report_Node $node)
     {
+
         return sprintf(
-            '        <li><a href="index.html">%s</a></li>' . "\n" .
-            '        <li class="active">(Dashboard)</li>' . "\n",
+            '        <li><a href="index.html">%s</a></li>'."\n".
+            '        <li class="active">(Dashboard)</li>'."\n",
             $node->getName()
         );
     }

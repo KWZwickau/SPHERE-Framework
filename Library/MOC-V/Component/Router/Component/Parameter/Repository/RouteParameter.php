@@ -26,17 +26,17 @@ class RouteParameter extends Parameter implements IParameterInterface
      * @param string $Path
      * @param string $Controller
      */
-    function __construct( $Path, $Controller )
+    public function __construct($Path, $Controller)
     {
 
-        $this->setPath( $Path );
-        $this->setController( $Controller );
+        $this->setPath($Path);
+        $this->setController($Controller);
     }
 
     /**
      * @param null|string $Path
      */
-    private function setPath( $Path )
+    private function setPath($Path)
     {
 
         $this->Path = $Path;
@@ -47,11 +47,11 @@ class RouteParameter extends Parameter implements IParameterInterface
      *
      * @throws ComponentException
      */
-    private function setController( $Controller )
+    private function setController($Controller)
     {
 
-        if (false === strpos( $Controller, '::' )) {
-            throw new ComponentException( $Controller );
+        if (false === strpos($Controller, '::')) {
+            throw new ComponentException($Controller);
         }
         $this->Controller = $Controller;
     }
@@ -62,8 +62,8 @@ class RouteParameter extends Parameter implements IParameterInterface
     public function getClass()
     {
 
-        $List = explode( '::', $this->getController(), 2 );
-        return current( $List );
+        $List = explode('::', $this->getController(), 2);
+        return current($List);
     }
 
     /**
@@ -81,8 +81,8 @@ class RouteParameter extends Parameter implements IParameterInterface
     public function getMethod()
     {
 
-        $List = explode( '::', $this->getController(), 2 );
-        return end( $List );
+        $List = explode('::', $this->getController(), 2);
+        return end($List);
     }
 
     /**
@@ -90,7 +90,7 @@ class RouteParameter extends Parameter implements IParameterInterface
      *
      * @return array|mixed
      */
-    public function getParameterDefault( $Name = null )
+    public function getParameterDefault($Name = null)
     {
 
         if (null === $Name) {
@@ -106,7 +106,7 @@ class RouteParameter extends Parameter implements IParameterInterface
      *
      * @return RouteParameter
      */
-    public function setParameterDefault( $Name, $Value )
+    public function setParameterDefault($Name, $Value)
     {
 
         $this->ParameterDefault[$Name] = $Value;
@@ -126,7 +126,7 @@ class RouteParameter extends Parameter implements IParameterInterface
      * @param string $Name
      * @param string $Pattern
      */
-    public function setParameterPattern( $Name, $Pattern )
+    public function setParameterPattern($Name, $Pattern)
     {
 
         $this->ParameterPattern[$Name] = $Pattern;

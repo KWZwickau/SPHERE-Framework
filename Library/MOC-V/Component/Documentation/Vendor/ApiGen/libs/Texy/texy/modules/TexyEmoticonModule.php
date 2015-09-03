@@ -43,13 +43,13 @@ final class TexyEmoticonModule extends TexyModule
     public $fileRoot;
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
         $texy->allowed['emoticon'] = false;
-        $texy->addHandler( 'emoticon', array( $this, 'solve' ) );
-        $texy->addHandler( 'beforeParse', array( $this, 'beforeParse' ) );
+        $texy->addHandler('emoticon', array($this, 'solve'));
+        $texy->addHandler('beforeParse', array($this, 'beforeParse'));
     }
 
 
@@ -60,18 +60,18 @@ final class TexyEmoticonModule extends TexyModule
             return;
         }
 
-        krsort( $this->icons );
+        krsort($this->icons);
 
         $pattern = array();
         foreach ($this->icons as $key => $foo) {
-            $pattern[] = preg_quote( $key, '#' ).'+';
+            $pattern[] = preg_quote($key, '#').'+';
         } // last char can be repeated
 
         $this->texy->registerLinePattern(
-            array( $this, 'pattern' ),
-            '#(?<=^|[\\x00-\\x20])('.implode( '|', $pattern ).')#',
+            array($this, 'pattern'),
+            '#(?<=^|[\\x00-\\x20])('.implode('|', $pattern).')#',
             'emoticon',
-            '#'.implode( '|', $pattern ).'#'
+            '#'.implode('|', $pattern).'#'
         );
     }
 
@@ -85,7 +85,7 @@ final class TexyEmoticonModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function pattern( $parser, $matches )
+    public function pattern($parser, $matches)
     {
 
         $match = $matches[0];
@@ -94,8 +94,8 @@ final class TexyEmoticonModule extends TexyModule
 
         // find the closest match
         foreach ($this->icons as $emoticon => $foo) {
-            if (strncmp( $match, $emoticon, strlen( $emoticon ) ) === 0) {
-                return $tx->invokeAroundHandlers( 'emoticon', $parser, array( $emoticon, $match ) );
+            if (strncmp($match, $emoticon, strlen($emoticon)) === 0) {
+                return $tx->invokeAroundHandlers('emoticon', $parser, array($emoticon, $match));
             }
         }
 
@@ -112,21 +112,21 @@ final class TexyEmoticonModule extends TexyModule
      *
      * @return TexyHtml|FALSE
      */
-    public function solve( $invocation, $emoticon, $raw )
+    public function solve($invocation, $emoticon, $raw)
     {
 
         $tx = $this->texy;
         $file = $this->icons[$emoticon];
-        $el = TexyHtml::el( 'img' );
-        $el->attrs['src'] = Texy::prependRoot( $file, $this->root === null ? $tx->imageModule->root : $this->root );
+        $el = TexyHtml::el('img');
+        $el->attrs['src'] = Texy::prependRoot($file, $this->root === null ? $tx->imageModule->root : $this->root);
         $el->attrs['alt'] = $raw;
         $el->attrs['class'][] = $this->class;
 
         // file path
-        $file = rtrim( $this->fileRoot === null ? $tx->imageModule->fileRoot : $this->fileRoot, '/\\' ).'/'.$file;
-        if (@is_file( $file )) { // intentionally @
-            $size = @getImageSize( $file ); // intentionally @
-            if (is_array( $size )) {
+        $file = rtrim($this->fileRoot === null ? $tx->imageModule->fileRoot : $this->fileRoot, '/\\').'/'.$file;
+        if (@is_file($file)) { // intentionally @
+            $size = @getImageSize($file); // intentionally @
+            if (is_array($size)) {
                 $el->attrs['width'] = $size[0];
                 $el->attrs['height'] = $size[1];
             }

@@ -9,8 +9,10 @@ use Guzzle\Http\Curl\CurlVersion;
  */
 class CurlVersionTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testCachesCurlInfo()
     {
+
         $info = curl_version();
         $instance = CurlVersion::getInstance();
 
@@ -29,6 +31,7 @@ class CurlVersionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIsSingleton()
     {
+
         $refObject = new \ReflectionClass('Guzzle\Http\Curl\CurlVersion');
         $refProperty = $refObject->getProperty('instance');
         $refProperty->setAccessible(true);

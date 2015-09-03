@@ -19,8 +19,10 @@ use Symfony\Component\HttpKernel\Tests\Fixtures\ExtensionPresentBundle\Extension
 
 class BundleTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testRegisterCommands()
     {
+
         $cmd = new FooCommand();
         $app = $this->getMock('Symfony\Component\Console\Application');
         $app->expects($this->once())->method('add')->with($this->equalTo($cmd));
@@ -35,6 +37,7 @@ class BundleTest extends \PHPUnit_Framework_TestCase
 
     public function testRegisterCommandsIngoreCommandAsAService()
     {
+
         $container = new ContainerBuilder();
         $commandClass = 'Symfony\Component\HttpKernel\Tests\Fixtures\ExtensionPresentBundle\Command\FooCommand';
         $definition = new Definition($commandClass);

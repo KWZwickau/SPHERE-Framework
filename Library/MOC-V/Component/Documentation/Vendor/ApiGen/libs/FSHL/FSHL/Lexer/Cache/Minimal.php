@@ -140,7 +140,7 @@ class Minimal
      *
      * @return array
      */
-    public function findDelimiter0( $text, $textLength, $textPos )
+    public function findDelimiter0($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -154,15 +154,15 @@ class Minimal
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
 }

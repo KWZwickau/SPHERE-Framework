@@ -23,6 +23,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class EsiListener implements EventSubscriberInterface
 {
+
     private $esi;
 
     /**
@@ -32,6 +33,7 @@ class EsiListener implements EventSubscriberInterface
      */
     public function __construct(Esi $esi = null)
     {
+
         $this->esi = $esi;
     }
 
@@ -50,6 +52,7 @@ class EsiListener implements EventSubscriberInterface
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
+
         if (!$event->isMasterRequest() || null === $this->esi) {
             return;
         }

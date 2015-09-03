@@ -7,9 +7,12 @@ use Guzzle\Tests\GuzzleTestCase;
 
 class LinkTest extends GuzzleTestCase
 {
+
     public function testParsesLinks()
     {
-        $link = new Link('Link', '<http:/.../front.jpeg>; rel=front; type="image/jpeg", <http://.../back.jpeg>; rel=back; type="image/jpeg", <http://.../side.jpeg?test=1>; rel=side; type="image/jpeg"');
+
+        $link = new Link('Link',
+            '<http:/.../front.jpeg>; rel=front; type="image/jpeg", <http://.../back.jpeg>; rel=back; type="image/jpeg", <http://.../side.jpeg?test=1>; rel=side; type="image/jpeg"');
         $links = $link->getLinks();
         $this->assertEquals(array(
             array(
@@ -41,16 +44,18 @@ class LinkTest extends GuzzleTestCase
 
     public function testCanAddLink()
     {
+
         $link = new Link('Link', '<http://foo>; rel=a; type="image/jpeg"');
         $link->addLink('http://test.com', 'test', array('foo' => 'bar'));
         $this->assertEquals(
             '<http://foo>; rel=a; type="image/jpeg", <http://test.com>; rel="test"; foo="bar"',
-            (string) $link
+            (string)$link
         );
     }
 
     public function testCanParseLinksWithCommas()
     {
+
         $link = new Link('Link', '<http://example.com/TheBook/chapter1>; rel="previous"; title="start, index"');
         $this->assertEquals(array(
             array(

@@ -6,8 +6,10 @@ use Doctrine\Tests\LazyArrayCollection;
 
 class AbstractLazyCollectionTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testLazyCollection()
     {
+
         $collection = new LazyArrayCollection();
 
         $this->assertFalse($collection->isInitialized());

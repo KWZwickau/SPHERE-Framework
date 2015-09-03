@@ -1,13 +1,18 @@
 MOC-Framework (Mark V)
 ======================
 
-Please take into account that current versions of MOC-Framework V could contain serious bugs.
+Please take into account that current versions of MOC-Framework Mark V could contain serious bugs.
 
 Don't use them in production environments.
 
 Be also aware that current interfaces may change rapidly
 
-PHP >= 5.4.3
+![Minimal PHP Version](https://img.shields.io/badge/php-5.4-ff69b4.svg)
+
+[![Latest Stable Version](https://poser.pugx.org/moc-framework/mark-v/v/stable)](https://packagist.org/packages/moc-framework/mark-v) 
+[![Total Downloads](https://poser.pugx.org/moc-framework/mark-v/downloads)](https://packagist.org/packages/moc-framework/mark-v) 
+[![Latest Unstable Version](https://poser.pugx.org/moc-framework/mark-v/v/unstable)](https://packagist.org/packages/moc-framework/mark-v) 
+[![License](https://poser.pugx.org/moc-framework/mark-v/license)](https://packagist.org/packages/moc-framework/mark-v)
 
 -----
 

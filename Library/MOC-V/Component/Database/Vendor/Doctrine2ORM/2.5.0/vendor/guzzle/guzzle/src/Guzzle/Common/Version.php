@@ -7,6 +7,7 @@ namespace Guzzle\Common;
  */
 class Version
 {
+
     const VERSION = '3.9.3';
 
     /**
@@ -22,8 +23,9 @@ class Version
      */
     public static function warn($message)
     {
+
         if (self::$emitWarnings) {
-            trigger_error('Deprecation warning: ' . $message, E_USER_DEPRECATED);
+            trigger_error('Deprecation warning: '.$message, E_USER_DEPRECATED);
         }
     }
 }

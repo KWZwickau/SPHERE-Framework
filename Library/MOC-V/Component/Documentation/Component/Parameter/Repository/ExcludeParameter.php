@@ -15,10 +15,10 @@ class ExcludeParameter
     /**
      * @param array $GlobDirectory
      */
-    function __construct( $GlobDirectory )
+    public function __construct($GlobDirectory)
     {
 
-        $this->setGlobList( $GlobDirectory );
+        $this->setGlobList($GlobDirectory);
     }
 
     /**
@@ -27,13 +27,13 @@ class ExcludeParameter
     public function getGlobList()
     {
 
-        return implode( ",", $this->GlobList );
+        return implode(",", $this->GlobList);
     }
 
     /**
      * @param array $GlobList
      */
-    public function setGlobList( $GlobList )
+    public function setGlobList($GlobList)
     {
 
         $this->GlobList = $GlobList;

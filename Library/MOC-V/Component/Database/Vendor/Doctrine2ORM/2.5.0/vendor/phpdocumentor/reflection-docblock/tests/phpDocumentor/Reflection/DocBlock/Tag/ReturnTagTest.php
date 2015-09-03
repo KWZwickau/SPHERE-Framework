@@ -1,7 +1,7 @@
 <?php
 /**
  * phpDocumentor Return tag test.
- * 
+ *
  * PHP version 5.3
  *
  * @author    Mike van Riel <mike.vanriel@naenius.com>
@@ -22,6 +22,7 @@ namespace phpDocumentor\Reflection\DocBlock\Tag;
  */
 class ReturnTagTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * Test that the \phpDocumentor\Reflection\DocBlock\Tag\ReturnTag can
      * understand the @return DocBlock.
@@ -32,7 +33,7 @@ class ReturnTagTest extends \PHPUnit_Framework_TestCase
      * @param string $extractedTypes
      * @param string $extractedDescription
      *
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag\ReturnTag
+     * @covers       \phpDocumentor\Reflection\DocBlock\Tag\ReturnTag
      * @dataProvider provideDataForConstructor
      *
      * @return void
@@ -44,6 +45,7 @@ class ReturnTagTest extends \PHPUnit_Framework_TestCase
         $extractedTypes,
         $extractedDescription
     ) {
+
         $tag = new ReturnTag($type, $content);
 
         $this->assertEquals($type, $tag->getName());
@@ -59,6 +61,7 @@ class ReturnTagTest extends \PHPUnit_Framework_TestCase
      */
     public function provideDataForConstructor()
     {
+
         return array(
             array('return', '', '', array(), ''),
             array('return', 'int', 'int', array('int'), ''),

@@ -31,14 +31,17 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class GetResponseForExceptionEvent extends GetResponseEvent
 {
+
     /**
      * The exception object
+     *
      * @var \Exception
      */
     private $exception;
 
     public function __construct(HttpKernelInterface $kernel, Request $request, $requestType, \Exception $e)
     {
+
         parent::__construct($kernel, $request, $requestType);
 
         $this->setException($e);
@@ -53,6 +56,7 @@ class GetResponseForExceptionEvent extends GetResponseEvent
      */
     public function getException()
     {
+
         return $this->exception;
     }
 
@@ -67,6 +71,7 @@ class GetResponseForExceptionEvent extends GetResponseEvent
      */
     public function setException(\Exception $exception)
     {
+
         $this->exception = $exception;
     }
 }

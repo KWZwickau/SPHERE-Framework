@@ -34,11 +34,93 @@ use Doctrine\DBAL\Types\Type;
  */
 class SQLServerSchemaManager extends AbstractSchemaManager
 {
+
+    /**
+     * {@inheritdoc}
+     */
+    public function listTableIndexes($table)
+    {
+
+        $sql = $this->_platform->getListTableIndexesSQL($table, $this->_conn->getDatabase());
+
+        try {
+            $tableIndexes = $this->_conn->fetchAll($sql);
+        } catch (\PDOException $e) {
+            if ($e->getCode() == "IMSSP") {
+                return array();
+            } else {
+                throw $e;
+            }
+        } catch (SQLSrvException $e) {
+            if (strpos($e->getMessage(), 'SQLSTATE [01000, 15472]') === 0) {
+                return array();
+            } else {
+                throw $e;
+            }
+        }
+
+        return $this->_getPortableTableIndexesList($tableIndexes, $table);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function _getPortableTableIndexesList($tableIndexRows, $tableName = null)
+    {
+
+        foreach ($tableIndexRows as &$tableIndex) {
+            $tableIndex['non_unique'] = (boolean)$tableIndex['non_unique'];
+            $tableIndex['primary'] = (boolean)$tableIndex['primary'];
+            $tableIndex['flags'] = $tableIndex['flags'] ? array($tableIndex['flags']) : null;
+        }
+
+        return parent::_getPortableTableIndexesList($tableIndexRows, $tableName);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function alterTable(TableDiff $tableDiff)
+    {
+
+        if (count($tableDiff->removedColumns) > 0) {
+            foreach ($tableDiff->removedColumns as $col) {
+                $columnConstraintSql = $this->getColumnConstraintSQL($tableDiff->name, $col->getName());
+                foreach ($this->_conn->fetchAll($columnConstraintSql) as $constraint) {
+                    $this->_conn->exec("ALTER TABLE $tableDiff->name DROP CONSTRAINT ".$constraint['Name']);
+                }
+            }
+        }
+
+        parent::alterTable($tableDiff);
+    }
+
+    /**
+     * Returns the SQL to retrieve the constraints for a given column.
+     *
+     * @param string $table
+     * @param string $column
+     *
+     * @return string
+     */
+    private function getColumnConstraintSQL($table, $column)
+    {
+
+        return "SELECT SysObjects.[Name]
+            FROM SysObjects INNER JOIN (SELECT [Name],[ID] FROM SysObjects WHERE XType = 'U') AS Tab
+            ON Tab.[ID] = Sysobjects.[Parent_Obj]
+            INNER JOIN sys.default_constraints DefCons ON DefCons.[object_id] = Sysobjects.[ID]
+            INNER JOIN SysColumns Col ON Col.[ColID] = DefCons.[parent_column_id] AND Col.[ID] = Tab.[ID]
+            WHERE Col.[Name] = ".$this->_conn->quote($column)." AND Tab.[Name] = ".$this->_conn->quote($table)."
+            ORDER BY Col.[Name]";
+    }
+
     /**
      * {@inheritdoc}
      */
     protected function _getPortableSequenceDefinition($sequence)
     {
+
         return new Sequence($sequence['name'], $sequence['increment'], $sequence['start_value']);
     }
 
@@ -47,16 +129,17 @@ class SQLServerSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableTableColumnDefinition($tableColumn)
     {
+
         $dbType = strtok($tableColumn['type'], '(), ');
         $fixed = null;
-        $length = (int) $tableColumn['length'];
+        $length = (int)$tableColumn['length'];
         $default = $tableColumn['default'];
 
-        if (!isset($tableColumn['name'])) {
+        if (!isset( $tableColumn['name'] )) {
             $tableColumn['name'] = '';
         }
 
-        while ($default != ($default2 = preg_replace("/^\((.*)\)$/", '$1', $default))) {
+        while ($default != ( $default2 = preg_replace("/^\((.*)\)$/", '$1', $default) )) {
             $default = trim($default2, "'");
 
             if ($default == 'getdate()') {
@@ -83,25 +166,25 @@ class SQLServerSchemaManager extends AbstractSchemaManager
             $fixed = true;
         }
 
-        $type                   = $this->_platform->getDoctrineTypeMapping($dbType);
-        $type                   = $this->extractDoctrineTypeFromComment($tableColumn['comment'], $type);
+        $type = $this->_platform->getDoctrineTypeMapping($dbType);
+        $type = $this->extractDoctrineTypeFromComment($tableColumn['comment'], $type);
         $tableColumn['comment'] = $this->removeDoctrineTypeFromComment($tableColumn['comment'], $type);
 
         $options = array(
-            'length'        => ($length == 0 || !in_array($type, array('text', 'string'))) ? null : $length,
+            'length'        => ( $length == 0 || !in_array($type, array('text', 'string')) ) ? null : $length,
             'unsigned'      => false,
-            'fixed'         => (bool) $fixed,
+            'fixed'         => (bool)$fixed,
             'default'       => $default !== 'NULL' ? $default : null,
-            'notnull'       => (bool) $tableColumn['notnull'],
+            'notnull'       => (bool)$tableColumn['notnull'],
             'scale'         => $tableColumn['scale'],
             'precision'     => $tableColumn['precision'],
-            'autoincrement' => (bool) $tableColumn['autoincrement'],
+            'autoincrement' => (bool)$tableColumn['autoincrement'],
             'comment'       => $tableColumn['comment'] !== '' ? $tableColumn['comment'] : null,
         );
 
         $column = new Column($tableColumn['name'], Type::getType($type), $options);
 
-        if (isset($tableColumn['collation']) && $tableColumn['collation'] !== 'NULL') {
+        if (isset( $tableColumn['collation'] ) && $tableColumn['collation'] !== 'NULL') {
             $column->setPlatformOption('collation', $tableColumn['collation']);
         }
 
@@ -113,16 +196,17 @@ class SQLServerSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableTableForeignKeysList($tableForeignKeys)
     {
+
         $foreignKeys = array();
 
         foreach ($tableForeignKeys as $tableForeignKey) {
-            if ( ! isset($foreignKeys[$tableForeignKey['ForeignKey']])) {
+            if (!isset( $foreignKeys[$tableForeignKey['ForeignKey']] )) {
                 $foreignKeys[$tableForeignKey['ForeignKey']] = array(
                     'local_columns' => array($tableForeignKey['ColumnName']),
                     'foreign_table' => $tableForeignKey['ReferenceTableName'],
                     'foreign_columns' => array($tableForeignKey['ReferenceColumnName']),
-                    'name' => $tableForeignKey['ForeignKey'],
-                    'options' => array(
+                    'name'          => $tableForeignKey['ForeignKey'],
+                    'options'       => array(
                         'onUpdate' => str_replace('_', ' ', $tableForeignKey['update_referential_action_desc']),
                         'onDelete' => str_replace('_', ' ', $tableForeignKey['delete_referential_action_desc'])
                     )
@@ -139,22 +223,9 @@ class SQLServerSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    protected function _getPortableTableIndexesList($tableIndexRows, $tableName=null)
-    {
-        foreach ($tableIndexRows as &$tableIndex) {
-            $tableIndex['non_unique'] = (boolean) $tableIndex['non_unique'];
-            $tableIndex['primary'] = (boolean) $tableIndex['primary'];
-            $tableIndex['flags'] = $tableIndex['flags'] ? array($tableIndex['flags']) : null;
-        }
-
-        return parent::_getPortableTableIndexesList($tableIndexRows, $tableName);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function _getPortableTableForeignKeyDefinition($tableForeignKey)
     {
+
         return new ForeignKeyConstraint(
             $tableForeignKey['local_columns'],
             $tableForeignKey['foreign_table'],
@@ -169,6 +240,7 @@ class SQLServerSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableTableDefinition($table)
     {
+
         return $table['name'];
     }
 
@@ -177,6 +249,7 @@ class SQLServerSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableDatabaseDefinition($database)
     {
+
         return $database['name'];
     }
 
@@ -185,6 +258,7 @@ class SQLServerSchemaManager extends AbstractSchemaManager
      */
     protected function getPortableNamespaceDefinition(array $namespace)
     {
+
         return $namespace['name'];
     }
 
@@ -193,69 +267,8 @@ class SQLServerSchemaManager extends AbstractSchemaManager
      */
     protected function _getPortableViewDefinition($view)
     {
+
         // @todo
         return new View($view['name'], null);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function listTableIndexes($table)
-    {
-        $sql = $this->_platform->getListTableIndexesSQL($table, $this->_conn->getDatabase());
-
-        try {
-            $tableIndexes = $this->_conn->fetchAll($sql);
-        } catch (\PDOException $e) {
-            if ($e->getCode() == "IMSSP") {
-                return array();
-            } else {
-                throw $e;
-            }
-        } catch (SQLSrvException $e) {
-            if (strpos($e->getMessage(), 'SQLSTATE [01000, 15472]') === 0) {
-                return array();
-            } else {
-                throw $e;
-            }
-        }
-
-        return $this->_getPortableTableIndexesList($tableIndexes, $table);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function alterTable(TableDiff $tableDiff)
-    {
-        if (count($tableDiff->removedColumns) > 0) {
-            foreach ($tableDiff->removedColumns as $col) {
-                $columnConstraintSql = $this->getColumnConstraintSQL($tableDiff->name, $col->getName());
-                foreach ($this->_conn->fetchAll($columnConstraintSql) as $constraint) {
-                    $this->_conn->exec("ALTER TABLE $tableDiff->name DROP CONSTRAINT " . $constraint['Name']);
-                }
-            }
-        }
-
-        parent::alterTable($tableDiff);
-    }
-
-    /**
-     * Returns the SQL to retrieve the constraints for a given column.
-     *
-     * @param string $table
-     * @param string $column
-     *
-     * @return string
-     */
-    private function getColumnConstraintSQL($table, $column)
-    {
-        return "SELECT SysObjects.[Name]
-            FROM SysObjects INNER JOIN (SELECT [Name],[ID] FROM SysObjects WHERE XType = 'U') AS Tab
-            ON Tab.[ID] = Sysobjects.[Parent_Obj]
-            INNER JOIN sys.default_constraints DefCons ON DefCons.[object_id] = Sysobjects.[ID]
-            INNER JOIN SysColumns Col ON Col.[ColID] = DefCons.[parent_column_id] AND Col.[ID] = Tab.[ID]
-            WHERE Col.[Name] = " . $this->_conn->quote($column) ." AND Tab.[Name] = " . $this->_conn->quote($table) . "
-            ORDER BY Col.[Name]";
     }
 }

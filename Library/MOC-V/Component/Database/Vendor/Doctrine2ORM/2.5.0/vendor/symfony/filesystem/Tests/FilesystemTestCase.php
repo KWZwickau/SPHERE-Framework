@@ -13,17 +13,17 @@ namespace Symfony\Component\Filesystem\Tests;
 
 class FilesystemTestCase extends \PHPUnit_Framework_TestCase
 {
-    private $umask;
 
+    protected static $symlinkOnWindows = null;
     /**
      * @var string
      */
     protected $workspace = null;
-
-    protected static $symlinkOnWindows = null;
+    private $umask;
 
     public static function setUpBeforeClass()
     {
+
         if ('\\' === DIRECTORY_SEPARATOR) {
             static::$symlinkOnWindows = true;
             $originDir = tempnam(sys_get_temp_dir(), 'sl');
@@ -39,6 +39,7 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
+
         $this->umask = umask(0);
         $this->workspace = rtrim(sys_get_temp_dir(), DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR.time().mt_rand(0, 1000);
         mkdir($this->workspace, 0777, true);
@@ -47,6 +48,7 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
 
     protected function tearDown()
     {
+
         $this->clean($this->workspace);
         umask($this->umask);
     }
@@ -56,6 +58,7 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function clean($file)
     {
+
         if (is_dir($file) && !is_link($file)) {
             $dir = new \FilesystemIterator($file);
             foreach ($dir as $childFile) {
@@ -74,7 +77,8 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
      */
     protected function assertFilePermissions($expectedFilePerms, $filePath)
     {
-        $actualFilePerms = (int) substr(sprintf('%o', fileperms($filePath)), -3);
+
+        $actualFilePerms = (int)substr(sprintf('%o', fileperms($filePath)), -3);
         $this->assertEquals(
             $expectedFilePerms,
             $actualFilePerms,
@@ -84,6 +88,7 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
 
     protected function getFileOwner($filepath)
     {
+
         $this->markAsSkippedIfPosixIsMissing();
 
         $infos = stat($filepath);
@@ -92,8 +97,17 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
         }
     }
 
+    protected function markAsSkippedIfPosixIsMissing()
+    {
+
+        if ('\\' === DIRECTORY_SEPARATOR || !function_exists('posix_isatty')) {
+            $this->markTestSkipped('Posix is not supported');
+        }
+    }
+
     protected function getFileGroup($filepath)
     {
+
         $this->markAsSkippedIfPosixIsMissing();
 
         $infos = stat($filepath);
@@ -106,6 +120,7 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
 
     protected function markAsSkippedIfSymlinkIsMissing()
     {
+
         if (!function_exists('symlink')) {
             $this->markTestSkipped('symlink is not supported');
         }
@@ -117,15 +132,9 @@ class FilesystemTestCase extends \PHPUnit_Framework_TestCase
 
     protected function markAsSkippedIfChmodIsMissing()
     {
+
         if ('\\' === DIRECTORY_SEPARATOR) {
             $this->markTestSkipped('chmod is not supported on windows');
-        }
-    }
-
-    protected function markAsSkippedIfPosixIsMissing()
-    {
-        if ('\\' === DIRECTORY_SEPARATOR || !function_exists('posix_isatty')) {
-            $this->markTestSkipped('Posix is not supported');
         }
     }
 }

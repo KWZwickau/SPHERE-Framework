@@ -17,13 +17,17 @@
  */
 class Twig_Node_SandboxedModule extends Twig_Node_Module
 {
+
     protected $usedFilters;
     protected $usedTags;
     protected $usedFunctions;
 
     public function __construct(Twig_Node_Module $node, array $usedFilters, array $usedTags, array $usedFunctions)
     {
-        parent::__construct($node->getNode('body'), $node->getNode('parent'), $node->getNode('blocks'), $node->getNode('macros'), $node->getNode('traits'), $node->getAttribute('embedded_templates'), $node->getAttribute('filename'));
+
+        parent::__construct($node->getNode('body'), $node->getNode('parent'), $node->getNode('blocks'),
+            $node->getNode('macros'), $node->getNode('traits'), $node->getAttribute('embedded_templates'),
+            $node->getAttribute('filename'));
 
         $this->setAttribute('index', $node->getAttribute('index'));
 
@@ -34,6 +38,7 @@ class Twig_Node_SandboxedModule extends Twig_Node_Module
 
     protected function compileDisplayBody(Twig_Compiler $compiler)
     {
+
         $compiler->write("\$this->checkSecurity();\n");
 
         parent::compileDisplayBody($compiler);
@@ -41,6 +46,7 @@ class Twig_Node_SandboxedModule extends Twig_Node_Module
 
     protected function compileDisplayFooter(Twig_Compiler $compiler)
     {
+
         parent::compileDisplayFooter($compiler);
 
         $compiler
@@ -54,7 +60,6 @@ class Twig_Node_SandboxedModule extends Twig_Node_Module
             ->outdent()
             ->write(");\n")
             ->outdent()
-            ->write("}\n\n")
-        ;
+            ->write("}\n\n");
     }
 }

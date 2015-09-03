@@ -16,6 +16,7 @@
  */
 interface PHPUnit_Framework_MockObject_Matcher_Invocation extends PHPUnit_Framework_SelfDescribing, PHPUnit_Framework_MockObject_Verifiable
 {
+
     /**
      * Registers the invocation $invocation in the object as being invoked.
      * This will only occur after matches() returns true which means the
@@ -30,6 +31,7 @@ interface PHPUnit_Framework_MockObject_Matcher_Invocation extends PHPUnit_Framew
      * @param  PHPUnit_Framework_MockObject_Invocation $invocation
      *                                                             Object containing information on a mocked or stubbed method which
      *                                                             was invoked.
+     *
      * @return mixed
      */
     public function invoked(PHPUnit_Framework_MockObject_Invocation $invocation);
@@ -42,6 +44,7 @@ interface PHPUnit_Framework_MockObject_Matcher_Invocation extends PHPUnit_Framew
      * @param  PHPUnit_Framework_MockObject_Invocation $invocation
      *                                                             Object containing information on a mocked or stubbed method which
      *                                                             was invoked.
+     *
      * @return bool
      */
     public function matches(PHPUnit_Framework_MockObject_Invocation $invocation);

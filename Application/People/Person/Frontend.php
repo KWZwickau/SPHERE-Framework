@@ -148,7 +148,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 switch (strtoupper($tblGroup->getMetaTable())) {
                     case 'COMMON':
-                        $tblGroup = new LayoutTab('Allgemein', $tblGroup->getMetaTable(),
+                        $tblGroup = new LayoutTab('Personendaten', $tblGroup->getMetaTable(),
                             array('Id' => $tblPerson->getId())
                         );
                         break;
@@ -163,7 +163,7 @@ class Frontend extends Extension implements IFrontendInterface
                         );
                         break;
                     case 'CUSTODY':
-                        $tblGroup = new LayoutTab('Sorgeberechtigt', $tblGroup->getMetaTable(),
+                        $tblGroup = new LayoutTab('Sorgerechtdaten', $tblGroup->getMetaTable(),
                             array('Id' => $tblPerson->getId())
                         );
                         break;
@@ -295,21 +295,23 @@ class Frontend extends Extension implements IFrontendInterface
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupList, function (TblGroup &$tblGroup) {
 
-                if (strtoupper($tblGroup->getMetaTable()) == 'COMMON') {
-                    $Global = $this->getGlobal();
-                    $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
-                    $Global->savePost();
-                    $tblGroup = new RadioBox(
-                        'Person[Group]['.$tblGroup->getId().']',
-                        $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
-                        $tblGroup->getId()
-                    );
-                } else {
-                    $tblGroup = new CheckBox(
-                        'Person[Group]['.$tblGroup->getId().']',
-                        $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
-                        $tblGroup->getId()
-                    );
+                switch (strtoupper($tblGroup->getMetaTable())) {
+                    case 'COMMON':
+                        $Global = $this->getGlobal();
+                        $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                        $Global->savePost();
+                        $tblGroup = new RadioBox(
+                            'Person[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        );
+                        break;
+                    default:
+                        $tblGroup = new CheckBox(
+                            'Person[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        );
                 }
             });
         } else {

@@ -16,17 +16,17 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Core\SecureKernel\Component\Bridge\Bridge $MockBridge */
-        $MockBridge = $this->getMockBuilder( 'MOC\V\Core\SecureKernel\Component\Bridge\Bridge' )->getMock();
-        $Vendor = new Vendor( new $MockBridge );
-        $Module = new SecureKernel( $Vendor );
+        $MockBridge = $this->getMockBuilder('MOC\V\Core\SecureKernel\Component\Bridge\Bridge')->getMock();
+        $Vendor = new Vendor(new $MockBridge);
+        $Module = new SecureKernel($Vendor);
 
-        $this->assertInstanceOf( 'MOC\V\Core\SecureKernel\Component\IVendorInterface',
+        $this->assertInstanceOf('MOC\V\Core\SecureKernel\Component\IVendorInterface',
             $Module->getVendorInterface()
         );
-        $this->assertInstanceOf( 'MOC\V\Core\SecureKernel\Component\IVendorInterface',
-            $Module->setBridgeInterface( $MockBridge )
+        $this->assertInstanceOf('MOC\V\Core\SecureKernel\Component\IVendorInterface',
+            $Module->setBridgeInterface($MockBridge)
         );
-        $this->assertInstanceOf( 'MOC\V\Core\SecureKernel\Component\IBridgeInterface',
+        $this->assertInstanceOf('MOC\V\Core\SecureKernel\Component\IBridgeInterface',
             $Module->getBridgeInterface()
         );
     }
@@ -35,14 +35,14 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         $SFTP = SecureKernel::getPhpSecLibSFTP();
-        $this->assertInstanceOf( 'MOC\V\Core\SecureKernel\Component\IBridgeInterface', $SFTP );
+        $this->assertInstanceOf('MOC\V\Core\SecureKernel\Component\IBridgeInterface', $SFTP);
     }
 
     public function testStaticSFTP()
     {
 
         $SFTP = SecureKernel::getSFTP();
-        $this->assertInstanceOf( 'MOC\V\Core\SecureKernel\Component\IBridgeInterface', $SFTP );
+        $this->assertInstanceOf('MOC\V\Core\SecureKernel\Component\IBridgeInterface', $SFTP);
     }
 
 }

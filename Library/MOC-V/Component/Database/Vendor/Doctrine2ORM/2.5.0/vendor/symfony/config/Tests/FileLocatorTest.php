@@ -15,11 +15,13 @@ use Symfony\Component\Config\FileLocator;
 
 class FileLocatorTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getIsAbsolutePathTests
      */
     public function testIsAbsolutePath($path)
     {
+
         $loader = new FileLocator(array());
         $r = new \ReflectionObject($loader);
         $m = $r->getMethod('isAbsolutePath');
@@ -30,6 +32,7 @@ class FileLocatorTest extends \PHPUnit_Framework_TestCase
 
     public function getIsAbsolutePathTests()
     {
+
         return array(
             array('/foo.xml'),
             array('c:\\\\foo.xml'),
@@ -42,6 +45,7 @@ class FileLocatorTest extends \PHPUnit_Framework_TestCase
 
     public function testLocate()
     {
+
         $loader = new FileLocator(__DIR__.'/Fixtures');
 
         $this->assertEquals(
@@ -65,13 +69,19 @@ class FileLocatorTest extends \PHPUnit_Framework_TestCase
         $loader = new FileLocator(array(__DIR__.'/Fixtures', __DIR__.'/Fixtures/Again'));
 
         $this->assertEquals(
-            array(__DIR__.'/Fixtures'.DIRECTORY_SEPARATOR.'foo.xml', __DIR__.'/Fixtures/Again'.DIRECTORY_SEPARATOR.'foo.xml'),
+            array(
+                __DIR__.'/Fixtures'.DIRECTORY_SEPARATOR.'foo.xml',
+                __DIR__.'/Fixtures/Again'.DIRECTORY_SEPARATOR.'foo.xml'
+            ),
             $loader->locate('foo.xml', __DIR__, false),
             '->locate() returns an array of absolute filenames'
         );
 
         $this->assertEquals(
-            array(__DIR__.'/Fixtures'.DIRECTORY_SEPARATOR.'foo.xml', __DIR__.'/Fixtures/Again'.DIRECTORY_SEPARATOR.'foo.xml'),
+            array(
+                __DIR__.'/Fixtures'.DIRECTORY_SEPARATOR.'foo.xml',
+                __DIR__.'/Fixtures/Again'.DIRECTORY_SEPARATOR.'foo.xml'
+            ),
             $loader->locate('foo.xml', __DIR__.'/Fixtures', false),
             '->locate() returns an array of absolute filenames'
         );
@@ -79,7 +89,10 @@ class FileLocatorTest extends \PHPUnit_Framework_TestCase
         $loader = new FileLocator(__DIR__.'/Fixtures/Again');
 
         $this->assertEquals(
-            array(__DIR__.'/Fixtures'.DIRECTORY_SEPARATOR.'foo.xml', __DIR__.'/Fixtures/Again'.DIRECTORY_SEPARATOR.'foo.xml'),
+            array(
+                __DIR__.'/Fixtures'.DIRECTORY_SEPARATOR.'foo.xml',
+                __DIR__.'/Fixtures/Again'.DIRECTORY_SEPARATOR.'foo.xml'
+            ),
             $loader->locate('foo.xml', __DIR__.'/Fixtures', false),
             '->locate() returns an array of absolute filenames'
         );
@@ -91,6 +104,7 @@ class FileLocatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testLocateThrowsAnExceptionIfTheFileDoesNotExists()
     {
+
         $loader = new FileLocator(array(__DIR__.'/Fixtures'));
 
         $loader->locate('foobar.xml', __DIR__);
@@ -101,6 +115,7 @@ class FileLocatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testLocateThrowsAnExceptionIfTheFileDoesNotExistsInAbsolutePath()
     {
+
         $loader = new FileLocator(array(__DIR__.'/Fixtures'));
 
         $loader->locate(__DIR__.'/Fixtures/foobar.xml', __DIR__);
@@ -112,6 +127,7 @@ class FileLocatorTest extends \PHPUnit_Framework_TestCase
      */
     public function testLocateEmpty()
     {
+
         $loader = new FileLocator(array(__DIR__.'/Fixtures'));
 
         $loader->locate(null, __DIR__);

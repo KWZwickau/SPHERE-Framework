@@ -27,6 +27,7 @@ namespace Doctrine\Common\Cache;
  */
 class FilesystemCache extends FileCache
 {
+
     const EXTENSION = '.doctrinecache.data';
 
     /**
@@ -34,6 +35,7 @@ class FilesystemCache extends FileCache
      */
     public function __construct($directory, $extension = self::EXTENSION)
     {
+
         parent::__construct($directory, $extension);
     }
 
@@ -42,18 +44,19 @@ class FilesystemCache extends FileCache
      */
     protected function doFetch($id)
     {
-        $data     = '';
+
+        $data = '';
         $lifetime = -1;
         $filename = $this->getFilename($id);
 
-        if ( ! is_file($filename)) {
+        if (!is_file($filename)) {
             return false;
         }
 
         $resource = fopen($filename, "r");
 
-        if (false !== ($line = fgets($resource))) {
-            $lifetime = (integer) $line;
+        if (false !== ( $line = fgets($resource) )) {
+            $lifetime = (integer)$line;
         }
 
         if ($lifetime !== 0 && $lifetime < time()) {
@@ -62,7 +65,7 @@ class FilesystemCache extends FileCache
             return false;
         }
 
-        while (false !== ($line = fgets($resource))) {
+        while (false !== ( $line = fgets($resource) )) {
             $data .= $line;
         }
 
@@ -76,17 +79,18 @@ class FilesystemCache extends FileCache
      */
     protected function doContains($id)
     {
+
         $lifetime = -1;
         $filename = $this->getFilename($id);
 
-        if ( ! is_file($filename)) {
+        if (!is_file($filename)) {
             return false;
         }
 
         $resource = fopen($filename, "r");
 
-        if (false !== ($line = fgets($resource))) {
-            $lifetime = (integer) $line;
+        if (false !== ( $line = fgets($resource) )) {
+            $lifetime = (integer)$line;
         }
 
         fclose($resource);
@@ -99,13 +103,14 @@ class FilesystemCache extends FileCache
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         if ($lifeTime > 0) {
             $lifeTime = time() + $lifeTime;
         }
 
-        $data      = serialize($data);
-        $filename  = $this->getFilename($id);
+        $data = serialize($data);
+        $filename = $this->getFilename($id);
 
-        return $this->writeFile($filename, $lifeTime . PHP_EOL . $data);
+        return $this->writeFile($filename, $lifeTime.PHP_EOL.$data);
     }
 }

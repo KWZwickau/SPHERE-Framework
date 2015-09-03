@@ -26,5 +26,5 @@ interface IHelperSet
      *
      * @return \Nette\Callback
      */
-    public function loader( $helperName );
+    public function loader($helperName);
 }

@@ -10,8 +10,10 @@ use Guzzle\Http\Message\Response;
  */
 class DefaultCanCacheStrategy implements CanCacheStrategyInterface
 {
+
     public function canCacheRequest(RequestInterface $request)
     {
+
         // Only GET and HEAD requests can be cached
         if ($request->getMethod() != RequestInterface::GET && $request->getMethod() != RequestInterface::HEAD) {
             return false;
@@ -27,6 +29,7 @@ class DefaultCanCacheStrategy implements CanCacheStrategyInterface
 
     public function canCacheResponse(Response $response)
     {
+
         return $response->isSuccessful() && $response->canCache();
     }
 }

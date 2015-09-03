@@ -16,8 +16,10 @@ use Symfony\Component\Routing\RequestContext;
 
 class RequestContextTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConstruct()
     {
+
         $requestContext = new RequestContext(
             'foo',
             'post',
@@ -41,6 +43,7 @@ class RequestContextTest extends \PHPUnit_Framework_TestCase
 
     public function testFromRequest()
     {
+
         $request = Request::create('https://test.com:444/foo?bar=baz');
         $requestContext = new RequestContext();
         $requestContext->setHttpPort(123);
@@ -66,6 +69,7 @@ class RequestContextTest extends \PHPUnit_Framework_TestCase
 
     public function testGetParameters()
     {
+
         $requestContext = new RequestContext();
         $this->assertEquals(array(), $requestContext->getParameters());
 
@@ -75,6 +79,7 @@ class RequestContextTest extends \PHPUnit_Framework_TestCase
 
     public function testHasParameter()
     {
+
         $requestContext = new RequestContext();
         $requestContext->setParameters(array('foo' => 'bar'));
 
@@ -84,6 +89,7 @@ class RequestContextTest extends \PHPUnit_Framework_TestCase
 
     public function testGetParameter()
     {
+
         $requestContext = new RequestContext();
         $requestContext->setParameters(array('foo' => 'bar'));
 
@@ -93,6 +99,7 @@ class RequestContextTest extends \PHPUnit_Framework_TestCase
 
     public function testSetParameter()
     {
+
         $requestContext = new RequestContext();
         $requestContext->setParameter('foo', 'bar');
 

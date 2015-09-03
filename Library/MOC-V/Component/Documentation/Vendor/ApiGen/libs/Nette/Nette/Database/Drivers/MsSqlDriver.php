@@ -25,7 +25,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     private $connection;
 
 
-    public function __construct( Nette\Database\Connection $connection, array $options )
+    public function __construct(Nette\Database\Connection $connection, array $options)
     {
 
         $this->connection = $connection;
@@ -38,31 +38,31 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Delimites identifier for use in a SQL statement.
      */
-    public function delimite( $name )
+    public function delimite($name)
     {
 
         // @see http://msdn.microsoft.com/en-us/library/ms176027.aspx
-        return '['.str_replace( array( '[', ']' ), array( '[[', ']]' ), $name ).']';
+        return '['.str_replace(array('[', ']'), array('[[', ']]'), $name).']';
     }
 
 
     /**
      * Formats date-time for use in a SQL statement.
      */
-    public function formatDateTime( \DateTime $value )
+    public function formatDateTime(\DateTime $value)
     {
 
-        return $value->format( "'Y-m-d H:i:s'" );
+        return $value->format("'Y-m-d H:i:s'");
     }
 
 
     /**
      * Encodes string for use in a LIKE statement.
      */
-    public function formatLike( $value, $pos )
+    public function formatLike($value, $pos)
     {
 
-        $value = strtr( $value, array( "'" => "''", '%' => '[%]', '_' => '[_]', '[' => '[[]' ) );
+        $value = strtr($value, array("'" => "''", '%' => '[%]', '_' => '[_]', '[' => '[[]'));
         return ( $pos <= 0 ? "'%" : "'" ).$value.( $pos >= 0 ? "%'" : "'" );
     }
 
@@ -70,7 +70,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Injects LIMIT/OFFSET to the SQL query.
      */
-    public function applyLimit( &$sql, $limit, $offset )
+    public function applyLimit(&$sql, $limit, $offset)
     {
 
         // offset support is missing
@@ -79,7 +79,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
         }
 
         if ($offset) {
-            throw new Nette\NotImplementedException( 'Offset is not implemented.' );
+            throw new Nette\NotImplementedException('Offset is not implemented.');
         }
     }
 
@@ -87,7 +87,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Normalizes result row.
      */
-    public function normalizeRow( $row, $statement )
+    public function normalizeRow($row, $statement)
     {
 
         return $row;
@@ -110,7 +110,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Returns metadata for all columns in a table.
      */
-    public function getColumns( $table )
+    public function getColumns($table)
     {
 
         throw new NotImplementedException;
@@ -120,7 +120,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Returns metadata for all indexes in a table.
      */
-    public function getIndexes( $table )
+    public function getIndexes($table)
     {
 
         throw new NotImplementedException;
@@ -130,7 +130,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Returns metadata for all foreign keys in a table.
      */
-    public function getForeignKeys( $table )
+    public function getForeignKeys($table)
     {
 
         throw new NotImplementedException;
@@ -140,7 +140,7 @@ class MsSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * @return bool
      */
-    public function isSupported( $item )
+    public function isSupported($item)
     {
 
         return $item === self::META;

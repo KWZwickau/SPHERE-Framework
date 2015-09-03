@@ -2,7 +2,7 @@
 
 namespace Doctrine\Tests\DBAL\Schema;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Sequence;
@@ -10,8 +10,10 @@ use Doctrine\DBAL\Schema\Table;
 
 class SchemaTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testAddTable()
     {
+
         $tableName = "public.foo";
         $table = new Table($tableName);
 
@@ -20,7 +22,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($schema->hasTable($tableName));
 
         $tables = $schema->getTables();
-        $this->assertTrue( isset($tables[$tableName]) );
+        $this->assertTrue(isset( $tables[$tableName] ));
         $this->assertSame($table, $tables[$tableName]);
         $this->assertSame($table, $schema->getTable($tableName));
         $this->assertTrue($schema->hasTable($tableName));
@@ -28,6 +30,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testTableMatchingCaseInsenstive()
     {
+
         $table = new Table("Foo");
 
         $schema = new Schema(array($table));
@@ -41,6 +44,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testGetUnknownTableThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $schema = new Schema();
@@ -49,6 +53,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateTableTwiceThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $tableName = "foo";
@@ -60,6 +65,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testRenameTable()
     {
+
         $tableName = "foo";
         $table = new Table($tableName);
         $schema = new Schema(array($table));
@@ -73,6 +79,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testDropTable()
     {
+
         $tableName = "foo";
         $table = new Table($tableName);
         $schema = new Schema(array($table));
@@ -86,6 +93,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateTable()
     {
+
         $schema = new Schema();
 
         $this->assertFalse($schema->hasTable("foo"));
@@ -99,6 +107,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testAddSequences()
     {
+
         $sequence = new Sequence("a_seq", 1, 1);
 
         $schema = new Schema(array(), array($sequence));
@@ -112,6 +121,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testSequenceAccessCaseInsensitive()
     {
+
         $sequence = new Sequence("a_Seq");
 
         $schema = new Schema(array(), array($sequence));
@@ -126,6 +136,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testGetUnknownSequenceThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $schema = new Schema();
@@ -134,6 +145,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateSequence()
     {
+
         $schema = new Schema();
         $sequence = $schema->createSequence('a_seq', 10, 20);
 
@@ -150,6 +162,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testDropSequence()
     {
+
         $sequence = new Sequence("a_seq", 1, 1);
 
         $schema = new Schema(array(), array($sequence));
@@ -160,6 +173,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testAddSequenceTwiceThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $sequence = new Sequence("a_seq", 1, 1);
@@ -169,6 +183,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testConfigMaxIdentifierLength()
     {
+
         $schemaConfig = new \Doctrine\DBAL\Schema\SchemaConfig();
         $schemaConfig->setMaxIdentifierLength(5);
 
@@ -183,6 +198,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
 
     public function testDeepClone()
     {
+
         $schema = new Schema();
         $sequence = $schema->createSequence('baz');
 
@@ -214,6 +230,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testHasTableForQuotedAsset()
     {
+
         $schema = new Schema();
 
         $tableA = $schema->createTable('foo');
@@ -227,6 +244,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testHasNamespace()
     {
+
         $schema = new Schema();
 
         $this->assertFalse($schema->hasNamespace('foo'));
@@ -251,6 +269,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreatesNamespace()
     {
+
         $schema = new Schema();
 
         $this->assertFalse($schema->hasNamespace('foo'));
@@ -279,6 +298,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testThrowsExceptionOnCreatingNamespaceTwice()
     {
+
         $schema = new Schema();
 
         $schema->createNamespace('foo');
@@ -290,6 +310,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreatesNamespaceThroughAddingTableImplicitly()
     {
+
         $schema = new Schema();
 
         $this->assertFalse($schema->hasNamespace('foo'));
@@ -320,6 +341,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testCreatesNamespaceThroughAddingSequenceImplicitly()
     {
+
         $schema = new Schema();
 
         $this->assertFalse($schema->hasNamespace('foo'));
@@ -350,6 +372,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testVisitsVisitor()
     {
+
         $schema = new Schema();
         $visitor = $this->getMock('Doctrine\DBAL\Schema\Visitor\Visitor');
 
@@ -399,6 +422,7 @@ class SchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testVisitsNamespaceVisitor()
     {
+
         $schema = new Schema();
         $visitor = $this->getMock('Doctrine\DBAL\Schema\Visitor\AbstractVisitor');
 

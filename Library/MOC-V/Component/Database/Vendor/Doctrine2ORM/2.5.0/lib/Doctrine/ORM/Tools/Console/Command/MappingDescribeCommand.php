@@ -36,11 +36,13 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 final class MappingDescribeCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:mapping:describe')
             ->addArgument('entityName', InputArgument::REQUIRED, 'Full or partial name of entity')
@@ -62,6 +64,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         /* @var $entityManager \Doctrine\ORM\EntityManagerInterface */
         $entityManager = $this->getHelper('em')->getEntityManager();
 
@@ -73,12 +76,13 @@ EOT
     /**
      * Display all the mapping information for a single Entity.
      *
-     * @param string                 $entityName    Full or partial entity class name
+     * @param string $entityName Full or partial entity class name
      * @param EntityManagerInterface $entityManager
      * @param OutputInterface        $output
      */
     private function displayEntity($entityName, EntityManagerInterface $entityManager, OutputInterface $output)
     {
+
         $table = new Table($output);
 
         $table->setHeaders(array('Field', 'Value'));
@@ -116,7 +120,6 @@ EOT
                     $this->formatField('Versioned?', $metadata->isVersioned),
                     $this->formatField('Version field', $metadata->versionField),
                     $this->formatField('Read only?', $metadata->isReadOnly),
-
                     $this->formatEntityListeners($metadata->entityListeners),
                 ),
                 array($this->formatField('Association mappings:', '')),
@@ -130,40 +133,17 @@ EOT
     }
 
     /**
-     * Return all mapped entity class names
-     *
-     * @param EntityManagerInterface $entityManager
-     *
-     * @return string[]
-     */
-    private function getMappedEntities(EntityManagerInterface $entityManager)
-    {
-        $entityClassNames = $entityManager
-            ->getConfiguration()
-            ->getMetadataDriverImpl()
-            ->getAllClassNames();
-
-        if ( ! $entityClassNames) {
-            throw new \InvalidArgumentException(
-                'You do not have any mapped Doctrine ORM entities according to the current configuration. '.
-                'If you have entities or mapping files you should check your mapping configuration for errors.'
-            );
-        }
-
-        return $entityClassNames;
-    }
-
-    /**
      * Return the class metadata for the given entity
      * name
      *
-     * @param string                 $entityName    Full or partial entity name
+     * @param string $entityName Full or partial entity name
      * @param EntityManagerInterface $entityManager
      *
      * @return \Doctrine\ORM\Mapping\ClassMetadata
      */
     private function getClassMetadata($entityName, EntityManagerInterface $entityManager)
     {
+
         try {
             return $entityManager->getClassMetadata($entityName);
         } catch (MappingException $e) {
@@ -172,11 +152,12 @@ EOT
         $matches = array_filter(
             $this->getMappedEntities($entityManager),
             function ($mappedEntity) use ($entityName) {
-                return preg_match('{' . preg_quote($entityName) . '}', $mappedEntity);
+
+                return preg_match('{'.preg_quote($entityName).'}', $mappedEntity);
             }
         );
 
-        if ( ! $matches) {
+        if (!$matches) {
             throw new \InvalidArgumentException(sprintf(
                 'Could not find any mapped Entity classes matching "%s"',
                 $entityName
@@ -194,6 +175,49 @@ EOT
     }
 
     /**
+     * Return all mapped entity class names
+     *
+     * @param EntityManagerInterface $entityManager
+     *
+     * @return string[]
+     */
+    private function getMappedEntities(EntityManagerInterface $entityManager)
+    {
+
+        $entityClassNames = $entityManager
+            ->getConfiguration()
+            ->getMetadataDriverImpl()
+            ->getAllClassNames();
+
+        if (!$entityClassNames) {
+            throw new \InvalidArgumentException(
+                'You do not have any mapped Doctrine ORM entities according to the current configuration. '.
+                'If you have entities or mapping files you should check your mapping configuration for errors.'
+            );
+        }
+
+        return $entityClassNames;
+    }
+
+    /**
+     * Add the given label and value to the two column table output
+     *
+     * @param string $label Label for the value
+     * @param mixed  $value A Value to show
+     *
+     * @return array
+     */
+    private function formatField($label, $value)
+    {
+
+        if (null === $value) {
+            $value = '<comment>None</comment>';
+        }
+
+        return array(sprintf('<info>%s</info>', $label), $this->formatValue($value));
+    }
+
+    /**
      * Format the given value for console output
      *
      * @param mixed $value
@@ -202,6 +226,7 @@ EOT
      */
     private function formatValue($value)
     {
+
         if ('' === $value) {
             return '';
         }
@@ -211,10 +236,10 @@ EOT
         }
 
         if (is_bool($value)) {
-            return '<comment>' . ($value ? 'True' : 'False') . '</comment>';
+            return '<comment>'.( $value ? 'True' : 'False' ).'</comment>';
         }
 
-        if (empty($value)) {
+        if (empty( $value )) {
             return '<comment>Empty</comment>';
         }
 
@@ -238,20 +263,25 @@ EOT
     }
 
     /**
-     * Add the given label and value to the two column table output
+     * Format the entity listeners
      *
-     * @param string $label Label for the value
-     * @param mixed  $value A Value to show
+     * @param array $entityListeners
      *
      * @return array
      */
-    private function formatField($label, $value)
+    private function formatEntityListeners(array $entityListeners)
     {
-        if (null === $value) {
-            $value = '<comment>None</comment>';
-        }
 
-        return array(sprintf('<info>%s</info>', $label), $this->formatValue($value));
+        return $this->formatField(
+            'Entity listeners',
+            array_map(
+                function ($entityListener) {
+
+                    return get_class($entityListener);
+                },
+                $entityListeners
+            )
+        );
     }
 
     /**
@@ -263,6 +293,7 @@ EOT
      */
     private function formatMappings(array $propertyMappings)
     {
+
         $output = array();
 
         foreach ($propertyMappings as $propertyName => $mapping) {
@@ -274,25 +305,5 @@ EOT
         }
 
         return $output;
-    }
-
-    /**
-     * Format the entity listeners
-     *
-     * @param array $entityListeners
-     *
-     * @return array
-     */
-    private function formatEntityListeners(array $entityListeners)
-    {
-        return $this->formatField(
-            'Entity listeners',
-            array_map(
-                function ($entityListener) {
-                    return get_class($entityListener);
-                },
-                $entityListeners
-            )
-        );
     }
 }

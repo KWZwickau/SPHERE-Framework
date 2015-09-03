@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\Console\Output;
 
-use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 use Symfony\Component\Console\Formatter\OutputFormatter;
+use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 
 /**
  * Base class for output classes.
@@ -31,6 +31,7 @@ use Symfony\Component\Console\Formatter\OutputFormatter;
  */
 abstract class Output implements OutputInterface
 {
+
     private $verbosity;
     private $formatter;
 
@@ -43,8 +44,12 @@ abstract class Output implements OutputInterface
      *
      * @api
      */
-    public function __construct($verbosity = self::VERBOSITY_NORMAL, $decorated = false, OutputFormatterInterface $formatter = null)
-    {
+    public function __construct(
+        $verbosity = self::VERBOSITY_NORMAL,
+        $decorated = false,
+        OutputFormatterInterface $formatter = null
+    ) {
+
         $this->verbosity = null === $verbosity ? self::VERBOSITY_NORMAL : $verbosity;
         $this->formatter = $formatter ?: new OutputFormatter();
         $this->formatter->setDecorated($decorated);
@@ -53,17 +58,19 @@ abstract class Output implements OutputInterface
     /**
      * {@inheritdoc}
      */
-    public function setFormatter(OutputFormatterInterface $formatter)
+    public function getFormatter()
     {
-        $this->formatter = $formatter;
+
+        return $this->formatter;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getFormatter()
+    public function setFormatter(OutputFormatterInterface $formatter)
     {
-        return $this->formatter;
+
+        $this->formatter = $formatter;
     }
 
     /**
@@ -71,6 +78,7 @@ abstract class Output implements OutputInterface
      */
     public function setDecorated($decorated)
     {
+
         $this->formatter->setDecorated($decorated);
     }
 
@@ -79,15 +87,8 @@ abstract class Output implements OutputInterface
      */
     public function isDecorated()
     {
-        return $this->formatter->isDecorated();
-    }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function setVerbosity($level)
-    {
-        $this->verbosity = (int) $level;
+        return $this->formatter->isDecorated();
     }
 
     /**
@@ -95,26 +96,40 @@ abstract class Output implements OutputInterface
      */
     public function getVerbosity()
     {
+
         return $this->verbosity;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setVerbosity($level)
+    {
+
+        $this->verbosity = (int)$level;
     }
 
     public function isQuiet()
     {
+
         return self::VERBOSITY_QUIET === $this->verbosity;
     }
 
     public function isVerbose()
     {
+
         return self::VERBOSITY_VERBOSE <= $this->verbosity;
     }
 
     public function isVeryVerbose()
     {
+
         return self::VERBOSITY_VERY_VERBOSE <= $this->verbosity;
     }
 
     public function isDebug()
     {
+
         return self::VERBOSITY_DEBUG <= $this->verbosity;
     }
 
@@ -123,6 +138,7 @@ abstract class Output implements OutputInterface
      */
     public function writeln($messages, $type = self::OUTPUT_NORMAL)
     {
+
         $this->write($messages, true, $type);
     }
 
@@ -131,11 +147,12 @@ abstract class Output implements OutputInterface
      */
     public function write($messages, $newline = false, $type = self::OUTPUT_NORMAL)
     {
+
         if (self::VERBOSITY_QUIET === $this->verbosity) {
             return;
         }
 
-        $messages = (array) $messages;
+        $messages = (array)$messages;
 
         foreach ($messages as $message) {
             switch ($type) {

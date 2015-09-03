@@ -24,10 +24,10 @@ class Button extends BaseControl
     /**
      * @param  string  caption
      */
-    public function __construct( $caption = null )
+    public function __construct($caption = null)
     {
 
-        parent::__construct( $caption );
+        parent::__construct($caption);
         $this->control->type = 'button';
     }
 
@@ -37,7 +37,7 @@ class Button extends BaseControl
      *
      * @return void
      */
-    public function getLabel( $caption = null )
+    public function getLabel($caption = null)
     {
 
         return null;
@@ -51,11 +51,11 @@ class Button extends BaseControl
      *
      * @return Nette\Utils\Html
      */
-    public function getControl( $caption = null )
+    public function getControl($caption = null)
     {
 
         $control = parent::getControl();
-        $control->value = $this->translate( $caption === null ? $this->caption : $caption );
+        $control->value = $this->translate($caption === null ? $this->caption : $caption);
         return $control;
     }
 

@@ -22,6 +22,7 @@ namespace Symfony\Component\EventDispatcher;
  */
 interface EventDispatcherInterface
 {
+
     /**
      * Dispatches an event to all registered listeners.
      *

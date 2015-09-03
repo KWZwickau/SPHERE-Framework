@@ -29,6 +29,7 @@ namespace Doctrine\Common\Persistence;
  */
 interface ObjectManager
 {
+
     /**
      * Finds an object by its identifier.
      *

@@ -13,6 +13,7 @@
  */
 class PHP_CodeCoverage_Report_XML_Totals
 {
+
     /**
      * @var DOMNode
      */
@@ -45,8 +46,9 @@ class PHP_CodeCoverage_Report_XML_Totals
 
     public function __construct(DOMElement $container)
     {
+
         $this->container = $container;
-        $dom             = $container->ownerDocument;
+        $dom = $container->ownerDocument;
 
         $this->linesNode = $dom->createElementNS(
             'http://schema.phpunit.de/coverage/1.0',
@@ -82,11 +84,13 @@ class PHP_CodeCoverage_Report_XML_Totals
 
     public function getContainer()
     {
+
         return $this->container;
     }
 
     public function setNumLines($loc, $cloc, $ncloc, $executable, $executed)
     {
+
         $this->linesNode->setAttribute('total', $loc);
         $this->linesNode->setAttribute('comments', $cloc);
         $this->linesNode->setAttribute('code', $ncloc);
@@ -100,6 +104,7 @@ class PHP_CodeCoverage_Report_XML_Totals
 
     public function setNumClasses($count, $tested)
     {
+
         $this->classesNode->setAttribute('count', $count);
         $this->classesNode->setAttribute('tested', $tested);
         $this->classesNode->setAttribute(
@@ -110,6 +115,7 @@ class PHP_CodeCoverage_Report_XML_Totals
 
     public function setNumTraits($count, $tested)
     {
+
         $this->traitsNode->setAttribute('count', $count);
         $this->traitsNode->setAttribute('tested', $tested);
         $this->traitsNode->setAttribute(
@@ -120,6 +126,7 @@ class PHP_CodeCoverage_Report_XML_Totals
 
     public function setNumMethods($count, $tested)
     {
+
         $this->methodsNode->setAttribute('count', $count);
         $this->methodsNode->setAttribute('tested', $tested);
         $this->methodsNode->setAttribute(
@@ -130,6 +137,7 @@ class PHP_CodeCoverage_Report_XML_Totals
 
     public function setNumFunctions($count, $tested)
     {
+
         $this->functionsNode->setAttribute('count', $count);
         $this->functionsNode->setAttribute('tested', $tested);
         $this->functionsNode->setAttribute(

@@ -21,10 +21,10 @@ use Nette;
 class Row extends Nette\ArrayHash
 {
 
-    public function __construct( Statement $statement )
+    public function __construct(Statement $statement)
     {
 
-        $statement->normalizeRow( $this );
+        $statement->normalizeRow($this);
     }
 
 
@@ -35,11 +35,11 @@ class Row extends Nette\ArrayHash
      *
      * @return mixed
      */
-    public function offsetGet( $key )
+    public function offsetGet($key)
     {
 
-        if (is_int( $key )) {
-            $arr = array_values( (array)$this );
+        if (is_int($key)) {
+            $arr = array_values((array)$this);
             return $arr[$key];
         }
         return $this->$key;

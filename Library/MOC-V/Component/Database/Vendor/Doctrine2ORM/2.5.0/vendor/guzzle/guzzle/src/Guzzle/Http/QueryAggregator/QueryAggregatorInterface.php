@@ -9,6 +9,7 @@ use Guzzle\Http\QueryString;
  */
 interface QueryAggregatorInterface
 {
+
     /**
      * Aggregate multi-valued parameters into a flattened associative array
      *

@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ControllerResolver implements ControllerResolverInterface
 {
+
     private $logger;
 
     /**
@@ -36,6 +37,7 @@ class ControllerResolver implements ControllerResolverInterface
      */
     public function __construct(LoggerInterface $logger = null)
     {
+
         $this->logger = $logger;
     }
 
@@ -49,6 +51,7 @@ class ControllerResolver implements ControllerResolverInterface
      */
     public function getController(Request $request)
     {
+
         if (!$controller = $request->attributes->get('_controller')) {
             if (null !== $this->logger) {
                 $this->logger->warning('Unable to look for the controller as the "_controller" parameter is missing');
@@ -66,7 +69,8 @@ class ControllerResolver implements ControllerResolverInterface
                 return $controller;
             }
 
-            throw new \InvalidArgumentException(sprintf('Controller "%s" for URI "%s" is not callable.', get_class($controller), $request->getPathInfo()));
+            throw new \InvalidArgumentException(sprintf('Controller "%s" for URI "%s" is not callable.',
+                get_class($controller), $request->getPathInfo()));
         }
 
         if (false === strpos($controller, ':')) {
@@ -80,7 +84,8 @@ class ControllerResolver implements ControllerResolverInterface
         $callable = $this->createController($controller);
 
         if (!is_callable($callable)) {
-            throw new \InvalidArgumentException(sprintf('Controller "%s" for URI "%s" is not callable.', $controller, $request->getPathInfo()));
+            throw new \InvalidArgumentException(sprintf('Controller "%s" for URI "%s" is not callable.', $controller,
+                $request->getPathInfo()));
         }
 
         return $callable;
@@ -95,20 +100,20 @@ class ControllerResolver implements ControllerResolverInterface
      *
      * @throws \InvalidArgumentException
      */
-    protected function createController( $controller )
+    protected function createController($controller)
     {
 
-        if (false === strpos( $controller, '::' )) {
-            throw new \InvalidArgumentException( sprintf( 'Unable to find controller "%s".', $controller ) );
+        if (false === strpos($controller, '::')) {
+            throw new \InvalidArgumentException(sprintf('Unable to find controller "%s".', $controller));
         }
 
-        list( $class, $method ) = explode( '::', $controller, 2 );
+        list( $class, $method ) = explode('::', $controller, 2);
 
-        if (!class_exists( $class )) {
-            throw new \InvalidArgumentException( sprintf( 'Class "%s" does not exist.', $class ) );
+        if (!class_exists($class)) {
+            throw new \InvalidArgumentException(sprintf('Class "%s" does not exist.', $class));
         }
 
-        return array( new $class(), $method );
+        return array(new $class(), $method);
     }
 
     /**
@@ -118,6 +123,7 @@ class ControllerResolver implements ControllerResolverInterface
      */
     public function getArguments(Request $request, $controller)
     {
+
         if (is_array($controller)) {
             $r = new \ReflectionMethod($controller[0], $controller[1]);
         } elseif (is_object($controller) && !$controller instanceof \Closure) {
@@ -132,6 +138,7 @@ class ControllerResolver implements ControllerResolverInterface
 
     protected function doGetArguments(Request $request, $controller, array $parameters)
     {
+
         $attributes = $request->attributes->all();
         $arguments = array();
         foreach ($parameters as $param) {
@@ -150,7 +157,8 @@ class ControllerResolver implements ControllerResolverInterface
                     $repr = $controller;
                 }
 
-                throw new \RuntimeException(sprintf('Controller "%s" requires that you provide a value for the "$%s" argument (because there is no default value or because there is a non optional argument after this one).', $repr, $param->name));
+                throw new \RuntimeException(sprintf('Controller "%s" requires that you provide a value for the "$%s" argument (because there is no default value or because there is a non optional argument after this one).',
+                    $repr, $param->name));
             }
         }
 

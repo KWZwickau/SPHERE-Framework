@@ -19,8 +19,8 @@
 
 namespace Doctrine\ORM\Tools\Export\Driver;
 
-use Symfony\Component\Yaml\Yaml;
 use Doctrine\ORM\Mapping\ClassMetadataInfo;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * ClassMetadata exporter for Doctrine YAML mapping files.
@@ -31,6 +31,7 @@ use Doctrine\ORM\Mapping\ClassMetadataInfo;
  */
 class YamlExporter extends AbstractExporter
 {
+
     /**
      * @var string
      */
@@ -41,6 +42,7 @@ class YamlExporter extends AbstractExporter
      */
     public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
+
         $array = array();
 
         if ($metadata->isMappedSuperclass) {
@@ -51,7 +53,7 @@ class YamlExporter extends AbstractExporter
 
         $array['table'] = $metadata->table['name'];
 
-        if (isset($metadata->table['schema'])) {
+        if (isset( $metadata->table['schema'] )) {
             $array['schema'] = $metadata->table['schema'];
         }
 
@@ -73,7 +75,7 @@ class YamlExporter extends AbstractExporter
             $array['changeTrackingPolicy'] = $this->_getChangeTrackingPolicyString($metadata->changeTrackingPolicy);
         }
 
-        if (isset($metadata->table['indexes'])) {
+        if (isset( $metadata->table['indexes'] )) {
             $array['indexes'] = $metadata->table['indexes'];
         }
 
@@ -81,11 +83,11 @@ class YamlExporter extends AbstractExporter
             $array['repositoryClass'] = $metadata->customRepositoryClassName;
         }
 
-        if (isset($metadata->table['uniqueConstraints'])) {
+        if (isset( $metadata->table['uniqueConstraints'] )) {
             $array['uniqueConstraints'] = $metadata->table['uniqueConstraints'];
         }
 
-        if (isset($metadata->table['options'])) {
+        if (isset( $metadata->table['options'] )) {
             $array['options'] = $metadata->table['options'];
         }
 
@@ -95,29 +97,29 @@ class YamlExporter extends AbstractExporter
         foreach ($fieldMappings as $name => $fieldMapping) {
             $fieldMapping['column'] = $fieldMapping['columnName'];
 
-            unset($fieldMapping['columnName'], $fieldMapping['fieldName']);
+            unset( $fieldMapping['columnName'], $fieldMapping['fieldName'] );
 
             if ($fieldMapping['column'] == $name) {
-                unset($fieldMapping['column']);
+                unset( $fieldMapping['column'] );
             }
 
-            if (isset($fieldMapping['id']) && $fieldMapping['id']) {
+            if (isset( $fieldMapping['id'] ) && $fieldMapping['id']) {
                 $ids[$name] = $fieldMapping;
-                unset($fieldMappings[$name]);
+                unset( $fieldMappings[$name] );
                 continue;
             }
 
             $fieldMappings[$name] = $fieldMapping;
         }
 
-        if ( ! $metadata->isIdentifierComposite && $idGeneratorType = $this->_getIdGeneratorTypeString($metadata->generatorType)) {
+        if (!$metadata->isIdentifierComposite && $idGeneratorType = $this->_getIdGeneratorTypeString($metadata->generatorType)) {
             $ids[$metadata->getSingleIdentifierFieldName()]['generator']['strategy'] = $idGeneratorType;
         }
 
         $array['id'] = $ids;
 
         if ($fieldMappings) {
-            if ( ! isset($array['fields'])) {
+            if (!isset( $array['fields'] )) {
                 $array['fields'] = array();
             }
             $array['fields'] = array_merge($array['fields'], $fieldMappings);
@@ -151,14 +153,14 @@ class YamlExporter extends AbstractExporter
 
             $associationMappingArray = array(
                 'targetEntity' => $associationMapping['targetEntity'],
-                'cascade'     => $cascade,
+                'cascade' => $cascade,
             );
 
-            if (isset($associationMapping['fetch'])) {
+            if (isset( $associationMapping['fetch'] )) {
                 $associationMappingArray['fetch'] = $this->_getFetchModeString($associationMapping['fetch']);
             }
 
-            if (isset($mapping['id']) && $mapping['id'] === true) {
+            if (isset( $mapping['id'] ) && $mapping['id'] === true) {
                 $array['id'][$name]['associationKey'] = true;
             }
 
@@ -169,7 +171,7 @@ class YamlExporter extends AbstractExporter
                 foreach ($joinColumns as $joinColumn) {
                     $newJoinColumns[$joinColumn['name']]['referencedColumnName'] = $joinColumn['referencedColumnName'];
 
-                    if (isset($joinColumn['onDelete'])) {
+                    if (isset( $joinColumn['onDelete'] )) {
                         $newJoinColumns[$joinColumn['name']]['onDelete'] = $joinColumn['onDelete'];
                     }
                 }
@@ -193,7 +195,7 @@ class YamlExporter extends AbstractExporter
                     'mappedBy'      => $associationMapping['mappedBy'],
                     'inversedBy'    => $associationMapping['inversedBy'],
                     'orphanRemoval' => $associationMapping['orphanRemoval'],
-                    'orderBy'       => isset($associationMapping['orderBy']) ? $associationMapping['orderBy'] : null
+                    'orderBy' => isset( $associationMapping['orderBy'] ) ? $associationMapping['orderBy'] : null
                 );
 
                 $associationMappingArray = array_merge($associationMappingArray, $oneToManyMappingArray);
@@ -202,15 +204,15 @@ class YamlExporter extends AbstractExporter
                 $manyToManyMappingArray = array(
                     'mappedBy'   => $associationMapping['mappedBy'],
                     'inversedBy' => $associationMapping['inversedBy'],
-                    'joinTable'  => isset($associationMapping['joinTable']) ? $associationMapping['joinTable'] : null,
-                    'orderBy'    => isset($associationMapping['orderBy']) ? $associationMapping['orderBy'] : null
+                    'joinTable' => isset( $associationMapping['joinTable'] ) ? $associationMapping['joinTable'] : null,
+                    'orderBy'   => isset( $associationMapping['orderBy'] ) ? $associationMapping['orderBy'] : null
                 );
 
                 $associationMappingArray = array_merge($associationMappingArray, $manyToManyMappingArray);
                 $array['manyToMany'][$name] = $associationMappingArray;
             }
         }
-        if (isset($metadata->lifecycleCallbacks)) {
+        if (isset( $metadata->lifecycleCallbacks )) {
             $array['lifecycleCallbacks'] = $metadata->lifecycleCallbacks;
         }
 
@@ -230,6 +232,7 @@ class YamlExporter extends AbstractExporter
      */
     protected function yamlDump($array, $inline = 2)
     {
+
         return Yaml::dump($array, $inline);
     }
 }

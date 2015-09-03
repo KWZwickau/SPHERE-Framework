@@ -91,7 +91,7 @@ interface IReflectionMethod extends IReflectionFunctionBase
      *
      * @return boolean
      */
-    public function is( $filter = null );
+    public function is($filter = null);
 
     /**
      * Returns if the method is a constructor.
@@ -122,7 +122,7 @@ interface IReflectionMethod extends IReflectionFunctionBase
      *
      * @return mixed
      */
-    public function invoke( $object, $args );
+    public function invoke($object, $args);
 
     /**
      * Calls the method on an given object.
@@ -132,14 +132,14 @@ interface IReflectionMethod extends IReflectionFunctionBase
      *
      * @return mixed
      */
-    public function invokeArgs( $object, array $args );
+    public function invokeArgs($object, array $args);
 
     /**
      * Sets a method to be accessible or not.
      *
      * @param boolean $accessible If the method should be accessible.
      */
-    public function setAccessible( $accessible );
+    public function setAccessible($accessible);
 
     /**
      * Returns the function/method as closure.
@@ -148,7 +148,7 @@ interface IReflectionMethod extends IReflectionFunctionBase
      *
      * @return \Closure
      */
-    public function getClosure( $object );
+    public function getClosure($object);
 
     /**
      * Returns the original name when importing from a trait.

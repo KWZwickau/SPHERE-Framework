@@ -3,9 +3,9 @@
 namespace Guzzle\Service\Command\LocationVisitor\Request;
 
 use Guzzle\Http\EntityBody;
+use Guzzle\Http\EntityBodyInterface;
 use Guzzle\Http\Message\EntityEnclosingRequestInterface;
 use Guzzle\Http\Message\RequestInterface;
-use Guzzle\Http\EntityBodyInterface;
 use Guzzle\Service\Command\CommandInterface;
 use Guzzle\Service\Description\Parameter;
 
@@ -18,8 +18,10 @@ use Guzzle\Service\Description\Parameter;
  */
 class BodyVisitor extends AbstractRequestVisitor
 {
+
     public function visit(CommandInterface $command, RequestInterface $request, Parameter $param, $value)
     {
+
         $value = $param->filter($value);
         $entityBody = EntityBody::factory($value);
         $request->setBody($entityBody);
@@ -39,6 +41,7 @@ class BodyVisitor extends AbstractRequestVisitor
      */
     protected function addExpectHeader(EntityEnclosingRequestInterface $request, EntityBodyInterface $body, $expect)
     {
+
         // Allow the `expect` data parameter to be set to remove the Expect header from the request
         if ($expect === false) {
             $request->removeHeader('Expect');

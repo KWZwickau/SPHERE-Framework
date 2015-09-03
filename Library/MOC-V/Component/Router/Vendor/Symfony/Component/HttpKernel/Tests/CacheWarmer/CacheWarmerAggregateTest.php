@@ -15,20 +15,24 @@ use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerAggregate;
 
 class CacheWarmerAggregateTest extends \PHPUnit_Framework_TestCase
 {
+
     protected static $cacheDir;
 
     public static function setUpBeforeClass()
     {
+
         self::$cacheDir = tempnam(sys_get_temp_dir(), 'sf2_cache_warmer_dir');
     }
 
     public static function tearDownAfterClass()
     {
+
         @unlink(self::$cacheDir);
     }
 
     public function testInjectWarmersUsingConstructor()
     {
+
         $warmer = $this->getCacheWarmerMock();
         $warmer
             ->expects($this->once())
@@ -40,7 +44,7 @@ class CacheWarmerAggregateTest extends \PHPUnit_Framework_TestCase
     protected function getCacheWarmerMock()
     {
 
-        $warmer = $this->getMockBuilder( 'Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface' )
+        $warmer = $this->getMockBuilder('Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface')
             ->disableOriginalConstructor()
             ->getMock();
 
@@ -49,6 +53,7 @@ class CacheWarmerAggregateTest extends \PHPUnit_Framework_TestCase
 
     public function testInjectWarmersUsingAdd()
     {
+
         $warmer = $this->getCacheWarmerMock();
         $warmer
             ->expects($this->once())
@@ -60,6 +65,7 @@ class CacheWarmerAggregateTest extends \PHPUnit_Framework_TestCase
 
     public function testInjectWarmersUsingSetWarmers()
     {
+
         $warmer = $this->getCacheWarmerMock();
         $warmer
             ->expects($this->once())
@@ -71,6 +77,7 @@ class CacheWarmerAggregateTest extends \PHPUnit_Framework_TestCase
 
     public function testWarmupDoesCallWarmupOnOptionalWarmersWhenEnableOptionalWarmersIsEnabled()
     {
+
         $warmer = $this->getCacheWarmerMock();
         $warmer
             ->expects($this->never())
@@ -86,6 +93,7 @@ class CacheWarmerAggregateTest extends \PHPUnit_Framework_TestCase
 
     public function testWarmupDoesNotCallWarmupOnOptionalWarmersWhenEnableOptionalWarmersIsNotEnabled()
     {
+
         $warmer = $this->getCacheWarmerMock();
         $warmer
             ->expects($this->once())

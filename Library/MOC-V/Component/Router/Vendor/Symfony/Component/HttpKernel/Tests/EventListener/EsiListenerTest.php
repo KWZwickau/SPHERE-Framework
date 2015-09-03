@@ -22,8 +22,10 @@ use Symfony\Component\HttpKernel\KernelEvents;
 
 class EsiListenerTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testFilterDoesNothingForSubRequests()
     {
+
         $dispatcher = new EventDispatcher();
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $response = new Response('foo <esi:include src="" />');
@@ -38,6 +40,7 @@ class EsiListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testFilterWhenThereIsSomeEsiIncludes()
     {
+
         $dispatcher = new EventDispatcher();
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $response = new Response('foo <esi:include src="" />');
@@ -52,6 +55,7 @@ class EsiListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testFilterWhenThereIsNoEsiIncludes()
     {
+
         $dispatcher = new EventDispatcher();
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $response = new Response('foo');

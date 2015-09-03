@@ -18,10 +18,10 @@ class HostParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Host
      */
-    function __construct( $Host )
+    public function __construct($Host)
     {
 
-        $this->setHost( $Host );
+        $this->setHost($Host);
     }
 
     /**
@@ -36,7 +36,7 @@ class HostParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Host
      */
-    public function setHost( $Host )
+    public function setHost($Host)
     {
 
         $this->Host = $Host;

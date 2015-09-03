@@ -37,7 +37,7 @@ interface Output
      *
      * @return string
      */
-    public function template( $word, $class );
+    public function template($word, $class);
 
     /**
      * Outputs a keyword.
@@ -47,5 +47,5 @@ interface Output
      *
      * @return string
      */
-    public function keyword( $word, $class );
+    public function keyword($word, $class);
 }

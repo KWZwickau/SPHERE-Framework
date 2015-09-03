@@ -29,6 +29,7 @@ namespace Doctrine\DBAL\Driver;
  */
 interface PingableConnection
 {
+
     /**
      * Pings the database server to determine if the connection is still
      * available. Return true/false based on if that was successful or not.

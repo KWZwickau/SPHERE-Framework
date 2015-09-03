@@ -10,6 +10,7 @@ use Guzzle\Http\Message\Response;
  */
 interface CacheStorageInterface
 {
+
     /**
      * Get a Response from the cache for a request
      *

@@ -9,6 +9,7 @@ use Guzzle\Common\Exception\InvalidArgumentException;
  */
 class Parameter
 {
+
     protected $name;
     protected $description;
     protected $serviceDescription;
@@ -94,12 +95,13 @@ class Parameter
      */
     public function __construct(array $data = array(), ServiceDescriptionInterface $description = null)
     {
+
         if ($description) {
-            if (isset($data['$ref'])) {
+            if (isset( $data['$ref'] )) {
                 if ($model = $description->getModel($data['$ref'])) {
                     $data = $model->toArray() + $data;
                 }
-            } elseif (isset($data['extends'])) {
+            } elseif (isset( $data['extends'] )) {
                 // If this parameter extends from another parameter then start with the actual data
                 // union in the parent's data (e.g. actual supersedes parent)
                 if ($extends = $description->getModel($data['extends'])) {
@@ -114,11 +116,11 @@ class Parameter
         }
 
         $this->serviceDescription = $description;
-        $this->required = (bool) $this->required;
-        $this->data = (array) $this->data;
+        $this->required = (bool)$this->required;
+        $this->data = (array)$this->data;
 
         if ($this->filters) {
-            $this->setFilters((array) $this->filters);
+            $this->setFilters((array)$this->filters);
         }
 
         if ($this->type == 'object' && $this->additionalProperties === null) {
@@ -133,14 +135,32 @@ class Parameter
      */
     public function toArray()
     {
-        static $checks = array('required', 'description', 'static', 'type', 'format', 'instanceOf', 'location', 'sentAs',
-            'pattern', 'minimum', 'maximum', 'minItems', 'maxItems', 'minLength', 'maxLength', 'data', 'enum',
-            'filters');
+
+        static $checks = array(
+            'required',
+            'description',
+            'static',
+            'type',
+            'format',
+            'instanceOf',
+            'location',
+            'sentAs',
+            'pattern',
+            'minimum',
+            'maximum',
+            'minItems',
+            'maxItems',
+            'minLength',
+            'maxLength',
+            'data',
+            'enum',
+            'filters'
+        );
 
         $result = array();
 
         // Anything that is in the `Items` attribute of an array *must* include it's name if available
-        if ($this->parent instanceof self && $this->parent->getType() == 'array' && isset($this->name)) {
+        if ($this->parent instanceof self && $this->parent->getType() == 'array' && isset( $this->name )) {
             $result['name'] = $this->name;
         }
 
@@ -176,6 +196,137 @@ class Parameter
     }
 
     /**
+     * Get the type(s) of the parameter
+     *
+     * @return string|array
+     */
+    public function getType()
+    {
+
+        return $this->type;
+    }
+
+    /**
+     * Set the type(s) of the parameter
+     *
+     * @param string|array $type Type of parameter or array of simple types used in a union
+     *
+     * @return self
+     */
+    public function setType($type)
+    {
+
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * Get the item data of the parameter
+     *
+     * @return Parameter|null
+     */
+    public function getItems()
+    {
+
+        if (is_array($this->items)) {
+            $this->items = new static($this->items, $this->serviceDescription);
+            $this->items->setParent($this);
+        }
+
+        return $this->items;
+    }
+
+    /**
+     * Set the items data of the parameter
+     *
+     * @param Parameter|null $items Items to set
+     *
+     * @return self
+     */
+    public function setItems(Parameter $items = null)
+    {
+
+        if ($this->items = $items) {
+            $this->items->setParent($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the additionalProperties value of the parameter
+     *
+     * @return bool|Parameter|null
+     */
+    public function getAdditionalProperties()
+    {
+
+        if (is_array($this->additionalProperties)) {
+            $this->additionalProperties = new static($this->additionalProperties, $this->serviceDescription);
+            $this->additionalProperties->setParent($this);
+        }
+
+        return $this->additionalProperties;
+    }
+
+    /**
+     * Set the additionalProperties value of the parameter
+     *
+     * @param bool|Parameter|null $additional Boolean to allow any, an Parameter to specify a schema, or false to disallow
+     *
+     * @return self
+     */
+    public function setAdditionalProperties($additional)
+    {
+
+        $this->additionalProperties = $additional;
+
+        return $this;
+    }
+
+    /**
+     * Get the properties of the parameter
+     *
+     * @return array
+     */
+    public function getProperties()
+    {
+
+        if (!$this->propertiesCache) {
+            $this->propertiesCache = array();
+            foreach (array_keys($this->properties) as $name) {
+                $this->propertiesCache[$name] = $this->getProperty($name);
+            }
+        }
+
+        return $this->propertiesCache;
+    }
+
+    /**
+     * Get a specific property from the parameter
+     *
+     * @param string $name Name of the property to retrieve
+     *
+     * @return null|Parameter
+     */
+    public function getProperty($name)
+    {
+
+        if (!isset( $this->properties[$name] )) {
+            return null;
+        }
+
+        if (!( $this->properties[$name] instanceof self )) {
+            $this->properties[$name]['name'] = $name;
+            $this->properties[$name] = new static($this->properties[$name], $this->serviceDescription);
+            $this->properties[$name]->setParent($this);
+        }
+
+        return $this->properties[$name];
+    }
+
+    /**
      * Get the default or static value of the command based on a value
      *
      * @param string $value Value that is currently set
@@ -184,7 +335,8 @@ class Parameter
      */
     public function getValue($value)
     {
-        if ($this->static || ($this->default !== null && $value === null)) {
+
+        if ($this->static || ( $this->default !== null && $value === null )) {
             return $this->default;
         }
 
@@ -200,6 +352,7 @@ class Parameter
      */
     public function filter($value)
     {
+
         // Formats are applied exclusively and supersed filters
         if ($this->format) {
             return SchemaFormatter::format($this->format, $value);
@@ -233,61 +386,14 @@ class Parameter
     }
 
     /**
-     * Get the name of the parameter
-     *
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
      * Get the key of the parameter, where sentAs will supersede name if it is set
      *
      * @return string
      */
     public function getWireName()
     {
+
         return $this->sentAs ?: $this->name;
-    }
-
-    /**
-     * Set the name of the parameter
-     *
-     * @param string $name Name to set
-     *
-     * @return self
-     */
-    public function setName($name)
-    {
-        $this->name = $name;
-
-        return $this;
-    }
-
-    /**
-     * Get the type(s) of the parameter
-     *
-     * @return string|array
-     */
-    public function getType()
-    {
-        return $this->type;
-    }
-
-    /**
-     * Set the type(s) of the parameter
-     *
-     * @param string|array $type Type of parameter or array of simple types used in a union
-     *
-     * @return self
-     */
-    public function setType($type)
-    {
-        $this->type = $type;
-
-        return $this;
     }
 
     /**
@@ -297,6 +403,7 @@ class Parameter
      */
     public function getRequired()
     {
+
         return $this->required;
     }
 
@@ -309,7 +416,8 @@ class Parameter
      */
     public function setRequired($isRequired)
     {
-        $this->required = (bool) $isRequired;
+
+        $this->required = (bool)$isRequired;
 
         return $this;
     }
@@ -321,6 +429,7 @@ class Parameter
      */
     public function getDefault()
     {
+
         return $this->default;
     }
 
@@ -333,6 +442,7 @@ class Parameter
      */
     public function setDefault($default)
     {
+
         $this->default = $default;
 
         return $this;
@@ -345,6 +455,7 @@ class Parameter
      */
     public function getDescription()
     {
+
         return $this->description;
     }
 
@@ -357,6 +468,7 @@ class Parameter
      */
     public function setDescription($description)
     {
+
         $this->description = $description;
 
         return $this;
@@ -369,6 +481,7 @@ class Parameter
      */
     public function getMinimum()
     {
+
         return $this->minimum;
     }
 
@@ -381,6 +494,7 @@ class Parameter
      */
     public function setMinimum($min)
     {
+
         $this->minimum = $min;
 
         return $this;
@@ -393,6 +507,7 @@ class Parameter
      */
     public function getMaximum()
     {
+
         return $this->maximum;
     }
 
@@ -405,6 +520,7 @@ class Parameter
      */
     public function setMaximum($max)
     {
+
         $this->maximum = $max;
 
         return $this;
@@ -417,6 +533,7 @@ class Parameter
      */
     public function getMinLength()
     {
+
         return $this->minLength;
     }
 
@@ -429,6 +546,7 @@ class Parameter
      */
     public function setMinLength($min)
     {
+
         $this->minLength = $min;
 
         return $this;
@@ -441,6 +559,7 @@ class Parameter
      */
     public function getMaxLength()
     {
+
         return $this->maxLength;
     }
 
@@ -453,6 +572,7 @@ class Parameter
      */
     public function setMaxLength($max)
     {
+
         $this->maxLength = $max;
 
         return $this;
@@ -465,6 +585,7 @@ class Parameter
      */
     public function getMaxItems()
     {
+
         return $this->maxItems;
     }
 
@@ -477,6 +598,7 @@ class Parameter
      */
     public function setMaxItems($max)
     {
+
         $this->maxItems = $max;
 
         return $this;
@@ -489,6 +611,7 @@ class Parameter
      */
     public function getMinItems()
     {
+
         return $this->minItems;
     }
 
@@ -501,6 +624,7 @@ class Parameter
      */
     public function setMinItems($min)
     {
+
         $this->minItems = $min;
 
         return $this;
@@ -513,6 +637,7 @@ class Parameter
      */
     public function getLocation()
     {
+
         return $this->location;
     }
 
@@ -525,6 +650,7 @@ class Parameter
      */
     public function setLocation($location)
     {
+
         $this->location = $location;
 
         return $this;
@@ -538,6 +664,7 @@ class Parameter
      */
     public function getSentAs()
     {
+
         return $this->sentAs;
     }
 
@@ -550,6 +677,7 @@ class Parameter
      */
     public function setSentAs($name)
     {
+
         $this->sentAs = $name;
 
         return $this;
@@ -565,13 +693,14 @@ class Parameter
      */
     public function getData($name = null)
     {
+
         if (!$name) {
             return $this->data;
         }
 
-        if (isset($this->data[$name])) {
+        if (isset( $this->data[$name] )) {
             return $this->data[$name];
-        } elseif (isset($this->{$name})) {
+        } elseif (isset( $this->{$name} )) {
             return $this->{$name};
         }
 
@@ -588,6 +717,7 @@ class Parameter
      */
     public function setData($nameOrData, $data = null)
     {
+
         if (is_array($nameOrData)) {
             $this->data = $nameOrData;
         } else {
@@ -604,6 +734,7 @@ class Parameter
      */
     public function getStatic()
     {
+
         return $this->static;
     }
 
@@ -616,7 +747,8 @@ class Parameter
      */
     public function setStatic($static)
     {
-        $this->static = (bool) $static;
+
+        $this->static = (bool)$static;
 
         return $this;
     }
@@ -628,6 +760,7 @@ class Parameter
      */
     public function getFilters()
     {
+
         return $this->filters ?: array();
     }
 
@@ -640,6 +773,7 @@ class Parameter
      */
     public function setFilters(array $filters)
     {
+
         $this->filters = array();
         foreach ($filters as $filter) {
             $this->addFilter($filter);
@@ -658,8 +792,9 @@ class Parameter
      */
     public function addFilter($filter)
     {
+
         if (is_array($filter)) {
-            if (!isset($filter['method'])) {
+            if (!isset( $filter['method'] )) {
                 throw new InvalidArgumentException('A [method] value must be specified for each complex filter');
             }
         }
@@ -680,6 +815,7 @@ class Parameter
      */
     public function getParent()
     {
+
         return $this->parent;
     }
 
@@ -692,48 +828,10 @@ class Parameter
      */
     public function setParent($parent)
     {
+
         $this->parent = $parent;
 
         return $this;
-    }
-
-    /**
-     * Get the properties of the parameter
-     *
-     * @return array
-     */
-    public function getProperties()
-    {
-        if (!$this->propertiesCache) {
-            $this->propertiesCache = array();
-            foreach (array_keys($this->properties) as $name) {
-                $this->propertiesCache[$name] = $this->getProperty($name);
-            }
-        }
-
-        return $this->propertiesCache;
-    }
-
-    /**
-     * Get a specific property from the parameter
-     *
-     * @param string $name Name of the property to retrieve
-     *
-     * @return null|Parameter
-     */
-    public function getProperty($name)
-    {
-        if (!isset($this->properties[$name])) {
-            return null;
-        }
-
-        if (!($this->properties[$name] instanceof self)) {
-            $this->properties[$name]['name'] = $name;
-            $this->properties[$name] = new static($this->properties[$name], $this->serviceDescription);
-            $this->properties[$name]->setParent($this);
-        }
-
-        return $this->properties[$name];
     }
 
     /**
@@ -745,7 +843,8 @@ class Parameter
      */
     public function removeProperty($name)
     {
-        unset($this->properties[$name]);
+
+        unset( $this->properties[$name] );
         $this->propertiesCache = null;
 
         return $this;
@@ -760,6 +859,7 @@ class Parameter
      */
     public function addProperty(Parameter $property)
     {
+
         $this->properties[$property->getName()] = $property;
         $property->setParent($this);
         $this->propertiesCache = null;
@@ -768,63 +868,29 @@ class Parameter
     }
 
     /**
-     * Get the additionalProperties value of the parameter
+     * Get the name of the parameter
      *
-     * @return bool|Parameter|null
+     * @return string
      */
-    public function getAdditionalProperties()
+    public function getName()
     {
-        if (is_array($this->additionalProperties)) {
-            $this->additionalProperties = new static($this->additionalProperties, $this->serviceDescription);
-            $this->additionalProperties->setParent($this);
-        }
 
-        return $this->additionalProperties;
+        return $this->name;
     }
 
     /**
-     * Set the additionalProperties value of the parameter
+     * Set the name of the parameter
      *
-     * @param bool|Parameter|null $additional Boolean to allow any, an Parameter to specify a schema, or false to disallow
+     * @param string $name Name to set
      *
      * @return self
      */
-    public function setAdditionalProperties($additional)
+    public function setName($name)
     {
-        $this->additionalProperties = $additional;
+
+        $this->name = $name;
 
         return $this;
-    }
-
-    /**
-     * Set the items data of the parameter
-     *
-     * @param Parameter|null $items Items to set
-     *
-     * @return self
-     */
-    public function setItems(Parameter $items = null)
-    {
-        if ($this->items = $items) {
-            $this->items->setParent($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * Get the item data of the parameter
-     *
-     * @return Parameter|null
-     */
-    public function getItems()
-    {
-        if (is_array($this->items)) {
-            $this->items = new static($this->items, $this->serviceDescription);
-            $this->items->setParent($this);
-        }
-
-        return $this->items;
     }
 
     /**
@@ -834,6 +900,7 @@ class Parameter
      */
     public function getInstanceOf()
     {
+
         return $this->instanceOf;
     }
 
@@ -846,6 +913,7 @@ class Parameter
      */
     public function setInstanceOf($instanceOf)
     {
+
         $this->instanceOf = $instanceOf;
 
         return $this;
@@ -858,6 +926,7 @@ class Parameter
      */
     public function getEnum()
     {
+
         return $this->enum;
     }
 
@@ -870,6 +939,7 @@ class Parameter
      */
     public function setEnum(array $enum = null)
     {
+
         $this->enum = $enum;
 
         return $this;
@@ -882,6 +952,7 @@ class Parameter
      */
     public function getPattern()
     {
+
         return $this->pattern;
     }
 
@@ -894,6 +965,7 @@ class Parameter
      */
     public function setPattern($pattern)
     {
+
         $this->pattern = $pattern;
 
         return $this;
@@ -906,6 +978,7 @@ class Parameter
      */
     public function getFormat()
     {
+
         return $this->format;
     }
 
@@ -918,6 +991,7 @@ class Parameter
      */
     public function setFormat($format)
     {
+
         $this->format = $format;
 
         return $this;

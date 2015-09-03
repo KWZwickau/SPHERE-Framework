@@ -4,6 +4,7 @@ namespace Doctrine\Tests;
 
 class DbalFunctionalTestCase extends DbalTestCase
 {
+
     /**
      * Shared connection when a TestCase is run alone (outside of it's functional suite)
      *
@@ -23,6 +24,7 @@ class DbalFunctionalTestCase extends DbalTestCase
 
     protected function resetSharedConn()
     {
+
         if (self::$_sharedConn) {
             self::$_sharedConn->close();
             self::$_sharedConn = null;
@@ -31,7 +33,8 @@ class DbalFunctionalTestCase extends DbalTestCase
 
     protected function setUp()
     {
-        if ( ! isset(self::$_sharedConn)) {
+
+        if (!isset( self::$_sharedConn )) {
             self::$_sharedConn = TestUtil::getConnection();
         }
         $this->_conn = self::$_sharedConn;
@@ -42,24 +45,32 @@ class DbalFunctionalTestCase extends DbalTestCase
 
     protected function onNotSuccessfulTest(\Exception $e)
     {
+
         if ($e instanceof \PHPUnit_Framework_AssertionFailedError) {
             throw $e;
         }
 
-        if(isset($this->_sqlLoggerStack->queries) && count($this->_sqlLoggerStack->queries)) {
+        if (isset( $this->_sqlLoggerStack->queries ) && count($this->_sqlLoggerStack->queries)) {
             $queries = "";
             $i = count($this->_sqlLoggerStack->queries);
             foreach (array_reverse($this->_sqlLoggerStack->queries) as $query) {
-                $params = array_map(function($p) { if (is_object($p)) return get_class($p); else return "'".$p."'"; }, $query['params'] ?: array());
-                $queries .= ($i+1).". SQL: '".$query['sql']."' Params: ".implode(", ", $params).PHP_EOL;
+                $params = array_map(function ($p) {
+
+                    if (is_object($p)) {
+                        return get_class($p);
+                    } else {
+                        return "'".$p."'";
+                    }
+                }, $query['params'] ?: array());
+                $queries .= ( $i + 1 ).". SQL: '".$query['sql']."' Params: ".implode(", ", $params).PHP_EOL;
                 $i--;
             }
 
             $trace = $e->getTrace();
             $traceMsg = "";
-            foreach($trace as $part) {
-                if(isset($part['file'])) {
-                    if(strpos($part['file'], "PHPUnit/") !== false) {
+            foreach ($trace as $part) {
+                if (isset( $part['file'] )) {
+                    if (strpos($part['file'], "PHPUnit/") !== false) {
                         // Beginning with PHPUnit files we don't print the trace anymore.
                         break;
                     }

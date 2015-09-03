@@ -20,6 +20,7 @@ namespace Symfony\Component\Console\Helper;
  */
 interface HelperInterface
 {
+
     /**
      * Sets the helper set associated with this helper.
      *

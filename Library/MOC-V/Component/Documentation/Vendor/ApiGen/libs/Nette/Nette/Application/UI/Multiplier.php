@@ -25,18 +25,18 @@ class Multiplier extends PresenterComponent
     private $factory;
 
 
-    public function __construct( $factory )
+    public function __construct($factory)
     {
 
         parent::__construct();
-        $this->factory = new Nette\Callback( $factory );
+        $this->factory = new Nette\Callback($factory);
     }
 
 
-    protected function createComponent( $name )
+    protected function createComponent($name)
     {
 
-        return $this->factory->invoke( $name, $this );
+        return $this->factory->invoke($name, $this);
     }
 
 }

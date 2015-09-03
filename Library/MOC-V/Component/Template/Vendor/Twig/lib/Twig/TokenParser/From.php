@@ -18,6 +18,7 @@
  */
 class Twig_TokenParser_From extends Twig_TokenParser
 {
+
     /**
      * Parses a token and returns a node.
      *
@@ -27,6 +28,7 @@ class Twig_TokenParser_From extends Twig_TokenParser
      */
     public function parse(Twig_Token $token)
     {
+
         $macro = $this->parser->getExpressionParser()->parseExpression();
         $stream = $this->parser->getStream();
         $stream->expect('import');
@@ -49,7 +51,9 @@ class Twig_TokenParser_From extends Twig_TokenParser
 
         $stream->expect(Twig_Token::BLOCK_END_TYPE);
 
-        $node = new Twig_Node_Import($macro, new Twig_Node_Expression_AssignName($this->parser->getVarName(), $token->getLine()), $token->getLine(), $this->getTag());
+        $node = new Twig_Node_Import($macro,
+            new Twig_Node_Expression_AssignName($this->parser->getVarName(), $token->getLine()), $token->getLine(),
+            $this->getTag());
 
         foreach ($targets as $name => $alias) {
             $this->parser->addImportedSymbol('function', $alias, 'get'.$name, $node->getNode('var'));
@@ -65,6 +69,7 @@ class Twig_TokenParser_From extends Twig_TokenParser
      */
     public function getTag()
     {
+
         return 'from';
     }
 }

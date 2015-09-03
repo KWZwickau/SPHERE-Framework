@@ -6,17 +6,8 @@ use Guzzle\Common\Exception\RuntimeException;
 
 class ValidationException extends RuntimeException
 {
-    protected $errors = array();
 
-    /**
-     * Set the validation error messages
-     *
-     * @param array $errors Array of validation errors
-     */
-    public function setErrors(array $errors)
-    {
-        $this->errors = $errors;
-    }
+    protected $errors = array();
 
     /**
      * Get any validation errors
@@ -25,6 +16,18 @@ class ValidationException extends RuntimeException
      */
     public function getErrors()
     {
+
         return $this->errors;
+    }
+
+    /**
+     * Set the validation error messages
+     *
+     * @param array $errors Array of validation errors
+     */
+    public function setErrors(array $errors)
+    {
+
+        $this->errors = $errors;
     }
 }

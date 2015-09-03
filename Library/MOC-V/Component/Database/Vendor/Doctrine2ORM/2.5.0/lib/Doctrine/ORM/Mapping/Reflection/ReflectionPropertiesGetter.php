@@ -29,10 +29,11 @@ use ReflectionProperty;
  *
  * @private This API is for internal use only
  *
- * @author Marco Pivetta <ocramius@gmail.com>
+ * @author  Marco Pivetta <ocramius@gmail.com>
  */
 final class ReflectionPropertiesGetter
 {
+
     /**
      * @var ReflectionProperty[][] indexed by class name and property internal name
      */
@@ -48,6 +49,7 @@ final class ReflectionPropertiesGetter
      */
     public function __construct(ReflectionService $reflectionService)
     {
+
         $this->reflectionService = $reflectionService;
     }
 
@@ -58,7 +60,8 @@ final class ReflectionPropertiesGetter
      */
     public function getProperties($className)
     {
-        if (isset($this->properties[$className])) {
+
+        if (isset( $this->properties[$className] )) {
             return $this->properties[$className];
         }
 
@@ -82,11 +85,12 @@ final class ReflectionPropertiesGetter
      */
     private function getHierarchyClasses($className)
     {
-        $classes         = [];
+
+        $classes = [];
         $parentClassName = $className;
 
         while ($parentClassName && $currentClass = $this->reflectionService->getClass($parentClassName)) {
-            $classes[]       = $currentClass;
+            $classes[] = $currentClass;
             $parentClassName = null;
 
             if ($parentClass = $currentClass->getParentClass()) {
@@ -104,6 +108,7 @@ final class ReflectionPropertiesGetter
      */
     private function getClassProperties(ReflectionClass $reflectionClass)
     {
+
         $properties = $reflectionClass->getProperties();
 
         return array_filter(
@@ -125,7 +130,8 @@ final class ReflectionPropertiesGetter
      */
     private function isInstanceProperty(ReflectionProperty $reflectionProperty)
     {
-        return ! $reflectionProperty->isStatic();
+
+        return !$reflectionProperty->isStatic();
     }
 
     /**
@@ -135,6 +141,7 @@ final class ReflectionPropertiesGetter
      */
     private function getAccessibleProperty(ReflectionProperty $property)
     {
+
         return $this->reflectionService->getAccessibleProperty(
             $property->getDeclaringClass()->getName(),
             $property->getName()
@@ -148,6 +155,7 @@ final class ReflectionPropertiesGetter
      */
     private function getLogicalName(ReflectionProperty $property)
     {
+
         $propertyName = $property->getName();
 
         if ($property->isPublic()) {
@@ -155,9 +163,9 @@ final class ReflectionPropertiesGetter
         }
 
         if ($property->isProtected()) {
-            return "\0*\0" . $propertyName;
+            return "\0*\0".$propertyName;
         }
 
-        return "\0" . $property->getDeclaringClass()->getName() . "\0" . $propertyName;
+        return "\0".$property->getDeclaringClass()->getName()."\0".$propertyName;
     }
 }

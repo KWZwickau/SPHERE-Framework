@@ -5,13 +5,13 @@ if (!$msg) {
 }
 
 $err = isset( $_GET['err'] ) ? $_GET['err'] : '';
-if (!in_array( $err, array( 'L', 'M', 'Q', 'H' ) )) {
+if (!in_array($err, array('L', 'M', 'Q', 'H'))) {
     $err = 'L';
 }
 
 require_once( 'qrcode.class.php' );
 
-$qrcode = new QRcode( utf8_encode( $msg ), $err );
+$qrcode = new QRcode(utf8_encode($msg), $err);
 $qrcode->disableBorder();
-$qrcode->displayPNG( 200 );
+$qrcode->displayPNG(200);
 ?>

@@ -21,6 +21,7 @@ namespace Doctrine\ORM\Tools;
 
 class ToolEvents
 {
+
     /**
      * The postGenerateSchemaTable event occurs in SchemaTool#getSchemaFromMetadata()
      * whenever an entity class is transformed into its table representation. It receives

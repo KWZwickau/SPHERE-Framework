@@ -18,6 +18,7 @@
  */
 class PHPUnit_Framework_Constraint_ClassHasAttribute extends PHPUnit_Framework_Constraint
 {
+
     /**
      * @var string
      */
@@ -28,6 +29,7 @@ class PHPUnit_Framework_Constraint_ClassHasAttribute extends PHPUnit_Framework_C
      */
     public function __construct($attributeName)
     {
+
         parent::__construct();
         $this->attributeName = $attributeName;
     }
@@ -37,13 +39,36 @@ class PHPUnit_Framework_Constraint_ClassHasAttribute extends PHPUnit_Framework_C
      * constraint is met, false otherwise.
      *
      * @param  mixed $other Value or object to evaluate.
+     *
      * @return bool
      */
     protected function matches($other)
     {
+
         $class = new ReflectionClass($other);
 
         return $class->hasProperty($this->attributeName);
+    }
+
+    /**
+     * Returns the description of the failure
+     *
+     * The beginning of failure messages is "Failed asserting that" in most
+     * cases. This method should return the second part of that sentence.
+     *
+     * @param  mixed $other Evaluated value or object.
+     *
+     * @return string
+     */
+    protected function failureDescription($other)
+    {
+
+        return sprintf(
+            '%sclass "%s" %s',
+            is_object($other) ? 'object of ' : '',
+            is_object($other) ? get_class($other) : $other,
+            $this->toString()
+        );
     }
 
     /**
@@ -53,28 +78,10 @@ class PHPUnit_Framework_Constraint_ClassHasAttribute extends PHPUnit_Framework_C
      */
     public function toString()
     {
+
         return sprintf(
             'has attribute "%s"',
             $this->attributeName
-        );
-    }
-
-    /**
-     * Returns the description of the failure
-     *
-     * The beginning of failure messages is "Failed asserting that" in most
-     * cases. This method should return the second part of that sentence.
-     *
-     * @param  mixed  $other Evaluated value or object.
-     * @return string
-     */
-    protected function failureDescription($other)
-    {
-        return sprintf(
-            '%sclass "%s" %s',
-            is_object($other) ? 'object of ' : '',
-            is_object($other) ? get_class($other) : $other,
-            $this->toString()
         );
     }
 }

@@ -7,11 +7,13 @@ use Doctrine\DBAL\Schema\Table;
 
 class SequenceTest extends \Doctrine\Tests\DbalTestCase
 {
+
     /**
      * @group DDC-1657
      */
     public function testIsAutoincrementFor()
     {
+
         $table = new Table("foo");
         $table->addColumn("id", "integer", array("autoincrement" => true));
         $table->setPrimaryKey(array("id"));

@@ -29,12 +29,12 @@ class StringStream extends StreamBase
      * @param string $source   PHP source code
      * @param string $fileName File name
      */
-    public function __construct( $source, $fileName )
+    public function __construct($source, $fileName)
     {
 
         parent::__construct();
 
         $this->fileName = $fileName;
-        $this->processSource( $source );
+        $this->processSource($source);
     }
 }

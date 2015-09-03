@@ -9,6 +9,7 @@ use Guzzle\Common\Exception\InvalidArgumentException;
  */
 interface PostFileInterface
 {
+
     /**
      * Set the name of the field
      *

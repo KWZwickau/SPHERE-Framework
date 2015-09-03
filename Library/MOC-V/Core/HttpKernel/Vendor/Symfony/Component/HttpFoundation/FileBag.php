@@ -23,6 +23,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  */
 class FileBag extends ParameterBag
 {
+
     private static $fileKeys = array('error', 'name', 'size', 'tmp_name', 'type');
 
     /**
@@ -34,6 +35,7 @@ class FileBag extends ParameterBag
      */
     public function __construct(array $parameters = array())
     {
+
         $this->replace($parameters);
     }
 
@@ -44,6 +46,7 @@ class FileBag extends ParameterBag
      */
     public function replace(array $files = array())
     {
+
         $this->parameters = array();
         $this->add($files);
     }
@@ -53,11 +56,11 @@ class FileBag extends ParameterBag
      *
      * @api
      */
-    public function add( array $files = array() )
+    public function add(array $files = array())
     {
 
         foreach ($files as $key => $file) {
-            $this->set( $key, $file );
+            $this->set($key, $file);
         }
     }
 
@@ -66,14 +69,14 @@ class FileBag extends ParameterBag
      *
      * @api
      */
-    public function set( $key, $value )
+    public function set($key, $value)
     {
 
-        if (!is_array( $value ) && !$value instanceof UploadedFile) {
-            throw new \InvalidArgumentException( 'An uploaded file must be an array or an instance of UploadedFile.' );
+        if (!is_array($value) && !$value instanceof UploadedFile) {
+            throw new \InvalidArgumentException('An uploaded file must be an array or an instance of UploadedFile.');
         }
 
-        parent::set( $key, $this->convertFileInformation( $value ) );
+        parent::set($key, $this->convertFileInformation($value));
     }
 
     /**
@@ -85,6 +88,7 @@ class FileBag extends ParameterBag
      */
     protected function convertFileInformation($file)
     {
+
         if ($file instanceof UploadedFile) {
             return $file;
         }
@@ -98,7 +102,8 @@ class FileBag extends ParameterBag
                 if (UPLOAD_ERR_NO_FILE == $file['error']) {
                     $file = null;
                 } else {
-                    $file = new UploadedFile($file['tmp_name'], $file['name'], $file['type'], $file['size'], $file['error']);
+                    $file = new UploadedFile($file['tmp_name'], $file['name'], $file['type'], $file['size'],
+                        $file['error']);
                 }
             } else {
                 $file = array_map(array($this, 'convertFileInformation'), $file);
@@ -126,6 +131,7 @@ class FileBag extends ParameterBag
      */
     protected function fixPhpFilesArray($data)
     {
+
         if (!is_array($data)) {
             return $data;
         }
@@ -133,13 +139,13 @@ class FileBag extends ParameterBag
         $keys = array_keys($data);
         sort($keys);
 
-        if (self::$fileKeys != $keys || !isset($data['name']) || !is_array($data['name'])) {
+        if (self::$fileKeys != $keys || !isset( $data['name'] ) || !is_array($data['name'])) {
             return $data;
         }
 
         $files = $data;
         foreach (self::$fileKeys as $k) {
-            unset($files[$k]);
+            unset( $files[$k] );
         }
 
         foreach (array_keys($data['name']) as $key) {

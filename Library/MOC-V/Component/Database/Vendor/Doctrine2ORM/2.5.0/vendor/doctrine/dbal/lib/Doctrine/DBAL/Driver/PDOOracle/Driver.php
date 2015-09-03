@@ -33,11 +33,13 @@ use Doctrine\DBAL\Driver\PDOConnection;
  */
 class Driver extends AbstractOracleDriver
 {
+
     /**
      * {@inheritdoc}
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
+
         try {
             return new PDOConnection(
                 $this->constructPdoDsn($params),
@@ -59,10 +61,11 @@ class Driver extends AbstractOracleDriver
      */
     private function constructPdoDsn(array $params)
     {
-        $dsn = 'oci:dbname=' . $this->getEasyConnectString($params);
 
-        if (isset($params['charset'])) {
-            $dsn .= ';charset=' . $params['charset'];
+        $dsn = 'oci:dbname='.$this->getEasyConnectString($params);
+
+        if (isset( $params['charset'] )) {
+            $dsn .= ';charset='.$params['charset'];
         }
 
         return $dsn;
@@ -73,6 +76,7 @@ class Driver extends AbstractOracleDriver
      */
     public function getName()
     {
+
         return 'pdo_oracle';
     }
 }

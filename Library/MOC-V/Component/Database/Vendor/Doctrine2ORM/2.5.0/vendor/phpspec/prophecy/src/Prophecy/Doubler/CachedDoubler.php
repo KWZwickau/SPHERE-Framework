@@ -21,6 +21,7 @@ use ReflectionClass;
  */
 class CachedDoubler extends Doubler
 {
+
     private $classes = array();
 
     /**
@@ -28,6 +29,7 @@ class CachedDoubler extends Doubler
      */
     public function registerClassPatch(ClassPatch\ClassPatchInterface $patch)
     {
+
         $this->classes[] = array();
 
         parent::registerClassPatch($patch);
@@ -38,8 +40,9 @@ class CachedDoubler extends Doubler
      */
     protected function createDoubleClass(ReflectionClass $class = null, array $interfaces)
     {
+
         $classId = $this->generateClassId($class, $interfaces);
-        if (isset($this->classes[$classId])) {
+        if (isset( $this->classes[$classId] )) {
             return $this->classes[$classId];
         }
 
@@ -54,6 +57,7 @@ class CachedDoubler extends Doubler
      */
     private function generateClassId(ReflectionClass $class = null, array $interfaces)
     {
+
         $parts = array();
         if (null !== $class) {
             $parts[] = $class->getName();

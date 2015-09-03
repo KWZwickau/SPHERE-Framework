@@ -9,11 +9,13 @@ use Doctrine\DBAL\Schema\Visitor\RemoveNamespacedAssets;
 
 class RemoveNamespacedAssetsTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @group DBAL-204
      */
     public function testRemoveNamespacedAssets()
     {
+
         $config = new SchemaConfig;
         $config->setName("test");
         $schema = new Schema(array(), array(), $config);
@@ -25,7 +27,8 @@ class RemoveNamespacedAssetsTest extends \PHPUnit_Framework_TestCase
         $schema->visit(new RemoveNamespacedAssets());
 
         $tables = $schema->getTables();
-        $this->assertEquals(array("test.test", "test.baz"), array_keys($tables), "Only 2 tables should be present, both in 'test' namespace.");
+        $this->assertEquals(array("test.test", "test.baz"), array_keys($tables),
+            "Only 2 tables should be present, both in 'test' namespace.");
     }
 
     /**
@@ -33,6 +36,7 @@ class RemoveNamespacedAssetsTest extends \PHPUnit_Framework_TestCase
      */
     public function testCleanupForeignKeys()
     {
+
         $config = new SchemaConfig;
         $config->setName("test");
         $schema = new Schema(array(), array(), $config);
@@ -56,6 +60,7 @@ class RemoveNamespacedAssetsTest extends \PHPUnit_Framework_TestCase
      */
     public function testCleanupForeignKeysDifferentOrder()
     {
+
         $config = new SchemaConfig;
         $config->setName("test");
         $schema = new Schema(array(), array(), $config);

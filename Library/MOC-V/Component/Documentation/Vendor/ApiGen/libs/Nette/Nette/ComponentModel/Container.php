@@ -39,16 +39,16 @@ class Container extends Component implements IContainer
      *
      * @return void
      */
-    public function removeComponent( IComponent $component )
+    public function removeComponent(IComponent $component)
     {
 
         $name = $component->getName();
         if (!isset( $this->components[$name] ) || $this->components[$name] !== $component) {
-            throw new Nette\InvalidArgumentException( "Component named '$name' is not located in this container." );
+            throw new Nette\InvalidArgumentException("Component named '$name' is not located in this container.");
         }
 
         unset( $this->components[$name] );
-        $component->setParent( null );
+        $component->setParent(null);
     }
 
     /**
@@ -59,31 +59,31 @@ class Container extends Component implements IContainer
      *
      * @return IComponent|NULL
      */
-    final public function getComponent( $name, $need = true )
+    final public function getComponent($name, $need = true)
     {
 
-        if (is_int( $name )) {
+        if (is_int($name)) {
             $name = (string)$name;
 
-        } elseif (!is_string( $name )) {
-            throw new Nette\InvalidArgumentException( "Component name must be integer or string, ".gettype( $name )." given." );
+        } elseif (!is_string($name)) {
+            throw new Nette\InvalidArgumentException("Component name must be integer or string, ".gettype($name)." given.");
 
         } else {
-            $a = strpos( $name, self::NAME_SEPARATOR );
+            $a = strpos($name, self::NAME_SEPARATOR);
             if ($a !== false) {
-                $ext = (string)substr( $name, $a + 1 );
-                $name = substr( $name, 0, $a );
+                $ext = (string)substr($name, $a + 1);
+                $name = substr($name, 0, $a);
             }
 
             if ($name === '') {
-                throw new Nette\InvalidArgumentException( "Component or subcomponent name must not be empty string." );
+                throw new Nette\InvalidArgumentException("Component or subcomponent name must not be empty string.");
             }
         }
 
         if (!isset( $this->components[$name] )) {
-            $component = $this->createComponent( $name );
+            $component = $this->createComponent($name);
             if ($component instanceof IComponent && $component->getParent() === null) {
-                $this->addComponent( $component, $name );
+                $this->addComponent($component, $name);
             }
         }
 
@@ -92,14 +92,14 @@ class Container extends Component implements IContainer
                 return $this->components[$name];
 
             } elseif ($this->components[$name] instanceof IContainer) {
-                return $this->components[$name]->getComponent( $ext, $need );
+                return $this->components[$name]->getComponent($ext, $need);
 
             } elseif ($need) {
-                throw new Nette\InvalidArgumentException( "Component with name '$name' is not container and cannot have '$ext' component." );
+                throw new Nette\InvalidArgumentException("Component with name '$name' is not container and cannot have '$ext' component.");
             }
 
         } elseif ($need) {
-            throw new Nette\InvalidArgumentException( "Component with name '$name' does not exist." );
+            throw new Nette\InvalidArgumentException("Component with name '$name' does not exist.");
         }
     }
 
@@ -110,18 +110,18 @@ class Container extends Component implements IContainer
      *
      * @return IComponent  the created component (optionally)
      */
-    protected function createComponent( $name )
+    protected function createComponent($name)
     {
 
-        $ucname = ucfirst( $name );
+        $ucname = ucfirst($name);
         $method = 'createComponent'.$ucname;
-        if ($ucname !== $name && method_exists( $this,
-                $method ) && $this->getReflection()->getMethod( $method )->getName() === $method
+        if ($ucname !== $name && method_exists($this,
+                $method) && $this->getReflection()->getMethod($method)->getName() === $method
         ) {
-            $component = $this->$method( $name );
+            $component = $this->$method($name);
             if (!$component instanceof IComponent && !isset( $this->components[$name] )) {
-                $class = get_class( $this );
-                throw new Nette\UnexpectedValueException( "Method $class::$method() did not return or create the desired component." );
+                $class = get_class($this);
+                throw new Nette\UnexpectedValueException("Method $class::$method() did not return or create the desired component.");
             }
             return $component;
         }
@@ -137,38 +137,38 @@ class Container extends Component implements IContainer
      * @return Container  provides a fluent interface
      * @throws Nette\InvalidStateException
      */
-    public function addComponent( IComponent $component, $name, $insertBefore = null )
+    public function addComponent(IComponent $component, $name, $insertBefore = null)
     {
 
         if ($name === null) {
             $name = $component->getName();
         }
 
-        if (is_int( $name )) {
+        if (is_int($name)) {
             $name = (string)$name;
 
-        } elseif (!is_string( $name )) {
-            throw new Nette\InvalidArgumentException( "Component name must be integer or string, ".gettype( $name )." given." );
+        } elseif (!is_string($name)) {
+            throw new Nette\InvalidArgumentException("Component name must be integer or string, ".gettype($name)." given.");
 
-        } elseif (!preg_match( '#^[a-zA-Z0-9_]+$#', $name )) {
-            throw new Nette\InvalidArgumentException( "Component name must be non-empty alphanumeric string, '$name' given." );
+        } elseif (!preg_match('#^[a-zA-Z0-9_]+$#', $name)) {
+            throw new Nette\InvalidArgumentException("Component name must be non-empty alphanumeric string, '$name' given.");
         }
 
         if (isset( $this->components[$name] )) {
-            throw new Nette\InvalidStateException( "Component with name '$name' already exists." );
+            throw new Nette\InvalidStateException("Component with name '$name' already exists.");
         }
 
         // check circular reference
         $obj = $this;
         do {
             if ($obj === $component) {
-                throw new Nette\InvalidStateException( "Circular reference detected while adding component '$name'." );
+                throw new Nette\InvalidStateException("Circular reference detected while adding component '$name'.");
             }
             $obj = $obj->getParent();
         } while ($obj !== null);
 
         // user checking
-        $this->validateChildComponent( $component );
+        $this->validateChildComponent($component);
 
         try {
             if (isset( $this->components[$insertBefore] )) {
@@ -183,9 +183,9 @@ class Container extends Component implements IContainer
             } else {
                 $this->components[$name] = $component;
             }
-            $component->setParent( $this, $name );
+            $component->setParent($this, $name);
 
-        } catch( \Exception $e ) {
+        } catch (\Exception $e) {
             unset( $this->components[$name] ); // undo
             throw $e;
         }
@@ -200,7 +200,7 @@ class Container extends Component implements IContainer
      * @return void
      * @throws Nette\InvalidStateException
      */
-    protected function validateChildComponent( IComponent $child )
+    protected function validateChildComponent(IComponent $child)
     {
     }
 
@@ -212,16 +212,16 @@ class Container extends Component implements IContainer
      *
      * @return \ArrayIterator
      */
-    final public function getComponents( $deep = false, $filterType = null )
+    final public function getComponents($deep = false, $filterType = null)
     {
 
-        $iterator = new RecursiveComponentIterator( $this->components );
+        $iterator = new RecursiveComponentIterator($this->components);
         if ($deep) {
             $deep = $deep > 0 ? \RecursiveIteratorIterator::SELF_FIRST : \RecursiveIteratorIterator::CHILD_FIRST;
-            $iterator = new \RecursiveIteratorIterator( $iterator, $deep );
+            $iterator = new \RecursiveIteratorIterator($iterator, $deep);
         }
         if ($filterType) {
-            $iterator = new Nette\Iterators\InstanceFilter( $iterator, $filterType );
+            $iterator = new Nette\Iterators\InstanceFilter($iterator, $filterType);
         }
         return $iterator;
     }
@@ -237,7 +237,7 @@ class Container extends Component implements IContainer
     {
 
         if ($this->components) {
-            $oldMyself = reset( $this->components )->getParent();
+            $oldMyself = reset($this->components)->getParent();
             $oldMyself->cloning = $this;
             foreach ($this->components as $name => $component) {
                 $this->components[$name] = clone $component;

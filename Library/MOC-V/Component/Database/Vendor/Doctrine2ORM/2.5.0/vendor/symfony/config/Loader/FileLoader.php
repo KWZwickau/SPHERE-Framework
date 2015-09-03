@@ -11,9 +11,9 @@
 
 namespace Symfony\Component\Config\Loader;
 
-use Symfony\Component\Config\FileLocatorInterface;
-use Symfony\Component\Config\Exception\FileLoaderLoadException;
 use Symfony\Component\Config\Exception\FileLoaderImportCircularReferenceException;
+use Symfony\Component\Config\Exception\FileLoaderLoadException;
+use Symfony\Component\Config\FileLocatorInterface;
 
 /**
  * FileLoader is the abstract class used by all built-in loaders that are file based.
@@ -22,6 +22,7 @@ use Symfony\Component\Config\Exception\FileLoaderImportCircularReferenceExceptio
  */
 abstract class FileLoader extends Loader
 {
+
     /**
      * @var array
      */
@@ -41,6 +42,7 @@ abstract class FileLoader extends Loader
      */
     public function __construct(FileLocatorInterface $locator)
     {
+
         $this->locator = $locator;
     }
 
@@ -51,17 +53,8 @@ abstract class FileLoader extends Loader
      */
     public function setCurrentDir($dir)
     {
-        $this->currentDir = $dir;
-    }
 
-    /**
-     * Returns the file locator used by this loader.
-     *
-     * @return FileLocatorInterface
-     */
-    public function getLocator()
-    {
-        return $this->locator;
+        $this->currentDir = $dir;
     }
 
     /**
@@ -79,6 +72,7 @@ abstract class FileLoader extends Loader
      */
     public function import($resource, $type = null, $ignoreErrors = false, $sourceResource = null)
     {
+
         try {
             $loader = $this->resolve($resource, $type);
 
@@ -88,7 +82,8 @@ abstract class FileLoader extends Loader
                 // @deprecated should be removed in 3.0
                 $locator = $loader->getLocator();
                 if (null === $locator) {
-                    @trigger_error('Not calling the parent constructor in '.get_class($loader).' which extends '.__CLASS__.' is deprecated since version 2.7 and will not be supported anymore in 3.0.', E_USER_DEPRECATED);
+                    @trigger_error('Not calling the parent constructor in '.get_class($loader).' which extends '.__CLASS__.' is deprecated since version 2.7 and will not be supported anymore in 3.0.',
+                        E_USER_DEPRECATED);
                     $locator = $this->locator;
                 }
 
@@ -97,7 +92,7 @@ abstract class FileLoader extends Loader
 
             $resources = is_array($resource) ? $resource : array($resource);
             for ($i = 0; $i < $resourcesCount = count($resources); ++$i) {
-                if (isset(self::$loading[$resources[$i]])) {
+                if (isset( self::$loading[$resources[$i]] )) {
                     if ($i == $resourcesCount - 1) {
                         throw new FileLoaderImportCircularReferenceException(array_keys(self::$loading));
                     }
@@ -111,11 +106,11 @@ abstract class FileLoader extends Loader
             try {
                 $ret = $loader->load($resource, $type);
             } catch (\Exception $e) {
-                unset(self::$loading[$resource]);
+                unset( self::$loading[$resource] );
                 throw $e;
             }
 
-            unset(self::$loading[$resource]);
+            unset( self::$loading[$resource] );
 
             return $ret;
         } catch (FileLoaderImportCircularReferenceException $e) {
@@ -130,5 +125,16 @@ abstract class FileLoader extends Loader
                 throw new FileLoaderLoadException($resource, $sourceResource, null, $e);
             }
         }
+    }
+
+    /**
+     * Returns the file locator used by this loader.
+     *
+     * @return FileLocatorInterface
+     */
+    public function getLocator()
+    {
+
+        return $this->locator;
     }
 }

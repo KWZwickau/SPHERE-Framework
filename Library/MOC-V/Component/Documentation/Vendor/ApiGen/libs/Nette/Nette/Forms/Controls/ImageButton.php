@@ -25,7 +25,7 @@ class ImageButton extends SubmitButton
      * @param  string  URI of the image
      * @param  string  alternate text for the image
      */
-    public function __construct( $src = null, $alt = null )
+    public function __construct($src = null, $alt = null)
     {
 
         parent::__construct();
@@ -43,10 +43,10 @@ class ImageButton extends SubmitButton
     {
 
         $path = $this->getHtmlName(); // img_x or img['x']
-        $path = explode( '[',
-            strtr( str_replace( ']', '', strpos( $path, '[' ) === false ? $path.'.x' : substr( $path, 0, -2 ) ), '.',
-                '_' ) );
-        $this->setValue( Nette\Utils\Arrays::get( $this->getForm()->getHttpData(), $path, null ) );
+        $path = explode('[',
+            strtr(str_replace(']', '', strpos($path, '[') === false ? $path.'.x' : substr($path, 0, -2)), '.',
+                '_'));
+        $this->setValue(Nette\Utils\Arrays::get($this->getForm()->getHttpData(), $path, null));
     }
 
     /**
@@ -58,7 +58,7 @@ class ImageButton extends SubmitButton
     {
 
         $name = parent::getHtmlName();
-        return strpos( $name, '[' ) === false ? $name : $name.'[]';
+        return strpos($name, '[') === false ? $name : $name.'[]';
     }
 
 }

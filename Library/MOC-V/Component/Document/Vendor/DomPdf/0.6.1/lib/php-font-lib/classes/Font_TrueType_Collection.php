@@ -6,8 +6,8 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
-require_once dirname( __FILE__ )."/Font_Binary_Stream.php";
-require_once dirname( __FILE__ )."/Font_TrueType.php";
+require_once dirname(__FILE__)."/Font_Binary_Stream.php";
+require_once dirname(__FILE__)."/Font_TrueType.php";
 
 /**
  * TrueType collection font file.
@@ -31,7 +31,7 @@ class Font_TrueType_Collection extends Font_Binary_Stream implements Iterator, C
     function current()
     {
 
-        return $this->getFont( $this->position );
+        return $this->getFont($this->position);
     }
 
     /**
@@ -40,7 +40,7 @@ class Font_TrueType_Collection extends Font_Binary_Stream implements Iterator, C
      * @throws OutOfBoundsException
      * @return Font_TrueType
      */
-    function getFont( $fontId )
+    function getFont($fontId)
     {
 
         $this->parse();
@@ -55,7 +55,7 @@ class Font_TrueType_Collection extends Font_Binary_Stream implements Iterator, C
 
         $font = new Font_TrueType();
         $font->f = $this->f;
-        $font->setTableOffset( $this->collectionOffsets[$fontId] );
+        $font->setTableOffset($this->collectionOffsets[$fontId]);
 
         return $this->collection[$fontId] = $font;
     }
@@ -67,7 +67,7 @@ class Font_TrueType_Collection extends Font_Binary_Stream implements Iterator, C
             return;
         }
 
-        $this->read( 4 ); // tag name
+        $this->read(4); // tag name
 
         $this->version = $this->readFixed();
         $this->numFonts = $this->readUInt32();

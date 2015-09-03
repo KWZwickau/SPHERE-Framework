@@ -53,7 +53,7 @@
  * @cat Plugins/Cookie
  * @author Klaus Hartl/klaus.hartl@stilbuero.de
  */
-jQuery.cookie = function( name, value, options )
+jQuery.cookie = function(name, value, options)
 {
     if (typeof value != 'undefined') { // name and value given, set cookie
         options = options || {};
@@ -66,7 +66,7 @@ jQuery.cookie = function( name, value, options )
             var date;
             if (typeof options.expires == 'number') {
                 date = new Date();
-                date.setTime( date.getTime() + (options.expires * 24 * 60 * 60 * 1000) );
+                date.setTime(date.getTime() + (options.expires * 24 * 60 * 60 * 1000));
             } else {
                 date = options.expires;
             }
@@ -78,16 +78,16 @@ jQuery.cookie = function( name, value, options )
         var path = options.path ? '; path=' + (options.path) : '';
         var domain = options.domain ? '; domain=' + (options.domain) : '';
         var secure = options.secure ? '; secure' : '';
-        document.cookie = [name, '=', encodeURIComponent( value ), expires, path, domain, secure].join( '' );
+        document.cookie = [name, '=', encodeURIComponent(value), expires, path, domain, secure].join('');
     } else { // only name given, get cookie
         var cookieValue = null;
         if (document.cookie && document.cookie != '') {
-            var cookies = document.cookie.split( ';' );
+            var cookies = document.cookie.split(';');
             for (var i = 0; i < cookies.length; i++) {
-                var cookie = jQuery.trim( cookies[i] );
+                var cookie = jQuery.trim(cookies[i]);
                 // Does this cookie string begin with the name we want?
-                if (cookie.substring( 0, name.length + 1 ) == (name + '=')) {
-                    cookieValue = decodeURIComponent( cookie.substring( name.length + 1 ) );
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
                     break;
                 }
             }

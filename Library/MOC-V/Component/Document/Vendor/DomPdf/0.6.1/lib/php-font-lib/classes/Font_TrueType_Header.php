@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
-require_once dirname( __FILE__ )."/Font_Header.php";
+require_once dirname(__FILE__)."/Font_Header.php";
 
 /**
  * TrueType font file header.
@@ -30,6 +30,6 @@ class Font_TrueType_Header extends Font_Header
         parent::parse();
 
         $format = $this->data["format"];
-        $this->data["formatText"] = $this->convertUInt32ToStr( $format );
+        $this->data["formatText"] = $this->convertUInt32ToStr($format);
     }
 }

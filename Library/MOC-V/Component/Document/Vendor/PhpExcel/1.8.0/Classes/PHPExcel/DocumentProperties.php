@@ -141,7 +141,7 @@ class PHPExcel_DocumentProperties
         $this->_modified = time();
     }
 
-    public static function convertProperty( $propertyValue, $propertyType )
+    public static function convertProperty($propertyValue, $propertyType)
     {
 
         switch ($propertyType) {
@@ -163,7 +163,7 @@ class PHPExcel_DocumentProperties
             case 'ui4'        :    //    4-Byte Unsigned Integer
             case 'ui8'        :    //    8-Byte Unsigned Integer
             case 'uint'        :    //    Unsigned Integer
-                return abs( (int)$propertyValue );
+            return abs((int)$propertyValue);
                 break;
             case 'r4'        :    //    4-Byte Real Number
             case 'r8'        :    //    8-Byte Real Number
@@ -177,7 +177,7 @@ class PHPExcel_DocumentProperties
                 break;
             case 'date'        :    //    Date and Time
             case 'filetime'    :    //    File Time
-                return strtotime( $propertyValue );
+            return strtotime($propertyValue);
                 break;
             case 'bool'        :    //    Boolean
                 return ( $propertyValue == 'true' ) ? true : false;
@@ -201,7 +201,7 @@ class PHPExcel_DocumentProperties
         return $propertyValue;
     }
 
-    public static function convertPropertyType( $propertyType )
+    public static function convertPropertyType($propertyType)
     {
 
         switch ($propertyType) {
@@ -273,7 +273,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setCreator( $pValue = '' )
+    public function setCreator($pValue = '')
     {
 
         $this->_creator = $pValue;
@@ -298,7 +298,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setLastModifiedBy( $pValue = '' )
+    public function setLastModifiedBy($pValue = '')
     {
 
         $this->_lastModifiedBy = $pValue;
@@ -323,16 +323,16 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setCreated( $pValue = null )
+    public function setCreated($pValue = null)
     {
 
         if ($pValue === null) {
             $pValue = time();
-        } elseif (is_string( $pValue )) {
-            if (is_numeric( $pValue )) {
-                $pValue = intval( $pValue );
+        } elseif (is_string($pValue)) {
+            if (is_numeric($pValue)) {
+                $pValue = intval($pValue);
             } else {
-                $pValue = strtotime( $pValue );
+                $pValue = strtotime($pValue);
             }
         }
 
@@ -358,16 +358,16 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setModified( $pValue = null )
+    public function setModified($pValue = null)
     {
 
         if ($pValue === null) {
             $pValue = time();
-        } elseif (is_string( $pValue )) {
-            if (is_numeric( $pValue )) {
-                $pValue = intval( $pValue );
+        } elseif (is_string($pValue)) {
+            if (is_numeric($pValue)) {
+                $pValue = intval($pValue);
             } else {
-                $pValue = strtotime( $pValue );
+                $pValue = strtotime($pValue);
             }
         }
 
@@ -393,7 +393,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setTitle( $pValue = '' )
+    public function setTitle($pValue = '')
     {
 
         $this->_title = $pValue;
@@ -418,7 +418,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setDescription( $pValue = '' )
+    public function setDescription($pValue = '')
     {
 
         $this->_description = $pValue;
@@ -443,7 +443,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setSubject( $pValue = '' )
+    public function setSubject($pValue = '')
     {
 
         $this->_subject = $pValue;
@@ -468,7 +468,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setKeywords( $pValue = '' )
+    public function setKeywords($pValue = '')
     {
 
         $this->_keywords = $pValue;
@@ -493,7 +493,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setCategory( $pValue = '' )
+    public function setCategory($pValue = '')
     {
 
         $this->_category = $pValue;
@@ -518,7 +518,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setCompany( $pValue = '' )
+    public function setCompany($pValue = '')
     {
 
         $this->_company = $pValue;
@@ -543,7 +543,7 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setManager( $pValue = '' )
+    public function setManager($pValue = '')
     {
 
         $this->_manager = $pValue;
@@ -558,7 +558,7 @@ class PHPExcel_DocumentProperties
     public function getCustomProperties()
     {
 
-        return array_keys( $this->_customProperties );
+        return array_keys($this->_customProperties);
     }
 
     /**
@@ -568,7 +568,7 @@ class PHPExcel_DocumentProperties
      *
      * @return boolean
      */
-    public function isCustomPropertySet( $propertyName )
+    public function isCustomPropertySet($propertyName)
     {
 
         return isset( $this->_customProperties[$propertyName] );
@@ -581,7 +581,7 @@ class PHPExcel_DocumentProperties
      *
      * @return string
      */
-    public function getCustomPropertyValue( $propertyName )
+    public function getCustomPropertyValue($propertyName)
     {
 
         if (isset( $this->_customProperties[$propertyName] )) {
@@ -597,7 +597,7 @@ class PHPExcel_DocumentProperties
      *
      * @return string
      */
-    public function getCustomPropertyType( $propertyName )
+    public function getCustomPropertyType($propertyName)
     {
 
         if (isset( $this->_customProperties[$propertyName] )) {
@@ -620,31 +620,31 @@ class PHPExcel_DocumentProperties
      *
      * @return PHPExcel_DocumentProperties
      */
-    public function setCustomProperty( $propertyName, $propertyValue = '', $propertyType = null )
+    public function setCustomProperty($propertyName, $propertyValue = '', $propertyType = null)
     {
 
-        if (( $propertyType === null ) || ( !in_array( $propertyType, array(
+        if (( $propertyType === null ) || ( !in_array($propertyType, array(
                 self::PROPERTY_TYPE_INTEGER,
                 self::PROPERTY_TYPE_FLOAT,
                 self::PROPERTY_TYPE_STRING,
                 self::PROPERTY_TYPE_DATE,
                 self::PROPERTY_TYPE_BOOLEAN
-            ) ) )
+            )) )
         ) {
             if ($propertyValue === null) {
                 $propertyType = self::PROPERTY_TYPE_STRING;
-            } elseif (is_float( $propertyValue )) {
+            } elseif (is_float($propertyValue)) {
                 $propertyType = self::PROPERTY_TYPE_FLOAT;
-            } elseif (is_int( $propertyValue )) {
+            } elseif (is_int($propertyValue)) {
                 $propertyType = self::PROPERTY_TYPE_INTEGER;
-            } elseif (is_bool( $propertyValue )) {
+            } elseif (is_bool($propertyValue)) {
                 $propertyType = self::PROPERTY_TYPE_BOOLEAN;
             } else {
                 $propertyType = self::PROPERTY_TYPE_STRING;
             }
         }
 
-        $this->_customProperties[$propertyName] = array( 'value' => $propertyValue, 'type' => $propertyType );
+        $this->_customProperties[$propertyName] = array('value' => $propertyValue, 'type' => $propertyType);
         return $this;
     }
 
@@ -654,9 +654,9 @@ class PHPExcel_DocumentProperties
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

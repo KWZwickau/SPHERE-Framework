@@ -28,7 +28,7 @@ interface IReflectionNamespace extends IReflection
      *
      * @return boolean
      */
-    public function hasClass( $className );
+    public function hasClass($className);
 
     /**
      * Return a class reflection.
@@ -37,7 +37,7 @@ interface IReflectionNamespace extends IReflection
      *
      * @return \TokenReflection\IReflectionClass
      */
-    public function getClass( $className );
+    public function getClass($className);
 
     /**
      * Returns class reflections.
@@ -67,7 +67,7 @@ interface IReflectionNamespace extends IReflection
      *
      * @return boolean
      */
-    public function hasConstant( $constantName );
+    public function hasConstant($constantName);
 
     /**
      * Returns a constant reflection.
@@ -76,7 +76,7 @@ interface IReflectionNamespace extends IReflection
      *
      * @return \TokenReflection\IReflectionConstant
      */
-    public function getConstant( $constantName );
+    public function getConstant($constantName);
 
     /**
      * Returns constant reflections.
@@ -106,7 +106,7 @@ interface IReflectionNamespace extends IReflection
      *
      * @return boolean
      */
-    public function hasFunction( $functionName );
+    public function hasFunction($functionName);
 
     /**
      * Returns a function reflection.
@@ -115,7 +115,7 @@ interface IReflectionNamespace extends IReflection
      *
      * @return \TokenReflection\IReflectionFunction
      */
-    public function getFunction( $functionName );
+    public function getFunction($functionName);
 
     /**
      * Returns function reflections.

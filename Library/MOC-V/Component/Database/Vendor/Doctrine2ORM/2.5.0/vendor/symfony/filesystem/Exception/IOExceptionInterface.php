@@ -18,6 +18,7 @@ namespace Symfony\Component\Filesystem\Exception;
  */
 interface IOExceptionInterface extends ExceptionInterface
 {
+
     /**
      * Returns the associated path for the exception
      *

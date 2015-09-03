@@ -26,6 +26,6 @@ interface ISignalReceiver
      *
      * @return void
      */
-    function signalReceived( $signal ); // handleSignal
+    function signalReceived($signal); // handleSignal
 
 }

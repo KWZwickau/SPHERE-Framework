@@ -100,7 +100,7 @@ class Memory implements Broker\Backend
      *
      * @return boolean
      */
-    public function hasFile( $fileName )
+    public function hasFile($fileName)
     {
 
         return isset( $this->files[$fileName] );
@@ -114,12 +114,12 @@ class Memory implements Broker\Backend
      * @return \TokenReflection\ReflectionFile
      * @throws \TokenReflection\Exception\BrokerException If the requested file has not been processed
      */
-    public function getFile( $fileName )
+    public function getFile($fileName)
     {
 
         if (!isset( $this->files[$fileName] )) {
-            throw new Exception\BrokerException( $this->getBroker(),
-                sprintf( 'File "%s" has not been processed.', $fileName ), Exception\BrokerException::DOES_NOT_EXIST );
+            throw new Exception\BrokerException($this->getBroker(),
+                sprintf('File "%s" has not been processed.', $fileName), Exception\BrokerException::DOES_NOT_EXIST);
         }
 
         return $this->files[$fileName];
@@ -143,7 +143,7 @@ class Memory implements Broker\Backend
      *
      * @return \TokenReflection\Broker\Backend\Memory
      */
-    public function setBroker( Broker $broker )
+    public function setBroker(Broker $broker)
     {
 
         $this->broker = $broker;
@@ -179,7 +179,7 @@ class Memory implements Broker\Backend
      *
      * @return array
      */
-    public function getClasses( $type = self::TOKENIZED_CLASSES )
+    public function getClasses($type = self::TOKENIZED_CLASSES)
     {
 
         if (null === $this->allClasses) {
@@ -189,7 +189,7 @@ class Memory implements Broker\Backend
         $result = array();
         foreach ($this->allClasses as $classType => $classes) {
             if ($type & $classType) {
-                $result = array_merge( $result, $classes );
+                $result = array_merge($result, $classes);
             }
         }
         return $result;
@@ -217,7 +217,7 @@ class Memory implements Broker\Backend
         }
 
         foreach ($allClasses[self::TOKENIZED_CLASSES] as $className => $class) {
-            foreach (array_merge( $class->getParentClasses(), $class->getInterfaces() ) as $parent) {
+            foreach (array_merge($class->getParentClasses(), $class->getInterfaces()) as $parent) {
                 if ($parent->isInternal()) {
                     $allClasses[self::INTERNAL_CLASSES][$parent->getName()] = $parent;
                 } elseif (!$parent->isTokenized()) {
@@ -236,35 +236,35 @@ class Memory implements Broker\Backend
      *
      * @return boolean
      */
-    public function hasConstant( $constantName )
+    public function hasConstant($constantName)
     {
 
-        $constantName = ltrim( $constantName, '\\' );
+        $constantName = ltrim($constantName, '\\');
 
-        if ($pos = strpos( $constantName, '::' )) {
-            $className = substr( $constantName, 0, $pos );
-            $constantName = substr( $constantName, $pos + 2 );
+        if ($pos = strpos($constantName, '::')) {
+            $className = substr($constantName, 0, $pos);
+            $constantName = substr($constantName, $pos + 2);
 
-            if (!$this->hasClass( $className )) {
+            if (!$this->hasClass($className)) {
                 return false;
             }
 
-            $parent = $this->getClass( $className );
+            $parent = $this->getClass($className);
         } else {
-            if ($pos = strrpos( $constantName, '\\' )) {
-                $namespace = substr( $constantName, 0, $pos );
-                if (!$this->hasNamespace( $namespace )) {
+            if ($pos = strrpos($constantName, '\\')) {
+                $namespace = substr($constantName, 0, $pos);
+                if (!$this->hasNamespace($namespace)) {
                     return false;
                 }
 
-                $parent = $this->getNamespace( $namespace );
-                $constantName = substr( $constantName, $pos + 1 );
+                $parent = $this->getNamespace($namespace);
+                $constantName = substr($constantName, $pos + 1);
             } else {
-                $parent = $this->getNamespace( TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME );
+                $parent = $this->getNamespace(TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME);
             }
         }
 
-        return $parent->hasConstant( $constantName );
+        return $parent->hasConstant($constantName);
     }
 
     /**
@@ -274,24 +274,24 @@ class Memory implements Broker\Backend
      *
      * @return boolean
      */
-    public function hasClass( $className )
+    public function hasClass($className)
     {
 
-        $className = ltrim( $className, '\\' );
-        if ($pos = strrpos( $className, '\\' )) {
-            $namespace = substr( $className, 0, $pos );
+        $className = ltrim($className, '\\');
+        if ($pos = strrpos($className, '\\')) {
+            $namespace = substr($className, 0, $pos);
 
             if (!isset( $this->namespaces[$namespace] )) {
                 return false;
             }
 
-            $namespace = $this->getNamespace( $namespace );
-            $className = substr( $className, $pos + 1 );
+            $namespace = $this->getNamespace($namespace);
+            $className = substr($className, $pos + 1);
         } else {
-            $namespace = $this->getNamespace( TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME );
+            $namespace = $this->getNamespace(TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME);
         }
 
-        return $namespace->hasClass( $className );
+        return $namespace->hasClass($className);
     }
 
     /**
@@ -302,18 +302,18 @@ class Memory implements Broker\Backend
      * @return \TokenReflection\IReflectionNamespace
      * @throws \TokenReflection\Exception\BrokerException If the requested namespace does not exist.
      */
-    public function getNamespace( $namespaceName )
+    public function getNamespace($namespaceName)
     {
 
         if (!isset( $this->namespaces[TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME] )) {
-            $this->namespaces[TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME] = new TokenReflection\ReflectionNamespace( TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME,
-                $this->broker );
+            $this->namespaces[TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME] = new TokenReflection\ReflectionNamespace(TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME,
+                $this->broker);
         }
 
-        $namespaceName = ltrim( $namespaceName, '\\' );
+        $namespaceName = ltrim($namespaceName, '\\');
         if (!isset( $this->namespaces[$namespaceName] )) {
-            throw new Exception\BrokerException( $this->getBroker(),
-                sprintf( 'Namespace %s does not exist.', $namespaceName ), Exception\BrokerException::DOES_NOT_EXIST );
+            throw new Exception\BrokerException($this->getBroker(),
+                sprintf('Namespace %s does not exist.', $namespaceName), Exception\BrokerException::DOES_NOT_EXIST);
         }
 
         return $this->namespaces[$namespaceName];
@@ -326,33 +326,33 @@ class Memory implements Broker\Backend
      *
      * @return \TokenReflection\IReflectionClass
      */
-    public function getClass( $className )
+    public function getClass($className)
     {
 
         if (empty( $this->declaredClasses )) {
-            $this->declaredClasses = array_flip( array_merge( get_declared_classes(), get_declared_interfaces() ) );
+            $this->declaredClasses = array_flip(array_merge(get_declared_classes(), get_declared_interfaces()));
         }
 
-        $className = ltrim( $className, '\\' );
+        $className = ltrim($className, '\\');
         try {
             $ns = $this->getNamespace(
-                ( $boundary = strrpos( $className, '\\' ) )
+                ( $boundary = strrpos($className, '\\') )
                     // Class within a namespace
-                    ? substr( $className, 0, $boundary )
+                    ? substr($className, 0, $boundary)
                     // Class without a namespace
                     : TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME
             );
 
-            return $ns->getClass( $className );
-        } catch( Exception\BaseException $e ) {
+            return $ns->getClass($className);
+        } catch (Exception\BaseException $e) {
             if (isset( $this->declaredClasses[$className] )) {
-                $reflection = new Php\ReflectionClass( $className, $this->broker );
+                $reflection = new Php\ReflectionClass($className, $this->broker);
                 if ($reflection->isInternal()) {
                     return $reflection;
                 }
             }
 
-            return new Dummy\ReflectionClass( $className, $this->broker );
+            return new Dummy\ReflectionClass($className, $this->broker);
         }
     }
 
@@ -363,10 +363,10 @@ class Memory implements Broker\Backend
      *
      * @return boolean
      */
-    public function hasNamespace( $namespaceName )
+    public function hasNamespace($namespaceName)
     {
 
-        return isset( $this->namespaces[ltrim( $namespaceName, '\\' )] );
+        return isset( $this->namespaces[ltrim($namespaceName, '\\')] );
     }
 
     /**
@@ -377,7 +377,7 @@ class Memory implements Broker\Backend
      * @return \TokenReflection\IReflectionConstant
      * @throws \TokenReflection\Exception\RuntimeException If the requested constant does not exist.
      */
-    public function getConstant( $constantName )
+    public function getConstant($constantName)
     {
 
         static $declared = array();
@@ -385,34 +385,34 @@ class Memory implements Broker\Backend
             $declared = get_defined_constants();
         }
 
-        if ($boundary = strpos( $constantName, '::' )) {
+        if ($boundary = strpos($constantName, '::')) {
             // Class constant
-            $className = substr( $constantName, 0, $boundary );
-            $constantName = substr( $constantName, $boundary + 2 );
+            $className = substr($constantName, 0, $boundary);
+            $constantName = substr($constantName, $boundary + 2);
 
-            return $this->getClass( $className )->getConstantReflection( $constantName );
+            return $this->getClass($className)->getConstantReflection($constantName);
         }
 
         try {
-            $constantName = ltrim( $constantName, '\\' );
-            if ($boundary = strrpos( $constantName, '\\' )) {
-                $ns = $this->getNamespace( substr( $constantName, 0, $boundary ) );
-                $constantName = substr( $constantName, $boundary + 1 );
+            $constantName = ltrim($constantName, '\\');
+            if ($boundary = strrpos($constantName, '\\')) {
+                $ns = $this->getNamespace(substr($constantName, 0, $boundary));
+                $constantName = substr($constantName, $boundary + 1);
             } else {
-                $ns = $this->getNamespace( TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME );
+                $ns = $this->getNamespace(TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME);
             }
 
-            return $ns->getConstant( $constantName );
-        } catch( Exception\BaseException $e ) {
+            return $ns->getConstant($constantName);
+        } catch (Exception\BaseException $e) {
             if (isset( $declared[$constantName] )) {
-                $reflection = new Php\ReflectionConstant( $constantName, $declared[$constantName], $this->broker );
+                $reflection = new Php\ReflectionConstant($constantName, $declared[$constantName], $this->broker);
                 if ($reflection->isInternal()) {
                     return $reflection;
                 }
             }
 
-            throw new Exception\BrokerException( $this->getBroker(),
-                sprintf( 'Constant %s does not exist.', $constantName ), Exception\BrokerException::DOES_NOT_EXIST );
+            throw new Exception\BrokerException($this->getBroker(),
+                sprintf('Constant %s does not exist.', $constantName), Exception\BrokerException::DOES_NOT_EXIST);
         }
     }
 
@@ -443,23 +443,23 @@ class Memory implements Broker\Backend
      *
      * @return boolean
      */
-    public function hasFunction( $functionName )
+    public function hasFunction($functionName)
     {
 
-        $functionName = ltrim( $functionName, '\\' );
-        if ($pos = strrpos( $functionName, '\\' )) {
-            $namespace = substr( $functionName, 0, $pos );
+        $functionName = ltrim($functionName, '\\');
+        if ($pos = strrpos($functionName, '\\')) {
+            $namespace = substr($functionName, 0, $pos);
             if (!isset( $this->namespaces[$namespace] )) {
                 return false;
             }
 
-            $namespace = $this->getNamespace( $namespace );
-            $functionName = substr( $functionName, $pos + 1 );
+            $namespace = $this->getNamespace($namespace);
+            $functionName = substr($functionName, $pos + 1);
         } else {
-            $namespace = $this->getNamespace( TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME );
+            $namespace = $this->getNamespace(TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME);
         }
 
-        return $namespace->hasFunction( $functionName );
+        return $namespace->hasFunction($functionName);
     }
 
     /**
@@ -470,33 +470,33 @@ class Memory implements Broker\Backend
      * @return \TokenReflection\IReflectionFunction
      * @throws \TokenReflection\Exception\RuntimeException If the requested function does not exist.
      */
-    public function getFunction( $functionName )
+    public function getFunction($functionName)
     {
 
         static $declared = array();
         if (empty( $declared )) {
             $functions = get_defined_functions();
-            $declared = array_flip( $functions['internal'] );
+            $declared = array_flip($functions['internal']);
         }
 
-        $functionName = ltrim( $functionName, '\\' );
+        $functionName = ltrim($functionName, '\\');
         try {
             $ns = $this->getNamespace(
-                ( $boundary = strrpos( $functionName, '\\' ) )
+                ( $boundary = strrpos($functionName, '\\') )
                     // Function within a namespace
-                    ? substr( $functionName, 0, $boundary )
+                    ? substr($functionName, 0, $boundary)
                     // Function wihout a namespace
                     : TokenReflection\ReflectionNamespace::NO_NAMESPACE_NAME
             );
 
-            return $ns->getFunction( $functionName );
-        } catch( Exception\BaseException $e ) {
+            return $ns->getFunction($functionName);
+        } catch (Exception\BaseException $e) {
             if (isset( $declared[$functionName] )) {
-                return new Php\ReflectionFunction( $functionName, $this->broker );
+                return new Php\ReflectionFunction($functionName, $this->broker);
             }
 
-            throw new Exception\BrokerException( $this->getBroker(),
-                sprintf( 'Function %s does not exist.', $functionName ), Exception\BrokerException::DOES_NOT_EXIST );
+            throw new Exception\BrokerException($this->getBroker(),
+                sprintf('Function %s does not exist.', $functionName), Exception\BrokerException::DOES_NOT_EXIST);
         }
     }
 
@@ -527,10 +527,10 @@ class Memory implements Broker\Backend
      *
      * @return boolean
      */
-    public function isFileProcessed( $fileName )
+    public function isFileProcessed($fileName)
     {
 
-        return isset( $this->tokenStreams[Broker::getRealPath( $fileName )] );
+        return isset( $this->tokenStreams[Broker::getRealPath($fileName)] );
     }
 
     /**
@@ -541,16 +541,16 @@ class Memory implements Broker\Backend
      * @return \TokenReflection\Stream\StreamBase
      * @throws \TokenReflection\Exception\BrokerException If the requested file was not processed.
      */
-    public function getFileTokens( $fileName )
+    public function getFileTokens($fileName)
     {
 
-        $realName = Broker::getRealPath( $fileName );
+        $realName = Broker::getRealPath($fileName);
         if (!isset( $this->tokenStreams[$realName] )) {
-            throw new Exception\BrokerException( $this->getBroker(),
-                sprintf( 'File "%s" was not processed yet.', $fileName ), Exception\BrokerException::DOES_NOT_EXIST );
+            throw new Exception\BrokerException($this->getBroker(),
+                sprintf('File "%s" was not processed yet.', $fileName), Exception\BrokerException::DOES_NOT_EXIST);
         }
 
-        return true === $this->tokenStreams[$realName] ? new FileStream( $realName ) : $this->tokenStreams[$realName];
+        return true === $this->tokenStreams[$realName] ? new FileStream($realName) : $this->tokenStreams[$realName];
     }
 
     /**
@@ -561,7 +561,7 @@ class Memory implements Broker\Backend
      *
      * @return \TokenReflection\Broker\Backend\Memory
      */
-    public function addFile( TokenReflection\Stream\StreamBase $tokenStream, TokenReflection\ReflectionFile $file )
+    public function addFile(TokenReflection\Stream\StreamBase $tokenStream, TokenReflection\ReflectionFile $file)
     {
 
         $this->tokenStreams[$file->getName()] = $this->storingTokenStreams ? $tokenStream : true;
@@ -573,14 +573,14 @@ class Memory implements Broker\Backend
             try {
                 $namespaceName = $fileNamespace->getName();
                 if (!isset( $this->namespaces[$namespaceName] )) {
-                    $this->namespaces[$namespaceName] = new TokenReflection\ReflectionNamespace( $namespaceName,
-                        $file->getBroker() );
+                    $this->namespaces[$namespaceName] = new TokenReflection\ReflectionNamespace($namespaceName,
+                        $file->getBroker());
                 }
 
-                $this->namespaces[$namespaceName]->addFileNamespace( $fileNamespace );
-            } catch( Exception\FileProcessingException $e ) {
-                $errors = array_merge( $errors, $e->getReasons() );
-            } catch( \Exception $e ) {
+                $this->namespaces[$namespaceName]->addFileNamespace($fileNamespace);
+            } catch (Exception\FileProcessingException $e) {
+                $errors = array_merge($errors, $e->getReasons());
+            } catch (\Exception $e) {
                 echo $e->getTraceAsString();
                 die( $e->getMessage() );
             }
@@ -592,7 +592,7 @@ class Memory implements Broker\Backend
         $this->allConstants = null;
 
         if (!empty( $errors )) {
-            throw new Exception\FileProcessingException( $errors, $file );
+            throw new Exception\FileProcessingException($errors, $file);
         }
 
         return $this;
@@ -616,7 +616,7 @@ class Memory implements Broker\Backend
      *
      * @return \TokenReflection\Broker\Backend
      */
-    public function setStoringTokenStreams( $store )
+    public function setStoringTokenStreams($store)
     {
 
         $this->storingTokenStreams = (bool)$store;

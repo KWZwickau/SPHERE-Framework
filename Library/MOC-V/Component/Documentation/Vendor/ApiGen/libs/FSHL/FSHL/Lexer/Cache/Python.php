@@ -689,7 +689,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter0( $text, $textLength, $textPos )
+    public function findDelimiter0($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -705,46 +705,46 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
-            if (preg_match( '~^[a-z]+~i', $part, $matches )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~^[a-z]+~i', $part, $matches)) {
+                return array(0, $matches[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[2] )) {
-                return array( 2, $delimiters[2], $buffer );
+            if (0 === strpos($part, $delimiters[2])) {
+                return array(2, $delimiters[2], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[3] )) {
-                return array( 3, $delimiters[3], $buffer );
+            if (0 === strpos($part, $delimiters[3])) {
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             if ($delimiters[5] === $letter) {
-                return array( 5, $delimiters[5], $buffer );
+                return array(5, $delimiters[5], $buffer);
             }
             if ($delimiters[6] === $letter) {
-                return array( 6, $delimiters[6], $buffer );
+                return array(6, $delimiters[6], $buffer);
             }
-            if (preg_match( '~^\\d+~', $part, $matches )) {
-                return array( 7, $matches[0], $buffer );
+            if (preg_match('~^\\d+~', $part, $matches)) {
+                return array(7, $matches[0], $buffer);
             }
-            if (preg_match( '~^\.\\d+~', $part, $matches )) {
-                return array( 8, $matches[0], $buffer );
+            if (preg_match('~^\.\\d+~', $part, $matches)) {
+                return array(8, $matches[0], $buffer);
             }
             if ($delimiters[9] === $letter) {
-                return array( 9, $delimiters[9], $buffer );
+                return array(9, $delimiters[9], $buffer);
             }
             if ($delimiters[10] === $letter) {
-                return array( 10, $delimiters[10], $buffer );
+                return array(10, $delimiters[10], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -756,20 +756,20 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter1( $text, $textLength, $textPos )
+    public function findDelimiter1($text, $textLength, $textPos)
     {
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
 
-            if (preg_match( '~^\\W+~', $part, $matches )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~^\\W+~', $part, $matches)) {
+                return array(0, $matches[0], $buffer);
             }
             $buffer .= $text[$textPos];
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -781,7 +781,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter2( $text, $textLength, $textPos )
+    public function findDelimiter2($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -794,28 +794,28 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
-            if (0 === strpos( $part, $delimiters[0] )) {
-                return array( 0, $delimiters[0], $buffer );
+            if (0 === strpos($part, $delimiters[0])) {
+                return array(0, $delimiters[0], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[1] )) {
-                return array( 1, $delimiters[1], $buffer );
+            if (0 === strpos($part, $delimiters[1])) {
+                return array(1, $delimiters[1], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[2] )) {
-                return array( 2, $delimiters[2], $buffer );
+            if (0 === strpos($part, $delimiters[2])) {
+                return array(2, $delimiters[2], $buffer);
             }
             if ($delimiters[3] === $letter) {
-                return array( 3, $delimiters[3], $buffer );
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -827,7 +827,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter3( $text, $textLength, $textPos )
+    public function findDelimiter3($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -840,28 +840,28 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
-            if (0 === strpos( $part, $delimiters[0] )) {
-                return array( 0, $delimiters[0], $buffer );
+            if (0 === strpos($part, $delimiters[0])) {
+                return array(0, $delimiters[0], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[1] )) {
-                return array( 1, $delimiters[1], $buffer );
+            if (0 === strpos($part, $delimiters[1])) {
+                return array(1, $delimiters[1], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[2] )) {
-                return array( 2, $delimiters[2], $buffer );
+            if (0 === strpos($part, $delimiters[2])) {
+                return array(2, $delimiters[2], $buffer);
             }
             if ($delimiters[3] === $letter) {
-                return array( 3, $delimiters[3], $buffer );
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -873,7 +873,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter4( $text, $textLength, $textPos )
+    public function findDelimiter4($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -886,28 +886,28 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[1] )) {
-                return array( 1, $delimiters[1], $buffer );
+            if (0 === strpos($part, $delimiters[1])) {
+                return array(1, $delimiters[1], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[2] )) {
-                return array( 2, $delimiters[2], $buffer );
+            if (0 === strpos($part, $delimiters[2])) {
+                return array(2, $delimiters[2], $buffer);
             }
             if ($delimiters[3] === $letter) {
-                return array( 3, $delimiters[3], $buffer );
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -919,7 +919,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter5( $text, $textLength, $textPos )
+    public function findDelimiter5($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -932,28 +932,28 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[1] )) {
-                return array( 1, $delimiters[1], $buffer );
+            if (0 === strpos($part, $delimiters[1])) {
+                return array(1, $delimiters[1], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[2] )) {
-                return array( 2, $delimiters[2], $buffer );
+            if (0 === strpos($part, $delimiters[2])) {
+                return array(2, $delimiters[2], $buffer);
             }
             if ($delimiters[3] === $letter) {
-                return array( 3, $delimiters[3], $buffer );
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -965,7 +965,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter6( $text, $textLength, $textPos )
+    public function findDelimiter6($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -979,15 +979,15 @@ class Python
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -999,7 +999,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter7( $text, $textLength, $textPos )
+    public function findDelimiter7($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -1016,44 +1016,44 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
-            if (preg_match( '~^\.\\d+~', $part, $matches )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~^\.\\d+~', $part, $matches)) {
+                return array(0, $matches[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
             if ($delimiters[2] === $letter) {
-                return array( 2, $delimiters[2], $buffer );
+                return array(2, $delimiters[2], $buffer);
             }
             if ($delimiters[3] === $letter) {
-                return array( 3, $delimiters[3], $buffer );
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[5] )) {
-                return array( 5, $delimiters[5], $buffer );
+            if (0 === strpos($part, $delimiters[5])) {
+                return array(5, $delimiters[5], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[6] )) {
-                return array( 6, $delimiters[6], $buffer );
+            if (0 === strpos($part, $delimiters[6])) {
+                return array(6, $delimiters[6], $buffer);
             }
             if ($delimiters[7] === $letter) {
-                return array( 7, $delimiters[7], $buffer );
+                return array(7, $delimiters[7], $buffer);
             }
             if ($delimiters[8] === $letter) {
-                return array( 8, $delimiters[8], $buffer );
+                return array(8, $delimiters[8], $buffer);
             }
             if ($delimiters[9] === $letter) {
-                return array( 9, $delimiters[9], $buffer );
+                return array(9, $delimiters[9], $buffer);
             }
-            return array( 10, $letter, $buffer );
+            return array(10, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -1065,7 +1065,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter8( $text, $textLength, $textPos )
+    public function findDelimiter8($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -1078,29 +1078,29 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[2] )) {
-                return array( 2, $delimiters[2], $buffer );
+            if (0 === strpos($part, $delimiters[2])) {
+                return array(2, $delimiters[2], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[3] )) {
-                return array( 3, $delimiters[3], $buffer );
+            if (0 === strpos($part, $delimiters[3])) {
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
-            return array( 5, $letter, $buffer );
+            return array(5, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -1112,7 +1112,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter9( $text, $textLength, $textPos )
+    public function findDelimiter9($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -1122,22 +1122,22 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (preg_match( '~^\\D+~', $part, $matches )) {
-                return array( 2, $matches[0], $buffer );
+            if (preg_match('~^\\D+~', $part, $matches)) {
+                return array(2, $matches[0], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -1149,7 +1149,7 @@ class Python
      *
      * @return array
      */
-    public function findDelimiter10( $text, $textLength, $textPos )
+    public function findDelimiter10($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -1159,22 +1159,22 @@ class Python
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (preg_match( '~^[^a-f\\d]+~i', $part, $matches )) {
-                return array( 2, $matches[0], $buffer );
+            if (preg_match('~^[^a-f\\d]+~i', $part, $matches)) {
+                return array(2, $matches[0], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
 }

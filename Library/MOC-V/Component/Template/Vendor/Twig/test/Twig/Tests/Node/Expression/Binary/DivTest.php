@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_Expression_Binary_DivTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_Expression_Binary_Div::__construct
      */
     public function testConstructor()
     {
+
         $left = new Twig_Node_Expression_Constant(1, 1);
         $right = new Twig_Node_Expression_Constant(2, 1);
         $node = new Twig_Node_Expression_Binary_Div($left, $right, 1);
@@ -25,17 +27,19 @@ class Twig_Tests_Node_Expression_Binary_DivTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_Expression_Binary_Div::compile
-     * @covers Twig_Node_Expression_Binary_Div::operator
+     * @covers       Twig_Node_Expression_Binary_Div::compile
+     * @covers       Twig_Node_Expression_Binary_Div::operator
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $left = new Twig_Node_Expression_Constant(1, 1);
         $right = new Twig_Node_Expression_Constant(2, 1);
         $node = new Twig_Node_Expression_Binary_Div($left, $right, 1);

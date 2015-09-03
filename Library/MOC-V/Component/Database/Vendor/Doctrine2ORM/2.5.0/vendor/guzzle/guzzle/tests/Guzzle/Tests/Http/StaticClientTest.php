@@ -3,9 +3,9 @@
 namespace Guzzle\Tests\Plugin\Redirect;
 
 use Guzzle\Http\Client;
+use Guzzle\Http\Message\Response;
 use Guzzle\Http\StaticClient;
 use Guzzle\Plugin\Mock\MockPlugin;
-use Guzzle\Http\Message\Response;
 use Guzzle\Stream\Stream;
 
 /**
@@ -13,8 +13,10 @@ use Guzzle\Stream\Stream;
  */
 class StaticClientTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testMountsClient()
     {
+
         $client = new Client();
         StaticClient::mount('FooBazBar', $client);
         $this->assertTrue(class_exists('FooBazBar'));
@@ -23,8 +25,12 @@ class StaticClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function requestProvider()
     {
+
         return array_map(
-            function ($m) { return array($m); },
+            function ($m) {
+
+                return array($m);
+            },
             array('GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'HEAD', 'OPTIONS')
         );
     }
@@ -34,8 +40,9 @@ class StaticClientTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testSendsRequests($method)
     {
+
         $mock = new MockPlugin(array(new Response(200)));
-        call_user_func('Guzzle\Http\StaticClient::' . $method, 'http://foo.com', array(
+        call_user_func('Guzzle\Http\StaticClient::'.$method, 'http://foo.com', array(
             'plugins' => array($mock)
         ));
         $requests = $mock->getReceivedRequests();
@@ -45,14 +52,16 @@ class StaticClientTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanCreateStreamsUsingDefaultFactory()
     {
+
         $this->getServer()->enqueue(array("HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ntest"));
         $stream = StaticClient::get($this->getServer()->getUrl(), array('stream' => true));
         $this->assertInstanceOf('Guzzle\Stream\StreamInterface', $stream);
-        $this->assertEquals('test', (string) $stream);
+        $this->assertEquals('test', (string)$stream);
     }
 
     public function testCanCreateStreamsUsingCustomFactory()
     {
+
         $stream = $this->getMockBuilder('Guzzle\Stream\StreamRequestFactoryInterface')
             ->setMethods(array('fromRequest'))
             ->getMockForAbstractClass();

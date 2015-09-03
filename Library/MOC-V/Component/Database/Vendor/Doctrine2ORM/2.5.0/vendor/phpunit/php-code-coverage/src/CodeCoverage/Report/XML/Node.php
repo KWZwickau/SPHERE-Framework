@@ -13,6 +13,7 @@
  */
 class PHP_CodeCoverage_Report_XML_Node
 {
+
     /**
      * @var DOMDocument
      */
@@ -25,27 +26,13 @@ class PHP_CodeCoverage_Report_XML_Node
 
     public function __construct(DOMElement $context)
     {
+
         $this->setContextNode($context);
-    }
-
-    protected function setContextNode(DOMElement $context)
-    {
-        $this->dom         = $context->ownerDocument;
-        $this->contextNode = $context;
-    }
-
-    public function getDom()
-    {
-        return $this->dom;
-    }
-
-    protected function getContextNode()
-    {
-        return $this->contextNode;
     }
 
     public function getTotals()
     {
+
         $totalsContainer = $this->getContextNode()->firstChild;
 
         if (!$totalsContainer) {
@@ -60,8 +47,22 @@ class PHP_CodeCoverage_Report_XML_Node
         return new PHP_CodeCoverage_Report_XML_Totals($totalsContainer);
     }
 
+    protected function getContextNode()
+    {
+
+        return $this->contextNode;
+    }
+
+    protected function setContextNode(DOMElement $context)
+    {
+
+        $this->dom = $context->ownerDocument;
+        $this->contextNode = $context;
+    }
+
     public function addDirectory($name)
     {
+
         $dirNode = $this->getDom()->createElementNS(
             'http://schema.phpunit.de/coverage/1.0',
             'directory'
@@ -73,8 +74,15 @@ class PHP_CodeCoverage_Report_XML_Node
         return new PHP_CodeCoverage_Report_XML_Directory($dirNode);
     }
 
+    public function getDom()
+    {
+
+        return $this->dom;
+    }
+
     public function addFile($name, $href)
     {
+
         $fileNode = $this->getDom()->createElementNS(
             'http://schema.phpunit.de/coverage/1.0',
             'file'

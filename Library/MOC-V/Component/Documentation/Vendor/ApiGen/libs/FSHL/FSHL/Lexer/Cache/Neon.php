@@ -396,7 +396,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter0( $text, $textLength, $textPos )
+    public function findDelimiter0($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -411,28 +411,28 @@ class Neon
 
             $letter = $text[$textPos];
 
-            if (preg_match( '~[\\w.]+(?=(\\s*<\\s*[\\w.]+)?\\s*:\\s*\n)~Ai', $text, $matches, 0, $textPos )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~[\\w.]+(?=(\\s*<\\s*[\\w.]+)?\\s*:\\s*\n)~Ai', $text, $matches, 0, $textPos)) {
+                return array(0, $matches[0], $buffer);
             }
-            if (preg_match( '~[\\w.]+(?=\\s*(?::|=))~Ai', $text, $matches, 0, $textPos )) {
-                return array( 1, $matches[0], $buffer );
+            if (preg_match('~[\\w.]+(?=\\s*(?::|=))~Ai', $text, $matches, 0, $textPos)) {
+                return array(1, $matches[0], $buffer);
             }
             if ($delimiters[2] === $letter) {
-                return array( 2, $delimiters[2], $buffer );
+                return array(2, $delimiters[2], $buffer);
             }
             if ($delimiters[3] === $letter) {
-                return array( 3, $delimiters[3], $buffer );
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             if ($delimiters[5] === $letter) {
-                return array( 5, $delimiters[5], $buffer );
+                return array(5, $delimiters[5], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -444,7 +444,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter1( $text, $textLength, $textPos )
+    public function findDelimiter1($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -461,30 +461,30 @@ class Neon
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (preg_match( '~[\\w.]+(?=(\\s*<\\s*[\\w.]+)?\\s*:\\s*\n)~Ai', $text, $matches, 0, $textPos )) {
-                return array( 2, $matches[0], $buffer );
+            if (preg_match('~[\\w.]+(?=(\\s*<\\s*[\\w.]+)?\\s*:\\s*\n)~Ai', $text, $matches, 0, $textPos)) {
+                return array(2, $matches[0], $buffer);
             }
-            if (preg_match( '~[\\w.]+(?=\\s*(?::|=))~Ai', $text, $matches, 0, $textPos )) {
-                return array( 3, $matches[0], $buffer );
+            if (preg_match('~[\\w.]+(?=\\s*(?::|=))~Ai', $text, $matches, 0, $textPos)) {
+                return array(3, $matches[0], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             if ($delimiters[5] === $letter) {
-                return array( 5, $delimiters[5], $buffer );
+                return array(5, $delimiters[5], $buffer);
             }
             if ($delimiters[6] === $letter) {
-                return array( 6, $delimiters[6], $buffer );
+                return array(6, $delimiters[6], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -496,7 +496,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter2( $text, $textLength, $textPos )
+    public function findDelimiter2($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -510,16 +510,16 @@ class Neon
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            return array( 2, $letter, $buffer );
+            return array(2, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -531,7 +531,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter3( $text, $textLength, $textPos )
+    public function findDelimiter3($text, $textLength, $textPos)
     {
 
         $buffer = false;
@@ -539,11 +539,11 @@ class Neon
 
             $letter = $text[$textPos];
 
-            return array( 0, $letter, $buffer );
+            return array(0, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -555,7 +555,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter4( $text, $textLength, $textPos )
+    public function findDelimiter4($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -576,67 +576,67 @@ class Neon
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (preg_match( '~[\\w.]+(?=\\s*(?::|=))~Ai', $text, $matches, 0, $textPos )) {
-                return array( 1, $matches[0], $buffer );
+            if (preg_match('~[\\w.]+(?=\\s*(?::|=))~Ai', $text, $matches, 0, $textPos)) {
+                return array(1, $matches[0], $buffer);
             }
             if ($delimiters[2] === $letter) {
-                return array( 2, $delimiters[2], $buffer );
+                return array(2, $delimiters[2], $buffer);
             }
             if ($delimiters[3] === $letter) {
-                return array( 3, $delimiters[3], $buffer );
+                return array(3, $delimiters[3], $buffer);
             }
             if ($delimiters[4] === $letter) {
-                return array( 4, $delimiters[4], $buffer );
+                return array(4, $delimiters[4], $buffer);
             }
             if ($delimiters[5] === $letter) {
-                return array( 5, $delimiters[5], $buffer );
+                return array(5, $delimiters[5], $buffer);
             }
             if ($delimiters[6] === $letter) {
-                return array( 6, $delimiters[6], $buffer );
+                return array(6, $delimiters[6], $buffer);
             }
             if ($delimiters[7] === $letter) {
-                return array( 7, $delimiters[7], $buffer );
+                return array(7, $delimiters[7], $buffer);
             }
             if ($delimiters[8] === $letter) {
-                return array( 8, $delimiters[8], $buffer );
+                return array(8, $delimiters[8], $buffer);
             }
             if ($delimiters[9] === $letter) {
-                return array( 9, $delimiters[9], $buffer );
+                return array(9, $delimiters[9], $buffer);
             }
             if ($delimiters[10] === $letter) {
-                return array( 10, $delimiters[10], $buffer );
+                return array(10, $delimiters[10], $buffer);
             }
             if ($delimiters[11] === $letter) {
-                return array( 11, $delimiters[11], $buffer );
+                return array(11, $delimiters[11], $buffer);
             }
-            if (preg_match( '~[a-z](?![,\\]}#\n])~Ai', $text, $matches, 0, $textPos )) {
-                return array( 12, $matches[0], $buffer );
+            if (preg_match('~[a-z](?![,\\]}#\n])~Ai', $text, $matches, 0, $textPos)) {
+                return array(12, $matches[0], $buffer);
             }
-            if (preg_match( '~^\\d+~', $part, $matches )) {
-                return array( 13, $matches[0], $buffer );
+            if (preg_match('~^\\d+~', $part, $matches)) {
+                return array(13, $matches[0], $buffer);
             }
-            if (preg_match( '~^\.\\d+~', $part, $matches )) {
-                return array( 14, $matches[0], $buffer );
+            if (preg_match('~^\.\\d+~', $part, $matches)) {
+                return array(14, $matches[0], $buffer);
             }
-            if (preg_match( '~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos )) {
-                return array( 15, $matches[0], $buffer );
+            if (preg_match('~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos)) {
+                return array(15, $matches[0], $buffer);
             }
             if ($delimiters[16] === $letter) {
-                return array( 16, $delimiters[16], $buffer );
+                return array(16, $delimiters[16], $buffer);
             }
             if ($delimiters[17] === $letter) {
-                return array( 17, $delimiters[17], $buffer );
+                return array(17, $delimiters[17], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -648,7 +648,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter5( $text, $textLength, $textPos )
+    public function findDelimiter5($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -661,19 +661,19 @@ class Neon
 
             $letter = $text[$textPos];
 
-            if (preg_match( '~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos)) {
+                return array(0, $matches[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
             if ($delimiters[2] === $letter) {
-                return array( 2, $delimiters[2], $buffer );
+                return array(2, $delimiters[2], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -685,7 +685,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter6( $text, $textLength, $textPos )
+    public function findDelimiter6($text, $textLength, $textPos)
     {
 
         $buffer = false;
@@ -693,11 +693,11 @@ class Neon
 
             $letter = $text[$textPos];
 
-            return array( 0, $letter, $buffer );
+            return array(0, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -709,7 +709,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter7( $text, $textLength, $textPos )
+    public function findDelimiter7($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -723,15 +723,15 @@ class Neon
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -743,7 +743,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter8( $text, $textLength, $textPos )
+    public function findDelimiter8($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -757,18 +757,18 @@ class Neon
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (preg_match( '~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos )) {
-                return array( 1, $matches[0], $buffer );
+            if (preg_match('~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos)) {
+                return array(1, $matches[0], $buffer);
             }
             if ($delimiters[2] === $letter) {
-                return array( 2, $delimiters[2], $buffer );
+                return array(2, $delimiters[2], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -780,7 +780,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter9( $text, $textLength, $textPos )
+    public function findDelimiter9($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -794,18 +794,18 @@ class Neon
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (preg_match( '~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos )) {
-                return array( 1, $matches[0], $buffer );
+            if (preg_match('~%\\w+(?=%)~Ai', $text, $matches, 0, $textPos)) {
+                return array(1, $matches[0], $buffer);
             }
             if ($delimiters[2] === $letter) {
-                return array( 2, $delimiters[2], $buffer );
+                return array(2, $delimiters[2], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -817,7 +817,7 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter10( $text, $textLength, $textPos )
+    public function findDelimiter10($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -830,12 +830,12 @@ class Neon
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -847,22 +847,22 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter11( $text, $textLength, $textPos )
+    public function findDelimiter11($text, $textLength, $textPos)
     {
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
-            if (preg_match( '~^\.\\d+~', $part, $matches )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~^\.\\d+~', $part, $matches)) {
+                return array(0, $matches[0], $buffer);
             }
-            return array( 1, $letter, $buffer );
+            return array(1, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -874,20 +874,20 @@ class Neon
      *
      * @return array
      */
-    public function findDelimiter12( $text, $textLength, $textPos )
+    public function findDelimiter12($text, $textLength, $textPos)
     {
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
 
-            if (preg_match( '~^\\W+~', $part, $matches )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~^\\W+~', $part, $matches)) {
+                return array(0, $matches[0], $buffer);
             }
             $buffer .= $text[$textPos];
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
 }

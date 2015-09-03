@@ -46,7 +46,7 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function prepareStatement( $Sql );
+    public function prepareStatement($Sql);
 
     /**
      * @param mixed    $Value
@@ -54,7 +54,7 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function defineParameter( $Value, $Type = null );
+    public function defineParameter($Value, $Type = null);
 
     /**
      * @return array

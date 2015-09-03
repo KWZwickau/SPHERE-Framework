@@ -15,23 +15,26 @@
  */
 class PHP_CodeCoverage_Report_Clover
 {
+
     /**
      * @param  PHP_CodeCoverage $coverage
      * @param  string           $target
      * @param  string           $name
+     *
      * @return string
      */
     public function process(PHP_CodeCoverage $coverage, $target = null, $name = null)
     {
-        $xmlDocument               = new DOMDocument('1.0', 'UTF-8');
+
+        $xmlDocument = new DOMDocument('1.0', 'UTF-8');
         $xmlDocument->formatOutput = true;
 
         $xmlCoverage = $xmlDocument->createElement('coverage');
-        $xmlCoverage->setAttribute('generated', (int) $_SERVER['REQUEST_TIME']);
+        $xmlCoverage->setAttribute('generated', (int)$_SERVER['REQUEST_TIME']);
         $xmlDocument->appendChild($xmlCoverage);
 
         $xmlProject = $xmlDocument->createElement('project');
-        $xmlProject->setAttribute('timestamp', (int) $_SERVER['REQUEST_TIME']);
+        $xmlProject->setAttribute('timestamp', (int)$_SERVER['REQUEST_TIME']);
 
         if (is_string($name)) {
             $xmlProject->setAttribute('name', $name);
@@ -40,8 +43,8 @@ class PHP_CodeCoverage_Report_Clover
         $xmlCoverage->appendChild($xmlProject);
 
         $packages = array();
-        $report   = $coverage->getReport();
-        unset($coverage);
+        $report = $coverage->getReport();
+        unset( $coverage );
 
         foreach ($report as $item) {
             $namespace = 'global';
@@ -53,33 +56,33 @@ class PHP_CodeCoverage_Report_Clover
             $xmlFile = $xmlDocument->createElement('file');
             $xmlFile->setAttribute('name', $item->getPath());
 
-            $classes  = $item->getClassesAndTraits();
+            $classes = $item->getClassesAndTraits();
             $coverage = $item->getCoverageData();
-            $lines    = array();
+            $lines = array();
 
             foreach ($classes as $className => $class) {
-                $classStatements        = 0;
+                $classStatements = 0;
                 $coveredClassStatements = 0;
-                $coveredMethods         = 0;
-                $classMethods           = 0;
+                $coveredMethods = 0;
+                $classMethods = 0;
 
                 foreach ($class['methods'] as $methodName => $method) {
-                    if ($method['executableLines']  == 0) {
+                    if ($method['executableLines'] == 0) {
                         continue;
                     }
 
                     $classMethods++;
-                    $classStatements        += $method['executableLines'];
+                    $classStatements += $method['executableLines'];
                     $coveredClassStatements += $method['executedLines'];
                     if ($method['coverage'] == 100) {
                         $coveredMethods++;
                     }
 
                     $methodCount = 0;
-                    for ($i  = $method['startLine'];
+                    for ($i = $method['startLine'];
                          $i <= $method['endLine'];
                          $i++) {
-                        if (isset($coverage[$i]) && ($coverage[$i] !== null)) {
+                        if (isset( $coverage[$i] ) && ( $coverage[$i] !== null )) {
                             $methodCount = max($methodCount, count($coverage[$i]));
                         }
                     }
@@ -92,7 +95,7 @@ class PHP_CodeCoverage_Report_Clover
                     );
                 }
 
-                if (!empty($class['package']['namespace'])) {
+                if (!empty( $class['package']['namespace'] )) {
                     $namespace = $class['package']['namespace'];
                 }
 
@@ -100,28 +103,28 @@ class PHP_CodeCoverage_Report_Clover
                 $xmlClass->setAttribute('name', $className);
                 $xmlClass->setAttribute('namespace', $namespace);
 
-                if (!empty($class['package']['fullPackage'])) {
+                if (!empty( $class['package']['fullPackage'] )) {
                     $xmlClass->setAttribute(
                         'fullPackage',
                         $class['package']['fullPackage']
                     );
                 }
 
-                if (!empty($class['package']['category'])) {
+                if (!empty( $class['package']['category'] )) {
                     $xmlClass->setAttribute(
                         'category',
                         $class['package']['category']
                     );
                 }
 
-                if (!empty($class['package']['package'])) {
+                if (!empty( $class['package']['package'] )) {
                     $xmlClass->setAttribute(
                         'package',
                         $class['package']['package']
                     );
                 }
 
-                if (!empty($class['package']['subpackage'])) {
+                if (!empty( $class['package']['subpackage'] )) {
                     $xmlClass->setAttribute(
                         'subpackage',
                         $class['package']['subpackage']
@@ -144,24 +147,25 @@ class PHP_CodeCoverage_Report_Clover
                     'elements',
                     $classMethods +
                     $classStatements
-                    /* + conditionals */
+                /* + conditionals */
                 );
                 $xmlMetrics->setAttribute(
                     'coveredelements',
                     $coveredMethods +
                     $coveredClassStatements
-                    /* + coveredconditionals */
+                /* + coveredconditionals */
                 );
                 $xmlClass->appendChild($xmlMetrics);
             }
 
             foreach ($coverage as $line => $data) {
-                if ($data === null || isset($lines[$line])) {
+                if ($data === null || isset( $lines[$line] )) {
                     continue;
                 }
 
                 $lines[$line] = array(
-                    'count' => count($data), 'type' => 'stmt'
+                    'count' => count($data),
+                    'type'  => 'stmt'
                 );
             }
 
@@ -172,11 +176,11 @@ class PHP_CodeCoverage_Report_Clover
                 $xmlLine->setAttribute('num', $line);
                 $xmlLine->setAttribute('type', $data['type']);
 
-                if (isset($data['name'])) {
+                if (isset( $data['name'] )) {
                     $xmlLine->setAttribute('name', $data['name']);
                 }
 
-                if (isset($data['crap'])) {
+                if (isset( $data['crap'] )) {
                     $xmlLine->setAttribute('crap', $data['crap']);
                 }
 
@@ -208,19 +212,19 @@ class PHP_CodeCoverage_Report_Clover
             $xmlMetrics->setAttribute(
                 'elements',
                 $item->getNumMethods() + $item->getNumExecutableLines()
-                /* + conditionals */
+            /* + conditionals */
             );
             $xmlMetrics->setAttribute(
                 'coveredelements',
                 $item->getNumTestedMethods() + $item->getNumExecutedLines()
-                /* + coveredconditionals */
+            /* + coveredconditionals */
             );
             $xmlFile->appendChild($xmlMetrics);
 
             if ($namespace == 'global') {
                 $xmlProject->appendChild($xmlFile);
             } else {
-                if (!isset($packages[$namespace])) {
+                if (!isset( $packages[$namespace] )) {
                     $packages[$namespace] = $xmlDocument->createElement(
                         'package'
                     );
@@ -261,12 +265,12 @@ class PHP_CodeCoverage_Report_Clover
         $xmlMetrics->setAttribute(
             'elements',
             $report->getNumMethods() + $report->getNumExecutableLines()
-            /* + conditionals */
+        /* + conditionals */
         );
         $xmlMetrics->setAttribute(
             'coveredelements',
             $report->getNumTestedMethods() + $report->getNumExecutedLines()
-            /* + coveredconditionals */
+        /* + coveredconditionals */
         );
 
         $xmlProject->appendChild($xmlMetrics);

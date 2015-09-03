@@ -84,12 +84,12 @@ class ReflectionPropertyMagic extends ReflectionProperty
      * @param \TokenReflection\IReflection $reflection Inspected reflection
      * @param \ApiGen\Generator            $generator  ApiGen generator
      */
-    public function __construct( IReflection $reflection = null, Generator $generator = null )
+    public function __construct(IReflection $reflection = null, Generator $generator = null)
     {
 
-        $this->reflectionType = get_class( $this );
+        $this->reflectionType = get_class($this);
         if (!isset( self::$reflectionMethods[$this->reflectionType] )) {
-            self::$reflectionMethods[$this->reflectionType] = array_flip( get_class_methods( $this ) );
+            self::$reflectionMethods[$this->reflectionType] = array_flip(get_class_methods($this));
         }
     }
 
@@ -144,7 +144,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \Apigen\ReflectionPropertyMagic
      */
-    public function setName( $name )
+    public function setName($name)
     {
 
         $this->name = (string)$name;
@@ -170,7 +170,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \ApiGen\ReflectionParameterUnlimited
      */
-    public function setTypeHint( $typeHint )
+    public function setTypeHint($typeHint)
     {
 
         $this->typeHint = (string)$typeHint;
@@ -195,7 +195,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \Apigen\ReflectionPropertyMagic
      */
-    public function setShortDescription( $shortDescription )
+    public function setShortDescription($shortDescription)
     {
 
         $this->shortDescription = (string)$shortDescription;
@@ -231,7 +231,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \Apigen\ReflectionPropertyMagic
      */
-    public function setStartLine( $startLine )
+    public function setStartLine($startLine)
     {
 
         $this->startLine = (int)$startLine;
@@ -256,7 +256,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \Apigen\ReflectionPropertyMagic
      */
-    public function setEndLine( $endLine )
+    public function setEndLine($endLine)
     {
 
         $this->endLine = (int)$endLine;
@@ -281,7 +281,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \Apigen\ReflectionPropertyMagic
      */
-    public function setReadOnly( $readOnly )
+    public function setReadOnly($readOnly)
     {
 
         $this->readOnly = (bool)$readOnly;
@@ -306,7 +306,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \Apigen\ReflectionPropertyMagic
      */
-    public function setWriteOnly( $writeOnly )
+    public function setWriteOnly($writeOnly)
     {
 
         $this->writeOnly = (bool)$writeOnly;
@@ -412,7 +412,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return \ApiGen\ReflectionPropertyMagic
      */
-    public function setDeclaringClass( ReflectionClass $declaringClass )
+    public function setDeclaringClass(ReflectionClass $declaringClass)
     {
 
         $this->declaringClass = $declaringClass;
@@ -573,7 +573,7 @@ class ReflectionPropertyMagic extends ReflectionProperty
     public function getPrettyName()
     {
 
-        return sprintf( '%s::$%s', $this->declaringClass->getName(), $this->name );
+        return sprintf('%s::$%s', $this->declaringClass->getName(), $this->name);
     }
 
     /**
@@ -623,8 +623,8 @@ class ReflectionPropertyMagic extends ReflectionProperty
             $docComment .= $this->shortDescription."\n\n";
         }
 
-        if ($annotations = $this->getAnnotation( 'var' )) {
-            $docComment .= sprintf( "@var %s\n", $annotations[0] );
+        if ($annotations = $this->getAnnotation('var')) {
+            $docComment .= sprintf("@var %s\n", $annotations[0]);
         }
 
         $docComment .= "*/\n";
@@ -639,11 +639,11 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return string|array|null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         $annotations = $this->getAnnotations();
-        if (array_key_exists( $name, $annotations )) {
+        if (array_key_exists($name, $annotations)) {
             return $annotations[$name];
         }
         return null;
@@ -670,11 +670,11 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         $annotations = $this->getAnnotations();
-        return array_key_exists( $name, $annotations );
+        return array_key_exists($name, $annotations);
     }
 
     /**
@@ -684,10 +684,10 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return mixed
      */
-    public function __get( $name )
+    public function __get($name)
     {
 
-        $key = ucfirst( $name );
+        $key = ucfirst($name);
         if (isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] )) {
             return $this->{'get'.$key}();
         }
@@ -706,10 +706,10 @@ class ReflectionPropertyMagic extends ReflectionProperty
      *
      * @return boolean
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        $key = ucfirst( $name );
+        $key = ucfirst($name);
         return isset( self::$reflectionMethods[$this->reflectionType]['get'.$key] ) || isset( self::$reflectionMethods[$this->reflectionType]['is'.$key] );
     }
 }

@@ -20,6 +20,7 @@ use Prophecy\Exception\InvalidArgumentException;
  */
 class ArrayEntryToken implements TokenInterface
 {
+
     /** @var \Prophecy\Argument\Token\TokenInterface */
     private $key;
     /** @var \Prophecy\Argument\Token\TokenInterface */
@@ -31,8 +32,22 @@ class ArrayEntryToken implements TokenInterface
      */
     public function __construct($key, $value)
     {
+
         $this->key = $this->wrapIntoExactValueToken($key);
         $this->value = $this->wrapIntoExactValueToken($value);
+    }
+
+    /**
+     * Wraps non token $value into ExactValueToken
+     *
+     * @param $value
+     *
+     * @return TokenInterface
+     */
+    private function wrapIntoExactValueToken($value)
+    {
+
+        return $value instanceof TokenInterface ? $value : new ExactValueToken($value);
     }
 
     /**
@@ -46,6 +61,7 @@ class ArrayEntryToken implements TokenInterface
      */
     public function scoreArgument($argument)
     {
+
         if ($argument instanceof \Traversable) {
             $argument = iterator_to_array($argument);
         }
@@ -54,68 +70,18 @@ class ArrayEntryToken implements TokenInterface
             $argument = $this->convertArrayAccessToEntry($argument);
         }
 
-        if (!is_array($argument) || empty($argument)) {
+        if (!is_array($argument) || empty( $argument )) {
             return false;
         }
 
-        $keyScores = array_map(array($this->key,'scoreArgument'), array_keys($argument));
-        $valueScores = array_map(array($this->value,'scoreArgument'), $argument);
+        $keyScores = array_map(array($this->key, 'scoreArgument'), array_keys($argument));
+        $valueScores = array_map(array($this->value, 'scoreArgument'), $argument);
         $scoreEntry = function ($value, $key) {
-            return $value && $key ? min(8, ($key + $value) / 2) : false;
+
+            return $value && $key ? min(8, ( $key + $value ) / 2) : false;
         };
 
         return max(array_map($scoreEntry, $valueScores, $keyScores));
-    }
-
-    /**
-     * Returns false.
-     *
-     * @return boolean
-     */
-    public function isLast()
-    {
-        return false;
-    }
-
-    /**
-     * Returns string representation for token.
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return sprintf('[..., %s => %s, ...]', $this->key, $this->value);
-    }
-
-    /**
-     * Returns key
-     *
-     * @return TokenInterface
-     */
-    public function getKey()
-    {
-        return $this->key;
-    }
-
-    /**
-     * Returns value
-     *
-     * @return TokenInterface
-     */
-    public function getValue()
-    {
-        return $this->value;
-    }
-
-    /**
-     * Wraps non token $value into ExactValueToken
-     *
-     * @param $value
-     * @return TokenInterface
-     */
-    private function wrapIntoExactValueToken($value)
-    {
-        return $value instanceof TokenInterface ? $value : new ExactValueToken($value);
     }
 
     /**
@@ -128,6 +94,7 @@ class ArrayEntryToken implements TokenInterface
      */
     private function convertArrayAccessToEntry(\ArrayAccess $object)
     {
+
         if (!$this->key instanceof ExactValueToken) {
             throw new InvalidArgumentException(sprintf(
                 'You can only use exact value tokens to match key of ArrayAccess object'.PHP_EOL.
@@ -139,5 +106,49 @@ class ArrayEntryToken implements TokenInterface
         $key = $this->key->getValue();
 
         return $object->offsetExists($key) ? array($key => $object[$key]) : array();
+    }
+
+    /**
+     * Returns false.
+     *
+     * @return boolean
+     */
+    public function isLast()
+    {
+
+        return false;
+    }
+
+    /**
+     * Returns string representation for token.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+
+        return sprintf('[..., %s => %s, ...]', $this->key, $this->value);
+    }
+
+    /**
+     * Returns key
+     *
+     * @return TokenInterface
+     */
+    public function getKey()
+    {
+
+        return $this->key;
+    }
+
+    /**
+     * Returns value
+     *
+     * @return TokenInterface
+     */
+    public function getValue()
+    {
+
+        return $this->value;
     }
 }

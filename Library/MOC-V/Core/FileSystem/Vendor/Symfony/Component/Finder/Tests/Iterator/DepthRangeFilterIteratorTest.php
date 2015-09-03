@@ -15,25 +15,27 @@ use Symfony\Component\Finder\Iterator\DepthRangeFilterIterator;
 
 class DepthRangeFilterIteratorTest extends RealIteratorTestCase
 {
+
     /**
      * @dataProvider getAcceptData
      */
-    public function testAccept( $minDepth, $maxDepth, $expected )
+    public function testAccept($minDepth, $maxDepth, $expected)
     {
 
-        $inner = new \RecursiveIteratorIterator( new \RecursiveDirectoryIterator( $this->toAbsolute(),
-            \FilesystemIterator::SKIP_DOTS ), \RecursiveIteratorIterator::SELF_FIRST );
+        $inner = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->toAbsolute(),
+            \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::SELF_FIRST);
 
-        $iterator = new DepthRangeFilterIterator( $inner, $minDepth, $maxDepth );
+        $iterator = new DepthRangeFilterIterator($inner, $minDepth, $maxDepth);
 
-        $actual = array_keys( iterator_to_array( $iterator ) );
-        sort( $expected );
-        sort( $actual );
-        $this->assertEquals( $expected, $actual );
+        $actual = array_keys(iterator_to_array($iterator));
+        sort($expected);
+        sort($actual);
+        $this->assertEquals($expected, $actual);
     }
 
     public function getAcceptData()
     {
+
         $lessThan1 = array(
             '.git',
             'test.py',
@@ -72,11 +74,11 @@ class DepthRangeFilterIteratorTest extends RealIteratorTestCase
         );
 
         return array(
-            array( 0, 0, $this->toAbsolute( $lessThan1 ) ),
-            array( 0, 1, $this->toAbsolute( $lessThanOrEqualTo1 ) ),
-            array( 2, PHP_INT_MAX, array() ),
-            array( 1, PHP_INT_MAX, $this->toAbsolute( $graterThanOrEqualTo1 ) ),
-            array( 1, 1, $this->toAbsolute( $equalTo1 ) ),
+            array(0, 0, $this->toAbsolute($lessThan1)),
+            array(0, 1, $this->toAbsolute($lessThanOrEqualTo1)),
+            array(2, PHP_INT_MAX, array()),
+            array(1, PHP_INT_MAX, $this->toAbsolute($graterThanOrEqualTo1)),
+            array(1, 1, $this->toAbsolute($equalTo1)),
         );
     }
 }

@@ -89,7 +89,7 @@ abstract class PHPExcel_Writer_Abstract implements PHPExcel_Writer_IWriter
      *
      * @return    PHPExcel_Writer_IWriter
      */
-    public function setIncludeCharts( $pValue = false )
+    public function setIncludeCharts($pValue = false)
     {
 
         $this->_includeCharts = (boolean)$pValue;
@@ -121,7 +121,7 @@ abstract class PHPExcel_Writer_Abstract implements PHPExcel_Writer_IWriter
      *
      * @return    PHPExcel_Writer_IWriter
      */
-    public function setPreCalculateFormulas( $pValue = true )
+    public function setPreCalculateFormulas($pValue = true)
     {
 
         $this->_preCalculateFormulas = (boolean)$pValue;
@@ -148,16 +148,16 @@ abstract class PHPExcel_Writer_Abstract implements PHPExcel_Writer_IWriter
      * @throws    PHPExcel_Writer_Exception    when directory does not exist
      * @return PHPExcel_Writer_Excel2007
      */
-    public function setUseDiskCaching( $pValue = false, $pDirectory = null )
+    public function setUseDiskCaching($pValue = false, $pDirectory = null)
     {
 
         $this->_useDiskCaching = $pValue;
 
         if ($pDirectory !== null) {
-            if (is_dir( $pDirectory )) {
+            if (is_dir($pDirectory)) {
                 $this->_diskCachingDirectory = $pDirectory;
             } else {
-                throw new PHPExcel_Writer_Exception( "Directory does not exist: $pDirectory" );
+                throw new PHPExcel_Writer_Exception("Directory does not exist: $pDirectory");
             }
         }
         return $this;

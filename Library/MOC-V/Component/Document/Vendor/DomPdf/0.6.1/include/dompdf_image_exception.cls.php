@@ -20,10 +20,10 @@ class DOMPDF_Image_Exception extends DOMPDF_Exception
      * @param string $message Error message
      * @param int    $code    Error code
      */
-    function __construct( $message = null, $code = 0 )
+    function __construct($message = null, $code = 0)
     {
 
-        parent::__construct( $message, $code );
+        parent::__construct($message, $code);
     }
 
 }

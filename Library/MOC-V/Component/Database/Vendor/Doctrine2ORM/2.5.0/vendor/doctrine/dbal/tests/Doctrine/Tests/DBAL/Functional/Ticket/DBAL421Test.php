@@ -7,21 +7,19 @@ namespace Doctrine\Tests\DBAL\Functional\Ticket;
  */
 class DBAL421Test extends \Doctrine\Tests\DbalFunctionalTestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $platform = $this->_conn->getDatabasePlatform()->getName();
-        if (!in_array($platform, array('mysql', 'sqlite'))) {
-            $this->markTestSkipped('Currently restricted to MySQL and SQLite.');
-        }
-    }
 
     public function testGuidShouldMatchPattern()
     {
+
         $guid = $this->_conn->query($this->getSelectGuidSql())->fetchColumn();
         $pattern = '/[0-9A-F]{8}\-[0-9A-F]{4}\-[0-9A-F]{4}\-[8-9A-B][0-9A-F]{3}\-[0-9A-F]{12}/i';
         $this->assertEquals(1, preg_match($pattern, $guid), "GUID does not match pattern");
+    }
+
+    private function getSelectGuidSql()
+    {
+
+        return "SELECT ".$this->_conn->getDatabasePlatform()->getGuidExpression();
     }
 
     /**
@@ -30,6 +28,7 @@ class DBAL421Test extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testGuidShouldBeRandom()
     {
+
         $statement = $this->_conn->prepare($this->getSelectGuidSql());
         $guids = array();
 
@@ -43,8 +42,14 @@ class DBAL421Test extends \Doctrine\Tests\DbalFunctionalTestCase
         $statement->closeCursor();
     }
 
-    private function getSelectGuidSql()
+    protected function setUp()
     {
-        return "SELECT " . $this->_conn->getDatabasePlatform()->getGuidExpression();
+
+        parent::setUp();
+
+        $platform = $this->_conn->getDatabasePlatform()->getName();
+        if (!in_array($platform, array('mysql', 'sqlite'))) {
+            $this->markTestSkipped('Currently restricted to MySQL and SQLite.');
+        }
     }
 }

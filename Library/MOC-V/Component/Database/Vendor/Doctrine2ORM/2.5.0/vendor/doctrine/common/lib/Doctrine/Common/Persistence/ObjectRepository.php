@@ -29,6 +29,7 @@ namespace Doctrine\Common\Persistence;
  */
 interface ObjectRepository
 {
+
     /**
      * Finds an object by its primary key / identifier.
      *

@@ -7,6 +7,7 @@ use Doctrine\Tests\DbalTestCase;
 
 class PDOExceptionTest extends DbalTestCase
 {
+
     const ERROR_CODE = 666;
 
     const MESSAGE = 'PDO Exception';
@@ -27,9 +28,40 @@ class PDOExceptionTest extends DbalTestCase
      */
     private $wrappedException;
 
+    public function testReturnsCode()
+    {
+
+        $this->assertSame(self::SQLSTATE, $this->exception->getCode());
+    }
+
+    public function testReturnsErrorCode()
+    {
+
+        $this->assertSame(self::ERROR_CODE, $this->exception->getErrorCode());
+    }
+
+    public function testReturnsMessage()
+    {
+
+        $this->assertSame(self::MESSAGE, $this->exception->getMessage());
+    }
+
+    public function testReturnsSQLState()
+    {
+
+        $this->assertSame(self::SQLSTATE, $this->exception->getSQLState());
+    }
+
+    public function testOriginalExceptionIsInChain()
+    {
+
+        $this->assertSame($this->wrappedException, $this->exception->getPrevious());
+    }
+
     protected function setUp()
     {
-        if ( ! extension_loaded('PDO')) {
+
+        if (!extension_loaded('PDO')) {
             $this->markTestSkipped('PDO is not installed.');
         }
 
@@ -40,30 +72,5 @@ class PDOExceptionTest extends DbalTestCase
         $this->wrappedException->errorInfo = array(self::SQLSTATE, self::ERROR_CODE);
 
         $this->exception = new PDOException($this->wrappedException);
-    }
-
-    public function testReturnsCode()
-    {
-        $this->assertSame(self::SQLSTATE, $this->exception->getCode());
-    }
-
-    public function testReturnsErrorCode()
-    {
-        $this->assertSame(self::ERROR_CODE, $this->exception->getErrorCode());
-    }
-
-    public function testReturnsMessage()
-    {
-        $this->assertSame(self::MESSAGE, $this->exception->getMessage());
-    }
-
-    public function testReturnsSQLState()
-    {
-        $this->assertSame(self::SQLSTATE, $this->exception->getSQLState());
-    }
-
-    public function testOriginalExceptionIsInChain()
-    {
-        $this->assertSame($this->wrappedException, $this->exception->getPrevious());
     }
 }

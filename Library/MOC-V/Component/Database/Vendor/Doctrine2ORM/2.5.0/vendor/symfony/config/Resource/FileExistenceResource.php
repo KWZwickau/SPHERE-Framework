@@ -21,6 +21,7 @@ namespace Symfony\Component\Config\Resource;
  */
 class FileExistenceResource implements ResourceInterface, \Serializable
 {
+
     private $resource;
 
     private $exists;
@@ -32,7 +33,8 @@ class FileExistenceResource implements ResourceInterface, \Serializable
      */
     public function __construct($resource)
     {
-        $this->resource = (string) $resource;
+
+        $this->resource = (string)$resource;
         $this->exists = file_exists($resource);
     }
 
@@ -41,6 +43,7 @@ class FileExistenceResource implements ResourceInterface, \Serializable
      */
     public function __toString()
     {
+
         return $this->resource;
     }
 
@@ -49,6 +52,7 @@ class FileExistenceResource implements ResourceInterface, \Serializable
      */
     public function getResource()
     {
+
         return $this->resource;
     }
 
@@ -57,6 +61,7 @@ class FileExistenceResource implements ResourceInterface, \Serializable
      */
     public function isFresh($timestamp)
     {
+
         return file_exists($this->resource) === $this->exists;
     }
 
@@ -65,6 +70,7 @@ class FileExistenceResource implements ResourceInterface, \Serializable
      */
     public function serialize()
     {
+
         return serialize(array($this->resource, $this->exists));
     }
 
@@ -73,6 +79,7 @@ class FileExistenceResource implements ResourceInterface, \Serializable
      */
     public function unserialize($serialized)
     {
-        list($this->resource, $this->exists) = unserialize($serialized);
+
+        list( $this->resource, $this->exists ) = unserialize($serialized);
     }
 }

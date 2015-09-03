@@ -55,7 +55,7 @@ class UrlScript extends Url
      *
      * @return UrlScript  provides a fluent interface
      */
-    public function setScriptPath( $value )
+    public function setScriptPath($value)
     {
 
         $this->updating();
@@ -71,8 +71,8 @@ class UrlScript extends Url
     public function getBasePath()
     {
 
-        $pos = strrpos( $this->scriptPath, '/' );
-        return $pos === false ? '' : substr( $this->path, 0, $pos + 1 );
+        $pos = strrpos($this->scriptPath, '/');
+        return $pos === false ? '' : substr($this->path, 0, $pos + 1);
     }
 
 
@@ -84,7 +84,7 @@ class UrlScript extends Url
     public function getPathInfo()
     {
 
-        return (string)substr( $this->path, strlen( $this->scriptPath ) );
+        return (string)substr($this->path, strlen($this->scriptPath));
     }
 
 }

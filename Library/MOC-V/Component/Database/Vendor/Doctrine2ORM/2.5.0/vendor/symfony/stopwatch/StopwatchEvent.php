@@ -18,6 +18,7 @@ namespace Symfony\Component\Stopwatch;
  */
 class StopwatchEvent
 {
+
     /**
      * @var StopwatchPeriod[]
      */
@@ -48,18 +49,28 @@ class StopwatchEvent
      */
     public function __construct($origin, $category = null)
     {
+
         $this->origin = $this->formatTime($origin);
         $this->category = is_string($category) ? $category : 'default';
     }
 
     /**
-     * Gets the category.
+     * Formats a time.
      *
-     * @return string The category
+     * @param int|float $time A raw time
+     *
+     * @return float The formatted time
+     *
+     * @throws \InvalidArgumentException When the raw time is not valid
      */
-    public function getCategory()
+    private function formatTime($time)
     {
-        return $this->category;
+
+        if (!is_numeric($time)) {
+            throw new \InvalidArgumentException('The time must be a numerical value');
+        }
+
+        return round($time, 1);
     }
 
     /**
@@ -69,7 +80,30 @@ class StopwatchEvent
      */
     public function getOrigin()
     {
+
         return $this->origin;
+    }
+
+    /**
+     * Checks if the event was started.
+     *
+     * @return bool
+     */
+    public function isStarted()
+    {
+
+        return !empty( $this->started );
+    }
+
+    /**
+     * Stops the current period and then starts a new one.
+     *
+     * @return StopwatchEvent The event
+     */
+    public function lap()
+    {
+
+        return $this->stop()->start();
     }
 
     /**
@@ -79,9 +113,21 @@ class StopwatchEvent
      */
     public function start()
     {
+
         $this->started[] = $this->getNow();
 
         return $this;
+    }
+
+    /**
+     * Return the current time relative to origin.
+     *
+     * @return float Time in ms
+     */
+    protected function getNow()
+    {
+
+        return $this->formatTime(microtime(true) * 1000 - $this->origin);
     }
 
     /**
@@ -95,6 +141,7 @@ class StopwatchEvent
      */
     public function stop()
     {
+
         if (!count($this->started)) {
             throw new \LogicException('stop() called but start() has not been called before.');
         }
@@ -105,30 +152,11 @@ class StopwatchEvent
     }
 
     /**
-     * Checks if the event was started.
-     *
-     * @return bool
-     */
-    public function isStarted()
-    {
-        return !empty($this->started);
-    }
-
-    /**
-     * Stops the current period and then starts a new one.
-     *
-     * @return StopwatchEvent The event
-     */
-    public function lap()
-    {
-        return $this->stop()->start();
-    }
-
-    /**
      * Stops all non already stopped periods.
      */
     public function ensureStopped()
     {
+
         while (count($this->started)) {
             $this->stop();
         }
@@ -141,6 +169,7 @@ class StopwatchEvent
      */
     public function getPeriods()
     {
+
         return $this->periods;
     }
 
@@ -151,7 +180,8 @@ class StopwatchEvent
      */
     public function getStartTime()
     {
-        return isset($this->periods[0]) ? $this->periods[0]->getStartTime() : 0;
+
+        return isset( $this->periods[0] ) ? $this->periods[0]->getStartTime() : 0;
     }
 
     /**
@@ -161,9 +191,49 @@ class StopwatchEvent
      */
     public function getEndTime()
     {
+
         $count = count($this->periods);
 
         return $count ? $this->periods[$count - 1]->getEndTime() : 0;
+    }
+
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+
+        return sprintf('%s: %.2F MiB - %d ms', $this->getCategory(), $this->getMemory() / 1024 / 1024,
+            $this->getDuration());
+    }
+
+    /**
+     * Gets the category.
+     *
+     * @return string The category
+     */
+    public function getCategory()
+    {
+
+        return $this->category;
+    }
+
+    /**
+     * Gets the max memory usage of all periods.
+     *
+     * @return int The memory usage (in bytes)
+     */
+    public function getMemory()
+    {
+
+        $memory = 0;
+        foreach ($this->periods as $period) {
+            if ($period->getMemory() > $memory) {
+                $memory = $period->getMemory();
+            }
+        }
+
+        return $memory;
     }
 
     /**
@@ -173,6 +243,7 @@ class StopwatchEvent
      */
     public function getDuration()
     {
+
         $periods = $this->periods;
         $stopped = count($periods);
         $left = count($this->started) - $stopped;
@@ -188,58 +259,5 @@ class StopwatchEvent
         }
 
         return $total;
-    }
-
-    /**
-     * Gets the max memory usage of all periods.
-     *
-     * @return int The memory usage (in bytes)
-     */
-    public function getMemory()
-    {
-        $memory = 0;
-        foreach ($this->periods as $period) {
-            if ($period->getMemory() > $memory) {
-                $memory = $period->getMemory();
-            }
-        }
-
-        return $memory;
-    }
-
-    /**
-     * Return the current time relative to origin.
-     *
-     * @return float Time in ms
-     */
-    protected function getNow()
-    {
-        return $this->formatTime(microtime(true) * 1000 - $this->origin);
-    }
-
-    /**
-     * Formats a time.
-     *
-     * @param int|float $time A raw time
-     *
-     * @return float The formatted time
-     *
-     * @throws \InvalidArgumentException When the raw time is not valid
-     */
-    private function formatTime($time)
-    {
-        if (!is_numeric($time)) {
-            throw new \InvalidArgumentException('The time must be a numerical value');
-        }
-
-        return round($time, 1);
-    }
-
-    /**
-     * @return string
-     */
-    public function __toString()
-    {
-        return sprintf('%s: %.2F MiB - %d ms', $this->getCategory(), $this->getMemory() / 1024 / 1024, $this->getDuration());
     }
 }

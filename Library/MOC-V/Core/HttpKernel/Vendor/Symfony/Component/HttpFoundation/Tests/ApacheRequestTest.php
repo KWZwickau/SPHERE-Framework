@@ -15,11 +15,13 @@ use Symfony\Component\HttpFoundation\ApacheRequest;
 
 class ApacheRequestTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider provideServerVars
      */
     public function testUriMethods($server, $expectedRequestUri, $expectedBaseUrl, $expectedPathInfo)
     {
+
         $request = new ApacheRequest();
         $request->server->replace($server);
 
@@ -30,6 +32,7 @@ class ApacheRequestTest extends \PHPUnit_Framework_TestCase
 
     public function provideServerVars()
     {
+
         return array(
             array(
                 array(

@@ -2,31 +2,35 @@
 
 namespace Guzzle\Tests\Plugin\Log;
 
-use Guzzle\Log\ClosureLogAdapter;
+use Guzzle\Common\Event;
 use Guzzle\Http\Client;
 use Guzzle\Http\EntityBody;
 use Guzzle\Http\Message\Request;
 use Guzzle\Http\Message\Response;
+use Guzzle\Log\ClosureLogAdapter;
 use Guzzle\Plugin\Log\LogPlugin;
-use Guzzle\Common\Event;
 
 /**
- * @group server
+ * @group  server
  * @covers Guzzle\Plugin\Log\LogPlugin
  */
 class LogPluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $adapter;
 
     public function setUp()
     {
+
         $this->adapter = new ClosureLogAdapter(function ($message) {
+
             echo $message;
         });
     }
 
     public function testIgnoresCurlEventsWhenNotWiringBodies()
     {
+
         $p = new LogPlugin($this->adapter);
         $this->assertNotEmpty($p->getSubscribedEvents());
         $event = new Event(array('request' => new Request('GET', 'http://foo.com')));
@@ -37,8 +41,10 @@ class LogPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testLogsWhenComplete()
     {
+
         $output = '';
         $p = new LogPlugin(new ClosureLogAdapter(function ($message) use (&$output) {
+
             $output = $message;
         }), '{method} {resource} | {code} {res_body}');
 
@@ -52,6 +58,7 @@ class LogPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testWiresBodiesWhenNeeded()
     {
+
         $client = new Client($this->getServer()->getUrl());
         $plugin = new LogPlugin($this->adapter, '{req_body} | {res_body}', true);
         $client->getEventDispatcher()->addSubscriber($plugin);
@@ -78,6 +85,7 @@ class LogPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasHelpfulStaticFactoryMethod()
     {
+
         $s = fopen('php://temp', 'r+');
         $client = new Client();
         $client->addSubscriber(LogPlugin::getDebugPlugin(true, $s));

@@ -30,7 +30,7 @@ interface ISupplementalDriver
      *
      * @return string
      */
-    function delimite( $name );
+    function delimite($name);
 
     /**
      * Formats date-time for use in a SQL statement.
@@ -39,7 +39,7 @@ interface ISupplementalDriver
      *
      * @return string
      */
-    function formatDateTime( \DateTime $value );
+    function formatDateTime(\DateTime $value);
 
     /**
      * Encodes string for use in a LIKE statement.
@@ -49,7 +49,7 @@ interface ISupplementalDriver
      *
      * @return string
      */
-    function formatLike( $value, $pos );
+    function formatLike($value, $pos);
 
     /**
      * Injects LIMIT/OFFSET to the SQL query.
@@ -60,7 +60,7 @@ interface ISupplementalDriver
      *
      * @return void
      */
-    function applyLimit( &$sql, $limit, $offset );
+    function applyLimit(&$sql, $limit, $offset);
 
     /**
      * Normalizes result row.
@@ -70,7 +70,7 @@ interface ISupplementalDriver
      *
      * @return array
      */
-    function normalizeRow( $row, $statement );
+    function normalizeRow($row, $statement);
 
 
     /********************* reflection ****************d*g**/
@@ -89,7 +89,7 @@ interface ISupplementalDriver
      *
      * @return array of [name, nativetype [, table, fullname, (int) size, (bool) nullable, (mixed) default, (bool) autoincrement, (array) vendor]]
      */
-    function getColumns( $table );
+    function getColumns($table);
 
     /**
      * Returns metadata for all indexes in a table.
@@ -98,7 +98,7 @@ interface ISupplementalDriver
      *
      * @return array of [name, (array of names) columns [, (bool) unique, (bool) primary]]
      */
-    function getIndexes( $table );
+    function getIndexes($table);
 
     /**
      * Returns metadata for all foreign keys in a table.
@@ -107,6 +107,6 @@ interface ISupplementalDriver
      *
      * @return array
      */
-    function getForeignKeys( $table );
+    function getForeignKeys($table);
 
 }

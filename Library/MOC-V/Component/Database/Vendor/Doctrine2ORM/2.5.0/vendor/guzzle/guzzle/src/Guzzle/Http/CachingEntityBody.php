@@ -9,6 +9,7 @@ use Guzzle\Common\Exception\RuntimeException;
  */
 class CachingEntityBody extends AbstractEntityBodyDecorator
 {
+
     /** @var EntityBody Remote stream used to actually pull data onto the buffer */
     protected $remoteStream;
 
@@ -21,6 +22,7 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
      */
     public function __construct(EntityBodyInterface $body)
     {
+
         $this->remoteStream = $body;
         $this->body = new EntityBody(fopen('php://temp', 'r+'));
     }
@@ -34,6 +36,7 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
      */
     public function __toString()
     {
+
         $pos = $this->ftell();
         $this->rewind();
 
@@ -47,9 +50,10 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
         return $str;
     }
 
-    public function getSize()
+    public function rewind()
     {
-        return max($this->body->getSize(), $this->remoteStream->getSize());
+
+        return $this->seek(0);
     }
 
     /**
@@ -58,12 +62,13 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
      */
     public function seek($offset, $whence = SEEK_SET)
     {
+
         if ($whence == SEEK_SET) {
             $byte = $offset;
         } elseif ($whence == SEEK_CUR) {
             $byte = $offset + $this->ftell();
         } else {
-            throw new RuntimeException(__CLASS__ . ' supports only SEEK_SET and SEEK_CUR seek operations');
+            throw new RuntimeException(__CLASS__.' supports only SEEK_SET and SEEK_CUR seek operations');
         }
 
         // You cannot skip ahead past where you've read from the remote stream
@@ -76,23 +81,15 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
         return $this->body->seek($byte);
     }
 
-    public function rewind()
+    public function isConsumed()
     {
-        return $this->seek(0);
-    }
 
-    /**
-     * Does not support custom rewind functions
-     *
-     * @throws RuntimeException
-     */
-    public function setRewindFunction($callable)
-    {
-        throw new RuntimeException(__CLASS__ . ' does not support custom stream rewind functions');
+        return $this->body->isConsumed() && $this->remoteStream->isConsumed();
     }
 
     public function read($length)
     {
+
         // Perform a regular read on any previously read data from the buffer
         $data = $this->body->read($length);
         $remaining = $length - strlen($data);
@@ -117,11 +114,29 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
         return $data;
     }
 
+    public function getSize()
+    {
+
+        return max($this->body->getSize(), $this->remoteStream->getSize());
+    }
+
+    /**
+     * Does not support custom rewind functions
+     *
+     * @throws RuntimeException
+     */
+    public function setRewindFunction($callable)
+    {
+
+        throw new RuntimeException(__CLASS__.' does not support custom stream rewind functions');
+    }
+
     public function write($string)
     {
+
         // When appending to the end of the currently read stream, you'll want to skip bytes from being read from
         // the remote stream to emulate other stream wrappers. Basically replacing bytes of data of a fixed length.
-        $overflow = (strlen($string) + $this->ftell()) - $this->remoteStream->ftell();
+        $overflow = ( strlen($string) + $this->ftell() ) - $this->remoteStream->ftell();
         if ($overflow > 0) {
             $this->skipReadBytes += $overflow;
         }
@@ -135,6 +150,7 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
      */
     public function readLine($maxLength = null)
     {
+
         $buffer = '';
         $size = 0;
         while (!$this->isConsumed()) {
@@ -149,61 +165,66 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
         return $buffer;
     }
 
-    public function isConsumed()
-    {
-        return $this->body->isConsumed() && $this->remoteStream->isConsumed();
-    }
-
     /**
      * Close both the remote stream and buffer stream
      */
     public function close()
     {
+
         return $this->remoteStream->close() && $this->body->close();
     }
 
     public function setStream($stream, $size = 0)
     {
+
         $this->remoteStream->setStream($stream, $size);
     }
 
     public function getContentType()
     {
+
         return $this->remoteStream->getContentType();
     }
 
     public function getContentEncoding()
     {
+
         return $this->remoteStream->getContentEncoding();
     }
 
     public function getMetaData($key = null)
     {
+
         return $this->remoteStream->getMetaData($key);
     }
 
     public function getStream()
     {
+
         return $this->remoteStream->getStream();
     }
 
     public function getWrapper()
     {
+
         return $this->remoteStream->getWrapper();
     }
 
     public function getWrapperData()
     {
+
         return $this->remoteStream->getWrapperData();
     }
 
     public function getStreamType()
     {
+
         return $this->remoteStream->getStreamType();
     }
 
     public function getUri()
     {
+
         return $this->remoteStream->getUri();
     }
 
@@ -213,6 +234,7 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
      */
     public function getCustomData($key)
     {
+
         return $this->remoteStream->getCustomData($key);
     }
 
@@ -222,6 +244,7 @@ class CachingEntityBody extends AbstractEntityBodyDecorator
      */
     public function setCustomData($key, $value)
     {
+
         $this->remoteStream->setCustomData($key, $value);
 
         return $this;

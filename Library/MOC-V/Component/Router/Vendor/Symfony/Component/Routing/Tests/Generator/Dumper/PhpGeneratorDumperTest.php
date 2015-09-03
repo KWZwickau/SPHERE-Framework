@@ -18,6 +18,7 @@ use Symfony\Component\Routing\RouteCollection;
 
 class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var RouteCollection
      */
@@ -35,6 +36,7 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
 
     public function testDumpWithRoutes()
     {
+
         $this->routeCollection->add('Test', new Route('/testing/{foo}'));
         $this->routeCollection->add('Test2', new Route('/testing2'));
 
@@ -43,9 +45,9 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
 
         $projectUrlGenerator = new \ProjectUrlGenerator(new RequestContext('/app.php'));
 
-        $absoluteUrlWithParameter    = $projectUrlGenerator->generate('Test', array('foo' => 'bar'), true);
+        $absoluteUrlWithParameter = $projectUrlGenerator->generate('Test', array('foo' => 'bar'), true);
         $absoluteUrlWithoutParameter = $projectUrlGenerator->generate('Test2', array(), true);
-        $relativeUrlWithParameter    = $projectUrlGenerator->generate('Test', array('foo' => 'bar'), false);
+        $relativeUrlWithParameter = $projectUrlGenerator->generate('Test', array('foo' => 'bar'), false);
         $relativeUrlWithoutParameter = $projectUrlGenerator->generate('Test2', array(), false);
 
         $this->assertEquals($absoluteUrlWithParameter, 'http://localhost/app.php/testing/bar');
@@ -59,7 +61,9 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
      */
     public function testDumpWithoutRoutes()
     {
-        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump(array('class' => 'WithoutRoutesUrlGenerator')));
+
+        file_put_contents($this->testTmpFilepath,
+            $this->generatorDumper->dump(array('class' => 'WithoutRoutesUrlGenerator')));
         include $this->testTmpFilepath;
 
         $projectUrlGenerator = new \WithoutRoutesUrlGenerator(new RequestContext('/app.php'));
@@ -72,9 +76,11 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
      */
     public function testGenerateNonExistingRoute()
     {
+
         $this->routeCollection->add('Test', new Route('/test'));
 
-        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump(array('class' => 'NonExistingRoutesUrlGenerator')));
+        file_put_contents($this->testTmpFilepath,
+            $this->generatorDumper->dump(array('class' => 'NonExistingRoutesUrlGenerator')));
         include $this->testTmpFilepath;
 
         $projectUrlGenerator = new \NonExistingRoutesUrlGenerator(new RequestContext());
@@ -83,9 +89,11 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
 
     public function testDumpForRouteWithDefaults()
     {
+
         $this->routeCollection->add('Test', new Route('/testing/{foo}', array('foo' => 'bar')));
 
-        file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump(array('class' => 'DefaultRoutesUrlGenerator')));
+        file_put_contents($this->testTmpFilepath,
+            $this->generatorDumper->dump(array('class' => 'DefaultRoutesUrlGenerator')));
         include $this->testTmpFilepath;
 
         $projectUrlGenerator = new \DefaultRoutesUrlGenerator(new RequestContext());
@@ -96,7 +104,9 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
 
     public function testDumpWithSchemeRequirement()
     {
-        $this->routeCollection->add('Test1', new Route('/testing', array(), array(), array(), '', array('ftp', 'https')));
+
+        $this->routeCollection->add('Test1',
+            new Route('/testing', array(), array(), array(), '', array('ftp', 'https')));
         $this->routeCollection->add('Test2', new Route('/testing_bc', array(), array('_scheme' => 'https'))); // BC
 
         file_put_contents($this->testTmpFilepath, $this->generatorDumper->dump(array('class' => 'SchemeUrlGenerator')));
@@ -133,9 +143,9 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
         parent::setUp();
 
         $this->routeCollection = new RouteCollection();
-        $this->generatorDumper = new PhpGeneratorDumper( $this->routeCollection );
+        $this->generatorDumper = new PhpGeneratorDumper($this->routeCollection);
         $this->testTmpFilepath = sys_get_temp_dir().DIRECTORY_SEPARATOR.'php_generator.php';
-        @unlink( $this->testTmpFilepath );
+        @unlink($this->testTmpFilepath);
     }
 
     protected function tearDown()
@@ -143,7 +153,7 @@ class PhpGeneratorDumperTest extends \PHPUnit_Framework_TestCase
 
         parent::tearDown();
 
-        @unlink( $this->testTmpFilepath );
+        @unlink($this->testTmpFilepath);
 
         $this->routeCollection = null;
         $this->generatorDumper = null;

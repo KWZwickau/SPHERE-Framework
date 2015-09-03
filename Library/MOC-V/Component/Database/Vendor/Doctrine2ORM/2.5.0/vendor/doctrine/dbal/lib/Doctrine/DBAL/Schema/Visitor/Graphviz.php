@@ -19,15 +19,16 @@
 
 namespace Doctrine\DBAL\Schema\Visitor;
 
-use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Table;
 
 /**
  * Create a Graphviz output of a Schema.
  */
 class Graphviz extends AbstractVisitor
 {
+
     /**
      * @var string
      */
@@ -38,93 +39,16 @@ class Graphviz extends AbstractVisitor
      */
     public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint)
     {
+
         $this->output .= $this->createNodeRelation(
-            $fkConstraint->getLocalTableName() . ":col" . current($fkConstraint->getLocalColumns()).":se",
-            $fkConstraint->getForeignTableName() . ":col" . current($fkConstraint->getForeignColumns()).":se",
+            $fkConstraint->getLocalTableName().":col".current($fkConstraint->getLocalColumns()).":se",
+            $fkConstraint->getForeignTableName().":col".current($fkConstraint->getForeignColumns()).":se",
             array(
                 'dir'       => 'back',
                 'arrowtail' => 'dot',
                 'arrowhead' => 'normal',
             )
         );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function acceptSchema(Schema $schema)
-    {
-        $this->output  = 'digraph "' . sha1(mt_rand()) . '" {' . "\n";
-        $this->output .= 'splines = true;' . "\n";
-        $this->output .= 'overlap = false;' . "\n";
-        $this->output .= 'outputorder=edgesfirst;'."\n";
-        $this->output .= 'mindist = 0.6;' . "\n";
-        $this->output .= 'sep = .2;' . "\n";
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function acceptTable(Table $table)
-    {
-        $this->output .= $this->createNode(
-            $table->getName(),
-            array(
-                'label' => $this->createTableLabel($table),
-                'shape' => 'plaintext',
-            )
-        );
-    }
-
-    /**
-     * @param \Doctrine\DBAL\Schema\Table $table
-     *
-     * @return string
-     */
-    private function createTableLabel(Table $table)
-    {
-        // Start the table
-        $label = '<<TABLE CELLSPACING="0" BORDER="1" ALIGN="LEFT">';
-
-        // The title
-        $label .= '<TR><TD BORDER="1" COLSPAN="3" ALIGN="CENTER" BGCOLOR="#fcaf3e"><FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="12">' . $table->getName() . '</FONT></TD></TR>';
-
-        // The attributes block
-        foreach ($table->getColumns() as $column) {
-            $columnLabel = $column->getName();
-
-            $label .= '<TR>';
-            $label .= '<TD BORDER="0" ALIGN="LEFT" BGCOLOR="#eeeeec">';
-            $label .= '<FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="12">' . $columnLabel . '</FONT>';
-            $label .= '</TD><TD BORDER="0" ALIGN="LEFT" BGCOLOR="#eeeeec"><FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="10">' . strtolower($column->getType()) . '</FONT></TD>';
-            $label .= '<TD BORDER="0" ALIGN="RIGHT" BGCOLOR="#eeeeec" PORT="col'.$column->getName().'">';
-            if ($table->hasPrimaryKey() && in_array($column->getName(), $table->getPrimaryKey()->getColumns())) {
-                $label .= "\xe2\x9c\xb7";
-            }
-            $label .= '</TD></TR>';
-        }
-
-        // End the table
-        $label .= '</TABLE>>';
-
-        return $label;
-    }
-
-    /**
-     * @param string $name
-     * @param array  $options
-     *
-     * @return string
-     */
-    private function createNode($name, $options)
-    {
-        $node = $name . " [";
-        foreach ($options as $key => $value) {
-            $node .= $key . '=' . $value . ' ';
-        }
-        $node .= "]\n";
-
-        return $node;
     }
 
     /**
@@ -136,9 +60,10 @@ class Graphviz extends AbstractVisitor
      */
     private function createNodeRelation($node1, $node2, $options)
     {
-        $relation = $node1 . ' -> ' . $node2 . ' [';
+
+        $relation = $node1.' -> '.$node2.' [';
         foreach ($options as $key => $value) {
-            $relation .= $key . '=' . $value . ' ';
+            $relation .= $key.'='.$value.' ';
         }
         $relation .= "]\n";
 
@@ -146,13 +71,85 @@ class Graphviz extends AbstractVisitor
     }
 
     /**
-     * Get Graphviz Output
+     * {@inheritdoc}
+     */
+    public function acceptSchema(Schema $schema)
+    {
+
+        $this->output = 'digraph "'.sha1(mt_rand()).'" {'."\n";
+        $this->output .= 'splines = true;'."\n";
+        $this->output .= 'overlap = false;'."\n";
+        $this->output .= 'outputorder=edgesfirst;'."\n";
+        $this->output .= 'mindist = 0.6;'."\n";
+        $this->output .= 'sep = .2;'."\n";
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function acceptTable(Table $table)
+    {
+
+        $this->output .= $this->createNode(
+            $table->getName(),
+            array(
+                'label' => $this->createTableLabel($table),
+                'shape' => 'plaintext',
+            )
+        );
+    }
+
+    /**
+     * @param string $name
+     * @param array  $options
      *
      * @return string
      */
-    public function getOutput()
+    private function createNode($name, $options)
     {
-        return $this->output . "}";
+
+        $node = $name." [";
+        foreach ($options as $key => $value) {
+            $node .= $key.'='.$value.' ';
+        }
+        $node .= "]\n";
+
+        return $node;
+    }
+
+    /**
+     * @param \Doctrine\DBAL\Schema\Table $table
+     *
+     * @return string
+     */
+    private function createTableLabel(Table $table)
+    {
+
+        // Start the table
+        $label = '<<TABLE CELLSPACING="0" BORDER="1" ALIGN="LEFT">';
+
+        // The title
+        $label .= '<TR><TD BORDER="1" COLSPAN="3" ALIGN="CENTER" BGCOLOR="#fcaf3e"><FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="12">'.$table->getName().'</FONT></TD></TR>';
+
+        // The attributes block
+        foreach ($table->getColumns() as $column) {
+            $columnLabel = $column->getName();
+
+            $label .= '<TR>';
+            $label .= '<TD BORDER="0" ALIGN="LEFT" BGCOLOR="#eeeeec">';
+            $label .= '<FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="12">'.$columnLabel.'</FONT>';
+            $label .= '</TD><TD BORDER="0" ALIGN="LEFT" BGCOLOR="#eeeeec"><FONT COLOR="#2e3436" FACE="Helvetica" POINT-SIZE="10">'.strtolower($column->getType()).'</FONT></TD>';
+            $label .= '<TD BORDER="0" ALIGN="RIGHT" BGCOLOR="#eeeeec" PORT="col'.$column->getName().'">';
+            if ($table->hasPrimaryKey() && in_array($column->getName(), $table->getPrimaryKey()->getColumns())) {
+                $label .= "\xe2\x9c\xb7";
+            }
+            $label .= '</TD></TR>';
+        }
+
+        // End the table
+        $label .= '</TABLE>>';
+
+        return $label;
     }
 
     /**
@@ -169,6 +166,18 @@ class Graphviz extends AbstractVisitor
      */
     public function write($filename)
     {
+
         file_put_contents($filename, $this->getOutput());
+    }
+
+    /**
+     * Get Graphviz Output
+     *
+     * @return string
+     */
+    public function getOutput()
+    {
+
+        return $this->output."}";
     }
 }

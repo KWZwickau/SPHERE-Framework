@@ -53,7 +53,7 @@ interface Backend
      *
      * @return boolean
      */
-    public function hasNamespace( $namespaceName );
+    public function hasNamespace($namespaceName);
 
     /**
      * Returns a reflection object of the given namespace.
@@ -62,7 +62,7 @@ interface Backend
      *
      * @return \TokenReflection\IReflectionNamespace|null
      */
-    public function getNamespace( $namespaceName );
+    public function getNamespace($namespaceName);
 
     /**
      * Returns if there was such class processed (FQN expected).
@@ -71,7 +71,7 @@ interface Backend
      *
      * @return boolean
      */
-    public function hasClass( $className );
+    public function hasClass($className);
 
     /**
      * Returns a reflection object of the given class (FQN expected).
@@ -80,7 +80,7 @@ interface Backend
      *
      * @return \TokenReflection\IReflectionClass|null
      */
-    public function getClass( $className );
+    public function getClass($className);
 
     /**
      * Returns all classes from all namespaces.
@@ -89,7 +89,7 @@ interface Backend
      *
      * @return array
      */
-    public function getClasses( $type = Backend::TOKENIZED_CLASSES );
+    public function getClasses($type = Backend::TOKENIZED_CLASSES);
 
     /**
      * Returns if there was such constant processed (FQN expected).
@@ -98,7 +98,7 @@ interface Backend
      *
      * @return boolean
      */
-    public function hasConstant( $constantName );
+    public function hasConstant($constantName);
 
     /**
      * Returns a reflection object of a constant (FQN expected).
@@ -107,7 +107,7 @@ interface Backend
      *
      * @return \TokenReflection\IReflectionConstant|null
      */
-    public function getConstant( $constantName );
+    public function getConstant($constantName);
 
     /**
      * Returns all constants from all namespaces.
@@ -123,7 +123,7 @@ interface Backend
      *
      * @return boolean
      */
-    public function hasFunction( $functionName );
+    public function hasFunction($functionName);
 
     /**
      * Returns a reflection object of a function (FQN expected).
@@ -132,7 +132,7 @@ interface Backend
      *
      * @return \TokenReflection\IReflectionFunction|null
      */
-    public function getFunction( $functionName );
+    public function getFunction($functionName);
 
     /**
      * Returns all functions from all namespaces.
@@ -148,7 +148,7 @@ interface Backend
      *
      * @return boolean
      */
-    public function isFileProcessed( $fileName );
+    public function isFileProcessed($fileName);
 
     /**
      * Returns if a file with the given filename has been processed.
@@ -157,7 +157,7 @@ interface Backend
      *
      * @return boolean
      */
-    public function hasFile( $fileName );
+    public function hasFile($fileName);
 
     /**
      * Returns a file reflection.
@@ -167,7 +167,7 @@ interface Backend
      * @return \TokenReflection\ReflectionFile
      * @throws \TokenReflection\Exception\RuntimeException If the requested file has not been processed
      */
-    public function getFile( $fileName );
+    public function getFile($fileName);
 
     /**
      * Returns file reflections.
@@ -183,7 +183,7 @@ interface Backend
      *
      * @return \TokenReflection\Stream\StreamBase
      */
-    public function getFileTokens( $fileName );
+    public function getFileTokens($fileName);
 
     /**
      * Adds a file to the backend storage.
@@ -193,7 +193,7 @@ interface Backend
      *
      * @return \TokenReflection\Broker\Backend
      */
-    public function addFile( TokenReflection\Stream\StreamBase $tokenStream, TokenReflection\ReflectionFile $file );
+    public function addFile(TokenReflection\Stream\StreamBase $tokenStream, TokenReflection\ReflectionFile $file);
 
     /**
      * Sets the reflection broker instance.
@@ -202,7 +202,7 @@ interface Backend
      *
      * @return \TokenReflection\Broker\Backend
      */
-    public function setBroker( TokenReflection\Broker $broker );
+    public function setBroker(TokenReflection\Broker $broker);
 
     /**
      * Returns the reflection broker instance.
@@ -218,7 +218,7 @@ interface Backend
      *
      * @return \TokenReflection\Broker\Backend
      */
-    public function setStoringTokenStreams( $store );
+    public function setStoringTokenStreams($store);
 
     /**
      * Returns if token streams are stored in the backend.

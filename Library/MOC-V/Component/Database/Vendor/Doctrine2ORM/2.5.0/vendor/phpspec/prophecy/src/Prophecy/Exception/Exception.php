@@ -19,6 +19,7 @@ namespace Prophecy\Exception;
  */
 interface Exception
 {
+
     /**
      * @return string
      */

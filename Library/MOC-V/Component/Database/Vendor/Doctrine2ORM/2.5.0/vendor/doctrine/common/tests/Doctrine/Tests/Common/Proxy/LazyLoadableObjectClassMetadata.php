@@ -19,8 +19,8 @@
 
 namespace Doctrine\Tests\Common\Proxy;
 
-use ReflectionClass;
 use Doctrine\Common\Persistence\Mapping\ClassMetadata;
+use ReflectionClass;
 
 /**
  * Class metadata test asset for @see LazyLoadableObject
@@ -30,6 +30,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
  */
 class LazyLoadableObjectClassMetadata implements ClassMetadata
 {
+
     /**
      * @var ReflectionClass
      */
@@ -57,8 +58,8 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      * @var array
      */
     protected $associations = array(
-        'publicAssociation'        => true,
-        'protectedAssociation'     => true,
+        'publicAssociation'    => true,
+        'protectedAssociation' => true,
     );
 
     /**
@@ -66,15 +67,8 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getName()
     {
-        return $this->getReflectionClass()->getName();
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getIdentifier()
-    {
-        return array_keys($this->identifier);
+        return $this->getReflectionClass()->getName();
     }
 
     /**
@@ -82,8 +76,9 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getReflectionClass()
     {
+
         if (null === $this->reflectionClass) {
-            $this->reflectionClass = new \ReflectionClass(__NAMESPACE__ . '\LazyLoadableObject');
+            $this->reflectionClass = new \ReflectionClass(__NAMESPACE__.'\LazyLoadableObject');
         }
 
         return $this->reflectionClass;
@@ -94,7 +89,8 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function isIdentifier($fieldName)
     {
-        return isset($this->identifier[$fieldName]);
+
+        return isset( $this->identifier[$fieldName] );
     }
 
     /**
@@ -102,7 +98,8 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function hasField($fieldName)
     {
-        return isset($this->fields[$fieldName]);
+
+        return isset( $this->fields[$fieldName] );
     }
 
     /**
@@ -110,7 +107,8 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function hasAssociation($fieldName)
     {
-        return isset($this->associations[$fieldName]);
+
+        return isset( $this->associations[$fieldName] );
     }
 
     /**
@@ -118,6 +116,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function isSingleValuedAssociation($fieldName)
     {
+
         throw new \BadMethodCallException('not implemented');
     }
 
@@ -126,6 +125,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function isCollectionValuedAssociation($fieldName)
     {
+
         throw new \BadMethodCallException('not implemented');
     }
 
@@ -134,6 +134,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getFieldNames()
     {
+
         return array_keys($this->fields);
     }
 
@@ -142,7 +143,17 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getIdentifierFieldNames()
     {
+
         return $this->getIdentifier();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function getIdentifier()
+    {
+
+        return array_keys($this->identifier);
     }
 
     /**
@@ -150,6 +161,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getAssociationNames()
     {
+
         return array_keys($this->associations);
     }
 
@@ -158,6 +170,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getTypeOfField($fieldName)
     {
+
         return 'string';
     }
 
@@ -166,6 +179,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getAssociationTargetClass($assocName)
     {
+
         throw new \BadMethodCallException('not implemented');
     }
 
@@ -174,6 +188,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function isAssociationInverseSide($assocName)
     {
+
         throw new \BadMethodCallException('not implemented');
     }
 
@@ -182,6 +197,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getAssociationMappedByTargetField($assocName)
     {
+
         throw new \BadMethodCallException('not implemented');
     }
 
@@ -190,6 +206,7 @@ class LazyLoadableObjectClassMetadata implements ClassMetadata
      */
     public function getIdentifierValues($object)
     {
+
         throw new \BadMethodCallException('not implemented');
     }
 }

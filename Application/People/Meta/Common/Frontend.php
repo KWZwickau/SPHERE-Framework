@@ -117,7 +117,6 @@ class Frontend extends Extension implements IFrontendInterface
                                     TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
                                 ), new Sheriff()
                                 ),
-                                new Danger(new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'),
                                 new TextArea('Meta[Information][AssistanceActivity]',
                                     'Mitarbeitsbereitschaft - Tätigkeiten',
                                     'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
@@ -129,7 +128,6 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormRow(array(
                         new FormColumn(
                             new Panel('Sonstiges', array(
-                                new Danger(new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'),
                                 new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
                             ), Panel::PANEL_TYPE_INFO)),
                     )),

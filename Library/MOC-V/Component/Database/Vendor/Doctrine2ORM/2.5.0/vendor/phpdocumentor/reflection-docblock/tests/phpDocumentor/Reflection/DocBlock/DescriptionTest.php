@@ -22,8 +22,10 @@ namespace phpDocumentor\Reflection\DocBlock;
  */
 class DescriptionTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConstruct()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description.
 LONGDESC;
@@ -37,6 +39,7 @@ LONGDESC;
 
     public function testInlineTagParsing()
     {
+
         $fixture = <<<LONGDESC
 This is text for a {@link http://phpdoc.org/ description} that uses inline
 tags.
@@ -48,7 +51,7 @@ LONGDESC;
         $this->assertCount(3, $parsedContents);
         $this->assertSame('This is text for a ', $parsedContents[0]);
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag\LinkTag',
+            __NAMESPACE__.'\Tag\LinkTag',
             $parsedContents[1]
         );
         $this->assertSame(
@@ -60,6 +63,7 @@ tags.',
 
     public function testInlineTagAtStartParsing()
     {
+
         $fixture = <<<LONGDESC
 {@link http://phpdoc.org/ This} is text for a description that uses inline
 tags.
@@ -72,7 +76,7 @@ LONGDESC;
 
         $this->assertSame('', $parsedContents[0]);
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag\LinkTag',
+            __NAMESPACE__.'\Tag\LinkTag',
             $parsedContents[1]
         );
         $this->assertSame(
@@ -84,6 +88,7 @@ tags.',
 
     public function testNestedInlineTagParsing()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description with {@internal inline tag with
 {@link http://phpdoc.org another inline tag} in it}.
@@ -99,7 +104,7 @@ LONGDESC;
             $parsedContents[0]
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $parsedContents[1]
         );
         $this->assertSame('.', $parsedContents[2]);
@@ -108,7 +113,7 @@ LONGDESC;
         $this->assertCount(3, $parsedDescription);
         $this->assertSame("inline tag with\n", $parsedDescription[0]);
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag\LinkTag',
+            __NAMESPACE__.'\Tag\LinkTag',
             $parsedDescription[1]
         );
         $this->assertSame(' in it', $parsedDescription[2]);
@@ -116,6 +121,7 @@ LONGDESC;
 
     public function testLiteralOpeningDelimiter()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description containing { that is literal.
 LONGDESC;
@@ -129,6 +135,7 @@ LONGDESC;
 
     public function testNestedLiteralOpeningDelimiter()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description containing {@internal inline tag that has { that
 is literal}.
@@ -143,20 +150,23 @@ LONGDESC;
             $parsedContents[0]
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $parsedContents[1]
         );
         $this->assertSame('.', $parsedContents[2]);
 
         $this->assertSame(
-            array('inline tag that has { that
-is literal'),
+            array(
+                'inline tag that has { that
+is literal'
+            ),
             $parsedContents[1]->getParsedDescription()
         );
     }
 
     public function testLiteralClosingDelimiter()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description with {} that is not a tag.
 LONGDESC;
@@ -173,6 +183,7 @@ LONGDESC;
 
     public function testNestedLiteralClosingDelimiter()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description with {@internal inline tag with {} that is not an
 inline tag}.
@@ -187,20 +198,23 @@ LONGDESC;
             $parsedContents[0]
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $parsedContents[1]
         );
         $this->assertSame('.', $parsedContents[2]);
 
         $this->assertSame(
-            array('inline tag with } that is not an
-inline tag'),
+            array(
+                'inline tag with } that is not an
+inline tag'
+            ),
             $parsedContents[1]->getParsedDescription()
         );
     }
 
     public function testInlineTagEscapingSequence()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description with literal {{@}link}.
 LONGDESC;
@@ -217,6 +231,7 @@ LONGDESC;
 
     public function testNestedInlineTagEscapingSequence()
     {
+
         $fixture = <<<LONGDESC
 This is text for a description with an {@internal inline tag with literal
 {{@}link{} in it}.
@@ -231,14 +246,16 @@ LONGDESC;
             $parsedContents[0]
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $parsedContents[1]
         );
         $this->assertSame('.', $parsedContents[2]);
 
         $this->assertSame(
-            array('inline tag with literal
-{@link} in it'),
+            array(
+                'inline tag with literal
+{@link} in it'
+            ),
             $parsedContents[1]->getParsedDescription()
         );
     }

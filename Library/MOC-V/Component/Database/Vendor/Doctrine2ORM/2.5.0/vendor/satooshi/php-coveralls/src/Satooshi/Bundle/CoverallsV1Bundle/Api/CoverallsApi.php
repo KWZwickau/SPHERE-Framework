@@ -1,8 +1,8 @@
 <?php
 namespace Satooshi\Bundle\CoverallsV1Bundle\Api;
 
-use Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration;
 use Guzzle\Http\Client;
+use Satooshi\Bundle\CoverallsV1Bundle\Config\Configuration;
 
 /**
  * Coveralls API client.
@@ -11,6 +11,7 @@ use Guzzle\Http\Client;
  */
 abstract class CoverallsApi
 {
+
     /**
      * Configuration.
      *
@@ -33,6 +34,7 @@ abstract class CoverallsApi
      */
     public function __construct(Configuration $config, Client $client = null)
     {
+
         $this->config = $config;
         $this->client = $client;
     }
@@ -46,6 +48,7 @@ abstract class CoverallsApi
      */
     public function getConfiguration()
     {
+
         return $this->config;
     }
 
@@ -58,6 +61,7 @@ abstract class CoverallsApi
      */
     public function setHttpClient(Client $client)
     {
+
         $this->client = $client;
 
         return $this;
@@ -70,6 +74,7 @@ abstract class CoverallsApi
      */
     public function getHttpClient()
     {
+
         return $this->client;
     }
 }

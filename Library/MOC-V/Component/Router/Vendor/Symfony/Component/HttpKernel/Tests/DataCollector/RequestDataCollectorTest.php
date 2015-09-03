@@ -29,20 +29,21 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
     public static function staticControllerMethod()
     {
 
-        throw new \LogicException( 'Unexpected method call' );
+        throw new \LogicException('Unexpected method call');
     }
 
     /**
      * Magic method to allow non existing methods to be called and delegated.
      */
-    public static function __callStatic( $method, $args )
+    public static function __callStatic($method, $args)
     {
 
-        throw new \LogicException( 'Unexpected method call' );
+        throw new \LogicException('Unexpected method call');
     }
 
     public function testCollect()
     {
+
         $c = new RequestDataCollector();
 
         $c->collect($this->createRequest(), $this->createResponse());
@@ -73,12 +74,12 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
     protected function createRequest()
     {
 
-        $request = Request::create( 'http://test.com/foo?bar=baz' );
-        $request->attributes->set( 'foo', 'bar' );
-        $request->attributes->set( '_route', 'foobar' );
-        $request->attributes->set( '_route_params', array( 'name' => 'foo' ) );
-        $request->attributes->set( 'resource', fopen( __FILE__, 'r' ) );
-        $request->attributes->set( 'object', new \stdClass() );
+        $request = Request::create('http://test.com/foo?bar=baz');
+        $request->attributes->set('foo', 'bar');
+        $request->attributes->set('_route', 'foobar');
+        $request->attributes->set('_route_params', array('name' => 'foo'));
+        $request->attributes->set('resource', fopen(__FILE__, 'r'));
+        $request->attributes->set('object', new \stdClass());
 
         return $request;
     }
@@ -87,11 +88,11 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
     {
 
         $response = new Response();
-        $response->setStatusCode( 200 );
-        $response->headers->set( 'Content-Type', 'application/json' );
-        $response->headers->setCookie( new Cookie( 'foo', 'bar', 1, '/foo', 'localhost', true, true ) );
-        $response->headers->setCookie( new Cookie( 'bar', 'foo', new \DateTime( '@946684800' ) ) );
-        $response->headers->setCookie( new Cookie( 'bazz', 'foo', '2000-12-12' ) );
+        $response->setStatusCode(200);
+        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->setCookie(new Cookie('foo', 'bar', 1, '/foo', 'localhost', true, true));
+        $response->headers->setCookie(new Cookie('bar', 'foo', new \DateTime('@946684800')));
+        $response->headers->setCookie(new Cookie('bazz', 'foo', '2000-12-12'));
 
         return $response;
     }
@@ -101,6 +102,7 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
      */
     public function testControllerInspection()
     {
+
         // make sure we always match the line number
         $r1 = new \ReflectionMethod($this, 'testControllerInspection');
         $r2 = new \ReflectionMethod($this, 'staticControllerMethod');
@@ -112,69 +114,69 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
                 array(
                     'class' => 'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest',
                     'method' => 'testControllerInspection',
-                    'file' => __FILE__,
-                    'line' => $r1->getStartLine()
+                    'file'  => __FILE__,
+                    'line'  => $r1->getStartLine()
                 ),
             ),
-
             array(
                 'Closure',
-                function () { return 'foo'; },
+                function () {
+
+                    return 'foo';
+                },
                 array(
                     'class' => __NAMESPACE__.'\{closure}',
                     'method' => null,
-                    'file' => __FILE__,
-                    'line' => __LINE__ - 5,
+                    'file'  => __FILE__,
+                    'line'  => __LINE__ - 5,
                 ),
             ),
-
             array(
                 'Static callback as string',
                 'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest::staticControllerMethod',
                 'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest::staticControllerMethod',
             ),
-
             array(
                 'Static callable with instance',
                 array($this, 'staticControllerMethod'),
                 array(
                     'class' => 'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest',
                     'method' => 'staticControllerMethod',
-                    'file' => __FILE__,
-                    'line' => $r2->getStartLine()
+                    'file'  => __FILE__,
+                    'line'  => $r2->getStartLine()
                 ),
             ),
-
             array(
                 'Static callable with class name',
-                array('Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest', 'staticControllerMethod'),
+                array(
+                    'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest',
+                    'staticControllerMethod'
+                ),
                 array(
                     'class' => 'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest',
                     'method' => 'staticControllerMethod',
-                    'file' => __FILE__,
-                    'line' => $r2->getStartLine()
+                    'file'  => __FILE__,
+                    'line'  => $r2->getStartLine()
                 ),
             ),
-
             array(
                 'Callable with instance depending on __call()',
                 array($this, 'magicMethod'),
                 array(
                     'class' => 'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest',
                     'method' => 'magicMethod',
-                    'file' => 'n/a',
-                    'line' => 'n/a'
+                    'file'  => 'n/a',
+                    'line'  => 'n/a'
                 ),
             ),
-
             array(
                 'Callable with class name depending on __callStatic()',
                 array('Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest', 'magicMethod'),
                 array(
                     'class' => 'Symfony\Component\HttpKernel\Tests\DataCollector\RequestDataCollectorTest',
                     'method' => 'magicMethod',
-                    'file' => 'n/a',
-                    'line' => 'n/a'
+                    'file'  => 'n/a',
+                    'line'  => 'n/a'
                 ),
             ),
         );
@@ -194,6 +196,7 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
      */
     protected function injectController($collector, $controller, $request)
     {
+
         $resolver = $this->getMock('Symfony\\Component\\HttpKernel\\Controller\\ControllerResolverInterface');
         $httpKernel = new HttpKernel(new EventDispatcher(), $resolver);
         $event = new FilterControllerEvent($httpKernel, $controller, $request, HttpKernelInterface::MASTER_REQUEST);
@@ -205,6 +208,7 @@ class RequestDataCollectorTest extends \PHPUnit_Framework_TestCase
      */
     public function __call($method, $args)
     {
+
         throw new \LogicException('Unexpected method call');
     }
 

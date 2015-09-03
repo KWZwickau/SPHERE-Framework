@@ -11,6 +11,7 @@ namespace Guzzle\Cache;
  */
 interface CacheAdapterInterface
 {
+
     /**
      * Test if an entry exists in the cache.
      *

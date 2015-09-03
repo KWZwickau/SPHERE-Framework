@@ -68,12 +68,12 @@ abstract class ReflectionBase implements IReflection
      * @param \TokenReflection\Broker            $broker      Reflection broker
      * @param \TokenReflection\IReflection       $parent      Parent reflection object
      */
-    public function __construct( Stream $tokenStream, Broker $broker, IReflection $parent = null )
+    public function __construct(Stream $tokenStream, Broker $broker, IReflection $parent = null)
     {
 
         $this->broker = $broker;
 
-        $this->parseStream( $tokenStream, $parent );
+        $this->parseStream($tokenStream, $parent);
     }
 
     /**
@@ -82,7 +82,7 @@ abstract class ReflectionBase implements IReflection
      * @param \TokenReflection\Stream\StreamBase $tokenStream Token substream
      * @param \TokenReflection\IReflection       $parent      Parent reflection object
      */
-    abstract protected function parseStream( Stream $tokenStream, IReflection $parent = null );
+    abstract protected function parseStream(Stream $tokenStream, IReflection $parent = null);
 
     /**
      * Returns the name (FQN).
@@ -113,10 +113,10 @@ abstract class ReflectionBase implements IReflection
      *
      * @return string|array|null
      */
-    final public function getAnnotation( $name )
+    final public function getAnnotation($name)
     {
 
-        return $this->docComment->getAnnotation( $name );
+        return $this->docComment->getAnnotation($name);
     }
 
     /**
@@ -186,7 +186,7 @@ abstract class ReflectionBase implements IReflection
     public function isDeprecated()
     {
 
-        return $this->hasAnnotation( 'deprecated' );
+        return $this->hasAnnotation('deprecated');
     }
 
     /**
@@ -196,10 +196,10 @@ abstract class ReflectionBase implements IReflection
      *
      * @return boolean
      */
-    final public function hasAnnotation( $name )
+    final public function hasAnnotation($name)
     {
 
-        return $this->docComment->hasAnnotation( $name );
+        return $this->docComment->hasAnnotation($name);
     }
 
     /**
@@ -227,10 +227,10 @@ abstract class ReflectionBase implements IReflection
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return self::get( $this, $key );
+        return self::get($this, $key);
     }
 
     /**
@@ -242,17 +242,17 @@ abstract class ReflectionBase implements IReflection
      * @return mixed
      * @throws \TokenReflection\Exception\RuntimeException If the requested parameter does not exist.
      */
-    final public static function get( IReflection $object, $key )
+    final public static function get(IReflection $object, $key)
     {
 
         if (!empty( $key )) {
-            $className = get_class( $object );
+            $className = get_class($object);
             if (!isset( self::$methodCache[$className] )) {
-                self::$methodCache[$className] = array_flip( get_class_methods( $className ) );
+                self::$methodCache[$className] = array_flip(get_class_methods($className));
             }
 
             $methods = self::$methodCache[$className];
-            $key2 = ucfirst( $key );
+            $key2 = ucfirst($key);
             if (isset( $methods['get'.$key2] )) {
                 return $object->{'get'.$key2}();
             } elseif (isset( $methods['is'.$key2] )) {
@@ -260,8 +260,8 @@ abstract class ReflectionBase implements IReflection
             }
         }
 
-        throw new Exception\RuntimeException( sprintf( 'Cannot read property "%s".', $key ),
-            Exception\RuntimeException::DOES_NOT_EXIST );
+        throw new Exception\RuntimeException(sprintf('Cannot read property "%s".', $key),
+            Exception\RuntimeException::DOES_NOT_EXIST);
     }
 
     /**
@@ -271,10 +271,10 @@ abstract class ReflectionBase implements IReflection
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return self::exists( $this, $key );
+        return self::exists($this, $key);
     }
 
     /**
@@ -285,13 +285,13 @@ abstract class ReflectionBase implements IReflection
      *
      * @return boolean
      */
-    final public static function exists( IReflection $object, $key )
+    final public static function exists(IReflection $object, $key)
     {
 
         try {
-            self::get( $object, $key );
+            self::get($object, $key);
             return true;
-        } catch( RuntimeException $e ) {
+        } catch (RuntimeException $e) {
             return false;
         }
     }

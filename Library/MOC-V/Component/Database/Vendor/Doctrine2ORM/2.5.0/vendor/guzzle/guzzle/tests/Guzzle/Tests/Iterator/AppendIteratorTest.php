@@ -9,8 +9,10 @@ use Guzzle\Iterator\AppendIterator;
  */
 class AppendIteratorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testTraversesIteratorsInOrder()
     {
+
         $a = new \ArrayIterator(array(
             'a' => 1,
             'b' => 2

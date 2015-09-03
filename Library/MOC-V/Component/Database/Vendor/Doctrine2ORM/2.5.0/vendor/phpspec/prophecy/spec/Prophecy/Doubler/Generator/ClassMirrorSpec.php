@@ -2,15 +2,15 @@
 
 namespace spec\Prophecy\Doubler\Generator;
 
-use PhpSpec\ObjectBehavior;
 use I\Simply;
-
+use PhpSpec\ObjectBehavior;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
 
 class ClassMirrorSpec extends ObjectBehavior
 {
+
     /**
      * @param ReflectionClass  $class
      * @param ReflectionMethod $method1
@@ -18,15 +18,20 @@ class ClassMirrorSpec extends ObjectBehavior
      * @param ReflectionMethod $method3
      */
     function it_reflects_a_class_by_mirroring_all_its_public_methods(
-        $class, $method1, $method2, $method3
-    )
-    {
+        $class,
+        $method1,
+        $method2,
+        $method3
+    ) {
+
         $class->getName()->willReturn('Custom\ClassName');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
         $class->getMethods(ReflectionMethod::IS_ABSTRACT)->willReturn(array());
         $class->getMethods(ReflectionMethod::IS_PUBLIC)->willReturn(array(
-            $method1, $method2, $method3
+            $method1,
+            $method2,
+            $method3
         ));
 
         $method1->getName()->willReturn('getName');
@@ -53,7 +58,7 @@ class ClassMirrorSpec extends ObjectBehavior
         $method2->getParameters()->willReturn(array());
         $method3->getParameters()->willReturn(array());
 
-        $classNode   = $this->reflect($class, array());
+        $classNode = $this->reflect($class, array());
         $classNode->shouldBeAnInstanceOf('Prophecy\Doubler\Generator\Node\ClassNode');
         $classNode->getParentClass()->shouldReturn('Custom\ClassName');
 
@@ -108,6 +113,7 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_reflects_protected_abstract_methods($class, $method)
     {
+
         $class->getName()->willReturn('Custom\ClassName');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -120,8 +126,7 @@ class ClassMirrorSpec extends ObjectBehavior
         $method->getName()->willReturn('innerDetail');
         $method->returnsReference()->willReturn(false);
 
-
-        $classNode   = $this->reflect($class, array());
+        $classNode = $this->reflect($class, array());
         $classNode->shouldBeAnInstanceOf('Prophecy\Doubler\Generator\Node\ClassNode');
         $classNode->getParentClass()->shouldReturn('Custom\ClassName');
 
@@ -137,6 +142,7 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_reflects_public_static_methods($class, $method)
     {
+
         $class->getName()->willReturn('Custom\ClassName');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -149,7 +155,7 @@ class ClassMirrorSpec extends ObjectBehavior
         $method->getName()->willReturn('innerDetail');
         $method->returnsReference()->willReturn(false);
 
-        $classNode   = $this->reflect($class, array());
+        $classNode = $this->reflect($class, array());
         $classNode->shouldBeAnInstanceOf('Prophecy\Doubler\Generator\Node\ClassNode');
         $classNode->getParentClass()->shouldReturn('Custom\ClassName');
 
@@ -169,9 +175,14 @@ class ClassMirrorSpec extends ObjectBehavior
      * @param ReflectionParameter $param3
      */
     function it_properly_reads_methods_arguments_with_types(
-        $class, $method, $param1, $param2, $typeHint, $param3
-    )
-    {
+        $class,
+        $method,
+        $param1,
+        $param2,
+        $typeHint,
+        $param3
+    ) {
+
         $class->getName()->willReturn('Custom\ClassName');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -213,9 +224,9 @@ class ClassMirrorSpec extends ObjectBehavior
         $param3->isPassedByReference()->willReturn(false);
         $param3->allowsNull()->willReturn(true);
 
-        $classNode   = $this->reflect($class, array());
+        $classNode = $this->reflect($class, array());
         $methodNodes = $classNode->getMethods();
-        $argNodes    = $methodNodes['methodWithArgs']->getArguments();
+        $argNodes = $methodNodes['methodWithArgs']->getArguments();
 
         $argNodes[0]->getName()->shouldReturn('arg_1');
         $argNodes[0]->getTypeHint()->shouldReturn('array');
@@ -242,9 +253,11 @@ class ClassMirrorSpec extends ObjectBehavior
      * @param ReflectionParameter $param1
      */
     function it_marks_required_args_without_types_as_not_optional(
-        $class, $method, $param1
-    )
-    {
+        $class,
+        $method,
+        $param1
+    ) {
+
         $class->getName()->willReturn('Custom\ClassName');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -272,9 +285,9 @@ class ClassMirrorSpec extends ObjectBehavior
             $param1->getTypehintText()->willReturn(null);
         }
 
-        $classNode   = $this->reflect($class, array());
+        $classNode = $this->reflect($class, array());
         $methodNodes = $classNode->getMethods();
-        $argNodes    = $methodNodes['methodWithArgs']->getArguments();
+        $argNodes = $methodNodes['methodWithArgs']->getArguments();
 
         $argNodes[0]->isOptional()->shouldReturn(false);
     }
@@ -287,9 +300,13 @@ class ClassMirrorSpec extends ObjectBehavior
      * @param ReflectionClass     $typeHint
      */
     function it_marks_passed_by_reference_args_as_passed_by_reference(
-        $class, $method, $param1, $param2, $typeHint
-    )
-    {
+        $class,
+        $method,
+        $param1,
+        $param2,
+        $typeHint
+    ) {
+
         $class->getName()->willReturn('Custom\ClassName');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -326,9 +343,9 @@ class ClassMirrorSpec extends ObjectBehavior
         $param2->allowsNull()->willReturn(false);
         $typeHint->getName()->willReturn('ArrayAccess');
 
-        $classNode   = $this->reflect($class, array());
+        $classNode = $this->reflect($class, array());
         $methodNodes = $classNode->getMethods();
-        $argNodes    = $methodNodes['methodWithArgs']->getArguments();
+        $argNodes = $methodNodes['methodWithArgs']->getArguments();
 
         $argNodes[0]->isPassedByReference()->shouldReturn(true);
         $argNodes[1]->isPassedByReference()->shouldReturn(false);
@@ -339,12 +356,13 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_throws_an_exception_if_class_is_final($class)
     {
+
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(true);
         $class->getName()->willReturn('Custom\ClassName');
 
         $this->shouldThrow('Prophecy\Exception\Doubler\ClassMirrorException')
-             ->duringReflect($class, array());
+            ->duringReflect($class, array());
     }
 
     /**
@@ -353,6 +371,7 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_ignores_final_methods($class, $method)
     {
+
         $class->getName()->willReturn('Custom\ClassName');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -371,11 +390,12 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_throws_an_exception_if_interface_provided_instead_of_class($interface)
     {
+
         $interface->isInterface()->willReturn(true);
         $interface->getName()->willReturn('Custom\ClassName');
 
         $this->shouldThrow('Prophecy\Exception\InvalidArgumentException')
-             ->duringReflect($interface, array());
+            ->duringReflect($interface, array());
     }
 
     /**
@@ -386,9 +406,13 @@ class ClassMirrorSpec extends ObjectBehavior
      * @param ReflectionMethod $method3
      */
     function it_reflects_all_interfaces_methods(
-        $interface1, $interface2, $method1, $method2, $method3
-    )
-    {
+        $interface1,
+        $interface2,
+        $method1,
+        $method2,
+        $method3
+    ) {
+
         $interface1->getName()->willReturn('MyInterface1');
         $interface2->getName()->willReturn('MyInterface2');
 
@@ -423,7 +447,9 @@ class ClassMirrorSpec extends ObjectBehavior
         $classNode->shouldBeAnInstanceOf('Prophecy\Doubler\Generator\Node\ClassNode');
         $classNode->getParentClass()->shouldReturn('stdClass');
         $classNode->getInterfaces()->shouldReturn(array(
-            'Prophecy\Doubler\Generator\ReflectionInterface', 'MyInterface2', 'MyInterface1',
+            'Prophecy\Doubler\Generator\ReflectionInterface',
+            'MyInterface2',
+            'MyInterface1',
         ));
 
         $methodNodes = $classNode->getMethods();
@@ -442,6 +468,7 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_ignores_virtually_private_methods($class, $method1, $method2, $method3)
     {
+
         $class->getName()->willReturn('SomeClass');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -485,6 +512,7 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_does_not_throw_exception_for_virtually_private_finals($class, $method)
     {
+
         $class->getName()->willReturn('SomeClass');
         $class->isInterface()->willReturn(false);
         $class->isFinal()->willReturn(false);
@@ -502,21 +530,24 @@ class ClassMirrorSpec extends ObjectBehavior
      */
     function it_throws_an_exception_if_class_provided_in_interfaces_list($class)
     {
+
         $class->getName()->willReturn('MyClass');
         $class->isInterface()->willReturn(false);
 
         $this->shouldThrow('InvalidArgumentException')
-             ->duringReflect(null, array($class));
+            ->duringReflect(null, array($class));
     }
 
     function it_throws_an_exception_if_not_reflection_provided_as_interface()
     {
+
         $this->shouldThrow('InvalidArgumentException')
-             ->duringReflect(null, array(null));
+            ->duringReflect(null, array(null));
     }
 
     function it_doesnt_fail_to_typehint_nonexistent_FQCN()
     {
+
         $classNode = $this->reflect(new ReflectionClass('spec\Prophecy\Doubler\Generator\OptionalDepsClass'), array());
         $method = $classNode->getMethod('iHaveAStrangeTypeHintedArg');
         $arguments = $method->getArguments();
@@ -525,6 +556,7 @@ class ClassMirrorSpec extends ObjectBehavior
 
     function it_doesnt_fail_to_typehint_nonexistent_RQCN()
     {
+
         $classNode = $this->reflect(new ReflectionClass('spec\Prophecy\Doubler\Generator\OptionalDepsClass'), array());
         $method = $classNode->getMethod('iHaveAnEvenStrangerTypeHintedArg');
         $arguments = $method->getArguments();
@@ -533,6 +565,7 @@ class ClassMirrorSpec extends ObjectBehavior
 
     function it_doesnt_use_scalar_typehints()
     {
+
         $classNode = $this->reflect(new ReflectionClass('ReflectionMethod'), array());
         $method = $classNode->getMethod('export');
         $arguments = $method->getArguments();
@@ -544,6 +577,7 @@ class ClassMirrorSpec extends ObjectBehavior
 
 class OptionalDepsClass
 {
+
     public function iHaveAStrangeTypeHintedArg(\I\Simply\Am\Nonexistent $class)
     {
     }

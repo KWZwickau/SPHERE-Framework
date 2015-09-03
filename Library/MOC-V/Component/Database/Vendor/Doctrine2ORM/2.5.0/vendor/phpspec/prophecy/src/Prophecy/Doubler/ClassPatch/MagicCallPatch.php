@@ -22,6 +22,7 @@ use Prophecy\Doubler\Generator\Node\MethodNode;
  */
 class MagicCallPatch implements ClassPatchInterface
 {
+
     /**
      * Support any class
      *
@@ -31,6 +32,7 @@ class MagicCallPatch implements ClassPatchInterface
      */
     public function supports(ClassNode $node)
     {
+
         return true;
     }
 
@@ -41,6 +43,7 @@ class MagicCallPatch implements ClassPatchInterface
      */
     public function apply(ClassNode $node)
     {
+
         $parentClass = $node->getParentClass();
         $reflectionClass = new \ReflectionClass($parentClass);
 
@@ -48,7 +51,7 @@ class MagicCallPatch implements ClassPatchInterface
 
         $tagList = $phpdoc->getTagsByName('method');
 
-        foreach($tagList as $tag) {
+        foreach ($tagList as $tag) {
             $methodName = $tag->getMethodName();
 
             if (!$reflectionClass->hasMethod($methodName)) {
@@ -67,6 +70,7 @@ class MagicCallPatch implements ClassPatchInterface
      */
     public function getPriority()
     {
+
         return 50;
     }
 }

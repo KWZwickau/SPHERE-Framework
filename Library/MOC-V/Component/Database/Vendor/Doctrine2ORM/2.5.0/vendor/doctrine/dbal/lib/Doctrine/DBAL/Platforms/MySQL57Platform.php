@@ -31,11 +31,13 @@ use Doctrine\DBAL\Schema\TableDiff;
  */
 class MySQL57Platform extends MySqlPlatform
 {
+
     /**
      * {@inheritdoc}
      */
     protected function getPreAlterTableRenameIndexForeignKeySQL(TableDiff $diff)
     {
+
         return array();
     }
 
@@ -44,6 +46,7 @@ class MySQL57Platform extends MySqlPlatform
      */
     protected function getPostAlterTableRenameIndexForeignKeySQL(TableDiff $diff)
     {
+
         return array();
     }
 
@@ -52,8 +55,9 @@ class MySQL57Platform extends MySqlPlatform
      */
     protected function getRenameIndexSQL($oldIndexName, Index $index, $tableName)
     {
+
         return array(
-            'ALTER TABLE ' . $tableName . ' RENAME INDEX ' . $oldIndexName . ' TO ' . $index->getQuotedName($this)
+            'ALTER TABLE '.$tableName.' RENAME INDEX '.$oldIndexName.' TO '.$index->getQuotedName($this)
         );
     }
 
@@ -62,6 +66,7 @@ class MySQL57Platform extends MySqlPlatform
      */
     protected function getReservedKeywordsClass()
     {
+
         return 'Doctrine\DBAL\Platforms\Keywords\MySQL57Keywords';
     }
 }

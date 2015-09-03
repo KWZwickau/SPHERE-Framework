@@ -11,8 +11,10 @@
 
 class Twig_Tests_NativeExtensionTest extends PHPUnit_Framework_TestCase
 {
+
     public function testGetProperties()
     {
+
         $twig = new Twig_Environment(new Twig_Loader_String(), array(
             'debug'      => true,
             'cache'      => false,

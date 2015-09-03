@@ -36,6 +36,7 @@ use Doctrine\DBAL\VersionAwarePlatformDriver;
  */
 abstract class AbstractMySQLDriver implements Driver, ExceptionConverterDriver, VersionAwarePlatformDriver
 {
+
     /**
      * {@inheritdoc}
      *
@@ -44,6 +45,7 @@ abstract class AbstractMySQLDriver implements Driver, ExceptionConverterDriver, 
      */
     public function convertException($message, DriverException $exception)
     {
+
         switch ($exception->getErrorCode()) {
             case '1050':
                 return new Exception\TableExistsException($message, $exception);
@@ -120,7 +122,8 @@ abstract class AbstractMySQLDriver implements Driver, ExceptionConverterDriver, 
      */
     public function createDatabasePlatformForVersion($version)
     {
-        if ( ! preg_match('/^(?P<major>\d+)(?:\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?)?/', $version, $versionParts)) {
+
+        if (!preg_match('/^(?P<major>\d+)(?:\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?)?/', $version, $versionParts)) {
             throw DBALException::invalidPlatformVersionSpecified(
                 $version,
                 '<major_version>.<minor_version>.<patch_version>'
@@ -132,9 +135,9 @@ abstract class AbstractMySQLDriver implements Driver, ExceptionConverterDriver, 
         }
 
         $majorVersion = $versionParts['major'];
-        $minorVersion = isset($versionParts['minor']) ? $versionParts['minor'] : 0;
-        $patchVersion = isset($versionParts['patch']) ? $versionParts['patch'] : 0;
-        $version      = $majorVersion . '.' . $minorVersion . '.' . $patchVersion;
+        $minorVersion = isset( $versionParts['minor'] ) ? $versionParts['minor'] : 0;
+        $patchVersion = isset( $versionParts['patch'] ) ? $versionParts['patch'] : 0;
+        $version = $majorVersion.'.'.$minorVersion.'.'.$patchVersion;
 
         if (version_compare($version, '5.7', '>=')) {
             return new MySQL57Platform();
@@ -146,11 +149,21 @@ abstract class AbstractMySQLDriver implements Driver, ExceptionConverterDriver, 
     /**
      * {@inheritdoc}
      */
+    public function getDatabasePlatform()
+    {
+
+        return new MySqlPlatform();
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function getDatabase(\Doctrine\DBAL\Connection $conn)
     {
+
         $params = $conn->getParams();
 
-        if (isset($params['dbname'])) {
+        if (isset( $params['dbname'] )) {
             return $params['dbname'];
         }
 
@@ -160,16 +173,9 @@ abstract class AbstractMySQLDriver implements Driver, ExceptionConverterDriver, 
     /**
      * {@inheritdoc}
      */
-    public function getDatabasePlatform()
-    {
-        return new MySqlPlatform();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function getSchemaManager(\Doctrine\DBAL\Connection $conn)
     {
+
         return new MySqlSchemaManager($conn);
     }
 }

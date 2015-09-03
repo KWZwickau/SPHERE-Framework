@@ -1,2 +1,2 @@
 <?php
-$_ENV['configAvailableInBootstrap'] = isset($_ENV['loadedFromConfig']);
+$_ENV['configAvailableInBootstrap'] = isset( $_ENV['loadedFromConfig'] );

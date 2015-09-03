@@ -18,32 +18,32 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     public function tearDown()
     {
 
-        if (false !== ( $Path = realpath( __DIR__.'/../../../../Component/Template/Component/Bridge/Repository/SmartyTemplate' ) )) {
+        if (false !== ( $Path = realpath(__DIR__.'/../../../../Component/Template/Component/Bridge/Repository/SmartyTemplate') )) {
             $Iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator( $Path, \RecursiveDirectoryIterator::SKIP_DOTS ),
+                new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::CHILD_FIRST
             );
             /** @var \SplFileInfo $FileInfo */
             foreach ($Iterator as $FileInfo) {
                 if ($FileInfo->getBasename() != 'README.md') {
-                    unlink( $FileInfo->getPathname() );
+                    unlink($FileInfo->getPathname());
                 }
             }
         }
 
-        if (false !== ( $Path = realpath( __DIR__.'/../../../../Component/Template/Component/Bridge/Repository/TwigTemplate' ) )) {
+        if (false !== ( $Path = realpath(__DIR__.'/../../../../Component/Template/Component/Bridge/Repository/TwigTemplate') )) {
             $Iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator( $Path, \RecursiveDirectoryIterator::SKIP_DOTS ),
+                new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::CHILD_FIRST
             );
             /** @var \SplFileInfo $FileInfo */
             foreach ($Iterator as $FileInfo) {
                 if ($FileInfo->getBasename() != 'README.md') {
                     if ($FileInfo->isFile()) {
-                        unlink( $FileInfo->getPathname() );
+                        unlink($FileInfo->getPathname());
                     }
                     if ($FileInfo->isDir()) {
-                        rmdir( $FileInfo->getPathname() );
+                        rmdir($FileInfo->getPathname());
                     }
                 }
             }
@@ -54,17 +54,17 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Component\Template\Component\Bridge\Bridge $MockBridge */
-        $MockBridge = $this->getMockBuilder( 'MOC\V\Component\Template\Component\Bridge\Bridge' )->getMock();
-        $Vendor = new Vendor( new $MockBridge );
-        $Module = new Template( $Vendor );
+        $MockBridge = $this->getMockBuilder('MOC\V\Component\Template\Component\Bridge\Bridge')->getMock();
+        $Vendor = new Vendor(new $MockBridge);
+        $Module = new Template($Vendor);
 
-        $this->assertInstanceOf( 'MOC\V\Component\Template\Component\IVendorInterface',
+        $this->assertInstanceOf('MOC\V\Component\Template\Component\IVendorInterface',
             $Module->getVendorInterface()
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Template\Component\IVendorInterface',
-            $Module->setBridgeInterface( $MockBridge )
+        $this->assertInstanceOf('MOC\V\Component\Template\Component\IVendorInterface',
+            $Module->setBridgeInterface($MockBridge)
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Template\Component\IBridgeInterface',
+        $this->assertInstanceOf('MOC\V\Component\Template\Component\IBridgeInterface',
             $Module->getBridgeInterface()
         );
 
@@ -73,33 +73,33 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     public function testStaticTwigTemplate()
     {
 
-        $Template = Template::getTwigTemplate( __FILE__ );
-        $this->assertInstanceOf( 'MOC\V\Component\Template\Component\IBridgeInterface', $Template );
+        $Template = Template::getTwigTemplate(__FILE__);
+        $this->assertInstanceOf('MOC\V\Component\Template\Component\IBridgeInterface', $Template);
     }
 
     public function testStaticSmartyTemplate()
     {
 
-        $Template = Template::getSmartyTemplate( __FILE__ );
-        $this->assertInstanceOf( 'MOC\V\Component\Template\Component\IBridgeInterface', $Template );
+        $Template = Template::getSmartyTemplate(__FILE__);
+        $this->assertInstanceOf('MOC\V\Component\Template\Component\IBridgeInterface', $Template);
     }
 
     public function testStaticTemplate()
     {
 
         try {
-            Template::getTemplate( __FILE__ );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Template\Exception\TemplateTypeException', $E );
+            Template::getTemplate(__FILE__);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Template\Exception\TemplateTypeException', $E);
         }
         try {
-            Template::getTemplate( 'Missing.twig' );
-        } catch( \Exception $E ) {
+            Template::getTemplate('Missing.twig');
+        } catch (\Exception $E) {
 
         }
         try {
-            Template::getTemplate( 'Missing.tpl' );
-        } catch( \Exception $E ) {
+            Template::getTemplate('Missing.tpl');
+        } catch (\Exception $E) {
 
         }
     }

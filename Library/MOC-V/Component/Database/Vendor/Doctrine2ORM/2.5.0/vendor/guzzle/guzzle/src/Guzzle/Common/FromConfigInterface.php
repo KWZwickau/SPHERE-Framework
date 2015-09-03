@@ -7,6 +7,7 @@ namespace Guzzle\Common;
  */
 interface FromConfigInterface
 {
+
     /**
      * Static factory method used to turn an array or collection of configuration data into an instantiated object.
      *

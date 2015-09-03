@@ -17,14 +17,14 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 
         try {
             throw new HttpKernelException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Core\HttpKernel\Exception\HttpKernelException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Core\HttpKernel\Exception\HttpKernelException', $E);
         }
 
         try {
             throw new ComponentException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Core\HttpKernel\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Core\HttpKernel\Component\Exception\ComponentException', $E);
         }
 
     }

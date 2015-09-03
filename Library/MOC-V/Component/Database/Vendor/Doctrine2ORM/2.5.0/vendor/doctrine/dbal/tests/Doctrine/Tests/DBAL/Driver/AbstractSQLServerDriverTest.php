@@ -8,23 +8,28 @@ use Doctrine\DBAL\Schema\SQLServerSchemaManager;
 
 class AbstractSQLServerDriverTest extends AbstractDriverTest
 {
+
     protected function createDriver()
     {
+
         return $this->getMockForAbstractClass('Doctrine\DBAL\Driver\AbstractSQLServerDriver');
     }
 
     protected function createPlatform()
     {
+
         return new SQLServer2008Platform();
     }
 
     protected function createSchemaManager(Connection $connection)
     {
+
         return new SQLServerSchemaManager($connection);
     }
 
     protected function getDatabasePlatformsForVersions()
     {
+
         return array(
             array('9', 'Doctrine\DBAL\Platforms\SQLServerPlatform'),
             array('9.00', 'Doctrine\DBAL\Platforms\SQLServerPlatform'),

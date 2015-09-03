@@ -7,22 +7,22 @@ class testDataFileIterator implements Iterator
     protected $key = 0;
     protected $current;
 
-    public function __construct( $file )
+    public function __construct($file)
     {
 
-        $this->file = fopen( $file, 'r' );
+        $this->file = fopen($file, 'r');
     }
 
     public function __destruct()
     {
 
-        fclose( $this->file );
+        fclose($this->file);
     }
 
     public function rewind()
     {
 
-        rewind( $this->file );
+        rewind($this->file);
         $this->current = $this->_parseNextDataset();
         $this->key = 0;
     }
@@ -33,71 +33,71 @@ class testDataFileIterator implements Iterator
         //    Read a line of test data from the file
         do {
             //    Only take lines that contain test data and that aren't commented out
-            $testDataRow = trim( fgets( $this->file ) );
+            $testDataRow = trim(fgets($this->file));
         } while (( $testDataRow > '' ) && ( $testDataRow{0} === '#' ));
 
         //    Discard any comments at the end of the line
-        list( $testData ) = explode( '//', $testDataRow );
+        list( $testData ) = explode('//', $testDataRow);
 
         //    Split data into an array of individual values and a result
-        $dataSet = $this->_getcsv( $testData, ',', "'" );
+        $dataSet = $this->_getcsv($testData, ',', "'");
         foreach ($dataSet as &$dataValue) {
-            $dataValue = $this->_parseDataValue( $dataValue );
+            $dataValue = $this->_parseDataValue($dataValue);
         }
         unset( $dataValue );
 
         return $dataSet;
     }
 
-    private function _getcsv( $input, $delimiter, $enclosure )
+    private function _getcsv($input, $delimiter, $enclosure)
     {
 
-        if (function_exists( 'str_getcsv' )) {
-            return str_getcsv( $input, $delimiter, $enclosure );
+        if (function_exists('str_getcsv')) {
+            return str_getcsv($input, $delimiter, $enclosure);
         }
 
-        $temp = fopen( 'php://memory', 'rw' );
-        fwrite( $temp, $input );
-        rewind( $temp );
-        $data = fgetcsv( $temp, strlen( $input ), $delimiter, $enclosure );
-        fclose( $temp );
+        $temp = fopen('php://memory', 'rw');
+        fwrite($temp, $input);
+        rewind($temp);
+        $data = fgetcsv($temp, strlen($input), $delimiter, $enclosure);
+        fclose($temp);
 
         if ($data === false) {
-            $data = array( null );
+            $data = array(null);
         }
 
         return $data;
     }
 
-    private function _parseDataValue( $dataValue )
+    private function _parseDataValue($dataValue)
     {
 
         //    discard any white space
-        $dataValue = trim( $dataValue );
+        $dataValue = trim($dataValue);
         //    test for the required datatype and convert accordingly
-        if (!is_numeric( $dataValue )) {
+        if (!is_numeric($dataValue)) {
             if ($dataValue == '') {
                 $dataValue = null;
             } elseif ($dataValue == '""') {
                 $dataValue = '';
-            } elseif (( $dataValue[0] == '"' ) && ( $dataValue[strlen( $dataValue ) - 1] == '"' )) {
-                $dataValue = substr( $dataValue, 1, -1 );
-            } elseif (( $dataValue[0] == '{' ) && ( $dataValue[strlen( $dataValue ) - 1] == '}' )) {
-                $dataValue = explode( ';', substr( $dataValue, 1, -1 ) );
+            } elseif (( $dataValue[0] == '"' ) && ( $dataValue[strlen($dataValue) - 1] == '"' )) {
+                $dataValue = substr($dataValue, 1, -1);
+            } elseif (( $dataValue[0] == '{' ) && ( $dataValue[strlen($dataValue) - 1] == '}' )) {
+                $dataValue = explode(';', substr($dataValue, 1, -1));
                 foreach ($dataValue as &$dataRow) {
-                    if (strpos( $dataRow, '|' ) !== false) {
-                        $dataRow = explode( '|', $dataRow );
+                    if (strpos($dataRow, '|') !== false) {
+                        $dataRow = explode('|', $dataRow);
                         foreach ($dataRow as &$dataCell) {
-                            $dataCell = $this->_parseDataValue( $dataCell );
+                            $dataCell = $this->_parseDataValue($dataCell);
                         }
                         unset( $dataCell );
                     } else {
-                        $dataRow = $this->_parseDataValue( $dataRow );
+                        $dataRow = $this->_parseDataValue($dataRow);
                     }
                 }
                 unset( $dataRow );
             } else {
-                switch (strtoupper( $dataValue )) {
+                switch (strtoupper($dataValue)) {
                     case 'NULL' :
                         $dataValue = null;
                         break;
@@ -110,7 +110,7 @@ class testDataFileIterator implements Iterator
                 }
             }
         } else {
-            if (strpos( $dataValue, '.' ) !== false) {
+            if (strpos($dataValue, '.') !== false) {
                 $dataValue = (float)$dataValue;
             } else {
                 $dataValue = (int)$dataValue;
@@ -123,7 +123,7 @@ class testDataFileIterator implements Iterator
     public function valid()
     {
 
-        return !feof( $this->file );
+        return !feof($this->file);
     }
 
     public function key()

@@ -18,32 +18,50 @@ use SebastianBergmann\GlobalState\TestFixture\SnapshotClass;
  */
 class SnapshotTest extends PHPUnit_Framework_TestCase
 {
+
     public function testStaticAttributes()
     {
+
         $blacklist = $this->getBlacklist();
         $blacklist->method('isStaticAttributeBlacklisted')->willReturnCallback(function ($class) {
+
             return $class !== 'SebastianBergmann\GlobalState\TestFixture\SnapshotClass';
         });
 
         SnapshotClass::init();
 
         $snapshot = new Snapshot($blacklist, false, true, false, false, false, false, false, false, false);
-        $expected = array('SebastianBergmann\GlobalState\TestFixture\SnapshotClass' => array(
-            'string' => 'snapshot',
-            'arrayObject' => new ArrayObject(array(1, 2, 3)),
-        ));
+        $expected = array(
+            'SebastianBergmann\GlobalState\TestFixture\SnapshotClass' => array(
+                'string'      => 'snapshot',
+                'arrayObject' => new ArrayObject(array(1, 2, 3)),
+            )
+        );
 
         $this->assertEquals($expected, $snapshot->staticAttributes());
     }
 
+    /**
+     * @return \SebastianBergmann\GlobalState\Blacklist
+     */
+    private function getBlacklist()
+    {
+
+        return $this->getMockBuilder('SebastianBergmann\GlobalState\Blacklist')
+            ->disableOriginalConstructor()
+            ->getMock();
+    }
+
     public function testConstants()
     {
+
         $snapshot = new Snapshot($this->getBlacklist(), false, false, true, false, false, false, false, false, false);
         $this->assertArrayHasKey('GLOBALSTATE_TESTSUITE', $snapshot->constants());
     }
 
     public function testFunctions()
     {
+
         require_once __DIR__.'/_fixture/SnapshotFunctions.php';
 
         $snapshot = new Snapshot($this->getBlacklist(), false, false, false, true, false, false, false, false, false);
@@ -52,7 +70,7 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
         $this->assertThat(
             $functions,
             $this->logicalOr(
-                // Zend
+            // Zend
                 $this->contains('sebastianbergmann\globalstate\testfixture\snapshotfunction'),
                 // HHVM
                 $this->contains('SebastianBergmann\GlobalState\TestFixture\snapshotFunction')
@@ -64,6 +82,7 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
 
     public function testClasses()
     {
+
         $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, true, false, false, false, false);
         $classes = $snapshot->classes();
 
@@ -73,6 +92,7 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
 
     public function testInterfaces()
     {
+
         $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, true, false, false, false);
         $interfaces = $snapshot->interfaces();
 
@@ -85,6 +105,7 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
      */
     public function testTraits()
     {
+
         spl_autoload_call('SebastianBergmann\GlobalState\TestFixture\SnapshotTrait');
 
         $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, false, true, false, false);
@@ -93,6 +114,7 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
 
     public function testIniSettings()
     {
+
         $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, false, false, true, false);
         $iniSettings = $snapshot->iniSettings();
 
@@ -102,17 +124,8 @@ class SnapshotTest extends PHPUnit_Framework_TestCase
 
     public function testIncludedFiles()
     {
+
         $snapshot = new Snapshot($this->getBlacklist(), false, false, false, false, false, false, false, false, true);
         $this->assertContains(__FILE__, $snapshot->includedFiles());
-    }
-
-    /**
-     * @return \SebastianBergmann\GlobalState\Blacklist
-     */
-    private function getBlacklist()
-    {
-        return $this->getMockBuilder('SebastianBergmann\GlobalState\Blacklist')
-                    ->disableOriginalConstructor()
-                    ->getMock();
     }
 }

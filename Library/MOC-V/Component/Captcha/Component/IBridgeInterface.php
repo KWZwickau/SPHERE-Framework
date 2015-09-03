@@ -14,7 +14,7 @@ interface IBridgeInterface
      *
      * @return bool
      */
-    public function verifyCaptcha( $InputValue );
+    public function verifyCaptcha($InputValue);
 
 
     /**

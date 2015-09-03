@@ -29,6 +29,7 @@ namespace Doctrine\ORM\Query;
  */
 class Printer
 {
+
     /**
      * Current indentation level
      *
@@ -50,6 +51,7 @@ class Printer
      */
     public function __construct($silent = false)
     {
+
         $this->_silent = $silent;
     }
 
@@ -65,21 +67,9 @@ class Printer
      */
     public function startProduction($name)
     {
-        $this->println('(' . $name);
-        $this->_indent++;
-    }
 
-    /**
-     * Decreases indentation level by one and prints a closing parenthesis.
-     *
-     * This method is called after executing a production.
-     *
-     * @return void
-     */
-    public function endProduction()
-    {
-        $this->_indent--;
-        $this->println(')');
+        $this->println('('.$name);
+        $this->_indent++;
     }
 
     /**
@@ -91,8 +81,23 @@ class Printer
      */
     public function println($str)
     {
-        if ( ! $this->_silent) {
+
+        if (!$this->_silent) {
             echo str_repeat('    ', $this->_indent), $str, "\n";
         }
+    }
+
+    /**
+     * Decreases indentation level by one and prints a closing parenthesis.
+     *
+     * This method is called after executing a production.
+     *
+     * @return void
+     */
+    public function endProduction()
+    {
+
+        $this->_indent--;
+        $this->println(')');
     }
 }

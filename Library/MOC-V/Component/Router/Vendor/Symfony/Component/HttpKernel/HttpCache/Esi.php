@@ -28,16 +28,19 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class Esi
 {
+
     private $contentTypes;
 
     /**
      * Constructor.
      *
      * @param array $contentTypes An array of content-type that should be parsed for ESI information.
-     *                           (default: text/html, text/xml, application/xhtml+xml, and application/xml)
+     *                            (default: text/html, text/xml, application/xhtml+xml, and application/xml)
      */
-    public function __construct(array $contentTypes = array('text/html', 'text/xml', 'application/xhtml+xml', 'application/xml'))
-    {
+    public function __construct(
+        array $contentTypes = array('text/html', 'text/xml', 'application/xhtml+xml', 'application/xml')
+    ) {
+
         $this->contentTypes = $contentTypes;
     }
 
@@ -48,6 +51,7 @@ class Esi
      */
     public function createCacheStrategy()
     {
+
         return new EsiResponseCacheStrategy();
     }
 
@@ -60,6 +64,7 @@ class Esi
      */
     public function hasSurrogateEsiCapability(Request $request)
     {
+
         if (null === $value = $request->headers->get('Surrogate-Capability')) {
             return false;
         }
@@ -74,6 +79,7 @@ class Esi
      */
     public function addSurrogateEsiCapability(Request $request)
     {
+
         $current = $request->headers->get('Surrogate-Capability');
         $new = 'symfony2="ESI/1.0"';
 
@@ -89,6 +95,7 @@ class Esi
      */
     public function addSurrogateControl(Response $response)
     {
+
         if (false !== strpos($response->getContent(), '<esi:include')) {
             $response->headers->set('Surrogate-Control', 'content="ESI/1.0"');
         }
@@ -103,32 +110,34 @@ class Esi
      */
     public function needsEsiParsing(Response $response)
     {
+
         if (!$control = $response->headers->get('Surrogate-Control')) {
             return false;
         }
 
-        return (bool) preg_match('#content="[^"]*ESI/1.0[^"]*"#', $control);
+        return (bool)preg_match('#content="[^"]*ESI/1.0[^"]*"#', $control);
     }
 
     /**
      * Renders an ESI tag.
      *
-     * @param string  $uri          A URI
-     * @param string  $alt          An alternate URI
-     * @param bool    $ignoreErrors Whether to ignore errors or not
-     * @param string  $comment      A comment to add as an esi:include tag
+     * @param string $uri          A URI
+     * @param string $alt          An alternate URI
+     * @param bool   $ignoreErrors Whether to ignore errors or not
+     * @param string $comment      A comment to add as an esi:include tag
      *
      * @return string
      */
     public function renderIncludeTag($uri, $alt = null, $ignoreErrors = true, $comment = '')
     {
+
         $html = sprintf('<esi:include src="%s"%s%s />',
             $uri,
             $ignoreErrors ? ' onerror="continue"' : '',
             $alt ? sprintf(' alt="%s"', $alt) : ''
         );
 
-        if (!empty($comment)) {
+        if (!empty( $comment )) {
             return sprintf("<esi:comment text=\"%s\" />\n%s", $comment, $html);
         }
 
@@ -145,9 +154,10 @@ class Esi
      */
     public function process(Request $request, Response $response)
     {
+
         $this->request = $request;
         $type = $response->headers->get('Content-Type');
-        if (empty($type)) {
+        if (empty( $type )) {
             $type = 'text/html';
         }
 
@@ -159,7 +169,8 @@ class Esi
         // we don't use a proper XML parser here as we can have ESI tags in a plain text response
         $content = $response->getContent();
         $content = str_replace(array('<?', '<%'), array('<?php echo "<?"; ?>', '<?php echo "<%"; ?>'), $content);
-        $content = preg_replace_callback('#<esi\:include\s+(.*?)\s*(?:/|</esi\:include)>#', array($this, 'handleEsiIncludeTag'), $content);
+        $content = preg_replace_callback('#<esi\:include\s+(.*?)\s*(?:/|</esi\:include)>#',
+            array($this, 'handleEsiIncludeTag'), $content);
         $content = preg_replace('#<esi\:comment[^>]*(?:/|</esi\:comment)>#', '', $content);
         $content = preg_replace('#<esi\:remove>.*?</esi\:remove>#', '', $content);
 
@@ -194,13 +205,16 @@ class Esi
      */
     public function handle(HttpCache $cache, $uri, $alt, $ignoreErrors)
     {
-        $subRequest = Request::create($uri, 'get', array(), $cache->getRequest()->cookies->all(), array(), $cache->getRequest()->server->all());
+
+        $subRequest = Request::create($uri, 'get', array(), $cache->getRequest()->cookies->all(), array(),
+            $cache->getRequest()->server->all());
 
         try {
             $response = $cache->handle($subRequest, HttpKernelInterface::SUB_REQUEST, true);
 
             if (!$response->isSuccessful()) {
-                throw new \RuntimeException(sprintf('Error when rendering "%s" (Status code is %s).', $subRequest->getUri(), $response->getStatusCode()));
+                throw new \RuntimeException(sprintf('Error when rendering "%s" (Status code is %s).',
+                    $subRequest->getUri(), $response->getStatusCode()));
             }
 
             return $response->getContent();
@@ -226,20 +240,21 @@ class Esi
      */
     private function handleEsiIncludeTag($attributes)
     {
+
         $options = array();
         preg_match_all('/(src|onerror|alt)="([^"]*?)"/', $attributes[1], $matches, PREG_SET_ORDER);
         foreach ($matches as $set) {
             $options[$set[1]] = $set[2];
         }
 
-        if (!isset($options['src'])) {
+        if (!isset( $options['src'] )) {
             throw new \RuntimeException('Unable to process an ESI tag without a "src" attribute.');
         }
 
         return sprintf('<?php echo $this->esi->handle($this, \'%s\', \'%s\', %s) ?>'."\n",
             $options['src'],
-            isset($options['alt']) ? $options['alt'] : null,
-            isset($options['onerror']) && 'continue' == $options['onerror'] ? 'true' : 'false'
+            isset( $options['alt'] ) ? $options['alt'] : null,
+            isset( $options['onerror'] ) && 'continue' == $options['onerror'] ? 'true' : 'false'
         );
     }
 }

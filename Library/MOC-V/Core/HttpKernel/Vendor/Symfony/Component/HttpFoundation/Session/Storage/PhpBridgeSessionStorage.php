@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\Proxy\AbstractProxy;
  */
 class PhpBridgeSessionStorage extends NativeSessionStorage
 {
+
     /**
      * Constructor.
      *
@@ -29,6 +30,7 @@ class PhpBridgeSessionStorage extends NativeSessionStorage
      */
     public function __construct($handler = null, MetadataBag $metaBag = null)
     {
+
         $this->setMetadataBag($metaBag);
         $this->setSaveHandler($handler);
     }
@@ -38,6 +40,7 @@ class PhpBridgeSessionStorage extends NativeSessionStorage
      */
     public function start()
     {
+
         if ($this->started && !$this->closed) {
             return true;
         }
@@ -56,6 +59,7 @@ class PhpBridgeSessionStorage extends NativeSessionStorage
      */
     public function clear()
     {
+
         // clear out the bags and nothing else that may be set
         // since the purpose of this driver is to share a handler
         foreach ($this->bags as $bag) {

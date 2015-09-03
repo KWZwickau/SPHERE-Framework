@@ -70,7 +70,7 @@ class PHPExcel_Reader_Excel2007_Theme
      * Create a new PHPExcel_Theme
      *
      */
-    public function __construct( $themeName, $colourSchemeName, $colourMap )
+    public function __construct($themeName, $colourSchemeName, $colourMap)
     {
 
         // Initialise values
@@ -106,7 +106,7 @@ class PHPExcel_Reader_Excel2007_Theme
      *
      * @return string
      */
-    public function getColourByIndex( $index = 0 )
+    public function getColourByIndex($index = 0)
     {
 
         if (isset( $this->_colourMap[$index] )) {
@@ -121,9 +121,9 @@ class PHPExcel_Reader_Excel2007_Theme
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (( is_object( $value ) ) && ( $key != '_parent' )) {
+            if (( is_object($value) ) && ( $key != '_parent' )) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

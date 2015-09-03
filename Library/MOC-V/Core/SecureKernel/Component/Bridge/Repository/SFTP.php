@@ -1,11 +1,13 @@
 <?php
 namespace MOC\V\Core\SecureKernel\Component\Bridge\Repository;
 
+use MOC\V\Core\AutoLoader\AutoLoader;
 use MOC\V\Core\SecureKernel\Component\Bridge\Bridge;
 use MOC\V\Core\SecureKernel\Component\Bridge\Repository\SFTP\Directory;
 use MOC\V\Core\SecureKernel\Component\Bridge\Repository\SFTP\File;
 use MOC\V\Core\SecureKernel\Component\Exception\ComponentException;
 use MOC\V\Core\SecureKernel\Component\IBridgeInterface;
+use phpseclib\Crypt\RSA;
 
 /**
  * Class SFTP
@@ -15,7 +17,7 @@ use MOC\V\Core\SecureKernel\Component\IBridgeInterface;
 class SFTP extends Bridge implements IBridgeInterface
 {
 
-    /** @var null|\Net_SFTP */
+    /** @var null|\phpseclib\Net\SFTP */
     private $Connection = null;
     /** @var string $Host */
     private $Host = 'localhost';
@@ -30,10 +32,10 @@ class SFTP extends Bridge implements IBridgeInterface
     /** @var null|string $Key */
     private $Key = null;
 
-    function __construct()
+    public function __construct()
     {
 
-        require_once( __DIR__.'/../../../Vendor/PhpSecLib/0.3.9/vendor/autoload.php' );
+        AutoLoader::getNamespaceAutoLoader('phpseclib', __DIR__.'/../../../Vendor/PhpSecLib/2.0.0');
     }
 
     /**
@@ -126,7 +128,7 @@ class SFTP extends Bridge implements IBridgeInterface
         $this->Host = $Host;
         $this->Port = $Port;
         $this->Timeout = $Timeout;
-        $this->Connection = new \Net_SFTP($Host, $Port, $Timeout);
+        $this->Connection = new \phpseclib\Net\SFTP($Host, $Port, $Timeout);
         return $this;
     }
 
@@ -169,7 +171,7 @@ class SFTP extends Bridge implements IBridgeInterface
         $this->Key = $File;
         $this->Password = $Password;
 
-        $Key = new \Crypt_RSA();
+        $Key = new RSA();
         if (null !== $Password) {
             $Key->setPassword($Password);
         }
@@ -233,7 +235,7 @@ class SFTP extends Bridge implements IBridgeInterface
         return $this;
     }
 
-    public function uploadFile( $File )
+    public function uploadFile($File)
     {
 
         $this->persistConnection();
@@ -244,12 +246,12 @@ class SFTP extends Bridge implements IBridgeInterface
         return $this;
     }
 
-    public function downloadFile( $File )
+    public function downloadFile($File)
     {
 
         $this->persistConnection();
 
-        if (!$this->Connection->get( $File, $File )) {
+        if (!$this->Connection->get($File, $File)) {
             throw new ComponentException(__METHOD__.': Failed');
         }
         return $this;

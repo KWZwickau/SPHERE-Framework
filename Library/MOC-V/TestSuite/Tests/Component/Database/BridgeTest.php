@@ -26,52 +26,52 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
 
         try {
             $Bridge->registerConnection(
-                new UsernameParameter( '' ),
-                new PasswordParameter( '' ),
-                new DatabaseParameter( '' ),
-                new DriverParameter( DriverParameter::DRIVER_PDO_MYSQL ),
-                new HostParameter( null ),
-                new PortParameter( null )
+                new UsernameParameter(''),
+                new PasswordParameter(''),
+                new DatabaseParameter(''),
+                new DriverParameter(DriverParameter::DRIVER_PDO_MYSQL),
+                new HostParameter(null),
+                new PortParameter(null)
             );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Database\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Database\Component\Exception\ComponentException', $E);
         }
 
         $Bridge->registerConnection(
-            new UsernameParameter( '' ),
-            new PasswordParameter( '' ),
-            new DatabaseParameter( '' ),
-            new DriverParameter( DriverParameter::DRIVER_PDO_SQLITE ),
-            new HostParameter( 'sqlite::memory:' ),
-            new PortParameter( null )
+            new UsernameParameter(''),
+            new PasswordParameter(''),
+            new DatabaseParameter(''),
+            new DriverParameter(DriverParameter::DRIVER_PDO_SQLITE),
+            new HostParameter('sqlite::memory:'),
+            new PortParameter(null)
         );
 
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface',
-            $Bridge->prepareStatement( "SELECT * FROM UnitTest WHERE Id = ?" )
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface',
+            $Bridge->prepareStatement("SELECT * FROM UnitTest WHERE Id = ?")
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface',
-            $Bridge->defineParameter( 1 )
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface',
+            $Bridge->defineParameter(1)
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface',
-            $Bridge->prepareStatement( array( "SELECT * FROM UnitTest", "SELECT * FROM UnitTest" ) )
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface',
+            $Bridge->prepareStatement(array("SELECT * FROM UnitTest", "SELECT * FROM UnitTest"))
         );
         try {
             try {
                 $Bridge->executeRead();
-            } catch( \Exception $E ) {
-                throw new ComponentException( $E->getMessage(), $E->getCode(), $E );
+            } catch (\Exception $E) {
+                throw new ComponentException($E->getMessage(), $E->getCode(), $E);
             }
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Database\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Database\Component\Exception\ComponentException', $E);
         }
         try {
             try {
                 $Bridge->executeWrite();
-            } catch( \Exception $E ) {
-                throw new ComponentException( $E->getMessage(), $E->getCode(), $E );
+            } catch (\Exception $E) {
+                throw new ComponentException($E->getMessage(), $E->getCode(), $E);
             }
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Database\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Database\Component\Exception\ComponentException', $E);
         }
     }
 
@@ -82,52 +82,52 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
 
         try {
             $Bridge->registerConnection(
-                new UsernameParameter( '' ),
-                new PasswordParameter( '' ),
-                new DatabaseParameter( '' ),
-                new DriverParameter( DriverParameter::DRIVER_PDO_MYSQL ),
-                new HostParameter( null ),
-                new PortParameter( null )
+                new UsernameParameter(''),
+                new PasswordParameter(''),
+                new DatabaseParameter(''),
+                new DriverParameter(DriverParameter::DRIVER_PDO_MYSQL),
+                new HostParameter(null),
+                new PortParameter(null)
             );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Database\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Database\Component\Exception\ComponentException', $E);
         }
 
         $Bridge->registerConnection(
-            new UsernameParameter( '' ),
-            new PasswordParameter( '' ),
-            new DatabaseParameter( '' ),
-            new DriverParameter( DriverParameter::DRIVER_PDO_SQLITE ),
-            new HostParameter( 'sqlite::memory:' ),
-            new PortParameter( null )
+            new UsernameParameter(''),
+            new PasswordParameter(''),
+            new DatabaseParameter(''),
+            new DriverParameter(DriverParameter::DRIVER_PDO_SQLITE),
+            new HostParameter('sqlite::memory:'),
+            new PortParameter(null)
         );
 
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface',
-            $Bridge->prepareStatement( "SELECT * FROM UnitTest WHERE Id = ?" )
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface',
+            $Bridge->prepareStatement("SELECT * FROM UnitTest WHERE Id = ?")
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface',
-            $Bridge->defineParameter( 1 )
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface',
+            $Bridge->defineParameter(1)
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface',
-            $Bridge->prepareStatement( array( "SELECT * FROM UnitTest", "SELECT * FROM UnitTest" ) )
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface',
+            $Bridge->prepareStatement(array("SELECT * FROM UnitTest", "SELECT * FROM UnitTest"))
         );
         try {
             try {
                 $Bridge->executeRead();
-            } catch( \Exception $E ) {
-                throw new ComponentException( $E->getMessage(), $E->getCode(), $E );
+            } catch (\Exception $E) {
+                throw new ComponentException($E->getMessage(), $E->getCode(), $E);
             }
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Database\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Database\Component\Exception\ComponentException', $E);
         }
         try {
             try {
                 $Bridge->executeWrite();
-            } catch( \Exception $E ) {
-                throw new ComponentException( $E->getMessage(), $E->getCode(), $E );
+            } catch (\Exception $E) {
+                throw new ComponentException($E->getMessage(), $E->getCode(), $E);
             }
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Database\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Database\Component\Exception\ComponentException', $E);
         }
     }
 

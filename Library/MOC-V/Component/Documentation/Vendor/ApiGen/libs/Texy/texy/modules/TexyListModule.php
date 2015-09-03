@@ -21,29 +21,29 @@ final class TexyListModule extends TexyModule
 
     public $bullets = array(
         //            first-rexexp          ordered?  list-style-type   next-regexp
-        '*'  => array( '\*\ ', 0, '' ),
-        '-'  => array( '[\x{2013}-](?![>-])', 0, '' ),
-        '+'  => array( '\+\ ', 0, '' ),
+        '*'  => array('\*\ ', 0, ''),
+        '-'  => array('[\x{2013}-](?![>-])', 0, ''),
+        '+'  => array('\+\ ', 0, ''),
         '1.' => array(
             '1\.\ ',/* not \d !*/
             1,
             '',
             '\d{1,3}\.\ '
         ),
-        '1)' => array( '\d{1,3}\)\ ', 1, '' ),
-        'I.' => array( 'I\.\ ', 1, 'upper-roman', '[IVX]{1,4}\.\ ' ),
-        'I)' => array( '[IVX]+\)\ ', 1, 'upper-roman' ), // before A) !
-        'a)' => array( '[a-z]\)\ ', 1, 'lower-alpha' ),
-        'A)' => array( '[A-Z]\)\ ', 1, 'upper-alpha' ),
+        '1)' => array('\d{1,3}\)\ ', 1, ''),
+        'I.' => array('I\.\ ', 1, 'upper-roman', '[IVX]{1,4}\.\ '),
+        'I)' => array('[IVX]+\)\ ', 1, 'upper-roman'), // before A) !
+        'a)' => array('[a-z]\)\ ', 1, 'lower-alpha'),
+        'A)' => array('[A-Z]\)\ ', 1, 'upper-alpha'),
     );
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
 
-        $texy->addHandler( 'beforeParse', array( $this, 'beforeParse' ) );
+        $texy->addHandler('beforeParse', array($this, 'beforeParse'));
         $texy->allowed['list'] = true;
         $texy->allowed['list/definition'] = true;
     }
@@ -61,17 +61,17 @@ final class TexyListModule extends TexyModule
         }
 
         $this->texy->registerBlockPattern(
-            array( $this, 'patternList' ),
+            array($this, 'patternList'),
             '#^(?:'.TEXY_MODIFIER_H.'\n)?'          // .{color: red}
-            .'('.implode( '|', $RE ).')\ *\S.*$#mUu',  // item (unmatched)
+            .'('.implode('|', $RE).')\ *\S.*$#mUu',  // item (unmatched)
             'list'
         );
 
         $this->texy->registerBlockPattern(
-            array( $this, 'patternDefList' ),
+            array($this, 'patternDefList'),
             '#^(?:'.TEXY_MODIFIER_H.'\n)?'               // .{color:red}
             .'(\S.*)\:\ *'.TEXY_MODIFIER_H.'?\n'          // Term:
-            .'(\ ++)('.implode( '|', $REul ).')\ *\S.*$#mUu',  // - description
+            .'(\ ++)('.implode('|', $REul).')\ *\S.*$#mUu',  // - description
             'list/definition'
         );
     }
@@ -92,7 +92,7 @@ final class TexyListModule extends TexyModule
      *
      * @return TexyHtml|FALSE
      */
-    public function patternList( $parser, $matches )
+    public function patternList($parser, $matches)
     {
 
         list( , $mMod, $mBullet ) = $matches;
@@ -105,31 +105,31 @@ final class TexyListModule extends TexyModule
 
         $bullet = $min = null;
         foreach ($this->bullets as $type => $desc) {
-            if (preg_match( '#'.$desc[0].'#Au', $mBullet )) {
+            if (preg_match('#'.$desc[0].'#Au', $mBullet)) {
                 $bullet = isset( $desc[3] ) ? $desc[3] : $desc[0];
                 $min = isset( $desc[3] ) ? 2 : 1;
-                $el->setName( $desc[1] ? 'ol' : 'ul' );
+                $el->setName($desc[1] ? 'ol' : 'ul');
                 $el->attrs['style']['list-style-type'] = $desc[2];
                 if ($desc[1]) { // ol
                     if ($type[0] === '1' && (int)$mBullet > 1) {
                         $el->attrs['start'] = (int)$mBullet;
                     } elseif ($type[0] === 'a' && $mBullet[0] > 'a') {
-                        $el->attrs['start'] = ord( $mBullet[0] ) - 96;
+                        $el->attrs['start'] = ord($mBullet[0]) - 96;
                     } elseif ($type[0] === 'A' && $mBullet[0] > 'A') {
-                        $el->attrs['start'] = ord( $mBullet[0] ) - 64;
+                        $el->attrs['start'] = ord($mBullet[0]) - 64;
                     }
                 }
                 break;
             }
         }
 
-        $mod = new TexyModifier( $mMod );
-        $mod->decorate( $tx, $el );
+        $mod = new TexyModifier($mMod);
+        $mod->decorate($tx, $el);
 
-        $parser->moveBackward( 1 );
+        $parser->moveBackward(1);
 
-        while ($elItem = $this->patternItem( $parser, $bullet, false, 'li' )) {
-            $el->add( $elItem );
+        while ($elItem = $this->patternItem($parser, $bullet, false, 'li')) {
+            $el->add($elItem);
         }
 
         if ($el->count() < $min) {
@@ -137,7 +137,7 @@ final class TexyListModule extends TexyModule
         }
 
         // event listener
-        $tx->invokeHandlers( 'afterList', array( $parser, $el, $mod ) );
+        $tx->invokeHandlers('afterList', array($parser, $el, $mod));
 
         return $el;
     }
@@ -152,7 +152,7 @@ final class TexyListModule extends TexyModule
      *
      * @return TexyHtml|FALSE
      */
-    public function patternItem( $parser, $bullet, $indented, $tag )
+    public function patternItem($parser, $bullet, $indented, $tag)
     {
 
         $tx = $this->texy;
@@ -161,7 +161,7 @@ final class TexyListModule extends TexyModule
 
         // first line with bullet
         $matches = null;
-        if (!$parser->next( $patternItem, $matches )) {
+        if (!$parser->next($patternItem, $matches)) {
             return false;
         }
 
@@ -170,30 +170,30 @@ final class TexyListModule extends TexyModule
         //    [2] => ...
         //    [3] => .(title)[class]{style}<>
 
-        $elItem = TexyHtml::el( $tag );
-        $mod = new TexyModifier( $mMod );
-        $mod->decorate( $tx, $elItem );
+        $elItem = TexyHtml::el($tag);
+        $mod = new TexyModifier($mMod);
+        $mod->decorate($tx, $elItem);
 
         // next lines
         $spaces = '';
         $content = ' '.$mContent; // trick
-        while ($parser->next( '#^(\n*)'.$mIndent.'(\ {1,'.$spaces.'})(.*)()$#Am', $matches )) {
+        while ($parser->next('#^(\n*)'.$mIndent.'(\ {1,'.$spaces.'})(.*)()$#Am', $matches)) {
             list( , $mBlank, $mSpaces, $mContent ) = $matches;
             //    [1] => blank line?
             //    [2] => spaces
             //    [3] => ...
 
             if ($spaces === '') {
-                $spaces = strlen( $mSpaces );
+                $spaces = strlen($mSpaces);
             }
             $content .= "\n".$mBlank.$mContent;
         }
 
         // parse content
-        $elItem->parseBlock( $tx, $content, true );
+        $elItem->parseBlock($tx, $content, true);
 
         if (isset( $elItem[0] ) && $elItem[0] instanceof TexyHtml) {
-            $elItem[0]->setName( null );
+            $elItem[0]->setName(null);
         }
 
         return $elItem;
@@ -213,7 +213,7 @@ final class TexyListModule extends TexyModule
      *
      * @return TexyHtml
      */
-    public function patternDefList( $parser, $matches )
+    public function patternDefList($parser, $matches)
     {
 
         list( , $mMod, , , , $mBullet ) = $matches;
@@ -227,36 +227,36 @@ final class TexyListModule extends TexyModule
 
         $bullet = null;
         foreach ($this->bullets as $desc) {
-            if (preg_match( '#'.$desc[0].'#Au', $mBullet )) {
+            if (preg_match('#'.$desc[0].'#Au', $mBullet)) {
                 $bullet = isset( $desc[3] ) ? $desc[3] : $desc[0];
                 break;
             }
         }
 
-        $el = TexyHtml::el( 'dl' );
-        $mod = new TexyModifier( $mMod );
-        $mod->decorate( $tx, $el );
-        $parser->moveBackward( 2 );
+        $el = TexyHtml::el('dl');
+        $mod = new TexyModifier($mMod);
+        $mod->decorate($tx, $el);
+        $parser->moveBackward(2);
 
         $patternTerm = '#^\n?(\S.*)\:\ *'.TEXY_MODIFIER_H.'?()$#mUA';
 
         while (true) {
-            if ($elItem = $this->patternItem( $parser, $bullet, true, 'dd' )) {
-                $el->add( $elItem );
+            if ($elItem = $this->patternItem($parser, $bullet, true, 'dd')) {
+                $el->add($elItem);
                 continue;
             }
 
-            if ($parser->next( $patternTerm, $matches )) {
+            if ($parser->next($patternTerm, $matches)) {
                 list( , $mContent, $mMod ) = $matches;
                 //    [1] => ...
                 //    [2] => .(title)[class]{style}<>
 
-                $elItem = TexyHtml::el( 'dt' );
-                $modItem = new TexyModifier( $mMod );
-                $modItem->decorate( $tx, $elItem );
+                $elItem = TexyHtml::el('dt');
+                $modItem = new TexyModifier($mMod);
+                $modItem->decorate($tx, $elItem);
 
-                $elItem->parseLine( $tx, $mContent );
-                $el->add( $elItem );
+                $elItem->parseLine($tx, $mContent);
+                $el->add($elItem);
                 continue;
             }
 
@@ -264,7 +264,7 @@ final class TexyListModule extends TexyModule
         }
 
         // event listener
-        $tx->invokeHandlers( 'afterDefinitionList', array( $parser, $el, $mod ) );
+        $tx->invokeHandlers('afterDefinitionList', array($parser, $el, $mod));
 
         return $el;
     }

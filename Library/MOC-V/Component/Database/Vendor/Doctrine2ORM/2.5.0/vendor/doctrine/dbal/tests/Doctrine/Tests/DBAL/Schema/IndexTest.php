@@ -2,19 +2,16 @@
 
 namespace Doctrine\Tests\DBAL\Schema;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 use Doctrine\DBAL\Schema\Index;
 
 class IndexTest extends \PHPUnit_Framework_TestCase
 {
-    public function createIndex($unique = false, $primary = false, $options = array())
-    {
-        return new Index("foo", array("bar", "baz"), $unique, $primary, array(), $options);
-    }
 
     public function testCreateIndex()
     {
+
         $idx = $this->createIndex();
         $this->assertEquals("foo", $idx->getName());
         $columns = $idx->getColumns();
@@ -24,8 +21,15 @@ class IndexTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($idx->isPrimary());
     }
 
+    public function createIndex($unique = false, $primary = false, $options = array())
+    {
+
+        return new Index("foo", array("bar", "baz"), $unique, $primary, array(), $options);
+    }
+
     public function testCreatePrimary()
     {
+
         $idx = $this->createIndex(false, true);
         $this->assertTrue($idx->isUnique());
         $this->assertTrue($idx->isPrimary());
@@ -33,6 +37,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateUnique()
     {
+
         $idx = $this->createIndex(true, false);
         $this->assertTrue($idx->isUnique());
         $this->assertFalse($idx->isPrimary());
@@ -43,6 +48,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
      */
     public function testFullfilledByUnique()
     {
+
         $idx1 = $this->createIndex(true, false);
         $idx2 = $this->createIndex(true, false);
         $idx3 = $this->createIndex();
@@ -56,6 +62,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
      */
     public function testFullfilledByPrimary()
     {
+
         $idx1 = $this->createIndex(true, true);
         $idx2 = $this->createIndex(true, true);
         $idx3 = $this->createIndex(true, false);
@@ -69,6 +76,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
      */
     public function testFullfilledByIndex()
     {
+
         $idx1 = $this->createIndex();
         $idx2 = $this->createIndex();
         $pri = $this->createIndex(true, true);
@@ -81,6 +89,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
     public function testFullfilledWithPartial()
     {
+
         $without = new Index('without', array('col1', 'col2'), true, false, array(), array());
         $partial = new Index('partial', array('col1', 'col2'), true, false, array(), array('where' => 'col1 IS NULL'));
         $another = new Index('another', array('col1', 'col2'), true, false, array(), array('where' => 'col1 IS NULL'));
@@ -96,6 +105,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
     public function testOverrulesWithPartial()
     {
+
         $without = new Index('without', array('col1', 'col2'), true, false, array(), array());
         $partial = new Index('partial', array('col1', 'col2'), true, false, array(), array('where' => 'col1 IS NULL'));
         $another = new Index('another', array('col1', 'col2'), true, false, array(), array('where' => 'col1 IS NULL'));
@@ -114,6 +124,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
      */
     public function testFlags()
     {
+
         $idx1 = $this->createIndex();
         $this->assertFalse($idx1->hasFlag('clustered'));
         $this->assertEmpty($idx1->getFlags());
@@ -133,6 +144,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
      */
     public function testIndexQuotes()
     {
+
         $index = new Index("foo", array("`bar`", "`baz`"));
 
         $this->assertTrue($index->spansColumns(array("bar", "baz")));
@@ -145,6 +157,7 @@ class IndexTest extends \PHPUnit_Framework_TestCase
 
     public function testOptions()
     {
+
         $idx1 = $this->createIndex();
         $this->assertFalse($idx1->hasOption('where'));
         $this->assertEmpty($idx1->getOptions());

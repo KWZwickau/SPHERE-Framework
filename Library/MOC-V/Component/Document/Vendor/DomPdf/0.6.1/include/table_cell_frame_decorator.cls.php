@@ -20,10 +20,10 @@ class Table_Cell_Frame_Decorator extends Block_Frame_Decorator
 
     //........................................................................
 
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
-        parent::__construct( $frame, $dompdf );
+        parent::__construct($frame, $dompdf);
         $this->_resolved_borders = array();
         $this->_content_height = 0;
     }
@@ -45,17 +45,17 @@ class Table_Cell_Frame_Decorator extends Block_Frame_Decorator
         return $this->_content_height;
     }
 
-    function set_content_height( $height )
+    function set_content_height($height)
     {
 
         $this->_content_height = $height;
     }
 
-    function set_cell_height( $height )
+    function set_cell_height($height)
     {
 
         $style = $this->get_style();
-        $v_space = $style->length_in_pt( array(
+        $v_space = $style->length_in_pt(array(
             $style->margin_top,
             $style->padding_top,
             $style->border_top_width,
@@ -63,7 +63,7 @@ class Table_Cell_Frame_Decorator extends Block_Frame_Decorator
             $style->padding_bottom,
             $style->margin_bottom
         ),
-            $style->width );
+            $style->width);
 
         $new_height = $height - $v_space;
         $style->height = $new_height;
@@ -94,7 +94,7 @@ class Table_Cell_Frame_Decorator extends Block_Frame_Decorator
                 // Move our children
                 foreach ($this->get_line_boxes() as $line) {
                     foreach ($line->get_frames() as $frame) {
-                        $frame->move( 0, $y_offset );
+                        $frame->move(0, $y_offset);
                     }
                 }
             }
@@ -102,7 +102,7 @@ class Table_Cell_Frame_Decorator extends Block_Frame_Decorator
 
     }
 
-    function set_resolved_border( $side, $border_spec )
+    function set_resolved_border($side, $border_spec)
     {
 
         $this->_resolved_borders[$side] = $border_spec;
@@ -110,7 +110,7 @@ class Table_Cell_Frame_Decorator extends Block_Frame_Decorator
 
     //........................................................................
 
-    function get_resolved_border( $side )
+    function get_resolved_border($side)
     {
 
         return $this->_resolved_borders[$side];

@@ -15,6 +15,7 @@
  */
 interface PHP_CodeCoverage_Driver
 {
+
     /**
      * @var int
      * @see http://xdebug.org/docs/code_coverage

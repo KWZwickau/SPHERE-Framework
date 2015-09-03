@@ -14,6 +14,7 @@ namespace SebastianBergmann\Diff;
  */
 class Diff
 {
+
     /**
      * @var string
      */
@@ -36,8 +37,9 @@ class Diff
      */
     public function __construct($from, $to, array $chunks = array())
     {
-        $this->from   = $from;
-        $this->to     = $to;
+
+        $this->from = $from;
+        $this->to = $to;
         $this->chunks = $chunks;
     }
 
@@ -46,6 +48,7 @@ class Diff
      */
     public function getFrom()
     {
+
         return $this->from;
     }
 
@@ -54,6 +57,7 @@ class Diff
      */
     public function getTo()
     {
+
         return $this->to;
     }
 
@@ -62,6 +66,7 @@ class Diff
      */
     public function getChunks()
     {
+
         return $this->chunks;
     }
 
@@ -70,6 +75,7 @@ class Diff
      */
     public function setChunks(array $chunks)
     {
+
         $this->chunks = $chunks;
     }
 }

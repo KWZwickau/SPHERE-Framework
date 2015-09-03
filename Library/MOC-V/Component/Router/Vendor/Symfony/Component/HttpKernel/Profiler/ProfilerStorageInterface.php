@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpKernel\Profiler;
  */
 interface ProfilerStorageInterface
 {
+
     /**
      * Finds profiler tokens for the given criteria.
      *

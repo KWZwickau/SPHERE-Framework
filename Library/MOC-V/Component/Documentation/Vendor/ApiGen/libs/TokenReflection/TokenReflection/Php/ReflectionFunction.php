@@ -50,10 +50,10 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
      * @param string                  $functionName Function name
      * @param \TokenReflection\Broker $broker       Reflection broker
      */
-    public function __construct( $functionName, Broker $broker )
+    public function __construct($functionName, Broker $broker)
     {
 
-        parent::__construct( $functionName );
+        parent::__construct($functionName);
         $this->broker = $broker;
     }
 
@@ -66,15 +66,15 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
      * @return \TokenReflection\Php\ReflectionFunction
      * @throws \TokenReflection\Exception\RuntimeException If an invalid internal reflection object was provided.
      */
-    public static function create( Reflector $internalReflection, Broker $broker )
+    public static function create(Reflector $internalReflection, Broker $broker)
     {
 
         if (!$internalReflection instanceof InternalReflectionFunction) {
-            throw new Exception\RuntimeException( 'Invalid reflection instance provided, ReflectionFunction expected.',
-                Exception\RuntimeException::INVALID_ARGUMENT );
+            throw new Exception\RuntimeException('Invalid reflection instance provided, ReflectionFunction expected.',
+                Exception\RuntimeException::INVALID_ARGUMENT);
         }
 
-        return $broker->getFunction( $internalReflection->getName() );
+        return $broker->getFunction($internalReflection->getName());
     }
 
     /**
@@ -85,7 +85,7 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
     public function getExtension()
     {
 
-        return ReflectionExtension::create( parent::getExtension(), $this->broker );
+        return ReflectionExtension::create(parent::getExtension(), $this->broker);
     }
 
     /**
@@ -95,7 +95,7 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -108,7 +108,7 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -145,15 +145,15 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
      * @throws \TokenReflection\Exception\RuntimeException If there is no parameter of the given name.
      * @throws \TokenReflection\Exception\RuntimeException If there is no parameter at the given position.
      */
-    public function getParameter( $parameter )
+    public function getParameter($parameter)
     {
 
         $parameters = $this->getParameters();
 
-        if (is_numeric( $parameter )) {
+        if (is_numeric($parameter)) {
             if (!isset( $parameters[$parameter] )) {
-                throw new Exception\RuntimeException( sprintf( 'There is no parameter at position "%d".', $parameter ),
-                    Exception\RuntimeException::DOES_NOT_EXIST, $this );
+                throw new Exception\RuntimeException(sprintf('There is no parameter at position "%d".', $parameter),
+                    Exception\RuntimeException::DOES_NOT_EXIST, $this);
             }
 
             return $parameters[$parameter];
@@ -164,8 +164,8 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
                 }
             }
 
-            throw new Exception\RuntimeException( sprintf( 'There is no parameter "%s".', $parameter ),
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+            throw new Exception\RuntimeException(sprintf('There is no parameter "%s".', $parameter),
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
     }
 
@@ -180,13 +180,13 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
         if (null === $this->parameters) {
             $broker = $this->broker;
             $parent = $this;
-            $this->parameters = array_map( function ( InternalReflectionParameter $parameter ) use (
+            $this->parameters = array_map(function (InternalReflectionParameter $parameter) use (
                 $broker,
                 $parent
             ) {
 
-                return ReflectionParameter::create( $parameter, $broker, $parent );
-            }, parent::getParameters() );
+                return ReflectionParameter::create($parameter, $broker, $parent);
+            }, parent::getParameters());
         }
 
         return $this->parameters;
@@ -221,10 +221,10 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return TokenReflection\ReflectionElement::get( $this, $key );
+        return TokenReflection\ReflectionElement::get($this, $key);
     }
 
     /**
@@ -234,10 +234,10 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return TokenReflection\ReflectionElement::exists( $this, $key );
+        return TokenReflection\ReflectionElement::exists($this, $key);
     }
 
     /**
@@ -252,9 +252,9 @@ class ReflectionFunction extends InternalReflectionFunction implements IReflecti
             return parent::getClosure();
         } else {
             $that = $this;
-            return function () use ( $that ) {
+            return function () use ($that) {
 
-                return $that->invokeArgs( func_get_args() );
+                return $that->invokeArgs(func_get_args());
             };
         }
     }

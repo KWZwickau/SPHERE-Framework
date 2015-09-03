@@ -7,6 +7,7 @@ namespace Guzzle\Parser\Cookie;
  */
 interface CookieParserInterface
 {
+
     /**
      * Parse a cookie string as set in a Set-Cookie HTTP header and return an associative array of data.
      *

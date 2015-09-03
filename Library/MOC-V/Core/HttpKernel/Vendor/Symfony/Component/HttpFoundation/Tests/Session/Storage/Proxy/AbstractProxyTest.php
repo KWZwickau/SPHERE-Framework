@@ -22,6 +22,7 @@ class ConcreteProxy extends AbstractProxy
 
 class ConcreteSessionHandlerInterfaceProxy extends AbstractProxy implements \SessionHandlerInterface
 {
+
     public function open($savePath, $sessionName)
     {
     }
@@ -54,6 +55,7 @@ class ConcreteSessionHandlerInterfaceProxy extends AbstractProxy implements \Ses
  */
 class AbstractProxyTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var AbstractProxy
      */
@@ -61,11 +63,13 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testGetSaveHandlerName()
     {
+
         $this->assertNull($this->proxy->getSaveHandlerName());
     }
 
     public function testIsSessionHandlerInterface()
     {
+
         $this->assertFalse($this->proxy->isSessionHandlerInterface());
         $sh = new ConcreteSessionHandlerInterfaceProxy();
         $this->assertTrue($sh->isSessionHandlerInterface());
@@ -73,11 +77,13 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testIsWrapper()
     {
+
         $this->assertFalse($this->proxy->isWrapper());
     }
 
     public function testIsActivePhp53()
     {
+
         if (version_compare(phpversion(), '5.4.0', '>=')) {
             $this->markTestSkipped('Test skipped, for PHP 5.3 only.');
         }
@@ -90,6 +96,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsActivePhp54()
     {
+
         if (version_compare(phpversion(), '5.4.0', '<')) {
             $this->markTestSkipped('Test skipped, for PHP 5.4 only.');
         }
@@ -101,6 +108,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testSetActivePhp53()
     {
+
         if (version_compare(phpversion(), '5.4.0', '>=')) {
             $this->markTestSkipped('Test skipped, for PHP 5.3 only.');
         }
@@ -117,6 +125,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetActivePhp54()
     {
+
         if (version_compare(phpversion(), '5.4.0', '<')) {
             $this->markTestSkipped('Test skipped, for PHP 5.4 only.');
         }
@@ -129,6 +138,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testName()
     {
+
         $this->assertEquals(session_name(), $this->proxy->getName());
         $this->proxy->setName('foo');
         $this->assertEquals('foo', $this->proxy->getName());
@@ -140,6 +150,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testNameExceptionPhp53()
     {
+
         if (version_compare(phpversion(), '5.4.0', '>=')) {
             $this->markTestSkipped('Test skipped, for PHP 5.3 only.');
         }
@@ -154,6 +165,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testNameExceptionPhp54()
     {
+
         if (version_compare(phpversion(), '5.4.0', '<')) {
             $this->markTestSkipped('Test skipped, for PHP 5.4 only.');
         }
@@ -167,6 +179,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testId()
     {
+
         $this->assertEquals(session_id(), $this->proxy->getId());
         $this->proxy->setId('foo');
         $this->assertEquals('foo', $this->proxy->getId());
@@ -178,6 +191,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testIdExceptionPhp53()
     {
+
         if (version_compare(phpversion(), '5.4.0', '>=')) {
             $this->markTestSkipped('Test skipped, for PHP 5.3 only.');
         }
@@ -192,6 +206,7 @@ class AbstractProxyTest extends \PHPUnit_Framework_TestCase
      */
     public function testIdExceptionPhp54()
     {
+
         if (version_compare(phpversion(), '5.4.0', '<')) {
             $this->markTestSkipped('Test skipped, for PHP 5.4 only.');
         }

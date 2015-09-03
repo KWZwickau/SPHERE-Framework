@@ -15,21 +15,24 @@
  */
 class PHPUnit_Util_Fileloader
 {
+
     /**
      * Checks if a PHP sourcefile is readable.
      * The sourcefile is loaded through the load() method.
      *
-     * @param  string                      $filename
+     * @param  string $filename
+     *
      * @return string
      * @throws PHPUnit_Framework_Exception
      */
     public static function checkAndLoad($filename)
     {
+
         $includePathFilename = stream_resolve_include_path($filename);
 
         if (!$includePathFilename || !is_readable($includePathFilename)) {
             throw new PHPUnit_Framework_Exception(
-                sprintf('Cannot open file "%s".' . "\n", $filename)
+                sprintf('Cannot open file "%s".'."\n", $filename)
             );
         }
 
@@ -42,16 +45,18 @@ class PHPUnit_Util_Fileloader
      * Loads a PHP sourcefile.
      *
      * @param  string $filename
+     *
      * @return mixed
      * @since  Method available since Release 3.0.0
      */
     public static function load($filename)
     {
+
         $oldVariableNames = array_keys(get_defined_vars());
 
         include_once $filename;
 
-        $newVariables     = get_defined_vars();
+        $newVariables = get_defined_vars();
         $newVariableNames = array_diff(
             array_keys($newVariables),
             $oldVariableNames

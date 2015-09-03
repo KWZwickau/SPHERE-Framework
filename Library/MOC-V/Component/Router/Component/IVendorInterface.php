@@ -19,5 +19,5 @@ interface IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface );
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface);
 }

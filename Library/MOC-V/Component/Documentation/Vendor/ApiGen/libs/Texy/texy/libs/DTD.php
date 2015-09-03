@@ -15,8 +15,8 @@
 $strict = $mode === Texy::HTML4_STRICT || $mode === Texy::XHTML1_STRICT;
 
 // attributes
-$coreattrs = array( 'id' => 1, 'class' => 1, 'style' => 1, 'title' => 1, 'xml:id' => 1 ); // extra: xml:id
-$i18n = array( 'lang' => 1, 'dir' => 1, 'xml:lang' => 1 ); // extra: xml:lang
+$coreattrs = array('id' => 1, 'class' => 1, 'style' => 1, 'title' => 1, 'xml:id' => 1); // extra: xml:id
+$i18n = array('lang' => 1, 'dir' => 1, 'xml:lang' => 1); // extra: xml:lang
 $attrs = $coreattrs + $i18n + array(
         'onclick'     => 1,
         'ondblclick'  => 1,
@@ -29,7 +29,7 @@ $attrs = $coreattrs + $i18n + array(
         'onkeydown'   => 1,
         'onkeyup'     => 1
     );
-$cellalign = $attrs + array( 'align' => 1, 'char' => 1, 'charoff' => 1, 'valign' => 1 );
+$cellalign = $attrs + array('align' => 1, 'char' => 1, 'charoff' => 1, 'valign' => 1);
 
 // content elements
 
@@ -128,11 +128,11 @@ $bi = $b + $i;
 // build DTD
 $dtd = array(
     'html'       => array(
-        $strict ? $i18n + array( 'xmlns' => 1 ) : $i18n + array( 'version' => 1, 'xmlns' => 1 ), // extra: xmlns
-        array( 'head' => 1, 'body' => 1 ),
+        $strict ? $i18n + array('xmlns' => 1) : $i18n + array('version' => 1, 'xmlns' => 1), // extra: xmlns
+        array('head' => 1, 'body' => 1),
     ),
     'head'       => array(
-        $i18n + array( 'profile' => 1 ),
+        $i18n + array('profile' => 1),
         array(
             'title'   => 1,
             'script'  => 1,
@@ -146,63 +146,63 @@ $dtd = array(
     ),
     'title'      => array(
         array(),
-        array( '%DATA' => 1 ),
+        array('%DATA' => 1),
     ),
     'body'       => array(
-        $attrs + array( 'onload' => 1, 'onunload' => 1 ),
-        $strict ? array( 'script' => 1 ) + $b : $bi,
+        $attrs + array('onload' => 1, 'onunload' => 1),
+        $strict ? array('script' => 1) + $b : $bi,
     ),
     'script'     => array(
-        array( 'charset' => 1, 'type' => 1, 'src' => 1, 'defer' => 1, 'event' => 1, 'for' => 1 ),
-        array( '%DATA' => 1 ),
+        array('charset' => 1, 'type' => 1, 'src' => 1, 'defer' => 1, 'event' => 1, 'for' => 1),
+        array('%DATA' => 1),
     ),
     'style'      => array(
-        $i18n + array( 'type' => 1, 'media' => 1, 'title' => 1 ),
-        array( '%DATA' => 1 ),
+        $i18n + array('type' => 1, 'media' => 1, 'title' => 1),
+        array('%DATA' => 1),
     ),
     'p'          => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'h1'         => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'h2'         => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'h3'         => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'h4'         => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'h5'         => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'h6'         => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'ul'         => array(
-        $strict ? $attrs : $attrs + array( 'type' => 1, 'compact' => 1 ),
-        array( 'li' => 1 ),
+        $strict ? $attrs : $attrs + array('type' => 1, 'compact' => 1),
+        array('li' => 1),
     ),
     'ol'         => array(
-        $strict ? $attrs : $attrs + array( 'type' => 1, 'compact' => 1, 'start' => 1 ),
-        array( 'li' => 1 ),
+        $strict ? $attrs : $attrs + array('type' => 1, 'compact' => 1, 'start' => 1),
+        array('li' => 1),
     ),
     'li'         => array(
-        $strict ? $attrs : $attrs + array( 'type' => 1, 'value' => 1 ),
+        $strict ? $attrs : $attrs + array('type' => 1, 'value' => 1),
         $bi,
     ),
     'dl'         => array(
-        $strict ? $attrs : $attrs + array( 'compact' => 1 ),
-        array( 'dt' => 1, 'dd' => 1 ),
+        $strict ? $attrs : $attrs + array('compact' => 1),
+        array('dt' => 1, 'dd' => 1),
     ),
     'dt'         => array(
         $attrs,
@@ -213,17 +213,17 @@ $dtd = array(
         $bi,
     ),
     'pre'        => array(
-        $strict ? $attrs : $attrs + array( 'width' => 1 ),
-        array_flip( array_diff( array_keys( $i ),
-                array( 'img', 'object', 'applet', 'big', 'small', 'sub', 'sup', 'font', 'basefont' ) ) ),
+        $strict ? $attrs : $attrs + array('width' => 1),
+        array_flip(array_diff(array_keys($i),
+            array('img', 'object', 'applet', 'big', 'small', 'sub', 'sup', 'font', 'basefont'))),
     ),
     'div'        => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $bi,
     ),
     'blockquote' => array(
-        $attrs + array( 'cite' => 1 ),
-        $strict ? array( 'script' => 1 ) + $b : $bi,
+        $attrs + array('cite' => 1),
+        $strict ? array('script' => 1) + $b : $bi,
     ),
     'noscript'   => array(
         $attrs,
@@ -240,7 +240,7 @@ $dtd = array(
             'onreset'        => 1,
             'accept-charset' => 1
         ),
-        $strict ? array( 'script' => 1 ) + $b : $bi,
+        $strict ? array('script' => 1) + $b : $bi,
     ),
     'table'      => array(
         $attrs + array(
@@ -253,50 +253,50 @@ $dtd = array(
             'cellpadding'  => 1,
             'datapagesize' => 1
         ),
-        array( 'caption' => 1, 'colgroup' => 1, 'col' => 1, 'thead' => 1, 'tbody' => 1, 'tfoot' => 1, 'tr' => 1 ),
+        array('caption' => 1, 'colgroup' => 1, 'col' => 1, 'thead' => 1, 'tbody' => 1, 'tfoot' => 1, 'tr' => 1),
     ),
     'caption'    => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1),
         $i,
     ),
     'colgroup'   => array(
-        $cellalign + array( 'span' => 1, 'width' => 1 ),
-        array( 'col' => 1 ),
+        $cellalign + array('span' => 1, 'width' => 1),
+        array('col' => 1),
     ),
     'thead'      => array(
         $cellalign,
-        array( 'tr' => 1 ),
+        array('tr' => 1),
     ),
     'tbody'      => array(
         $cellalign,
-        array( 'tr' => 1 ),
+        array('tr' => 1),
     ),
     'tfoot'      => array(
         $cellalign,
-        array( 'tr' => 1 ),
+        array('tr' => 1),
     ),
     'tr'         => array(
-        $strict ? $cellalign : $cellalign + array( 'bgcolor' => 1 ),
-        array( 'td' => 1, 'th' => 1 ),
+        $strict ? $cellalign : $cellalign + array('bgcolor' => 1),
+        array('td' => 1, 'th' => 1),
     ),
     'td'         => array(
-        $cellalign + array( 'abbr' => 1, 'axis' => 1, 'headers' => 1, 'scope' => 1, 'rowspan' => 1, 'colspan' => 1 ),
+        $cellalign + array('abbr' => 1, 'axis' => 1, 'headers' => 1, 'scope' => 1, 'rowspan' => 1, 'colspan' => 1),
         $bi,
     ),
     'th'         => array(
-        $cellalign + array( 'abbr' => 1, 'axis' => 1, 'headers' => 1, 'scope' => 1, 'rowspan' => 1, 'colspan' => 1 ),
+        $cellalign + array('abbr' => 1, 'axis' => 1, 'headers' => 1, 'scope' => 1, 'rowspan' => 1, 'colspan' => 1),
         $bi,
     ),
     'address'    => array(
         $attrs,
-        $strict ? $i : array( 'p' => 1 ) + $i,
+        $strict ? $i : array('p' => 1) + $i,
     ),
     'fieldset'   => array(
         $attrs,
-        array( 'legend' => 1 ) + $bi,
+        array('legend' => 1) + $bi,
     ),
     'legend'     => array(
-        $strict ? $attrs + array( 'accesskey' => 1 ) : $attrs + array( 'accesskey' => 1, 'align' => 1 ),
+        $strict ? $attrs + array('accesskey' => 1) : $attrs + array('accesskey' => 1, 'align' => 1),
         $i,
     ),
     'tt'         => array(
@@ -368,7 +368,7 @@ $dtd = array(
         $i,
     ),
     'q'          => array(
-        $attrs + array( 'cite' => 1 ),
+        $attrs + array('cite' => 1),
         $i,
     ),
     'span'       => array(
@@ -376,7 +376,7 @@ $dtd = array(
         $i,
     ),
     'bdo'        => array(
-        $coreattrs + array( 'lang' => 1, 'dir' => 1 ),
+        $coreattrs + array('lang' => 1, 'dir' => 1),
         $i,
     ),
     'a'          => array(
@@ -413,11 +413,11 @@ $dtd = array(
             'name'     => 1,
             'tabindex' => 1
         ),
-        array( 'param' => 1 ) + $bi,
+        array('param' => 1) + $bi,
     ),
     'map'        => array(
-        $attrs + array( 'name' => 1 ),
-        array( 'area' => 1 ) + $b,
+        $attrs + array('name' => 1),
+        array('area' => 1) + $b,
     ),
     'select'     => array(
         $attrs + array(
@@ -430,15 +430,15 @@ $dtd = array(
             'onblur'   => 1,
             'onchange' => 1
         ),
-        array( 'option' => 1, 'optgroup' => 1 ),
+        array('option' => 1, 'optgroup' => 1),
     ),
     'optgroup'   => array(
-        $attrs + array( 'disabled' => 1, 'label' => 1 ),
-        array( 'option' => 1 ),
+        $attrs + array('disabled' => 1, 'label' => 1),
+        array('option' => 1),
     ),
     'option'     => array(
-        $attrs + array( 'selected' => 1, 'disabled' => 1, 'label' => 1, 'value' => 1 ),
-        array( '%DATA' => 1 ),
+        $attrs + array('selected' => 1, 'disabled' => 1, 'label' => 1, 'value' => 1),
+        array('%DATA' => 1),
     ),
     'textarea'   => array(
         $attrs + array(
@@ -454,10 +454,10 @@ $dtd = array(
             'onselect'  => 1,
             'onchange'  => 1
         ),
-        array( '%DATA' => 1 ),
+        array('%DATA' => 1),
     ),
     'label'      => array(
-        $attrs + array( 'for' => 1, 'accesskey' => 1, 'onfocus' => 1, 'onblur' => 1 ),
+        $attrs + array('for' => 1, 'accesskey' => 1, 'onfocus' => 1, 'onblur' => 1),
         $i, // - label by TexyHtml::$prohibits
     ),
     'button'     => array(
@@ -474,11 +474,11 @@ $dtd = array(
         $bi, // - a input select textarea label button form fieldset, by TexyHtml::$prohibits
     ),
     'ins'        => array(
-        $attrs + array( 'cite' => 1, 'datetime' => 1 ),
+        $attrs + array('cite' => 1, 'datetime' => 1),
         0, // special case
     ),
     'del'        => array(
-        $attrs + array( 'cite' => 1, 'datetime' => 1 ),
+        $attrs + array('cite' => 1, 'datetime' => 1),
         0, // special case
     ),
 // empty elements
@@ -496,11 +496,11 @@ $dtd = array(
         false,
     ),
     'hr'         => array(
-        $strict ? $attrs : $attrs + array( 'align' => 1, 'noshade' => 1, 'size' => 1, 'width' => 1 ),
+        $strict ? $attrs : $attrs + array('align' => 1, 'noshade' => 1, 'size' => 1, 'width' => 1),
         false,
     ),
     'br'         => array(
-        $strict ? $coreattrs : $coreattrs + array( 'clear' => 1 ),
+        $strict ? $coreattrs : $coreattrs + array('clear' => 1),
         false,
     ),
     'input'      => array(
@@ -528,7 +528,7 @@ $dtd = array(
         false,
     ),
     'meta'       => array(
-        $i18n + array( 'http-equiv' => 1, 'name' => 1, 'content' => 1, 'scheme' => 1 ),
+        $i18n + array('http-equiv' => 1, 'name' => 1, 'content' => 1, 'scheme' => 1),
         false,
     ),
     'area'       => array(
@@ -546,11 +546,11 @@ $dtd = array(
         false,
     ),
     'base'       => array(
-        $strict ? array( 'href' => 1 ) : array( 'href' => 1, 'target' => 1 ),
+        $strict ? array('href' => 1) : array('href' => 1, 'target' => 1),
         false,
     ),
     'col'        => array(
-        $cellalign + array( 'span' => 1, 'width' => 1 ),
+        $cellalign + array('span' => 1, 'width' => 1),
         false,
     ),
     'link'       => array(
@@ -566,13 +566,13 @@ $dtd = array(
         false,
     ),
     'param'      => array(
-        array( 'id' => 1, 'name' => 1, 'value' => 1, 'valuetype' => 1, 'type' => 1 ),
+        array('id' => 1, 'name' => 1, 'value' => 1, 'valuetype' => 1, 'type' => 1),
         false,
     ),
 // special "base content"
     '%BASE'      => array(
         null,
-        array( 'html' => 1, 'head' => 1, 'body' => 1, 'script' => 1 ) + $bi,
+        array('html' => 1, 'head' => 1, 'body' => 1, 'script' => 1) + $bi,
     ),
 );
 
@@ -584,12 +584,12 @@ if ($strict) {
 $dtd += array(
 // transitional
     'dir'      => array(
-        $attrs + array( 'compact' => 1 ),
-        array( 'li' => 1 ),
+        $attrs + array('compact' => 1),
+        array('li' => 1),
     ),
     'menu'     => array(
-        $attrs + array( 'compact' => 1 ),
-        array( 'li' => 1 ), // it's inline-li, ignored
+        $attrs + array('compact' => 1),
+        array('li' => 1), // it's inline-li, ignored
     ),
     'center'   => array(
         $attrs,
@@ -627,7 +627,7 @@ $dtd += array(
         $i,
     ),
     'font'     => array(
-        $coreattrs + $i18n + array( 'size' => 1, 'color' => 1, 'face' => 1 ),
+        $coreattrs + $i18n + array('size' => 1, 'color' => 1, 'face' => 1),
         $i,
     ),
     'applet'   => array(
@@ -644,14 +644,14 @@ $dtd += array(
             'hspace'   => 1,
             'vspace'   => 1
         ),
-        array( 'param' => 1 ) + $bi,
+        array('param' => 1) + $bi,
     ),
     'basefont' => array(
-        array( 'id' => 1, 'size' => 1, 'color' => 1, 'face' => 1 ),
+        array('id' => 1, 'size' => 1, 'color' => 1, 'face' => 1),
         false,
     ),
     'isindex'  => array(
-        $coreattrs + $i18n + array( 'prompt' => 1 ),
+        $coreattrs + $i18n + array('prompt' => 1),
         false,
     ),
 // proprietary
@@ -678,17 +678,17 @@ $dtd += array(
 );
 
 // transitional modified
-$dtd['a'][0] += array( 'target' => 1 );
-$dtd['area'][0] += array( 'target' => 1 );
-$dtd['body'][0] += array( 'background' => 1, 'bgcolor' => 1, 'text' => 1, 'link' => 1, 'vlink' => 1, 'alink' => 1 );
-$dtd['form'][0] += array( 'target' => 1 );
-$dtd['img'][0] += array( 'align' => 1, 'border' => 1, 'hspace' => 1, 'vspace' => 1 );
-$dtd['input'][0] += array( 'align' => 1 );
-$dtd['link'][0] += array( 'target' => 1 );
-$dtd['object'][0] += array( 'align' => 1, 'border' => 1, 'hspace' => 1, 'vspace' => 1 );
-$dtd['script'][0] += array( 'language' => 1 );
-$dtd['table'][0] += array( 'align' => 1, 'bgcolor' => 1 );
-$dtd['td'][0] += array( 'nowrap' => 1, 'bgcolor' => 1, 'width' => 1, 'height' => 1 );
-$dtd['th'][0] += array( 'nowrap' => 1, 'bgcolor' => 1, 'width' => 1, 'height' => 1 );
+$dtd['a'][0] += array('target' => 1);
+$dtd['area'][0] += array('target' => 1);
+$dtd['body'][0] += array('background' => 1, 'bgcolor' => 1, 'text' => 1, 'link' => 1, 'vlink' => 1, 'alink' => 1);
+$dtd['form'][0] += array('target' => 1);
+$dtd['img'][0] += array('align' => 1, 'border' => 1, 'hspace' => 1, 'vspace' => 1);
+$dtd['input'][0] += array('align' => 1);
+$dtd['link'][0] += array('target' => 1);
+$dtd['object'][0] += array('align' => 1, 'border' => 1, 'hspace' => 1, 'vspace' => 1);
+$dtd['script'][0] += array('language' => 1);
+$dtd['table'][0] += array('align' => 1, 'bgcolor' => 1);
+$dtd['td'][0] += array('nowrap' => 1, 'bgcolor' => 1, 'width' => 1, 'height' => 1);
+$dtd['th'][0] += array('nowrap' => 1, 'bgcolor' => 1, 'width' => 1, 'height' => 1);
 
 // missing: FRAMESET, FRAME, BGSOUND, XMP, ...

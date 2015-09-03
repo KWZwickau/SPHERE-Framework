@@ -19,13 +19,13 @@
 
 namespace Doctrine\ORM;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\LockMode;
+use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Query\ParameterTypeInferer;
 use Doctrine\ORM\Query\Parser;
 use Doctrine\ORM\Query\ParserResult;
 use Doctrine\ORM\Query\QueryException;
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\ORM\Query\ParameterTypeInferer;
-use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * A Query object represents a DQL query.
@@ -37,10 +37,11 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 final class Query extends AbstractQuery
 {
+
     /**
      * A query object is in CLEAN state when it has NO unparsed/unprocessed DQL parts.
      */
-    const STATE_CLEAN  = 1;
+    const STATE_CLEAN = 1;
 
     /**
      * A query object is in state DIRTY when it has DQL parts that have not yet been
@@ -202,34 +203,8 @@ final class Query extends AbstractQuery
      */
     public function getSQL()
     {
+
         return $this->_parse()->getSQLExecutor()->getSQLStatements();
-    }
-
-    /**
-     * Returns the corresponding AST for this DQL query.
-     *
-     * @return \Doctrine\ORM\Query\AST\SelectStatement |
-     *         \Doctrine\ORM\Query\AST\UpdateStatement |
-     *         \Doctrine\ORM\Query\AST\DeleteStatement
-     */
-    public function getAST()
-    {
-        $parser = new Parser($this);
-
-        return $parser->getAST();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getResultSetMapping()
-    {
-        // parse query or load from cache
-        if ($this->_resultSetMapping === null) {
-            $this->_resultSetMapping = $this->_parse()->getResultSetMapping();
-        }
-
-        return $this->_resultSetMapping;
     }
 
     /**
@@ -241,6 +216,7 @@ final class Query extends AbstractQuery
      */
     private function _parse()
     {
+
         $types = array();
 
         foreach ($this->parameters as $parameter) {
@@ -257,7 +233,7 @@ final class Query extends AbstractQuery
         $this->_parsedTypes = $types;
 
         // Check query cache.
-        if ( ! ($this->_useQueryCache && ($queryCache = $this->getQueryCacheDriver()))) {
+        if (!( $this->_useQueryCache && ( $queryCache = $this->getQueryCacheDriver() ) )) {
             $parser = new Parser($this);
 
             $this->_parserResult = $parser->parse();
@@ -265,7 +241,7 @@ final class Query extends AbstractQuery
             return $this->_parserResult;
         }
 
-        $hash   = $this->_getQueryCacheId();
+        $hash = $this->_getQueryCacheId();
         $cached = $this->_expireQueryCache ? false : $queryCache->fetch($hash);
 
         if ($cached instanceof ParserResult) {
@@ -286,10 +262,357 @@ final class Query extends AbstractQuery
     }
 
     /**
+     * Returns the cache driver used for query caching.
+     *
+     * @return \Doctrine\Common\Cache\Cache|null The cache driver used for query caching or NULL, if
+     *                                           this Query does not use query caching.
+     */
+    public function getQueryCacheDriver()
+    {
+
+        if ($this->_queryCache) {
+            return $this->_queryCache;
+        }
+
+        return $this->_em->getConfiguration()->getQueryCacheImpl();
+    }
+
+    /**
+     * Generate a cache id for the query cache - reusing the Result-Cache-Id generator.
+     *
+     * @return string
+     */
+    protected function _getQueryCacheId()
+    {
+
+        ksort($this->_hints);
+
+        $platform = $this->getEntityManager()
+            ->getConnection()
+            ->getDatabasePlatform()
+            ->getName();
+
+        return md5(
+            $this->getDql().serialize($this->_hints).
+            '&platform='.$platform.
+            ( $this->_em->hasFilters() ? $this->_em->getFilters()->getHash() : '' ).
+            '&firstResult='.$this->_firstResult.'&maxResult='.$this->_maxResults.
+            '&hydrationMode='.$this->_hydrationMode.'&types='.serialize($this->_parsedTypes).'DOCTRINE_QUERY_CACHE_SALT'
+        );
+    }
+
+    /**
+     * Returns the DQL query that is represented by this query object.
+     *
+     * @return string DQL query.
+     */
+    public function getDQL()
+    {
+
+        return $this->_dql;
+    }
+
+    /**
+     * Sets a DQL query string.
+     *
+     * @param string $dqlQuery DQL Query.
+     *
+     * @return \Doctrine\ORM\AbstractQuery
+     */
+    public function setDQL($dqlQuery)
+    {
+
+        if ($dqlQuery !== null) {
+            $this->_dql = $dqlQuery;
+            $this->_state = self::STATE_DIRTY;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Defines a cache driver to be used for caching queries.
+     *
+     * @param \Doctrine\Common\Cache\Cache|null $queryCache Cache driver.
+     *
+     * @return Query This query instance.
+     */
+    public function setQueryCacheDriver($queryCache)
+    {
+
+        $this->_queryCache = $queryCache;
+
+        return $this;
+    }
+
+    /**
+     * Defines whether the query should make use of a query cache, if available.
+     *
+     * @param boolean $bool
+     *
+     * @return Query This query instance.
+     */
+    public function useQueryCache($bool)
+    {
+
+        $this->_useQueryCache = $bool;
+
+        return $this;
+    }
+
+    /**
+     * Defines how long the query cache will be active before expire.
+     *
+     * @param integer $timeToLive How long the cache entry is valid.
+     *
+     * @return Query This query instance.
+     */
+    public function setQueryCacheLifetime($timeToLive)
+    {
+
+        if ($timeToLive !== null) {
+            $timeToLive = (int)$timeToLive;
+        }
+
+        $this->_queryCacheTTL = $timeToLive;
+
+        return $this;
+    }
+
+    /**
+     * Retrieves the lifetime of resultset cache.
+     *
+     * @return int
+     */
+    public function getQueryCacheLifetime()
+    {
+
+        return $this->_queryCacheTTL;
+    }
+
+    /**
+     * Defines if the query cache is active or not.
+     *
+     * @param boolean $expire Whether or not to force query cache expiration.
+     *
+     * @return Query This query instance.
+     */
+    public function expireQueryCache($expire = true)
+    {
+
+        $this->_expireQueryCache = $expire;
+
+        return $this;
+    }
+
+    /**
+     * Retrieves if the query cache is active or not.
+     *
+     * @return bool
+     */
+    public function getExpireQueryCache()
+    {
+
+        return $this->_expireQueryCache;
+    }
+
+    /**
+     * @override
+     */
+    public function free()
+    {
+
+        parent::free();
+
+        $this->_dql = null;
+        $this->_state = self::STATE_CLEAN;
+    }
+
+    /**
+     * Returns the state of this query object
+     * By default the type is Doctrine_ORM_Query_Abstract::STATE_CLEAN but if it appears any unprocessed DQL
+     * part, it is switched to Doctrine_ORM_Query_Abstract::STATE_DIRTY.
+     *
+     * @see AbstractQuery::STATE_CLEAN
+     * @see AbstractQuery::STATE_DIRTY
+     *
+     * @return integer The query state.
+     */
+    public function getState()
+    {
+
+        return $this->_state;
+    }
+
+    /**
+     * Method to check if an arbitrary piece of DQL exists
+     *
+     * @param string $dql Arbitrary piece of DQL to check for.
+     *
+     * @return boolean
+     */
+    public function contains($dql)
+    {
+
+        return stripos($this->getDQL(), $dql) === false ? false : true;
+    }
+
+    /**
+     * Gets the position of the first result the query object was set to retrieve (the "offset").
+     * Returns NULL if {@link setFirstResult} was not applied to this query.
+     *
+     * @return integer The position of the first result.
+     */
+    public function getFirstResult()
+    {
+
+        return $this->_firstResult;
+    }
+
+    /**
+     * Sets the position of the first result to retrieve (the "offset").
+     *
+     * @param integer $firstResult The first result to return.
+     *
+     * @return Query This query object.
+     */
+    public function setFirstResult($firstResult)
+    {
+
+        $this->_firstResult = $firstResult;
+        $this->_state = self::STATE_DIRTY;
+
+        return $this;
+    }
+
+    /**
+     * Gets the maximum number of results the query object was set to retrieve (the "limit").
+     * Returns NULL if {@link setMaxResults} was not applied to this query.
+     *
+     * @return integer Maximum number of results.
+     */
+    public function getMaxResults()
+    {
+
+        return $this->_maxResults;
+    }
+
+    /**
+     * Sets the maximum number of results to retrieve (the "limit").
+     *
+     * @param integer $maxResults
+     *
+     * @return Query This query object.
+     */
+    public function setMaxResults($maxResults)
+    {
+
+        $this->_maxResults = $maxResults;
+        $this->_state = self::STATE_DIRTY;
+
+        return $this;
+    }
+
+    /**
+     * Executes the query and returns an IterableResult that can be used to incrementally
+     * iterated over the result.
+     *
+     * @param ArrayCollection|array|null $parameters    The query parameters.
+     * @param integer                    $hydrationMode The hydration mode to use.
+     *
+     * @return \Doctrine\ORM\Internal\Hydration\IterableResult
+     */
+    public function iterate($parameters = null, $hydrationMode = self::HYDRATE_OBJECT)
+    {
+
+        $this->setHint(self::HINT_INTERNAL_ITERATION, true);
+
+        return parent::iterate($parameters, $hydrationMode);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setHint($name, $value)
+    {
+
+        $this->_state = self::STATE_DIRTY;
+
+        return parent::setHint($name, $value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setHydrationMode($hydrationMode)
+    {
+
+        $this->_state = self::STATE_DIRTY;
+
+        return parent::setHydrationMode($hydrationMode);
+    }
+
+    /**
+     * Set the lock mode for this Query.
+     *
+     * @see \Doctrine\DBAL\LockMode
+     *
+     * @param  int $lockMode
+     *
+     * @return Query
+     *
+     * @throws TransactionRequiredException
+     */
+    public function setLockMode($lockMode)
+    {
+
+        if (in_array($lockMode, array(LockMode::NONE, LockMode::PESSIMISTIC_READ, LockMode::PESSIMISTIC_WRITE), true)) {
+            if (!$this->_em->getConnection()->isTransactionActive()) {
+                throw TransactionRequiredException::transactionRequired();
+            }
+        }
+
+        $this->setHint(self::HINT_LOCK_MODE, $lockMode);
+
+        return $this;
+    }
+
+    /**
+     * Get the current lock mode for this query.
+     *
+     * @return int|null The current lock mode of this query or NULL if no specific lock mode is set.
+     */
+    public function getLockMode()
+    {
+
+        $lockMode = $this->getHint(self::HINT_LOCK_MODE);
+
+        if (false === $lockMode) {
+            return null;
+        }
+
+        return $lockMode;
+    }
+
+    /**
+     * Cleanup Query resource when clone is called.
+     *
+     * @return void
+     */
+    public function __clone()
+    {
+
+        parent::__clone();
+
+        $this->_state = self::STATE_DIRTY;
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function _doExecute()
     {
+
         $executor = $this->_parse()->getSqlExecutor();
 
         if ($this->_queryCacheProfile) {
@@ -312,11 +635,11 @@ final class Query extends AbstractQuery
         }
 
         // evict all cache for the entity region
-        if ($this->hasCache && isset($this->_hints[self::HINT_CACHE_EVICT]) && $this->_hints[self::HINT_CACHE_EVICT]) {
+        if ($this->hasCache && isset( $this->_hints[self::HINT_CACHE_EVICT] ) && $this->_hints[self::HINT_CACHE_EVICT]) {
             $this->evictEntityCacheRegion();
         }
 
-        list($sqlParams, $types) = $this->processParameterMappings($paramMappings);
+        list( $sqlParams, $types ) = $this->processParameterMappings($paramMappings);
 
         return $executor->execute($this->_em->getConnection(), $sqlParams, $types);
     }
@@ -326,17 +649,33 @@ final class Query extends AbstractQuery
      */
     private function evictEntityCacheRegion()
     {
+
         $AST = $this->getAST();
 
         if ($AST instanceof \Doctrine\ORM\Query\AST\SelectStatement) {
             throw new QueryException('The hint "HINT_CACHE_EVICT" is not valid for select statements.');
         }
 
-        $className = ($AST instanceof \Doctrine\ORM\Query\AST\DeleteStatement)
+        $className = ( $AST instanceof \Doctrine\ORM\Query\AST\DeleteStatement )
             ? $AST->deleteClause->abstractSchemaName
             : $AST->updateClause->abstractSchemaName;
 
         $this->_em->getCache()->evictEntityRegion($className);
+    }
+
+    /**
+     * Returns the corresponding AST for this DQL query.
+     *
+     * @return \Doctrine\ORM\Query\AST\SelectStatement |
+     *         \Doctrine\ORM\Query\AST\UpdateStatement |
+     *         \Doctrine\ORM\Query\AST\DeleteStatement
+     */
+    public function getAST()
+    {
+
+        $parser = new Parser($this);
+
+        return $parser->getAST();
     }
 
     /**
@@ -350,24 +689,25 @@ final class Query extends AbstractQuery
      */
     private function processParameterMappings($paramMappings)
     {
+
         $sqlParams = array();
-        $types     = array();
+        $types = array();
 
         foreach ($this->parameters as $parameter) {
-            $key    = $parameter->getName();
-            $value  = $parameter->getValue();
-            $rsm    = $this->getResultSetMapping();
+            $key = $parameter->getName();
+            $value = $parameter->getValue();
+            $rsm = $this->getResultSetMapping();
 
-            if ( ! isset($paramMappings[$key])) {
+            if (!isset( $paramMappings[$key] )) {
                 throw QueryException::unknownParameter($key);
             }
 
-            if (isset($rsm->metadataParameterMapping[$key]) && $value instanceof ClassMetadata) {
+            if (isset( $rsm->metadataParameterMapping[$key] ) && $value instanceof ClassMetadata) {
                 $value = $value->getMetadataValue($rsm->metadataParameterMapping[$key]);
             }
 
             $value = $this->processParameterValue($value);
-            $type  = ($parameter->getValue() === $value)
+            $type = ( $parameter->getValue() === $value )
                 ? $parameter->getType()
                 : ParameterTypeInferer::inferType($value);
 
@@ -383,7 +723,7 @@ final class Query extends AbstractQuery
             $countValue = count($value);
 
             for ($i = 0, $l = count($sqlPositions); $i < $l; $i++) {
-                $sqlParams[$sqlPositions[$i]] = $value[($i % $countValue)];
+                $sqlParams[$sqlPositions[$i]] = $value[( $i % $countValue )];
             }
         }
 
@@ -403,333 +743,25 @@ final class Query extends AbstractQuery
     }
 
     /**
-     * Defines a cache driver to be used for caching queries.
-     *
-     * @param \Doctrine\Common\Cache\Cache|null $queryCache Cache driver.
-     *
-     * @return Query This query instance.
-     */
-    public function setQueryCacheDriver($queryCache)
-    {
-        $this->_queryCache = $queryCache;
-
-        return $this;
-    }
-
-    /**
-     * Defines whether the query should make use of a query cache, if available.
-     *
-     * @param boolean $bool
-     *
-     * @return Query This query instance.
-     */
-    public function useQueryCache($bool)
-    {
-        $this->_useQueryCache = $bool;
-
-        return $this;
-    }
-
-    /**
-     * Returns the cache driver used for query caching.
-     *
-     * @return \Doctrine\Common\Cache\Cache|null The cache driver used for query caching or NULL, if
-     *                                           this Query does not use query caching.
-     */
-    public function getQueryCacheDriver()
-    {
-        if ($this->_queryCache) {
-            return $this->_queryCache;
-        }
-
-        return $this->_em->getConfiguration()->getQueryCacheImpl();
-    }
-
-    /**
-     * Defines how long the query cache will be active before expire.
-     *
-     * @param integer $timeToLive How long the cache entry is valid.
-     *
-     * @return Query This query instance.
-     */
-    public function setQueryCacheLifetime($timeToLive)
-    {
-        if ($timeToLive !== null) {
-            $timeToLive = (int) $timeToLive;
-        }
-
-        $this->_queryCacheTTL = $timeToLive;
-
-        return $this;
-    }
-
-    /**
-     * Retrieves the lifetime of resultset cache.
-     *
-     * @return int
-     */
-    public function getQueryCacheLifetime()
-    {
-        return $this->_queryCacheTTL;
-    }
-
-    /**
-     * Defines if the query cache is active or not.
-     *
-     * @param boolean $expire Whether or not to force query cache expiration.
-     *
-     * @return Query This query instance.
-     */
-    public function expireQueryCache($expire = true)
-    {
-        $this->_expireQueryCache = $expire;
-
-        return $this;
-    }
-
-    /**
-     * Retrieves if the query cache is active or not.
-     *
-     * @return bool
-     */
-    public function getExpireQueryCache()
-    {
-        return $this->_expireQueryCache;
-    }
-
-    /**
-     * @override
-     */
-    public function free()
-    {
-        parent::free();
-
-        $this->_dql = null;
-        $this->_state = self::STATE_CLEAN;
-    }
-
-    /**
-     * Sets a DQL query string.
-     *
-     * @param string $dqlQuery DQL Query.
-     *
-     * @return \Doctrine\ORM\AbstractQuery
-     */
-    public function setDQL($dqlQuery)
-    {
-        if ($dqlQuery !== null) {
-            $this->_dql = $dqlQuery;
-            $this->_state = self::STATE_DIRTY;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Returns the DQL query that is represented by this query object.
-     *
-     * @return string DQL query.
-     */
-    public function getDQL()
-    {
-        return $this->_dql;
-    }
-
-    /**
-     * Returns the state of this query object
-     * By default the type is Doctrine_ORM_Query_Abstract::STATE_CLEAN but if it appears any unprocessed DQL
-     * part, it is switched to Doctrine_ORM_Query_Abstract::STATE_DIRTY.
-     *
-     * @see AbstractQuery::STATE_CLEAN
-     * @see AbstractQuery::STATE_DIRTY
-     *
-     * @return integer The query state.
-     */
-    public function getState()
-    {
-        return $this->_state;
-    }
-
-    /**
-     * Method to check if an arbitrary piece of DQL exists
-     *
-     * @param string $dql Arbitrary piece of DQL to check for.
-     *
-     * @return boolean
-     */
-    public function contains($dql)
-    {
-        return stripos($this->getDQL(), $dql) === false ? false : true;
-    }
-
-    /**
-     * Sets the position of the first result to retrieve (the "offset").
-     *
-     * @param integer $firstResult The first result to return.
-     *
-     * @return Query This query object.
-     */
-    public function setFirstResult($firstResult)
-    {
-        $this->_firstResult = $firstResult;
-        $this->_state       = self::STATE_DIRTY;
-
-        return $this;
-    }
-
-    /**
-     * Gets the position of the first result the query object was set to retrieve (the "offset").
-     * Returns NULL if {@link setFirstResult} was not applied to this query.
-     *
-     * @return integer The position of the first result.
-     */
-    public function getFirstResult()
-    {
-        return $this->_firstResult;
-    }
-
-    /**
-     * Sets the maximum number of results to retrieve (the "limit").
-     *
-     * @param integer $maxResults
-     *
-     * @return Query This query object.
-     */
-    public function setMaxResults($maxResults)
-    {
-        $this->_maxResults = $maxResults;
-        $this->_state      = self::STATE_DIRTY;
-
-        return $this;
-    }
-
-    /**
-     * Gets the maximum number of results the query object was set to retrieve (the "limit").
-     * Returns NULL if {@link setMaxResults} was not applied to this query.
-     *
-     * @return integer Maximum number of results.
-     */
-    public function getMaxResults()
-    {
-        return $this->_maxResults;
-    }
-
-    /**
-     * Executes the query and returns an IterableResult that can be used to incrementally
-     * iterated over the result.
-     *
-     * @param ArrayCollection|array|null $parameters    The query parameters.
-     * @param integer                    $hydrationMode The hydration mode to use.
-     *
-     * @return \Doctrine\ORM\Internal\Hydration\IterableResult
-     */
-    public function iterate($parameters = null, $hydrationMode = self::HYDRATE_OBJECT)
-    {
-        $this->setHint(self::HINT_INTERNAL_ITERATION, true);
-
-        return parent::iterate($parameters, $hydrationMode);
-    }
-
-    /**
      * {@inheritdoc}
      */
-    public function setHint($name, $value)
+    protected function getResultSetMapping()
     {
-        $this->_state = self::STATE_DIRTY;
 
-        return parent::setHint($name, $value);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setHydrationMode($hydrationMode)
-    {
-        $this->_state = self::STATE_DIRTY;
-
-        return parent::setHydrationMode($hydrationMode);
-    }
-
-    /**
-     * Set the lock mode for this Query.
-     *
-     * @see \Doctrine\DBAL\LockMode
-     *
-     * @param  int $lockMode
-     *
-     * @return Query
-     *
-     * @throws TransactionRequiredException
-     */
-    public function setLockMode($lockMode)
-    {
-        if (in_array($lockMode, array(LockMode::NONE, LockMode::PESSIMISTIC_READ, LockMode::PESSIMISTIC_WRITE), true)) {
-            if ( ! $this->_em->getConnection()->isTransactionActive()) {
-                throw TransactionRequiredException::transactionRequired();
-            }
+        // parse query or load from cache
+        if ($this->_resultSetMapping === null) {
+            $this->_resultSetMapping = $this->_parse()->getResultSetMapping();
         }
 
-        $this->setHint(self::HINT_LOCK_MODE, $lockMode);
-
-        return $this;
+        return $this->_resultSetMapping;
     }
 
     /**
-     * Get the current lock mode for this query.
-     *
-     * @return int|null The current lock mode of this query or NULL if no specific lock mode is set.
-     */
-    public function getLockMode()
-    {
-        $lockMode = $this->getHint(self::HINT_LOCK_MODE);
-
-        if (false === $lockMode) {
-            return null;
-        }
-
-        return $lockMode;
-    }
-
-    /**
-     * Generate a cache id for the query cache - reusing the Result-Cache-Id generator.
-     *
-     * @return string
-     */
-    protected function _getQueryCacheId()
-    {
-        ksort($this->_hints);
-
-        $platform = $this->getEntityManager()
-            ->getConnection()
-            ->getDatabasePlatform()
-            ->getName();
-
-        return md5(
-            $this->getDql() . serialize($this->_hints) .
-            '&platform=' . $platform .
-            ($this->_em->hasFilters() ? $this->_em->getFilters()->getHash() : '') .
-            '&firstResult=' . $this->_firstResult . '&maxResult=' . $this->_maxResults .
-            '&hydrationMode=' . $this->_hydrationMode . '&types=' . serialize($this->_parsedTypes) . 'DOCTRINE_QUERY_CACHE_SALT'
-        );
-    }
-
-     /**
      * {@inheritdoc}
      */
     protected function getHash()
     {
-        return sha1(parent::getHash(). '-'. $this->_firstResult . '-' . $this->_maxResults);
-    }
 
-    /**
-     * Cleanup Query resource when clone is called.
-     *
-     * @return void
-     */
-    public function __clone()
-    {
-        parent::__clone();
-
-        $this->_state = self::STATE_DIRTY;
+        return sha1(parent::getHash().'-'.$this->_firstResult.'-'.$this->_maxResults);
     }
 }

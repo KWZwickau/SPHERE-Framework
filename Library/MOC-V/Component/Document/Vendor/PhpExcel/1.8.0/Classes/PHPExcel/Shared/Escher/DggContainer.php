@@ -93,7 +93,7 @@ class PHPExcel_Shared_Escher_DggContainer
      *
      * @param int
      */
-    public function setSpIdMax( $value )
+    public function setSpIdMax($value)
     {
 
         $this->_spIdMax = $value;
@@ -115,7 +115,7 @@ class PHPExcel_Shared_Escher_DggContainer
      *
      * @param int
      */
-    public function setCDgSaved( $value )
+    public function setCDgSaved($value)
     {
 
         $this->_cDgSaved = $value;
@@ -137,7 +137,7 @@ class PHPExcel_Shared_Escher_DggContainer
      *
      * @param int
      */
-    public function setCSpSaved( $value )
+    public function setCSpSaved($value)
     {
 
         $this->_cSpSaved = $value;
@@ -159,7 +159,7 @@ class PHPExcel_Shared_Escher_DggContainer
      *
      * @param PHPExcel_Shared_Escher_DggContainer_BstoreContainer $bstoreContainer
      */
-    public function setBstoreContainer( $bstoreContainer )
+    public function setBstoreContainer($bstoreContainer)
     {
 
         $this->_bstoreContainer = $bstoreContainer;
@@ -172,7 +172,7 @@ class PHPExcel_Shared_Escher_DggContainer
      *
      * @return mixed
      */
-    public function getOPT( $property )
+    public function getOPT($property)
     {
 
         if (isset( $this->_OPT[$property] )) {
@@ -187,7 +187,7 @@ class PHPExcel_Shared_Escher_DggContainer
      * @param int   $property The number specifies the option
      * @param mixed $value
      */
-    public function setOPT( $property, $value )
+    public function setOPT($property, $value)
     {
 
         $this->_OPT[$property] = $value;
@@ -209,7 +209,7 @@ class PHPExcel_Shared_Escher_DggContainer
      *
      * @param array $pValue
      */
-    public function setIDCLs( $pValue )
+    public function setIDCLs($pValue)
     {
 
         $this->_IDCLs = $pValue;

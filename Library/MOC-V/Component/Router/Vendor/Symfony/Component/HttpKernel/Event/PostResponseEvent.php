@@ -23,8 +23,10 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class PostResponseEvent extends Event
 {
+
     /**
      * The kernel in which this event was thrown
+     *
      * @var HttpKernelInterface
      */
     private $kernel;
@@ -35,6 +37,7 @@ class PostResponseEvent extends Event
 
     public function __construct(HttpKernelInterface $kernel, Request $request, Response $response)
     {
+
         $this->kernel = $kernel;
         $this->request = $request;
         $this->response = $response;
@@ -47,6 +50,7 @@ class PostResponseEvent extends Event
      */
     public function getKernel()
     {
+
         return $this->kernel;
     }
 
@@ -57,6 +61,7 @@ class PostResponseEvent extends Event
      */
     public function getRequest()
     {
+
         return $this->request;
     }
 
@@ -67,6 +72,7 @@ class PostResponseEvent extends Event
      */
     public function getResponse()
     {
+
         return $this->response;
     }
 }

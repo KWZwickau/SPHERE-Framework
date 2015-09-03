@@ -15,20 +15,24 @@ use Symfony\Component\HttpKernel\CacheClearer\ChainCacheClearer;
 
 class ChainCacheClearerTest extends \PHPUnit_Framework_TestCase
 {
+
     protected static $cacheDir;
 
     public static function setUpBeforeClass()
     {
+
         self::$cacheDir = tempnam(sys_get_temp_dir(), 'sf2_cache_clearer_dir');
     }
 
     public static function tearDownAfterClass()
     {
+
         @unlink(self::$cacheDir);
     }
 
     public function testInjectClearersInConstructor()
     {
+
         $clearer = $this->getMockClearer();
         $clearer
             ->expects($this->once())
@@ -41,11 +45,12 @@ class ChainCacheClearerTest extends \PHPUnit_Framework_TestCase
     protected function getMockClearer()
     {
 
-        return $this->getMock( 'Symfony\Component\HttpKernel\CacheClearer\CacheClearerInterface' );
+        return $this->getMock('Symfony\Component\HttpKernel\CacheClearer\CacheClearerInterface');
     }
 
     public function testInjectClearerUsingAdd()
     {
+
         $clearer = $this->getMockClearer();
         $clearer
             ->expects($this->once())

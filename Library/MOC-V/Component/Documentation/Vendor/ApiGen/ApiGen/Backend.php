@@ -57,7 +57,7 @@ class Backend extends Broker\Backend\Memory
      * @param \ApiGen\Generator $generator         Generator instance
      * @param boolean           $cacheTokenStreams If token stream should be cached
      */
-    public function __construct( Generator $generator, $cacheTokenStreams = false )
+    public function __construct(Generator $generator, $cacheTokenStreams = false)
     {
 
         $this->generator = $generator;
@@ -73,7 +73,7 @@ class Backend extends Broker\Backend\Memory
     {
 
         foreach ($this->fileCache as $file) {
-            unlink( $file );
+            unlink($file);
         }
     }
 
@@ -85,15 +85,15 @@ class Backend extends Broker\Backend\Memory
      *
      * @return \TokenReflection\Broker\Backend\Memory
      */
-    public function addFile( TokenReflection\Stream\StreamBase $tokenStream, TokenReflection\ReflectionFile $file )
+    public function addFile(TokenReflection\Stream\StreamBase $tokenStream, TokenReflection\ReflectionFile $file)
     {
 
         if ($this->cacheTokenStreams) {
-            $this->fileCache[$file->getName()] = $cacheFile = tempnam( sys_get_temp_dir(), 'trc' );
-            file_put_contents( $cacheFile, serialize( $tokenStream ) );
+            $this->fileCache[$file->getName()] = $cacheFile = tempnam(sys_get_temp_dir(), 'trc');
+            file_put_contents($cacheFile, serialize($tokenStream));
         }
 
-        parent::addFile( $tokenStream, $file );
+        parent::addFile($tokenStream, $file);
 
         return $this;
     }
@@ -106,31 +106,31 @@ class Backend extends Broker\Backend\Memory
      * @return \TokenReflection\Stream
      * @throws \RuntimeException If the token stream could not be returned.
      */
-    public function getFileTokens( $fileName )
+    public function getFileTokens($fileName)
     {
 
         try {
-            if (!$this->isFileProcessed( $fileName )) {
-                throw new InvalidArgumentException( 'File was not processed' );
+            if (!$this->isFileProcessed($fileName)) {
+                throw new InvalidArgumentException('File was not processed');
             }
 
-            $realName = Broker::getRealPath( $fileName );
+            $realName = Broker::getRealPath($fileName);
             if (!isset( $this->fileCache[$realName] )) {
-                throw new InvalidArgumentException( 'File is not in the cache' );
+                throw new InvalidArgumentException('File is not in the cache');
             }
 
-            $data = @file_get_contents( $this->fileCache[$realName] );
+            $data = @file_get_contents($this->fileCache[$realName]);
             if (false === $data) {
-                throw new RuntimeException( 'Cached file is not readable' );
+                throw new RuntimeException('Cached file is not readable');
             }
-            $file = @unserialize( $data );
+            $file = @unserialize($data);
             if (false === $file) {
-                throw new RuntimeException( 'Stream could not be loaded from cache' );
+                throw new RuntimeException('Stream could not be loaded from cache');
             }
 
             return $file;
-        } catch( \Exception $e ) {
-            throw new RuntimeException( sprintf( 'Could not return token stream for file %s', $fileName ), 0, $e );
+        } catch (\Exception $e) {
+            throw new RuntimeException(sprintf('Could not return token stream for file %s', $fileName), 0, $e);
         }
     }
 
@@ -143,10 +143,10 @@ class Backend extends Broker\Backend\Memory
     {
 
         $generator = $this->generator;
-        return array_map( function ( IReflectionConstant $constant ) use ( $generator ) {
+        return array_map(function (IReflectionConstant $constant) use ($generator) {
 
-            return new ReflectionConstant( $constant, $generator );
-        }, parent::getConstants() );
+            return new ReflectionConstant($constant, $generator);
+        }, parent::getConstants());
     }
 
     /**
@@ -163,18 +163,18 @@ class Backend extends Broker\Backend\Memory
             self::NONEXISTENT_CLASSES => array()
         );
 
-        $declared = array_flip( array_merge( get_declared_classes(), get_declared_interfaces() ) );
+        $declared = array_flip(array_merge(get_declared_classes(), get_declared_interfaces()));
 
         foreach ($this->getNamespaces() as $namespace) {
             foreach ($namespace->getClasses() as $name => $trClass) {
-                $class = new ReflectionClass( $trClass, $this->generator );
+                $class = new ReflectionClass($trClass, $this->generator);
                 $allClasses[self::TOKENIZED_CLASSES][$name] = $class;
                 if (!$class->isDocumented()) {
                     continue;
                 }
 
-                foreach (array_merge( $trClass->getParentClasses(),
-                    $trClass->getInterfaces() ) as $parentName => $parent) {
+                foreach (array_merge($trClass->getParentClasses(),
+                    $trClass->getInterfaces()) as $parentName => $parent) {
                     if ($parent->isInternal()) {
                         if (!isset( $allClasses[self::INTERNAL_CLASSES][$parentName] )) {
                             $allClasses[self::INTERNAL_CLASSES][$parentName] = $parent;
@@ -196,7 +196,7 @@ class Backend extends Broker\Backend\Memory
             }
 
             foreach ($class->getOwnMethods() as $method) {
-                $allClasses = $this->processFunction( $declared, $allClasses, $method );
+                $allClasses = $this->processFunction($declared, $allClasses, $method);
             }
 
             foreach ($class->getOwnProperties() as $property) {
@@ -207,11 +207,11 @@ class Backend extends Broker\Backend\Memory
                 }
 
                 foreach ($annotations['var'] as $doc) {
-                    foreach (explode( '|', preg_replace( '~\\s.*~', '', $doc ) ) as $name) {
-                        if ($name = rtrim( $name, '[]' )) {
-                            $name = Resolver::resolveClassFQN( $name, $class->getNamespaceAliases(),
-                                $class->getNamespaceName() );
-                            $allClasses = $this->addClass( $declared, $allClasses, $name );
+                    foreach (explode('|', preg_replace('~\\s.*~', '', $doc)) as $name) {
+                        if ($name = rtrim($name, '[]')) {
+                            $name = Resolver::resolveClassFQN($name, $class->getNamespaceAliases(),
+                                $class->getNamespaceName());
+                            $allClasses = $this->addClass($declared, $allClasses, $name);
                         }
                     }
                 }
@@ -221,15 +221,15 @@ class Backend extends Broker\Backend\Memory
         }
 
         foreach ($this->getFunctions() as $function) {
-            $allClasses = $this->processFunction( $declared, $allClasses, $function );
+            $allClasses = $this->processFunction($declared, $allClasses, $function);
         }
 
-        array_walk_recursive( $allClasses, function ( &$reflection, $name, Generator $generator ) {
+        array_walk_recursive($allClasses, function (&$reflection, $name, Generator $generator) {
 
             if (!$reflection instanceof ReflectionClass) {
-                $reflection = new ReflectionClass( $reflection, $generator );
+                $reflection = new ReflectionClass($reflection, $generator);
             }
-        }, $this->generator );
+        }, $this->generator);
 
         return $allClasses;
     }
@@ -243,10 +243,10 @@ class Backend extends Broker\Backend\Memory
      *
      * @return array
      */
-    private function processFunction( array $declared, array $allClasses, $function )
+    private function processFunction(array $declared, array $allClasses, $function)
     {
 
-        static $parsedAnnotations = array( 'param', 'return', 'throws' );
+        static $parsedAnnotations = array('param', 'return', 'throws');
 
         $annotations = $function->getAnnotations();
         foreach ($parsedAnnotations as $annotation) {
@@ -255,11 +255,11 @@ class Backend extends Broker\Backend\Memory
             }
 
             foreach ($annotations[$annotation] as $doc) {
-                foreach (explode( '|', preg_replace( '~\\s.*~', '', $doc ) ) as $name) {
+                foreach (explode('|', preg_replace('~\\s.*~', '', $doc)) as $name) {
                     if ($name) {
-                        $name = Resolver::resolveClassFQN( rtrim( $name, '[]' ), $function->getNamespaceAliases(),
-                            $function->getNamespaceName() );
-                        $allClasses = $this->addClass( $declared, $allClasses, $name );
+                        $name = Resolver::resolveClassFQN(rtrim($name, '[]'), $function->getNamespaceAliases(),
+                            $function->getNamespaceName());
+                        $allClasses = $this->addClass($declared, $allClasses, $name);
                     }
                 }
             }
@@ -267,7 +267,7 @@ class Backend extends Broker\Backend\Memory
 
         foreach ($function->getParameters() as $param) {
             if ($hint = $param->getClassName()) {
-                $allClasses = $this->addClass( $declared, $allClasses, $hint );
+                $allClasses = $this->addClass($declared, $allClasses, $hint);
             }
         }
 
@@ -283,10 +283,10 @@ class Backend extends Broker\Backend\Memory
      *
      * @return array
      */
-    private function addClass( array $declared, array $allClasses, $name )
+    private function addClass(array $declared, array $allClasses, $name)
     {
 
-        $name = ltrim( $name, '\\' );
+        $name = ltrim($name, '\\');
 
         if (!isset( $declared[$name] ) || isset( $allClasses[self::TOKENIZED_CLASSES][$name] )
             || isset( $allClasses[self::INTERNAL_CLASSES][$name] ) || isset( $allClasses[self::NONEXISTENT_CLASSES][$name] )
@@ -294,11 +294,11 @@ class Backend extends Broker\Backend\Memory
             return $allClasses;
         }
 
-        $parameterClass = $this->getBroker()->getClass( $name );
+        $parameterClass = $this->getBroker()->getClass($name);
         if ($parameterClass->isInternal()) {
             $allClasses[self::INTERNAL_CLASSES][$name] = $parameterClass;
-            foreach (array_merge( $parameterClass->getInterfaces(),
-                $parameterClass->getParentClasses() ) as $parentClass) {
+            foreach (array_merge($parameterClass->getInterfaces(),
+                $parameterClass->getParentClasses()) as $parentClass) {
                 if (!isset( $allClasses[self::INTERNAL_CLASSES][$parentName = $parentClass->getName()] )) {
                     $allClasses[self::INTERNAL_CLASSES][$parentName] = $parentClass;
                 }
@@ -319,9 +319,9 @@ class Backend extends Broker\Backend\Memory
     {
 
         $generator = $this->generator;
-        return array_map( function ( IReflectionFunction $function ) use ( $generator ) {
+        return array_map(function (IReflectionFunction $function) use ($generator) {
 
-            return new ReflectionFunction( $function, $generator );
-        }, parent::getFunctions() );
+            return new ReflectionFunction($function, $generator);
+        }, parent::getFunctions());
     }
 }

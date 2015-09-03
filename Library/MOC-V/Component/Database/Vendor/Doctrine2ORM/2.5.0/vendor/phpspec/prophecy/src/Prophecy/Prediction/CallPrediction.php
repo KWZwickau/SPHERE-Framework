@@ -11,13 +11,13 @@
 
 namespace Prophecy\Prediction;
 
-use Prophecy\Call\Call;
-use Prophecy\Prophecy\ObjectProphecy;
-use Prophecy\Prophecy\MethodProphecy;
 use Prophecy\Argument\ArgumentsWildcard;
 use Prophecy\Argument\Token\AnyValuesToken;
-use Prophecy\Util\StringUtil;
+use Prophecy\Call\Call;
 use Prophecy\Exception\Prediction\NoCallsException;
+use Prophecy\Prophecy\MethodProphecy;
+use Prophecy\Prophecy\ObjectProphecy;
+use Prophecy\Util\StringUtil;
 
 /**
  * Call prediction.
@@ -26,6 +26,7 @@ use Prophecy\Exception\Prediction\NoCallsException;
  */
 class CallPrediction implements PredictionInterface
 {
+
     private $util;
 
     /**
@@ -35,6 +36,7 @@ class CallPrediction implements PredictionInterface
      */
     public function __construct(StringUtil $util = null)
     {
+
         $this->util = $util ?: new StringUtil;
     }
 
@@ -49,6 +51,7 @@ class CallPrediction implements PredictionInterface
      */
     public function check(array $calls, ObjectProphecy $object, MethodProphecy $method)
     {
+
         if (count($calls)) {
             return;
         }

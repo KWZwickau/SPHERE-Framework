@@ -29,7 +29,7 @@ class StreamedResponseListener implements EventSubscriberInterface
     {
 
         return array(
-            KernelEvents::RESPONSE => array( 'onKernelResponse', -1024 ),
+            KernelEvents::RESPONSE => array('onKernelResponse', -1024),
         );
     }
 
@@ -40,6 +40,7 @@ class StreamedResponseListener implements EventSubscriberInterface
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
+
         if (!$event->isMasterRequest()) {
             return;
         }

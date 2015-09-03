@@ -6,11 +6,13 @@ use PhpSpec\ObjectBehavior;
 
 class ClassCreatorSpec extends ObjectBehavior
 {
+
     /**
      * @param \Prophecy\Doubler\Generator\ClassCodeGenerator $generator
      */
     function let($generator)
     {
+
         $this->beConstructedWith($generator);
     }
 
@@ -19,6 +21,7 @@ class ClassCreatorSpec extends ObjectBehavior
      */
     function it_evaluates_code_generated_by_ClassCodeGenerator($generator, $class)
     {
+
         $generator->generate('stdClass', $class)->shouldBeCalled()->willReturn(
             'return 42;'
         );
@@ -31,6 +34,7 @@ class ClassCreatorSpec extends ObjectBehavior
      */
     function it_throws_an_exception_if_class_does_not_exist_after_evaluation($generator, $class)
     {
+
         $generator->generate('CustomClass', $class)->shouldBeCalled()->willReturn(
             'return 42;'
         );

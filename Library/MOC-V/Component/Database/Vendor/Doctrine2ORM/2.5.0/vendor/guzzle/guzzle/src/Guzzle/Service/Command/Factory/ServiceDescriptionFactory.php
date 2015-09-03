@@ -2,14 +2,15 @@
 
 namespace Guzzle\Service\Command\Factory;
 
-use Guzzle\Service\Description\ServiceDescriptionInterface;
 use Guzzle\Inflection\InflectorInterface;
+use Guzzle\Service\Description\ServiceDescriptionInterface;
 
 /**
  * Command factory used to create commands based on service descriptions
  */
 class ServiceDescriptionFactory implements FactoryInterface
 {
+
     /** @var ServiceDescriptionInterface */
     protected $description;
 
@@ -22,6 +23,7 @@ class ServiceDescriptionFactory implements FactoryInterface
      */
     public function __construct(ServiceDescriptionInterface $description, InflectorInterface $inflector = null)
     {
+
         $this->setServiceDescription($description);
         $this->inflector = $inflector;
     }
@@ -35,6 +37,7 @@ class ServiceDescriptionFactory implements FactoryInterface
      */
     public function setServiceDescription(ServiceDescriptionInterface $description)
     {
+
         $this->description = $description;
 
         return $this;
@@ -47,11 +50,13 @@ class ServiceDescriptionFactory implements FactoryInterface
      */
     public function getServiceDescription()
     {
+
         return $this->description;
     }
 
     public function factory($name, array $args = array())
     {
+
         $command = $this->description->getOperation($name);
 
         // If a command wasn't found, then try to uppercase the first letter and try again

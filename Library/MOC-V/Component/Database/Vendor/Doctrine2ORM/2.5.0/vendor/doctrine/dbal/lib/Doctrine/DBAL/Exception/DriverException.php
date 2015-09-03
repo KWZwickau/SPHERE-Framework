@@ -30,6 +30,7 @@ use Doctrine\DBAL\DBALException;
  */
 class DriverException extends DBALException
 {
+
     /**
      * The previous DBAL driver exception.
      *
@@ -45,6 +46,7 @@ class DriverException extends DBALException
      */
     public function __construct($message, \Doctrine\DBAL\Driver\DriverException $driverException)
     {
+
         $exception = null;
 
         if ($driverException instanceof \Exception) {
@@ -65,6 +67,7 @@ class DriverException extends DBALException
      */
     public function getErrorCode()
     {
+
         return $this->driverException->getErrorCode();
     }
 
@@ -77,6 +80,7 @@ class DriverException extends DBALException
      */
     public function getSQLState()
     {
+
         return $this->driverException->getSQLState();
     }
 }

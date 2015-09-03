@@ -16,6 +16,7 @@
  */
 interface Twig_TokenParserInterface
 {
+
     /**
      * Sets the parser associated with this token parser
      *

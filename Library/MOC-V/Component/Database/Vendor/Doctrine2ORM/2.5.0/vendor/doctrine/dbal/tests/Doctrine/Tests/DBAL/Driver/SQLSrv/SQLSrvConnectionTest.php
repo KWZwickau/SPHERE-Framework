@@ -6,6 +6,7 @@ use Doctrine\Tests\DbalTestCase;
 
 class SQLSrvConnectionTest extends DbalTestCase
 {
+
     /**
      * The sqlsrv driver connection mock under test.
      *
@@ -13,9 +14,16 @@ class SQLSrvConnectionTest extends DbalTestCase
      */
     private $connectionMock;
 
+    public function testDoesNotRequireQueryForServerVersion()
+    {
+
+        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
+    }
+
     protected function setUp()
     {
-        if ( ! extension_loaded('sqlsrv')) {
+
+        if (!extension_loaded('sqlsrv')) {
             $this->markTestSkipped('sqlsrv is not installed.');
         }
 
@@ -24,10 +32,5 @@ class SQLSrvConnectionTest extends DbalTestCase
         $this->connectionMock = $this->getMockBuilder('Doctrine\DBAL\Driver\SQLSrv\SQLSrvConnection')
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
-    }
-
-    public function testDoesNotRequireQueryForServerVersion()
-    {
-        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
     }
 }

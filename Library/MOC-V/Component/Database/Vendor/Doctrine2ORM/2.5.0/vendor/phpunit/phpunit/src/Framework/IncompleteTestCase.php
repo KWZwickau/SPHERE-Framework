@@ -15,6 +15,7 @@
  */
 class PHPUnit_Framework_IncompleteTestCase extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @var string
      */
@@ -52,16 +53,9 @@ class PHPUnit_Framework_IncompleteTestCase extends PHPUnit_Framework_TestCase
      */
     public function __construct($className, $methodName, $message = '')
     {
-        $this->message = $message;
-        parent::__construct($className . '::' . $methodName);
-    }
 
-    /**
-     * @throws PHPUnit_Framework_Exception
-     */
-    protected function runTest()
-    {
-        $this->markTestIncomplete($this->message);
+        $this->message = $message;
+        parent::__construct($className.'::'.$methodName);
     }
 
     /**
@@ -69,6 +63,7 @@ class PHPUnit_Framework_IncompleteTestCase extends PHPUnit_Framework_TestCase
      */
     public function getMessage()
     {
+
         return $this->message;
     }
 
@@ -79,6 +74,16 @@ class PHPUnit_Framework_IncompleteTestCase extends PHPUnit_Framework_TestCase
      */
     public function toString()
     {
+
         return $this->getName();
+    }
+
+    /**
+     * @throws PHPUnit_Framework_Exception
+     */
+    protected function runTest()
+    {
+
+        $this->markTestIncomplete($this->message);
     }
 }

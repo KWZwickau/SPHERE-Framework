@@ -29,6 +29,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
  */
 interface MappingDriver
 {
+
     /**
      * Loads the metadata for the specified class into the provided container.
      *

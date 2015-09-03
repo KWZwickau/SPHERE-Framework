@@ -13,7 +13,7 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
     {
 
         new SymfonyFinder(
-            new FileParameter( __FILE__ )
+            new FileParameter(__FILE__)
         );
     }
 
@@ -21,7 +21,7 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
     {
 
         new UniversalFileLoader(
-            new FileParameter( __FILE__ )
+            new FileParameter(__FILE__)
         );
     }
 
@@ -29,7 +29,7 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
     {
 
         new UniversalFileWriter(
-            new FileParameter( __FILE__ )
+            new FileParameter(__FILE__)
         );
     }
 }

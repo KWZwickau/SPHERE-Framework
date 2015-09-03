@@ -2,13 +2,15 @@
 
 namespace Guzzle\Tests\Http;
 
-use Guzzle\Http\QueryString;
 use Guzzle\Http\QueryAggregator\CommaAggregator as Ag;
+use Guzzle\Http\QueryString;
 
 class CommaAggregatorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testAggregates()
     {
+
         $query = new QueryString();
         $a = new Ag();
         $key = 'test 123';
@@ -19,6 +21,7 @@ class CommaAggregatorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEncodes()
     {
+
         $query = new QueryString();
         $query->useUrlEncoding(false);
         $a = new Ag();

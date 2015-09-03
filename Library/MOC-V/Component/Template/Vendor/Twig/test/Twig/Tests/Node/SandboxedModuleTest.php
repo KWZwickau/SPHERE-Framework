@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_SandboxedModuleTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_SandboxedModule::__construct
      */
     public function testConstructor()
     {
+
         $body = new Twig_Node_Text('foo', 1);
         $parent = new Twig_Node_Expression_Constant('layout.twig', 1);
         $blocks = new Twig_Node();
@@ -33,18 +35,20 @@ class Twig_Tests_Node_SandboxedModuleTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_SandboxedModule::compile
-     * @covers Twig_Node_SandboxedModule::compileDisplayBody
-     * @covers Twig_Node_SandboxedModule::compileDisplayFooter
+     * @covers       Twig_Node_SandboxedModule::compile
+     * @covers       Twig_Node_SandboxedModule::compileDisplayBody
+     * @covers       Twig_Node_SandboxedModule::compileDisplayFooter
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $twig = new Twig_Environment(new Twig_Loader_String());
 
         $tests = array();
@@ -59,8 +63,10 @@ class Twig_Tests_Node_SandboxedModuleTest extends Twig_Test_NodeTestCase
         $node = new Twig_Node_Module($body, $extends, $blocks, $macros, $traits, new Twig_Node(array()), $filename);
         $node = new Twig_Node_SandboxedModule($node, array('for'), array('upper'), array('cycle'));
 
-        $tests[] = array($node, <<<EOF
-<?php
+        $tests[] = array(
+            $node,
+            <<<EOF
+           <?php
 
 /* foo.twig */
 class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c18638df0d extends Twig_Template
@@ -102,7 +108,9 @@ class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c1863
     }
 }
 EOF
-        , $twig);
+        ,
+            $twig
+        );
 
         $body = new Twig_Node();
         $extends = new Twig_Node_Expression_Constant('layout.twig', 1);
@@ -114,8 +122,10 @@ EOF
         $node = new Twig_Node_Module($body, $extends, $blocks, $macros, $traits, new Twig_Node(array()), $filename);
         $node = new Twig_Node_SandboxedModule($node, array('for'), array('upper'), array('cycle'));
 
-        $tests[] = array($node, <<<EOF
-<?php
+        $tests[] = array(
+            $node,
+            <<<EOF
+           <?php
 
 /* foo.twig */
 class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c18638df0d extends Twig_Template
@@ -166,7 +176,9 @@ class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c1863
     }
 }
 EOF
-        , $twig);
+        ,
+            $twig
+        );
 
         return $tests;
     }

@@ -28,10 +28,11 @@ namespace Doctrine\ORM\Query;
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
- * @todo Rename: ExpressionBuilder
+ * @todo    Rename: ExpressionBuilder
  */
 class Expr
 {
+
     /**
      * Creates a conjunction of the given boolean expressions.
      *
@@ -50,6 +51,7 @@ class Expr
      */
     public function andX($x = null)
     {
+
         return new Expr\Andx(func_get_args());
     }
 
@@ -69,6 +71,7 @@ class Expr
      */
     public function orX($x = null)
     {
+
         return new Expr\Orx(func_get_args());
     }
 
@@ -81,6 +84,7 @@ class Expr
      */
     public function asc($expr)
     {
+
         return new Expr\OrderBy($expr, 'ASC');
     }
 
@@ -93,6 +97,7 @@ class Expr
      */
     public function desc($expr)
     {
+
         return new Expr\OrderBy($expr, 'DESC');
     }
 
@@ -113,6 +118,7 @@ class Expr
      */
     public function eq($x, $y)
     {
+
         return new Expr\Comparison($x, Expr\Comparison::EQ, $y);
     }
 
@@ -132,6 +138,7 @@ class Expr
      */
     public function neq($x, $y)
     {
+
         return new Expr\Comparison($x, Expr\Comparison::NEQ, $y);
     }
 
@@ -151,6 +158,7 @@ class Expr
      */
     public function lt($x, $y)
     {
+
         return new Expr\Comparison($x, Expr\Comparison::LT, $y);
     }
 
@@ -170,6 +178,7 @@ class Expr
      */
     public function lte($x, $y)
     {
+
         return new Expr\Comparison($x, Expr\Comparison::LTE, $y);
     }
 
@@ -189,6 +198,7 @@ class Expr
      */
     public function gt($x, $y)
     {
+
         return new Expr\Comparison($x, Expr\Comparison::GT, $y);
     }
 
@@ -208,6 +218,7 @@ class Expr
      */
     public function gte($x, $y)
     {
+
         return new Expr\Comparison($x, Expr\Comparison::GTE, $y);
     }
 
@@ -220,6 +231,7 @@ class Expr
      */
     public function avg($x)
     {
+
         return new Expr\Func('AVG', array($x));
     }
 
@@ -232,6 +244,7 @@ class Expr
      */
     public function max($x)
     {
+
         return new Expr\Func('MAX', array($x));
     }
 
@@ -244,6 +257,7 @@ class Expr
      */
     public function min($x)
     {
+
         return new Expr\Func('MIN', array($x));
     }
 
@@ -256,6 +270,7 @@ class Expr
      */
     public function count($x)
     {
+
         return new Expr\Func('COUNT', array($x));
     }
 
@@ -268,7 +283,8 @@ class Expr
      */
     public function countDistinct($x)
     {
-        return 'COUNT(DISTINCT ' . implode(', ', func_get_args()) . ')';
+
+        return 'COUNT(DISTINCT '.implode(', ', func_get_args()).')';
     }
 
     /**
@@ -280,6 +296,7 @@ class Expr
      */
     public function exists($subquery)
     {
+
         return new Expr\Func('EXISTS', array($subquery));
     }
 
@@ -292,6 +309,7 @@ class Expr
      */
     public function all($subquery)
     {
+
         return new Expr\Func('ALL', array($subquery));
     }
 
@@ -304,6 +322,7 @@ class Expr
      */
     public function some($subquery)
     {
+
         return new Expr\Func('SOME', array($subquery));
     }
 
@@ -316,6 +335,7 @@ class Expr
      */
     public function any($subquery)
     {
+
         return new Expr\Func('ANY', array($subquery));
     }
 
@@ -328,6 +348,7 @@ class Expr
      */
     public function not($restriction)
     {
+
         return new Expr\Func('NOT', array($restriction));
     }
 
@@ -340,6 +361,7 @@ class Expr
      */
     public function abs($x)
     {
+
         return new Expr\Func('ABS', array($x));
     }
 
@@ -360,6 +382,7 @@ class Expr
      */
     public function prod($x, $y)
     {
+
         return new Expr\Math($x, '*', $y);
     }
 
@@ -379,6 +402,7 @@ class Expr
      */
     public function diff($x, $y)
     {
+
         return new Expr\Math($x, '-', $y);
     }
 
@@ -398,6 +422,7 @@ class Expr
      */
     public function sum($x, $y)
     {
+
         return new Expr\Math($x, '+', $y);
     }
 
@@ -417,6 +442,7 @@ class Expr
      */
     public function quot($x, $y)
     {
+
         return new Expr\Math($x, '/', $y);
     }
 
@@ -429,6 +455,7 @@ class Expr
      */
     public function sqrt($x)
     {
+
         return new Expr\Func('SQRT', array($x));
     }
 
@@ -442,14 +469,36 @@ class Expr
      */
     public function in($x, $y)
     {
+
         if (is_array($y)) {
             foreach ($y as &$literal) {
-                if ( ! ($literal instanceof Expr\Literal)) {
+                if (!( $literal instanceof Expr\Literal )) {
                     $literal = $this->_quoteLiteral($literal);
                 }
             }
         }
-        return new Expr\Func($x . ' IN', (array) $y);
+        return new Expr\Func($x.' IN', (array)$y);
+    }
+
+    /**
+     * Quotes a literal value, if necessary, according to the DQL syntax.
+     *
+     * @param mixed $literal The literal value.
+     *
+     * @return string
+     */
+    private function _quoteLiteral($literal)
+    {
+
+        if (is_numeric($literal) && !is_string($literal)) {
+            return (string)$literal;
+        } else {
+            if (is_bool($literal)) {
+                return $literal ? "true" : "false";
+            } else {
+                return "'".str_replace("'", "''", $literal)."'";
+            }
+        }
     }
 
     /**
@@ -462,14 +511,15 @@ class Expr
      */
     public function notIn($x, $y)
     {
+
         if (is_array($y)) {
             foreach ($y as &$literal) {
-                if ( ! ($literal instanceof Expr\Literal)) {
+                if (!( $literal instanceof Expr\Literal )) {
                     $literal = $this->_quoteLiteral($literal);
                 }
             }
         }
-        return new Expr\Func($x . ' NOT IN', (array) $y);
+        return new Expr\Func($x.' NOT IN', (array)$y);
     }
 
     /**
@@ -481,7 +531,8 @@ class Expr
      */
     public function isNull($x)
     {
-        return $x . ' IS NULL';
+
+        return $x.' IS NULL';
     }
 
     /**
@@ -493,7 +544,8 @@ class Expr
      */
     public function isNotNull($x)
     {
-        return $x . ' IS NOT NULL';
+
+        return $x.' IS NOT NULL';
     }
 
     /**
@@ -506,6 +558,7 @@ class Expr
      */
     public function like($x, $y)
     {
+
         return new Expr\Comparison($x, 'LIKE', $y);
     }
 
@@ -519,6 +572,7 @@ class Expr
      */
     public function notLike($x, $y)
     {
+
         return new Expr\Comparison($x, 'NOT LIKE', $y);
     }
 
@@ -532,6 +586,7 @@ class Expr
      */
     public function concat($x, $y)
     {
+
         return new Expr\Func('CONCAT', array($x, $y));
     }
 
@@ -546,6 +601,7 @@ class Expr
      */
     public function substring($x, $from, $len = null)
     {
+
         $args = array($x, $from);
         if (null !== $len) {
             $args[] = $len;
@@ -562,6 +618,7 @@ class Expr
      */
     public function lower($x)
     {
+
         return new Expr\Func('LOWER', array($x));
     }
 
@@ -574,6 +631,7 @@ class Expr
      */
     public function upper($x)
     {
+
         return new Expr\Func('UPPER', array($x));
     }
 
@@ -586,6 +644,7 @@ class Expr
      */
     public function length($x)
     {
+
         return new Expr\Func('LENGTH', array($x));
     }
 
@@ -598,25 +657,8 @@ class Expr
      */
     public function literal($literal)
     {
-        return new Expr\Literal($this->_quoteLiteral($literal));
-    }
 
-    /**
-     * Quotes a literal value, if necessary, according to the DQL syntax.
-     *
-     * @param mixed $literal The literal value.
-     *
-     * @return string
-     */
-    private function _quoteLiteral($literal)
-    {
-        if (is_numeric($literal) && !is_string($literal)) {
-            return (string) $literal;
-        } else if (is_bool($literal)) {
-            return $literal ? "true" : "false";
-        } else {
-            return "'" . str_replace("'", "''", $literal) . "'";
-        }
+        return new Expr\Literal($this->_quoteLiteral($literal));
     }
 
     /**
@@ -630,7 +672,8 @@ class Expr
      */
     public function between($val, $x, $y)
     {
-        return $val . ' BETWEEN ' . $x . ' AND ' . $y;
+
+        return $val.' BETWEEN '.$x.' AND '.$y;
     }
 
     /**
@@ -642,6 +685,7 @@ class Expr
      */
     public function trim($x)
     {
+
         return new Expr\Func('TRIM', $x);
     }
 
@@ -655,6 +699,7 @@ class Expr
      */
     public function isMemberOf($x, $y)
     {
+
         return new Expr\Comparison($x, 'MEMBER OF', $y);
     }
 
@@ -668,6 +713,7 @@ class Expr
      */
     public function isInstanceOf($x, $y)
     {
+
         return new Expr\Comparison($x, 'INSTANCE OF', $y);
     }
 }

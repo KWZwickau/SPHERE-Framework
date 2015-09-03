@@ -26,6 +26,7 @@ namespace Doctrine\Common\Reflection;
  */
 interface ClassFinderInterface
 {
+
     /**
      * Finds a class.
      *

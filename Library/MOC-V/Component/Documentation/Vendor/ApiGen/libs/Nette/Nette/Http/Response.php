@@ -63,7 +63,7 @@ final class Response extends Nette\Object implements IResponse
      * @throws Nette\InvalidArgumentException  if code is invalid
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function setCode( $code )
+    public function setCode($code)
     {
 
         $code = (int)$code;
@@ -100,15 +100,15 @@ final class Response extends Nette\Object implements IResponse
         );
 
         if (!isset( $allowed[$code] )) {
-            throw new Nette\InvalidArgumentException( "Bad HTTP response '$code'." );
+            throw new Nette\InvalidArgumentException("Bad HTTP response '$code'.");
 
-        } elseif (headers_sent( $file, $line )) {
-            throw new Nette\InvalidStateException( "Cannot set HTTP code after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ) );
+        } elseif (headers_sent($file, $line)) {
+            throw new Nette\InvalidStateException("Cannot set HTTP code after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ));
 
         } else {
             $this->code = $code;
             $protocol = isset( $_SERVER['SERVER_PROTOCOL'] ) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.1';
-            header( $protocol.' '.$code, true, $code );
+            header($protocol.' '.$code, true, $code);
         }
         return $this;
     }
@@ -122,14 +122,14 @@ final class Response extends Nette\Object implements IResponse
      * @return Response  provides a fluent interface
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function addHeader( $name, $value )
+    public function addHeader($name, $value)
     {
 
-        if (headers_sent( $file, $line )) {
-            throw new Nette\InvalidStateException( "Cannot send header after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ) );
+        if (headers_sent($file, $line)) {
+            throw new Nette\InvalidStateException("Cannot send header after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ));
         }
 
-        header( $name.': '.$value, false, $this->code );
+        header($name.': '.$value, false, $this->code);
         return $this;
     }
 
@@ -142,10 +142,10 @@ final class Response extends Nette\Object implements IResponse
      * @return Response  provides a fluent interface
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function setContentType( $type, $charset = null )
+    public function setContentType($type, $charset = null)
     {
 
-        $this->setHeader( 'Content-Type', $type.( $charset ? '; charset='.$charset : '' ) );
+        $this->setHeader('Content-Type', $type.( $charset ? '; charset='.$charset : '' ));
         return $this;
     }
 
@@ -158,17 +158,17 @@ final class Response extends Nette\Object implements IResponse
      * @return Response  provides a fluent interface
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function setHeader( $name, $value )
+    public function setHeader($name, $value)
     {
 
-        if (headers_sent( $file, $line )) {
-            throw new Nette\InvalidStateException( "Cannot send header after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ) );
+        if (headers_sent($file, $line)) {
+            throw new Nette\InvalidStateException("Cannot send header after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ));
         }
 
-        if ($value === null && function_exists( 'header_remove' )) {
-            header_remove( $name );
+        if ($value === null && function_exists('header_remove')) {
+            header_remove($name);
         } else {
-            header( $name.': '.$value, true, $this->code );
+            header($name.': '.$value, true, $this->code);
         }
         return $this;
     }
@@ -182,19 +182,19 @@ final class Response extends Nette\Object implements IResponse
      * @return void
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function redirect( $url, $code = self::S302_FOUND )
+    public function redirect($url, $code = self::S302_FOUND)
     {
 
-        if (isset( $_SERVER['SERVER_SOFTWARE'] ) && preg_match( '#^Microsoft-IIS/[1-5]#', $_SERVER['SERVER_SOFTWARE'] )
-            && $this->getHeader( 'Set-Cookie' ) !== null
+        if (isset( $_SERVER['SERVER_SOFTWARE'] ) && preg_match('#^Microsoft-IIS/[1-5]#', $_SERVER['SERVER_SOFTWARE'])
+            && $this->getHeader('Set-Cookie') !== null
         ) {
-            $this->setHeader( 'Refresh', "0;url=$url" );
+            $this->setHeader('Refresh', "0;url=$url");
             return;
         }
 
-        $this->setCode( $code );
-        $this->setHeader( 'Location', $url );
-        echo "<h1>Redirect</h1>\n\n<p><a href=\"".htmlSpecialChars( $url )."\">Please click here to continue</a>.</p>";
+        $this->setCode($code);
+        $this->setHeader('Location', $url);
+        echo "<h1>Redirect</h1>\n\n<p><a href=\"".htmlSpecialChars($url)."\">Please click here to continue</a>.</p>";
     }
 
     /**
@@ -205,14 +205,14 @@ final class Response extends Nette\Object implements IResponse
      *
      * @return mixed
      */
-    public function getHeader( $header, $default = null )
+    public function getHeader($header, $default = null)
     {
 
         $header .= ':';
-        $len = strlen( $header );
+        $len = strlen($header);
         foreach (headers_list() as $item) {
-            if (strncasecmp( $item, $header, $len ) === 0) {
-                return ltrim( substr( $item, $len ) );
+            if (strncasecmp($item, $header, $len) === 0) {
+                return ltrim(substr($item, $len));
             }
         }
         return $default;
@@ -226,18 +226,18 @@ final class Response extends Nette\Object implements IResponse
      * @return Response  provides a fluent interface
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function setExpiration( $time )
+    public function setExpiration($time)
     {
 
         if (!$time) { // no cache
-            $this->setHeader( 'Cache-Control', 's-maxage=0, max-age=0, must-revalidate' );
-            $this->setHeader( 'Expires', 'Mon, 23 Jan 1978 10:00:00 GMT' );
+            $this->setHeader('Cache-Control', 's-maxage=0, max-age=0, must-revalidate');
+            $this->setHeader('Expires', 'Mon, 23 Jan 1978 10:00:00 GMT');
             return $this;
         }
 
-        $time = Nette\DateTime::from( $time );
-        $this->setHeader( 'Cache-Control', 'max-age='.( $time->format( 'U' ) - time() ) );
-        $this->setHeader( 'Expires', self::date( $time ) );
+        $time = Nette\DateTime::from($time);
+        $this->setHeader('Cache-Control', 'max-age='.( $time->format('U') - time() ));
+        $this->setHeader('Expires', self::date($time));
         return $this;
     }
 
@@ -248,12 +248,12 @@ final class Response extends Nette\Object implements IResponse
      *
      * @return string
      */
-    public static function date( $time = null )
+    public static function date($time = null)
     {
 
-        $time = Nette\DateTime::from( $time );
-        $time->setTimezone( new \DateTimeZone( 'GMT' ) );
-        return $time->format( 'D, d M Y H:i:s \G\M\T' );
+        $time = Nette\DateTime::from($time);
+        $time->setTimezone(new \DateTimeZone('GMT'));
+        return $time->format('D, d M Y H:i:s \G\M\T');
     }
 
     /**
@@ -277,8 +277,8 @@ final class Response extends Nette\Object implements IResponse
 
         $headers = array();
         foreach (headers_list() as $header) {
-            $a = strpos( $header, ':' );
-            $headers[substr( $header, 0, $a )] = (string)substr( $header, $a + 2 );
+            $a = strpos($header, ':');
+            $headers[substr($header, 0, $a)] = (string)substr($header, $a + 2);
         }
         return $headers;
     }
@@ -289,12 +289,12 @@ final class Response extends Nette\Object implements IResponse
     public function __destruct()
     {
 
-        if (self::$fixIE && isset( $_SERVER['HTTP_USER_AGENT'] ) && strpos( $_SERVER['HTTP_USER_AGENT'],
-                'MSIE ' ) !== false
-            && in_array( $this->code, array( 400, 403, 404, 405, 406, 408, 409, 410, 500, 501, 505 ), true )
-            && $this->getHeader( 'Content-Type', 'text/html' ) === 'text/html'
+        if (self::$fixIE && isset( $_SERVER['HTTP_USER_AGENT'] ) && strpos($_SERVER['HTTP_USER_AGENT'],
+                'MSIE ') !== false
+            && in_array($this->code, array(400, 403, 404, 405, 406, 408, 409, 410, 500, 501, 505), true)
+            && $this->getHeader('Content-Type', 'text/html') === 'text/html'
         ) {
-            echo Nette\Utils\Strings::random( 2e3, " \t\r\n" ); // sends invisible garbage for IE
+            echo Nette\Utils\Strings::random(2e3, " \t\r\n"); // sends invisible garbage for IE
             self::$fixIE = false;
         }
     }
@@ -310,10 +310,10 @@ final class Response extends Nette\Object implements IResponse
      * @return void
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function deleteCookie( $name, $path = null, $domain = null, $secure = null )
+    public function deleteCookie($name, $path = null, $domain = null, $secure = null)
     {
 
-        $this->setCookie( $name, false, 0, $path, $domain, $secure );
+        $this->setCookie($name, false, 0, $path, $domain, $secure);
     }
 
     /**
@@ -330,40 +330,40 @@ final class Response extends Nette\Object implements IResponse
      * @return Response  provides a fluent interface
      * @throws Nette\InvalidStateException  if HTTP headers have been sent
      */
-    public function setCookie( $name, $value, $time, $path = null, $domain = null, $secure = null, $httpOnly = null )
+    public function setCookie($name, $value, $time, $path = null, $domain = null, $secure = null, $httpOnly = null)
     {
 
-        if (headers_sent( $file, $line )) {
-            throw new Nette\InvalidStateException( "Cannot set cookie after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ) );
+        if (headers_sent($file, $line)) {
+            throw new Nette\InvalidStateException("Cannot set cookie after HTTP headers have been sent".( $file ? " (output started at $file:$line)." : "." ));
         }
 
         setcookie(
             $name,
             $value,
-            $time ? Nette\DateTime::from( $time )->format( 'U' ) : 0,
+            $time ? Nette\DateTime::from($time)->format('U') : 0,
             $path === null ? $this->cookiePath : (string)$path,
             $domain === null ? $this->cookieDomain : (string)$domain,
             $secure === null ? $this->cookieSecure : (bool)$secure,
             $httpOnly === null ? $this->cookieHttpOnly : (bool)$httpOnly
         );
 
-        if (ini_get( 'suhosin.cookie.encrypt' )) {
+        if (ini_get('suhosin.cookie.encrypt')) {
             return $this;
         }
 
         $flatten = array();
         foreach (headers_list() as $header) {
-            if (preg_match( '#^Set-Cookie: .+?=#', $header, $m )) {
+            if (preg_match('#^Set-Cookie: .+?=#', $header, $m)) {
                 $flatten[$m[0]] = $header;
                 if (PHP_VERSION_ID < 50300) { // multiple deleting due PHP bug #61605
-                    header( 'Set-Cookie:' );
+                    header('Set-Cookie:');
                 } else {
-                    header_remove( 'Set-Cookie' );
+                    header_remove('Set-Cookie');
                 }
             }
         }
-        foreach (array_values( $flatten ) as $key => $header) {
-            header( $header, $key === 0 );
+        foreach (array_values($flatten) as $key => $header) {
+            header($header, $key === 0);
         }
 
         return $this;

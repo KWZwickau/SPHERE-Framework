@@ -9,8 +9,10 @@ use Guzzle\Inflection\PreComputedInflector;
  */
 class PreComputedInflectorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testUsesPreComputedHash()
     {
+
         $mock = $this->getMock('Guzzle\Inflection\Inflector', array('snake', 'camel'));
         $mock->expects($this->once())->method('snake')->with('Test')->will($this->returnValue('test'));
         $mock->expects($this->once())->method('camel')->with('Test')->will($this->returnValue('Test'));
@@ -23,6 +25,7 @@ class PreComputedInflectorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testMirrorsPrecomputedValues()
     {
+
         $mock = $this->getMock('Guzzle\Inflection\Inflector', array('snake', 'camel'));
         $mock->expects($this->never())->method('snake');
         $mock->expects($this->never())->method('camel');
@@ -33,6 +36,7 @@ class PreComputedInflectorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testMirrorsPrecomputedValuesByMerging()
     {
+
         $mock = $this->getMock('Guzzle\Inflection\Inflector', array('snake', 'camel'));
         $mock->expects($this->never())->method('snake');
         $mock->expects($this->never())->method('camel');

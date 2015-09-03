@@ -73,7 +73,7 @@ class ReflectionNamespace implements IReflectionNamespace
      * @param string                  $name   Namespace name
      * @param \TokenReflection\Broker $broker Reflection broker
      */
-    public function __construct( $name, Broker $broker )
+    public function __construct($name, Broker $broker)
     {
 
         $this->name = $name;
@@ -90,15 +90,15 @@ class ReflectionNamespace implements IReflectionNamespace
      * @return string|null
      * @throws \TokenReflection\Exception\RuntimeException If requested parameter doesn't exist.
      */
-    public static function export( Broker $broker, $namespace, $return = false )
+    public static function export(Broker $broker, $namespace, $return = false)
     {
 
         $namespaceName = $namespace;
 
-        $namespace = $broker->getNamespace( $namespaceName );
+        $namespace = $broker->getNamespace($namespaceName);
         if (null === $namespace) {
-            throw new Exception\RuntimeException( sprintf( 'Namespace %s does not exist.', $namespaceName ),
-                Exception\RuntimeException::DOES_NOT_EXIST );
+            throw new Exception\RuntimeException(sprintf('Namespace %s does not exist.', $namespaceName),
+                Exception\RuntimeException::DOES_NOT_EXIST);
         }
 
         if ($return) {
@@ -119,13 +119,13 @@ class ReflectionNamespace implements IReflectionNamespace
         $buffer = '';
         $count = 0;
         foreach ($this->getClasses() as $class) {
-            $string = "\n    ".trim( str_replace( "\n", "\n    ", $class->__toString() ), ' ' );
-            $string = str_replace( "    \n      - Parameters", "\n      - Parameters", $string );
+            $string = "\n    ".trim(str_replace("\n", "\n    ", $class->__toString()), ' ');
+            $string = str_replace("    \n      - Parameters", "\n      - Parameters", $string);
 
             $buffer .= $string;
             $count++;
         }
-        $classes = sprintf( "\n\n  - Classes [%d] {\n%s  }", $count, ltrim( $buffer, "\n" ) );
+        $classes = sprintf("\n\n  - Classes [%d] {\n%s  }", $count, ltrim($buffer, "\n"));
 
         $buffer = '';
         $count = 0;
@@ -133,18 +133,18 @@ class ReflectionNamespace implements IReflectionNamespace
             $buffer .= '    '.$constant->__toString();
             $count++;
         }
-        $constants = sprintf( "\n\n  - Constants [%d] {\n%s  }", $count, $buffer );
+        $constants = sprintf("\n\n  - Constants [%d] {\n%s  }", $count, $buffer);
 
         $buffer = '';
         $count = 0;
         foreach ($this->getFunctions() as $function) {
-            $string = "\n    ".trim( str_replace( "\n", "\n    ", $function->__toString() ), ' ' );
-            $string = str_replace( "    \n      - Parameters", "\n      - Parameters", $string );
+            $string = "\n    ".trim(str_replace("\n", "\n    ", $function->__toString()), ' ');
+            $string = str_replace("    \n      - Parameters", "\n      - Parameters", $string);
 
             $buffer .= $string;
             $count++;
         }
-        $functions = sprintf( "\n\n  - Functions [%d] {\n%s  }", $count, ltrim( $buffer, "\n" ) );
+        $functions = sprintf("\n\n  - Functions [%d] {\n%s  }", $count, ltrim($buffer, "\n"));
 
         return sprintf(
             "Namespace [ <user> namespace %s ] {  %s%s%s\n}\n",
@@ -243,11 +243,11 @@ class ReflectionNamespace implements IReflectionNamespace
      *
      * @return boolean
      */
-    public function hasClass( $className )
+    public function hasClass($className)
     {
 
-        $className = ltrim( $className, '\\' );
-        if (false === strpos( $className, '\\' ) && self::NO_NAMESPACE_NAME !== $this->getName()) {
+        $className = ltrim($className, '\\');
+        if (false === strpos($className, '\\') && self::NO_NAMESPACE_NAME !== $this->getName()) {
             $className = $this->getName().'\\'.$className;
         }
 
@@ -262,17 +262,17 @@ class ReflectionNamespace implements IReflectionNamespace
      * @return \TokenReflection\ReflectionClass
      * @throws \TokenReflection\Exception\RuntimeException If the requested class reflection does not exist.
      */
-    public function getClass( $className )
+    public function getClass($className)
     {
 
-        $className = ltrim( $className, '\\' );
-        if (false === strpos( $className, '\\' ) && self::NO_NAMESPACE_NAME !== $this->getName()) {
+        $className = ltrim($className, '\\');
+        if (false === strpos($className, '\\') && self::NO_NAMESPACE_NAME !== $this->getName()) {
             $className = $this->getName().'\\'.$className;
         }
 
         if (!isset( $this->classes[$className] )) {
-            throw new Exception\RuntimeException( sprintf( 'Class "%s" does not exist.', $className ),
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+            throw new Exception\RuntimeException(sprintf('Class "%s" does not exist.', $className),
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
         return $this->classes[$className];
@@ -286,7 +286,7 @@ class ReflectionNamespace implements IReflectionNamespace
     public function getClassNames()
     {
 
-        return array_keys( $this->classes );
+        return array_keys($this->classes);
     }
 
     /**
@@ -297,10 +297,10 @@ class ReflectionNamespace implements IReflectionNamespace
     public function getClassShortNames()
     {
 
-        return array_map( function ( IReflectionClass $class ) {
+        return array_map(function (IReflectionClass $class) {
 
             return $class->getShortName();
-        }, $this->classes );
+        }, $this->classes);
     }
 
     /**
@@ -310,11 +310,11 @@ class ReflectionNamespace implements IReflectionNamespace
      *
      * @return boolean
      */
-    public function hasConstant( $constantName )
+    public function hasConstant($constantName)
     {
 
-        $constantName = ltrim( $constantName, '\\' );
-        if (false === strpos( $constantName, '\\' ) && self::NO_NAMESPACE_NAME !== $this->getName()) {
+        $constantName = ltrim($constantName, '\\');
+        if (false === strpos($constantName, '\\') && self::NO_NAMESPACE_NAME !== $this->getName()) {
             $constantName = $this->getName().'\\'.$constantName;
         }
 
@@ -329,17 +329,17 @@ class ReflectionNamespace implements IReflectionNamespace
      * @return \TokenReflection\ReflectionConstant
      * @throws \TokenReflection\Exception\RuntimeException If the required constant does not exist.
      */
-    public function getConstant( $constantName )
+    public function getConstant($constantName)
     {
 
-        $constantName = ltrim( $constantName, '\\' );
-        if (false === strpos( $constantName, '\\' ) && self::NO_NAMESPACE_NAME !== $this->getName()) {
+        $constantName = ltrim($constantName, '\\');
+        if (false === strpos($constantName, '\\') && self::NO_NAMESPACE_NAME !== $this->getName()) {
             $constantName = $this->getName().'\\'.$constantName;
         }
 
         if (!isset( $this->constants[$constantName] )) {
-            throw new Exception\RuntimeException( sprintf( 'Constant "%s" does not exist.', $constantName ),
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+            throw new Exception\RuntimeException(sprintf('Constant "%s" does not exist.', $constantName),
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
         return $this->constants[$constantName];
@@ -353,7 +353,7 @@ class ReflectionNamespace implements IReflectionNamespace
     public function getConstantNames()
     {
 
-        return array_keys( $this->constants );
+        return array_keys($this->constants);
     }
 
     /**
@@ -364,10 +364,10 @@ class ReflectionNamespace implements IReflectionNamespace
     public function getConstantShortNames()
     {
 
-        return array_map( function ( IReflectionConstant $constant ) {
+        return array_map(function (IReflectionConstant $constant) {
 
             return $constant->getShortName();
-        }, $this->constants );
+        }, $this->constants);
     }
 
     /**
@@ -377,11 +377,11 @@ class ReflectionNamespace implements IReflectionNamespace
      *
      * @return boolean
      */
-    public function hasFunction( $functionName )
+    public function hasFunction($functionName)
     {
 
-        $functionName = ltrim( $functionName, '\\' );
-        if (false === strpos( $functionName, '\\' ) && self::NO_NAMESPACE_NAME !== $this->getName()) {
+        $functionName = ltrim($functionName, '\\');
+        if (false === strpos($functionName, '\\') && self::NO_NAMESPACE_NAME !== $this->getName()) {
             $functionName = $this->getName().'\\'.$functionName;
         }
 
@@ -396,17 +396,17 @@ class ReflectionNamespace implements IReflectionNamespace
      * @return \TokenReflection\ReflectionFunction
      * @throws \TokenReflection\Exception\RuntimeException If the required function does not exist.
      */
-    public function getFunction( $functionName )
+    public function getFunction($functionName)
     {
 
-        $functionName = ltrim( $functionName, '\\' );
-        if (false === strpos( $functionName, '\\' ) && self::NO_NAMESPACE_NAME !== $this->getName()) {
+        $functionName = ltrim($functionName, '\\');
+        if (false === strpos($functionName, '\\') && self::NO_NAMESPACE_NAME !== $this->getName()) {
             $functionName = $this->getName().'\\'.$functionName;
         }
 
         if (!isset( $this->functions[$functionName] )) {
-            throw new Exception\RuntimeException( sprintf( 'Function "%s" does not exist.', $functionName ),
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+            throw new Exception\RuntimeException(sprintf('Function "%s" does not exist.', $functionName),
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
         return $this->functions[$functionName];
@@ -420,7 +420,7 @@ class ReflectionNamespace implements IReflectionNamespace
     public function getFunctionNames()
     {
 
-        return array_keys( $this->functions );
+        return array_keys($this->functions);
     }
 
     /**
@@ -431,10 +431,10 @@ class ReflectionNamespace implements IReflectionNamespace
     public function getFunctionShortNames()
     {
 
-        return array_map( function ( IReflectionFunction $function ) {
+        return array_map(function (IReflectionFunction $function) {
 
             return $function->getShortName();
-        }, $this->functions );
+        }, $this->functions);
     }
 
     /**
@@ -456,34 +456,34 @@ class ReflectionNamespace implements IReflectionNamespace
      * @return \TokenReflection\ReflectionNamespace
      * @throws \TokenReflection\Exception\FileProcessingException If one of classes, functions or constants form the namespace are already defined
      */
-    public function addFileNamespace( ReflectionFileNamespace $namespace )
+    public function addFileNamespace(ReflectionFileNamespace $namespace)
     {
 
         $errors = array();
 
         foreach ($namespace->getClasses() as $className => $reflection) {
             if ($reflection instanceof Invalid\ReflectionClass) {
-                $errors = array_merge( $errors, $reflection->getReasons() );
+                $errors = array_merge($errors, $reflection->getReasons());
             }
 
             if (isset( $this->classes[$className] )) {
                 if (!$this->classes[$className] instanceof Invalid\ReflectionClass) {
-                    $this->classes[$className] = new Invalid\ReflectionClass( $className,
-                        $this->classes[$className]->getFileName(), $this->getBroker() );
+                    $this->classes[$className] = new Invalid\ReflectionClass($className,
+                        $this->classes[$className]->getFileName(), $this->getBroker());
                 }
 
                 $error = new Exception\RuntimeException(
-                    sprintf( 'Class %s was redeclared (previously declared in file %s).', $className,
-                        $this->classes[$className]->getFileName() ),
+                    sprintf('Class %s was redeclared (previously declared in file %s).', $className,
+                        $this->classes[$className]->getFileName()),
                     Exception\RuntimeException::ALREADY_EXISTS,
                     $reflection
                 );
                 $errors[] = $error;
-                $this->classes[$className]->addReason( $error );
+                $this->classes[$className]->addReason($error);
 
                 if ($reflection instanceof Invalid\ReflectionClass) {
                     foreach ($reflection->getReasons() as $reason) {
-                        $this->classes[$className]->addReason( $reason );
+                        $this->classes[$className]->addReason($reason);
                     }
                 }
             } else {
@@ -493,27 +493,27 @@ class ReflectionNamespace implements IReflectionNamespace
 
         foreach ($namespace->getFunctions() as $functionName => $reflection) {
             if ($reflection instanceof Invalid\ReflectionFunction) {
-                $errors = array_merge( $errors, $reflection->getReasons() );
+                $errors = array_merge($errors, $reflection->getReasons());
             }
 
             if (isset( $this->functions[$functionName] )) {
                 if (!$this->functions[$functionName] instanceof Invalid\ReflectionFunction) {
-                    $this->functions[$functionName] = new Invalid\ReflectionFunction( $functionName,
-                        $this->functions[$functionName]->getFileName(), $this->getBroker() );
+                    $this->functions[$functionName] = new Invalid\ReflectionFunction($functionName,
+                        $this->functions[$functionName]->getFileName(), $this->getBroker());
                 }
 
                 $error = new Exception\RuntimeException(
-                    sprintf( 'Function %s was redeclared (previousy declared in file %s).', $functionName,
-                        $this->functions[$functionName]->getFileName() ),
+                    sprintf('Function %s was redeclared (previousy declared in file %s).', $functionName,
+                        $this->functions[$functionName]->getFileName()),
                     Exception\RuntimeException::ALREADY_EXISTS,
                     $reflection
                 );
                 $errors[] = $error;
-                $this->functions[$functionName]->addReason( $error );
+                $this->functions[$functionName]->addReason($error);
 
                 if ($reflection instanceof Invalid\ReflectionFunction) {
                     foreach ($reflection->getReasons() as $reason) {
-                        $this->functions[$functionName]->addReason( $reason );
+                        $this->functions[$functionName]->addReason($reason);
                     }
                 }
             } else {
@@ -523,27 +523,27 @@ class ReflectionNamespace implements IReflectionNamespace
 
         foreach ($namespace->getConstants() as $constantName => $reflection) {
             if ($reflection instanceof Invalid\ReflectionConstant) {
-                $errors = array_merge( $errors, $reflection->getReasons() );
+                $errors = array_merge($errors, $reflection->getReasons());
             }
 
             if (isset( $this->constants[$constantName] )) {
                 if (!$this->constants[$constantName] instanceof Invalid\ReflectionConstant) {
-                    $this->constants[$constantName] = new Invalid\ReflectionConstant( $constantName,
-                        $this->constants[$constantName]->getFileName(), $this->getBroker() );
+                    $this->constants[$constantName] = new Invalid\ReflectionConstant($constantName,
+                        $this->constants[$constantName]->getFileName(), $this->getBroker());
                 }
 
                 $error = new Exception\RuntimeException(
-                    sprintf( 'Constant %s was redeclared (previuosly declared in file %s).', $constantName,
-                        $this->constants[$constantName]->getFileName() ),
+                    sprintf('Constant %s was redeclared (previuosly declared in file %s).', $constantName,
+                        $this->constants[$constantName]->getFileName()),
                     Exception\RuntimeException::ALREADY_EXISTS,
                     $reflection
                 );
                 $errors[] = $error;
-                $this->constants[$constantName]->addReason( $error );
+                $this->constants[$constantName]->addReason($error);
 
                 if ($reflection instanceof Invalid\ReflectionConstant) {
                     foreach ($reflection->getReasons() as $reason) {
-                        $this->constants[$constantName]->addReason( $reason );
+                        $this->constants[$constantName]->addReason($reason);
                     }
                 }
             } else {
@@ -552,7 +552,7 @@ class ReflectionNamespace implements IReflectionNamespace
         }
 
         if (!empty( $errors )) {
-            throw new Exception\FileProcessingException( $errors, null );
+            throw new Exception\FileProcessingException($errors, null);
         }
 
         return $this;
@@ -579,8 +579,8 @@ class ReflectionNamespace implements IReflectionNamespace
     public function getSource()
     {
 
-        throw new Exception\RuntimeException( 'Cannot export source code of a namespace.',
-            Exception\RuntimeException::UNSUPPORTED, $this );
+        throw new Exception\RuntimeException('Cannot export source code of a namespace.',
+            Exception\RuntimeException::UNSUPPORTED, $this);
     }
 
     /**
@@ -590,10 +590,10 @@ class ReflectionNamespace implements IReflectionNamespace
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return ReflectionElement::get( $this, $key );
+        return ReflectionElement::get($this, $key);
     }
 
     /**
@@ -603,9 +603,9 @@ class ReflectionNamespace implements IReflectionNamespace
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return ReflectionElement::exists( $this, $key );
+        return ReflectionElement::exists($this, $key);
     }
 }

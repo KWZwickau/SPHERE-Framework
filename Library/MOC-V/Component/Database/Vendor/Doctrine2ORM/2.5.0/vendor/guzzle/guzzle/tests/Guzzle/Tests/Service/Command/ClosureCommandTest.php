@@ -4,26 +4,29 @@ namespace Guzzle\Tests\Service\Command;
 
 use Guzzle\Http\Message\RequestFactory;
 use Guzzle\Service\Command\ClosureCommand;
-use Guzzle\Service\Client;
 
 /**
  * @covers Guzzle\Service\Command\ClosureCommand
  */
 class ClosureCommandTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /**
      * @expectedException InvalidArgumentException
      * @expectedExceptionMessage A closure must be passed in the parameters array
      */
     public function testConstructorValidatesClosure()
     {
+
         $c = new ClosureCommand();
     }
 
     public function testExecutesClosure()
     {
+
         $c = new ClosureCommand(array(
-            'closure' => function($command, $api) {
+            'closure' => function ($command, $api) {
+
                 $command->set('testing', '123');
                 $request = RequestFactory::getInstance()->create('GET', 'http://www.test.com/');
                 return $request;
@@ -42,8 +45,10 @@ class ClosureCommandTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testMustReturnRequest()
     {
+
         $c = new ClosureCommand(array(
-            'closure' => function($command, $api) {
+            'closure' => function ($command, $api) {
+
                 return false;
             }
         ));

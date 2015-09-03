@@ -10,8 +10,10 @@ use Doctrine\DBAL\Schema\Table;
  */
 class DBAL510Test extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     public function setUp()
     {
+
         parent::setUp();
 
         if ($this->_conn->getDatabasePlatform()->getName() !== "postgresql") {
@@ -21,6 +23,7 @@ class DBAL510Test extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testSearchPathSchemaChanges()
     {
+
         $table = new Table("dbal510tbl");
         $table->addColumn('id', 'integer');
         $table->setPrimaryKey(array('id'));

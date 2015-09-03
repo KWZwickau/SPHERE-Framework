@@ -9,8 +9,10 @@ use Guzzle\Cache\NullCacheAdapter;
  */
 class NullCacheAdapterTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testNullCacheAdapter()
     {
+
         $c = new NullCacheAdapter();
         $this->assertEquals(false, $c->contains('foo'));
         $this->assertEquals(true, $c->delete('foo'));

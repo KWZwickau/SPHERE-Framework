@@ -33,6 +33,7 @@ namespace Doctrine\DBAL;
  */
 interface VersionAwarePlatformDriver
 {
+
     /**
      * Factory method for creating the appropriate platform instance for the given version.
      *

@@ -27,10 +27,10 @@ class Mail implements IVendorInterface
     /**
      * @param IVendorInterface $VendorInterface
      */
-    function __construct( IVendorInterface $VendorInterface )
+    public function __construct(IVendorInterface $VendorInterface)
     {
 
-        $this->setVendorInterface( $VendorInterface );
+        $this->setVendorInterface($VendorInterface);
     }
 
     /**
@@ -39,7 +39,7 @@ class Mail implements IVendorInterface
      * @return IBridgeInterface
      * @throws MailException
      */
-    public static function getMail( $Type = self::MAIL_TYPE_SMTP )
+    public static function getMail($Type = self::MAIL_TYPE_SMTP)
     {
 
         switch ($Type) {
@@ -125,7 +125,7 @@ class Mail implements IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setVendorInterface( IVendorInterface $VendorInterface )
+    public function setVendorInterface(IVendorInterface $VendorInterface)
     {
 
         $this->VendorInterface = $VendorInterface;
@@ -137,9 +137,9 @@ class Mail implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface )
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface)
     {
 
-        return $this->VendorInterface->setBridgeInterface( $BridgeInterface );
+        return $this->VendorInterface->setBridgeInterface($BridgeInterface);
     }
 }

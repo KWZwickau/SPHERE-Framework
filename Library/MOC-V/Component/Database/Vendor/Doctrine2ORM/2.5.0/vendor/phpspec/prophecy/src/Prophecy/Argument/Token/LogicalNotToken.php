@@ -18,7 +18,8 @@ namespace Prophecy\Argument\Token;
  */
 class LogicalNotToken implements TokenInterface
 {
-    /** @var \Prophecy\Argument\Token\TokenInterface  */
+
+    /** @var \Prophecy\Argument\Token\TokenInterface */
     private $token;
 
     /**
@@ -26,7 +27,8 @@ class LogicalNotToken implements TokenInterface
      */
     public function __construct($value)
     {
-        $this->token = $value instanceof TokenInterface? $value : new ExactValueToken($value);
+
+        $this->token = $value instanceof TokenInterface ? $value : new ExactValueToken($value);
     }
 
     /**
@@ -38,6 +40,7 @@ class LogicalNotToken implements TokenInterface
      */
     public function scoreArgument($argument)
     {
+
         return false === $this->token->scoreArgument($argument) ? 4 : false;
     }
 
@@ -48,6 +51,7 @@ class LogicalNotToken implements TokenInterface
      */
     public function isLast()
     {
+
         return $this->token->isLast();
     }
 
@@ -58,6 +62,7 @@ class LogicalNotToken implements TokenInterface
      */
     public function getOriginatingToken()
     {
+
         return $this->token;
     }
 
@@ -68,6 +73,7 @@ class LogicalNotToken implements TokenInterface
      */
     public function __toString()
     {
+
         return sprintf('not(%s)', $this->token);
     }
 }

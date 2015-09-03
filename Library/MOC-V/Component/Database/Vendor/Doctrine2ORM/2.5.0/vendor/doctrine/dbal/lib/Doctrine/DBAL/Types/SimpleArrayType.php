@@ -31,11 +31,13 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class SimpleArrayType extends Type
 {
+
     /**
      * {@inheritdoc}
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
+
         return $platform->getClobTypeDeclarationSQL($fieldDeclaration);
     }
 
@@ -44,6 +46,7 @@ class SimpleArrayType extends Type
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
+
         if (!$value) {
             return null;
         }
@@ -56,11 +59,12 @@ class SimpleArrayType extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
+
         if ($value === null) {
             return array();
         }
 
-        $value = (is_resource($value)) ? stream_get_contents($value) : $value;
+        $value = ( is_resource($value) ) ? stream_get_contents($value) : $value;
 
         return explode(',', $value);
     }
@@ -70,6 +74,7 @@ class SimpleArrayType extends Type
      */
     public function getName()
     {
+
         return Type::SIMPLE_ARRAY;
     }
 
@@ -78,6 +83,7 @@ class SimpleArrayType extends Type
      */
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {
+
         return true;
     }
 }

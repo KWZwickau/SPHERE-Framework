@@ -16,8 +16,10 @@ use Symfony\Component\Routing\Loader\PhpFileLoader;
 
 class PhpFileLoaderTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testSupports()
     {
+
         $loader = new PhpFileLoader($this->getMock('Symfony\Component\Config\FileLocator'));
 
         $this->assertTrue($loader->supports('foo.php'), '->supports() returns true if the resource is loadable');
@@ -29,6 +31,7 @@ class PhpFileLoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testLoadWithRoute()
     {
+
         $loader = new PhpFileLoader(new FileLocator(array(__DIR__.'/../Fixtures')));
         $routeCollection = $loader->load('validpattern.php');
         $routes = $routeCollection->all();

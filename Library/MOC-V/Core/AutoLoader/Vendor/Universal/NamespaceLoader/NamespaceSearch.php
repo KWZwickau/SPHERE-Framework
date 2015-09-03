@@ -16,11 +16,11 @@ abstract class NamespaceSearch extends NamespaceMapping
      *
      * @return bool
      */
-    protected function searchForInterfaceFallback( $DirectoryList, $ClassName, $Namespace )
+    protected function searchForInterfaceFallback($DirectoryList, $ClassName, $Namespace)
     {
 
-        return $this->searchForInterface( $DirectoryList,
-            trim( preg_replace( '!^'.preg_quote( $Namespace ).'!is', '', $ClassName ), '\\' )
+        return $this->searchForInterface($DirectoryList,
+            trim(preg_replace('!^'.preg_quote($Namespace).'!is', '', $ClassName), '\\')
         );
     }
 
@@ -30,11 +30,11 @@ abstract class NamespaceSearch extends NamespaceMapping
      *
      * @return bool
      */
-    protected function searchForInterface( $DirectoryList, $ClassName )
+    protected function searchForInterface($DirectoryList, $ClassName)
     {
 
-        return $this->searchForClass( $DirectoryList,
-            preg_replace( '!(.*?)I([^'.preg_quote( '\\' ).']*?)Interface$!is', '$1$2', $ClassName ) );
+        return $this->searchForClass($DirectoryList,
+            preg_replace('!(.*?)I([^'.preg_quote('\\').']*?)Interface$!is', '$1$2', $ClassName));
     }
 
     /**
@@ -43,13 +43,13 @@ abstract class NamespaceSearch extends NamespaceMapping
      *
      * @return bool
      */
-    protected function searchForClass( $DirectoryList, $ClassName )
+    protected function searchForClass($DirectoryList, $ClassName)
     {
 
         foreach ((array)$DirectoryList as $Directory) {
-            $File = $Directory.DIRECTORY_SEPARATOR.str_replace( array( '_', '\\', '/' ), DIRECTORY_SEPARATOR,
-                    $ClassName ).'.php';
-            if (is_file( $File )) {
+            $File = $Directory.DIRECTORY_SEPARATOR.str_replace(array('_', '\\', '/'), DIRECTORY_SEPARATOR,
+                    $ClassName).'.php';
+            if (is_file($File)) {
                 /** @noinspection PhpIncludeInspection */
                 require_once( $File );
                 return true;
@@ -65,11 +65,11 @@ abstract class NamespaceSearch extends NamespaceMapping
      *
      * @return bool
      */
-    protected function searchForClassFallback( $DirectoryList, $ClassName, $Namespace )
+    protected function searchForClassFallback($DirectoryList, $ClassName, $Namespace)
     {
 
-        return $this->searchForClass( $DirectoryList,
-            trim( preg_replace( '!^'.preg_quote( $Namespace ).'!is', '', $ClassName ), '\\' )
+        return $this->searchForClass($DirectoryList,
+            trim(preg_replace('!^'.preg_quote($Namespace).'!is', '', $ClassName), '\\')
         );
     }
 }

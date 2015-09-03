@@ -24,6 +24,7 @@ namespace Symfony\Component\Console\Input;
  */
 class ArrayInput extends Input
 {
+
     private $parameters;
 
     /**
@@ -36,6 +37,7 @@ class ArrayInput extends Input
      */
     public function __construct(array $parameters, InputDefinition $definition = null)
     {
+
         $this->parameters = $parameters;
 
         parent::__construct($definition);
@@ -48,6 +50,7 @@ class ArrayInput extends Input
      */
     public function getFirstArgument()
     {
+
         foreach ($this->parameters as $key => $value) {
             if ($key && '-' === $key[0]) {
                 continue;
@@ -69,7 +72,8 @@ class ArrayInput extends Input
      */
     public function hasParameterOption($values)
     {
-        $values = (array) $values;
+
+        $values = (array)$values;
 
         foreach ($this->parameters as $k => $v) {
             if (!is_int($k)) {
@@ -97,7 +101,8 @@ class ArrayInput extends Input
      */
     public function getParameterOption($values, $default = false)
     {
-        $values = (array) $values;
+
+        $values = (array)$values;
 
         foreach ($this->parameters as $k => $v) {
             if (is_int($k)) {
@@ -119,10 +124,11 @@ class ArrayInput extends Input
      */
     public function __toString()
     {
+
         $params = array();
         foreach ($this->parameters as $param => $val) {
             if ($param && '-' === $param[0]) {
-                $params[] = $param.('' != $val ? '='.$this->escapeToken($val) : '');
+                $params[] = $param.( '' != $val ? '='.$this->escapeToken($val) : '' );
             } else {
                 $params[] = $this->escapeToken($val);
             }
@@ -136,6 +142,7 @@ class ArrayInput extends Input
      */
     protected function parse()
     {
+
         foreach ($this->parameters as $key => $value) {
             if (0 === strpos($key, '--')) {
                 $this->addLongOption(substr($key, 2), $value);
@@ -145,23 +152,6 @@ class ArrayInput extends Input
                 $this->addArgument($key, $value);
             }
         }
-    }
-
-    /**
-     * Adds a short option value.
-     *
-     * @param string $shortcut The short option key
-     * @param mixed  $value    The value for the option
-     *
-     * @throws \InvalidArgumentException When option given doesn't exist
-     */
-    private function addShortOption($shortcut, $value)
-    {
-        if (!$this->definition->hasShortcut($shortcut)) {
-            throw new \InvalidArgumentException(sprintf('The "-%s" option does not exist.', $shortcut));
-        }
-
-        $this->addLongOption($this->definition->getOptionForShortcut($shortcut)->getName(), $value);
     }
 
     /**
@@ -175,6 +165,7 @@ class ArrayInput extends Input
      */
     private function addLongOption($name, $value)
     {
+
         if (!$this->definition->hasOption($name)) {
             throw new \InvalidArgumentException(sprintf('The "--%s" option does not exist.', $name));
         }
@@ -193,6 +184,24 @@ class ArrayInput extends Input
     }
 
     /**
+     * Adds a short option value.
+     *
+     * @param string $shortcut The short option key
+     * @param mixed  $value    The value for the option
+     *
+     * @throws \InvalidArgumentException When option given doesn't exist
+     */
+    private function addShortOption($shortcut, $value)
+    {
+
+        if (!$this->definition->hasShortcut($shortcut)) {
+            throw new \InvalidArgumentException(sprintf('The "-%s" option does not exist.', $shortcut));
+        }
+
+        $this->addLongOption($this->definition->getOptionForShortcut($shortcut)->getName(), $value);
+    }
+
+    /**
      * Adds an argument value.
      *
      * @param string $name  The argument name
@@ -202,6 +211,7 @@ class ArrayInput extends Input
      */
     private function addArgument($name, $value)
     {
+
         if (!$this->definition->hasArgument($name)) {
             throw new \InvalidArgumentException(sprintf('The "%s" argument does not exist.', $name));
         }

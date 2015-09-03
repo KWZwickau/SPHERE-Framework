@@ -19,15 +19,15 @@
 
 namespace Doctrine\ORM\Query\AST\Functions;
 
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\ORM\Query\Lexer;
 use Doctrine\ORM\Query\Parser;
 use Doctrine\ORM\Query\SqlWalker;
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 
 /**
  * "TRIM" "(" [["LEADING" | "TRAILING" | "BOTH"] [char] "FROM"] StringPrimary ")"
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -37,6 +37,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class TrimFunction extends FunctionNode
 {
+
     /**
      * @var boolean
      */
@@ -67,10 +68,11 @@ class TrimFunction extends FunctionNode
      */
     public function getSql(SqlWalker $sqlWalker)
     {
-        $stringPrimary  = $sqlWalker->walkStringPrimary($this->stringPrimary);
-        $platform       = $sqlWalker->getConnection()->getDatabasePlatform();
-        $trimMode       = $this->getTrimMode();
-        $trimChar       = ($this->trimChar !== false)
+
+        $stringPrimary = $sqlWalker->walkStringPrimary($this->stringPrimary);
+        $platform = $sqlWalker->getConnection()->getDatabasePlatform();
+        $trimMode = $this->getTrimMode();
+        $trimChar = ( $this->trimChar !== false )
             ? $sqlWalker->getConnection()->quote($this->trimChar)
             : false;
 
@@ -78,10 +80,34 @@ class TrimFunction extends FunctionNode
     }
 
     /**
+     * @param \Doctrine\ORM\Query\Parser $parser
+     *
+     * @return integer
+     */
+    private function getTrimMode()
+    {
+
+        if ($this->leading) {
+            return AbstractPlatform::TRIM_LEADING;
+        }
+
+        if ($this->trailing) {
+            return AbstractPlatform::TRIM_TRAILING;
+        }
+
+        if ($this->both) {
+            return AbstractPlatform::TRIM_BOTH;
+        }
+
+        return AbstractPlatform::TRIM_UNSPECIFIED;
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function parse(Parser $parser)
     {
+
         $lexer = $parser->getLexer();
 
         $parser->match(Lexer::T_IDENTIFIER);
@@ -107,32 +133,11 @@ class TrimFunction extends FunctionNode
     /**
      * @param \Doctrine\ORM\Query\Parser $parser
      *
-     * @return integer
-     */
-    private function getTrimMode()
-    {
-        if ($this->leading) {
-            return AbstractPlatform::TRIM_LEADING;
-        }
-
-        if ($this->trailing) {
-            return AbstractPlatform::TRIM_TRAILING;
-        }
-
-        if ($this->both) {
-            return AbstractPlatform::TRIM_BOTH;
-        }
-
-        return AbstractPlatform::TRIM_UNSPECIFIED;
-    }
-
-    /**
-     * @param \Doctrine\ORM\Query\Parser $parser
-     *
      * @return void
      */
     private function parseTrimMode(Parser $parser)
     {
+
         $lexer = $parser->getLexer();
         $value = $lexer->lookahead['value'];
 

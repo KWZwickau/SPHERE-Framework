@@ -32,10 +32,10 @@ class MacroTokenizer extends Nette\Utils\Tokenizer
         T_CHAR = 9;
 
 
-    public function __construct( $input )
+    public function __construct($input)
     {
 
-        parent::__construct( array(
+        parent::__construct(array(
             self::T_WHITESPACE => '\s+',
             self::T_COMMENT    => '(?s)/\*.*?\*/',
             self::T_STRING     => Parser::RE_STRING,
@@ -48,9 +48,9 @@ class MacroTokenizer extends Nette\Utils\Tokenizer
             self::T_SYMBOL     => '[\w\pL_]+(?:-[\w\pL_]+)*',
             self::T_CHAR       => '::|=>|[^"\']',
             // =>, any char except quotes
-        ), 'u' );
-        $this->ignored = array( self::T_COMMENT, self::T_WHITESPACE );
-        $this->tokenize( $input );
+        ), 'u');
+        $this->ignored = array(self::T_COMMENT, self::T_WHITESPACE);
+        $this->tokenize($input);
     }
 
 
@@ -64,9 +64,9 @@ class MacroTokenizer extends Nette\Utils\Tokenizer
     public function fetchWord()
     {
 
-        $word = $this->fetchUntil( self::T_WHITESPACE, ',' );
-        $this->fetch( ',' );
-        $this->fetchAll( self::T_WHITESPACE, self::T_COMMENT );
+        $word = $this->fetchUntil(self::T_WHITESPACE, ',');
+        $this->fetch(',');
+        $this->fetchAll(self::T_WHITESPACE, self::T_COMMENT);
         return $word;
     }
 

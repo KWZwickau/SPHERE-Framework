@@ -66,17 +66,17 @@ class Python implements FSHL\Lexer
         return array(
             'OUT'          => array(
                 array(
-                    'ALPHA'  => array( 'KEYWORD', Generator::BACK ),
-                    '_'      => array( 'KEYWORD', Generator::BACK ),
-                    '\'\'\'' => array( 'DOCSTRING1', Generator::NEXT ),
-                    '"""'    => array( 'DOCSTRING2', Generator::NEXT ),
-                    '\''     => array( 'QUOTE_SINGLE', Generator::NEXT ),
-                    '"'      => array( 'QUOTE_DOUBLE', Generator::NEXT ),
-                    '#'      => array( 'COMMENT_LINE', Generator::NEXT ),
-                    'NUM'    => array( 'NUMBER', Generator::NEXT ),
-                    'DOTNUM' => array( 'NUMBER', Generator::NEXT ),
-                    'LINE'   => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'    => array( Generator::STATE_SELF, Generator::NEXT )
+                    'ALPHA'  => array('KEYWORD', Generator::BACK),
+                    '_'      => array('KEYWORD', Generator::BACK),
+                    '\'\'\'' => array('DOCSTRING1', Generator::NEXT),
+                    '"""'    => array('DOCSTRING2', Generator::NEXT),
+                    '\''     => array('QUOTE_SINGLE', Generator::NEXT),
+                    '"'      => array('QUOTE_DOUBLE', Generator::NEXT),
+                    '#'      => array('COMMENT_LINE', Generator::NEXT),
+                    'NUM'    => array('NUMBER', Generator::NEXT),
+                    'DOTNUM' => array('NUMBER', Generator::NEXT),
+                    'LINE'   => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'    => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -84,7 +84,7 @@ class Python implements FSHL\Lexer
             ),
             'KEYWORD'      => array(
                 array(
-                    '!ALNUM_' => array( Generator::STATE_RETURN, Generator::BACK )
+                    '!ALNUM_' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_KEYWORD | Generator::STATE_FLAG_RECURSION,
                 null,
@@ -92,11 +92,11 @@ class Python implements FSHL\Lexer
             ),
             'DOCSTRING1'   => array(
                 array(
-                    '\'\'\''   => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '\\\\'     => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '\\\'\'\'' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'LINE'     => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'      => array( Generator::STATE_SELF, Generator::NEXT )
+                    '\'\'\''   => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '\\\\'     => array(Generator::STATE_SELF, Generator::NEXT),
+                    '\\\'\'\'' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'LINE'     => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'      => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'py-docstring',
@@ -104,11 +104,11 @@ class Python implements FSHL\Lexer
             ),
             'DOCSTRING2'   => array(
                 array(
-                    '"""'   => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '\\\\'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '\\"""' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'LINE'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'   => array( Generator::STATE_SELF, Generator::NEXT )
+                    '"""'   => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '\\\\'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    '\\"""' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'LINE'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'   => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'py-docstring',
@@ -116,11 +116,11 @@ class Python implements FSHL\Lexer
             ),
             'QUOTE_SINGLE' => array(
                 array(
-                    '\''   => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '\\\\' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '\\\'' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '\''   => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '\\\\' => array(Generator::STATE_SELF, Generator::NEXT),
+                    '\\\'' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'py-quote',
@@ -128,11 +128,11 @@ class Python implements FSHL\Lexer
             ),
             'QUOTE_DOUBLE' => array(
                 array(
-                    '"'    => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '\\\\' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '\\"'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '"'    => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '\\\\' => array(Generator::STATE_SELF, Generator::NEXT),
+                    '\\"'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'py-quote',
@@ -140,8 +140,8 @@ class Python implements FSHL\Lexer
             ),
             'COMMENT_LINE' => array(
                 array(
-                    'LINE' => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    'LINE' => array(Generator::STATE_RETURN, Generator::BACK),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'py-comment',
@@ -149,17 +149,17 @@ class Python implements FSHL\Lexer
             ),
             'NUMBER'       => array(
                 array(
-                    'DOTNUM' => array( 'FRACTION', Generator::NEXT ),
-                    'l'      => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'L'      => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'j'      => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'J'      => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'e-'     => array( 'EXPONENT', Generator::NEXT ),
-                    'e+'     => array( 'EXPONENT', Generator::NEXT ),
-                    'e'      => array( 'EXPONENT', Generator::NEXT ),
-                    'x'      => array( 'HEXA', Generator::NEXT ),
-                    'X'      => array( 'HEXA', Generator::NEXT ),
-                    'ALL'    => array( Generator::STATE_RETURN, Generator::BACK )
+                    'DOTNUM' => array('FRACTION', Generator::NEXT),
+                    'l'      => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'L'      => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'j'      => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'J'      => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'e-'     => array('EXPONENT', Generator::NEXT),
+                    'e+'     => array('EXPONENT', Generator::NEXT),
+                    'e'      => array('EXPONENT', Generator::NEXT),
+                    'x'      => array('HEXA', Generator::NEXT),
+                    'X'      => array('HEXA', Generator::NEXT),
+                    'ALL'    => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'py-num',
@@ -167,12 +167,12 @@ class Python implements FSHL\Lexer
             ),
             'FRACTION'     => array(
                 array(
-                    'j'   => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'J'   => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'e-'  => array( 'EXPONENT', Generator::NEXT ),
-                    'e+'  => array( 'EXPONENT', Generator::NEXT ),
-                    'e'   => array( 'EXPONENT', Generator::NEXT ),
-                    'ALL' => array( Generator::STATE_RETURN, Generator::BACK )
+                    'j'   => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'J'   => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'e-'  => array('EXPONENT', Generator::NEXT),
+                    'e+'  => array('EXPONENT', Generator::NEXT),
+                    'e'   => array('EXPONENT', Generator::NEXT),
+                    'ALL' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'py-num',
@@ -180,9 +180,9 @@ class Python implements FSHL\Lexer
             ),
             'EXPONENT'     => array(
                 array(
-                    'j'    => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'J'    => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '!NUM' => array( Generator::STATE_RETURN, Generator::BACK )
+                    'j'    => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'J'    => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '!NUM' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'py-num',
@@ -190,9 +190,9 @@ class Python implements FSHL\Lexer
             ),
             'HEXA'         => array(
                 array(
-                    'L'       => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'l'       => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '!HEXNUM' => array( Generator::STATE_RETURN, Generator::BACK )
+                    'L'       => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'l'       => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '!HEXNUM' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'py-num',

@@ -13,14 +13,17 @@
  */
 class PHP_CodeCoverage_Report_XML_Project extends PHP_CodeCoverage_Report_XML_Node
 {
+
     public function __construct($name)
     {
+
         $this->init();
         $this->setProjectName($name);
     }
 
     private function init()
     {
+
         $dom = new DOMDocument;
         $dom->loadXML('<?xml version="1.0" ?><phpunit xmlns="http://schema.phpunit.de/coverage/1.0"><project/></phpunit>');
 
@@ -34,11 +37,13 @@ class PHP_CodeCoverage_Report_XML_Project extends PHP_CodeCoverage_Report_XML_No
 
     private function setProjectName($name)
     {
+
         $this->getContextNode()->setAttribute('name', $name);
     }
 
     public function getTests()
     {
+
         $testsNode = $this->getContextNode()->getElementsByTagNameNS(
             'http://schema.phpunit.de/coverage/1.0',
             'tests'
@@ -58,6 +63,7 @@ class PHP_CodeCoverage_Report_XML_Project extends PHP_CodeCoverage_Report_XML_No
 
     public function asDom()
     {
+
         return $this->getDom();
     }
 }

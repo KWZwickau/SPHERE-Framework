@@ -7,8 +7,10 @@ namespace Guzzle\Parser\Message;
  */
 class PeclHttpMessageParser extends AbstractMessageParser
 {
+
     public function parseRequest($message)
     {
+
         if (!$message) {
             return false;
         }
@@ -30,6 +32,7 @@ class PeclHttpMessageParser extends AbstractMessageParser
 
     public function parseResponse($message)
     {
+
         if (!$message) {
             return false;
         }

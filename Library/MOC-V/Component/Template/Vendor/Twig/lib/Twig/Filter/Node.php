@@ -14,15 +14,17 @@
  *
  * Use Twig_SimpleFilter instead.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
  * @deprecated since 1.12 (to be removed in 2.0)
  */
 class Twig_Filter_Node extends Twig_Filter
 {
+
     protected $class;
 
     public function __construct($class, array $options = array())
     {
+
         parent::__construct($options);
 
         $this->class = $class;
@@ -30,6 +32,7 @@ class Twig_Filter_Node extends Twig_Filter
 
     public function getClass()
     {
+
         return $this->class;
     }
 

@@ -6,6 +6,7 @@ use Doctrine\Tests\DbalTestCase;
 
 class DB2ConnectionTest extends DbalTestCase
 {
+
     /**
      * The ibm_db2 driver connection mock under test.
      *
@@ -13,9 +14,16 @@ class DB2ConnectionTest extends DbalTestCase
      */
     private $connectionMock;
 
+    public function testDoesNotRequireQueryForServerVersion()
+    {
+
+        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
+    }
+
     protected function setUp()
     {
-        if ( ! extension_loaded('ibm_db2')) {
+
+        if (!extension_loaded('ibm_db2')) {
             $this->markTestSkipped('ibm_db2 is not installed.');
         }
 
@@ -24,10 +32,5 @@ class DB2ConnectionTest extends DbalTestCase
         $this->connectionMock = $this->getMockBuilder('Doctrine\DBAL\Driver\IBMDB2\DB2Connection')
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
-    }
-
-    public function testDoesNotRequireQueryForServerVersion()
-    {
-        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
     }
 }

@@ -4,8 +4,8 @@ namespace Guzzle\Tests\Plugin\Redirect;
 
 use Guzzle\Http\Client;
 use Guzzle\Http\EntityBody;
-use Guzzle\Http\RedirectPlugin;
 use Guzzle\Http\Exception\TooManyRedirectsException;
+use Guzzle\Http\RedirectPlugin;
 use Guzzle\Plugin\History\HistoryPlugin;
 
 /**
@@ -13,8 +13,10 @@ use Guzzle\Plugin\History\HistoryPlugin;
  */
 class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testRedirectsRequests()
     {
+
         // Flush the server and queue up a redirect followed by a successful response
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
@@ -48,14 +50,15 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
         $requestHistory = $history->getAll();
 
         $this->assertEquals(301, $requestHistory[0]['response']->getStatusCode());
-        $this->assertEquals('/redirect1', (string) $requestHistory[0]['response']->getHeader('Location'));
+        $this->assertEquals('/redirect1', (string)$requestHistory[0]['response']->getHeader('Location'));
         $this->assertEquals(301, $requestHistory[1]['response']->getStatusCode());
-        $this->assertEquals('/redirect2', (string) $requestHistory[1]['response']->getHeader('Location'));
+        $this->assertEquals('/redirect2', (string)$requestHistory[1]['response']->getHeader('Location'));
         $this->assertEquals(200, $requestHistory[2]['response']->getStatusCode());
     }
 
     public function testCanLimitNumberOfRedirects()
     {
+
         // Flush the server and queue up a redirect followed by a successful response
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
@@ -81,6 +84,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDefaultBehaviorIsToRedirectWithGetForEntityEnclosingRequests()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 301 Moved Permanently\r\nLocation: /redirect\r\nContent-Length: 0\r\n\r\n",
@@ -94,12 +98,13 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
         $requests = $this->getServer()->getReceivedRequests(true);
         $this->assertEquals('POST', $requests[0]->getMethod());
         $this->assertEquals('GET', $requests[1]->getMethod());
-        $this->assertEquals('bar', (string) $requests[1]->getHeader('X-Baz'));
+        $this->assertEquals('bar', (string)$requests[1]->getHeader('X-Baz'));
         $this->assertEquals('GET', $requests[2]->getMethod());
     }
 
     public function testCanRedirectWithStrictRfcCompliance()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 301 Moved Permanently\r\nLocation: /redirect\r\nContent-Length: 0\r\n\r\n",
@@ -115,16 +120,17 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
         $requests = $this->getServer()->getReceivedRequests(true);
         $this->assertEquals('POST', $requests[0]->getMethod());
         $this->assertEquals('POST', $requests[1]->getMethod());
-        $this->assertEquals('bar', (string) $requests[1]->getHeader('X-Baz'));
+        $this->assertEquals('bar', (string)$requests[1]->getHeader('X-Baz'));
         $this->assertEquals('POST', $requests[2]->getMethod());
     }
 
     public function testRedirect303WithGet()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
-             "HTTP/1.1 303 Moved Permanently\r\nLocation: /redirect\r\nContent-Length: 0\r\n\r\n",
-             "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n",
+            "HTTP/1.1 303 Moved Permanently\r\nLocation: /redirect\r\nContent-Length: 0\r\n\r\n",
+            "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n",
         ));
 
         $client = new Client($this->getServer()->getUrl());
@@ -138,10 +144,11 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRedirect303WithGetWithStrictRfcCompliance()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
-             "HTTP/1.1 303 Moved Permanently\r\nLocation: /redirect\r\nContent-Length: 0\r\n\r\n",
-             "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n",
+            "HTTP/1.1 303 Moved Permanently\r\nLocation: /redirect\r\nContent-Length: 0\r\n\r\n",
+            "HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n",
         ));
 
         $client = new Client($this->getServer()->getUrl());
@@ -156,6 +163,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRewindsStreamWhenRedirectingIfNeeded()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 301 Moved Permanently\r\nLocation: /redirect\r\nContent-Length: 0\r\n\r\n",
@@ -170,7 +178,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
         $request->setBody($body);
         $request->send();
         $requests = $this->getServer()->getReceivedRequests(true);
-        $this->assertEquals('foo', (string) $requests[0]->getBody());
+        $this->assertEquals('foo', (string)$requests[0]->getBody());
     }
 
     /**
@@ -178,6 +186,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenStreamCannotBeRewound()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nhi",
@@ -194,6 +203,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRedirectsCanBeDisabledPerRequest()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array("HTTP/1.1 301 Foo\r\nLocation: /foo\r\nContent-Length: 0\r\n\r\n"));
         $client = new Client($this->getServer()->getUrl());
@@ -204,6 +214,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanRedirectWithNoLeadingSlashAndQuery()
     {
+
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
             "HTTP/1.1 301 Moved Permanently\r\nLocation: redirect?foo=bar\r\nContent-Length: 0\r\n\r\n",
@@ -213,14 +224,15 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
         $request = $client->get('?foo=bar');
         $request->send();
         $requests = $this->getServer()->getReceivedRequests(true);
-        $this->assertEquals($this->getServer()->getUrl() . '?foo=bar', $requests[0]->getUrl());
-        $this->assertEquals($this->getServer()->getUrl() . 'redirect?foo=bar', $requests[1]->getUrl());
+        $this->assertEquals($this->getServer()->getUrl().'?foo=bar', $requests[0]->getUrl());
+        $this->assertEquals($this->getServer()->getUrl().'redirect?foo=bar', $requests[1]->getUrl());
         // Ensure that the history on the actual request is correct
-        $this->assertEquals($this->getServer()->getUrl() . '?foo=bar', $request->getUrl());
+        $this->assertEquals($this->getServer()->getUrl().'?foo=bar', $request->getUrl());
     }
 
     public function testRedirectWithStrictRfc386Compliance()
     {
+
         // Flush the server and queue up a redirect followed by a successful response
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
@@ -236,6 +248,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testResetsHistoryEachSend()
     {
+
         // Flush the server and queue up a redirect followed by a successful response
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
@@ -262,6 +275,7 @@ class RedirectPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHandlesRedirectsWithSpacesProperly()
     {
+
         // Flush the server and queue up a redirect followed by a successful response
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(

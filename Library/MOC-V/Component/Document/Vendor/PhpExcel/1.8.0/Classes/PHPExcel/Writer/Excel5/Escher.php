@@ -65,7 +65,7 @@ class PHPExcel_Writer_Excel5_Escher
      *
      * @param mixed
      */
-    public function __construct( $object )
+    public function __construct($object)
     {
 
         $this->_object = $object;
@@ -80,15 +80,15 @@ class PHPExcel_Writer_Excel5_Escher
         // initialize
         $this->_data = '';
 
-        switch (get_class( $this->_object )) {
+        switch (get_class($this->_object)) {
 
             case 'PHPExcel_Shared_Escher':
                 if ($dggContainer = $this->_object->getDggContainer()) {
-                    $writer = new PHPExcel_Writer_Excel5_Escher( $dggContainer );
+                    $writer = new PHPExcel_Writer_Excel5_Escher($dggContainer);
                     $this->_data = $writer->close();
                 } else {
                     if ($dgContainer = $this->_object->getDgContainer()) {
-                        $writer = new PHPExcel_Writer_Excel5_Escher( $dgContainer );
+                        $writer = new PHPExcel_Writer_Excel5_Escher($dgContainer);
                         $this->_data = $writer->close();
                         $this->_spOffsets = $writer->getSpOffsets();
                         $this->_spTypes = $writer->getSpTypes();
@@ -112,7 +112,7 @@ class PHPExcel_Writer_Excel5_Escher
 
                 // dgg data
                 $dggData =
-                    pack( 'VVVV'
+                    pack('VVVV'
                         , $this->_object->getSpIdMax() // maximum shape identifier increased by one
                         , $this->_object->getCDgSaved() + 1 // number of file identifier clusters increased by one
                         , $this->_object->getCSpSaved()
@@ -123,15 +123,15 @@ class PHPExcel_Writer_Excel5_Escher
                 $IDCLs = $this->_object->getIDCLs();
 
                 foreach ($IDCLs as $dgId => $maxReducedSpId) {
-                    $dggData .= pack( 'VV', $dgId, $maxReducedSpId + 1 );
+                    $dggData .= pack('VV', $dgId, $maxReducedSpId + 1);
                 }
 
-                $header = pack( 'vvV', $recVerInstance, $recType, strlen( $dggData ) );
+                $header = pack('vvV', $recVerInstance, $recType, strlen($dggData));
                 $innerData .= $header.$dggData;
 
                 // write the bstoreContainer
                 if ($bstoreContainer = $this->_object->getBstoreContainer()) {
-                    $writer = new PHPExcel_Writer_Excel5_Escher( $bstoreContainer );
+                    $writer = new PHPExcel_Writer_Excel5_Escher($bstoreContainer);
                     $innerData .= $writer->close();
                 }
 
@@ -139,12 +139,12 @@ class PHPExcel_Writer_Excel5_Escher
                 $recVer = 0xF;
                 $recInstance = 0x0000;
                 $recType = 0xF000;
-                $length = strlen( $innerData );
+                $length = strlen($innerData);
 
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->_data = $header.$innerData;
                 break;
@@ -158,21 +158,21 @@ class PHPExcel_Writer_Excel5_Escher
                 // treat the inner data
                 if ($BSECollection = $this->_object->getBSECollection()) {
                     foreach ($BSECollection as $BSE) {
-                        $writer = new PHPExcel_Writer_Excel5_Escher( $BSE );
+                        $writer = new PHPExcel_Writer_Excel5_Escher($BSE);
                         $innerData .= $writer->close();
                     }
                 }
 
                 // write the record
                 $recVer = 0xF;
-                $recInstance = count( $this->_object->getBSECollection() );
+                $recInstance = count($this->_object->getBSECollection());
                 $recType = 0xF001;
-                $length = strlen( $innerData );
+                $length = strlen($innerData);
 
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->_data = $header.$innerData;
                 break;
@@ -185,7 +185,7 @@ class PHPExcel_Writer_Excel5_Escher
 
                 // here we treat the inner data
                 if ($blip = $this->_object->getBlip()) {
-                    $writer = new PHPExcel_Writer_Excel5_Escher( $blip );
+                    $writer = new PHPExcel_Writer_Excel5_Escher($blip);
                     $innerData .= $writer->close();
                 }
 
@@ -194,20 +194,20 @@ class PHPExcel_Writer_Excel5_Escher
 
                 $btWin32 = $this->_object->getBlipType();
                 $btMacOS = $this->_object->getBlipType();
-                $data .= pack( 'CC', $btWin32, $btMacOS );
+                $data .= pack('CC', $btWin32, $btMacOS);
 
-                $rgbUid = pack( 'VVVV', 0, 0, 0, 0 ); // todo
+                $rgbUid = pack('VVVV', 0, 0, 0, 0); // todo
                 $data .= $rgbUid;
 
                 $tag = 0;
-                $size = strlen( $innerData );
+                $size = strlen($innerData);
                 $cRef = 1;
                 $foDelay = 0; //todo
                 $unused1 = 0x0;
                 $cbName = 0x0;
                 $unused2 = 0x0;
                 $unused3 = 0x0;
-                $data .= pack( 'vVVVCCCC', $tag, $size, $cRef, $foDelay, $unused1, $cbName, $unused2, $unused3 );
+                $data .= pack('vVVVCCCC', $tag, $size, $cRef, $foDelay, $unused1, $cbName, $unused2, $unused3);
 
                 $data .= $innerData;
 
@@ -215,12 +215,12 @@ class PHPExcel_Writer_Excel5_Escher
                 $recVer = 0x2;
                 $recInstance = $this->_object->getBlipType();
                 $recType = 0xF007;
-                $length = strlen( $data );
+                $length = strlen($data);
 
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->_data = $header;
 
@@ -237,23 +237,23 @@ class PHPExcel_Writer_Excel5_Escher
                         // initialize
                         $innerData = '';
 
-                        $rgbUid1 = pack( 'VVVV', 0, 0, 0, 0 ); // todo
+                        $rgbUid1 = pack('VVVV', 0, 0, 0, 0); // todo
                         $innerData .= $rgbUid1;
 
                         $tag = 0xFF; // todo
-                        $innerData .= pack( 'C', $tag );
+                        $innerData .= pack('C', $tag);
 
                         $innerData .= $this->_object->getData();
 
                         $recVer = 0x0;
                         $recInstance = 0x46A;
                         $recType = 0xF01D;
-                        $length = strlen( $innerData );
+                        $length = strlen($innerData);
 
                         $recVerInstance = $recVer;
                         $recVerInstance |= $recInstance << 4;
 
-                        $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                        $header = pack('vvV', $recVerInstance, $recType, $length);
 
                         $this->_data = $header;
 
@@ -264,23 +264,23 @@ class PHPExcel_Writer_Excel5_Escher
                         // initialize
                         $innerData = '';
 
-                        $rgbUid1 = pack( 'VVVV', 0, 0, 0, 0 ); // todo
+                        $rgbUid1 = pack('VVVV', 0, 0, 0, 0); // todo
                         $innerData .= $rgbUid1;
 
                         $tag = 0xFF; // todo
-                        $innerData .= pack( 'C', $tag );
+                        $innerData .= pack('C', $tag);
 
                         $innerData .= $this->_object->getData();
 
                         $recVer = 0x0;
                         $recInstance = 0x6E0;
                         $recType = 0xF01E;
-                        $length = strlen( $innerData );
+                        $length = strlen($innerData);
 
                         $recVerInstance = $recVer;
                         $recVerInstance |= $recInstance << 4;
 
-                        $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                        $header = pack('vvV', $recVerInstance, $recType, $length);
 
                         $this->_data = $header;
 
@@ -305,16 +305,16 @@ class PHPExcel_Writer_Excel5_Escher
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 // number of shapes in this drawing (including group shape)
-                $countShapes = count( $this->_object->getSpgrContainer()->getChildren() );
-                $innerData .= $header.pack( 'VV', $countShapes, $this->_object->getLastSpId() );
+                $countShapes = count($this->_object->getSpgrContainer()->getChildren());
+                $innerData .= $header.pack('VV', $countShapes, $this->_object->getLastSpId());
                 //$innerData .= $header . pack('VV', 0, 0);
 
                 // write the spgrContainer
                 if ($spgrContainer = $this->_object->getSpgrContainer()) {
-                    $writer = new PHPExcel_Writer_Excel5_Escher( $spgrContainer );
+                    $writer = new PHPExcel_Writer_Excel5_Escher($spgrContainer);
                     $innerData .= $writer->close();
 
                     // get the shape offsets relative to the spgrContainer record
@@ -334,12 +334,12 @@ class PHPExcel_Writer_Excel5_Escher
                 $recVer = 0xF;
                 $recInstance = 0x0000;
                 $recType = 0xF002;
-                $length = strlen( $innerData );
+                $length = strlen($innerData);
 
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->_data = $header.$innerData;
                 break;
@@ -357,27 +357,27 @@ class PHPExcel_Writer_Excel5_Escher
 
                 // treat the inner data
                 foreach ($this->_object->getChildren() as $spContainer) {
-                    $writer = new PHPExcel_Writer_Excel5_Escher( $spContainer );
+                    $writer = new PHPExcel_Writer_Excel5_Escher($spContainer);
                     $spData = $writer->close();
                     $innerData .= $spData;
 
                     // save the shape offsets (where new shape records begin)
-                    $totalSize += strlen( $spData );
+                    $totalSize += strlen($spData);
                     $spOffsets[] = $totalSize;
 
-                    $spTypes = array_merge( $spTypes, $writer->getSpTypes() );
+                    $spTypes = array_merge($spTypes, $writer->getSpTypes());
                 }
 
                 // write the record
                 $recVer = 0xF;
                 $recInstance = 0x0000;
                 $recType = 0xF003;
-                $length = strlen( $innerData );
+                $length = strlen($innerData);
 
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->_data = $header.$innerData;
                 $this->_spOffsets = $spOffsets;
@@ -400,9 +400,9 @@ class PHPExcel_Writer_Excel5_Escher
                     $recVerInstance = $recVer;
                     $recVerInstance |= $recInstance << 4;
 
-                    $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                    $header = pack('vvV', $recVerInstance, $recType, $length);
 
-                    $data .= $header.pack( 'VVVV', 0, 0, 0, 0 );
+                    $data .= $header.pack('VVVV', 0, 0, 0, 0);
                 }
                 $this->_spTypes[] = ( $this->_object->getSpType() );
 
@@ -415,26 +415,26 @@ class PHPExcel_Writer_Excel5_Escher
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
-                $data .= $header.pack( 'VV', $this->_object->getSpId(), $this->_object->getSpgr() ? 0x0005 : 0x0A00 );
+                $data .= $header.pack('VV', $this->_object->getSpId(), $this->_object->getSpgr() ? 0x0005 : 0x0A00);
 
                 // the options
                 if ($this->_object->getOPTCollection()) {
                     $optData = '';
 
                     $recVer = 0x3;
-                    $recInstance = count( $this->_object->getOPTCollection() );
+                    $recInstance = count($this->_object->getOPTCollection());
                     $recType = 0xF00B;
                     foreach ($this->_object->getOPTCollection() as $property => $value) {
-                        $optData .= pack( 'vV', $property, $value );
+                        $optData .= pack('vV', $property, $value);
                     }
-                    $length = strlen( $optData );
+                    $length = strlen($optData);
 
                     $recVerInstance = $recVer;
                     $recVerInstance |= $recInstance << 4;
 
-                    $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                    $header = pack('vvV', $recVerInstance, $recType, $length);
                     $data .= $header.$optData;
                 }
 
@@ -447,8 +447,8 @@ class PHPExcel_Writer_Excel5_Escher
                     $recType = 0xF010;
 
                     // start coordinates
-                    list( $column, $row ) = PHPExcel_Cell::coordinateFromString( $this->_object->getStartCoordinates() );
-                    $c1 = PHPExcel_Cell::columnIndexFromString( $column ) - 1;
+                    list( $column, $row ) = PHPExcel_Cell::coordinateFromString($this->_object->getStartCoordinates());
+                    $c1 = PHPExcel_Cell::columnIndexFromString($column) - 1;
                     $r1 = $row - 1;
 
                     // start offsetX
@@ -458,8 +458,8 @@ class PHPExcel_Writer_Excel5_Escher
                     $startOffsetY = $this->_object->getStartOffsetY();
 
                     // end coordinates
-                    list( $column, $row ) = PHPExcel_Cell::coordinateFromString( $this->_object->getEndCoordinates() );
-                    $c2 = PHPExcel_Cell::columnIndexFromString( $column ) - 1;
+                    list( $column, $row ) = PHPExcel_Cell::coordinateFromString($this->_object->getEndCoordinates());
+                    $c2 = PHPExcel_Cell::columnIndexFromString($column) - 1;
                     $r2 = $row - 1;
 
                     // end offsetX
@@ -468,16 +468,16 @@ class PHPExcel_Writer_Excel5_Escher
                     // end offsetY
                     $endOffsetY = $this->_object->getEndOffsetY();
 
-                    $clientAnchorData = pack( 'vvvvvvvvv', $this->_object->getSpFlag(),
+                    $clientAnchorData = pack('vvvvvvvvv', $this->_object->getSpFlag(),
                         $c1, $startOffsetX, $r1, $startOffsetY,
-                        $c2, $endOffsetX, $r2, $endOffsetY );
+                        $c2, $endOffsetX, $r2, $endOffsetY);
 
-                    $length = strlen( $clientAnchorData );
+                    $length = strlen($clientAnchorData);
 
                     $recVerInstance = $recVer;
                     $recVerInstance |= $recInstance << 4;
 
-                    $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                    $header = pack('vvV', $recVerInstance, $recType, $length);
                     $data .= $header.$clientAnchorData;
                 }
 
@@ -489,12 +489,12 @@ class PHPExcel_Writer_Excel5_Escher
                     $recInstance = 0x0;
                     $recType = 0xF011;
 
-                    $length = strlen( $clientDataData );
+                    $length = strlen($clientDataData);
 
                     $recVerInstance = $recVer;
                     $recVerInstance |= $recInstance << 4;
 
-                    $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                    $header = pack('vvV', $recVerInstance, $recType, $length);
                     $data .= $header.$clientDataData;
                 }
 
@@ -502,12 +502,12 @@ class PHPExcel_Writer_Excel5_Escher
                 $recVer = 0xF;
                 $recInstance = 0x0000;
                 $recType = 0xF004;
-                $length = strlen( $data );
+                $length = strlen($data);
 
                 $recVerInstance = $recVer;
                 $recVerInstance |= $recInstance << 4;
 
-                $header = pack( 'vvV', $recVerInstance, $recType, $length );
+                $header = pack('vvV', $recVerInstance, $recType, $length);
 
                 $this->_data = $header.$data;
                 break;

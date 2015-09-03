@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpKernel\Exception;
  */
 interface HttpExceptionInterface
 {
+
     /**
      * Returns the status code.
      *

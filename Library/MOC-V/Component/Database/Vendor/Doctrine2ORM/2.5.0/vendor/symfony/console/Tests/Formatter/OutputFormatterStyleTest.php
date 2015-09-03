@@ -15,8 +15,10 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 class OutputFormatterStyleTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConstructor()
     {
+
         $style = new OutputFormatterStyle('green', 'black', array('bold', 'underscore'));
         $this->assertEquals("\033[32;40;1;4mfoo\033[39;49;22;24m", $style->apply('foo'));
 
@@ -29,6 +31,7 @@ class OutputFormatterStyleTest extends \PHPUnit_Framework_TestCase
 
     public function testForeground()
     {
+
         $style = new OutputFormatterStyle();
 
         $style->setForeground('black');
@@ -46,6 +49,7 @@ class OutputFormatterStyleTest extends \PHPUnit_Framework_TestCase
 
     public function testBackground()
     {
+
         $style = new OutputFormatterStyle();
 
         $style->setBackground('black');
@@ -63,6 +67,7 @@ class OutputFormatterStyleTest extends \PHPUnit_Framework_TestCase
 
     public function testOptions()
     {
+
         $style = new OutputFormatterStyle();
 
         $style->setOptions(array('reverse', 'conceal'));
@@ -84,16 +89,20 @@ class OutputFormatterStyleTest extends \PHPUnit_Framework_TestCase
             $style->setOption('foo');
             $this->fail('->setOption() throws an \InvalidArgumentException when the option does not exist in the available options');
         } catch (\Exception $e) {
-            $this->assertInstanceOf('\InvalidArgumentException', $e, '->setOption() throws an \InvalidArgumentException when the option does not exist in the available options');
-            $this->assertContains('Invalid option specified: "foo"', $e->getMessage(), '->setOption() throws an \InvalidArgumentException when the option does not exist in the available options');
+            $this->assertInstanceOf('\InvalidArgumentException', $e,
+                '->setOption() throws an \InvalidArgumentException when the option does not exist in the available options');
+            $this->assertContains('Invalid option specified: "foo"', $e->getMessage(),
+                '->setOption() throws an \InvalidArgumentException when the option does not exist in the available options');
         }
 
         try {
             $style->unsetOption('foo');
             $this->fail('->unsetOption() throws an \InvalidArgumentException when the option does not exist in the available options');
         } catch (\Exception $e) {
-            $this->assertInstanceOf('\InvalidArgumentException', $e, '->unsetOption() throws an \InvalidArgumentException when the option does not exist in the available options');
-            $this->assertContains('Invalid option specified: "foo"', $e->getMessage(), '->unsetOption() throws an \InvalidArgumentException when the option does not exist in the available options');
+            $this->assertInstanceOf('\InvalidArgumentException', $e,
+                '->unsetOption() throws an \InvalidArgumentException when the option does not exist in the available options');
+            $this->assertContains('Invalid option specified: "foo"', $e->getMessage(),
+                '->unsetOption() throws an \InvalidArgumentException when the option does not exist in the available options');
         }
     }
 }

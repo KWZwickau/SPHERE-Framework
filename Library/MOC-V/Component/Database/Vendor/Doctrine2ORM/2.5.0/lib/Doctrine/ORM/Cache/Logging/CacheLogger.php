@@ -32,6 +32,7 @@ use Doctrine\ORM\Cache\QueryCacheKey;
  */
 interface CacheLogger
 {
+
     /**
      * Log an entity put into second level cache.
      *
@@ -56,7 +57,7 @@ interface CacheLogger
      */
     public function entityCacheMiss($regionName, EntityCacheKey $key);
 
-     /**
+    /**
      * Log an entity put into second level cache.
      *
      * @param string                                 $regionName The name of the cache region.

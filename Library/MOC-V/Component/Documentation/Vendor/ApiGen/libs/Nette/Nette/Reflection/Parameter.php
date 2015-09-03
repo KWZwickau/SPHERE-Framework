@@ -37,10 +37,10 @@ class Parameter extends \ReflectionParameter
     private $function;
 
 
-    public function __construct( $function, $parameter )
+    public function __construct($function, $parameter)
     {
 
-        parent::__construct( $this->function = $function, $parameter );
+        parent::__construct($this->function = $function, $parameter);
     }
 
     /**
@@ -52,7 +52,7 @@ class Parameter extends \ReflectionParameter
     {
 
         return new ClassType(/*5.2*$this*//**/
-            get_called_class()/**/ );
+            get_called_class()/**/);
     }
 
     /**
@@ -61,7 +61,7 @@ class Parameter extends \ReflectionParameter
     public function getClass()
     {
 
-        return ( $ref = parent::getClass() ) ? new ClassType( $ref->getName() ) : null;
+        return ( $ref = parent::getClass() ) ? new ClassType($ref->getName()) : null;
     }
 
     /**
@@ -72,8 +72,8 @@ class Parameter extends \ReflectionParameter
 
         try {
             return ( $ref = parent::getClass() ) ? $ref->getName() : null;
-        } catch( \ReflectionException $e ) {
-            if (preg_match( '#Class (.+) does not exist#', $e->getMessage(), $m )) {
+        } catch (\ReflectionException $e) {
+            if (preg_match('#Class (.+) does not exist#', $e->getMessage(), $m)) {
                 return $m[1];
             }
             throw $e;
@@ -86,7 +86,7 @@ class Parameter extends \ReflectionParameter
     public function getDeclaringClass()
     {
 
-        return ( $ref = parent::getDeclaringClass() ) ? new ClassType( $ref->getName() ) : null;
+        return ( $ref = parent::getDeclaringClass() ) ? new ClassType($ref->getName()) : null;
     }
 
     public function __toString()
@@ -105,43 +105,43 @@ class Parameter extends \ReflectionParameter
     public function getDeclaringFunction()
     {
 
-        return is_array( $this->function )
-            ? new Method( $this->function[0], $this->function[1] )
-            : new GlobalFunction( $this->function );
+        return is_array($this->function)
+            ? new Method($this->function[0], $this->function[1])
+            : new GlobalFunction($this->function);
     }
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return ObjectMixin::call( $this, $name, $args );
-    }
-
-
-    public function &__get( $name )
-    {
-
-        return ObjectMixin::get( $this, $name );
+        return ObjectMixin::call($this, $name, $args);
     }
 
 
-    public function __set( $name, $value )
+    public function &__get($name)
     {
 
-        return ObjectMixin::set( $this, $name, $value );
+        return ObjectMixin::get($this, $name);
     }
 
 
-    public function __isset( $name )
+    public function __set($name, $value)
     {
 
-        return ObjectMixin::has( $this, $name );
+        return ObjectMixin::set($this, $name, $value);
     }
 
 
-    public function __unset( $name )
+    public function __isset($name)
     {
 
-        ObjectMixin::remove( $this, $name );
+        return ObjectMixin::has($this, $name);
+    }
+
+
+    public function __unset($name)
+    {
+
+        ObjectMixin::remove($this, $name);
     }
 
 }

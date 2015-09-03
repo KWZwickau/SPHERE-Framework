@@ -103,7 +103,7 @@ class PHPExcel_Worksheet_PageMargins
      *
      * @return PHPExcel_Worksheet_PageMargins
      */
-    public function setLeft( $pValue )
+    public function setLeft($pValue)
     {
 
         $this->_left = $pValue;
@@ -128,7 +128,7 @@ class PHPExcel_Worksheet_PageMargins
      *
      * @return PHPExcel_Worksheet_PageMargins
      */
-    public function setRight( $pValue )
+    public function setRight($pValue)
     {
 
         $this->_right = $pValue;
@@ -153,7 +153,7 @@ class PHPExcel_Worksheet_PageMargins
      *
      * @return PHPExcel_Worksheet_PageMargins
      */
-    public function setTop( $pValue )
+    public function setTop($pValue)
     {
 
         $this->_top = $pValue;
@@ -178,7 +178,7 @@ class PHPExcel_Worksheet_PageMargins
      *
      * @return PHPExcel_Worksheet_PageMargins
      */
-    public function setBottom( $pValue )
+    public function setBottom($pValue)
     {
 
         $this->_bottom = $pValue;
@@ -203,7 +203,7 @@ class PHPExcel_Worksheet_PageMargins
      *
      * @return PHPExcel_Worksheet_PageMargins
      */
-    public function setHeader( $pValue )
+    public function setHeader($pValue)
     {
 
         $this->_header = $pValue;
@@ -228,7 +228,7 @@ class PHPExcel_Worksheet_PageMargins
      *
      * @return PHPExcel_Worksheet_PageMargins
      */
-    public function setFooter( $pValue )
+    public function setFooter($pValue)
     {
 
         $this->_footer = $pValue;
@@ -241,9 +241,9 @@ class PHPExcel_Worksheet_PageMargins
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

@@ -30,13 +30,13 @@ class MultiSelectBox extends SelectBox
      *
      * @return bool
      */
-    public static function validateLength( MultiSelectBox $control, $range )
+    public static function validateLength(MultiSelectBox $control, $range)
     {
 
-        if (!is_array( $range )) {
-            $range = array( $range, $range );
+        if (!is_array($range)) {
+            $range = array($range, $range);
         }
-        $count = count( $control->getSelectedItem() );
+        $count = count($control->getSelectedItem());
         return ( $range[0] === null || $count >= $range[0] ) && ( $range[1] === null || $count <= $range[1] );
     }
 
@@ -49,7 +49,7 @@ class MultiSelectBox extends SelectBox
     {
 
         return $this->areKeysUsed()
-            ? array_intersect_key( $this->allowed, array_flip( $this->getValue() ) )
+            ? array_intersect_key($this->allowed, array_flip($this->getValue()))
             : $this->getValue();
     }
 
@@ -61,7 +61,7 @@ class MultiSelectBox extends SelectBox
     public function getValue()
     {
 
-        return array_intersect( $this->getRawValue(), array_keys( $this->allowed ) );
+        return array_intersect($this->getRawValue(), array_keys($this->allowed));
     }
 
     /**
@@ -72,13 +72,13 @@ class MultiSelectBox extends SelectBox
     public function getRawValue()
     {
 
-        if (is_scalar( $this->value )) {
-            return array( $this->value );
+        if (is_scalar($this->value)) {
+            return array($this->value);
 
         } else {
             $res = array();
             foreach ((array)$this->value as $val) {
-                if (is_scalar( $val )) {
+                if (is_scalar($val)) {
                     $res[] = $val;
                 }
             }
@@ -105,7 +105,7 @@ class MultiSelectBox extends SelectBox
     public function getControl()
     {
 
-        return parent::getControl()->multiple( true );
+        return parent::getControl()->multiple(true);
     }
 
 }

@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_ModuleTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_Module::__construct
      */
     public function testConstructor()
     {
+
         $body = new Twig_Node_Text('foo', 1);
         $parent = new Twig_Node_Expression_Constant('layout.twig', 1);
         $blocks = new Twig_Node();
@@ -32,23 +34,25 @@ class Twig_Tests_Node_ModuleTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_Module::compile
-     * @covers Twig_Node_Module::compileTemplate
-     * @covers Twig_Node_Module::compileMacros
-     * @covers Twig_Node_Module::compileClassHeader
-     * @covers Twig_Node_Module::compileDisplayHeader
-     * @covers Twig_Node_Module::compileDisplayBody
-     * @covers Twig_Node_Module::compileDisplayFooter
-     * @covers Twig_Node_Module::compileClassFooter
+     * @covers       Twig_Node_Module::compile
+     * @covers       Twig_Node_Module::compileTemplate
+     * @covers       Twig_Node_Module::compileMacros
+     * @covers       Twig_Node_Module::compileClassHeader
+     * @covers       Twig_Node_Module::compileDisplayHeader
+     * @covers       Twig_Node_Module::compileDisplayBody
+     * @covers       Twig_Node_Module::compileDisplayFooter
+     * @covers       Twig_Node_Module::compileClassFooter
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $twig = new Twig_Environment(new Twig_Loader_String());
 
         $tests = array();
@@ -61,8 +65,10 @@ class Twig_Tests_Node_ModuleTest extends Twig_Test_NodeTestCase
         $filename = 'foo.twig';
 
         $node = new Twig_Node_Module($body, $extends, $blocks, $macros, $traits, new Twig_Node(array()), $filename);
-        $tests[] = array($node, <<<EOF
-<?php
+        $tests[] = array(
+            $node,
+            <<<EOF
+           <?php
 
 /* foo.twig */
 class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c18638df0d extends Twig_Template
@@ -94,16 +100,21 @@ class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c1863
     }
 }
 EOF
-        , $twig);
+        ,
+            $twig
+        );
 
-        $import = new Twig_Node_Import(new Twig_Node_Expression_Constant('foo.twig', 1), new Twig_Node_Expression_AssignName('macro', 1), 1);
+        $import = new Twig_Node_Import(new Twig_Node_Expression_Constant('foo.twig', 1),
+            new Twig_Node_Expression_AssignName('macro', 1), 1);
 
         $body = new Twig_Node(array($import));
         $extends = new Twig_Node_Expression_Constant('layout.twig', 1);
 
         $node = new Twig_Node_Module($body, $extends, $blocks, $macros, $traits, new Twig_Node(array()), $filename);
-        $tests[] = array($node, <<<EOF
-<?php
+        $tests[] = array(
+            $node,
+            <<<EOF
+           <?php
 
 /* foo.twig */
 class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c18638df0d extends Twig_Template
@@ -146,19 +157,23 @@ class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c1863
     }
 }
 EOF
-        , $twig);
+        ,
+            $twig
+        );
 
         $body = new Twig_Node();
         $extends = new Twig_Node_Expression_Conditional(
-                        new Twig_Node_Expression_Constant(true, 1),
-                        new Twig_Node_Expression_Constant('foo', 1),
-                        new Twig_Node_Expression_Constant('foo', 1),
-                        0
-                    );
+            new Twig_Node_Expression_Constant(true, 1),
+            new Twig_Node_Expression_Constant('foo', 1),
+            new Twig_Node_Expression_Constant('foo', 1),
+            0
+        );
 
         $node = new Twig_Node_Module($body, $extends, $blocks, $macros, $traits, new Twig_Node(array()), $filename);
-        $tests[] = array($node, <<<EOF
-<?php
+        $tests[] = array(
+            $node,
+            <<<EOF
+           <?php
 
 /* foo.twig */
 class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c18638df0d extends Twig_Template
@@ -189,7 +204,9 @@ class __TwigTemplate_a2bfbf7dd6ab85666684fe9297f69363a3fc2046d90f22a317d380c1863
     }
 }
 EOF
-        , $twig);
+        ,
+            $twig
+        );
 
         return $tests;
     }

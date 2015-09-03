@@ -2,14 +2,16 @@
 
 namespace Doctrine\Tests\DBAL\Functional;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     private static $tableCreated = false;
 
     public function setUp()
     {
+
         parent::setUp();
 
         if (!self::$tableCreated) {
@@ -34,6 +36,7 @@ class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testModifyLimitQuerySimpleQuery()
     {
+
         $this->_conn->insert('modify_limit_table', array('test_int' => 1));
         $this->_conn->insert('modify_limit_table', array('test_int' => 2));
         $this->_conn->insert('modify_limit_table', array('test_int' => 3));
@@ -46,8 +49,29 @@ class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
         $this->assertLimitResult(array(3, 4), $sql, 2, 2);
     }
 
+    public function assertLimitResult($expectedResults, $sql, $limit, $offset, $deterministic = true)
+    {
+
+        $p = $this->_conn->getDatabasePlatform();
+        $data = array();
+        foreach ($this->_conn->fetchAll($p->modifyLimitQuery($sql, $limit, $offset)) as $row) {
+            $row = array_change_key_case($row, CASE_LOWER);
+            $data[] = $row['test_int'];
+        }
+
+        /**
+         * Do not assert the order of results when results are non-deterministic
+         */
+        if ($deterministic) {
+            $this->assertEquals($expectedResults, $data);
+        } else {
+            $this->assertCount(count($expectedResults), $data);
+        }
+    }
+
     public function testModifyLimitQueryJoinQuery()
     {
+
         $this->_conn->insert('modify_limit_table', array('test_int' => 1));
         $this->_conn->insert('modify_limit_table', array('test_int' => 2));
 
@@ -66,6 +90,7 @@ class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testModifyLimitQueryNonDeterministic()
     {
+
         $this->_conn->insert('modify_limit_table', array('test_int' => 1));
         $this->_conn->insert('modify_limit_table', array('test_int' => 2));
         $this->_conn->insert('modify_limit_table', array('test_int' => 3));
@@ -80,6 +105,7 @@ class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testModifyLimitQueryGroupBy()
     {
+
         $this->_conn->insert('modify_limit_table', array('test_int' => 1));
         $this->_conn->insert('modify_limit_table', array('test_int' => 2));
 
@@ -89,10 +115,10 @@ class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
         $this->_conn->insert('modify_limit_table2', array('test_int' => 2));
         $this->_conn->insert('modify_limit_table2', array('test_int' => 2));
 
-        $sql = "SELECT modify_limit_table.test_int FROM modify_limit_table " .
-               "INNER JOIN modify_limit_table2 ON modify_limit_table.test_int = modify_limit_table2.test_int ".
-               "GROUP BY modify_limit_table.test_int " .
-               "ORDER BY modify_limit_table.test_int ASC";
+        $sql = "SELECT modify_limit_table.test_int FROM modify_limit_table ".
+            "INNER JOIN modify_limit_table2 ON modify_limit_table.test_int = modify_limit_table2.test_int ".
+            "GROUP BY modify_limit_table.test_int ".
+            "ORDER BY modify_limit_table.test_int ASC";
         $this->assertLimitResult(array(1, 2), $sql, 10, 0);
         $this->assertLimitResult(array(1), $sql, 1, 0);
         $this->assertLimitResult(array(2), $sql, 1, 1);
@@ -100,6 +126,7 @@ class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testModifyLimitQuerySubSelect()
     {
+
         $this->_conn->insert('modify_limit_table', array('test_int' => 1));
         $this->_conn->insert('modify_limit_table', array('test_int' => 2));
         $this->_conn->insert('modify_limit_table', array('test_int' => 3));
@@ -110,24 +137,5 @@ class ModifyLimitQueryTest extends \Doctrine\Tests\DbalFunctionalTestCase
         $this->assertLimitResult(array(4, 3, 2, 1), $sql, 10, 0, false);
         $this->assertLimitResult(array(4, 3), $sql, 2, 0, false);
         $this->assertLimitResult(array(2, 1), $sql, 2, 2, false);
-    }
-
-    public function assertLimitResult($expectedResults, $sql, $limit, $offset, $deterministic = true)
-    {
-        $p = $this->_conn->getDatabasePlatform();
-        $data = array();
-        foreach ($this->_conn->fetchAll($p->modifyLimitQuery($sql, $limit, $offset)) as $row) {
-            $row = array_change_key_case($row, CASE_LOWER);
-            $data[] = $row['test_int'];
-        }
-
-        /**
-         * Do not assert the order of results when results are non-deterministic
-         */
-        if ($deterministic) {
-            $this->assertEquals($expectedResults, $data);
-        } else {
-            $this->assertCount(count($expectedResults), $data);
-        }
     }
 }

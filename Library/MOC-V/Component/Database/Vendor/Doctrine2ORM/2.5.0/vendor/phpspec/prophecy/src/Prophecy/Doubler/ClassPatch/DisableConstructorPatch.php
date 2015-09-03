@@ -22,6 +22,7 @@ use Prophecy\Doubler\Generator\Node\MethodNode;
  */
 class DisableConstructorPatch implements ClassPatchInterface
 {
+
     /**
      * Checks if class has `__construct` method.
      *
@@ -31,6 +32,7 @@ class DisableConstructorPatch implements ClassPatchInterface
      */
     public function supports(ClassNode $node)
     {
+
         return true;
     }
 
@@ -41,6 +43,7 @@ class DisableConstructorPatch implements ClassPatchInterface
      */
     public function apply(ClassNode $node)
     {
+
         if (!$node->hasMethod('__construct')) {
             $node->addMethod(new MethodNode('__construct', ''));
 
@@ -67,6 +70,7 @@ PHP
      */
     public function getPriority()
     {
+
         return 100;
     }
 }

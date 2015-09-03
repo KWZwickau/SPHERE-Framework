@@ -21,6 +21,7 @@ namespace Symfony\Component\Config\Loader;
  */
 class LoaderResolver implements LoaderResolverInterface
 {
+
     /**
      * @var LoaderInterface[] An array of LoaderInterface objects
      */
@@ -33,9 +34,22 @@ class LoaderResolver implements LoaderResolverInterface
      */
     public function __construct(array $loaders = array())
     {
+
         foreach ($loaders as $loader) {
             $this->addLoader($loader);
         }
+    }
+
+    /**
+     * Adds a loader.
+     *
+     * @param LoaderInterface $loader A LoaderInterface instance
+     */
+    public function addLoader(LoaderInterface $loader)
+    {
+
+        $this->loaders[] = $loader;
+        $loader->setResolver($this);
     }
 
     /**
@@ -43,6 +57,7 @@ class LoaderResolver implements LoaderResolverInterface
      */
     public function resolve($resource, $type = null)
     {
+
         foreach ($this->loaders as $loader) {
             if ($loader->supports($resource, $type)) {
                 return $loader;
@@ -53,23 +68,13 @@ class LoaderResolver implements LoaderResolverInterface
     }
 
     /**
-     * Adds a loader.
-     *
-     * @param LoaderInterface $loader A LoaderInterface instance
-     */
-    public function addLoader(LoaderInterface $loader)
-    {
-        $this->loaders[] = $loader;
-        $loader->setResolver($this);
-    }
-
-    /**
      * Returns the registered loaders.
      *
      * @return LoaderInterface[] An array of LoaderInterface instances
      */
     public function getLoaders()
     {
+
         return $this->loaders;
     }
 }

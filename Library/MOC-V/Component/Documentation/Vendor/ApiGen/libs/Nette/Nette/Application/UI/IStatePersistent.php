@@ -28,7 +28,7 @@ interface IStatePersistent
      *
      * @return void
      */
-    function loadState( array $params );
+    function loadState(array $params);
 
     /**
      * Saves state informations for next request.
@@ -37,6 +37,6 @@ interface IStatePersistent
      *
      * @return void
      */
-    function saveState( array & $params );
+    function saveState(array & $params);
 
 }

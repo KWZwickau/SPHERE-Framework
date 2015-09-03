@@ -3,27 +3,28 @@
 namespace Guzzle\Service;
 
 use Guzzle\Common\Collection;
-use Guzzle\Common\Exception\InvalidArgumentException;
 use Guzzle\Common\Exception\BadMethodCallException;
+use Guzzle\Common\Exception\InvalidArgumentException;
 use Guzzle\Common\Version;
-use Guzzle\Inflection\InflectorInterface;
-use Guzzle\Inflection\Inflector;
 use Guzzle\Http\Client as HttpClient;
 use Guzzle\Http\Exception\MultiTransferException;
-use Guzzle\Service\Exception\CommandTransferException;
 use Guzzle\Http\Message\RequestInterface;
+use Guzzle\Inflection\Inflector;
+use Guzzle\Inflection\InflectorInterface;
 use Guzzle\Service\Command\CommandInterface;
 use Guzzle\Service\Command\Factory\CompositeFactory;
 use Guzzle\Service\Command\Factory\FactoryInterface as CommandFactoryInterface;
+use Guzzle\Service\Description\ServiceDescriptionInterface;
+use Guzzle\Service\Exception\CommandTransferException;
 use Guzzle\Service\Resource\ResourceIteratorClassFactory;
 use Guzzle\Service\Resource\ResourceIteratorFactoryInterface;
-use Guzzle\Service\Description\ServiceDescriptionInterface;
 
 /**
  * Client object for executing commands on a web service.
  */
 class Client extends HttpClient implements ClientInterface
 {
+
     const COMMAND_PARAMS = 'command.params';
 
     /** @var ServiceDescriptionInterface Description of the service and possible commands */
@@ -47,11 +48,13 @@ class Client extends HttpClient implements ClientInterface
      */
     public static function factory($config = array())
     {
-        return new static(isset($config['base_url']) ? $config['base_url'] : null, $config);
+
+        return new static(isset( $config['base_url'] ) ? $config['base_url'] : null, $config);
     }
 
     public static function getAllEvents()
     {
+
         return array_merge(HttpClient::getAllEvents(), array(
             'client.command.create',
             'command.before_prepare',
@@ -73,17 +76,19 @@ class Client extends HttpClient implements ClientInterface
      */
     public function __call($method, $args)
     {
-        return $this->getCommand($method, isset($args[0]) ? $args[0] : array())->getResult();
+
+        return $this->getCommand($method, isset( $args[0] ) ? $args[0] : array())->getResult();
     }
 
     public function getCommand($name, array $args = array())
     {
+
         // Add global client options to the command
         if ($options = $this->getConfig(self::COMMAND_PARAMS)) {
             $args += $options;
         }
 
-        if (!($command = $this->getCommandFactory()->factory($name, $args))) {
+        if (!( $command = $this->getCommandFactory()->factory($name, $args) )) {
             throw new InvalidArgumentException("Command was not found matching {$name}");
         }
 
@@ -91,6 +96,21 @@ class Client extends HttpClient implements ClientInterface
         $this->dispatch('client.command.create', array('client' => $this, 'command' => $command));
 
         return $command;
+    }
+
+    /**
+     * Get the command factory associated with the client
+     *
+     * @return CommandFactoryInterface
+     */
+    protected function getCommandFactory()
+    {
+
+        if (!$this->commandFactory) {
+            $this->commandFactory = CompositeFactory::getDefaultChain($this);
+        }
+
+        return $this->commandFactory;
     }
 
     /**
@@ -102,9 +122,36 @@ class Client extends HttpClient implements ClientInterface
      */
     public function setCommandFactory(CommandFactoryInterface $factory)
     {
+
         $this->commandFactory = $factory;
 
         return $this;
+    }
+
+    public function getIterator($command, array $commandOptions = null, array $iteratorOptions = array())
+    {
+
+        if (!( $command instanceof CommandInterface )) {
+            $command = $this->getCommand($command, $commandOptions ?: array());
+        }
+
+        return $this->getResourceIteratorFactory()->build($command, $iteratorOptions);
+    }
+
+    protected function getResourceIteratorFactory()
+    {
+
+        if (!$this->resourceIteratorFactory) {
+            // Build the default resource iterator factory if one is not set
+            $clientClass = get_class($this);
+            $prefix = substr($clientClass, 0, strrpos($clientClass, '\\'));
+            $this->resourceIteratorFactory = new ResourceIteratorClassFactory(array(
+                "{$prefix}\\Iterator",
+                "{$prefix}\\Model"
+            ));
+        }
+
+        return $this->resourceIteratorFactory;
     }
 
     /**
@@ -116,22 +163,15 @@ class Client extends HttpClient implements ClientInterface
      */
     public function setResourceIteratorFactory(ResourceIteratorFactoryInterface $factory)
     {
+
         $this->resourceIteratorFactory = $factory;
 
         return $this;
     }
 
-    public function getIterator($command, array $commandOptions = null, array $iteratorOptions = array())
-    {
-        if (!($command instanceof CommandInterface)) {
-            $command = $this->getCommand($command, $commandOptions ?: array());
-        }
-
-        return $this->getResourceIteratorFactory()->build($command, $iteratorOptions);
-    }
-
     public function execute($command)
     {
+
         if ($command instanceof CommandInterface) {
             $this->send($this->prepareCommand($command));
             $this->dispatch('command.after_send', array('command' => $command));
@@ -143,55 +183,6 @@ class Client extends HttpClient implements ClientInterface
         }
     }
 
-    public function setDescription(ServiceDescriptionInterface $service)
-    {
-        $this->serviceDescription = $service;
-
-        if ($this->getCommandFactory() && $this->getCommandFactory() instanceof CompositeFactory) {
-            $this->commandFactory->add(new Command\Factory\ServiceDescriptionFactory($service));
-        }
-
-        // If a baseUrl was set on the description, then update the client
-        if ($baseUrl = $service->getBaseUrl()) {
-            $this->setBaseUrl($baseUrl);
-        }
-
-        return $this;
-    }
-
-    public function getDescription()
-    {
-        return $this->serviceDescription;
-    }
-
-    /**
-     * Set the inflector used with the client
-     *
-     * @param InflectorInterface $inflector Inflection object
-     *
-     * @return self
-     */
-    public function setInflector(InflectorInterface $inflector)
-    {
-        $this->inflector = $inflector;
-
-        return $this;
-    }
-
-    /**
-     * Get the inflector used with the client
-     *
-     * @return self
-     */
-    public function getInflector()
-    {
-        if (!$this->inflector) {
-            $this->inflector = Inflector::getDefault();
-        }
-
-        return $this->inflector;
-    }
-
     /**
      * Prepare a command for sending and get the RequestInterface object created by the command
      *
@@ -201,6 +192,7 @@ class Client extends HttpClient implements ClientInterface
      */
     protected function prepareCommand(CommandInterface $command)
     {
+
         // Set the client and prepare the command
         $request = $command->setClient($this)->prepare();
         // Set the state to new if the command was previously executed
@@ -220,6 +212,7 @@ class Client extends HttpClient implements ClientInterface
      */
     protected function executeMultiple($commands)
     {
+
         $requests = array();
         $commandRequests = new \SplObjectStorage();
 
@@ -241,9 +234,9 @@ class Client extends HttpClient implements ClientInterface
 
             // Remove failed requests from the successful requests array and add to the failures array
             foreach ($failureException->getFailedRequests() as $request) {
-                if (isset($commandRequests[$request])) {
+                if (isset( $commandRequests[$request] )) {
                     $e->addFailedCommand($commandRequests[$request]);
-                    unset($commandRequests[$request]);
+                    unset( $commandRequests[$request] );
                 }
             }
 
@@ -257,33 +250,57 @@ class Client extends HttpClient implements ClientInterface
         }
     }
 
-    protected function getResourceIteratorFactory()
+    public function setDescription(ServiceDescriptionInterface $service)
     {
-        if (!$this->resourceIteratorFactory) {
-            // Build the default resource iterator factory if one is not set
-            $clientClass = get_class($this);
-            $prefix = substr($clientClass, 0, strrpos($clientClass, '\\'));
-            $this->resourceIteratorFactory = new ResourceIteratorClassFactory(array(
-                "{$prefix}\\Iterator",
-                "{$prefix}\\Model"
-            ));
+
+        $this->serviceDescription = $service;
+
+        if ($this->getCommandFactory() && $this->getCommandFactory() instanceof CompositeFactory) {
+            $this->commandFactory->add(new Command\Factory\ServiceDescriptionFactory($service));
         }
 
-        return $this->resourceIteratorFactory;
+        // If a baseUrl was set on the description, then update the client
+        if ($baseUrl = $service->getBaseUrl()) {
+            $this->setBaseUrl($baseUrl);
+        }
+
+        return $this;
+    }
+
+    public function getDescription()
+    {
+
+        return $this->serviceDescription;
     }
 
     /**
-     * Get the command factory associated with the client
+     * Get the inflector used with the client
      *
-     * @return CommandFactoryInterface
+     * @return self
      */
-    protected function getCommandFactory()
+    public function getInflector()
     {
-        if (!$this->commandFactory) {
-            $this->commandFactory = CompositeFactory::getDefaultChain($this);
+
+        if (!$this->inflector) {
+            $this->inflector = Inflector::getDefault();
         }
 
-        return $this->commandFactory;
+        return $this->inflector;
+    }
+
+    /**
+     * Set the inflector used with the client
+     *
+     * @param InflectorInterface $inflector Inflection object
+     *
+     * @return self
+     */
+    public function setInflector(InflectorInterface $inflector)
+    {
+
+        $this->inflector = $inflector;
+
+        return $this;
     }
 
     /**
@@ -292,6 +309,7 @@ class Client extends HttpClient implements ClientInterface
      */
     public function enableMagicMethods($isEnabled)
     {
-        Version::warn(__METHOD__ . ' is deprecated');
+
+        Version::warn(__METHOD__.' is deprecated');
     }
 }

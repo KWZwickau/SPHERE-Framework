@@ -47,20 +47,20 @@ class DateTime extends \DateTime
      *
      * @return DateTime
      */
-    public static function from( $time )
+    public static function from($time)
     {
 
         if ($time instanceof \DateTime) {
-            return new self( $time->format( 'Y-m-d H:i:s' ), $time->getTimezone() );
+            return new self($time->format('Y-m-d H:i:s'), $time->getTimezone());
 
-        } elseif (is_numeric( $time )) {
+        } elseif (is_numeric($time)) {
             if ($time <= self::YEAR) {
                 $time += time();
             }
-            return new static( date( 'Y-m-d H:i:s', $time ) );
+            return new static(date('Y-m-d H:i:s', $time));
 
         } else { // textual or NULL
-            return new static( $time );
+            return new static($time);
         }
     }
 
@@ -68,15 +68,15 @@ class DateTime extends \DateTime
     public function __toString()
     {
 
-        return $this->format( 'Y-m-d H:i:s' );
+        return $this->format('Y-m-d H:i:s');
     }
 
 
-    public function modifyClone( $modify = '' )
+    public function modifyClone($modify = '')
     {
 
         $dolly = clone $this;
-        return $modify ? $dolly->modify( $modify ) : $dolly;
+        return $modify ? $dolly->modify($modify) : $dolly;
     }
 
     /*5.2*

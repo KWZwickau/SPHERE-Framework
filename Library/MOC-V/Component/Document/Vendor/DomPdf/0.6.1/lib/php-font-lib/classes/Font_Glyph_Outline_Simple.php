@@ -25,11 +25,11 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
     public $instructions;
     public $points;
 
-    public function makePoints( $path )
+    public function makePoints($path)
     {
 
-        $path = $this->splitSVGPath( $path );
-        $l = count( $path );
+        $path = $this->splitSVGPath($path);
+        $l = count($path);
         $i = 0;
 
         $points = array();
@@ -75,7 +75,7 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
                 // closePath
                 /** @noinspection PhpMissingBreakStatementInspection */
                 case "z":
-                    $points[count( $points ) - 1]["endOfContour"] = true;
+                    $points[count($points) - 1]["endOfContour"] = true;
 
                 default:
                     $i++;
@@ -86,10 +86,10 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
         return $points;
     }
 
-    public function splitSVGPath( $path )
+    public function splitSVGPath($path)
     {
 
-        preg_match_all( '/([a-z])|(-?\d+(?:\.\d+)?)/i', $path, $matches, PREG_PATTERN_ORDER );
+        preg_match_all('/([a-z])|(-?\d+(?:\.\d+)?)/i', $path, $matches, PREG_PATTERN_ORDER);
         return $matches[0];
     }
 
@@ -100,10 +100,10 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
             return parent::encode();
         }
 
-        return $this->size = $this->encodePoints( $this->points );
+        return $this->size = $this->encodePoints($this->points);
     }
 
-    public function encodePoints( $points )
+    public function encodePoints($points)
     {
 
         $endPtsOfContours = array();
@@ -129,9 +129,9 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
             if ($point["x"] == $last_x) {
                 $flag |= self::THIS_X_IS_SAME;
             } else {
-                $x = intval( $point["x"] );
-                $xMin = min( $x, $xMin );
-                $xMax = max( $x, $xMax );
+                $x = intval($point["x"]);
+                $xMin = min($x, $xMin);
+                $xMax = max($x, $xMax);
                 $coords_x[] = $x - $last_x; // int16
             }
 
@@ -139,9 +139,9 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
             if ($point["y"] == $last_y) {
                 $flag |= self::THIS_Y_IS_SAME;
             } else {
-                $y = intval( $point["y"] );
-                $yMin = min( $y, $yMin );
-                $yMax = max( $y, $yMax );
+                $y = intval($point["y"]);
+                $yMin = min($y, $yMin);
+                $yMax = max($y, $yMax);
                 $coords_y[] = $y - $last_y; // int16
             }
 
@@ -153,22 +153,22 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
         $font = $this->getFont();
 
         $l = 0;
-        $l += $font->writeInt16( count( $endPtsOfContours ) ); // endPtsOfContours
-        $l += $font->writeFWord( isset( $this->xMin ) ? $this->xMin : $xMin ); // xMin
-        $l += $font->writeFWord( isset( $this->yMin ) ? $this->yMin : $yMin ); // yMin
-        $l += $font->writeFWord( isset( $this->xMax ) ? $this->xMax : $xMax ); // xMax
-        $l += $font->writeFWord( isset( $this->yMax ) ? $this->yMax : $yMax ); // yMax
+        $l += $font->writeInt16(count($endPtsOfContours)); // endPtsOfContours
+        $l += $font->writeFWord(isset( $this->xMin ) ? $this->xMin : $xMin); // xMin
+        $l += $font->writeFWord(isset( $this->yMin ) ? $this->yMin : $yMin); // yMin
+        $l += $font->writeFWord(isset( $this->xMax ) ? $this->xMax : $xMax); // xMax
+        $l += $font->writeFWord(isset( $this->yMax ) ? $this->yMax : $yMax); // yMax
 
         // Simple glyf
-        $l += $font->w( array( self::uint16, count( $endPtsOfContours ) ), $endPtsOfContours ); // endPtsOfContours
-        $l += $font->writeUInt16( 0 ); // instructionLength
-        $l += $font->w( array( self::uint8, count( $flags ) ), $flags ); // flags
-        $l += $font->w( array( self::int16, count( $coords_x ) ), $coords_x ); // xCoordinates
-        $l += $font->w( array( self::int16, count( $coords_y ) ), $coords_y ); // yCoordinates
+        $l += $font->w(array(self::uint16, count($endPtsOfContours)), $endPtsOfContours); // endPtsOfContours
+        $l += $font->writeUInt16(0); // instructionLength
+        $l += $font->w(array(self::uint8, count($flags)), $flags); // flags
+        $l += $font->w(array(self::int16, count($coords_x)), $coords_x); // xCoordinates
+        $l += $font->w(array(self::int16, count($coords_y)), $coords_y); // yCoordinates
         return $l;
     }
 
-    public function getSVGContours( $points = null )
+    public function getSVGContours($points = null)
     {
 
         $path = "";
@@ -181,7 +181,7 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
             $points = $this->points;
         }
 
-        $length = count( $points );
+        $length = count($points);
         $firstIndex = 0;
         $count = 0;
 
@@ -189,7 +189,7 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
             $count++;
 
             if ($points[$i]["endOfContour"]) {
-                $path .= $this->getSVGPath( $points, $firstIndex, $count );
+                $path .= $this->getSVGPath($points, $firstIndex, $count);
                 $firstIndex = $i + 1;
                 $count = 0;
             }
@@ -215,10 +215,10 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
             return;
         }
 
-        $endPtsOfContours = $font->r( array( self::uint16, $noc ) );
+        $endPtsOfContours = $font->r(array(self::uint16, $noc));
 
         $instructionLength = $font->readUInt16();
-        $this->instructions = $font->r( array( self::uint8, $instructionLength ) );
+        $this->instructions = $font->r(array(self::uint8, $instructionLength));
 
         $count = $endPtsOfContours[$noc - 1] + 1;
 
@@ -241,7 +241,7 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
         $points = array();
         foreach ($flags as $i => $flag) {
             $points[$i]["onCurve"] = $flag & self::ON_CURVE;
-            $points[$i]["endOfContour"] = in_array( $i, $endPtsOfContours );
+            $points[$i]["endOfContour"] = in_array($i, $endPtsOfContours);
         }
 
         // X Coords
@@ -287,7 +287,7 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
         $this->points = $points;
     }
 
-    protected function getSVGPath( $points, $startIndex, $count )
+    protected function getSVGPath($points, $startIndex, $count)
     {
 
         $offset = 0;
@@ -311,8 +311,8 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
                     if ($point_p2["onCurve"]) {
                         $path .= "Q{$point_p1['x']},{$point_p1['y']},{$point_p2['x']},{$point_p2['y']} ";
                     } else {
-                        $path .= "Q{$point_p1['x']},{$point_p1['y']},".$this->midValue( $point_p1['x'],
-                                $point_p2['x'] ).",".$this->midValue( $point_p1['y'], $point_p2['y'] )." ";
+                        $path .= "Q{$point_p1['x']},{$point_p1['y']},".$this->midValue($point_p1['x'],
+                                $point_p2['x']).",".$this->midValue($point_p1['y'], $point_p2['y'])." ";
                     }
 
                     $offset += 2;
@@ -321,8 +321,8 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
                 if ($point_p1["onCurve"]) {
                     $path .= "Q{$point['x']},{$point['y']},{$point_p1['x']},{$point_p1['y']} ";
                 } else {
-                    $path .= "Q{$point['x']},{$point['y']},".$this->midValue( $point['x'],
-                            $point_p1['x'] ).",".$this->midValue( $point['y'], $point_p1['y'] )." ";
+                    $path .= "Q{$point['x']},{$point['y']},".$this->midValue($point['x'],
+                            $point_p1['x']).",".$this->midValue($point['y'], $point_p1['y'])." ";
                 }
 
                 $offset++;
@@ -334,7 +334,7 @@ class Font_Glyph_Outline_Simple extends Font_Glyph_Outline
         return $path;
     }
 
-    function midValue( $a, $b )
+    function midValue($a, $b)
     {
 
         return $a + ( $b - $a ) / 2;

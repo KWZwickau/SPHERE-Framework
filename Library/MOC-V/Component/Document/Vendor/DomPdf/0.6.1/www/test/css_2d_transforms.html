@@ -41,17 +41,17 @@
 
             window.onload = function()
             {
-                var nodes = document.querySelectorAll( "*[style]" );
+                var nodes = document.querySelectorAll("*[style]");
 
                 for (var i = 0; i < nodes.length; i++) {
-                    var style = nodes[i].getAttribute( "style" );
-                    var trans = /-ms-transform\s*:\s*([^;]+)/i.exec( style );
+                    var style = nodes[i].getAttribute("style");
+                    var trans = /-ms-transform\s*:\s*([^;]+)/i.exec(style);
 
                     try {
                         if (trans && trans[1] !== "none") {
-                            cssSandpaper.setTransform( nodes[i], trans[1] );
+                            cssSandpaper.setTransform(nodes[i], trans[1]);
                         }
-                    } catch( e ) {
+                    } catch (e) {
                     }
                 }
             }

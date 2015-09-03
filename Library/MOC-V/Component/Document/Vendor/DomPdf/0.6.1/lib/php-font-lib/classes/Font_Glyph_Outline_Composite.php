@@ -7,7 +7,7 @@
  * @version $Id: Font_Table_glyf.php 46 2012-04-02 20:22:38Z fabien.menager $
  */
 
-require_once dirname( __FILE__ )."/Font_Glyph_Outline_Component.php";
+require_once dirname(__FILE__)."/Font_Glyph_Outline_Component.php";
 
 /**
  * Composite glyph outline
@@ -45,7 +45,7 @@ class Font_Glyph_Outline_Composite extends Font_Glyph_Outline
             $glyphIDs[] = $_component->glyphIndex;
 
             $_glyph = $this->table->data[$_component->glyphIndex];
-            $glyphIDs = array_merge( $glyphIDs, $_glyph->getGlyphIDs() );
+            $glyphIDs = array_merge($glyphIDs, $_glyph->getGlyphIDs());
         }
 
         return $glyphIDs;
@@ -137,18 +137,18 @@ class Font_Glyph_Outline_Composite extends Font_Glyph_Outline
 
         $gids = $font->getSubset();
 
-        $size = $font->writeInt16( -1 );
-        $size += $font->writeFWord( $this->xMin );
-        $size += $font->writeFWord( $this->yMin );
-        $size += $font->writeFWord( $this->xMax );
-        $size += $font->writeFWord( $this->yMax );
+        $size = $font->writeInt16(-1);
+        $size += $font->writeFWord($this->xMin);
+        $size += $font->writeFWord($this->yMin);
+        $size += $font->writeFWord($this->xMax);
+        $size += $font->writeFWord($this->yMax);
 
         foreach ($this->components as $_i => $_component) {
             $flags = 0;
             if ($_component->point_component === null && $_component->point_compound === null) {
                 $flags |= self::ARGS_ARE_XY_VALUES;
 
-                if (abs( $_component->e ) > 0x7F || abs( $_component->f ) > 0x7F) {
+                if (abs($_component->e) > 0x7F || abs($_component->f) > 0x7F) {
                     $flags |= self::ARG_1_AND_2_ARE_WORDS;
                 }
             } elseif ($_component->point_component > 0xFF || $_component->point_compound > 0xFF) {
@@ -167,43 +167,43 @@ class Font_Glyph_Outline_Composite extends Font_Glyph_Outline
                 $flags |= self::WE_HAVE_A_TWO_BY_TWO;
             }
 
-            if ($_i < count( $this->components ) - 1) {
+            if ($_i < count($this->components) - 1) {
                 $flags |= self::MORE_COMPONENTS;
             }
 
-            $size += $font->writeUInt16( $flags );
+            $size += $font->writeUInt16($flags);
 
-            $new_gid = array_search( $_component->glyphIndex, $gids );
-            $size += $font->writeUInt16( $new_gid );
+            $new_gid = array_search($_component->glyphIndex, $gids);
+            $size += $font->writeUInt16($new_gid);
 
             if ($flags & self::ARG_1_AND_2_ARE_WORDS) {
                 if ($flags & self::ARGS_ARE_XY_VALUES) {
-                    $size += $font->writeInt16( $_component->e );
-                    $size += $font->writeInt16( $_component->f );
+                    $size += $font->writeInt16($_component->e);
+                    $size += $font->writeInt16($_component->f);
                 } else {
-                    $size += $font->writeUInt16( $_component->point_compound );
-                    $size += $font->writeUInt16( $_component->point_component );
+                    $size += $font->writeUInt16($_component->point_compound);
+                    $size += $font->writeUInt16($_component->point_component);
                 }
             } else {
                 if ($flags & self::ARGS_ARE_XY_VALUES) {
-                    $size += $font->writeInt8( $_component->e );
-                    $size += $font->writeInt8( $_component->f );
+                    $size += $font->writeInt8($_component->e);
+                    $size += $font->writeInt8($_component->f);
                 } else {
-                    $size += $font->writeUInt8( $_component->point_compound );
-                    $size += $font->writeUInt8( $_component->point_component );
+                    $size += $font->writeUInt8($_component->point_compound);
+                    $size += $font->writeUInt8($_component->point_component);
                 }
             }
 
             if ($flags & self::WE_HAVE_A_SCALE) {
-                $size += $font->writeInt16( $_component->a );
+                $size += $font->writeInt16($_component->a);
             } elseif ($flags & self::WE_HAVE_AN_X_AND_Y_SCALE) {
-                $size += $font->writeInt16( $_component->a );
-                $size += $font->writeInt16( $_component->d );
+                $size += $font->writeInt16($_component->a);
+                $size += $font->writeInt16($_component->d);
             } elseif ($flags & self::WE_HAVE_A_TWO_BY_TWO) {
-                $size += $font->writeInt16( $_component->a );
-                $size += $font->writeInt16( $_component->b );
-                $size += $font->writeInt16( $_component->c );
-                $size += $font->writeInt16( $_component->d );
+                $size += $font->writeInt16($_component->a);
+                $size += $font->writeInt16($_component->b);
+                $size += $font->writeInt16($_component->c);
+                $size += $font->writeInt16($_component->d);
             }
         }
 
@@ -216,7 +216,7 @@ class Font_Glyph_Outline_Composite extends Font_Glyph_Outline
         $contours = array();
 
         /** @var Font_Table_glyf $glyph_data */
-        $glyph_data = $this->getFont()->getTableObject( "glyf" );
+        $glyph_data = $this->getFont()->getTableObject("glyf");
 
         /** @var Font_Glyph_Outline[] $glyphs */
         $glyphs = $glyph_data->data;

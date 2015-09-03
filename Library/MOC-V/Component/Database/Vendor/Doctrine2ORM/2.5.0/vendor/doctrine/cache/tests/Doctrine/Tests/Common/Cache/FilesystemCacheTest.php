@@ -10,8 +10,10 @@ use Doctrine\Common\Cache\FilesystemCache;
  */
 class FilesystemCacheTest extends BaseFileCacheTest
 {
+
     public function testLifetime()
     {
+
         $cache = $this->_getCacheDriver();
 
         // Test save
@@ -24,24 +26,24 @@ class FilesystemCacheTest extends BaseFileCacheTest
         $this->assertEquals('testing this out', $cache->fetch('test_key'));
 
         // access private methods
-        $getFilename        = new \ReflectionMethod($cache, 'getFilename');
-        $getNamespacedId    = new \ReflectionMethod($cache, 'getNamespacedId');
+        $getFilename = new \ReflectionMethod($cache, 'getFilename');
+        $getNamespacedId = new \ReflectionMethod($cache, 'getNamespacedId');
 
         $getFilename->setAccessible(true);
         $getNamespacedId->setAccessible(true);
 
-        $id         = $getNamespacedId->invoke($cache, 'test_key');
-        $filename   = $getFilename->invoke($cache, $id);
+        $id = $getNamespacedId->invoke($cache, 'test_key');
+        $filename = $getFilename->invoke($cache, $id);
 
-        $data       = '';
-        $lifetime   = 0;
-        $resource   = fopen($filename, "r");
+        $data = '';
+        $lifetime = 0;
+        $resource = fopen($filename, "r");
 
-        if (false !== ($line = fgets($resource))) {
-            $lifetime = (integer) $line;
+        if (false !== ( $line = fgets($resource) )) {
+            $lifetime = (integer)$line;
         }
 
-        while (false !== ($line = fgets($resource))) {
+        while (false !== ( $line = fgets($resource) )) {
             $data .= $line;
         }
 
@@ -49,15 +51,22 @@ class FilesystemCacheTest extends BaseFileCacheTest
 
         // update lifetime
         $lifetime = $lifetime - 20;
-        file_put_contents($filename, $lifetime . PHP_EOL . $data);
+        file_put_contents($filename, $lifetime.PHP_EOL.$data);
 
         // test expired data
         $this->assertFalse($cache->contains('test_key'));
         $this->assertFalse($cache->fetch('test_key'));
     }
 
+    protected function _getCacheDriver()
+    {
+
+        return new FilesystemCache($this->directory);
+    }
+
     public function testGetStats()
     {
+
         $cache = $this->_getCacheDriver();
         $stats = $cache->getStats();
 
@@ -66,10 +75,5 @@ class FilesystemCacheTest extends BaseFileCacheTest
         $this->assertNull($stats[Cache::STATS_UPTIME]);
         $this->assertEquals(0, $stats[Cache::STATS_MEMORY_USAGE]);
         $this->assertGreaterThan(0, $stats[Cache::STATS_MEMORY_AVAILABLE]);
-    }
-
-    protected function _getCacheDriver()
-    {
-        return new FilesystemCache($this->directory);
     }
 }

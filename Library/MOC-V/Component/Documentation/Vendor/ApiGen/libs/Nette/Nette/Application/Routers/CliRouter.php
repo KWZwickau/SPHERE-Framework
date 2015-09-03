@@ -33,7 +33,7 @@ class CliRouter extends Nette\Object implements Application\IRouter
     /**
      * @param  array   default values
      */
-    public function __construct( $defaults = array() )
+    public function __construct($defaults = array())
     {
 
         $this->defaults = $defaults;
@@ -47,23 +47,23 @@ class CliRouter extends Nette\Object implements Application\IRouter
      *
      * @return Nette\Application\Request|NULL
      */
-    public function match( Nette\Http\IRequest $httpRequest )
+    public function match(Nette\Http\IRequest $httpRequest)
     {
 
-        if (empty( $_SERVER['argv'] ) || !is_array( $_SERVER['argv'] )) {
+        if (empty( $_SERVER['argv'] ) || !is_array($_SERVER['argv'])) {
             return null;
         }
 
-        $names = array( self::PRESENTER_KEY );
+        $names = array(self::PRESENTER_KEY);
         $params = $this->defaults;
         $args = $_SERVER['argv'];
-        array_shift( $args );
+        array_shift($args);
         $args[] = '--';
 
         foreach ($args as $arg) {
-            $opt = preg_replace( '#/|-+#A', '', $arg );
+            $opt = preg_replace('#/|-+#A', '', $arg);
             if ($opt === $arg) {
-                if (isset( $flag ) || $flag = array_shift( $names )) {
+                if (isset( $flag ) || $flag = array_shift($names)) {
                     $params[$flag] = $arg;
                 } else {
                     $params[] = $arg;
@@ -78,7 +78,7 @@ class CliRouter extends Nette\Object implements Application\IRouter
             }
 
             if ($opt !== '') {
-                $pair = explode( '=', $opt, 2 );
+                $pair = explode('=', $opt, 2);
                 if (isset( $pair[1] )) {
                     $params[$pair[0]] = $pair[1];
                 } else {
@@ -88,12 +88,12 @@ class CliRouter extends Nette\Object implements Application\IRouter
         }
 
         if (!isset( $params[self::PRESENTER_KEY] )) {
-            throw new Nette\InvalidStateException( 'Missing presenter & action in route definition.' );
+            throw new Nette\InvalidStateException('Missing presenter & action in route definition.');
         }
         $presenter = $params[self::PRESENTER_KEY];
-        if ($a = strrpos( $presenter, ':' )) {
-            $params[self::PRESENTER_KEY] = substr( $presenter, $a + 1 );
-            $presenter = substr( $presenter, 0, $a );
+        if ($a = strrpos($presenter, ':')) {
+            $params[self::PRESENTER_KEY] = substr($presenter, $a + 1);
+            $presenter = substr($presenter, 0, $a);
         }
 
         return new Application\Request(
@@ -112,7 +112,7 @@ class CliRouter extends Nette\Object implements Application\IRouter
      *
      * @return NULL
      */
-    public function constructUrl( Application\Request $appRequest, Nette\Http\Url $refUrl )
+    public function constructUrl(Application\Request $appRequest, Nette\Http\Url $refUrl)
     {
 
         return null;

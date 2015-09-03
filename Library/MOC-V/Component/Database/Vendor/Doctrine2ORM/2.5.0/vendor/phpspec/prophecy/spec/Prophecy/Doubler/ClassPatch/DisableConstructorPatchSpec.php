@@ -7,13 +7,16 @@ use Prophecy\Argument;
 
 class DisableConstructorPatchSpec extends ObjectBehavior
 {
+
     function it_is_a_patch()
     {
+
         $this->shouldBeAnInstanceOf('Prophecy\Doubler\ClassPatch\ClassPatchInterface');
     }
 
     function its_priority_is_100()
     {
+
         $this->getPriority()->shouldReturn(100);
     }
 
@@ -22,6 +25,7 @@ class DisableConstructorPatchSpec extends ObjectBehavior
      */
     function it_supports_anything($node)
     {
+
         $this->supports($node)->shouldReturn(true);
     }
 
@@ -33,6 +37,7 @@ class DisableConstructorPatchSpec extends ObjectBehavior
      */
     function it_makes_all_constructor_arguments_optional($class, $method, $arg1, $arg2)
     {
+
         $class->hasMethod('__construct')->willReturn(true);
         $class->getMethod('__construct')->willReturn($method);
         $method->getArguments()->willReturn(array($arg1, $arg2));
@@ -50,6 +55,7 @@ class DisableConstructorPatchSpec extends ObjectBehavior
      */
     function it_creates_new_constructor_if_object_has_none($class)
     {
+
         $class->hasMethod('__construct')->willReturn(false);
         $class->addMethod(Argument::type('Prophecy\Doubler\Generator\Node\MethodNode'))
             ->shouldBeCalled();

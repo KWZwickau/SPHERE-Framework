@@ -38,7 +38,7 @@ class PHPExcel_Shared_OLE_PPS_File extends PHPExcel_Shared_OLE_PPS
      *
      * @see    OLE::Asc2Ucs()
      */
-    public function __construct( $name )
+    public function __construct($name)
     {
 
         parent::__construct(
@@ -51,7 +51,7 @@ class PHPExcel_Shared_OLE_PPS_File extends PHPExcel_Shared_OLE_PPS
             null,
             null,
             '',
-            array() );
+            array());
     }
 
     /**
@@ -73,7 +73,7 @@ class PHPExcel_Shared_OLE_PPS_File extends PHPExcel_Shared_OLE_PPS
      *
      * @param string $data The data to append
      */
-    public function append( $data )
+    public function append($data)
     {
 
         $this->_data .= $data;
@@ -87,6 +87,6 @@ class PHPExcel_Shared_OLE_PPS_File extends PHPExcel_Shared_OLE_PPS
     public function getStream()
     {
 
-        $this->ole->getStream( $this );
+        $this->ole->getStream($this);
     }
 }

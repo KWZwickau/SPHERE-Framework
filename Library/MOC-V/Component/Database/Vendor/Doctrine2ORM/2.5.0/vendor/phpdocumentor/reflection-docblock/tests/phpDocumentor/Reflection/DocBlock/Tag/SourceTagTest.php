@@ -1,7 +1,7 @@
 <?php
 /**
  * phpDocumentor Source Tag Test
- * 
+ *
  * PHP version 5.3
  *
  * @author    Vasil Rangelov <boen.robot@gmail.com>
@@ -22,6 +22,7 @@ namespace phpDocumentor\Reflection\DocBlock\Tag;
  */
 class SourceTagTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * Test that the \phpDocumentor\Reflection\DocBlock\Tag\SourceTag can
      * understand the @source DocBlock.
@@ -32,7 +33,7 @@ class SourceTagTest extends \PHPUnit_Framework_TestCase
      * @param string $exStartingLine
      * @param string $exLineCount
      *
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag\SourceTag
+     * @covers       \phpDocumentor\Reflection\DocBlock\Tag\SourceTag
      * @dataProvider provideDataForConstuctor
      *
      * @return void
@@ -45,6 +46,7 @@ class SourceTagTest extends \PHPUnit_Framework_TestCase
         $exStartingLine,
         $exLineCount
     ) {
+
         $tag = new SourceTag($type, $content);
 
         $this->assertEquals($type, $tag->getName());
@@ -61,6 +63,7 @@ class SourceTagTest extends \PHPUnit_Framework_TestCase
      */
     public function provideDataForConstuctor()
     {
+
         // $type, $content, $exContent, $exDescription, $exStartingLine, $exLineCount
         return array(
             array(

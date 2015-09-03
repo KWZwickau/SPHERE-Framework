@@ -18,9 +18,9 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     public function tearDown()
     {
 
-        if (false !== ( $Path = realpath( __DIR__.'/Content' ) )) {
+        if (false !== ( $Path = realpath(__DIR__.'/Content') )) {
             $Iterator = new \RecursiveIteratorIterator(
-                new \RecursiveDirectoryIterator( $Path, \RecursiveDirectoryIterator::SKIP_DOTS ),
+                new \RecursiveDirectoryIterator($Path, \RecursiveDirectoryIterator::SKIP_DOTS),
                 \RecursiveIteratorIterator::CHILD_FIRST
             );
             /** @var \SplFileInfo $FileInfo */
@@ -31,10 +31,10 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
                     && $FileInfo->getBasename() != 'BridgeTest.twig'
                 ) {
                     if ($FileInfo->isFile()) {
-                        unlink( $FileInfo->getPathname() );
+                        unlink($FileInfo->getPathname());
                     }
                     if ($FileInfo->isDir()) {
-                        rmdir( $FileInfo->getPathname() );
+                        rmdir($FileInfo->getPathname());
                     }
                 }
             }
@@ -48,17 +48,17 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Component\Document\Component\Bridge\Bridge $MockBridge */
-        $MockBridge = $this->getMockBuilder( 'MOC\V\Component\Document\Component\Bridge\Bridge' )->getMock();
-        $Vendor = new Vendor( new $MockBridge );
-        $Module = new Document( $Vendor );
+        $MockBridge = $this->getMockBuilder('MOC\V\Component\Document\Component\Bridge\Bridge')->getMock();
+        $Vendor = new Vendor(new $MockBridge);
+        $Module = new Document($Vendor);
 
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IVendorInterface',
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IVendorInterface',
             $Module->getVendorInterface()
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IVendorInterface',
-            $Module->setBridgeInterface( $MockBridge )
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IVendorInterface',
+            $Module->setBridgeInterface($MockBridge)
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface',
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface',
             $Module->getBridgeInterface()
         );
 
@@ -67,55 +67,55 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     public function testStaticExcelDocument()
     {
 
-        $Document = Document::getExcelDocument( __DIR__.'/Content/test.xls' );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface', $Document );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface',
+        $Document = Document::getExcelDocument(__DIR__.'/Content/test.xls');
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface',
             $Document->saveFile()
         );
-        $Document = Document::getExcelDocument( __DIR__.'/Content/test.xls' );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface', $Document );
-        $Document = Document::getExcelDocument( __DIR__.'/Content/test.xlsx' );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface', $Document );
-        $Document = Document::getExcelDocument( __DIR__.'/Content/test.csv' );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface', $Document );
+        $Document = Document::getExcelDocument(__DIR__.'/Content/test.xls');
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
+        $Document = Document::getExcelDocument(__DIR__.'/Content/test.xlsx');
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
+        $Document = Document::getExcelDocument(__DIR__.'/Content/test.csv');
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
     }
 
     public function testStaticPdfDocument()
     {
 
-        $Document = Document::getPdfDocument( __FILE__ );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface', $Document );
+        $Document = Document::getPdfDocument(__FILE__);
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
 
-        $Document = Document::getPdfCreator( __FILE__ );
-        $this->assertInstanceOf( 'MOC\V\Component\Document\Component\IBridgeInterface', $Document );
+        $Document = Document::getPdfCreator(__FILE__);
+        $this->assertInstanceOf('MOC\V\Component\Document\Component\IBridgeInterface', $Document);
     }
 
     public function testStaticDocument()
     {
 
         try {
-            Document::getDocument( __FILE__ );
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Document\Exception\DocumentTypeException', $E );
+            Document::getDocument(__FILE__);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Document\Exception\DocumentTypeException', $E);
         }
         try {
-            Document::getDocument( 'Missing.pdf' );
-        } catch( \Exception $E ) {
+            Document::getDocument('Missing.pdf');
+        } catch (\Exception $E) {
 
         }
         try {
-            Document::getDocument( 'Missing.xls' );
-        } catch( \Exception $E ) {
+            Document::getDocument('Missing.xls');
+        } catch (\Exception $E) {
 
         }
         try {
-            Document::getDocument( 'Missing.xlsx' );
-        } catch( \Exception $E ) {
+            Document::getDocument('Missing.xlsx');
+        } catch (\Exception $E) {
 
         }
         try {
-            Document::getDocument( 'Missing.csv' );
-        } catch( \Exception $E ) {
+            Document::getDocument('Missing.csv');
+        } catch (\Exception $E) {
 
         }
     }

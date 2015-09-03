@@ -21,10 +21,10 @@ class Font
      *
      * @return Font_TrueType|null $file
      */
-    public static function load( $file )
+    public static function load($file)
     {
 
-        $header = file_get_contents( $file, false, null, null, 4 );
+        $header = file_get_contents($file, false, null, null, 4);
         $class = null;
 
         switch ($header) {
@@ -48,7 +48,7 @@ class Font
 
             // Unknown type or EOT
             default:
-                $magicNumber = file_get_contents( $file, false, null, 34, 2 );
+                $magicNumber = file_get_contents($file, false, null, 34, 2);
 
                 if ($magicNumber === "LP") {
                     $class = "Font_EOT";
@@ -57,11 +57,11 @@ class Font
 
         if ($class) {
             /** @noinspection PhpIncludeInspection */
-            require_once dirname( __FILE__ )."/$class.php";
+            require_once dirname(__FILE__)."/$class.php";
 
             /** @var Font_TrueType $obj */
             $obj = new $class;
-            $obj->load( $file );
+            $obj->load($file);
 
             return $obj;
         }
@@ -69,7 +69,7 @@ class Font
         return null;
     }
 
-    static function d( $str )
+    static function d($str)
     {
 
         if (!self::$debug) {
@@ -78,15 +78,15 @@ class Font
         echo "$str\n";
     }
 
-    static function UTF16ToUTF8( $str )
+    static function UTF16ToUTF8($str)
     {
 
-        return mb_convert_encoding( $str, "utf-8", "utf-16" );
+        return mb_convert_encoding($str, "utf-8", "utf-16");
     }
 
-    static function UTF8ToUTF16( $str )
+    static function UTF8ToUTF16($str)
     {
 
-        return mb_convert_encoding( $str, "utf-16", "utf-8" );
+        return mb_convert_encoding($str, "utf-16", "utf-8");
     }
 }

@@ -13,8 +13,8 @@ namespace Symfony\Component\Console;
 
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
-use Symfony\Component\Process\ProcessBuilder;
 use Symfony\Component\Process\PhpExecutableFinder;
+use Symfony\Component\Process\ProcessBuilder;
 
 /**
  * A Shell wraps an Application to add shell capabilities to it.
@@ -27,6 +27,7 @@ use Symfony\Component\Process\PhpExecutableFinder;
  */
 class Shell
 {
+
     private $application;
     private $history;
     private $output;
@@ -43,6 +44,7 @@ class Shell
      */
     public function __construct(Application $application)
     {
+
         $this->hasReadline = function_exists('readline');
         $this->application = $application;
         $this->history = getenv('HOME').'/.history_'.$application->getName();
@@ -54,6 +56,7 @@ class Shell
      */
     public function run()
     {
+
         $this->application->setAutoExit(false);
         $this->application->setCatchExceptions(true);
 
@@ -99,11 +102,11 @@ EOF
                     ->add($_SERVER['argv'][0])
                     ->add($command)
                     ->inheritEnvironmentVariables(true)
-                    ->getProcess()
-                ;
+                    ->getProcess();
 
                 $output = $this->output;
                 $process->run(function ($type, $data) use ($output) {
+
                     $output->writeln($data);
                 });
 
@@ -113,7 +116,8 @@ EOF
             }
 
             if (0 !== $ret) {
-                $this->output->writeln(sprintf('<error>The command terminated with an error status (%s)</error>', $ret));
+                $this->output->writeln(sprintf('<error>The command terminated with an error status (%s)</error>',
+                    $ret));
             }
         }
     }
@@ -125,6 +129,7 @@ EOF
      */
     protected function getHeader()
     {
+
         return <<<EOF
 
 Welcome to the <info>{$this->application->getName()}</info> shell (<comment>{$this->application->getVersion()}</comment>).
@@ -138,23 +143,61 @@ EOF;
     }
 
     /**
+     * Reads a single line from standard input.
+     *
+     * @return string The single line from standard input
+     */
+    private function readline()
+    {
+
+        if ($this->hasReadline) {
+            $line = readline($this->getPrompt());
+        } else {
+            $this->output->write($this->getPrompt());
+            $line = fgets(STDIN, 1024);
+            $line = ( false === $line || '' === $line ) ? false : rtrim($line);
+        }
+
+        return $line;
+    }
+
+    /**
      * Renders a prompt.
      *
      * @return string The prompt
      */
     protected function getPrompt()
     {
+
         // using the formatter here is required when using readline
         return $this->output->getFormatter()->format($this->application->getName().' > ');
     }
 
+    public function getProcessIsolation()
+    {
+
+        return $this->processIsolation;
+    }
+
+    public function setProcessIsolation($processIsolation)
+    {
+
+        $this->processIsolation = (bool)$processIsolation;
+
+        if ($this->processIsolation && !class_exists('Symfony\\Component\\Process\\Process')) {
+            throw new \RuntimeException('Unable to isolate processes as the Symfony Process Component is not installed.');
+        }
+    }
+
     protected function getOutput()
     {
+
         return $this->output;
     }
 
     protected function getApplication()
     {
+
         return $this->application;
     }
 
@@ -167,6 +210,7 @@ EOF;
      */
     private function autocompleter($text)
     {
+
         $info = readline_info();
         $text = substr($info['line_buffer'], 0, $info['end']);
 
@@ -192,37 +236,5 @@ EOF;
         }
 
         return $list;
-    }
-
-    /**
-     * Reads a single line from standard input.
-     *
-     * @return string The single line from standard input
-     */
-    private function readline()
-    {
-        if ($this->hasReadline) {
-            $line = readline($this->getPrompt());
-        } else {
-            $this->output->write($this->getPrompt());
-            $line = fgets(STDIN, 1024);
-            $line = (false === $line || '' === $line) ? false : rtrim($line);
-        }
-
-        return $line;
-    }
-
-    public function getProcessIsolation()
-    {
-        return $this->processIsolation;
-    }
-
-    public function setProcessIsolation($processIsolation)
-    {
-        $this->processIsolation = (bool) $processIsolation;
-
-        if ($this->processIsolation && !class_exists('Symfony\\Component\\Process\\Process')) {
-            throw new \RuntimeException('Unable to isolate processes as the Symfony Process Component is not installed.');
-        }
     }
 }

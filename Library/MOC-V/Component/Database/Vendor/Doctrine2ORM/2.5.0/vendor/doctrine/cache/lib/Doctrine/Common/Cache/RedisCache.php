@@ -30,10 +30,22 @@ use Redis;
  */
 class RedisCache extends CacheProvider
 {
+
     /**
      * @var Redis|null
      */
     private $redis;
+
+    /**
+     * Gets the redis instance used by the cache.
+     *
+     * @return Redis|null
+     */
+    public function getRedis()
+    {
+
+        return $this->redis;
+    }
 
     /**
      * Sets the redis instance to use.
@@ -44,18 +56,25 @@ class RedisCache extends CacheProvider
      */
     public function setRedis(Redis $redis)
     {
+
         $redis->setOption(Redis::OPT_SERIALIZER, $this->getSerializerValue());
         $this->redis = $redis;
     }
 
     /**
-     * Gets the redis instance used by the cache.
+     * Returns the serializer constant to use. If Redis is compiled with
+     * igbinary support, that is used. Otherwise the default PHP serializer is
+     * used.
      *
-     * @return Redis|null
+     * @return integer One of the Redis::SERIALIZER_* constants
      */
-    public function getRedis()
+    protected function getSerializerValue()
     {
-        return $this->redis;
+
+        if (defined('HHVM_VERSION')) {
+            return Redis::SERIALIZER_PHP;
+        }
+        return defined('Redis::SERIALIZER_IGBINARY') ? Redis::SERIALIZER_IGBINARY : Redis::SERIALIZER_PHP;
     }
 
     /**
@@ -63,6 +82,7 @@ class RedisCache extends CacheProvider
      */
     protected function doFetch($id)
     {
+
         return $this->redis->get($id);
     }
 
@@ -71,6 +91,7 @@ class RedisCache extends CacheProvider
      */
     protected function doFetchMultiple(array $keys)
     {
+
         return array_filter(array_combine($keys, $this->redis->mget($keys)));
     }
 
@@ -79,6 +100,7 @@ class RedisCache extends CacheProvider
      */
     protected function doContains($id)
     {
+
         return $this->redis->exists($id);
     }
 
@@ -87,6 +109,7 @@ class RedisCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         if ($lifeTime > 0) {
             return $this->redis->setex($id, $lifeTime, $data);
         }
@@ -99,6 +122,7 @@ class RedisCache extends CacheProvider
      */
     protected function doDelete($id)
     {
+
         return $this->redis->delete($id) > 0;
     }
 
@@ -107,6 +131,7 @@ class RedisCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         return $this->redis->flushDB();
     }
 
@@ -115,28 +140,14 @@ class RedisCache extends CacheProvider
      */
     protected function doGetStats()
     {
+
         $info = $this->redis->info();
         return array(
-            Cache::STATS_HITS   => $info['keyspace_hits'],
-            Cache::STATS_MISSES => $info['keyspace_misses'],
-            Cache::STATS_UPTIME => $info['uptime_in_seconds'],
-            Cache::STATS_MEMORY_USAGE      => $info['used_memory'],
-            Cache::STATS_MEMORY_AVAILABLE  => false
+            Cache::STATS_HITS             => $info['keyspace_hits'],
+            Cache::STATS_MISSES           => $info['keyspace_misses'],
+            Cache::STATS_UPTIME           => $info['uptime_in_seconds'],
+            Cache::STATS_MEMORY_USAGE     => $info['used_memory'],
+            Cache::STATS_MEMORY_AVAILABLE => false
         );
-    }
-
-    /**
-     * Returns the serializer constant to use. If Redis is compiled with
-     * igbinary support, that is used. Otherwise the default PHP serializer is
-     * used.
-     *
-     * @return integer One of the Redis::SERIALIZER_* constants
-     */
-    protected function getSerializerValue()
-    {
-        if (defined('HHVM_VERSION')) {
-            return Redis::SERIALIZER_PHP;
-        }
-        return defined('Redis::SERIALIZER_IGBINARY') ? Redis::SERIALIZER_IGBINARY : Redis::SERIALIZER_PHP;
     }
 }

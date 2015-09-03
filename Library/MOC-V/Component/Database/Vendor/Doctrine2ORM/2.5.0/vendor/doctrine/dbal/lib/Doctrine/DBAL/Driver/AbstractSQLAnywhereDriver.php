@@ -38,6 +38,7 @@ use Doctrine\DBAL\VersionAwarePlatformDriver;
  */
 abstract class AbstractSQLAnywhereDriver implements Driver, ExceptionConverterDriver, VersionAwarePlatformDriver
 {
+
     /**
      * {@inheritdoc}
      *
@@ -45,6 +46,7 @@ abstract class AbstractSQLAnywhereDriver implements Driver, ExceptionConverterDr
      */
     public function convertException($message, DriverException $exception)
     {
+
         switch ($exception->getErrorCode()) {
             case '-100':
             case '-103':
@@ -80,11 +82,13 @@ abstract class AbstractSQLAnywhereDriver implements Driver, ExceptionConverterDr
      */
     public function createDatabasePlatformForVersion($version)
     {
-        if ( ! preg_match(
+
+        if (!preg_match(
             '/^(?P<major>\d+)(?:\.(?P<minor>\d+)(?:\.(?P<patch>\d+)(?:\.(?P<build>\d+))?)?)?/',
             $version,
             $versionParts
-        )) {
+        )
+        ) {
             throw DBALException::invalidPlatformVersionSpecified(
                 $version,
                 '<major_version>.<minor_version>.<patch_version>.<build_version>'
@@ -92,12 +96,12 @@ abstract class AbstractSQLAnywhereDriver implements Driver, ExceptionConverterDr
         }
 
         $majorVersion = $versionParts['major'];
-        $minorVersion = isset($versionParts['minor']) ? $versionParts['minor'] : 0;
-        $patchVersion = isset($versionParts['patch']) ? $versionParts['patch'] : 0;
-        $buildVersion = isset($versionParts['build']) ? $versionParts['build'] : 0;
-        $version      = $majorVersion . '.' . $minorVersion . '.' . $patchVersion . '.' . $buildVersion;
+        $minorVersion = isset( $versionParts['minor'] ) ? $versionParts['minor'] : 0;
+        $patchVersion = isset( $versionParts['patch'] ) ? $versionParts['patch'] : 0;
+        $buildVersion = isset( $versionParts['build'] ) ? $versionParts['build'] : 0;
+        $version = $majorVersion.'.'.$minorVersion.'.'.$patchVersion.'.'.$buildVersion;
 
-        switch(true) {
+        switch (true) {
             case version_compare($version, '16', '>='):
                 return new SQLAnywhere16Platform();
             case version_compare($version, '12', '>='):
@@ -114,6 +118,7 @@ abstract class AbstractSQLAnywhereDriver implements Driver, ExceptionConverterDr
      */
     public function getDatabase(\Doctrine\DBAL\Connection $conn)
     {
+
         $params = $conn->getParams();
 
         return $params['dbname'];
@@ -124,6 +129,7 @@ abstract class AbstractSQLAnywhereDriver implements Driver, ExceptionConverterDr
      */
     public function getDatabasePlatform()
     {
+
         return new SQLAnywhere12Platform();
     }
 
@@ -132,6 +138,7 @@ abstract class AbstractSQLAnywhereDriver implements Driver, ExceptionConverterDr
      */
     public function getSchemaManager(\Doctrine\DBAL\Connection $conn)
     {
+
         return new SQLAnywhereSchemaManager($conn);
     }
 }

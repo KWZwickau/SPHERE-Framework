@@ -35,10 +35,10 @@ class SourceFilesFilterIterator extends RecursiveFilterIterator
      * @param \RecursiveDirectoryIterator $iterator     Directory iterator
      * @param array                       $excludeMasks File/directory exlude masks
      */
-    public function __construct( RecursiveDirectoryIterator $iterator, array $excludeMasks )
+    public function __construct(RecursiveDirectoryIterator $iterator, array $excludeMasks)
     {
 
-        parent::__construct( $iterator );
+        parent::__construct($iterator);
 
         $this->excludeMasks = $excludeMasks;
     }
@@ -55,14 +55,14 @@ class SourceFilesFilterIterator extends RecursiveFilterIterator
         $current = $this->current();
 
         foreach ($this->excludeMasks as $mask) {
-            if (fnmatch( $mask, $current->getPathName(), FNM_NOESCAPE )) {
+            if (fnmatch($mask, $current->getPathName(), FNM_NOESCAPE)) {
                 return false;
             }
         }
 
-        if (!is_readable( $current->getPathname() )) {
-            throw new \InvalidArgumentException( sprintf( 'File/directory "%s" is not readable.',
-                    $current->getPathname() ) );
+        if (!is_readable($current->getPathname())) {
+            throw new \InvalidArgumentException(sprintf('File/directory "%s" is not readable.',
+                $current->getPathname()));
         }
 
         return true;
@@ -76,6 +76,6 @@ class SourceFilesFilterIterator extends RecursiveFilterIterator
     public function getChildren()
     {
 
-        return new static( $this->getInnerIterator()->getChildren(), $this->excludeMasks );
+        return new static($this->getInnerIterator()->getChildren(), $this->excludeMasks);
     }
 }

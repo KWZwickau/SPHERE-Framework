@@ -11,9 +11,9 @@
 
 namespace Prophecy\Argument\Token;
 
-use SebastianBergmann\Comparator\ComparisonFailure;
 use Prophecy\Comparator\Factory as ComparatorFactory;
 use Prophecy\Util\StringUtil;
+use SebastianBergmann\Comparator\ComparisonFailure;
 
 /**
  * Exact value token.
@@ -22,6 +22,7 @@ use Prophecy\Util\StringUtil;
  */
 class ExactValueToken implements TokenInterface
 {
+
     private $value;
     private $string;
     private $util;
@@ -36,8 +37,9 @@ class ExactValueToken implements TokenInterface
      */
     public function __construct($value, StringUtil $util = null, ComparatorFactory $comparatorFactory = null)
     {
+
         $this->value = $value;
-        $this->util  = $util ?: new StringUtil();
+        $this->util = $util ?: new StringUtil();
 
         $this->comparatorFactory = $comparatorFactory ?: ComparatorFactory::getInstance();
     }
@@ -51,6 +53,7 @@ class ExactValueToken implements TokenInterface
      */
     public function scoreArgument($argument)
     {
+
         if (is_object($argument) && is_object($this->value)) {
             $comparator = $this->comparatorFactory->getComparatorFor(
                 $argument, $this->value
@@ -59,7 +62,8 @@ class ExactValueToken implements TokenInterface
             try {
                 $comparator->assertEquals($argument, $this->value);
                 return 10;
-            } catch (ComparisonFailure $failure) {}
+            } catch (ComparisonFailure $failure) {
+            }
         }
 
         // If either one is an object it should be castable to a string
@@ -87,6 +91,7 @@ class ExactValueToken implements TokenInterface
      */
     public function getValue()
     {
+
         return $this->value;
     }
 
@@ -97,6 +102,7 @@ class ExactValueToken implements TokenInterface
      */
     public function isLast()
     {
+
         return false;
     }
 
@@ -107,6 +113,7 @@ class ExactValueToken implements TokenInterface
      */
     public function __toString()
     {
+
         if (null === $this->string) {
             $this->string = sprintf('exact(%s)', $this->util->stringify($this->value));
         }

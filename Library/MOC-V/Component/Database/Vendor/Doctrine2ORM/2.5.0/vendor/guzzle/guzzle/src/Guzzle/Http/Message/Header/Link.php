@@ -9,6 +9,7 @@ use Guzzle\Http\Message\Header;
  */
 class Link extends Header
 {
+
     /**
      * Add a link to the header
      *
@@ -20,6 +21,7 @@ class Link extends Header
      */
     public function addLink($url, $rel, array $params = array())
     {
+
         $values = array("<{$url}>", "rel=\"{$rel}\"");
 
         foreach ($params as $k => $v) {
@@ -38,6 +40,7 @@ class Link extends Header
      */
     public function hasLink($rel)
     {
+
         return $this->getLink($rel) !== null;
     }
 
@@ -50,8 +53,9 @@ class Link extends Header
      */
     public function getLink($rel)
     {
+
         foreach ($this->getLinks() as $link) {
-            if (isset($link['rel']) && $link['rel'] == $rel) {
+            if (isset( $link['rel'] ) && $link['rel'] == $rel) {
                 return $link;
             }
         }
@@ -80,11 +84,12 @@ class Link extends Header
      */
     public function getLinks()
     {
+
         $links = $this->parseParams();
 
         foreach ($links as &$link) {
             $key = key($link);
-            unset($link[$key]);
+            unset( $link[$key] );
             $link['url'] = trim($key, '<> ');
         }
 

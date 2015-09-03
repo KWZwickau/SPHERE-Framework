@@ -20,10 +20,10 @@ class UniversalFileLoader extends Bridge implements IBridgeInterface
     /**
      * @param FileParameter $FileOption
      */
-    function __construct( FileParameter $FileOption )
+    public function __construct(FileParameter $FileOption)
     {
 
-        $this->Instance = new FileLoader( $FileOption->getFile() );
+        $this->Instance = new FileLoader($FileOption->getFile());
     }
 
     /**
@@ -41,9 +41,9 @@ class UniversalFileLoader extends Bridge implements IBridgeInterface
     public function getRealPath()
     {
 
-        $SplFileInfo = ( new \SplFileInfo( $this->Instance->getLocation() ) );
+        $SplFileInfo = (new \SplFileInfo($this->Instance->getLocation()));
         if (!$SplFileInfo->getRealPath()) {
-            $SplFileInfo = ( new \SplFileInfo( $_SERVER['DOCUMENT_ROOT'].$this->Instance->getLocation() ) );
+            $SplFileInfo = (new \SplFileInfo($_SERVER['DOCUMENT_ROOT'].$this->Instance->getLocation()));
         }
         return $SplFileInfo->getRealPath() ? $SplFileInfo->getRealPath() : '';
     }

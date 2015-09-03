@@ -7,17 +7,10 @@ use Doctrine\DBAL\Schema\Table;
 
 class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-
-        if ( !($this->_conn->getDriver() instanceof ExceptionConverterDriver)) {
-            $this->markTestSkipped('Driver does not support special exception handling.');
-        }
-    }
 
     public function testPrimaryConstraintViolationException()
     {
+
         $table = new \Doctrine\DBAL\Schema\Table("duplicatekey_table");
         $table->addColumn('id', 'integer', array());
         $table->setPrimaryKey(array('id'));
@@ -35,6 +28,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTableNotFoundException()
     {
+
         $sql = "SELECT * FROM unknown_table";
 
         $this->setExpectedException('\Doctrine\DBAL\Exception\TableNotFoundException');
@@ -43,6 +37,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTableExistsException()
     {
+
         $table = new \Doctrine\DBAL\Schema\Table("alreadyexist_table");
         $table->addColumn('id', 'integer', array());
         $table->setPrimaryKey(array('id'));
@@ -58,7 +53,8 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testForeignKeyContraintViolationExceptionOnInsert()
     {
-        if ( ! $this->_conn->getDatabasePlatform()->supportsForeignKeyConstraints()) {
+
+        if (!$this->_conn->getDatabasePlatform()->supportsForeignKeyConstraints()) {
             $this->markTestSkipped("Only fails on platforms with foreign key constraints.");
         }
 
@@ -80,9 +76,38 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
         $this->tearDownForeignKeyConstraintViolationExceptionTest();
     }
 
+    private function setUpForeignKeyConstraintViolationExceptionTest()
+    {
+
+        $schemaManager = $this->_conn->getSchemaManager();
+
+        $table = new Table("constraint_error_table");
+        $table->addColumn('id', 'integer', array());
+        $table->setPrimaryKey(array('id'));
+
+        $owningTable = new Table("owning_table");
+        $owningTable->addColumn('id', 'integer', array());
+        $owningTable->addColumn('constraint_id', 'integer', array());
+        $owningTable->setPrimaryKey(array('id'));
+        $owningTable->addForeignKeyConstraint($table, array('constraint_id'), array('id'));
+
+        $schemaManager->createTable($table);
+        $schemaManager->createTable($owningTable);
+    }
+
+    private function tearDownForeignKeyConstraintViolationExceptionTest()
+    {
+
+        $schemaManager = $this->_conn->getSchemaManager();
+
+        $schemaManager->dropTable('owning_table');
+        $schemaManager->dropTable('constraint_error_table');
+    }
+
     public function testForeignKeyContraintViolationExceptionOnUpdate()
     {
-        if ( ! $this->_conn->getDatabasePlatform()->supportsForeignKeyConstraints()) {
+
+        if (!$this->_conn->getDatabasePlatform()->supportsForeignKeyConstraints()) {
             $this->markTestSkipped("Only fails on platforms with foreign key constraints.");
         }
 
@@ -106,7 +131,8 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testForeignKeyContraintViolationExceptionOnDelete()
     {
-        if ( ! $this->_conn->getDatabasePlatform()->supportsForeignKeyConstraints()) {
+
+        if (!$this->_conn->getDatabasePlatform()->supportsForeignKeyConstraints()) {
             $this->markTestSkipped("Only fails on platforms with foreign key constraints.");
         }
 
@@ -130,9 +156,10 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testForeignKeyContraintViolationExceptionOnTruncate()
     {
+
         $platform = $this->_conn->getDatabasePlatform();
 
-        if ( ! $platform->supportsForeignKeyConstraints()) {
+        if (!$platform->supportsForeignKeyConstraints()) {
             $this->markTestSkipped("Only fails on platforms with foreign key constraints.");
         }
 
@@ -156,6 +183,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testNotNullConstraintViolationException()
     {
+
         $schema = new \Doctrine\DBAL\Schema\Schema();
 
         $table = $schema->createTable("notnull_table");
@@ -173,6 +201,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testInvalidFieldNameException()
     {
+
         $schema = new \Doctrine\DBAL\Schema\Schema();
 
         $table = $schema->createTable("bad_fieldname_table");
@@ -188,6 +217,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testNonUniqueFieldNameException()
     {
+
         $schema = new \Doctrine\DBAL\Schema\Schema();
 
         $table = $schema->createTable("ambiguous_list_table");
@@ -207,6 +237,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testUniqueConstraintViolationException()
     {
+
         $schema = new \Doctrine\DBAL\Schema\Schema();
 
         $table = $schema->createTable("unique_field_table");
@@ -224,6 +255,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testSyntaxErrorException()
     {
+
         $table = new \Doctrine\DBAL\Schema\Table("syntax_error_table");
         $table->addColumn('id', 'integer', array());
         $table->setPrimaryKey(array('id'));
@@ -242,6 +274,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testConnectionExceptionSqLite($mode, $exceptionClass)
     {
+
         if ($this->_conn->getDatabasePlatform()->getName() != 'sqlite') {
             $this->markTestSkipped("Only fails this way on sqlite");
         }
@@ -273,6 +306,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function getSqLiteOpenConnection()
     {
+
         return array(
             array(0000, '\Doctrine\DBAL\Exception\ConnectionException'),
             array(0444, '\Doctrine\DBAL\Exception\ReadOnlyException'),
@@ -284,6 +318,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testConnectionException($params)
     {
+
         if ($this->_conn->getDatabasePlatform()->getName() == 'sqlite') {
             $this->markTestSkipped("Only skipped if platform is not sqlite");
         }
@@ -292,7 +327,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
             $this->markTestSkipped("Drizzle does not always support authentication");
         }
 
-        if ($this->_conn->getDatabasePlatform()->getName() == 'postgresql' && isset($params['password'])) {
+        if ($this->_conn->getDatabasePlatform()->getName() == 'postgresql' && isset( $params['password'] )) {
             $this->markTestSkipped("Does not work on Travis");
         }
 
@@ -314,6 +349,7 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function getConnectionParams()
     {
+
         return array(
             array(array('user' => 'not_existing')),
             array(array('password' => 'really_not')),
@@ -321,29 +357,13 @@ class ExceptionTest extends \Doctrine\Tests\DbalFunctionalTestCase
         );
     }
 
-    private function setUpForeignKeyConstraintViolationExceptionTest()
+    protected function setUp()
     {
-        $schemaManager = $this->_conn->getSchemaManager();
 
-        $table = new Table("constraint_error_table");
-        $table->addColumn('id', 'integer', array());
-        $table->setPrimaryKey(array('id'));
+        parent::setUp();
 
-        $owningTable = new Table("owning_table");
-        $owningTable->addColumn('id', 'integer', array());
-        $owningTable->addColumn('constraint_id', 'integer', array());
-        $owningTable->setPrimaryKey(array('id'));
-        $owningTable->addForeignKeyConstraint($table, array('constraint_id'), array('id'));
-
-        $schemaManager->createTable($table);
-        $schemaManager->createTable($owningTable);
-    }
-
-    private function tearDownForeignKeyConstraintViolationExceptionTest()
-    {
-        $schemaManager = $this->_conn->getSchemaManager();
-
-        $schemaManager->dropTable('owning_table');
-        $schemaManager->dropTable('constraint_error_table');
+        if (!( $this->_conn->getDriver() instanceof ExceptionConverterDriver )) {
+            $this->markTestSkipped('Driver does not support special exception handling.');
+        }
     }
 }

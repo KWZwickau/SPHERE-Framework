@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
-require_once dirname( __FILE__ )."/Font_Glyph_Outline.php";
+require_once dirname(__FILE__)."/Font_Glyph_Outline.php";
 
 /**
  * `glyf` font table.
@@ -17,17 +17,17 @@ require_once dirname( __FILE__ )."/Font_Glyph_Outline.php";
 class Font_Table_glyf extends Font_Table
 {
 
-    public function getGlyphIDs( $gids = array() )
+    public function getGlyphIDs($gids = array())
     {
 
         $glyphIDs = array();
 
         foreach ($gids as $_gid) {
             $_glyph = $this->data[$_gid];
-            $glyphIDs = array_merge( $glyphIDs, $_glyph->getGlyphIDs() );
+            $glyphIDs = array_merge($glyphIDs, $_glyph->getGlyphIDs());
         }
 
-        return array_unique( array_merge( $gids, $glyphIDs ) );
+        return array_unique(array_merge($gids, $glyphIDs));
     }
 
     public function toHTML()
@@ -36,31 +36,31 @@ class Font_Table_glyf extends Font_Table
         $max = 160;
         $font = $this->getFont();
 
-        $head = $font->getData( "head" );
-        $head_json = json_encode( $head );
+        $head = $font->getData("head");
+        $head_json = json_encode($head);
 
-        $os2 = $font->getData( "OS/2" );
-        $os2_json = json_encode( $os2 );
+        $os2 = $font->getData("OS/2");
+        $os2_json = json_encode($os2);
 
-        $hmtx = $font->getData( "hmtx" );
-        $hmtx_json = json_encode( $hmtx );
+        $hmtx = $font->getData("hmtx");
+        $hmtx_json = json_encode($hmtx);
 
-        $names = $font->getData( "post", "names" );
-        $glyphIndexArray = array_flip( $font->getUnicodeCharMap() );
+        $names = $font->getData("post", "names");
+        $glyphIndexArray = array_flip($font->getUnicodeCharMap());
 
-        $width = ( abs( $head["xMin"] ) + $head["xMax"] );
-        $height = ( abs( $head["yMin"] ) + $head["yMax"] );
+        $width = ( abs($head["xMin"]) + $head["xMax"] );
+        $height = ( abs($head["yMin"]) + $head["yMax"] );
 
         $ratio = 1;
         if ($width > $max || $height > $max) {
-            $ratio = max( $width, $height ) / $max;
-            $width = round( $width / $ratio );
-            $height = round( $height / $ratio );
+            $ratio = max($width, $height) / $max;
+            $width = round($width / $ratio);
+            $height = round($height / $ratio);
         }
 
         $n = 500;
 
-        $s = "<h3>"."Only the first $n simple glyphs are shown (".count( $this->data )." total)
+        $s = "<h3>"."Only the first $n simple glyphs are shown (".count($this->data)." total)
     <div class='glyph-view simple'>Simple glyph</div>
     <div class='glyph-view composite'>Composite glyph</div>
     Zoom: <input type='range' value='100' max='400' onchange='Glyph.resize(this.value)' />
@@ -88,11 +88,11 @@ class Font_Table_glyf extends Font_Table
                 "xMax"        => $glyph->xMax,
                 "yMax"        => $glyph->yMax,
             );
-            $shape_json = json_encode( $shape );
+            $shape_json = json_encode($shape);
 
             $type = ( $glyph instanceof Font_Glyph_Outline_Simple ? "simple" : "composite" );
             $char = isset( $glyphIndexArray[$g] ) ? $glyphIndexArray[$g] : 0;
-            $name = isset( $names[$g] ) ? $names[$g] : sprintf( "uni%04x", $char );
+            $name = isset( $names[$g] ) ? $names[$g] : sprintf("uni%04x", $char);
             $char = $char ? "&#{$glyphIndexArray[$g]};" : "";
 
             $s .= "<div class='glyph-view $type' id='glyph-$g'>
@@ -122,15 +122,15 @@ class Font_Table_glyf extends Font_Table
         $font = $this->getFont();
         $offset = $font->pos();
 
-        $loca = $font->getData( "loca" );
-        $real_loca = array_slice( $loca, 0, -1 ); // Not the last dummy loca entry
+        $loca = $font->getData("loca");
+        $real_loca = array_slice($loca, 0, -1); // Not the last dummy loca entry
 
         $data = array();
 
         foreach ($real_loca as $gid => $location) {
             $_offset = $offset + $loca[$gid];
             $_size = $loca[$gid + 1] - $loca[$gid];
-            $data[$gid] = Font_Glyph_Outline::init( $this, $_offset, $_size );
+            $data[$gid] = Font_Glyph_Outline::init($this, $_offset, $_size);
         }
 
         $this->data = $data;
@@ -152,7 +152,7 @@ class Font_Table_glyf extends Font_Table
         }
 
         $loca[] = $length; // dummy loca
-        $font->getTableObject( "loca" )->data = $loca;
+        $font->getTableObject("loca")->data = $loca;
 
         return $length;
     }

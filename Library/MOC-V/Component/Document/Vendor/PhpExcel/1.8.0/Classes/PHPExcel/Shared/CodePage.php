@@ -45,7 +45,7 @@ class PHPExcel_Shared_CodePage
      * @return string Code Page Name
      * @throws PHPExcel_Exception
      */
-    public static function NumberToName( $codePage = 1252 )
+    public static function NumberToName($codePage = 1252)
     {
 
         switch ($codePage) {
@@ -56,7 +56,7 @@ class PHPExcel_Shared_CodePage
                 return 'CP437';
                 break;    //	OEM US
             case 720:
-                throw new PHPExcel_Exception( 'Code page 720 not supported.' );
+                throw new PHPExcel_Exception('Code page 720 not supported.');
                 break;    //	OEM Arabic
             case 737:
                 return 'CP737';
@@ -177,7 +177,7 @@ class PHPExcel_Shared_CodePage
                 return 'MAC';
                 break;    //	Apple Roman
             case 32769:
-                throw new PHPExcel_Exception( 'Code page 32769 not supported.' );
+                throw new PHPExcel_Exception('Code page 32769 not supported.');
                 break;    //	ANSI Latin I (BIFF2-BIFF3)
             case 65000:
                 return 'UTF-7';
@@ -187,7 +187,7 @@ class PHPExcel_Shared_CodePage
                 break;    //	Unicode (UTF-8)
         }
 
-        throw new PHPExcel_Exception( 'Unknown codepage: '.$codePage );
+        throw new PHPExcel_Exception('Unknown codepage: '.$codePage);
     }
 
 }

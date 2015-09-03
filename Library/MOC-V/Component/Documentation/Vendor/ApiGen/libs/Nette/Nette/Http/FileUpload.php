@@ -48,11 +48,11 @@ class FileUpload extends Nette\Object
     private $error;
 
 
-    public function __construct( $value )
+    public function __construct($value)
     {
 
-        foreach (array( 'name', 'type', 'size', 'tmp_name', 'error' ) as $key) {
-            if (!isset( $value[$key] ) || !is_scalar( $value[$key] )) {
+        foreach (array('name', 'type', 'size', 'tmp_name', 'error') as $key) {
+            if (!isset( $value[$key] ) || !is_scalar($value[$key])) {
                 $this->error = UPLOAD_ERR_NO_FILE;
                 return; // or throw exception?
             }
@@ -84,7 +84,7 @@ class FileUpload extends Nette\Object
     public function getSanitizedName()
     {
 
-        return trim( Nette\Utils\Strings::webalize( $this->name, '.', false ), '.-' );
+        return trim(Nette\Utils\Strings::webalize($this->name, '.', false), '.-');
     }
 
     /**
@@ -138,17 +138,17 @@ class FileUpload extends Nette\Object
      *
      * @return FileUpload  provides a fluent interface
      */
-    public function move( $dest )
+    public function move($dest)
     {
 
-        @mkdir( dirname( $dest ), 0777, true ); // @ - dir may already exist
+        @mkdir(dirname($dest), 0777, true); // @ - dir may already exist
         /*5.2*if (substr(PHP_OS, 0, 3) === 'WIN') { @unlink($dest); }*/
-        if (!call_user_func( is_uploaded_file( $this->tmpName ) ? 'move_uploaded_file' : 'rename', $this->tmpName,
-            $dest )
+        if (!call_user_func(is_uploaded_file($this->tmpName) ? 'move_uploaded_file' : 'rename', $this->tmpName,
+            $dest)
         ) {
-            throw new Nette\InvalidStateException( "Unable to move uploaded file '$this->tmpName' to '$dest'." );
+            throw new Nette\InvalidStateException("Unable to move uploaded file '$this->tmpName' to '$dest'.");
         }
-        chmod( $dest, 0666 );
+        chmod($dest, 0666);
         $this->tmpName = $dest;
         return $this;
     }
@@ -161,7 +161,7 @@ class FileUpload extends Nette\Object
     public function isImage()
     {
 
-        return in_array( $this->getContentType(), array( 'image/gif', 'image/png', 'image/jpeg' ), true );
+        return in_array($this->getContentType(), array('image/gif', 'image/png', 'image/jpeg'), true);
     }
 
     /**
@@ -173,7 +173,7 @@ class FileUpload extends Nette\Object
     {
 
         if ($this->isOk() && $this->type === null) {
-            $this->type = Nette\Utils\MimeTypeDetector::fromFile( $this->tmpName );
+            $this->type = Nette\Utils\MimeTypeDetector::fromFile($this->tmpName);
         }
         return $this->type;
     }
@@ -197,7 +197,7 @@ class FileUpload extends Nette\Object
     public function toImage()
     {
 
-        return Nette\Image::fromFile( $this->tmpName );
+        return Nette\Image::fromFile($this->tmpName);
     }
 
 
@@ -209,7 +209,7 @@ class FileUpload extends Nette\Object
     public function getImageSize()
     {
 
-        return $this->isOk() ? @getimagesize( $this->tmpName ) : null; // @ - files smaller than 12 bytes causes read error
+        return $this->isOk() ? @getimagesize($this->tmpName) : null; // @ - files smaller than 12 bytes causes read error
     }
 
 
@@ -222,7 +222,7 @@ class FileUpload extends Nette\Object
     {
 
         // future implementation can try to work around safe_mode and open_basedir limitations
-        return $this->isOk() ? file_get_contents( $this->tmpName ) : null;
+        return $this->isOk() ? file_get_contents($this->tmpName) : null;
     }
 
 }

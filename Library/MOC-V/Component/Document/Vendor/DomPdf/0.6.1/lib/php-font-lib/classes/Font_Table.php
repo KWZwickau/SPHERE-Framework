@@ -21,17 +21,17 @@ class Font_Table extends Font_Binary_Stream
     protected $entry;
     protected $def = array();
 
-    final public function __construct( Font_Table_Directory_Entry $entry )
+    final public function __construct(Font_Table_Directory_Entry $entry)
     {
 
         $this->entry = $entry;
-        $entry->setTable( $this );
+        $entry->setTable($this);
     }
 
     public function toHTML()
     {
 
-        return "<pre>".var_export( $this->data, true )."</pre>";
+        return "<pre>".var_export($this->data, true)."</pre>";
     }
 
     final public function encode()
@@ -53,7 +53,7 @@ class Font_Table extends Font_Binary_Stream
     protected function _encodeRaw()
     {
 
-        return $this->getFont()->write( $this->data, $this->entry->length );
+        return $this->getFont()->write($this->data, $this->entry->length);
     }
 
     /**
@@ -69,11 +69,11 @@ class Font_Table extends Font_Binary_Stream
     {
 
         if (empty( $this->data )) {
-            Font::d( "  >> Table is empty" );
+            Font::d("  >> Table is empty");
             return 0;
         }
 
-        return $this->getFont()->pack( $this->def, $this->data );
+        return $this->getFont()->pack($this->def, $this->data);
     }
 
     final public function parse()
@@ -93,12 +93,12 @@ class Font_Table extends Font_Binary_Stream
     protected function _parseRaw()
     {
 
-        $this->data = $this->getFont()->read( $this->entry->length );
+        $this->data = $this->getFont()->read($this->entry->length);
     }
 
     protected function _parse()
     {
 
-        $this->data = $this->getFont()->unpack( $this->def );
+        $this->data = $this->getFont()->unpack($this->def);
     }
 }

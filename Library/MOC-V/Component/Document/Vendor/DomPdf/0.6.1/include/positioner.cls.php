@@ -24,7 +24,7 @@ abstract class Positioner
 
     //........................................................................
 
-    function __construct( Frame_Decorator $frame )
+    function __construct(Frame_Decorator $frame)
     {
 
         $this->_frame = $frame;
@@ -36,24 +36,24 @@ abstract class Positioner
     function __destruct()
     {
 
-        clear_object( $this );
+        clear_object($this);
     }
 
     //........................................................................
 
     abstract function position();
 
-    function move( $offset_x, $offset_y, $ignore_self = false )
+    function move($offset_x, $offset_y, $ignore_self = false)
     {
 
         list( $x, $y ) = $this->_frame->get_position();
 
         if (!$ignore_self) {
-            $this->_frame->set_position( $x + $offset_x, $y + $offset_y );
+            $this->_frame->set_position($x + $offset_x, $y + $offset_y);
         }
 
         foreach ($this->_frame->get_children() as $child) {
-            $child->move( $offset_x, $offset_y );
+            $child->move($offset_x, $offset_y);
         }
     }
 }

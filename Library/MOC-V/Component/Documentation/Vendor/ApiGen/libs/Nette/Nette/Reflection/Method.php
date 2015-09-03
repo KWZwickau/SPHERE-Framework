@@ -60,10 +60,10 @@ class Method extends \ReflectionMethod
      *
      * @return Method
      */
-    public static function from( $class, $method )
+    public static function from($class, $method)
     {
 
-        return new static( is_object( $class ) ? get_class( $class ) : $class, $method );
+        return new static(is_object($class) ? get_class($class) : $class, $method);
     }
 
     /**
@@ -75,7 +75,7 @@ class Method extends \ReflectionMethod
     {
 
         return new ClassType(/*5.2*$this*//**/
-            get_called_class()/**/ );
+            get_called_class()/**/);
     }
 
     /**
@@ -84,7 +84,7 @@ class Method extends \ReflectionMethod
     public function toCallback()
     {
 
-        return new Nette\Callback( parent::getDeclaringClass()->getName(), $this->getName() );
+        return new Nette\Callback(parent::getDeclaringClass()->getName(), $this->getName());
     }
 
 
@@ -102,7 +102,7 @@ class Method extends \ReflectionMethod
     public function getDeclaringClass()
     {
 
-        return new ClassType( parent::getDeclaringClass()->getName() );
+        return new ClassType(parent::getDeclaringClass()->getName());
     }
 
     /**
@@ -112,7 +112,7 @@ class Method extends \ReflectionMethod
     {
 
         $prototype = parent::getPrototype();
-        return new Method( $prototype->getDeclaringClass()->getName(), $prototype->getName() );
+        return new Method($prototype->getDeclaringClass()->getName(), $prototype->getName());
     }
 
     /**
@@ -121,7 +121,7 @@ class Method extends \ReflectionMethod
     public function getExtension()
     {
 
-        return ( $name = $this->getExtensionName() ) ? new Extension( $name ) : null;
+        return ( $name = $this->getExtensionName() ) ? new Extension($name) : null;
     }
 
 
@@ -134,9 +134,9 @@ class Method extends \ReflectionMethod
     public function getParameters()
     {
 
-        $me = array( parent::getDeclaringClass()->getName(), $this->getName() );
+        $me = array(parent::getDeclaringClass()->getName(), $this->getName());
         foreach ($res = parent::getParameters() as $key => $val) {
-            $res[$key] = new Parameter( $me, $val->getName() );
+            $res[$key] = new Parameter($me, $val->getName());
         }
         return $res;
     }
@@ -148,10 +148,10 @@ class Method extends \ReflectionMethod
      *
      * @return bool
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
-        $res = AnnotationsParser::getAll( $this );
+        $res = AnnotationsParser::getAll($this);
         return !empty( $res[$name] );
     }
 
@@ -163,7 +163,7 @@ class Method extends \ReflectionMethod
     public function getAnnotations()
     {
 
-        return AnnotationsParser::getAll( $this );
+        return AnnotationsParser::getAll($this);
     }
 
 
@@ -175,7 +175,7 @@ class Method extends \ReflectionMethod
     public function getDescription()
     {
 
-        return $this->getAnnotation( 'description' );
+        return $this->getAnnotation('description');
     }
 
 
@@ -189,45 +189,45 @@ class Method extends \ReflectionMethod
      *
      * @return IAnnotation
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
-        $res = AnnotationsParser::getAll( $this );
-        return isset( $res[$name] ) ? end( $res[$name] ) : null;
+        $res = AnnotationsParser::getAll($this);
+        return isset( $res[$name] ) ? end($res[$name]) : null;
     }
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return ObjectMixin::call( $this, $name, $args );
-    }
-
-
-    public function &__get( $name )
-    {
-
-        return ObjectMixin::get( $this, $name );
+        return ObjectMixin::call($this, $name, $args);
     }
 
 
-    public function __set( $name, $value )
+    public function &__get($name)
     {
 
-        return ObjectMixin::set( $this, $name, $value );
+        return ObjectMixin::get($this, $name);
     }
 
 
-    public function __isset( $name )
+    public function __set($name, $value)
     {
 
-        return ObjectMixin::has( $this, $name );
+        return ObjectMixin::set($this, $name, $value);
     }
 
 
-    public function __unset( $name )
+    public function __isset($name)
     {
 
-        ObjectMixin::remove( $this, $name );
+        return ObjectMixin::has($this, $name);
+    }
+
+
+    public function __unset($name)
+    {
+
+        ObjectMixin::remove($this, $name);
     }
 
 }

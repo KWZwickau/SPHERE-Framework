@@ -67,23 +67,23 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return Permission  provides a fluent interface
      */
-    public function addRole( $role, $parents = null )
+    public function addRole($role, $parents = null)
     {
 
-        $this->checkRole( $role, false );
+        $this->checkRole($role, false);
         if (isset( $this->roles[$role] )) {
-            throw new Nette\InvalidStateException( "Role '$role' already exists in the list." );
+            throw new Nette\InvalidStateException("Role '$role' already exists in the list.");
         }
 
         $roleParents = array();
 
         if ($parents !== null) {
-            if (!is_array( $parents )) {
-                $parents = array( $parents );
+            if (!is_array($parents)) {
+                $parents = array($parents);
             }
 
             foreach ($parents as $parent) {
-                $this->checkRole( $parent );
+                $this->checkRole($parent);
                 $roleParents[$parent] = true;
                 $this->roles[$parent]['children'][$role] = true;
             }
@@ -106,14 +106,14 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return void
      */
-    private function checkRole( $role, $need = true )
+    private function checkRole($role, $need = true)
     {
 
-        if (!is_string( $role ) || $role === '') {
-            throw new Nette\InvalidArgumentException( "Role must be a non-empty string." );
+        if (!is_string($role) || $role === '') {
+            throw new Nette\InvalidArgumentException("Role must be a non-empty string.");
 
         } elseif ($need && !isset( $this->roles[$role] )) {
-            throw new Nette\InvalidStateException( "Role '$role' does not exist." );
+            throw new Nette\InvalidStateException("Role '$role' does not exist.");
         }
     }
 
@@ -124,10 +124,10 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return bool
      */
-    public function hasRole( $role )
+    public function hasRole($role)
     {
 
-        $this->checkRole( $role, false );
+        $this->checkRole($role, false);
         return isset( $this->roles[$role] );
     }
 
@@ -139,7 +139,7 @@ class Permission extends Nette\Object implements IAuthorizator
     public function getRoles()
     {
 
-        return array_keys( $this->roles );
+        return array_keys($this->roles);
     }
 
 
@@ -150,11 +150,11 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return array
      */
-    public function getRoleParents( $role )
+    public function getRoleParents($role)
     {
 
-        $this->checkRole( $role );
-        return array_keys( $this->roles[$role]['parents'] );
+        $this->checkRole($role);
+        return array_keys($this->roles[$role]['parents']);
     }
 
 
@@ -169,11 +169,11 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return bool
      */
-    public function roleInheritsFrom( $role, $inherit, $onlyParents = false )
+    public function roleInheritsFrom($role, $inherit, $onlyParents = false)
     {
 
-        $this->checkRole( $role );
-        $this->checkRole( $inherit );
+        $this->checkRole($role);
+        $this->checkRole($inherit);
 
         $inherits = isset( $this->roles[$role]['parents'][$inherit] );
 
@@ -182,7 +182,7 @@ class Permission extends Nette\Object implements IAuthorizator
         }
 
         foreach ($this->roles[$role]['parents'] as $parent => $foo) {
-            if ($this->roleInheritsFrom( $parent, $inherit )) {
+            if ($this->roleInheritsFrom($parent, $inherit)) {
                 return true;
             }
         }
@@ -199,10 +199,10 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return Permission  provides a fluent interface
      */
-    public function removeRole( $role )
+    public function removeRole($role)
     {
 
-        $this->checkRole( $role );
+        $this->checkRole($role);
 
         foreach ($this->roles[$role]['children'] as $child => $foo) {
             unset( $this->roles[$child]['parents'][$role] );
@@ -271,17 +271,17 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return Permission  provides a fluent interface
      */
-    public function addResource( $resource, $parent = null )
+    public function addResource($resource, $parent = null)
     {
 
-        $this->checkResource( $resource, false );
+        $this->checkResource($resource, false);
 
         if (isset( $this->resources[$resource] )) {
-            throw new Nette\InvalidStateException( "Resource '$resource' already exists in the list." );
+            throw new Nette\InvalidStateException("Resource '$resource' already exists in the list.");
         }
 
         if ($parent !== null) {
-            $this->checkResource( $parent );
+            $this->checkResource($parent);
             $this->resources[$parent]['children'][$resource] = true;
         }
 
@@ -302,14 +302,14 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return void
      */
-    private function checkResource( $resource, $need = true )
+    private function checkResource($resource, $need = true)
     {
 
-        if (!is_string( $resource ) || $resource === '') {
-            throw new Nette\InvalidArgumentException( "Resource must be a non-empty string." );
+        if (!is_string($resource) || $resource === '') {
+            throw new Nette\InvalidArgumentException("Resource must be a non-empty string.");
 
         } elseif ($need && !isset( $this->resources[$resource] )) {
-            throw new Nette\InvalidStateException( "Resource '$resource' does not exist." );
+            throw new Nette\InvalidStateException("Resource '$resource' does not exist.");
         }
     }
 
@@ -320,10 +320,10 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return bool
      */
-    public function hasResource( $resource )
+    public function hasResource($resource)
     {
 
-        $this->checkResource( $resource, false );
+        $this->checkResource($resource, false);
         return isset( $this->resources[$resource] );
     }
 
@@ -335,7 +335,7 @@ class Permission extends Nette\Object implements IAuthorizator
     public function getResources()
     {
 
-        return array_keys( $this->resources );
+        return array_keys($this->resources);
     }
 
 
@@ -350,11 +350,11 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return bool
      */
-    public function resourceInheritsFrom( $resource, $inherit, $onlyParent = false )
+    public function resourceInheritsFrom($resource, $inherit, $onlyParent = false)
     {
 
-        $this->checkResource( $resource );
-        $this->checkResource( $inherit );
+        $this->checkResource($resource);
+        $this->checkResource($inherit);
 
         if ($this->resources[$resource]['parent'] === null) {
             return false;
@@ -387,19 +387,19 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return Permission  provides a fluent interface
      */
-    public function removeResource( $resource )
+    public function removeResource($resource)
     {
 
-        $this->checkResource( $resource );
+        $this->checkResource($resource);
 
         $parent = $this->resources[$resource]['parent'];
         if ($parent !== null) {
             unset( $this->resources[$parent]['children'][$resource] );
         }
 
-        $removed = array( $resource );
+        $removed = array($resource);
         foreach ($this->resources[$resource]['children'] as $child => $foo) {
-            $this->removeResource( $child );
+            $this->removeResource($child);
             $removed[] = $child;
         }
 
@@ -451,10 +451,10 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return Permission  provides a fluent interface
      */
-    public function allow( $roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, $assertion = null )
+    public function allow($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, $assertion = null)
     {
 
-        $this->setRule( true, self::ALLOW, $roles, $resources, $privileges, $assertion );
+        $this->setRule(true, self::ALLOW, $roles, $resources, $privileges, $assertion);
         return $this;
     }
 
@@ -471,34 +471,34 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return Permission  provides a fluent interface
      */
-    protected function setRule( $toAdd, $type, $roles, $resources, $privileges, $assertion = null )
+    protected function setRule($toAdd, $type, $roles, $resources, $privileges, $assertion = null)
     {
 
         // ensure that all specified Roles exist; normalize input to array of Roles or NULL
         if ($roles === self::ALL) {
-            $roles = array( self::ALL );
+            $roles = array(self::ALL);
 
         } else {
-            if (!is_array( $roles )) {
-                $roles = array( $roles );
+            if (!is_array($roles)) {
+                $roles = array($roles);
             }
 
             foreach ($roles as $role) {
-                $this->checkRole( $role );
+                $this->checkRole($role);
             }
         }
 
         // ensure that all specified Resources exist; normalize input to array of Resources or NULL
         if ($resources === self::ALL) {
-            $resources = array( self::ALL );
+            $resources = array(self::ALL);
 
         } else {
-            if (!is_array( $resources )) {
-                $resources = array( $resources );
+            if (!is_array($resources)) {
+                $resources = array($resources);
             }
 
             foreach ($resources as $resource) {
-                $this->checkResource( $resource );
+                $this->checkResource($resource);
             }
         }
 
@@ -506,17 +506,17 @@ class Permission extends Nette\Object implements IAuthorizator
         if ($privileges === self::ALL) {
             $privileges = array();
 
-        } elseif (!is_array( $privileges )) {
-            $privileges = array( $privileges );
+        } elseif (!is_array($privileges)) {
+            $privileges = array($privileges);
         }
 
-        $assertion = $assertion ? new Nette\Callback( $assertion ) : null;
+        $assertion = $assertion ? new Nette\Callback($assertion) : null;
 
         if ($toAdd) { // add to the rules
             foreach ($resources as $resource) {
                 foreach ($roles as $role) {
-                    $rules = &$this->getRules( $resource, $role, true );
-                    if (count( $privileges ) === 0) {
+                    $rules = &$this->getRules($resource, $role, true);
+                    if (count($privileges) === 0) {
                         $rules['allPrivileges']['type'] = $type;
                         $rules['allPrivileges']['assert'] = $assertion;
                         if (!isset( $rules['byPrivilege'] )) {
@@ -534,11 +534,11 @@ class Permission extends Nette\Object implements IAuthorizator
         } else { // remove from the rules
             foreach ($resources as $resource) {
                 foreach ($roles as $role) {
-                    $rules = &$this->getRules( $resource, $role );
+                    $rules = &$this->getRules($resource, $role);
                     if ($rules === null) {
                         continue;
                     }
-                    if (count( $privileges ) === 0) {
+                    if (count($privileges) === 0) {
                         if ($resource === self::ALL && $role === self::ALL) {
                             if ($type === $rules['allPrivileges']['type']) {
                                 $rules = array(
@@ -579,7 +579,7 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return array|NULL
      */
-    private function & getRules( $resource, $role, $create = false )
+    private function & getRules($resource, $role, $create = false)
     {
 
         $null = null;
@@ -626,10 +626,10 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return Permission  provides a fluent interface
      */
-    public function deny( $roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, $assertion = null )
+    public function deny($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL, $assertion = null)
     {
 
-        $this->setRule( true, self::DENY, $roles, $resources, $privileges, $assertion );
+        $this->setRule(true, self::DENY, $roles, $resources, $privileges, $assertion);
         return $this;
     }
 
@@ -642,10 +642,10 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return Permission  provides a fluent interface
      */
-    public function removeAllow( $roles = self::ALL, $resources = self::ALL, $privileges = self::ALL )
+    public function removeAllow($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL)
     {
 
-        $this->setRule( false, self::ALLOW, $roles, $resources, $privileges );
+        $this->setRule(false, self::ALLOW, $roles, $resources, $privileges);
         return $this;
     }
 
@@ -662,10 +662,10 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return Permission  provides a fluent interface
      */
-    public function removeDeny( $roles = self::ALL, $resources = self::ALL, $privileges = self::ALL )
+    public function removeDeny($roles = self::ALL, $resources = self::ALL, $privileges = self::ALL)
     {
 
-        $this->setRule( false, self::DENY, $roles, $resources, $privileges );
+        $this->setRule(false, self::DENY, $roles, $resources, $privileges);
         return $this;
     }
 
@@ -684,7 +684,7 @@ class Permission extends Nette\Object implements IAuthorizator
      * @throws Nette\InvalidStateException
      * @return bool
      */
-    public function isAllowed( $role = self::ALL, $resource = self::ALL, $privilege = self::ALL )
+    public function isAllowed($role = self::ALL, $resource = self::ALL, $privilege = self::ALL)
     {
 
         $this->queriedRole = $role;
@@ -692,7 +692,7 @@ class Permission extends Nette\Object implements IAuthorizator
             if ($role instanceof IRole) {
                 $role = $role->getRoleId();
             }
-            $this->checkRole( $role );
+            $this->checkRole($role);
         }
 
         $this->queriedResource = $resource;
@@ -700,34 +700,34 @@ class Permission extends Nette\Object implements IAuthorizator
             if ($resource instanceof IResource) {
                 $resource = $resource->getResourceId();
             }
-            $this->checkResource( $resource );
+            $this->checkResource($resource);
         }
 
         do {
             // depth-first search on $role if it is not 'allRoles' pseudo-parent
-            if ($role !== null && null !== ( $result = $this->searchRolePrivileges( $privilege === self::ALL, $role,
-                    $resource, $privilege ) )
+            if ($role !== null && null !== ( $result = $this->searchRolePrivileges($privilege === self::ALL, $role,
+                    $resource, $privilege) )
             ) {
                 break;
             }
 
             if ($privilege === self::ALL) {
-                if ($rules = $this->getRules( $resource, self::ALL )) { // look for rule on 'allRoles' psuedo-parent
+                if ($rules = $this->getRules($resource, self::ALL)) { // look for rule on 'allRoles' psuedo-parent
                     foreach ($rules['byPrivilege'] as $privilege => $rule) {
-                        if (self::DENY === ( $result = $this->getRuleType( $resource, null, $privilege ) )) {
+                        if (self::DENY === ( $result = $this->getRuleType($resource, null, $privilege) )) {
                             break 2;
                         }
                     }
-                    if (null !== ( $result = $this->getRuleType( $resource, null, null ) )) {
+                    if (null !== ( $result = $this->getRuleType($resource, null, null) )) {
                         break;
                     }
                 }
             } else {
-                if (null !== ( $result = $this->getRuleType( $resource, null, $privilege ) )
+                if (null !== ( $result = $this->getRuleType($resource, null, $privilege) )
                 ) { // look for rule on 'allRoles' pseudo-parent
                     break;
 
-                } elseif (null !== ( $result = $this->getRuleType( $resource, null, null ) )) {
+                } elseif (null !== ( $result = $this->getRuleType($resource, null, null) )) {
                     break;
                 }
             }
@@ -750,34 +750,34 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return mixed  NULL if no applicable rule is found, otherwise returns ALLOW or DENY
      */
-    private function searchRolePrivileges( $all, $role, $resource, $privilege )
+    private function searchRolePrivileges($all, $role, $resource, $privilege)
     {
 
         $dfs = array(
             'visited' => array(),
-            'stack'   => array( $role ),
+            'stack' => array($role),
         );
 
-        while (null !== ( $role = array_pop( $dfs['stack'] ) )) {
+        while (null !== ( $role = array_pop($dfs['stack']) )) {
             if (isset( $dfs['visited'][$role] )) {
                 continue;
             }
             if ($all) {
-                if ($rules = $this->getRules( $resource, $role )) {
+                if ($rules = $this->getRules($resource, $role)) {
                     foreach ($rules['byPrivilege'] as $privilege2 => $rule) {
-                        if (self::DENY === $this->getRuleType( $resource, $role, $privilege2 )) {
+                        if (self::DENY === $this->getRuleType($resource, $role, $privilege2)) {
                             return self::DENY;
                         }
                     }
-                    if (null !== ( $type = $this->getRuleType( $resource, $role, null ) )) {
+                    if (null !== ( $type = $this->getRuleType($resource, $role, null) )) {
                         return $type;
                     }
                 }
             } else {
-                if (null !== ( $type = $this->getRuleType( $resource, $role, $privilege ) )) {
+                if (null !== ( $type = $this->getRuleType($resource, $role, $privilege) )) {
                     return $type;
 
-                } elseif (null !== ( $type = $this->getRuleType( $resource, $role, null ) )) {
+                } elseif (null !== ( $type = $this->getRuleType($resource, $role, null) )) {
                     return $type;
                 }
             }
@@ -803,10 +803,10 @@ class Permission extends Nette\Object implements IAuthorizator
      *
      * @return mixed  NULL if a rule does not exist or assertion fails, otherwise returns ALLOW or DENY
      */
-    private function getRuleType( $resource, $role, $privilege )
+    private function getRuleType($resource, $role, $privilege)
     {
 
-        if (!$rules = $this->getRules( $resource, $role )) {
+        if (!$rules = $this->getRules($resource, $role)) {
             return null;
         }
 
@@ -823,7 +823,7 @@ class Permission extends Nette\Object implements IAuthorizator
             $rule = $rules['byPrivilege'][$privilege];
         }
 
-        if ($rule['assert'] === null || $rule['assert']->__invoke( $this, $role, $resource, $privilege )) {
+        if ($rule['assert'] === null || $rule['assert']->__invoke($this, $role, $resource, $privilege)) {
             return $rule['type'];
 
         } elseif ($resource !== self::ALL || $role !== self::ALL || $privilege !== self::ALL) {

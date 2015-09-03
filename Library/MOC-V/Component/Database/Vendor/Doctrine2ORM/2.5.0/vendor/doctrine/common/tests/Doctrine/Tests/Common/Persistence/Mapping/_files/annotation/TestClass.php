@@ -7,6 +7,7 @@ namespace Doctrine;
  */
 class TestClass
 {
+
 }
 
 /**
@@ -14,4 +15,5 @@ class TestClass
  */
 class Entity
 {
+
 }

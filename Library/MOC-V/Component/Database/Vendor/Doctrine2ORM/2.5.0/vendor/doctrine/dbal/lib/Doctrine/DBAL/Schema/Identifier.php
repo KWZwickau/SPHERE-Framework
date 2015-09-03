@@ -31,6 +31,7 @@ namespace Doctrine\DBAL\Schema;
  */
 class Identifier extends AbstractAsset
 {
+
     /**
      * Constructor.
      *
@@ -38,6 +39,7 @@ class Identifier extends AbstractAsset
      */
     public function __construct($identifier)
     {
+
         $this->_setName($identifier);
     }
 }

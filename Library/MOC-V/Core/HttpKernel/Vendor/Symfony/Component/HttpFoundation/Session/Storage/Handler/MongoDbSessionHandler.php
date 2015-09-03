@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpFoundation\Session\Storage\Handler;
  */
 class MongoDbSessionHandler implements \SessionHandlerInterface
 {
+
     /**
      * @var \Mongo
      */
@@ -51,11 +52,12 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     public function __construct($mongo, array $options)
     {
-        if (!($mongo instanceof \MongoClient || $mongo instanceof \Mongo)) {
+
+        if (!( $mongo instanceof \MongoClient || $mongo instanceof \Mongo )) {
             throw new \InvalidArgumentException('MongoClient or Mongo instance required');
         }
 
-        if (!isset($options['database']) || !isset($options['collection'])) {
+        if (!isset( $options['database'] ) || !isset( $options['collection'] )) {
             throw new \InvalidArgumentException('You must provide the "database" and "collection" option for MongoDBSessionHandler');
         }
 
@@ -73,6 +75,7 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     public function open($savePath, $sessionName)
     {
+
         return true;
     }
 
@@ -81,6 +84,7 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     public function close()
     {
+
         return true;
     }
 
@@ -89,6 +93,7 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     public function destroy($sessionId)
     {
+
         $this->getCollection()->remove(array(
             $this->options['id_field'] => $sessionId
         ));
@@ -105,8 +110,8 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
     {
 
         if (null === $this->collection) {
-            $this->collection = $this->mongo->selectCollection( $this->options['database'],
-                $this->options['collection'] );
+            $this->collection = $this->mongo->selectCollection($this->options['database'],
+                $this->options['collection']);
         }
 
         return $this->collection;
@@ -117,6 +122,7 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     public function gc($maxlifetime)
     {
+
         /* Note: MongoDB 2.2+ supports TTL collections, which may be used in
          * place of this method by indexing the "time_field" field with an
          * "expireAfterSeconds" option. Regardless of whether TTL collections
@@ -139,12 +145,15 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     public function write($sessionId, $data)
     {
+
         $this->getCollection()->update(
             array($this->options['id_field'] => $sessionId),
-            array('$set' => array(
-                $this->options['data_field'] => new \MongoBinData($data, \MongoBinData::BYTE_ARRAY),
-                $this->options['time_field'] => new \MongoDate(),
-            )),
+            array(
+                '$set' => array(
+                    $this->options['data_field'] => new \MongoBinData($data, \MongoBinData::BYTE_ARRAY),
+                    $this->options['time_field'] => new \MongoDate(),
+                )
+            ),
             array('upsert' => true, 'multiple' => false)
         );
 
@@ -156,6 +165,7 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     public function read($sessionId)
     {
+
         $dbData = $this->getCollection()->findOne(array(
             $this->options['id_field'] => $sessionId,
         ));
@@ -170,6 +180,7 @@ class MongoDbSessionHandler implements \SessionHandlerInterface
      */
     protected function getMongo()
     {
+
         return $this->mongo;
     }
 }

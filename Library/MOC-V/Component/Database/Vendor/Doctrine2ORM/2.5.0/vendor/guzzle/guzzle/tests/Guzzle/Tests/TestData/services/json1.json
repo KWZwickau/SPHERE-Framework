@@ -1,5 +1,7 @@
 {
-    "includes": [ "json2.json" ],
+    "includes": [
+        "json2.json"
+    ],
     "services": {
         "abstract": {
             "access_key": "xyz",

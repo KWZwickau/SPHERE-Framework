@@ -72,10 +72,10 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @param string                  $className Class name
      * @param \TokenReflection\Broker $broker    Reflection broker
      */
-    public function __construct( $className, Broker $broker )
+    public function __construct($className, Broker $broker)
     {
 
-        parent::__construct( $className );
+        parent::__construct($className);
         $this->broker = $broker;
     }
 
@@ -87,7 +87,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getExtension()
     {
 
-        return ReflectionExtension::create( parent::getExtension(), $this->broker );
+        return ReflectionExtension::create(parent::getExtension(), $this->broker);
     }
 
     /**
@@ -97,7 +97,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -110,7 +110,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -135,7 +135,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function isException()
     {
 
-        return 'Exception' === $this->getName() || $this->isSubclassOf( 'Exception' );
+        return 'Exception' === $this->getName() || $this->isSubclassOf('Exception');
     }
 
     /**
@@ -146,19 +146,19 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return boolean
      * @throws \TokenReflection\Exception\RuntimeException If an invalid parameter was provided.
      */
-    public function isSubclassOf( $class )
+    public function isSubclassOf($class)
     {
 
-        if (is_object( $class )) {
+        if (is_object($class)) {
             if (!$class instanceof InternalReflectionClass && !$class instanceof IReflectionClass) {
-                throw new Exception\RuntimeException( 'Parameter must be a string or an instance of class reflection.',
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException('Parameter must be a string or an instance of class reflection.',
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
 
             $class = $class->getName();
         }
 
-        return in_array( $class, $this->getParentClassNameList() );
+        return in_array($class, $this->getParentClassNameList());
     }
 
     /**
@@ -169,7 +169,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getParentClassNameList()
     {
 
-        return class_parents( $this->getName() );
+        return class_parents($this->getName());
     }
 
     /**
@@ -198,25 +198,25 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return array
      */
-    public function getMethods( $filter = null )
+    public function getMethods($filter = null)
     {
 
         if (null === $this->methods) {
             $broker = $this->broker;
-            $this->methods = array_map( function ( InternalReflectionMethod $method ) use ( $broker ) {
+            $this->methods = array_map(function (InternalReflectionMethod $method) use ($broker) {
 
-                return ReflectionMethod::create( $method, $broker );
-            }, parent::getMethods() );
+                return ReflectionMethod::create($method, $broker);
+            }, parent::getMethods());
         }
 
         if (null === $filter) {
             return $this->methods;
         }
 
-        return array_filter( $this->methods, function ( ReflectionMethod $method ) use ( $filter ) {
+        return array_filter($this->methods, function (ReflectionMethod $method) use ($filter) {
 
             return (bool)( $method->getModifiers() & $filter );
-        } );
+        });
     }
 
     /**
@@ -262,7 +262,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     {
 
         $parent = parent::getParentClass();
-        return $parent ? self::create( $parent, $this->broker ) : null;
+        return $parent ? self::create($parent, $this->broker) : null;
     }
 
     /**
@@ -274,15 +274,15 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return \TokenReflection\Php\ReflectionClass
      * @throws \TokenReflection\Exception\RuntimeException If an invalid internal reflection object was provided.
      */
-    public static function create( Reflector $internalReflection, Broker $broker )
+    public static function create(Reflector $internalReflection, Broker $broker)
     {
 
         if (!$internalReflection instanceof InternalReflectionClass) {
-            throw new Exception\RuntimeException( 'Invalid reflection instance provided, ReflectionClass expected.',
-                Exception\RuntimeException::INVALID_ARGUMENT );
+            throw new Exception\RuntimeException('Invalid reflection instance provided, ReflectionClass expected.',
+                Exception\RuntimeException::INVALID_ARGUMENT);
         }
 
-        return $broker->getClass( $internalReflection->getName() );
+        return $broker->getClass($internalReflection->getName());
     }
 
     /**
@@ -293,26 +293,26 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return boolean
      * @throws \TokenReflection\Exception\RuntimeException If the provided parameter is not an interface.
      */
-    public function implementsInterface( $interface )
+    public function implementsInterface($interface)
     {
 
-        if (is_object( $interface )) {
+        if (is_object($interface)) {
             if (!$interface instanceof InternalReflectionClass && !$interface instanceof IReflectionClass) {
-                throw new Exception\RuntimeException( 'Parameter must be a string or an instance of class reflection.',
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException('Parameter must be a string or an instance of class reflection.',
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
 
             $interfaceName = $interface->getName();
 
             if (!$interface->isInterface()) {
-                throw new Exception\RuntimeException( sprintf( '"%s" is not an interface.', $interfaceName ),
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException(sprintf('"%s" is not an interface.', $interfaceName),
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
         } else {
-            $reflection = $this->getBroker()->getClass( $interface );
+            $reflection = $this->getBroker()->getClass($interface);
             if (!$reflection->isInterface()) {
-                throw new Exception\RuntimeException( sprintf( '"%s" is not an interface.', $interface ),
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException(sprintf('"%s" is not an interface.', $interface),
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
 
             $interfaceName = $interface;
@@ -348,11 +348,11 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
             if (empty( $interfaceNames )) {
                 $this->interfaces = array();
             } else {
-                $this->interfaces = array_combine( $interfaceNames,
-                    array_map( function ( $interfaceName ) use ( $broker ) {
+                $this->interfaces = array_combine($interfaceNames,
+                    array_map(function ($interfaceName) use ($broker) {
 
-                        return $broker->getClass( $interfaceName );
-                    }, $interfaceNames ) );
+                        return $broker->getClass($interfaceName);
+                    }, $interfaceNames));
             }
         }
 
@@ -367,7 +367,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getOwnInterfaceNames()
     {
 
-        return array_keys( $this->getOwnInterfaces() );
+        return array_keys($this->getOwnInterfaces());
     }
 
     /**
@@ -379,7 +379,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     {
 
         $parent = $this->getParentClass();
-        return $parent ? array_diff_key( $this->getInterfaces(), $parent->getInterfaces() ) : $this->getInterfaces();
+        return $parent ? array_diff_key($this->getInterfaces(), $parent->getInterfaces()) : $this->getInterfaces();
     }
 
     /**
@@ -390,7 +390,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getConstructor()
     {
 
-        return ReflectionMethod::create( parent::getConstructor(), $this->broker );
+        return ReflectionMethod::create(parent::getConstructor(), $this->broker);
     }
 
     /**
@@ -418,7 +418,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return \TokenReflection\Php\ReflectionMethod
      * @throws \TokenReflection\Exception\RuntimeException If the requested method does not exist.
      */
-    public function getMethod( $name )
+    public function getMethod($name)
     {
 
         foreach ($this->getMethods() as $method) {
@@ -427,8 +427,8 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
             }
         }
 
-        throw new Exception\RuntimeException( sprintf( 'Method %s does not exist.', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('Method %s does not exist.', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -438,7 +438,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return boolean
      */
-    public function hasOwnMethod( $name )
+    public function hasOwnMethod($name)
     {
 
         foreach ($this->getOwnMethods() as $method) {
@@ -457,14 +457,14 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return array
      */
-    public function getOwnMethods( $filter = null )
+    public function getOwnMethods($filter = null)
     {
 
         $me = $this->getName();
-        return array_filter( $this->getMethods( $filter ), function ( ReflectionMethod $method ) use ( $me ) {
+        return array_filter($this->getMethods($filter), function (ReflectionMethod $method) use ($me) {
 
             return $method->getDeclaringClass()->getName() === $me;
-        } );
+        });
     }
 
     /**
@@ -475,7 +475,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return boolean
      * @todo Impossible with the current status of reflection
      */
-    public function hasTraitMethod( $name )
+    public function hasTraitMethod($name)
     {
 
         return false;
@@ -489,7 +489,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return array
      * @todo Impossible with the current status of reflection
      */
-    public function getTraitMethods( $filter = null )
+    public function getTraitMethods($filter = null)
     {
 
         return array();
@@ -506,11 +506,11 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
         if (null === $this->constants) {
             $this->constants = array();
             foreach ($this->getConstants() as $name => $value) {
-                $this->constants[$name] = $this->getConstantReflection( $name );
+                $this->constants[$name] = $this->getConstantReflection($name);
             }
         }
 
-        return array_values( $this->constants );
+        return array_values($this->constants);
     }
 
     /**
@@ -521,15 +521,15 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return \TokenReflection\ReflectionConstant
      * @throws \TokenReflection\Exception\RuntimeException If the requested constant does not exist.
      */
-    public function getConstantReflection( $name )
+    public function getConstantReflection($name)
     {
 
-        if ($this->hasConstant( $name )) {
-            return new ReflectionConstant( $name, $this->getConstant( $name ), $this->broker, $this );
+        if ($this->hasConstant($name)) {
+            return new ReflectionConstant($name, $this->getConstant($name), $this->broker, $this);
         }
 
-        throw new Exception\RuntimeException( sprintf( 'Constant "%s" does not exist.', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('Constant "%s" does not exist.', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -539,7 +539,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return boolean
      */
-    public function hasOwnConstant( $name )
+    public function hasOwnConstant($name)
     {
 
         $constants = $this->getOwnConstants();
@@ -554,8 +554,8 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getOwnConstants()
     {
 
-        return array_diff_assoc( $this->getConstants(),
-            $this->getParentClass() ? $this->getParentClass()->getConstants() : array() );
+        return array_diff_assoc($this->getConstants(),
+            $this->getParentClass() ? $this->getParentClass()->getConstants() : array());
     }
 
     /**
@@ -568,7 +568,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
 
         $constants = array();
         foreach ($this->getOwnConstants() as $name => $value) {
-            $constants[] = $this->getConstantReflection( $name );
+            $constants[] = $this->getConstantReflection($name);
         }
         return $constants;
     }
@@ -581,7 +581,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return \TokenReflection\Php\ReflectionProperty
      * @throws \TokenReflection\Exception\RuntimeException If the requested property does not exist.
      */
-    public function getProperty( $name )
+    public function getProperty($name)
     {
 
         foreach ($this->getProperties() as $property) {
@@ -590,8 +590,8 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
             }
         }
 
-        throw new Exception\RuntimeException( sprintf( 'Property %s does not exist.', $name ),
-            Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        throw new Exception\RuntimeException(sprintf('Property %s does not exist.', $name),
+            Exception\RuntimeException::DOES_NOT_EXIST, $this);
     }
 
     /**
@@ -601,25 +601,25 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return array
      */
-    public function getProperties( $filter = null )
+    public function getProperties($filter = null)
     {
 
         if (null === $this->properties) {
             $broker = $this->broker;
-            $this->properties = array_map( function ( InternalReflectionProperty $property ) use ( $broker ) {
+            $this->properties = array_map(function (InternalReflectionProperty $property) use ($broker) {
 
-                return ReflectionProperty::create( $property, $broker );
-            }, parent::getProperties() );
+                return ReflectionProperty::create($property, $broker);
+            }, parent::getProperties());
         }
 
         if (null === $filter) {
             return $this->properties;
         }
 
-        return array_filter( $this->properties, function ( ReflectionProperty $property ) use ( $filter ) {
+        return array_filter($this->properties, function (ReflectionProperty $property) use ($filter) {
 
             return (bool)( $property->getModifiers() & $filter );
-        } );
+        });
     }
 
     /**
@@ -629,7 +629,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return boolean
      */
-    public function hasOwnProperty( $name )
+    public function hasOwnProperty($name)
     {
 
         foreach ($this->getOwnProperties() as $property) {
@@ -648,14 +648,14 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return array
      */
-    public function getOwnProperties( $filter = null )
+    public function getOwnProperties($filter = null)
     {
 
         $me = $this->getName();
-        return array_filter( $this->getProperties( $filter ), function ( ReflectionProperty $property ) use ( $me ) {
+        return array_filter($this->getProperties($filter), function (ReflectionProperty $property) use ($me) {
 
             return $property->getDeclaringClass()->getName() === $me;
-        } );
+        });
     }
 
     /**
@@ -666,7 +666,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return boolean
      * @todo Impossible with the current status of reflection
      */
-    public function hasTraitProperty( $name )
+    public function hasTraitProperty($name)
     {
 
         return false;
@@ -680,7 +680,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return array
      * @todo Impossible with the current status of reflection
      */
-    public function getTraitProperties( $filter = null )
+    public function getTraitProperties($filter = null)
     {
 
         return array();
@@ -694,7 +694,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getStaticProperties()
     {
 
-        return $this->getProperties( InternalReflectionProperty::IS_STATIC );
+        return $this->getProperties(InternalReflectionProperty::IS_STATIC);
     }
 
     /**
@@ -705,7 +705,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getDirectSubclassNames()
     {
 
-        return array_keys( $this->getDirectSubclasses() );
+        return array_keys($this->getDirectSubclasses());
     }
 
     /**
@@ -717,15 +717,15 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     {
 
         $that = $this->name;
-        return array_filter( $this->getBroker()->getClasses( Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES ),
-            function ( IReflectionClass $class ) use ( $that ) {
+        return array_filter($this->getBroker()->getClasses(Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES),
+            function (IReflectionClass $class) use ($that) {
 
-                if (!$class->isSubclassOf( $that )) {
+                if (!$class->isSubclassOf($that)) {
                     return false;
                 }
 
-                return null === $class->getParentClassName() || !$class->getParentClass()->isSubClassOf( $that );
-            } );
+                return null === $class->getParentClassName() || !$class->getParentClass()->isSubClassOf($that);
+            });
     }
 
     /**
@@ -736,7 +736,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getIndirectSubclassNames()
     {
 
-        return array_keys( $this->getIndirectSubclasses() );
+        return array_keys($this->getIndirectSubclasses());
     }
 
     /**
@@ -748,15 +748,15 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     {
 
         $that = $this->name;
-        return array_filter( $this->getBroker()->getClasses( Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES ),
-            function ( IReflectionClass $class ) use ( $that ) {
+        return array_filter($this->getBroker()->getClasses(Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES),
+            function (IReflectionClass $class) use ($that) {
 
-                if (!$class->isSubclassOf( $that )) {
+                if (!$class->isSubclassOf($that)) {
                     return false;
                 }
 
-                return null !== $class->getParentClassName() && $class->getParentClass()->isSubClassOf( $that );
-            } );
+                return null !== $class->getParentClassName() && $class->getParentClass()->isSubClassOf($that);
+            });
     }
 
     /**
@@ -767,7 +767,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getDirectImplementerNames()
     {
 
-        return array_keys( $this->getDirectImplementers() );
+        return array_keys($this->getDirectImplementers());
     }
 
     /**
@@ -783,15 +783,15 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
         }
 
         $that = $this->name;
-        return array_filter( $this->getBroker()->getClasses( Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES ),
-            function ( IReflectionClass $class ) use ( $that ) {
+        return array_filter($this->getBroker()->getClasses(Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES),
+            function (IReflectionClass $class) use ($that) {
 
-                if (!$class->implementsInterface( $that )) {
+                if (!$class->implementsInterface($that)) {
                     return false;
                 }
 
-                return null === $class->getParentClassName() || !$class->getParentClass()->implementsInterface( $that );
-            } );
+                return null === $class->getParentClassName() || !$class->getParentClass()->implementsInterface($that);
+            });
     }
 
     /**
@@ -802,7 +802,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getIndirectImplementerNames()
     {
 
-        return array_keys( $this->getIndirectImplementers() );
+        return array_keys($this->getIndirectImplementers());
     }
 
     /**
@@ -818,15 +818,15 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
         }
 
         $that = $this->name;
-        return array_filter( $this->getBroker()->getClasses( Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES ),
-            function ( IReflectionClass $class ) use ( $that ) {
+        return array_filter($this->getBroker()->getClasses(Broker\Backend::INTERNAL_CLASSES | Broker\Backend::TOKENIZED_CLASSES),
+            function (IReflectionClass $class) use ($that) {
 
-                if (!$class->implementsInterface( $that )) {
+                if (!$class->implementsInterface($that)) {
                     return false;
                 }
 
-                return null !== $class->getParentClassName() && $class->getParentClass()->implementsInterface( $that );
-            } );
+                return null !== $class->getParentClassName() && $class->getParentClass()->implementsInterface($that);
+            });
     }
 
     /**
@@ -873,10 +873,10 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return TokenReflection\ReflectionElement::get( $this, $key );
+        return TokenReflection\ReflectionElement::get($this, $key);
     }
 
     /**
@@ -886,10 +886,10 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return TokenReflection\ReflectionElement::exists( $this, $key );
+        return TokenReflection\ReflectionElement::exists($this, $key);
     }
 
     /**
@@ -900,7 +900,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     public function getOwnTraitNames()
     {
 
-        return array_keys( $this->getOwnTraits() );
+        return array_keys($this->getOwnTraits());
     }
 
     /**
@@ -916,7 +916,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
         }
 
         $parent = $this->getParentClass();
-        return $parent ? array_diff_key( $this->getTraits(), $parent->getTraits() ) : $this->getTraits();
+        return $parent ? array_diff_key($this->getTraits(), $parent->getTraits()) : $this->getTraits();
     }
 
     /**
@@ -960,32 +960,32 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
      * @return boolean
      * @throws \TokenReflection\Exception\RuntimeException If an invalid parameter was provided.
      */
-    public function usesTrait( $trait )
+    public function usesTrait($trait)
     {
 
-        if (is_object( $trait )) {
+        if (is_object($trait)) {
             if (!$trait instanceof InternalReflectionClass && !$trait instanceof TokenReflection\IReflectionClass) {
-                throw new Exception\RuntimeException( 'Parameter must be a string or an instance of trait reflection.',
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException('Parameter must be a string or an instance of trait reflection.',
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
 
             $traitName = $trait->getName();
 
             if (!$trait->isTrait()) {
-                throw new Exception\RuntimeException( sprintf( '"%s" is not a trait.', $traitName ),
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException(sprintf('"%s" is not a trait.', $traitName),
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
         } else {
-            $reflection = $this->getBroker()->getClass( $trait );
+            $reflection = $this->getBroker()->getClass($trait);
             if (!$reflection->isTrait()) {
-                throw new Exception\RuntimeException( sprintf( '"%s" is not a trait.', $trait ),
-                    Exception\RuntimeException::INVALID_ARGUMENT, $this );
+                throw new Exception\RuntimeException(sprintf('"%s" is not a trait.', $trait),
+                    Exception\RuntimeException::INVALID_ARGUMENT, $this);
             }
 
             $traitName = $trait;
         }
 
-        return in_array( $traitName, $this->getTraitNames() );
+        return in_array($traitName, $this->getTraitNames());
     }
 
     /**
@@ -1009,14 +1009,14 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     {
 
         if ($this->isInternal()) {
-            throw new Exception\RuntimeException( 'Could not create an instance; only user defined classes can be instantiated.',
-                Exception\RuntimeException::UNSUPPORTED, $this );
+            throw new Exception\RuntimeException('Could not create an instance; only user defined classes can be instantiated.',
+                Exception\RuntimeException::UNSUPPORTED, $this);
         }
 
         foreach ($this->getParentClasses() as $parent) {
             if ($parent->isInternal()) {
-                throw new Exception\RuntimeException( 'Could not create an instance; only user defined classes can be instantiated.',
-                    Exception\RuntimeException::UNSUPPORTED, $this );
+                throw new Exception\RuntimeException('Could not create an instance; only user defined classes can be instantiated.',
+                    Exception\RuntimeException::UNSUPPORTED, $this);
             }
         }
 
@@ -1024,7 +1024,7 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
             return parent::newInstanceWithoutConstructor();
         }
 
-        return unserialize( sprintf( 'O:%d:"%s":0:{}', strlen( $this->getName() ), $this->getName() ) );
+        return unserialize(sprintf('O:%d:"%s":0:{}', strlen($this->getName()), $this->getName()));
     }
 
     /**
@@ -1036,10 +1036,10 @@ class ReflectionClass extends InternalReflectionClass implements IReflection, To
     {
 
         $broker = $this->broker;
-        return array_map( function ( $className ) use ( $broker ) {
+        return array_map(function ($className) use ($broker) {
 
-            return $broker->getClass( $className );
-        }, $this->getParentClassNameList() );
+            return $broker->getClass($className);
+        }, $this->getParentClassNameList());
     }
 
     /**

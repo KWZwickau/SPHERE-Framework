@@ -16,6 +16,7 @@ use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 
 class RegisterListenersPassTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * Tests that event subscribers not implementing EventSubscriberInterface
      * trigger an exception.
@@ -24,6 +25,7 @@ class RegisterListenersPassTest extends \PHPUnit_Framework_TestCase
      */
     public function testEventSubscriberWithoutInterface()
     {
+
         // one service, not implementing any interface
         $services = array(
             'my_event_subscriber' => array(0 => array()),
@@ -57,6 +59,7 @@ class RegisterListenersPassTest extends \PHPUnit_Framework_TestCase
 
     public function testValidEventSubscriber()
     {
+
         $services = array(
             'my_event_subscriber' => array(0 => array()),
         );
@@ -97,6 +100,7 @@ class RegisterListenersPassTest extends \PHPUnit_Framework_TestCase
      */
     public function testPrivateEventListener()
     {
+
         $container = new ContainerBuilder();
         $container->register('foo', 'stdClass')->setPublic(false)->addTag('kernel.event_listener', array());
         $container->register('event_dispatcher', 'stdClass');
@@ -111,6 +115,7 @@ class RegisterListenersPassTest extends \PHPUnit_Framework_TestCase
      */
     public function testPrivateEventSubscriber()
     {
+
         $container = new ContainerBuilder();
         $container->register('foo', 'stdClass')->setPublic(false)->addTag('kernel.event_subscriber', array());
         $container->register('event_dispatcher', 'stdClass');
@@ -125,6 +130,7 @@ class RegisterListenersPassTest extends \PHPUnit_Framework_TestCase
      */
     public function testAbstractEventListener()
     {
+
         $container = new ContainerBuilder();
         $container->register('foo', 'stdClass')->setAbstract(true)->addTag('kernel.event_listener', array());
         $container->register('event_dispatcher', 'stdClass');
@@ -136,5 +142,8 @@ class RegisterListenersPassTest extends \PHPUnit_Framework_TestCase
 
 class SubscriberService implements \Symfony\Component\EventDispatcher\EventSubscriberInterface
 {
-    public static function getSubscribedEvents() {}
+
+    public static function getSubscribedEvents()
+    {
+    }
 }

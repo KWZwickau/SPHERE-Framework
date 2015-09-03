@@ -13,6 +13,7 @@
  */
 class PHP_CodeCoverage_Report_XML_File
 {
+
     /**
      * @var DOMDocument
      */
@@ -25,12 +26,14 @@ class PHP_CodeCoverage_Report_XML_File
 
     public function __construct(DOMElement $context)
     {
-        $this->dom         = $context->ownerDocument;
+
+        $this->dom = $context->ownerDocument;
         $this->contextNode = $context;
     }
 
     public function getTotals()
     {
+
         $totalsContainer = $this->contextNode->firstChild;
 
         if (!$totalsContainer) {
@@ -47,6 +50,7 @@ class PHP_CodeCoverage_Report_XML_File
 
     public function getLineCoverage($line)
     {
+
         $coverage = $this->contextNode->getElementsByTagNameNS(
             'http://schema.phpunit.de/coverage/1.0',
             'coverage'

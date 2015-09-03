@@ -29,7 +29,7 @@ interface IJournal
      *
      * @return void
      */
-    function write( $key, array $dependencies );
+    function write($key, array $dependencies);
 
 
     /**
@@ -39,6 +39,6 @@ interface IJournal
      *
      * @return array of removed items or NULL when performing a full cleanup
      */
-    function clean( array $conditions );
+    function clean(array $conditions);
 
 }

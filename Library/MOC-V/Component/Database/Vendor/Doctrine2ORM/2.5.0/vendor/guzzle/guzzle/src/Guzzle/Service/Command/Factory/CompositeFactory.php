@@ -2,16 +2,26 @@
 
 namespace Guzzle\Service\Command\Factory;
 
-use Guzzle\Service\Command\CommandInterface;
 use Guzzle\Service\ClientInterface;
+use Guzzle\Service\Command\CommandInterface;
 
 /**
  * Composite factory used by a client object to create command objects utilizing multiple factories
  */
 class CompositeFactory implements \IteratorAggregate, \Countable, FactoryInterface
 {
+
     /** @var array Array of command factories */
     protected $factories;
+
+    /**
+     * @param array $factories Array of command factories
+     */
+    public function __construct(array $factories = array())
+    {
+
+        $this->factories = $factories;
+    }
 
     /**
      * Get the default chain to use with clients
@@ -22,6 +32,7 @@ class CompositeFactory implements \IteratorAggregate, \Countable, FactoryInterfa
      */
     public static function getDefaultChain(ClientInterface $client)
     {
+
         $factories = array();
         if ($description = $client->getDescription()) {
             $factories[] = new ServiceDescriptionFactory($description);
@@ -32,23 +43,17 @@ class CompositeFactory implements \IteratorAggregate, \Countable, FactoryInterfa
     }
 
     /**
-     * @param array $factories Array of command factories
-     */
-    public function __construct(array $factories = array())
-    {
-        $this->factories = $factories;
-    }
-
-    /**
      * Add a command factory to the chain
      *
      * @param FactoryInterface        $factory Factory to add
      * @param string|FactoryInterface $before  Insert the new command factory before a command factory class or object
      *                                         matching a class name.
+     *
      * @return CompositeFactory
      */
     public function add(FactoryInterface $factory, $before = null)
     {
+
         $pos = null;
 
         if ($before) {
@@ -85,27 +90,8 @@ class CompositeFactory implements \IteratorAggregate, \Countable, FactoryInterfa
      */
     public function has($factory)
     {
-        return (bool) $this->find($factory);
-    }
 
-    /**
-     * Remove a specific command factory from the chain
-     *
-     * @param string|FactoryInterface $factory Factory to remove by name or instance
-     *
-     * @return CompositeFactory
-     */
-    public function remove($factory = null)
-    {
-        if (!($factory instanceof FactoryInterface)) {
-            $factory = $this->find($factory);
-        }
-
-        $this->factories = array_values(array_filter($this->factories, function($f) use ($factory) {
-            return $f !== $factory;
-        }));
-
-        return $this;
+        return (bool)$this->find($factory);
     }
 
     /**
@@ -117,11 +103,34 @@ class CompositeFactory implements \IteratorAggregate, \Countable, FactoryInterfa
      */
     public function find($factory)
     {
+
         foreach ($this->factories as $f) {
-            if ($factory === $f || (is_string($factory) && $f instanceof $factory)) {
+            if ($factory === $f || ( is_string($factory) && $f instanceof $factory )) {
                 return $f;
             }
         }
+    }
+
+    /**
+     * Remove a specific command factory from the chain
+     *
+     * @param string|FactoryInterface $factory Factory to remove by name or instance
+     *
+     * @return CompositeFactory
+     */
+    public function remove($factory = null)
+    {
+
+        if (!( $factory instanceof FactoryInterface )) {
+            $factory = $this->find($factory);
+        }
+
+        $this->factories = array_values(array_filter($this->factories, function ($f) use ($factory) {
+
+            return $f !== $factory;
+        }));
+
+        return $this;
     }
 
     /**
@@ -134,6 +143,7 @@ class CompositeFactory implements \IteratorAggregate, \Countable, FactoryInterfa
      */
     public function factory($name, array $args = array())
     {
+
         foreach ($this->factories as $factory) {
             $command = $factory->factory($name, $args);
             if ($command) {
@@ -144,11 +154,13 @@ class CompositeFactory implements \IteratorAggregate, \Countable, FactoryInterfa
 
     public function count()
     {
+
         return count($this->factories);
     }
 
     public function getIterator()
     {
+
         return new \ArrayIterator($this->factories);
     }
 }

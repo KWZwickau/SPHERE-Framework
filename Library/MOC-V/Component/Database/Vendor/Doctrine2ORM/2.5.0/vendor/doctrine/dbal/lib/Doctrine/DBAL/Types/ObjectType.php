@@ -28,11 +28,13 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class ObjectType extends Type
 {
+
     /**
      * {@inheritdoc}
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
+
         return $platform->getClobTypeDeclarationSQL($fieldDeclaration);
     }
 
@@ -41,6 +43,7 @@ class ObjectType extends Type
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
+
         return serialize($value);
     }
 
@@ -49,11 +52,12 @@ class ObjectType extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
+
         if ($value === null) {
             return null;
         }
 
-        $value = (is_resource($value)) ? stream_get_contents($value) : $value;
+        $value = ( is_resource($value) ) ? stream_get_contents($value) : $value;
         $val = unserialize($value);
         if ($val === false && $value !== 'b:0;') {
             throw ConversionException::conversionFailed($value, $this->getName());
@@ -67,6 +71,7 @@ class ObjectType extends Type
      */
     public function getName()
     {
+
         return Type::OBJECT;
     }
 
@@ -75,6 +80,7 @@ class ObjectType extends Type
      */
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {
+
         return true;
     }
 }

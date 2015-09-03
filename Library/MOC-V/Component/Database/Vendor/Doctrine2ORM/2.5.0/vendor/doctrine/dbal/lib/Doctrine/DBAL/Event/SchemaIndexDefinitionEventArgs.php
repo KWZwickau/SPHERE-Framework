@@ -31,6 +31,7 @@ use Doctrine\DBAL\Schema\Index;
  */
 class SchemaIndexDefinitionEventArgs extends SchemaEventArgs
 {
+
     /**
      * @var \Doctrine\DBAL\Schema\Index|null
      */
@@ -60,9 +61,19 @@ class SchemaIndexDefinitionEventArgs extends SchemaEventArgs
      */
     public function __construct(array $tableIndex, $table, Connection $connection)
     {
+
         $this->_tableIndex = $tableIndex;
-        $this->_table      = $table;
+        $this->_table = $table;
         $this->_connection = $connection;
+    }
+
+    /**
+     * @return \Doctrine\DBAL\Schema\Index|null
+     */
+    public function getIndex()
+    {
+
+        return $this->_index;
     }
 
     /**
@@ -74,17 +85,10 @@ class SchemaIndexDefinitionEventArgs extends SchemaEventArgs
      */
     public function setIndex(Index $index = null)
     {
+
         $this->_index = $index;
 
         return $this;
-    }
-
-    /**
-     * @return \Doctrine\DBAL\Schema\Index|null
-     */
-    public function getIndex()
-    {
-        return $this->_index;
     }
 
     /**
@@ -92,6 +96,7 @@ class SchemaIndexDefinitionEventArgs extends SchemaEventArgs
      */
     public function getTableIndex()
     {
+
         return $this->_tableIndex;
     }
 
@@ -100,6 +105,7 @@ class SchemaIndexDefinitionEventArgs extends SchemaEventArgs
      */
     public function getTable()
     {
+
         return $this->_table;
     }
 
@@ -108,6 +114,7 @@ class SchemaIndexDefinitionEventArgs extends SchemaEventArgs
      */
     public function getConnection()
     {
+
         return $this->_connection;
     }
 
@@ -116,6 +123,7 @@ class SchemaIndexDefinitionEventArgs extends SchemaEventArgs
      */
     public function getDatabasePlatform()
     {
+
         return $this->_connection->getDatabasePlatform();
     }
 }

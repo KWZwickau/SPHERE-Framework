@@ -40,21 +40,21 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
      *
      * @param  Nette\Caching\IStorage
      */
-    public function __construct( Nette\Caching\IStorage $storage = null )
+    public function __construct(Nette\Caching\IStorage $storage = null)
     {
 
         $this->cacheStorage = $storage;
     }
 
 
-    public function setConnection( Nette\Database\Connection $connection )
+    public function setConnection(Nette\Database\Connection $connection)
     {
 
         $this->connection = $connection;
         if ($this->cacheStorage) {
-            $this->cache = new Nette\Caching\Cache( $this->cacheStorage,
-                'Nette.Database.'.md5( $connection->getDsn() ) );
-            $this->structure = $this->cache->load( 'structure' ) ?: $this->structure;
+            $this->cache = new Nette\Caching\Cache($this->cacheStorage,
+                'Nette.Database.'.md5($connection->getDsn()));
+            $this->structure = $this->cache->load('structure') ?: $this->structure;
         }
     }
 
@@ -63,20 +63,20 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
     {
 
         if ($this->cache) {
-            $this->cache->save( 'structure', $this->structure );
+            $this->cache->save('structure', $this->structure);
         }
     }
 
 
-    public function getPrimary( $table )
+    public function getPrimary($table)
     {
 
-        $primary = &$this->structure['primary'][strtolower( $table )];
+        $primary = &$this->structure['primary'][strtolower($table)];
         if (isset( $primary )) {
             return empty( $primary ) ? null : $primary;
         }
 
-        $columns = $this->connection->getSupplementalDriver()->getColumns( $table );
+        $columns = $this->connection->getSupplementalDriver()->getColumns($table);
         $primaryCount = 0;
         foreach ($columns as $column) {
             if ($column['primary']) {
@@ -94,44 +94,44 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
     }
 
 
-    public function getHasManyReference( $table, $key, $refresh = true )
+    public function getHasManyReference($table, $key, $refresh = true)
     {
 
-        $table = strtolower( $table );
+        $table = strtolower($table);
         $reference = &$this->structure['hasMany'];
         if (!empty( $reference[$table] )) {
             $candidates = array();
             $subStringCandidatesCount = 0;
             foreach ($reference[$table] as $targetPair) {
                 list( $targetColumn, $targetTable ) = $targetPair;
-                if (stripos( $targetTable, $key ) !== false) {
-                    $candidates[] = array( $targetTable, $targetColumn );
-                    if (stripos( $targetColumn, $table ) !== false) {
+                if (stripos($targetTable, $key) !== false) {
+                    $candidates[] = array($targetTable, $targetColumn);
+                    if (stripos($targetColumn, $table) !== false) {
                         $subStringCandidatesCount++;
-                        $candidate = array( $targetTable, $targetColumn );
+                        $candidate = array($targetTable, $targetColumn);
                         if ($targetTable === $key) {
-                            $candidates = array( $candidate );
+                            $candidates = array($candidate);
                             break;
                         }
                     }
                 }
             }
 
-            if (count( $candidates ) === 1) {
+            if (count($candidates) === 1) {
                 return $candidates[0];
             } elseif ($subStringCandidatesCount === 1) {
                 return $candidate;
             } elseif (!empty( $candidates )) {
-                throw new \PDOException( 'Ambiguous joining column in related call.' );
+                throw new \PDOException('Ambiguous joining column in related call.');
             }
         }
 
         if (!$refresh) {
-            throw new \PDOException( "No reference found for \${$table}->related({$key})." );
+            throw new \PDOException("No reference found for \${$table}->related({$key}).");
         }
 
         $this->reloadAllForeignKeys();
-        return $this->getHasManyReference( $table, $key, false );
+        return $this->getHasManyReference($table, $key, false);
     }
 
     protected function reloadAllForeignKeys()
@@ -139,45 +139,45 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
 
         foreach ($this->connection->getSupplementalDriver()->getTables() as $table) {
             if ($table['view'] == false) {
-                $this->reloadForeignKeys( $table['name'] );
+                $this->reloadForeignKeys($table['name']);
             }
         }
 
-        foreach (array_keys( $this->structure['hasMany'] ) as $table) {
-            uksort( $this->structure['hasMany'][$table], function ( $a, $b ) {
+        foreach (array_keys($this->structure['hasMany']) as $table) {
+            uksort($this->structure['hasMany'][$table], function ($a, $b) {
 
-                return strlen( $a ) - strlen( $b );
-            } );
+                return strlen($a) - strlen($b);
+            });
         }
     }
 
-    protected function reloadForeignKeys( $table )
+    protected function reloadForeignKeys($table)
     {
 
-        foreach ($this->connection->getSupplementalDriver()->getForeignKeys( $table ) as $row) {
+        foreach ($this->connection->getSupplementalDriver()->getForeignKeys($table) as $row) {
             $this->structure['belongsTo'][$table][$row['local']] = $row['table'];
-            $this->structure['hasMany'][strtolower( $row['table'] )][$row['local'].$table] = array(
+            $this->structure['hasMany'][strtolower($row['table'])][$row['local'].$table] = array(
                 $row['local'],
                 $table
             );
         }
 
         if (isset( $this->structure['belongsTo'][$table] )) {
-            uksort( $this->structure['belongsTo'][$table], function ( $a, $b ) {
+            uksort($this->structure['belongsTo'][$table], function ($a, $b) {
 
-                return strlen( $a ) - strlen( $b );
-            } );
+                return strlen($a) - strlen($b);
+            });
         }
     }
 
-    public function getBelongsToReference( $table, $key, $refresh = true )
+    public function getBelongsToReference($table, $key, $refresh = true)
     {
 
-        $table = strtolower( $table );
+        $table = strtolower($table);
         $reference = &$this->structure['belongsTo'];
         if (!empty( $reference[$table] )) {
             foreach ($reference[$table] as $column => $targetTable) {
-                if (stripos( $column, $key ) !== false) {
+                if (stripos($column, $key) !== false) {
                     return array(
                         $targetTable,
                         $column,
@@ -187,11 +187,11 @@ class DiscoveredReflection extends Nette\Object implements Nette\Database\IRefle
         }
 
         if (!$refresh) {
-            throw new \PDOException( "No reference found for \${$table}->{$key}." );
+            throw new \PDOException("No reference found for \${$table}->{$key}.");
         }
 
-        $this->reloadForeignKeys( $table );
-        return $this->getBelongsToReference( $table, $key, false );
+        $this->reloadForeignKeys($table);
+        return $this->getBelongsToReference($table, $key, false);
     }
 
 }

@@ -14,4 +14,5 @@ namespace SebastianBergmann\GlobalState\TestFixture;
  */
 trait SnapshotTrait
 {
+
 }

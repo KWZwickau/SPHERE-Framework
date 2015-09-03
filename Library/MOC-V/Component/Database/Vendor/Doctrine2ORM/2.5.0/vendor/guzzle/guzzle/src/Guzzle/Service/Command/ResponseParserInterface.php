@@ -7,6 +7,7 @@ namespace Guzzle\Service\Command;
  */
 interface ResponseParserInterface
 {
+
     /**
      * Parse the HTTP response received by the command and update the command's result contents
      *

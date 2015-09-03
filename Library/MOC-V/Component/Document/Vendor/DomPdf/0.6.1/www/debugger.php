@@ -1,5 +1,5 @@
 <?php
-$files = glob( "test/*.{html,htm,php}", GLOB_BRACE );
+$files = glob("test/*.{html,htm,php}", GLOB_BRACE);
 ?>
 
 <!DOCTYPE html>
@@ -11,51 +11,51 @@ $files = glob( "test/*.{html,htm,php}", GLOB_BRACE );
     <script type="text/javascript">
         function updateAddress()
         {
-            var addressbar = $( '#addressbar' ),
-                preview = $( '#preview' ),
-                preview_html = $( '#preview_html' ),
-                address = encodeURI( addressbar.val() ),
+            var addressbar = $('#addressbar'),
+                preview = $('#preview'),
+                preview_html = $('#preview_html'),
+                address = encodeURI(addressbar.val()),
                 addressHTML = address,
                 addressPDF = address,
                 basePath = "";
 
-            if (!/[a-z]+:\/\//.test( address )) {
+            if (!/[a-z]+:\/\//.test(address)) {
                 addressHTML = "test/" + address + "?" + (new Date).getTime();
                 basePath = "www/test/";
             }
 
             // HTML file
-            preview_html.attr( "src", "about:blank" );
-            preview_html.attr( "src", addressHTML );
+            preview_html.attr("src", "about:blank");
+            preview_html.attr("src", addressHTML);
 
             // PDF file
-            preview.attr( "src", "about:blank" );
+            preview.attr("src", "about:blank");
 
-            setTimeout( function()
+            setTimeout(function()
             {
                 address = "../dompdf.php?base_path=" + basePath + "&options[Attachment]=0&input_file=" + addressPDF + "#toolbar=0&view=FitH&statusbar=0&messages=0&navpanes=0";
-                preview.attr( 'src', address );
-            }, 0.1 );
+                preview.attr('src', address);
+            }, 0.1);
         }
 
-        function log( str )
+        function log(str)
         {
-            var console = $( "#console" );
+            var console = $("#console");
             str = str || "(nothing)";
-            console.html( console.html() + str + "<hr />" );
-            console.scrollTop( console[0].scrollHeight );
+            console.html(console.html() + str + "<hr />");
+            console.scrollTop(console[0].scrollHeight);
         }
 
         function resizePage()
         {
-            var page = $( "#page" );
-            var height = $( window ).height() - page.offset().top - 40;
-            $( "iframe, #console" ).height( height );
+            var page = $("#page");
+            var height = $(window).height() - page.offset().top - 40;
+            $("iframe, #console").height(height);
         }
 
-        function navigateExamples( way )
+        function navigateExamples(way)
         {
-            var select = $( '#examples' )[0],
+            var select = $('#examples')[0],
                 n = select.options.length;
 
             if (way == "previous") {
@@ -64,39 +64,39 @@ $files = glob( "test/*.{html,htm,php}", GLOB_BRACE );
                 select.selectedIndex = (select.selectedIndex + 1) % n;
             }
 
-            $( '#addressbar' ).val( $( "#examples" ).val() );
+            $('#addressbar').val($("#examples").val());
             updateAddress();
         }
 
-        $( function()
+        $(function()
         {
             resizePage();
-            $( window ).resize( resizePage );
+            $(window).resize(resizePage);
 
-            $( '#preview' ).load( function()
+            $('#preview').load(function()
             {
                 if (this.src == "about:blank") {
                     return;
                 }
 
-                $.ajax( {
+                $.ajax({
                     url: '../lib/fonts/log.htm',
                     success: log,
                     cache: false
-                } );
-            } );
+                });
+            });
 
-            $( '#addressbar' ).val( $( "#examples" ).val() );
+            $('#addressbar').val($("#examples").val());
 
             // Catch F5 to reload the iframes, not the page itself
-            $( document ).keydown( function( event )
+            $(document).keydown(function(event)
             {
                 if (event.which == 116) {
                     event.preventDefault();
                     updateAddress();
                 }
-            } );
-        } );
+            });
+        });
     </script>
 
     <style type="text/css">
@@ -156,7 +156,7 @@ $files = glob( "test/*.{html,htm,php}", GLOB_BRACE );
             <button onclick="navigateExamples('previous')">&lt;</button>
             <select onchange="$('#addressbar').val($(this).val()); updateAddress()" id="examples">
                 <?php foreach ($files as $file) { ?>
-                    <option value="<?php echo basename( $file ); ?>"><?php echo basename( $file ); ?></option>
+                    <option value="<?php echo basename($file); ?>"><?php echo basename($file); ?></option>
                 <?php } ?>
             </select>
             <button onclick="navigateExamples('next')">&gt;</button>

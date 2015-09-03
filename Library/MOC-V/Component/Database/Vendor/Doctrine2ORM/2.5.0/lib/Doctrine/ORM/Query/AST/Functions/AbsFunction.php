@@ -24,7 +24,7 @@ use Doctrine\ORM\Query\Lexer;
 /**
  * "ABS" "(" SimpleArithmeticExpression ")"
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -34,6 +34,7 @@ use Doctrine\ORM\Query\Lexer;
  */
 class AbsFunction extends FunctionNode
 {
+
     /**
      * @var \Doctrine\ORM\Query\AST\SimpleArithmeticExpression
      */
@@ -44,9 +45,10 @@ class AbsFunction extends FunctionNode
      */
     public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker)
     {
-        return 'ABS(' . $sqlWalker->walkSimpleArithmeticExpression(
+
+        return 'ABS('.$sqlWalker->walkSimpleArithmeticExpression(
             $this->simpleArithmeticExpression
-        ) . ')';
+        ).')';
     }
 
     /**
@@ -54,6 +56,7 @@ class AbsFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
+
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

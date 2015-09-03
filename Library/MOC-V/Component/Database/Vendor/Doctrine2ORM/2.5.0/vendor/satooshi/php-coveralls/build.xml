@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project name="PHP Coveralls" default="build" basedir=".">
-    <target name="build-ci" depends="prepare,lint,apigen,phploc,phpcb,php-cs-fixer-dry-run,phpcs-ci,phpmd-ci,phpcpd,phpunit,pdepend"/>
+    <target name="build-ci"
+            depends="prepare,lint,apigen,phploc,phpcb,php-cs-fixer-dry-run,phpcs-ci,phpmd-ci,phpcpd,phpunit,pdepend"/>
 
-    <target name="build" depends="prepare,lint,php-cs-fixer-dry-run,phpcs-ci,checkstyle-cli,phpmd,pmd-cli,phpcpd,phpunit,phpunit-noxdebug,pdepend,junit-cli"/>
+    <target name="build"
+            depends="prepare,lint,php-cs-fixer-dry-run,phpcs-ci,checkstyle-cli,phpmd,pmd-cli,phpcpd,phpunit,phpunit-noxdebug,pdepend,junit-cli"/>
 
     <target name="test" depends="prepare,lint,phpunit,pdepend"/>
 
@@ -119,7 +121,8 @@
         </exec>
     </target>
 
-    <target name="phpcs" description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
+    <target name="phpcs"
+            description="Find coding standard violations using PHP_CodeSniffer and print human readable output. Intended for usage on the command line before committing.">
         <exec executable="${basedir}/vendor/bin/phpcs">
             <arg value="--standard=${basedir}/build/config/phpcs.xml"/>
             <arg value="--ignore=*.html.php,*.config.php,*.twig.php"/>
@@ -127,7 +130,8 @@
         </exec>
     </target>
 
-    <target name="phpcs-ci" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
+    <target name="phpcs-ci"
+            description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
         <exec executable="${basedir}/vendor/bin/phpcs">
             <arg value="--report=checkstyle"/>
             <arg value="--report-file=${basedir}/build/logs/checkstyle.xml"/>
@@ -137,7 +141,8 @@
         </exec>
     </target>
 
-    <target name="phpmd" description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
+    <target name="phpmd"
+            description="Perform project mess detection using PHPMD and print human readable output. Intended for usage on the command line before committing.">
         <exec executable="${basedir}/vendor/bin/phpmd">
             <arg path="${basedir}/src"/>
             <arg value="xml"/>
@@ -147,7 +152,8 @@
         </exec>
     </target>
 
-    <target name="phpmd-ci" description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
+    <target name="phpmd-ci"
+            description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
         <exec executable="${basedir}/vendor/bin/phpmd">
             <arg path="${basedir}/src"/>
             <arg value="xml"/>

@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class Embedded implements Annotation
 {
+
     /**
      * @Required
      * @var string

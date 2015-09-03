@@ -14,11 +14,11 @@ use Nette\Diagnostics\Debugger;
 /**
  * Nette\Diagnostics\Debugger::dump shortcut.
  */
-function dump( $var )
+function dump($var)
 {
 
     foreach (func_get_args() as $arg) {
-        Debugger::dump( $arg );
+        Debugger::dump($arg);
     }
     return $var;
 }

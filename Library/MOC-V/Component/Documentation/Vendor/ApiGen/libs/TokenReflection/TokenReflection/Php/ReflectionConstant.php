@@ -80,7 +80,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
      *
      * @throws \TokenReflection\Exception\RuntimeException If real parent class could not be determined.
      */
-    public function __construct( $name, $value, Broker $broker, ReflectionClass $parent = null )
+    public function __construct($name, $value, Broker $broker, ReflectionClass $parent = null)
     {
 
         $this->name = $name;
@@ -90,13 +90,13 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
         if (null !== $parent) {
             $realParent = null;
 
-            if (array_key_exists( $name, $parent->getOwnConstants() )) {
+            if (array_key_exists($name, $parent->getOwnConstants())) {
                 $realParent = $parent;
             }
 
             if (null === $realParent) {
                 foreach ($parent->getParentClasses() as $grandParent) {
-                    if (array_key_exists( $name, $grandParent->getOwnConstants() )) {
+                    if (array_key_exists($name, $grandParent->getOwnConstants())) {
                         $realParent = $grandParent;
                         break;
                     }
@@ -105,7 +105,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
 
             if (null === $realParent) {
                 foreach ($parent->getInterfaces() as $interface) {
-                    if (array_key_exists( $name, $interface->getOwnConstants() )) {
+                    if (array_key_exists($name, $interface->getOwnConstants())) {
                         $realParent = $interface;
                         break;
                     }
@@ -113,18 +113,18 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
             }
 
             if (null === $realParent) {
-                throw new Exception\RuntimeException( 'Could not determine constant real parent class.',
-                    Exception\RuntimeException::DOES_NOT_EXIST, $this );
+                throw new Exception\RuntimeException('Could not determine constant real parent class.',
+                    Exception\RuntimeException::DOES_NOT_EXIST, $this);
             }
 
             $this->declaringClassName = $realParent->getName();
             $this->userDefined = $realParent->isUserDefined();
         } else {
-            if (!array_key_exists( $name, get_defined_constants( false ) )) {
+            if (!array_key_exists($name, get_defined_constants(false))) {
                 $this->userDefined = true;
             } else {
-                $declared = get_defined_constants( true );
-                $this->userDefined = array_key_exists( $name, $declared['user'] );
+                $declared = get_defined_constants(true);
+                $this->userDefined = array_key_exists($name, $declared['user']);
             }
         }
     }
@@ -140,28 +140,28 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
      * @return string|null
      * @throws \TokenReflection\Exception\RuntimeException If requested parameter doesn't exist.
      */
-    public static function export( Broker $broker, $class, $constant, $return = false )
+    public static function export(Broker $broker, $class, $constant, $return = false)
     {
 
-        $className = is_object( $class ) ? get_class( $class ) : $class;
+        $className = is_object($class) ? get_class($class) : $class;
         $constantName = $constant;
 
         if (null === $className) {
             try {
-                $constant = $broker->getConstant( $constantName );
-            } catch( Exception\BrokerException $e ) {
-                throw new Exception\RuntimeException( sprintf( 'Constant %s does not exist.', $constantName ),
-                    Exception\RuntimeException::DOES_NOT_EXIST );
+                $constant = $broker->getConstant($constantName);
+            } catch (Exception\BrokerException $e) {
+                throw new Exception\RuntimeException(sprintf('Constant %s does not exist.', $constantName),
+                    Exception\RuntimeException::DOES_NOT_EXIST);
             }
         } else {
-            $class = $broker->getClass( $className );
+            $class = $broker->getClass($className);
             if ($class instanceof Invalid\ReflectionClass) {
-                throw new Exception\RuntimeException( 'Class is invalid.', Exception\RuntimeException::UNSUPPORTED );
+                throw new Exception\RuntimeException('Class is invalid.', Exception\RuntimeException::UNSUPPORTED);
             } elseif ($class instanceof Dummy\ReflectionClass) {
-                throw new Exception\RuntimeException( sprintf( 'Class %s does not exist.', $className ),
-                    Exception\RuntimeException::DOES_NOT_EXIST );
+                throw new Exception\RuntimeException(sprintf('Class %s does not exist.', $className),
+                    Exception\RuntimeException::DOES_NOT_EXIST);
             }
-            $constant = $class->getConstantReflection( $constantName );
+            $constant = $class->getConstantReflection($constantName);
         }
 
         if ($return) {
@@ -181,7 +181,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
      *
      * @return null
      */
-    public static function create( Reflector $internalReflection, Broker $broker )
+    public static function create(Reflector $internalReflection, Broker $broker)
     {
 
         return null;
@@ -197,7 +197,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
 
         $name = $this->getName();
         if (null !== $this->namespaceName && $this->namespaceName !== ReflectionNamespace::NO_NAMESPACE_NAME) {
-            $name = substr( $name, strlen( $this->namespaceName ) + 1 );
+            $name = substr($name, strlen($this->namespaceName) + 1);
         }
 
         return $name;
@@ -226,7 +226,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
             return null;
         }
 
-        return $this->getBroker()->getClass( $this->declaringClassName );
+        return $this->getBroker()->getClass($this->declaringClassName);
     }
 
     /**
@@ -347,7 +347,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -360,7 +360,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -385,7 +385,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
     public function getOriginalValueDefinition()
     {
 
-        return token_get_all( $this->getValueDefinition() );
+        return token_get_all($this->getValueDefinition());
     }
 
     /**
@@ -396,7 +396,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
     public function getValueDefinition()
     {
 
-        return var_export( $this->value, true );
+        return var_export($this->value, true);
     }
 
     /**
@@ -451,8 +451,8 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
     public function getPrettyName()
     {
 
-        return null === $this->declaringClassName ? $this->name : sprintf( '%s::%s', $this->declaringClassName,
-            $this->name );
+        return null === $this->declaringClassName ? $this->name : sprintf('%s::%s', $this->declaringClassName,
+            $this->name);
     }
 
     /**
@@ -465,7 +465,7 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
 
         return sprintf(
             "Constant [ %s %s ] { %s }\n",
-            gettype( $this->getValue() ),
+            gettype($this->getValue()),
             $this->getName(),
             $this->getValue()
         );
@@ -513,10 +513,10 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return TokenReflection\ReflectionElement::get( $this, $key );
+        return TokenReflection\ReflectionElement::get($this, $key);
     }
 
     /**
@@ -526,9 +526,9 @@ class ReflectionConstant implements IReflection, TokenReflection\IReflectionCons
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return TokenReflection\ReflectionElement::exists( $this, $key );
+        return TokenReflection\ReflectionElement::exists($this, $key);
     }
 }

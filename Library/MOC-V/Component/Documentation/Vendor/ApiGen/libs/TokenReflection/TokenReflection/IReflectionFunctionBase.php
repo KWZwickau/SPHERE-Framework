@@ -105,7 +105,7 @@ interface IReflectionFunctionBase extends IReflection
      *
      * @return \TokenReflection\IReflectionParameter
      */
-    public function getParameter( $parameter );
+    public function getParameter($parameter);
 
     /**
      * Returns function/method parameters.

@@ -37,13 +37,13 @@ class Image_Frame_Decorator extends Frame_Decorator
      * @param Frame  $frame  the frame to decorate
      * @param DOMPDF $dompdf the document's dompdf object (required to resolve relative & remote urls)
      */
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
-        parent::__construct( $frame, $dompdf );
-        $url = $frame->get_node()->getAttribute( "src" );
+        parent::__construct($frame, $dompdf);
+        $url = $frame->get_node()->getAttribute("src");
 
-        $debug_png = $dompdf->get_option( "debug_png" );
+        $debug_png = $dompdf->get_option("debug_png");
         if ($debug_png) {
             print '[__construct '.$url.']';
         }
@@ -56,13 +56,13 @@ class Image_Frame_Decorator extends Frame_Decorator
             $dompdf
         );
 
-        if (Image_Cache::is_broken( $this->_image_url ) &&
-            $alt = $frame->get_node()->getAttribute( "alt" )
+        if (Image_Cache::is_broken($this->_image_url) &&
+            $alt = $frame->get_node()->getAttribute("alt")
         ) {
             $style = $frame->get_style();
-            $style->width = ( 4 / 3 ) * Font_Metrics::get_text_width( $alt, $style->font_family, $style->font_size,
-                    $style->word_spacing );
-            $style->height = Font_Metrics::get_font_height( $style->font_family, $style->font_size );
+            $style->width = ( 4 / 3 ) * Font_Metrics::get_text_width($alt, $style->font_family, $style->font_size,
+                    $style->word_spacing);
+            $style->height = Font_Metrics::get_font_height($style->font_family, $style->font_size);
         }
     }
 

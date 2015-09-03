@@ -25,8 +25,10 @@ use Doctrine\DBAL\Sharding\SQLAzure\Schema\MultiTenantVisitor;
 
 class MultiTenantVisitorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testMultiTenantPrimaryKey()
     {
+
         $platform = new SQLAzurePlatform();
         $visitor = new MultiTenantVisitor();
 
@@ -42,6 +44,7 @@ class MultiTenantVisitorTest extends \PHPUnit_Framework_TestCase
 
     public function testMultiTenantNonPrimaryKey()
     {
+
         $platform = new SQLAzurePlatform();
         $visitor = new MultiTenantVisitor();
 

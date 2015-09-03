@@ -6,7 +6,7 @@
  * @license http://www.gnu.org/copyleft/lesser.html GNU Lesser General Public License
  */
 
-require_once dirname( __FILE__ )."/Font_Table_Directory_Entry.php";
+require_once dirname(__FILE__)."/Font_Table_Directory_Entry.php";
 
 /**
  * TrueType table directory entry.
@@ -16,10 +16,10 @@ require_once dirname( __FILE__ )."/Font_Table_Directory_Entry.php";
 class Font_TrueType_Table_Directory_Entry extends Font_Table_Directory_Entry
 {
 
-    function __construct( Font_TrueType $font )
+    function __construct(Font_TrueType $font)
     {
 
-        parent::__construct( $font );
+        parent::__construct($font);
     }
 
     function parse()

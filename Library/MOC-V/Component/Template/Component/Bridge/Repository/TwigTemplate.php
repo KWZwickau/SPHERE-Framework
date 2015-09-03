@@ -21,7 +21,7 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
         require_once( __DIR__.'/../../../Vendor/Twig/lib/Twig/Autoloader.php' );
@@ -34,14 +34,14 @@ class TwigTemplate extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function loadString( $String, $Reload = false )
+    public function loadString($String, $Reload = false)
     {
 
-        $TemplateName = 'Source'.sha1( $String ).'.twig';
-        if (!file_exists( __DIR__.'/TwigTemplate/'.$TemplateName )) {
-            file_put_contents( __DIR__.'/TwigTemplate/'.$TemplateName, $String );
+        $TemplateName = 'Source'.sha1($String).'.twig';
+        if (!file_exists(__DIR__.'/TwigTemplate/'.$TemplateName)) {
+            file_put_contents(__DIR__.'/TwigTemplate/'.$TemplateName, $String);
         }
-        return $this->loadFile( new FileParameter( __DIR__.'/TwigTemplate/'.$TemplateName ), $Reload );
+        return $this->loadFile(new FileParameter(__DIR__.'/TwigTemplate/'.$TemplateName), $Reload);
     }
 
     /**
@@ -50,16 +50,16 @@ class TwigTemplate extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function loadFile( FileParameter $Location, $Reload = false )
+    public function loadFile(FileParameter $Location, $Reload = false)
     {
 
         $this->Instance = new \Twig_Environment(
-            new \Twig_Loader_Filesystem( array( dirname( $Location->getFile() ) ) ),
-            array( 'auto_reload' => $Reload, 'autoescape' => false, 'cache' => realpath( __DIR__.'/TwigTemplate' ) )
+            new \Twig_Loader_Filesystem(array(dirname($Location->getFile()))),
+            array('auto_reload' => $Reload, 'autoescape' => false, 'cache' => realpath(__DIR__.'/TwigTemplate'))
         );
-        $this->Instance->addFilter( new \Twig_SimpleFilter( 'utf8_encode', 'utf8_encode' ) );
-        $this->Instance->addFilter( new \Twig_SimpleFilter( 'utf8_decode', 'utf8_decode' ) );
-        $this->Template = $this->Instance->loadTemplate( basename( $Location->getFile() ) );
+        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_encode', 'utf8_encode'));
+        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_decode', 'utf8_decode'));
+        $this->Template = $this->Instance->loadTemplate(basename($Location->getFile()));
         return $this;
     }
 
@@ -69,7 +69,7 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     public function getContent()
     {
 
-        return $this->Template->render( $this->VariableList );
+        return $this->Template->render($this->VariableList);
     }
 
 }

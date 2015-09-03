@@ -4,19 +4,21 @@ namespace Guzzle\Tests\Service\Command;
 
 use Guzzle\Service\Client;
 use Guzzle\Service\Command\Factory\AliasFactory;
-use Guzzle\Service\Command\Factory\MapFactory;
 use Guzzle\Service\Command\Factory\CompositeFactory;
+use Guzzle\Service\Command\Factory\MapFactory;
 
 /**
  * @covers Guzzle\Service\Command\Factory\AliasFactory
  */
 class AliasFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     private $factory;
     private $client;
 
     public function setup()
     {
+
         $this->client = new Client();
 
         $map = new MapFactory(array(
@@ -35,7 +37,7 @@ class AliasFactoryTest extends \Guzzle\Tests\GuzzleTestCase
         ));
 
         $map2 = new MapFactory(array(
-            'test3'  => 'Guzzle\Tests\Service\Mock\Command\Sub\Sub'
+            'test3' => 'Guzzle\Tests\Service\Mock\Command\Sub\Sub'
         ));
 
         $this->client->setCommandFactory(new CompositeFactory(array($map, $this->factory, $map2)));
@@ -43,6 +45,7 @@ class AliasFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function aliasProvider()
     {
+
         return array(
             array('foo', 'Guzzle\Tests\Service\Mock\Command\MockCommand', false),
             array('bar', 'Guzzle\Tests\Service\Mock\Command\OtherCommand', false),
@@ -60,6 +63,7 @@ class AliasFactoryTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testAliasesCommands($key, $result, $exception)
     {
+
         try {
             $command = $this->client->getCommand($key);
             if (is_null($result)) {

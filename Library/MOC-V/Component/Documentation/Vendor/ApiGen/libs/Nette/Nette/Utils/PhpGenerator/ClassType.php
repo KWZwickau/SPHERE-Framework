@@ -64,7 +64,7 @@ class ClassType extends Nette\Object
     public $methods = array();
 
 
-    public function __construct( $name )
+    public function __construct($name)
     {
 
         $this->name = $name;
@@ -72,7 +72,7 @@ class ClassType extends Nette\Object
 
 
     /** @return ClassType */
-    public function addConst( $name, $value )
+    public function addConst($name, $value)
     {
 
         $this->consts[$name] = $value;
@@ -81,32 +81,32 @@ class ClassType extends Nette\Object
 
 
     /** @return Property */
-    public function addProperty( $name, $value = null )
+    public function addProperty($name, $value = null)
     {
 
         $property = new Property;
-        return $this->properties[$name] = $property->setName( $name )->setValue( $value );
+        return $this->properties[$name] = $property->setName($name)->setValue($value);
     }
 
 
     /** @return Method */
-    public function addMethod( $name )
+    public function addMethod($name)
     {
 
         $method = new Method;
         if ($this->type === 'interface') {
-            $method->setVisibility( '' )->setBody( false );
+            $method->setVisibility('')->setBody(false);
         } else {
-            $method->setVisibility( 'public' );
+            $method->setVisibility('public');
         }
-        return $this->methods[$name] = $method->setName( $name );
+        return $this->methods[$name] = $method->setName($name);
     }
 
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return Nette\ObjectMixin::callProperty( $this, $name, $args );
+        return Nette\ObjectMixin::callProperty($this, $name, $args);
     }
 
 
@@ -116,32 +116,32 @@ class ClassType extends Nette\Object
 
         $consts = array();
         foreach ($this->consts as $name => $value) {
-            $consts[] = "const $name = ".Helpers::dump( $value ).";\n";
+            $consts[] = "const $name = ".Helpers::dump($value).";\n";
         }
         $properties = array();
         foreach ($this->properties as $property) {
-            $properties[] = ( $property->documents ? str_replace( "\n", "\n * ",
-                        "/**\n".implode( "\n", (array)$property->documents ) )."\n */\n" : '' )
+            $properties[] = ( $property->documents ? str_replace("\n", "\n * ",
+                        "/**\n".implode("\n", (array)$property->documents))."\n */\n" : '' )
                 .$property->visibility.( $property->static ? ' static' : '' ).' $'.$property->name
-                .( $property->value === null ? '' : ' = '.Helpers::dump( $property->value ) )
+                .( $property->value === null ? '' : ' = '.Helpers::dump($property->value) )
                 .";\n";
         }
         return Nette\Utils\Strings::normalize(
-            ( $this->documents ? str_replace( "\n", "\n * ",
-                    "/**\n".implode( "\n", (array)$this->documents ) )."\n */\n" : '' )
+            ( $this->documents ? str_replace("\n", "\n * ",
+                    "/**\n".implode("\n", (array)$this->documents))."\n */\n" : '' )
             .( $this->abstract ? 'abstract ' : '' )
             .( $this->final ? 'final ' : '' )
             .$this->type.' '
             .$this->name.' '
-            .( $this->extends ? 'extends '.implode( ', ', (array)$this->extends ).' ' : '' )
-            .( $this->implements ? 'implements '.implode( ', ', (array)$this->implements ).' ' : '' )
+            .( $this->extends ? 'extends '.implode(', ', (array)$this->extends).' ' : '' )
+            .( $this->implements ? 'implements '.implode(', ', (array)$this->implements).' ' : '' )
             ."\n{\n\n"
             .Nette\Utils\Strings::indent(
-                ( $this->traits ? "use ".implode( ', ', (array)$this->traits ).";\n\n" : '' )
-                .( $this->consts ? implode( '', $consts )."\n\n" : '' )
-                .( $this->properties ? implode( "\n", $properties )."\n\n" : '' )
-                .implode( "\n\n\n", $this->methods ), 1 )
-            ."\n\n}" )."\n";
+                ( $this->traits ? "use ".implode(', ', (array)$this->traits).";\n\n" : '' )
+                .( $this->consts ? implode('', $consts)."\n\n" : '' )
+                .( $this->properties ? implode("\n", $properties)."\n\n" : '' )
+                .implode("\n\n\n", $this->methods), 1)
+            ."\n\n}")."\n";
     }
 
 }

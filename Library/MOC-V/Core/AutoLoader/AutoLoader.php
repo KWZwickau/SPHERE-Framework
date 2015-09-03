@@ -48,10 +48,10 @@ class AutoLoader implements IVendorInterface
     /**
      * @param IVendorInterface $VendorInterface
      */
-    function __construct( IVendorInterface $VendorInterface )
+    public function __construct(IVendorInterface $VendorInterface)
     {
 
-        $this->setVendorInterface( $VendorInterface );
+        $this->setVendorInterface($VendorInterface);
     }
 
     /**
@@ -61,10 +61,10 @@ class AutoLoader implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getNamespaceAutoLoader( $Namespace, $Directory, $Prefix = null )
+    public static function getNamespaceAutoLoader($Namespace, $Directory, $Prefix = null)
     {
 
-        return self::getMultitonNamespaceAutoLoader( $Namespace, $Directory, $Prefix );
+        return self::getMultitonNamespaceAutoLoader($Namespace, $Directory, $Prefix);
     }
 
     /**
@@ -74,15 +74,15 @@ class AutoLoader implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getMultitonNamespaceAutoLoader( $Namespace, $Directory, $Prefix = null )
+    public static function getMultitonNamespaceAutoLoader($Namespace, $Directory, $Prefix = null)
     {
 
         $Loader = new AutoLoader(
             new Vendor(
                 new MultitonNamespace(
-                    new NamespaceParameter( $Namespace ),
-                    new DirectoryParameter( $Directory ),
-                    new NamespaceParameter( $Prefix ) )
+                    new NamespaceParameter($Namespace),
+                    new DirectoryParameter($Directory),
+                    new NamespaceParameter($Prefix))
             )
         );
         $Loader->getBridgeInterface()->registerLoader();
@@ -105,7 +105,7 @@ class AutoLoader implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getUniversalNamespaceAutoLoader( $Namespace, $Directory )
+    public static function getUniversalNamespaceAutoLoader($Namespace, $Directory)
     {
 
         $Loader = new AutoLoader(
@@ -114,7 +114,7 @@ class AutoLoader implements IVendorInterface
             )
         );
         $Loader->getBridgeInterface()->addNamespaceDirectoryMapping(
-            new NamespaceParameter( $Namespace ), new DirectoryParameter( $Directory )
+            new NamespaceParameter($Namespace), new DirectoryParameter($Directory)
         );
         $Loader->getBridgeInterface()->registerLoader();
 
@@ -135,7 +135,7 @@ class AutoLoader implements IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setVendorInterface( IVendorInterface $VendorInterface )
+    public function setVendorInterface(IVendorInterface $VendorInterface)
     {
 
         $this->VendorInterface = $VendorInterface;
@@ -147,9 +147,9 @@ class AutoLoader implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface )
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface)
     {
 
-        return $this->VendorInterface->setBridgeInterface( $BridgeInterface );
+        return $this->VendorInterface->setBridgeInterface($BridgeInterface);
     }
 }

@@ -17,7 +17,7 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function addRoute( RouteParameter $RouteOption );
+    public function addRoute(RouteParameter $RouteOption);
 
     /**
      * @param null|string $Path
@@ -25,7 +25,7 @@ interface IBridgeInterface
      * @return string
      * @throws ComponentException
      */
-    public function getRoute( $Path = null );
+    public function getRoute($Path = null);
 
     /**
      * @return array

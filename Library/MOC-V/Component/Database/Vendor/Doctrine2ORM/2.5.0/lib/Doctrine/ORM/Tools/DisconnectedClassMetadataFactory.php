@@ -38,11 +38,13 @@ use Doctrine\ORM\Mapping\ClassMetadataFactory;
  */
 class DisconnectedClassMetadataFactory extends ClassMetadataFactory
 {
+
     /**
      * @return \Doctrine\Common\Persistence\Mapping\StaticReflectionService
      */
     public function getReflectionService()
     {
+
         return new StaticReflectionService();
     }
 }

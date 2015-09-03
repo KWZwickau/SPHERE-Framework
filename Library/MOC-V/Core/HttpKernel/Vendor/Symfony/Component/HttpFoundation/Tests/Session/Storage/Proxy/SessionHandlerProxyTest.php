@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\Proxy\SessionHandlerProxy;
  */
 class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var \PHPUnit_Framework_MockObject_Matcher
      */
@@ -34,6 +35,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testOpen()
     {
+
         $this->mock->expects($this->once())
             ->method('open')
             ->will($this->returnValue(true));
@@ -49,6 +51,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testOpenFalse()
     {
+
         $this->mock->expects($this->once())
             ->method('open')
             ->will($this->returnValue(false));
@@ -60,6 +63,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testClose()
     {
+
         $this->mock->expects($this->once())
             ->method('close')
             ->will($this->returnValue(true));
@@ -71,6 +75,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testCloseFalse()
     {
+
         $this->mock->expects($this->once())
             ->method('close')
             ->will($this->returnValue(false));
@@ -82,6 +87,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testRead()
     {
+
         $this->mock->expects($this->once())
             ->method('read');
 
@@ -90,6 +96,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testWrite()
     {
+
         $this->mock->expects($this->once())
             ->method('write');
 
@@ -98,6 +105,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testDestroy()
     {
+
         $this->mock->expects($this->once())
             ->method('destroy');
 
@@ -106,6 +114,7 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
 
     public function testGc()
     {
+
         $this->mock->expects($this->once())
             ->method('gc');
 
@@ -115,8 +124,8 @@ class SessionHandlerProxyTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
 
-        $this->mock = $this->getMock( 'SessionHandlerInterface' );
-        $this->proxy = new SessionHandlerProxy( $this->mock );
+        $this->mock = $this->getMock('SessionHandlerInterface');
+        $this->proxy = new SessionHandlerProxy($this->mock);
     }
 
     protected function tearDown()

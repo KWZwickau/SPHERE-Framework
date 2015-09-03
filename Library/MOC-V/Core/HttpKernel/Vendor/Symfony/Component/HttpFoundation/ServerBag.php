@@ -20,6 +20,7 @@ namespace Symfony\Component\HttpFoundation;
  */
 class ServerBag extends ParameterBag
 {
+
     /**
      * Gets the HTTP headers.
      *
@@ -27,21 +28,21 @@ class ServerBag extends ParameterBag
      */
     public function getHeaders()
     {
+
         $headers = array();
         $contentHeaders = array('CONTENT_LENGTH' => true, 'CONTENT_MD5' => true, 'CONTENT_TYPE' => true);
         foreach ($this->parameters as $key => $value) {
             if (0 === strpos($key, 'HTTP_')) {
                 $headers[substr($key, 5)] = $value;
-            }
-            // CONTENT_* are not prefixed with HTTP_
-            elseif (isset($contentHeaders[$key])) {
+            } // CONTENT_* are not prefixed with HTTP_
+            elseif (isset( $contentHeaders[$key] )) {
                 $headers[$key] = $value;
             }
         }
 
-        if (isset($this->parameters['PHP_AUTH_USER'])) {
+        if (isset( $this->parameters['PHP_AUTH_USER'] )) {
             $headers['PHP_AUTH_USER'] = $this->parameters['PHP_AUTH_USER'];
-            $headers['PHP_AUTH_PW'] = isset($this->parameters['PHP_AUTH_PW']) ? $this->parameters['PHP_AUTH_PW'] : '';
+            $headers['PHP_AUTH_PW'] = isset( $this->parameters['PHP_AUTH_PW'] ) ? $this->parameters['PHP_AUTH_PW'] : '';
         } else {
             /*
              * php-cgi under Apache does not pass HTTP Basic user/pass to PHP by default
@@ -58,9 +59,9 @@ class ServerBag extends ParameterBag
              */
 
             $authorizationHeader = null;
-            if (isset($this->parameters['HTTP_AUTHORIZATION'])) {
+            if (isset( $this->parameters['HTTP_AUTHORIZATION'] )) {
                 $authorizationHeader = $this->parameters['HTTP_AUTHORIZATION'];
-            } elseif (isset($this->parameters['REDIRECT_HTTP_AUTHORIZATION'])) {
+            } elseif (isset( $this->parameters['REDIRECT_HTTP_AUTHORIZATION'] )) {
                 $authorizationHeader = $this->parameters['REDIRECT_HTTP_AUTHORIZATION'];
             }
 
@@ -69,9 +70,11 @@ class ServerBag extends ParameterBag
                     // Decode AUTHORIZATION header into PHP_AUTH_USER and PHP_AUTH_PW when authorization header is basic
                     $exploded = explode(':', base64_decode(substr($authorizationHeader, 6)), 2);
                     if (count($exploded) == 2) {
-                        list($headers['PHP_AUTH_USER'], $headers['PHP_AUTH_PW']) = $exploded;
+                        list( $headers['PHP_AUTH_USER'], $headers['PHP_AUTH_PW'] ) = $exploded;
                     }
-                } elseif (empty($this->parameters['PHP_AUTH_DIGEST']) && (0 === stripos($authorizationHeader, 'digest '))) {
+                } elseif (empty( $this->parameters['PHP_AUTH_DIGEST'] ) && ( 0 === stripos($authorizationHeader,
+                            'digest ') )
+                ) {
                     // In some circumstances PHP_AUTH_DIGEST needs to be set
                     $headers['PHP_AUTH_DIGEST'] = $authorizationHeader;
                     $this->parameters['PHP_AUTH_DIGEST'] = $authorizationHeader;
@@ -80,9 +83,9 @@ class ServerBag extends ParameterBag
         }
 
         // PHP_AUTH_USER/PHP_AUTH_PW
-        if (isset($headers['PHP_AUTH_USER'])) {
+        if (isset( $headers['PHP_AUTH_USER'] )) {
             $headers['AUTHORIZATION'] = 'Basic '.base64_encode($headers['PHP_AUTH_USER'].':'.$headers['PHP_AUTH_PW']);
-        } elseif (isset($headers['PHP_AUTH_DIGEST'])) {
+        } elseif (isset( $headers['PHP_AUTH_DIGEST'] )) {
             $headers['AUTHORIZATION'] = $headers['PHP_AUTH_DIGEST'];
         }
 

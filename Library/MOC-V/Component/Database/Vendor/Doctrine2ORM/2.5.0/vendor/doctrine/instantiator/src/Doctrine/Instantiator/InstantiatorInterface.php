@@ -26,6 +26,7 @@ namespace Doctrine\Instantiator;
  */
 interface InstantiatorInterface
 {
+
     /**
      * @param string $className
      *

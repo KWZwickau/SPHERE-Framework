@@ -21,6 +21,7 @@ namespace Symfony\Component\Config\Definition;
  */
 interface NodeInterface
 {
+
     /**
      * Returns the name of the node.
      *

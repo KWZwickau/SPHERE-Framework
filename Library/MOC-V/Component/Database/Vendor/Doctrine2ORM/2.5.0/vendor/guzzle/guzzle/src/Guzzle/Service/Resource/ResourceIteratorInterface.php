@@ -10,6 +10,7 @@ use Guzzle\Common\ToArrayInterface;
  */
 interface ResourceIteratorInterface extends ToArrayInterface, HasDispatcherInterface, \Iterator, \Countable
 {
+
     /**
      * Retrieve the NextToken that can be used in other iterators.
      *

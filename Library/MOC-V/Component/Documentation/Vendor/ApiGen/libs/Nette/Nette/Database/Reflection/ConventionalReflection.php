@@ -40,7 +40,7 @@ class ConventionalReflection extends Nette\Object implements Nette\Database\IRef
      * @param  string %1$s stands for key used after ->, %2$s for table name
      * @param  string %1$s stands for key used after ->, %2$s for table name
      */
-    public function __construct( $primary = 'id', $foreign = '%s_id', $table = '%s' )
+    public function __construct($primary = 'id', $foreign = '%s_id', $table = '%s')
     {
 
         $this->primary = $primary;
@@ -49,17 +49,17 @@ class ConventionalReflection extends Nette\Object implements Nette\Database\IRef
     }
 
 
-    public function getPrimary( $table )
+    public function getPrimary($table)
     {
 
-        return sprintf( $this->primary, $this->getColumnFromTable( $table ) );
+        return sprintf($this->primary, $this->getColumnFromTable($table));
     }
 
-    protected function getColumnFromTable( $name )
+    protected function getColumnFromTable($name)
     {
 
-        if ($this->table !== '%s' && preg_match( '(^'.str_replace( '%s', '(.*)', preg_quote( $this->table ) ).'$)',
-                $name, $match )
+        if ($this->table !== '%s' && preg_match('(^'.str_replace('%s', '(.*)', preg_quote($this->table)).'$)',
+                $name, $match)
         ) {
             return $match[1];
         }
@@ -67,27 +67,27 @@ class ConventionalReflection extends Nette\Object implements Nette\Database\IRef
         return $name;
     }
 
-    public function getHasManyReference( $table, $key )
+    public function getHasManyReference($table, $key)
     {
 
-        $table = $this->getColumnFromTable( $table );
+        $table = $this->getColumnFromTable($table);
         return array(
-            sprintf( $this->table, $key, $table ),
-            sprintf( $this->foreign, $table, $key ),
+            sprintf($this->table, $key, $table),
+            sprintf($this->foreign, $table, $key),
         );
     }
 
-    public function getBelongsToReference( $table, $key )
+    public function getBelongsToReference($table, $key)
     {
 
-        $table = $this->getColumnFromTable( $table );
+        $table = $this->getColumnFromTable($table);
         return array(
-            sprintf( $this->table, $key, $table ),
-            sprintf( $this->foreign, $key, $table ),
+            sprintf($this->table, $key, $table),
+            sprintf($this->foreign, $key, $table),
         );
     }
 
-    public function setConnection( Nette\Database\Connection $connection )
+    public function setConnection(Nette\Database\Connection $connection)
     {
     }
 

@@ -9,7 +9,7 @@
 
 require_once __DIR__.'/../../Core/Loader.php';
 Eden\Core\Loader::i()
-    ->addRoot( true, 'Eden\\Core' )
-    ->addRoot( realpath( __DIR__.'/../..' ), 'Eden\\System' )
+    ->addRoot(true, 'Eden\\Core')
+    ->addRoot(realpath(__DIR__.'/../..'), 'Eden\\System')
     ->register()
-    ->load( 'Controller' );
+    ->load('Controller');

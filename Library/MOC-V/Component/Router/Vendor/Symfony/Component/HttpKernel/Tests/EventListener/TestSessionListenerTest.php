@@ -26,6 +26,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class TestSessionListenerTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var TestSessionListener
      */
@@ -38,6 +39,7 @@ class TestSessionListenerTest extends \PHPUnit_Framework_TestCase
 
     public function testShouldSaveMasterRequestSession()
     {
+
         $this->sessionHasBeenStarted();
         $this->sessionMustBeSaved();
 
@@ -47,20 +49,21 @@ class TestSessionListenerTest extends \PHPUnit_Framework_TestCase
     private function sessionHasBeenStarted()
     {
 
-        $this->session->expects( $this->once() )
-            ->method( 'isStarted' )
-            ->will( $this->returnValue( true ) );
+        $this->session->expects($this->once())
+            ->method('isStarted')
+            ->will($this->returnValue(true));
     }
 
     private function sessionMustBeSaved()
     {
 
-        $this->session->expects( $this->once() )
-            ->method( 'save' );
+        $this->session->expects($this->once())
+            ->method('save');
     }
 
     private function filterResponse(Request $request, $type = HttpKernelInterface::MASTER_REQUEST)
     {
+
         $request->setSession($this->session);
         $response = new Response();
         $kernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
@@ -78,11 +81,12 @@ class TestSessionListenerTest extends \PHPUnit_Framework_TestCase
 
         $this->sessionMustNotBeSaved();
 
-        $this->filterResponse( new Request(), HttpKernelInterface::SUB_REQUEST );
+        $this->filterResponse(new Request(), HttpKernelInterface::SUB_REQUEST);
     }
 
     private function sessionMustNotBeSaved()
     {
+
         $this->session->expects($this->never())
             ->method('save');
     }
@@ -93,12 +97,12 @@ class TestSessionListenerTest extends \PHPUnit_Framework_TestCase
         $this->sessionHasBeenStarted();
 
         $params = session_get_cookie_params();
-        session_set_cookie_params( 0, $params['path'], $params['domain'], $params['secure'], $params['httponly'] );
+        session_set_cookie_params(0, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
 
-        $response = $this->filterResponse( new Request(), HttpKernelInterface::MASTER_REQUEST );
+        $response = $this->filterResponse(new Request(), HttpKernelInterface::MASTER_REQUEST);
         $cookies = $response->headers->getCookies();
 
-        $this->assertEquals( 0, reset( $cookies )->getExpiresTime() );
+        $this->assertEquals(0, reset($cookies)->getExpiresTime());
     }
 
     public function testUnstartedSessionIsNotSave()
@@ -107,11 +111,12 @@ class TestSessionListenerTest extends \PHPUnit_Framework_TestCase
         $this->sessionHasNotBeenStarted();
         $this->sessionMustNotBeSaved();
 
-        $this->filterResponse( new Request() );
+        $this->filterResponse(new Request());
     }
 
     private function sessionHasNotBeenStarted()
     {
+
         $this->session->expects($this->once())
             ->method('isStarted')
             ->will($this->returnValue(false));
@@ -120,12 +125,13 @@ class TestSessionListenerTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
 
-        $this->listener = $this->getMockForAbstractClass( 'Symfony\Component\HttpKernel\EventListener\TestSessionListener' );
+        $this->listener = $this->getMockForAbstractClass('Symfony\Component\HttpKernel\EventListener\TestSessionListener');
         $this->session = $this->getSession();
     }
 
     private function getSession()
     {
+
         $mock = $this->getMockBuilder('Symfony\Component\HttpFoundation\Session\Session')
             ->disableOriginalConstructor()
             ->getMock();

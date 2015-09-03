@@ -14,6 +14,7 @@ use Satooshi\Component\System\Git\GitCommand;
  */
 class Jobs extends CoverallsApi
 {
+
     /**
      * URL for jobs API.
      *
@@ -44,9 +45,10 @@ class Jobs extends CoverallsApi
      */
     public function collectCloverXml()
     {
-        $rootDir        = $this->config->getRootDir();
+
+        $rootDir = $this->config->getRootDir();
         $cloverXmlPaths = $this->config->getCloverXmlPaths();
-        $xmlCollector   = new CloverXmlCoverageCollector();
+        $xmlCollector = new CloverXmlCoverageCollector();
 
         foreach ($cloverXmlPaths as $cloverXmlPath) {
             $xml = simplexml_load_file($cloverXmlPath);
@@ -72,7 +74,8 @@ class Jobs extends CoverallsApi
      */
     public function collectGitInfo()
     {
-        $command      = new GitCommand();
+
+        $command = new GitCommand();
         $gitCollector = new GitInfoCollector($command);
 
         $this->jsonFile->setGit($gitCollector->collect());
@@ -91,6 +94,7 @@ class Jobs extends CoverallsApi
      */
     public function collectEnvVars(array $env)
     {
+
         $envCollector = new CiEnvVarsCollector($this->config);
 
         try {
@@ -111,6 +115,7 @@ class Jobs extends CoverallsApi
      */
     public function dumpJsonFile()
     {
+
         $jsonPath = $this->config->getJsonPath();
 
         file_put_contents($jsonPath, $this->jsonFile);
@@ -127,6 +132,7 @@ class Jobs extends CoverallsApi
      */
     public function send()
     {
+
         if ($this->config->isDryRun()) {
             return;
         }
@@ -151,12 +157,28 @@ class Jobs extends CoverallsApi
      */
     protected function upload($url, $path, $filename)
     {
-        $request  = $this->client->post($url)->addPostFiles(array($filename => $path));
+
+        $request = $this->client->post($url)->addPostFiles(array($filename => $path));
 
         return $request->send();
     }
 
     // accessor
+
+    /**
+     * Return JsonFile.
+     *
+     * @return JsonFile
+     */
+    public function getJsonFile()
+    {
+
+        if (isset( $this->jsonFile )) {
+            return $this->jsonFile;
+        }
+
+        return null;
+    }
 
     /**
      * Set JsonFile.
@@ -167,22 +189,9 @@ class Jobs extends CoverallsApi
      */
     public function setJsonFile(JsonFile $jsonFile)
     {
+
         $this->jsonFile = $jsonFile;
 
         return $this;
-    }
-
-    /**
-     * Return JsonFile.
-     *
-     * @return JsonFile
-     */
-    public function getJsonFile()
-    {
-        if (isset($this->jsonFile)) {
-            return $this->jsonFile;
-        }
-
-        return null;
     }
 }

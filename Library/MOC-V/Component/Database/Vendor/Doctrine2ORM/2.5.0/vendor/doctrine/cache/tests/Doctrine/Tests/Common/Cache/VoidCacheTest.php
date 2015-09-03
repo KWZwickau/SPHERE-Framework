@@ -9,8 +9,10 @@ use Doctrine\Common\Cache\VoidCache;
  */
 class VoidCacheTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testShouldAlwaysReturnFalseOnContains()
     {
+
         $cache = new VoidCache();
 
         $this->assertFalse($cache->contains('foo'));
@@ -19,6 +21,7 @@ class VoidCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testShouldAlwaysReturnFalseOnFetch()
     {
+
         $cache = new VoidCache();
 
         $this->assertFalse($cache->fetch('foo'));
@@ -27,6 +30,7 @@ class VoidCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testShouldAlwaysReturnTrueOnSaveButNotStoreAnything()
     {
+
         $cache = new VoidCache();
 
         $this->assertTrue($cache->save('foo', 'fooVal'));
@@ -37,6 +41,7 @@ class VoidCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testShouldAlwaysReturnTrueOnDelete()
     {
+
         $cache = new VoidCache();
 
         $this->assertTrue($cache->delete('foo'));
@@ -44,6 +49,7 @@ class VoidCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testShouldAlwaysReturnNullOnGetStatus()
     {
+
         $cache = new VoidCache();
 
         $this->assertNull($cache->getStats());

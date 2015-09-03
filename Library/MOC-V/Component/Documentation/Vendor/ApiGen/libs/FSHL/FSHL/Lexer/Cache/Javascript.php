@@ -368,7 +368,7 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter0( $text, $textLength, $textPos )
+    public function findDelimiter0($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -384,52 +384,52 @@ class Javascript
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (preg_match( '~^[a-z]+~i', $part, $matches )) {
-                return array( 2, $matches[0], $buffer );
+            if (preg_match('~^[a-z]+~i', $part, $matches)) {
+                return array(2, $matches[0], $buffer);
             }
-            if (preg_match( '~^\\d+~', $part, $matches )) {
-                return array( 3, $matches[0], $buffer );
+            if (preg_match('~^\\d+~', $part, $matches)) {
+                return array(3, $matches[0], $buffer);
             }
-            if (preg_match( '~^\.\\d+~', $part, $matches )) {
-                return array( 4, $matches[0], $buffer );
+            if (preg_match('~^\.\\d+~', $part, $matches)) {
+                return array(4, $matches[0], $buffer);
             }
             if ($delimiters[5] === $letter) {
-                return array( 5, $delimiters[5], $buffer );
+                return array(5, $delimiters[5], $buffer);
             }
             if ($delimiters[6] === $letter) {
-                return array( 6, $delimiters[6], $buffer );
+                return array(6, $delimiters[6], $buffer);
             }
             if ($delimiters[7] === $letter) {
-                return array( 7, $delimiters[7], $buffer );
+                return array(7, $delimiters[7], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[8] )) {
-                return array( 8, $delimiters[8], $buffer );
+            if (0 === strpos($part, $delimiters[8])) {
+                return array(8, $delimiters[8], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[9] )) {
-                return array( 9, $delimiters[9], $buffer );
+            if (0 === strpos($part, $delimiters[9])) {
+                return array(9, $delimiters[9], $buffer);
             }
-            if (preg_match( '~/.*?[^\\\\]/[gim]*~A', $text, $matches, 0, $textPos )) {
-                return array( 10, $matches[0], $buffer );
+            if (preg_match('~/.*?[^\\\\]/[gim]*~A', $text, $matches, 0, $textPos)) {
+                return array(10, $matches[0], $buffer);
             }
-            if (preg_match( '~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos )) {
-                return array( 11, $matches[0], $buffer );
+            if (preg_match('~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos)) {
+                return array(11, $matches[0], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[12] )) {
-                return array( 12, $delimiters[12], $buffer );
+            if (0 === strpos($part, $delimiters[12])) {
+                return array(12, $delimiters[12], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -441,20 +441,20 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter1( $text, $textLength, $textPos )
+    public function findDelimiter1($text, $textLength, $textPos)
     {
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
 
-            if (preg_match( '~^\\W+~', $part, $matches )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~^\\W+~', $part, $matches)) {
+                return array(0, $matches[0], $buffer);
             }
             $buffer .= $text[$textPos];
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -466,7 +466,7 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter2( $text, $textLength, $textPos )
+    public function findDelimiter2($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -475,20 +475,20 @@ class Javascript
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (preg_match( '~^\.\\d+~', $part, $matches )) {
-                return array( 1, $matches[0], $buffer );
+            if (preg_match('~^\.\\d+~', $part, $matches)) {
+                return array(1, $matches[0], $buffer);
             }
-            return array( 2, $letter, $buffer );
+            return array(2, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -500,20 +500,20 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter3( $text, $textLength, $textPos )
+    public function findDelimiter3($text, $textLength, $textPos)
     {
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
 
-            if (preg_match( '~^[^a-f\\d]+~i', $part, $matches )) {
-                return array( 0, $matches[0], $buffer );
+            if (preg_match('~^[^a-f\\d]+~i', $part, $matches)) {
+                return array(0, $matches[0], $buffer);
             }
             $buffer .= $text[$textPos];
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -525,7 +525,7 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter4( $text, $textLength, $textPos )
+    public function findDelimiter4($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -538,15 +538,15 @@ class Javascript
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (preg_match( '~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos )) {
-                return array( 1, $matches[0], $buffer );
+            if (preg_match('~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos)) {
+                return array(1, $matches[0], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -558,7 +558,7 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter5( $text, $textLength, $textPos )
+    public function findDelimiter5($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -571,15 +571,15 @@ class Javascript
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
-            if (preg_match( '~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos )) {
-                return array( 1, $matches[0], $buffer );
+            if (preg_match('~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos)) {
+                return array(1, $matches[0], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -591,7 +591,7 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter6( $text, $textLength, $textPos )
+    public function findDelimiter6($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -602,25 +602,25 @@ class Javascript
 
         $buffer = false;
         while ($textPos < $textLength) {
-            $part = substr( $text, $textPos, 10 );
+            $part = substr($text, $textPos, 10);
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (0 === strpos( $part, $delimiters[2] )) {
-                return array( 2, $delimiters[2], $buffer );
+            if (0 === strpos($part, $delimiters[2])) {
+                return array(2, $delimiters[2], $buffer);
             }
-            if (preg_match( '~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos )) {
-                return array( 3, $matches[0], $buffer );
+            if (preg_match('~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos)) {
+                return array(3, $matches[0], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -632,7 +632,7 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter7( $text, $textLength, $textPos )
+    public function findDelimiter7($text, $textLength, $textPos)
     {
 
         static $delimiters = array(
@@ -646,18 +646,18 @@ class Javascript
             $letter = $text[$textPos];
 
             if ($delimiters[0] === $letter) {
-                return array( 0, $delimiters[0], $buffer );
+                return array(0, $delimiters[0], $buffer);
             }
             if ($delimiters[1] === $letter) {
-                return array( 1, $delimiters[1], $buffer );
+                return array(1, $delimiters[1], $buffer);
             }
-            if (preg_match( '~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos )) {
-                return array( 2, $matches[0], $buffer );
+            if (preg_match('~<\\?(php|=|(?!xml))~A', $text, $matches, 0, $textPos)) {
+                return array(2, $matches[0], $buffer);
             }
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
     /**
@@ -669,7 +669,7 @@ class Javascript
      *
      * @return array
      */
-    public function findDelimiter8( $text, $textLength, $textPos )
+    public function findDelimiter8($text, $textLength, $textPos)
     {
 
         $buffer = false;
@@ -677,11 +677,11 @@ class Javascript
 
             $letter = $text[$textPos];
 
-            return array( 0, $letter, $buffer );
+            return array(0, $letter, $buffer);
             $buffer .= $letter;
             $textPos++;
         }
-        return array( -1, -1, $buffer );
+        return array(-1, -1, $buffer);
     }
 
 }

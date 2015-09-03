@@ -18,6 +18,7 @@ namespace Symfony\Component\Stopwatch;
  */
 class StopwatchPeriod
 {
+
     private $start;
     private $end;
     private $memory;
@@ -30,8 +31,9 @@ class StopwatchPeriod
      */
     public function __construct($start, $end)
     {
-        $this->start = (int) $start;
-        $this->end = (int) $end;
+
+        $this->start = (int)$start;
+        $this->end = (int)$end;
         $this->memory = memory_get_usage(true);
     }
 
@@ -42,6 +44,7 @@ class StopwatchPeriod
      */
     public function getStartTime()
     {
+
         return $this->start;
     }
 
@@ -52,6 +55,7 @@ class StopwatchPeriod
      */
     public function getEndTime()
     {
+
         return $this->end;
     }
 
@@ -62,6 +66,7 @@ class StopwatchPeriod
      */
     public function getDuration()
     {
+
         return $this->end - $this->start;
     }
 
@@ -72,6 +77,7 @@ class StopwatchPeriod
      */
     public function getMemory()
     {
+
         return $this->memory;
     }
 }

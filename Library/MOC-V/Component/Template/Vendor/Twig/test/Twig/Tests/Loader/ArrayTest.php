@@ -11,8 +11,10 @@
 
 class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
 {
+
     public function testGetSource()
     {
+
         $loader = new Twig_Loader_Array(array('foo' => 'bar'));
 
         $this->assertEquals('bar', $loader->getSource('foo'));
@@ -23,6 +25,7 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
      */
     public function testGetSourceWhenTemplateDoesNotExist()
     {
+
         $loader = new Twig_Loader_Array(array());
 
         $loader->getSource('foo');
@@ -30,6 +33,7 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
 
     public function testGetCacheKey()
     {
+
         $loader = new Twig_Loader_Array(array('foo' => 'bar'));
 
         $this->assertEquals('bar', $loader->getCacheKey('foo'));
@@ -40,6 +44,7 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
      */
     public function testGetCacheKeyWhenTemplateDoesNotExist()
     {
+
         $loader = new Twig_Loader_Array(array());
 
         $loader->getCacheKey('foo');
@@ -47,6 +52,7 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
 
     public function testSetTemplate()
     {
+
         $loader = new Twig_Loader_Array(array());
         $loader->setTemplate('foo', 'bar');
 
@@ -55,6 +61,7 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
 
     public function testIsFresh()
     {
+
         $loader = new Twig_Loader_Array(array('foo' => 'bar'));
         $this->assertTrue($loader->isFresh('foo', time()));
     }
@@ -64,6 +71,7 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
      */
     public function testIsFreshWhenTemplateDoesNotExist()
     {
+
         $loader = new Twig_Loader_Array(array());
 
         $loader->isFresh('foo', time());
@@ -71,6 +79,7 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
 
     public function testTemplateReference()
     {
+
         $name = new Twig_Test_Loader_TemplateReference('foo');
         $loader = new Twig_Loader_Array(array('foo' => 'bar'));
 
@@ -83,15 +92,18 @@ class Twig_Tests_Loader_ArrayTest extends PHPUnit_Framework_TestCase
 
 class Twig_Test_Loader_TemplateReference
 {
+
     private $name;
 
     public function __construct($name)
     {
+
         $this->name = $name;
     }
 
     public function __toString()
     {
+
         return $this->name;
     }
 }

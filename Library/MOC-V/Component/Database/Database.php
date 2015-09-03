@@ -10,7 +10,6 @@ use MOC\V\Component\Database\Component\Parameter\Repository\HostParameter;
 use MOC\V\Component\Database\Component\Parameter\Repository\PasswordParameter;
 use MOC\V\Component\Database\Component\Parameter\Repository\PortParameter;
 use MOC\V\Component\Database\Component\Parameter\Repository\UsernameParameter;
-use MOC\V\Component\Database\Exception\DatabaseException;
 use MOC\V\Component\Database\Vendor\Vendor;
 
 /**
@@ -27,10 +26,10 @@ class Database implements IVendorInterface
     /**
      * @param IVendorInterface $VendorInterface
      */
-    function __construct( IVendorInterface $VendorInterface )
+    public function __construct(IVendorInterface $VendorInterface)
     {
 
-        $this->setVendorInterface( $VendorInterface );
+        $this->setVendorInterface($VendorInterface);
     }
 
     /**
@@ -41,14 +40,14 @@ class Database implements IVendorInterface
      * @param string $Host
      * @param null   $Port
      *
-     * @param int    $Timeout
+     * @param int $Timeout
      *
      * @return IBridgeInterface
      */
-    public static function getDatabase( $Username, $Password, $Database, $Driver, $Host, $Port = null, $Timeout = 5 )
+    public static function getDatabase($Username, $Password, $Database, $Driver, $Host, $Port = null, $Timeout = 5)
     {
 
-        return self::getDoctrineDatabase( $Username, $Password, $Database, $Driver, $Host, $Port, $Timeout );
+        return self::getDoctrineDatabase($Username, $Password, $Database, $Driver, $Host, $Port, $Timeout);
     }
 
     /**
@@ -59,11 +58,19 @@ class Database implements IVendorInterface
      * @param string $Host
      * @param null   $Port
      *
-     * @param int    $Timeout
+     * @param int $Timeout
      *
      * @return IBridgeInterface
      */
-    public static function getDoctrineDatabase( $Username, $Password, $Database, $Driver, $Host, $Port = null, $Timeout = 5 )
+    public static function getDoctrineDatabase(
+        $Username,
+        $Password,
+        $Database,
+        $Driver,
+        $Host,
+        $Port = null,
+        $Timeout = 5
+    )
     {
 
         $Doctrine = new Database(
@@ -73,12 +80,12 @@ class Database implements IVendorInterface
         );
 
         $Doctrine->getBridgeInterface()->registerConnection(
-            new UsernameParameter( $Username ),
-            new PasswordParameter( $Password ),
-            new DatabaseParameter( $Database ),
-            new DriverParameter( $Driver ),
-            new HostParameter( $Host ),
-            new PortParameter( $Port ),
+            new UsernameParameter($Username),
+            new PasswordParameter($Password),
+            new DatabaseParameter($Database),
+            new DriverParameter($Driver),
+            new HostParameter($Host),
+            new PortParameter($Port),
             $Timeout
         );
 
@@ -108,7 +115,7 @@ class Database implements IVendorInterface
      *
      * @return IVendorInterface
      */
-    public function setVendorInterface( IVendorInterface $VendorInterface )
+    public function setVendorInterface(IVendorInterface $VendorInterface)
     {
 
         $this->VendorInterface = $VendorInterface;
@@ -120,9 +127,9 @@ class Database implements IVendorInterface
      *
      * @return \MOC\V\Component\Database\Component\IBridgeInterface
      */
-    public function setBridgeInterface( IBridgeInterface $BridgeInterface )
+    public function setBridgeInterface(IBridgeInterface $BridgeInterface)
     {
 
-        return $this->VendorInterface->setBridgeInterface( $BridgeInterface );
+        return $this->VendorInterface->setBridgeInterface($BridgeInterface);
     }
 }

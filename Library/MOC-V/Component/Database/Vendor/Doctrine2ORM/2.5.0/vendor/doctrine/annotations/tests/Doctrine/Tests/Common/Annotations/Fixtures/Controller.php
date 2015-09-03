@@ -2,8 +2,8 @@
 
 namespace Doctrine\Tests\Common\Annotations\Fixtures;
 
-use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Template;
 use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Route;
+use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Template;
 
 /**
  * @Route("/someprefix")
@@ -11,12 +11,14 @@ use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Route;
  */
 class Controller
 {
+
     /**
      * @Route("/", name="_demo")
      * @Template()
      */
     public function indexAction()
     {
+
         return array();
     }
 
@@ -26,6 +28,7 @@ class Controller
      */
     public function helloAction($name)
     {
+
         return array('name' => $name);
     }
 
@@ -35,6 +38,7 @@ class Controller
      */
     public function contactAction()
     {
+
         $form = ContactForm::create($this->get('form.context'), 'contact');
 
         $form->bind($this->container->get('request'), $form);
@@ -53,10 +57,12 @@ class Controller
      * Creates the ACL for the passed object identity
      *
      * @param ObjectIdentityInterface $oid
+     *
      * @return void
      */
     private function createObjectIdentity(ObjectIdentityInterface $oid)
     {
+
         $classId = $this->createOrRetrieveClassId($oid->getType());
 
         $this->connection->executeQuery($this->getInsertObjectIdentitySql($oid->getIdentifier(), $classId, true));
@@ -68,10 +74,12 @@ class Controller
      * If the type does not yet exist in the database, it will be created.
      *
      * @param string $classType
+     *
      * @return integer
      */
     private function createOrRetrieveClassId($classType)
     {
+
         if (false !== $id = $this->connection->executeQuery($this->getSelectClassIdSql($classType))->fetchColumn()) {
             return $id;
         }
@@ -82,33 +90,15 @@ class Controller
     }
 
     /**
-     * Returns the primary key for the passed security identity.
-     *
-     * If the security identity does not yet exist in the database, it will be
-     * created.
-     *
-     * @param SecurityIdentityInterface $sid
-     * @return integer
-     */
-    private function createOrRetrieveSecurityIdentityId(SecurityIdentityInterface $sid)
-    {
-        if (false !== $id = $this->connection->executeQuery($this->getSelectSecurityIdentityIdSql($sid))->fetchColumn()) {
-            return $id;
-        }
-
-        $this->connection->executeQuery($this->getInsertSecurityIdentitySql($sid));
-
-        return $this->connection->executeQuery($this->getSelectSecurityIdentityIdSql($sid))->fetchColumn();
-    }
-
-    /**
      * Deletes all ACEs for the given object identity primary key.
      *
      * @param integer $oidPK
+     *
      * @return void
      */
     private function deleteAccessControlEntries($oidPK)
     {
+
         $this->connection->executeQuery($this->getDeleteAccessControlEntriesSql($oidPK));
     }
 
@@ -116,10 +106,12 @@ class Controller
      * Deletes the object identity from the database.
      *
      * @param integer $pk
+     *
      * @return void
      */
     private function deleteObjectIdentity($pk)
     {
+
         $this->connection->executeQuery($this->getDeleteObjectIdentitySql($pk));
     }
 
@@ -127,10 +119,12 @@ class Controller
      * Deletes all entries from the relations table from the database.
      *
      * @param integer $pk
+     *
      * @return void
      */
     private function deleteObjectIdentityRelations($pk)
     {
+
         $this->connection->executeQuery($this->getDeleteObjectIdentityRelationsSql($pk));
     }
 
@@ -138,10 +132,12 @@ class Controller
      * This regenerates the ancestor table which is used for fast read access.
      *
      * @param AclInterface $acl
+     *
      * @return void
      */
     private function regenerateAncestorRelations(AclInterface $acl)
     {
+
         $pk = $acl->getId();
         $this->connection->executeQuery($this->getDeleteObjectIdentityRelationsSql($pk));
         $this->connection->executeQuery($this->getInsertObjectIdentityRelationSql($pk, $pk));
@@ -158,16 +154,18 @@ class Controller
      * This processes changes on an ACE related property (classFieldAces, or objectFieldAces).
      *
      * @param string $name
-     * @param array $changes
+     * @param array  $changes
+     *
      * @return void
      */
     private function updateFieldAceProperty($name, array $changes)
     {
+
         $sids = new \SplObjectStorage();
         $classIds = new \SplObjectStorage();
         $currentIds = array();
         foreach ($changes[1] as $field => $new) {
-            for ($i=0,$c=count($new); $i<$c; $i++) {
+            for ($i = 0, $c = count($new); $i < $c; $i++) {
                 $ace = $new[$i];
 
                 if (null === $ace->getId()) {
@@ -186,8 +184,11 @@ class Controller
 
                     $objectIdentityId = $name === 'classFieldAces' ? null : $ace->getAcl()->getId();
 
-                    $this->connection->executeQuery($this->getInsertAccessControlEntrySql($classId, $objectIdentityId, $field, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(), $ace->isAuditFailure()));
-                    $aceId = $this->connection->executeQuery($this->getSelectAccessControlEntryIdSql($classId, $objectIdentityId, $field, $i))->fetchColumn();
+                    $this->connection->executeQuery($this->getInsertAccessControlEntrySql($classId, $objectIdentityId,
+                        $field, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(),
+                        $ace->isAuditSuccess(), $ace->isAuditFailure()));
+                    $aceId = $this->connection->executeQuery($this->getSelectAccessControlEntryIdSql($classId,
+                        $objectIdentityId, $field, $i))->fetchColumn();
                     $this->loadedAces[$aceId] = $ace;
 
                     $aceIdProperty = new \ReflectionProperty('Symfony\Component\Security\Acl\Domain\Entry', 'id');
@@ -200,32 +201,56 @@ class Controller
         }
 
         foreach ($changes[0] as $old) {
-            for ($i=0,$c=count($old); $i<$c; $i++) {
+            for ($i = 0, $c = count($old); $i < $c; $i++) {
                 $ace = $old[$i];
 
-                if (!isset($currentIds[$ace->getId()])) {
+                if (!isset( $currentIds[$ace->getId()] )) {
                     $this->connection->executeQuery($this->getDeleteAccessControlEntrySql($ace->getId()));
-                    unset($this->loadedAces[$ace->getId()]);
+                    unset( $this->loadedAces[$ace->getId()] );
                 }
             }
         }
     }
 
     /**
+     * Returns the primary key for the passed security identity.
+     *
+     * If the security identity does not yet exist in the database, it will be
+     * created.
+     *
+     * @param SecurityIdentityInterface $sid
+     *
+     * @return integer
+     */
+    private function createOrRetrieveSecurityIdentityId(SecurityIdentityInterface $sid)
+    {
+
+        if (false !== $id = $this->connection->executeQuery($this->getSelectSecurityIdentityIdSql($sid))->fetchColumn()) {
+            return $id;
+        }
+
+        $this->connection->executeQuery($this->getInsertSecurityIdentitySql($sid));
+
+        return $this->connection->executeQuery($this->getSelectSecurityIdentityIdSql($sid))->fetchColumn();
+    }
+
+    /**
      * This processes changes on an ACE related property (classAces, or objectAces).
      *
      * @param string $name
-     * @param array $changes
+     * @param array  $changes
+     *
      * @return void
      */
     private function updateAceProperty($name, array $changes)
     {
-        list($old, $new) = $changes;
+
+        list( $old, $new ) = $changes;
 
         $sids = new \SplObjectStorage();
         $classIds = new \SplObjectStorage();
         $currentIds = array();
-        for ($i=0,$c=count($new); $i<$c; $i++) {
+        for ($i = 0, $c = count($new); $i < $c; $i++) {
             $ace = $new[$i];
 
             if (null === $ace->getId()) {
@@ -244,8 +269,11 @@ class Controller
 
                 $objectIdentityId = $name === 'classAces' ? null : $ace->getAcl()->getId();
 
-                $this->connection->executeQuery($this->getInsertAccessControlEntrySql($classId, $objectIdentityId, null, $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(), $ace->isAuditFailure()));
-                $aceId = $this->connection->executeQuery($this->getSelectAccessControlEntryIdSql($classId, $objectIdentityId, null, $i))->fetchColumn();
+                $this->connection->executeQuery($this->getInsertAccessControlEntrySql($classId, $objectIdentityId, null,
+                    $i, $sid, $ace->getStrategy(), $ace->getMask(), $ace->isGranting(), $ace->isAuditSuccess(),
+                    $ace->isAuditFailure()));
+                $aceId = $this->connection->executeQuery($this->getSelectAccessControlEntryIdSql($classId,
+                    $objectIdentityId, null, $i))->fetchColumn();
                 $this->loadedAces[$aceId] = $ace;
 
                 $aceIdProperty = new \ReflectionProperty($ace, 'id');
@@ -256,12 +284,12 @@ class Controller
             }
         }
 
-        for ($i=0,$c=count($old); $i<$c; $i++) {
+        for ($i = 0, $c = count($old); $i < $c; $i++) {
             $ace = $old[$i];
 
-            if (!isset($currentIds[$ace->getId()])) {
+            if (!isset( $currentIds[$ace->getId()] )) {
                 $this->connection->executeQuery($this->getDeleteAccessControlEntrySql($ace->getId()));
-                unset($this->loadedAces[$ace->getId()]);
+                unset( $this->loadedAces[$ace->getId()] );
             }
         }
     }
@@ -270,28 +298,32 @@ class Controller
      * Persists the changes which were made to ACEs to the database.
      *
      * @param \SplObjectStorage $aces
+     *
      * @return void
      */
     private function updateAces(\SplObjectStorage $aces)
     {
+
         foreach ($aces as $ace) {
             $propertyChanges = $aces->offsetGet($ace);
             $sets = array();
 
-            if (isset($propertyChanges['mask'])) {
+            if (isset( $propertyChanges['mask'] )) {
                 $sets[] = sprintf('mask = %d', $propertyChanges['mask'][1]);
             }
-            if (isset($propertyChanges['strategy'])) {
+            if (isset( $propertyChanges['strategy'] )) {
                 $sets[] = sprintf('granting_strategy = %s', $this->connection->quote($propertyChanges['strategy']));
             }
-            if (isset($propertyChanges['aceOrder'])) {
+            if (isset( $propertyChanges['aceOrder'] )) {
                 $sets[] = sprintf('ace_order = %d', $propertyChanges['aceOrder'][1]);
             }
-            if (isset($propertyChanges['auditSuccess'])) {
-                $sets[] = sprintf('audit_success = %s', $this->connection->getDatabasePlatform()->convertBooleans($propertyChanges['auditSuccess'][1]));
+            if (isset( $propertyChanges['auditSuccess'] )) {
+                $sets[] = sprintf('audit_success = %s',
+                    $this->connection->getDatabasePlatform()->convertBooleans($propertyChanges['auditSuccess'][1]));
             }
-            if (isset($propertyChanges['auditFailure'])) {
-                $sets[] = sprintf('audit_failure = %s', $this->connection->getDatabasePlatform()->convertBooleans($propertyChanges['auditFailure'][1]));
+            if (isset( $propertyChanges['auditFailure'] )) {
+                $sets[] = sprintf('audit_failure = %s',
+                    $this->connection->getDatabasePlatform()->convertBooleans($propertyChanges['auditFailure'][1]));
             }
 
             $this->connection->executeQuery($this->getUpdateAccessControlEntrySql($ace->getId(), $sets));

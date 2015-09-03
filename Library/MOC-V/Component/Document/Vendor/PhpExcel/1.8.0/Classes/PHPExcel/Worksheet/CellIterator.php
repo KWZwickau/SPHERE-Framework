@@ -72,7 +72,7 @@ class PHPExcel_Worksheet_CellIterator implements Iterator
      * @param PHPExcel_Worksheet $subject
      * @param int                $rowIndex
      */
-    public function __construct( PHPExcel_Worksheet $subject = null, $rowIndex = 1 )
+    public function __construct(PHPExcel_Worksheet $subject = null, $rowIndex = 1)
     {
 
         // Set subject and row index
@@ -106,7 +106,7 @@ class PHPExcel_Worksheet_CellIterator implements Iterator
     public function current()
     {
 
-        return $this->_subject->getCellByColumnAndRow( $this->_position, $this->_rowIndex );
+        return $this->_subject->getCellByColumnAndRow($this->_position, $this->_rowIndex);
     }
 
     /**
@@ -140,7 +140,7 @@ class PHPExcel_Worksheet_CellIterator implements Iterator
         // columnIndexFromString() returns an index based at one,
         // treat it as a count when comparing it to the base zero
         // position.
-        $columnCount = PHPExcel_Cell::columnIndexFromString( $this->_subject->getHighestColumn() );
+        $columnCount = PHPExcel_Cell::columnIndexFromString($this->_subject->getHighestColumn());
 
         if ($this->_onlyExistingCells) {
             // If we aren't looking at an existing cell, either
@@ -148,7 +148,7 @@ class PHPExcel_Worksheet_CellIterator implements Iterator
             // been called onto a nonexistent cell, then loop until we
             // find one, or pass the last column.
             while ($this->_position < $columnCount &&
-                !$this->_subject->cellExistsByColumnAndRow( $this->_position, $this->_rowIndex )) {
+                !$this->_subject->cellExistsByColumnAndRow($this->_position, $this->_rowIndex)) {
                 ++$this->_position;
             }
         }
@@ -172,7 +172,7 @@ class PHPExcel_Worksheet_CellIterator implements Iterator
      *
      * @param    boolean $value
      */
-    public function setIterateOnlyExistingCells( $value = true )
+    public function setIterateOnlyExistingCells($value = true)
     {
 
         $this->_onlyExistingCells = $value;

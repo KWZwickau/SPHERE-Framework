@@ -2,8 +2,8 @@
 
 namespace Guzzle\Http\Curl;
 
-use Guzzle\Common\HasDispatcherInterface;
 use Guzzle\Common\Exception\ExceptionCollection;
+use Guzzle\Common\HasDispatcherInterface;
 use Guzzle\Http\Message\RequestInterface;
 
 /**
@@ -11,6 +11,7 @@ use Guzzle\Http\Message\RequestInterface;
  */
 interface CurlMultiInterface extends \Countable, HasDispatcherInterface
 {
+
     const POLLING_REQUEST = 'curl_multi.polling_request';
     const ADD_REQUEST = 'curl_multi.add_request';
     const REMOVE_REQUEST = 'curl_multi.remove_request';

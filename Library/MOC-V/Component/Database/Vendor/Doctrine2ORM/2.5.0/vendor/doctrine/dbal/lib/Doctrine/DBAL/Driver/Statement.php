@@ -32,6 +32,7 @@ namespace Doctrine\DBAL\Driver;
  */
 interface Statement extends ResultStatement
 {
+
     /**
      * Binds a value to a corresponding named (not supported by mysqli driver, see comment below) or positional
      * placeholder in the SQL statement that was used to prepare the statement.

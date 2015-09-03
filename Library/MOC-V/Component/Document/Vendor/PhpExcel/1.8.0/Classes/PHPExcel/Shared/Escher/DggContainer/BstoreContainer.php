@@ -47,11 +47,11 @@ class PHPExcel_Shared_Escher_DggContainer_BstoreContainer
      *
      * @param PHPExcel_Shared_Escher_DggContainer_BstoreContainer_BSE $BSE
      */
-    public function addBSE( $BSE )
+    public function addBSE($BSE)
     {
 
         $this->_BSECollection[] = $BSE;
-        $BSE->setParent( $this );
+        $BSE->setParent($this);
     }
 
     /**

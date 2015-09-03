@@ -81,15 +81,15 @@ class StringType extends Base
      *
      * @return mixed
      */
-    public function __construct( $data )
+    public function __construct($data)
     {
 
         //argument 1 must be scalar
-        Argument::i()->test( 1, 'scalar' );
+        Argument::i()->test(1, 'scalar');
 
         $data = (string)$data;
 
-        parent::__construct( $data );
+        parent::__construct($data);
     }
 
     /**
@@ -110,14 +110,14 @@ class StringType extends Base
      *
      * @return Eden\Type\Type\StringType
      */
-    public function camelize( $prefix = '-' )
+    public function camelize($prefix = '-')
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
-        $this->data = str_replace( $prefix, ' ', $this->data );
-        $this->data = str_replace( ' ', '', ucwords( $this->data ) );
-        $this->data = strtolower( substr( $this->data, 0, 1 ) ).substr( $this->data, 1 );
+        Argument::i()->test(1, 'string');
+        $this->data = str_replace($prefix, ' ', $this->data);
+        $this->data = str_replace(' ', '', ucwords($this->data));
+        $this->data = strtolower(substr($this->data, 0, 1)).substr($this->data, 1);
 
         return $this;
     }
@@ -131,10 +131,10 @@ class StringType extends Base
     public function dasherize()
     {
 
-        $this->data = preg_replace( "/[^a-zA-Z0-9_-\s]/i", '', $this->data );
-        $this->data = str_replace( ' ', '-', trim( $this->data ) );
-        $this->data = preg_replace( "/-+/i", '-', $this->data );
-        $this->data = strtolower( $this->data );
+        $this->data = preg_replace("/[^a-zA-Z0-9_-\s]/i", '', $this->data);
+        $this->data = str_replace(' ', '-', trim($this->data));
+        $this->data = preg_replace("/-+/i", '-', $this->data);
+        $this->data = strtolower($this->data);
 
         return $this;
     }
@@ -146,13 +146,13 @@ class StringType extends Base
      *
      * @return Eden\Type\Type\StringType
      */
-    public function titlize( $prefix = '-' )
+    public function titlize($prefix = '-')
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        $this->data = ucwords( str_replace( $prefix, ' ', $this->data ) );
+        $this->data = ucwords(str_replace($prefix, ' ', $this->data));
 
         return $this;
     }
@@ -164,13 +164,13 @@ class StringType extends Base
      *
      * @return Eden\Type\Type\StringType
      */
-    public function uncamelize( $prefix = '-' )
+    public function uncamelize($prefix = '-')
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        $this->data = strtolower( preg_replace( "/([A-Z])/", $prefix."$1", $this->data ) );
+        $this->data = strtolower(preg_replace("/([A-Z])/", $prefix."$1", $this->data));
 
         return $this;
     }
@@ -182,15 +182,15 @@ class StringType extends Base
      *
      * @return Eden\Type\Type\StringType
      */
-    public function summarize( $words )
+    public function summarize($words)
     {
 
         //argument 1 must be an integer
-        Argument::i()->test( 1, 'int' );
+        Argument::i()->test(1, 'int');
 
-        $this->data = explode( ' ', strip_tags( $this->data ), $words );
-        array_pop( $this->data );
-        $this->data = implode( ' ', $this->data );
+        $this->data = explode(' ', strip_tags($this->data), $words);
+        array_pop($this->data);
+        $this->data = implode(' ', $this->data);
 
         return $this;
     }
@@ -203,7 +203,7 @@ class StringType extends Base
      *
      * @return string|false
      */
-    protected function getMethodType( $name )
+    protected function getMethodType($name)
     {
 
         if (isset( self::$methods[$name] )) {
@@ -215,7 +215,7 @@ class StringType extends Base
             return self::$methods[$name];
         }
 
-        $uncamel = strtolower( preg_replace( "/([A-Z])/", "_$1", $name ) );
+        $uncamel = strtolower(preg_replace("/([A-Z])/", "_$1", $name));
 
         if (isset( self::$methods[$uncamel] )) {
             $name = $uncamel;

@@ -28,7 +28,7 @@ interface IAdapter
      *
      * @return array
      */
-    function load( $file );
+    function load($file);
 
     /**
      * Generates configuration string.
@@ -37,6 +37,6 @@ interface IAdapter
      *
      * @return string
      */
-    function dump( array $data );
+    function dump(array $data);
 
 }

@@ -26,7 +26,7 @@
  */
 
 /** Error reporting */
-error_reporting( E_ALL );
+error_reporting(E_ALL);
 
 if (PHP_SAPI != 'cli') {
     die ( 'This script executes all tests, and should only be run from the command line' );
@@ -177,11 +177,11 @@ $aTests = array(
 
 // First, clear all results
 foreach ($aTests as $sTest) {
-    @unlink( str_replace( '.php', '.xls', $sTest ) );
-    @unlink( str_replace( '.php', '.xlsx', $sTest ) );
-    @unlink( str_replace( '.php', '.csv', $sTest ) );
-    @unlink( str_replace( '.php', '.htm', $sTest ) );
-    @unlink( str_replace( '.php', '.pdf', $sTest ) );
+    @unlink(str_replace('.php', '.xls', $sTest));
+    @unlink(str_replace('.php', '.xlsx', $sTest));
+    @unlink(str_replace('.php', '.csv', $sTest));
+    @unlink(str_replace('.php', '.htm', $sTest));
+    @unlink(str_replace('.php', '.pdf', $sTest));
 }
 
 // Run all tests
@@ -189,7 +189,7 @@ foreach ($aTests as $sTest) {
     echo '============== TEST =============='."\r\n";
     echo 'Test name: '.$sTest."\r\n";
     echo "\r\n";
-    echo shell_exec( 'php '.$sTest );
+    echo shell_exec('php '.$sTest);
     echo "\r\n";
     echo "\r\n";
 }

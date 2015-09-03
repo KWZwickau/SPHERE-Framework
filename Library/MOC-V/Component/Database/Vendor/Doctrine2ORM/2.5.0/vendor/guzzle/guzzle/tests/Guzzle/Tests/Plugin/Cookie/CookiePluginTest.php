@@ -3,20 +3,22 @@
 namespace Guzzle\Tests\Plugin\Cookie;
 
 use Guzzle\Common\Event;
-use Guzzle\Plugin\Cookie\Cookie;
-use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
 use Guzzle\Http\Client;
 use Guzzle\Http\Message\Response;
+use Guzzle\Plugin\Cookie\Cookie;
+use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
 use Guzzle\Plugin\Cookie\CookiePlugin;
 
 /**
- * @group server
+ * @group  server
  * @covers Guzzle\Plugin\Cookie\CookiePlugin
  */
 class CookiePluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testExtractsAndStoresCookies()
     {
+
         $response = new Response(200);
         $mock = $this->getMockBuilder('Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar')
             ->setMethods(array('addCookiesFromResponse'))
@@ -34,6 +36,7 @@ class CookiePluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsCookiesToRequests()
     {
+
         $cookie = new Cookie(array(
             'name'  => 'foo',
             'value' => 'bar'
@@ -62,15 +65,16 @@ class CookiePluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCookiesAreExtractedFromRedirectResponses()
     {
+
         $plugin = new CookiePlugin(new ArrayCookieJar());
         $this->getServer()->flush();
         $this->getServer()->enqueue(array(
-            "HTTP/1.1 302 Moved Temporarily\r\n" .
-            "Set-Cookie: test=583551; expires=Wednesday, 23-Mar-2050 19:49:45 GMT; path=/\r\n" .
+            "HTTP/1.1 302 Moved Temporarily\r\n".
+            "Set-Cookie: test=583551; expires=Wednesday, 23-Mar-2050 19:49:45 GMT; path=/\r\n".
             "Location: /redirect\r\n\r\n",
-            "HTTP/1.1 200 OK\r\n" .
+            "HTTP/1.1 200 OK\r\n".
             "Content-Length: 0\r\n\r\n",
-            "HTTP/1.1 200 OK\r\n" .
+            "HTTP/1.1 200 OK\r\n".
             "Content-Length: 0\r\n\r\n"
         ));
 
@@ -91,6 +95,7 @@ class CookiePluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCookiesAreNotAddedWhenParamIsSet()
     {
+
         $jar = new ArrayCookieJar();
         $plugin = new CookiePlugin($jar);
 
@@ -121,6 +126,7 @@ class CookiePluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testProvidesCookieJar()
     {
+
         $jar = new ArrayCookieJar();
         $plugin = new CookiePlugin($jar);
         $this->assertSame($jar, $plugin->getCookieJar());
@@ -128,6 +134,7 @@ class CookiePluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEscapesCookieDomains()
     {
+
         $cookie = new Cookie(array('domain' => '/foo/^$[A-Z]+/'));
         $this->assertFalse($cookie->matchesDomain('foo'));
     }

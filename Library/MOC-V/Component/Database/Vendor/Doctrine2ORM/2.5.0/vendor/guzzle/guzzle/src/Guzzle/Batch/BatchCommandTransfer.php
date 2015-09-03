@@ -2,8 +2,6 @@
 
 namespace Guzzle\Batch;
 
-use Guzzle\Batch\BatchTransferInterface;
-use Guzzle\Batch\BatchDivisorInterface;
 use Guzzle\Common\Exception\InvalidArgumentException;
 use Guzzle\Service\Command\CommandInterface;
 use Guzzle\Service\Exception\InconsistentClientTransferException;
@@ -14,6 +12,7 @@ use Guzzle\Service\Exception\InconsistentClientTransferException;
  */
 class BatchCommandTransfer implements BatchTransferInterface, BatchDivisorInterface
 {
+
     /** @var int Size of each command batch */
     protected $batchSize;
 
@@ -22,6 +21,7 @@ class BatchCommandTransfer implements BatchTransferInterface, BatchDivisorInterf
      */
     public function __construct($batchSize = 50)
     {
+
         $this->batchSize = $batchSize;
     }
 
@@ -31,6 +31,7 @@ class BatchCommandTransfer implements BatchTransferInterface, BatchDivisorInterf
      */
     public function createBatches(\SplQueue $queue)
     {
+
         $groups = new \SplObjectStorage();
         foreach ($queue as $item) {
             if (!$item instanceof CommandInterface) {
@@ -54,7 +55,8 @@ class BatchCommandTransfer implements BatchTransferInterface, BatchDivisorInterf
 
     public function transfer(array $batch)
     {
-        if (empty($batch)) {
+
+        if (empty( $batch )) {
             return;
         }
 
@@ -63,10 +65,11 @@ class BatchCommandTransfer implements BatchTransferInterface, BatchDivisorInterf
 
         // Keep a list of all commands with invalid clients
         $invalid = array_filter($batch, function ($command) use ($client) {
+
             return $command->getClient() !== $client;
         });
 
-        if (!empty($invalid)) {
+        if (!empty( $invalid )) {
             throw new InconsistentClientTransferException($invalid);
         }
 

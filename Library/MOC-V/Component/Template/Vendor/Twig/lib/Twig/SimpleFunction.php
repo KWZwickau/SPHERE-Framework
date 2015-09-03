@@ -16,6 +16,7 @@
  */
 class Twig_SimpleFunction
 {
+
     protected $name;
     protected $callable;
     protected $options;
@@ -23,6 +24,7 @@ class Twig_SimpleFunction
 
     public function __construct($name, $callable, array $options = array())
     {
+
         $this->name = $name;
         $this->callable = $callable;
         $this->options = array_merge(array(
@@ -36,16 +38,19 @@ class Twig_SimpleFunction
 
     public function getName()
     {
+
         return $this->name;
     }
 
     public function getCallable()
     {
+
         return $this->callable;
     }
 
     public function getNodeClass()
     {
+
         return $this->options['node_class'];
     }
 
@@ -55,7 +60,7 @@ class Twig_SimpleFunction
         return $this->arguments;
     }
 
-    public function setArguments( $arguments )
+    public function setArguments($arguments)
     {
 
         $this->arguments = $arguments;
@@ -63,16 +68,19 @@ class Twig_SimpleFunction
 
     public function needsEnvironment()
     {
+
         return $this->options['needs_environment'];
     }
 
     public function needsContext()
     {
+
         return $this->options['needs_context'];
     }
 
     public function getSafe(Twig_Node $functionArgs)
     {
+
         if (null !== $this->options['is_safe']) {
             return $this->options['is_safe'];
         }

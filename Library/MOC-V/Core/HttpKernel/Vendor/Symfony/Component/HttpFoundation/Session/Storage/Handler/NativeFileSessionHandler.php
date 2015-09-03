@@ -20,6 +20,7 @@ namespace Symfony\Component\HttpFoundation\Session\Storage\Handler;
  */
 class NativeFileSessionHandler extends NativeSessionHandler
 {
+
     /**
      * Constructor.
      *
@@ -33,6 +34,7 @@ class NativeFileSessionHandler extends NativeSessionHandler
      */
     public function __construct($savePath = null)
     {
+
         if (null === $savePath) {
             $savePath = ini_get('session.save_path');
         }

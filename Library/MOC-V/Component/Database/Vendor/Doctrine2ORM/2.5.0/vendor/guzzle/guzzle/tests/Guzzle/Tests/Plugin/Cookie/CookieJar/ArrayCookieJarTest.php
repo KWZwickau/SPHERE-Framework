@@ -2,16 +2,17 @@
 
 namespace Guzzle\Tests\Plugin\Cookie\CookieJar;
 
+use Guzzle\Http\Message\Request;
+use Guzzle\Http\Message\Response;
 use Guzzle\Plugin\Cookie\Cookie;
 use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
-use Guzzle\Http\Message\Response;
-use Guzzle\Http\Message\Request;
 
 /**
  * @covers Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar
  */
 class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /**
      * @var ArrayCookieJar
      */
@@ -19,16 +20,8 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function setUp()
     {
-        $this->jar = new ArrayCookieJar();
-    }
 
-    protected function getTestCookies()
-    {
-        return array(
-            new Cookie(array('name' => 'foo',  'value' => 'bar', 'domain' => 'foo.com', 'path' => '/',    'discard' => true)),
-            new Cookie(array('name' => 'test', 'value' => '123', 'domain' => 'baz.com', 'path' => '/foo', 'expires' => 2)),
-            new Cookie(array('name' => 'you',  'value' => '123', 'domain' => 'bar.com', 'path' => '/boo', 'expires' => time() + 1000))
-        );
+        $this->jar = new ArrayCookieJar();
     }
 
     /**
@@ -36,6 +29,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function getCookiesDataProvider()
     {
+
         return array(
             array(array('foo', 'baz', 'test', 'muppet', 'googoo'), '', '', '', false),
             array(array('foo', 'baz', 'muppet', 'googoo'), '', '', '', true),
@@ -52,6 +46,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testStoresAndRetrievesCookies()
     {
+
         $cookies = $this->getTestCookies();
         foreach ($cookies as $cookie) {
             $this->assertTrue($this->jar->add($cookie));
@@ -62,8 +57,37 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
         $this->assertEquals($cookies, $this->jar->all(null, null, null, false, false));
     }
 
+    protected function getTestCookies()
+    {
+
+        return array(
+            new Cookie(array(
+                'name'    => 'foo',
+                'value'   => 'bar',
+                'domain'  => 'foo.com',
+                'path'    => '/',
+                'discard' => true
+            )),
+            new Cookie(array(
+                'name'    => 'test',
+                'value'   => '123',
+                'domain'  => 'baz.com',
+                'path'    => '/foo',
+                'expires' => 2
+            )),
+            new Cookie(array(
+                'name'    => 'you',
+                'value'   => '123',
+                'domain'  => 'bar.com',
+                'path'    => '/boo',
+                'expires' => time() + 1000
+            ))
+        );
+    }
+
     public function testRemovesExpiredCookies()
     {
+
         $cookies = $this->getTestCookies();
         foreach ($this->getTestCookies() as $cookie) {
             $this->jar->add($cookie);
@@ -74,6 +98,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRemovesTemporaryCookies()
     {
+
         $cookies = $this->getTestCookies();
         foreach ($this->getTestCookies() as $cookie) {
             $this->jar->add($cookie);
@@ -84,6 +109,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIsSerializable()
     {
+
         $this->assertEquals('[]', $this->jar->serialize());
         $this->jar->unserialize('[]');
         $this->assertEquals(array(), $this->jar->all());
@@ -105,6 +131,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRemovesSelectively()
     {
+
         $cookies = $this->getTestCookies();
         foreach ($this->getTestCookies() as $cookie) {
             $this->jar->add($cookie);
@@ -128,6 +155,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesNotAddIncompleteCookies()
     {
+
         $this->assertEquals(false, $this->jar->add(new Cookie()));
         $this->assertFalse($this->jar->add(new Cookie(array(
             'name' => 'foo'
@@ -146,6 +174,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesAddValidCookies()
     {
+
         $this->assertTrue($this->jar->add(new Cookie(array(
             'name'   => 'foo',
             'domain' => 'foo.com',
@@ -165,6 +194,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testOverwritesCookiesThatAreOlderOrDiscardable()
     {
+
         $t = time() + 1000;
         $data = array(
             'name'    => 'foo',
@@ -182,7 +212,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
         // Make sure that the discard cookie is overridden with the non-discard
         $this->assertTrue($this->jar->add(new Cookie($data)));
 
-        unset($data['discard']);
+        unset( $data['discard'] );
         $this->assertTrue($this->jar->add(new Cookie($data)));
         $this->assertEquals(1, count($this->jar));
 
@@ -203,6 +233,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testOverwritesCookiesThatHaveChanged()
     {
+
         $t = time() + 1000;
         $data = array(
             'name'    => 'foo',
@@ -236,6 +267,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsCookiesFromResponseWithNoRequest()
     {
+
         $response = new Response(200, array(
             'Set-Cookie' => array(
                 "fpc=d=.Hm.yh4.1XmJWjJfs4orLQzKzPImxklQoxXSHOZATHUSEFciRueW_7704iYUtsXNEXq0M92Px2glMdWypmJ7HIQl6XIUvrZimWjQ3vIdeuRbI.FNQMAfcxu_XN1zSx7l.AcPdKL6guHc2V7hIQFhnjRW0rxm2oHY1P4bGQxFNz7f.tHm12ZD3DbdMDiDy7TBXsuP4DM-&v=2; expires=Fri, 02-Mar-2019 02:17:40 GMT; path=/; domain=127.0.0.1",
@@ -254,6 +286,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsCookiesFromResponseWithRequest()
     {
+
         $response = new Response(200, array(
             'Set-Cookie' => "fpc=d=.Hm.yh4.1XmJWjJfs4orLQzKzPImxklQoxXSHOZATHUSEFciRueW_7704iYUtsXNEXq0M92Px2glMdWypmJ7HIQl6XIUvrZimWjQ3vIdeuRbI.FNQMAfcxu_XN1zSx7l.AcPdKL6guHc2V7hIQFhnjRW0rxm2oHY1P4bGQxFNz7f.tHm12ZD3DbdMDiDy7TBXsuP4DM-&v=2; expires=Fri, 02-Mar-2019 02:17:40 GMT;"
         ));
@@ -264,6 +297,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function getMatchingCookiesDataProvider()
     {
+
         return array(
             array('https://example.com', array(0)),
             array('http://example.com', array()),
@@ -278,6 +312,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testReturnsCookiesMatchingRequests($url, $cookies)
     {
+
         $bag = array(
             new Cookie(array(
                 'name'    => 'foo',
@@ -342,6 +377,7 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWithStrictMode()
     {
+
         $a = new ArrayCookieJar();
         $a->setStrictMode(true);
         $a->add(new Cookie(array(
@@ -353,20 +389,21 @@ class ArrayCookieJarTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRemoveExistingCookieIfEmpty()
     {
+
         // Add a cookie that should not be affected
         $a = new Cookie(array(
-            'name' => 'foo',
+            'name'  => 'foo',
             'value' => 'nope',
             'domain' => 'foo.com',
-            'path' => '/abc'
+            'path'  => '/abc'
         ));
         $this->jar->add($a);
 
         $data = array(
-            'name' => 'foo',
+            'name'  => 'foo',
             'value' => 'bar',
             'domain' => 'foo.com',
-            'path' => '/'
+            'path'  => '/'
         );
 
         $b = new Cookie($data);

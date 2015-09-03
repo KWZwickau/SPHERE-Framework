@@ -7,23 +7,28 @@ use Doctrine\DBAL\Schema\Sequence;
 
 class SQLServer2012PlatformTest extends AbstractSQLServerPlatformTestCase
 {
+
     public function createPlatform()
     {
+
         return new SQLServer2012Platform;
     }
 
     public function testSupportsSequences()
     {
+
         $this->assertTrue($this->_platform->supportsSequences());
     }
 
     public function testDoesNotPreferSequences()
     {
+
         $this->assertFalse($this->_platform->prefersSequences());
     }
 
     public function testGeneratesSequenceSqlCommands()
     {
+
         $sequence = new Sequence('myseq', 20, 1);
         $this->assertEquals(
             'CREATE SEQUENCE myseq START WITH 1 INCREMENT BY 20 MINVALUE 1',

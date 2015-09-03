@@ -18,6 +18,7 @@ namespace Symfony\Component\Config\Exception;
  */
 class FileLoaderLoadException extends \Exception
 {
+
     /**
      * @param string     $resource       The resource that could not be imported
      * @param string     $sourceResource The original resource importing the new resource
@@ -26,6 +27,7 @@ class FileLoaderLoadException extends \Exception
      */
     public function __construct($resource, $sourceResource = null, $code = null, $previous = null)
     {
+
         $message = '';
         if ($previous) {
             // Include the previous exception, to help the user see what might be the underlying cause
@@ -47,19 +49,22 @@ class FileLoaderLoadException extends \Exception
             }
             $message .= '.';
 
-        // if there's no previous message, present it the default way
+            // if there's no previous message, present it the default way
         } elseif (null === $sourceResource) {
             $message .= sprintf('Cannot load resource "%s".', $this->varToString($resource));
         } else {
-            $message .= sprintf('Cannot import resource "%s" from "%s".', $this->varToString($resource), $this->varToString($sourceResource));
+            $message .= sprintf('Cannot import resource "%s" from "%s".', $this->varToString($resource),
+                $this->varToString($sourceResource));
         }
 
         // Is the resource located inside a bundle?
         if ('@' === $resource[0]) {
             $parts = explode(DIRECTORY_SEPARATOR, $resource);
             $bundle = substr($parts[0], 1);
-            $message .= sprintf(' Make sure the "%s" bundle is correctly registered and loaded in the application kernel class.', $bundle);
-            $message .= sprintf(' If the bundle is registered, make sure the bundle path "%s" is not empty.', $resource);
+            $message .= sprintf(' Make sure the "%s" bundle is correctly registered and loaded in the application kernel class.',
+                $bundle);
+            $message .= sprintf(' If the bundle is registered, make sure the bundle path "%s" is not empty.',
+                $resource);
         }
 
         parent::__construct($message, $code, $previous);
@@ -67,6 +72,7 @@ class FileLoaderLoadException extends \Exception
 
     protected function varToString($var)
     {
+
         if (is_object($var)) {
             return sprintf('Object(%s)', get_class($var));
         }
@@ -96,6 +102,6 @@ class FileLoaderLoadException extends \Exception
             return 'true';
         }
 
-        return (string) $var;
+        return (string)$var;
     }
 }

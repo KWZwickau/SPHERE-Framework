@@ -16,6 +16,7 @@ namespace Symfony\Component\Console\Formatter;
  */
 class OutputFormatterStyleStack
 {
+
     /**
      * @var OutputFormatterStyleInterface[]
      */
@@ -33,6 +34,7 @@ class OutputFormatterStyleStack
      */
     public function __construct(OutputFormatterStyleInterface $emptyStyle = null)
     {
+
         $this->emptyStyle = $emptyStyle ?: new OutputFormatterStyle();
         $this->reset();
     }
@@ -42,6 +44,7 @@ class OutputFormatterStyleStack
      */
     public function reset()
     {
+
         $this->styles = array();
     }
 
@@ -52,6 +55,7 @@ class OutputFormatterStyleStack
      */
     public function push(OutputFormatterStyleInterface $style)
     {
+
         $this->styles[] = $style;
     }
 
@@ -66,7 +70,8 @@ class OutputFormatterStyleStack
      */
     public function pop(OutputFormatterStyleInterface $style = null)
     {
-        if (empty($this->styles)) {
+
+        if (empty( $this->styles )) {
             return $this->emptyStyle;
         }
 
@@ -92,11 +97,21 @@ class OutputFormatterStyleStack
      */
     public function getCurrent()
     {
-        if (empty($this->styles)) {
+
+        if (empty( $this->styles )) {
             return $this->emptyStyle;
         }
 
         return $this->styles[count($this->styles) - 1];
+    }
+
+    /**
+     * @return OutputFormatterStyleInterface
+     */
+    public function getEmptyStyle()
+    {
+
+        return $this->emptyStyle;
     }
 
     /**
@@ -106,16 +121,9 @@ class OutputFormatterStyleStack
      */
     public function setEmptyStyle(OutputFormatterStyleInterface $emptyStyle)
     {
+
         $this->emptyStyle = $emptyStyle;
 
         return $this;
-    }
-
-    /**
-     * @return OutputFormatterStyleInterface
-     */
-    public function getEmptyStyle()
-    {
-        return $this->emptyStyle;
     }
 }

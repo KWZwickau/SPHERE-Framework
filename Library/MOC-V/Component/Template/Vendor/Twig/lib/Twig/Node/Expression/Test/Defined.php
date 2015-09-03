@@ -23,8 +23,10 @@
  */
 class Twig_Node_Expression_Test_Defined extends Twig_Node_Expression_Test
 {
+
     public function __construct(Twig_NodeInterface $node, $name, Twig_NodeInterface $arguments = null, $lineno)
     {
+
         parent::__construct($node, $name, $arguments, $lineno);
 
         if ($node instanceof Twig_Node_Expression_Name) {
@@ -40,6 +42,7 @@ class Twig_Node_Expression_Test_Defined extends Twig_Node_Expression_Test
 
     protected function changeIgnoreStrictCheck(Twig_Node_Expression_GetAttr $node)
     {
+
         $node->setAttribute('ignore_strict_check', true);
 
         if ($node->getNode('node') instanceof Twig_Node_Expression_GetAttr) {
@@ -49,6 +52,7 @@ class Twig_Node_Expression_Test_Defined extends Twig_Node_Expression_Test
 
     public function compile(Twig_Compiler $compiler)
     {
+
         $compiler->subcompile($this->getNode('node'));
     }
 }

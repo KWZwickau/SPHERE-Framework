@@ -28,6 +28,7 @@ namespace Doctrine\Common\Cache;
  */
 interface ClearableCache
 {
+
     /**
      * Deletes all cache entries.
      *

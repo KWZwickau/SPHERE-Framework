@@ -28,4 +28,5 @@ use Doctrine\Common\Persistence\Mapping\Driver\StaticPHPDriver as CommonStaticPH
  */
 class StaticPHPDriver extends CommonStaticPHPDriver
 {
+
 }

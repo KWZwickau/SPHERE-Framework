@@ -11,11 +11,11 @@
 
 namespace Symfony\Component\Console\Helper;
 
+use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Question\ChoiceQuestion;
+use Symfony\Component\Console\Question\Question;
 
 /**
  * The QuestionHelper class provides helpers to interact with the user.
@@ -24,9 +24,10 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
  */
 class QuestionHelper extends Helper
 {
-    private $inputStream;
+
     private static $shell;
     private static $stty;
+    private $inputStream;
 
     /**
      * Asks a question to the user.
@@ -41,6 +42,7 @@ class QuestionHelper extends Helper
      */
     public function ask(InputInterface $input, OutputInterface $output, Question $question)
     {
+
         if (!$input->isInteractive()) {
             return $question->getDefault();
         }
@@ -52,46 +54,11 @@ class QuestionHelper extends Helper
         $that = $this;
 
         $interviewer = function () use ($output, $question, $that) {
+
             return $that->doAsk($output, $question);
         };
 
         return $this->validateAttempts($interviewer, $output, $question);
-    }
-
-    /**
-     * Sets the input stream to read from when interacting with the user.
-     *
-     * This is mainly useful for testing purpose.
-     *
-     * @param resource $stream The input stream
-     *
-     * @throws \InvalidArgumentException In case the stream is not a resource
-     */
-    public function setInputStream($stream)
-    {
-        if (!is_resource($stream)) {
-            throw new \InvalidArgumentException('Input stream must be a valid resource.');
-        }
-
-        $this->inputStream = $stream;
-    }
-
-    /**
-     * Returns the helper's input stream.
-     *
-     * @return resource
-     */
-    public function getInputStream()
-    {
-        return $this->inputStream;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'question';
     }
 
     /**
@@ -109,6 +76,7 @@ class QuestionHelper extends Helper
      */
     public function doAsk(OutputInterface $output, Question $question)
     {
+
         $this->writePrompt($output, $question);
 
         $inputStream = $this->inputStream ?: STDIN;
@@ -150,12 +118,13 @@ class QuestionHelper extends Helper
      */
     protected function writePrompt(OutputInterface $output, Question $question)
     {
+
         $message = $question->getQuestion();
 
         if ($question instanceof ChoiceQuestion) {
             $width = max(array_map('strlen', array_keys($question->getChoices())));
 
-            $messages = (array) $question->getQuestion();
+            $messages = (array)$question->getQuestion();
             foreach ($question->getChoices() as $key => $value) {
                 $messages[] = sprintf("  [<info>%-${width}s</info>] %s", $key, $value);
             }
@@ -169,20 +138,134 @@ class QuestionHelper extends Helper
     }
 
     /**
-     * Outputs an error message.
+     * Returns whether Stty is available or not.
      *
-     * @param OutputInterface $output
-     * @param \Exception      $error
+     * @return bool
      */
-    protected function writeError(OutputInterface $output, \Exception $error)
+    private function hasSttyAvailable()
     {
-        if (null !== $this->getHelperSet() && $this->getHelperSet()->has('formatter')) {
-            $message = $this->getHelperSet()->get('formatter')->formatBlock($error->getMessage(), 'error');
-        } else {
-            $message = '<error>'.$error->getMessage().'</error>';
+
+        if (null !== self::$stty) {
+            return self::$stty;
         }
 
-        $output->writeln($message);
+        exec('stty 2>&1', $output, $exitcode);
+
+        return self::$stty = $exitcode === 0;
+    }
+
+    /**
+     * Gets a hidden response from user.
+     *
+     * @param OutputInterface $output An Output instance
+     *
+     * @return string The answer
+     *
+     * @throws \RuntimeException In case the fallback is deactivated and the response cannot be hidden
+     */
+    private function getHiddenResponse(OutputInterface $output, $inputStream)
+    {
+
+        if ('\\' === DIRECTORY_SEPARATOR) {
+            $exe = __DIR__.'/../Resources/bin/hiddeninput.exe';
+
+            // handle code running from a phar
+            if ('phar:' === substr(__FILE__, 0, 5)) {
+                $tmpExe = sys_get_temp_dir().'/hiddeninput.exe';
+                copy($exe, $tmpExe);
+                $exe = $tmpExe;
+            }
+
+            $value = rtrim(shell_exec($exe));
+            $output->writeln('');
+
+            if (isset( $tmpExe )) {
+                unlink($tmpExe);
+            }
+
+            return $value;
+        }
+
+        if ($this->hasSttyAvailable()) {
+            $sttyMode = shell_exec('stty -g');
+
+            shell_exec('stty -echo');
+            $value = fgets($inputStream, 4096);
+            shell_exec(sprintf('stty %s', $sttyMode));
+
+            if (false === $value) {
+                throw new \RuntimeException('Aborted');
+            }
+
+            $value = trim($value);
+            $output->writeln('');
+
+            return $value;
+        }
+
+        if (false !== $shell = $this->getShell()) {
+            $readCmd = $shell === 'csh' ? 'set mypassword = $<' : 'read -r mypassword';
+            $command = sprintf("/usr/bin/env %s -c 'stty -echo; %s; stty echo; echo \$mypassword'", $shell, $readCmd);
+            $value = rtrim(shell_exec($command));
+            $output->writeln('');
+
+            return $value;
+        }
+
+        throw new \RuntimeException('Unable to hide the response.');
+    }
+
+    /**
+     * Returns a valid unix shell.
+     *
+     * @return string|bool The valid shell name, false in case no valid shell is found
+     */
+    private function getShell()
+    {
+
+        if (null !== self::$shell) {
+            return self::$shell;
+        }
+
+        self::$shell = false;
+
+        if (file_exists('/usr/bin/env')) {
+            // handle other OSs with bash/zsh/ksh/csh if available to hide the answer
+            $test = "/usr/bin/env %s -c 'echo OK' 2> /dev/null";
+            foreach (array('bash', 'zsh', 'ksh', 'csh') as $sh) {
+                if ('OK' === rtrim(shell_exec(sprintf($test, $sh)))) {
+                    self::$shell = $sh;
+                    break;
+                }
+            }
+        }
+
+        return self::$shell;
+    }
+
+    /**
+     * Reads user input.
+     *
+     * @param resource $stream The input stream
+     *
+     * @return string User input
+     *
+     * @throws \RuntimeException
+     */
+    private function readFromInput($stream)
+    {
+
+        if (STDIN === $stream && function_exists('readline')) {
+            $ret = readline();
+        } else {
+            $ret = fgets($stream, 4096);
+
+            if (false === $ret) {
+                throw new \RuntimeException('Aborted');
+            }
+        }
+
+        return trim($ret);
     }
 
     /**
@@ -195,6 +278,7 @@ class QuestionHelper extends Helper
      */
     private function autocomplete(OutputInterface $output, Question $question, $inputStream)
     {
+
         $autocomplete = $question->getAutocompleterValues();
         $ret = '';
 
@@ -238,7 +322,7 @@ class QuestionHelper extends Helper
                 $c .= fread($inputStream, 2);
 
                 // A = Up Arrow. B = Down Arrow
-                if (isset($c[2]) && ('A' === $c[2] || 'B' === $c[2])) {
+                if (isset( $c[2] ) && ( 'A' === $c[2] || 'B' === $c[2] )) {
                     if ('A' === $c[2] && -1 === $ofs) {
                         $ofs = 0;
                     }
@@ -247,8 +331,8 @@ class QuestionHelper extends Helper
                         continue;
                     }
 
-                    $ofs += ('A' === $c[2]) ? -1 : 1;
-                    $ofs = ($numMatches + $ofs) % $numMatches;
+                    $ofs += ( 'A' === $c[2] ) ? -1 : 1;
+                    $ofs = ( $numMatches + $ofs ) % $numMatches;
                 }
             } elseif (ord($c) < 32) {
                 if ("\t" === $c || "\n" === $c) {
@@ -304,66 +388,6 @@ class QuestionHelper extends Helper
     }
 
     /**
-     * Gets a hidden response from user.
-     *
-     * @param OutputInterface $output An Output instance
-     *
-     * @return string The answer
-     *
-     * @throws \RuntimeException In case the fallback is deactivated and the response cannot be hidden
-     */
-    private function getHiddenResponse(OutputInterface $output, $inputStream)
-    {
-        if ('\\' === DIRECTORY_SEPARATOR) {
-            $exe = __DIR__.'/../Resources/bin/hiddeninput.exe';
-
-            // handle code running from a phar
-            if ('phar:' === substr(__FILE__, 0, 5)) {
-                $tmpExe = sys_get_temp_dir().'/hiddeninput.exe';
-                copy($exe, $tmpExe);
-                $exe = $tmpExe;
-            }
-
-            $value = rtrim(shell_exec($exe));
-            $output->writeln('');
-
-            if (isset($tmpExe)) {
-                unlink($tmpExe);
-            }
-
-            return $value;
-        }
-
-        if ($this->hasSttyAvailable()) {
-            $sttyMode = shell_exec('stty -g');
-
-            shell_exec('stty -echo');
-            $value = fgets($inputStream, 4096);
-            shell_exec(sprintf('stty %s', $sttyMode));
-
-            if (false === $value) {
-                throw new \RuntimeException('Aborted');
-            }
-
-            $value = trim($value);
-            $output->writeln('');
-
-            return $value;
-        }
-
-        if (false !== $shell = $this->getShell()) {
-            $readCmd = $shell === 'csh' ? 'set mypassword = $<' : 'read -r mypassword';
-            $command = sprintf("/usr/bin/env %s -c 'stty -echo; %s; stty echo; echo \$mypassword'", $shell, $readCmd);
-            $value = rtrim(shell_exec($command));
-            $output->writeln('');
-
-            return $value;
-        }
-
-        throw new \RuntimeException('Unable to hide the response.');
-    }
-
-    /**
      * Validates an attempt.
      *
      * @param callable        $interviewer A callable that will ask for a question and return the result
@@ -376,6 +400,7 @@ class QuestionHelper extends Helper
      */
     private function validateAttempts($interviewer, OutputInterface $output, Question $question)
     {
+
         $error = null;
         $attempts = $question->getMaxAttempts();
         while (null === $attempts || $attempts--) {
@@ -393,69 +418,59 @@ class QuestionHelper extends Helper
     }
 
     /**
-     * Returns a valid unix shell.
+     * Outputs an error message.
      *
-     * @return string|bool The valid shell name, false in case no valid shell is found
+     * @param OutputInterface $output
+     * @param \Exception      $error
      */
-    private function getShell()
+    protected function writeError(OutputInterface $output, \Exception $error)
     {
-        if (null !== self::$shell) {
-            return self::$shell;
+
+        if (null !== $this->getHelperSet() && $this->getHelperSet()->has('formatter')) {
+            $message = $this->getHelperSet()->get('formatter')->formatBlock($error->getMessage(), 'error');
+        } else {
+            $message = '<error>'.$error->getMessage().'</error>';
         }
 
-        self::$shell = false;
-
-        if (file_exists('/usr/bin/env')) {
-            // handle other OSs with bash/zsh/ksh/csh if available to hide the answer
-            $test = "/usr/bin/env %s -c 'echo OK' 2> /dev/null";
-            foreach (array('bash', 'zsh', 'ksh', 'csh') as $sh) {
-                if ('OK' === rtrim(shell_exec(sprintf($test, $sh)))) {
-                    self::$shell = $sh;
-                    break;
-                }
-            }
-        }
-
-        return self::$shell;
+        $output->writeln($message);
     }
 
     /**
-     * Reads user input.
+     * Returns the helper's input stream.
+     *
+     * @return resource
+     */
+    public function getInputStream()
+    {
+
+        return $this->inputStream;
+    }
+
+    /**
+     * Sets the input stream to read from when interacting with the user.
+     *
+     * This is mainly useful for testing purpose.
      *
      * @param resource $stream The input stream
      *
-     * @return string User input
-     *
-     * @throws \RuntimeException
+     * @throws \InvalidArgumentException In case the stream is not a resource
      */
-    private function readFromInput($stream)
+    public function setInputStream($stream)
     {
-        if (STDIN === $stream && function_exists('readline')) {
-            $ret = readline();
-        } else {
-            $ret = fgets($stream, 4096);
 
-            if (false === $ret) {
-                throw new \RuntimeException('Aborted');
-            }
+        if (!is_resource($stream)) {
+            throw new \InvalidArgumentException('Input stream must be a valid resource.');
         }
 
-        return trim($ret);
+        $this->inputStream = $stream;
     }
 
     /**
-     * Returns whether Stty is available or not.
-     *
-     * @return bool
+     * {@inheritdoc}
      */
-    private function hasSttyAvailable()
+    public function getName()
     {
-        if (null !== self::$stty) {
-            return self::$stty;
-        }
 
-        exec('stty 2>&1', $output, $exitcode);
-
-        return self::$stty = $exitcode === 0;
+        return 'question';
     }
 }

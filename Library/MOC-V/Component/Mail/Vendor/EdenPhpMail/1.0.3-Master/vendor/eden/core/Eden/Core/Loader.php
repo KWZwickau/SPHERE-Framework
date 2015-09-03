@@ -45,7 +45,7 @@ class Loader
     public static function i()
     {
 
-        if (is_null( self::$instance )) {
+        if (is_null(self::$instance)) {
             $class = __CLASS__;
             self::$instance = new $class();
         }
@@ -62,19 +62,19 @@ class Loader
      *
      * @return Eden\Core\Loader
      */
-    public function addRoot( $root = null, $namespace = null )
+    public function addRoot($root = null, $namespace = null)
     {
 
         if ($root === true) {
-            $root = realpath( __DIR__.'/../..' );
+            $root = realpath(__DIR__.'/../..');
         }
 
         //turn \eden\core\ to eden\core
-        $namespace = ltrim( $namespace, '\\' );
+        $namespace = ltrim($namespace, '\\');
         //turn eden\core to /Eden/Core
-        $namespace = ucwords( str_replace( '\\', DIRECTORY_SEPARATOR, $namespace ) );
+        $namespace = ucwords(str_replace('\\', DIRECTORY_SEPARATOR, $namespace));
         //support for legacy Eden_Class
-        $namespace = str_replace( '_', DIRECTORY_SEPARATOR, $namespace );
+        $namespace = str_replace('_', DIRECTORY_SEPARATOR, $namespace);
 
         $this->root[$root] = $namespace;
 
@@ -88,11 +88,11 @@ class Loader
      *
      * @return Eden\Core\Loader
      */
-    public function load( $class )
+    public function load($class)
     {
 
-        if (!class_exists( $class )) {
-            $this->handler( $class );
+        if (!class_exists($class)) {
+            $this->handler($class);
         }
 
         return $this;
@@ -105,10 +105,10 @@ class Loader
      *
      * @return bool
      */
-    public function handler( $class )
+    public function handler($class)
     {
 
-        list( $class, $file, $namespace ) = $this->getMeta( $class );
+        list( $class, $file, $namespace ) = $this->getMeta($class);
 
         if ($file && require_once( $file )) {
             return true;
@@ -125,24 +125,24 @@ class Loader
      *
      * @return array
      */
-    public function getMeta( $class )
+    public function getMeta($class)
     {
 
         //With namespacing the full namespace is always passed
         //turn \eden\core\ to eden\core
-        $path = ltrim( $class, '\\' );
+        $path = ltrim($class, '\\');
         //turn eden\core to /Eden/Core
-        $path = ucwords( str_replace( '\\', DIRECTORY_SEPARATOR, $path ) );
+        $path = ucwords(str_replace('\\', DIRECTORY_SEPARATOR, $path));
         //support for legacy Eden_Class
-        $path = str_replace( '_', DIRECTORY_SEPARATOR, $path );
+        $path = str_replace('_', DIRECTORY_SEPARATOR, $path);
 
         foreach ($this->root as $root => $namespace) {
             //by default root+path = file
             $file = $root.DIRECTORY_SEPARATOR.$path.'.php';
 
             //if this is really a file
-            if (file_exists( $file )) {
-                return array( $class, $file, str_replace( '/', '\\', $namespace ) );
+            if (file_exists($file)) {
+                return array($class, $file, str_replace('/', '\\', $namespace));
             }
 
             if (!$namespace) {
@@ -153,12 +153,12 @@ class Loader
             $file = $root.DIRECTORY_SEPARATOR.$namespace.DIRECTORY_SEPARATOR.$path.'.php';
 
             //if this is really a file
-            if (file_exists( $file )) {
-                return array( $class, $file, str_replace( '/', '\\', $namespace ) );
+            if (file_exists($file)) {
+                return array($class, $file, str_replace('/', '\\', $namespace));
             }
         }
 
-        return array( $class, null, null );
+        return array($class, null, null);
     }
 
     /**
@@ -169,7 +169,7 @@ class Loader
     public function register()
     {
 
-        spl_autoload_register( array( $this, 'handler' ) );
+        spl_autoload_register(array($this, 'handler'));
         return $this;
     }
 }

@@ -21,7 +21,7 @@ class UniversalRequest extends Bridge implements IBridgeInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
         if (null === self::$Instance) {
@@ -72,7 +72,8 @@ class UniversalRequest extends Bridge implements IBridgeInterface
      *
      * The base URL never ends with a /.
      *
-     * This is similar to getPathBase(), except that it also includes the script filename (e.g. index.php) if one exists.
+     * This is similar to getPathBase(),
+     * except that it also includes the script filename (e.g. index.php) if one exists.
      *
      * @return string
      */
@@ -96,9 +97,13 @@ class UniversalRequest extends Bridge implements IBridgeInterface
     /**
      * Returns the port on which the request is made.
      *
-     * This method can read the client port from the "X-Forwarded-Port" header when trusted proxies were set via "setTrustedProxies()".
+     * This method can read the client port from the "X-Forwarded-Port" header,
+     * when trusted proxies were set via "setTrustedProxies()".
+     *
      * The "X-Forwarded-Port" header must contain the client port.
-     * If your reverse proxy uses a different header name than "X-Forwarded-Port", configure it via "setTrustedHeaderName()" with the "client-port" key.
+     *
+     * If your reverse proxy uses a different header name than "X-Forwarded-Port",
+     * configure it via "setTrustedHeaderName()" with the "client-port" key.
      *
      * @return string
      */

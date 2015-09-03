@@ -7,25 +7,29 @@ use Doctrine\DBAL\Platforms\SQLServerPlatform;
 
 class SQLServerPlatformTest extends AbstractSQLServerPlatformTestCase
 {
+
     public function createPlatform()
     {
+
         return new SQLServerPlatform;
     }
 
     /**
-     * @group DDC-2310
+     * @group        DDC-2310
      * @dataProvider getLockHints
      */
     public function testAppendsLockHint($lockMode, $lockHint)
     {
-        $fromClause     = 'FROM users';
-        $expectedResult = $fromClause . $lockHint;
+
+        $fromClause = 'FROM users';
+        $expectedResult = $fromClause.$lockHint;
 
         $this->assertSame($expectedResult, $this->_platform->appendLockHint($fromClause, $lockMode));
     }
 
     public function getLockHints()
     {
+
         return array(
             array(null, ''),
             array(false, ''),

@@ -17,19 +17,20 @@
  */
 class Twig_Token
 {
-    const EOF_TYPE                  = -1;
-    const TEXT_TYPE                 = 0;
-    const BLOCK_START_TYPE          = 1;
-    const VAR_START_TYPE            = 2;
-    const BLOCK_END_TYPE            = 3;
-    const VAR_END_TYPE              = 4;
-    const NAME_TYPE                 = 5;
-    const NUMBER_TYPE               = 6;
-    const STRING_TYPE               = 7;
-    const OPERATOR_TYPE             = 8;
-    const PUNCTUATION_TYPE          = 9;
-    const INTERPOLATION_START_TYPE  = 10;
-    const INTERPOLATION_END_TYPE    = 11;
+
+    const EOF_TYPE = -1;
+    const TEXT_TYPE = 0;
+    const BLOCK_START_TYPE = 1;
+    const VAR_START_TYPE = 2;
+    const BLOCK_END_TYPE = 3;
+    const VAR_END_TYPE = 4;
+    const NAME_TYPE = 5;
+    const NUMBER_TYPE = 6;
+    const STRING_TYPE = 7;
+    const OPERATOR_TYPE = 8;
+    const PUNCTUATION_TYPE = 9;
+    const INTERPOLATION_START_TYPE = 10;
+    const INTERPOLATION_END_TYPE = 11;
     protected $value;
     protected $type;
     protected $lineno;
@@ -37,14 +38,15 @@ class Twig_Token
     /**
      * Constructor.
      *
-     * @param int     $type   The type of the token
-     * @param string  $value  The token value
-     * @param int     $lineno The line position in the source
+     * @param int    $type   The type of the token
+     * @param string $value  The token value
+     * @param int    $lineno The line position in the source
      */
     public function __construct($type, $value, $lineno)
     {
-        $this->type   = $type;
-        $this->value  = $value;
+
+        $this->type = $type;
+        $this->value = $value;
         $this->lineno = $lineno;
     }
 
@@ -55,7 +57,7 @@ class Twig_Token
      *
      * @return string The string representation
      */
-    public static function typeToEnglish( $type )
+    public static function typeToEnglish($type)
     {
 
         switch ($type) {
@@ -86,7 +88,7 @@ class Twig_Token
             case self::INTERPOLATION_END_TYPE:
                 return 'end of string interpolation';
             default:
-                throw new LogicException( sprintf( 'Token of type "%s" does not exist.', $type ) );
+                throw new LogicException(sprintf('Token of type "%s" does not exist.', $type));
         }
     }
 
@@ -98,19 +100,20 @@ class Twig_Token
     public function __toString()
     {
 
-        return sprintf( '%s(%s)', self::typeToString( $this->type, true ), $this->value );
+        return sprintf('%s(%s)', self::typeToString($this->type, true), $this->value);
     }
 
     /**
      * Returns the constant representation (internal) of a given type.
      *
-     * @param int     $type  The type as an integer
-     * @param bool    $short Whether to return a short representation or not
+     * @param int  $type  The type as an integer
+     * @param bool $short Whether to return a short representation or not
      *
      * @return string The string representation
      */
     public static function typeToString($type, $short = false)
     {
+
         switch ($type) {
             case self::EOF_TYPE:
                 $name = 'EOF_TYPE';
@@ -171,17 +174,17 @@ class Twig_Token
      *
      * @return bool
      */
-    public function test( $type, $values = null )
+    public function test($type, $values = null)
     {
 
-        if (null === $values && !is_int( $type )) {
+        if (null === $values && !is_int($type)) {
             $values = $type;
             $type = self::NAME_TYPE;
         }
 
         return ( $this->type === $type ) && (
             null === $values ||
-            ( is_array( $values ) && in_array( $this->value, $values ) ) ||
+            ( is_array($values) && in_array($this->value, $values) ) ||
             $this->value == $values
         );
     }

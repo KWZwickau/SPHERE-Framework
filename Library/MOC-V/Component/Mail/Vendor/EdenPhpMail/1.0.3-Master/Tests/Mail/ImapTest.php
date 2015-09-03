@@ -15,8 +15,8 @@ class Eden_Mail_Tests_Mail_ImapTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
 
-        date_default_timezone_set( 'GMT' );
-        $this->imap = eden( 'mail' )->imap(
+        date_default_timezone_set('GMT');
+        $this->imap = eden('mail')->imap(
             'imap.gmail.com',
             '[EMAIL-ADDRESS]',
             '[PASSWORD]',

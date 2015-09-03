@@ -238,14 +238,14 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @var array Containing start column and end column, empty array if option unset
      */
-    private $_columnsToRepeatAtLeft = array( '', '' );
+    private $_columnsToRepeatAtLeft = array('', '');
 
     /**
      * Rows to repeat at top
      *
      * @var array Containing start row number and end row number, empty array if option unset
      */
-    private $_rowsToRepeatAtTop = array( 0, 0 );
+    private $_rowsToRepeatAtTop = array(0, 0);
 
     /**
      * Center page horizontally
@@ -300,7 +300,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setPaperSize( $pValue = PHPExcel_Worksheet_PageSetup::PAPERSIZE_LETTER )
+    public function setPaperSize($pValue = PHPExcel_Worksheet_PageSetup::PAPERSIZE_LETTER)
     {
 
         $this->_paperSize = $pValue;
@@ -325,7 +325,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setOrientation( $pValue = PHPExcel_Worksheet_PageSetup::ORIENTATION_DEFAULT )
+    public function setOrientation($pValue = PHPExcel_Worksheet_PageSetup::ORIENTATION_DEFAULT)
     {
 
         $this->_orientation = $pValue;
@@ -355,18 +355,18 @@ class PHPExcel_Worksheet_PageSetup
      * @return PHPExcel_Worksheet_PageSetup
      * @throws    PHPExcel_Exception
      */
-    public function setScale( $pValue = 100, $pUpdate = true )
+    public function setScale($pValue = 100, $pUpdate = true)
     {
 
         // Microsoft Office Excel 2007 only allows setting a scale between 10 and 400 via the user interface,
         // but it is apparently still able to handle any scale >= 0, where 0 results in 100
-        if (( $pValue >= 0 ) || is_null( $pValue )) {
+        if (( $pValue >= 0 ) || is_null($pValue)) {
             $this->_scale = $pValue;
             if ($pUpdate) {
                 $this->_fitToPage = false;
             }
         } else {
-            throw new PHPExcel_Exception( "Scale must not be negative" );
+            throw new PHPExcel_Exception("Scale must not be negative");
         }
         return $this;
     }
@@ -389,7 +389,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setFitToPage( $pValue = true )
+    public function setFitToPage($pValue = true)
     {
 
         $this->_fitToPage = $pValue;
@@ -415,7 +415,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setFitToHeight( $pValue = 1, $pUpdate = true )
+    public function setFitToHeight($pValue = 1, $pUpdate = true)
     {
 
         $this->_fitToHeight = $pValue;
@@ -444,7 +444,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setFitToWidth( $pValue = 1, $pUpdate = true )
+    public function setFitToWidth($pValue = 1, $pUpdate = true)
     {
 
         $this->_fitToWidth = $pValue;
@@ -462,7 +462,7 @@ class PHPExcel_Worksheet_PageSetup
     public function isColumnsToRepeatAtLeftSet()
     {
 
-        if (is_array( $this->_columnsToRepeatAtLeft )) {
+        if (is_array($this->_columnsToRepeatAtLeft)) {
             if ($this->_columnsToRepeatAtLeft[0] != '' && $this->_columnsToRepeatAtLeft[1] != '') {
                 return true;
             }
@@ -489,10 +489,10 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setColumnsToRepeatAtLeft( $pValue = null )
+    public function setColumnsToRepeatAtLeft($pValue = null)
     {
 
-        if (is_array( $pValue )) {
+        if (is_array($pValue)) {
             $this->_columnsToRepeatAtLeft = $pValue;
         }
         return $this;
@@ -506,10 +506,10 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setColumnsToRepeatAtLeftByStartAndEnd( $pStart = 'A', $pEnd = 'A' )
+    public function setColumnsToRepeatAtLeftByStartAndEnd($pStart = 'A', $pEnd = 'A')
     {
 
-        $this->_columnsToRepeatAtLeft = array( $pStart, $pEnd );
+        $this->_columnsToRepeatAtLeft = array($pStart, $pEnd);
         return $this;
     }
 
@@ -521,7 +521,7 @@ class PHPExcel_Worksheet_PageSetup
     public function isRowsToRepeatAtTopSet()
     {
 
-        if (is_array( $this->_rowsToRepeatAtTop )) {
+        if (is_array($this->_rowsToRepeatAtTop)) {
             if ($this->_rowsToRepeatAtTop[0] != 0 && $this->_rowsToRepeatAtTop[1] != 0) {
                 return true;
             }
@@ -548,10 +548,10 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setRowsToRepeatAtTop( $pValue = null )
+    public function setRowsToRepeatAtTop($pValue = null)
     {
 
-        if (is_array( $pValue )) {
+        if (is_array($pValue)) {
             $this->_rowsToRepeatAtTop = $pValue;
         }
         return $this;
@@ -565,10 +565,10 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setRowsToRepeatAtTopByStartAndEnd( $pStart = 1, $pEnd = 1 )
+    public function setRowsToRepeatAtTopByStartAndEnd($pStart = 1, $pEnd = 1)
     {
 
-        $this->_rowsToRepeatAtTop = array( $pStart, $pEnd );
+        $this->_rowsToRepeatAtTop = array($pStart, $pEnd);
         return $this;
     }
 
@@ -590,7 +590,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setHorizontalCentered( $value = false )
+    public function setHorizontalCentered($value = false)
     {
 
         $this->_horizontalCentered = $value;
@@ -615,7 +615,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_PageSetup
      */
-    public function setVerticalCentered( $value = false )
+    public function setVerticalCentered($value = false)
     {
 
         $this->_verticalCentered = $value;
@@ -633,17 +633,17 @@ class PHPExcel_Worksheet_PageSetup
      * @throws    PHPExcel_Exception
      * @return    string
      */
-    public function getPrintArea( $index = 0 )
+    public function getPrintArea($index = 0)
     {
 
         if ($index == 0) {
             return $this->_printArea;
         }
-        $printAreas = explode( ',', $this->_printArea );
+        $printAreas = explode(',', $this->_printArea);
         if (isset( $printAreas[$index - 1] )) {
             return $printAreas[$index - 1];
         }
-        throw new PHPExcel_Exception( "Requested Print Area does not exist" );
+        throw new PHPExcel_Exception("Requested Print Area does not exist");
     }
 
     /**
@@ -667,49 +667,49 @@ class PHPExcel_Worksheet_PageSetup
      * @return    PHPExcel_Worksheet_PageSetup
      * @throws    PHPExcel_Exception
      */
-    public function setPrintArea( $value, $index = 0, $method = self::SETPRINTRANGE_OVERWRITE )
+    public function setPrintArea($value, $index = 0, $method = self::SETPRINTRANGE_OVERWRITE)
     {
 
-        if (strpos( $value, '!' ) !== false) {
-            throw new PHPExcel_Exception( 'Cell coordinate must not specify a worksheet.' );
-        } elseif (strpos( $value, ':' ) === false) {
-            throw new PHPExcel_Exception( 'Cell coordinate must be a range of cells.' );
-        } elseif (strpos( $value, '$' ) !== false) {
-            throw new PHPExcel_Exception( 'Cell coordinate must not be absolute.' );
+        if (strpos($value, '!') !== false) {
+            throw new PHPExcel_Exception('Cell coordinate must not specify a worksheet.');
+        } elseif (strpos($value, ':') === false) {
+            throw new PHPExcel_Exception('Cell coordinate must be a range of cells.');
+        } elseif (strpos($value, '$') !== false) {
+            throw new PHPExcel_Exception('Cell coordinate must not be absolute.');
         }
-        $value = strtoupper( $value );
+        $value = strtoupper($value);
 
         if ($method == self::SETPRINTRANGE_OVERWRITE) {
             if ($index == 0) {
                 $this->_printArea = $value;
             } else {
-                $printAreas = explode( ',', $this->_printArea );
+                $printAreas = explode(',', $this->_printArea);
                 if ($index < 0) {
-                    $index = count( $printAreas ) - abs( $index ) + 1;
+                    $index = count($printAreas) - abs($index) + 1;
                 }
-                if (( $index <= 0 ) || ( $index > count( $printAreas ) )) {
-                    throw new PHPExcel_Exception( 'Invalid index for setting print range.' );
+                if (( $index <= 0 ) || ( $index > count($printAreas) )) {
+                    throw new PHPExcel_Exception('Invalid index for setting print range.');
                 }
                 $printAreas[$index - 1] = $value;
-                $this->_printArea = implode( ',', $printAreas );
+                $this->_printArea = implode(',', $printAreas);
             }
         } elseif ($method == self::SETPRINTRANGE_INSERT) {
             if ($index == 0) {
                 $this->_printArea .= ( $this->_printArea == '' ) ? $value : ','.$value;
             } else {
-                $printAreas = explode( ',', $this->_printArea );
+                $printAreas = explode(',', $this->_printArea);
                 if ($index < 0) {
-                    $index = abs( $index ) - 1;
+                    $index = abs($index) - 1;
                 }
-                if ($index > count( $printAreas )) {
-                    throw new PHPExcel_Exception( 'Invalid index for setting print range.' );
+                if ($index > count($printAreas)) {
+                    throw new PHPExcel_Exception('Invalid index for setting print range.');
                 }
-                $printAreas = array_merge( array_slice( $printAreas, 0, $index ), array( $value ),
-                    array_slice( $printAreas, $index ) );
-                $this->_printArea = implode( ',', $printAreas );
+                $printAreas = array_merge(array_slice($printAreas, 0, $index), array($value),
+                    array_slice($printAreas, $index));
+                $this->_printArea = implode(',', $printAreas);
             }
         } else {
-            throw new PHPExcel_Exception( 'Invalid method for setting print range.' );
+            throw new PHPExcel_Exception('Invalid method for setting print range.');
         }
 
         return $this;
@@ -725,13 +725,13 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return    boolean
      */
-    public function isPrintAreaSet( $index = 0 )
+    public function isPrintAreaSet($index = 0)
     {
 
         if ($index == 0) {
-            return !is_null( $this->_printArea );
+            return !is_null($this->_printArea);
         }
-        $printAreas = explode( ',', $this->_printArea );
+        $printAreas = explode(',', $this->_printArea);
         return isset( $printAreas[$index - 1] );
     }
 
@@ -745,16 +745,16 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return    PHPExcel_Worksheet_PageSetup
      */
-    public function clearPrintArea( $index = 0 )
+    public function clearPrintArea($index = 0)
     {
 
         if ($index == 0) {
             $this->_printArea = null;
         } else {
-            $printAreas = explode( ',', $this->_printArea );
+            $printAreas = explode(',', $this->_printArea);
             if (isset( $printAreas[$index - 1] )) {
                 unset( $printAreas[$index - 1] );
-                $this->_printArea = implode( ',', $printAreas );
+                $this->_printArea = implode(',', $printAreas);
             }
         }
 
@@ -775,10 +775,10 @@ class PHPExcel_Worksheet_PageSetup
      * @return    PHPExcel_Worksheet_PageSetup
      * @throws    PHPExcel_Exception
      */
-    public function addPrintArea( $value, $index = -1 )
+    public function addPrintArea($value, $index = -1)
     {
 
-        return $this->setPrintArea( $value, $index, self::SETPRINTRANGE_INSERT );
+        return $this->setPrintArea($value, $index, self::SETPRINTRANGE_INSERT);
     }
 
     /**
@@ -814,8 +814,8 @@ class PHPExcel_Worksheet_PageSetup
         $method = self::SETPRINTRANGE_OVERWRITE
     ) {
 
-        return $this->setPrintArea( PHPExcel_Cell::stringFromColumnIndex( $column1 ).$row1.':'.PHPExcel_Cell::stringFromColumnIndex( $column2 ).$row2,
-            $index, $method );
+        return $this->setPrintArea(PHPExcel_Cell::stringFromColumnIndex($column1).$row1.':'.PHPExcel_Cell::stringFromColumnIndex($column2).$row2,
+            $index, $method);
     }
 
     /**
@@ -835,11 +835,11 @@ class PHPExcel_Worksheet_PageSetup
      * @return    PHPExcel_Worksheet_PageSetup
      * @throws    PHPExcel_Exception
      */
-    public function addPrintAreaByColumnAndRow( $column1, $row1, $column2, $row2, $index = -1 )
+    public function addPrintAreaByColumnAndRow($column1, $row1, $column2, $row2, $index = -1)
     {
 
-        return $this->setPrintArea( PHPExcel_Cell::stringFromColumnIndex( $column1 ).$row1.':'.PHPExcel_Cell::stringFromColumnIndex( $column2 ).$row2,
-            $index, self::SETPRINTRANGE_INSERT );
+        return $this->setPrintArea(PHPExcel_Cell::stringFromColumnIndex($column1).$row1.':'.PHPExcel_Cell::stringFromColumnIndex($column2).$row2,
+            $index, self::SETPRINTRANGE_INSERT);
     }
 
     /**
@@ -860,7 +860,7 @@ class PHPExcel_Worksheet_PageSetup
      *
      * @return PHPExcel_Worksheet_HeaderFooter
      */
-    public function setFirstPageNumber( $value = null )
+    public function setFirstPageNumber($value = null)
     {
 
         $this->_firstPageNumber = $value;
@@ -875,7 +875,7 @@ class PHPExcel_Worksheet_PageSetup
     public function resetFirstPageNumber()
     {
 
-        return $this->setFirstPageNumber( null );
+        return $this->setFirstPageNumber(null);
     }
 
     /**
@@ -884,9 +884,9 @@ class PHPExcel_Worksheet_PageSetup
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

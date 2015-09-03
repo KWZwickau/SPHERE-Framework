@@ -24,7 +24,7 @@ use Doctrine\ORM\Query\Lexer;
 /**
  * "LENGTH" "(" StringPrimary ")"
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Guilherme Blanco <guilhermeblanco@hotmail.com>
@@ -34,6 +34,7 @@ use Doctrine\ORM\Query\Lexer;
  */
 class LengthFunction extends FunctionNode
 {
+
     public $stringPrimary;
 
     /**
@@ -41,8 +42,9 @@ class LengthFunction extends FunctionNode
      */
     public function getSql(\Doctrine\ORM\Query\SqlWalker $sqlWalker)
     {
+
         return $sqlWalker->getConnection()->getDatabasePlatform()->getLengthExpression(
-               $sqlWalker->walkSimpleArithmeticExpression($this->stringPrimary)
+            $sqlWalker->walkSimpleArithmeticExpression($this->stringPrimary)
         );
     }
 
@@ -51,6 +53,7 @@ class LengthFunction extends FunctionNode
      */
     public function parse(\Doctrine\ORM\Query\Parser $parser)
     {
+
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

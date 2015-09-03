@@ -1,3 +1,6 @@
 {
-    "includes": ["foo.json", "bar.json"]
+    "includes": [
+        "foo.json",
+        "bar.json"
+    ]
 }

@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Annotations\Fixtures;
  */
 class ClassWithIgnoreAnnotation
 {
+
     /**
      * @IgnoreAnnotationClass
      */

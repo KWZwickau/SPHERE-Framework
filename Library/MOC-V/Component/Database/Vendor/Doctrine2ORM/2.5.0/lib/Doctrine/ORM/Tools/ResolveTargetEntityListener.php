@@ -19,11 +19,11 @@
 
 namespace Doctrine\ORM\Tools;
 
+use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
 use Doctrine\ORM\Event\OnClassMetadataNotFoundEventArgs;
-use Doctrine\ORM\Mapping\ClassMetadata;
-use Doctrine\Common\EventSubscriber;
 use Doctrine\ORM\Events;
+use Doctrine\ORM\Mapping\ClassMetadata;
 
 /**
  * ResolveTargetEntityListener
@@ -32,10 +32,11 @@ use Doctrine\ORM\Events;
  * targets.
  *
  * @author Benjamin Eberlei <kontakt@beberlei.de>
- * @since 2.2
+ * @since  2.2
  */
 class ResolveTargetEntityListener implements EventSubscriber
 {
+
     /**
      * @var array[] indexed by original entity name
      */
@@ -46,6 +47,7 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function getSubscribedEvents()
     {
+
         return array(
             Events::loadClassMetadata,
             Events::onClassMetadataNotFound
@@ -63,7 +65,8 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function addResolveTargetEntity($originalEntity, $newEntity, array $mapping)
     {
-        $mapping['targetEntity']                                   = ltrim($newEntity, "\\");
+
+        $mapping['targetEntity'] = ltrim($newEntity, "\\");
         $this->resolveTargetEntities[ltrim($originalEntity, "\\")] = $mapping;
     }
 
@@ -76,6 +79,7 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function onClassMetadataNotFound(OnClassMetadataNotFoundEventArgs $args)
     {
+
         if (array_key_exists($args->getClassName(), $this->resolveTargetEntities)) {
             $args->setFoundMetadata(
                 $args
@@ -96,11 +100,12 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     public function loadClassMetadata(LoadClassMetadataEventArgs $args)
     {
+
         /* @var $cm \Doctrine\ORM\Mapping\ClassMetadata */
         $cm = $args->getClassMetadata();
 
         foreach ($cm->associationMappings as $mapping) {
-            if (isset($this->resolveTargetEntities[$mapping['targetEntity']])) {
+            if (isset( $this->resolveTargetEntities[$mapping['targetEntity']] )) {
                 $this->remapAssociation($cm, $mapping);
             }
         }
@@ -120,11 +125,12 @@ class ResolveTargetEntityListener implements EventSubscriber
      */
     private function remapAssociation($classMetadata, $mapping)
     {
+
         $newMapping = $this->resolveTargetEntities[$mapping['targetEntity']];
         $newMapping = array_replace_recursive($mapping, $newMapping);
         $newMapping['fieldName'] = $mapping['fieldName'];
 
-        unset($classMetadata->associationMappings[$mapping['fieldName']]);
+        unset( $classMetadata->associationMappings[$mapping['fieldName']] );
 
         switch ($mapping['type']) {
             case ClassMetadata::MANY_TO_MANY:

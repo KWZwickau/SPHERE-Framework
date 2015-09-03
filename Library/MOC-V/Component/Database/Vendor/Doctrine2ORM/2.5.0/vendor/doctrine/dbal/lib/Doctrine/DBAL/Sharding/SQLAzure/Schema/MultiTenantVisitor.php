@@ -19,13 +19,13 @@
 
 namespace Doctrine\DBAL\Sharding\SQLAzure\Schema;
 
-use Doctrine\DBAL\Schema\Visitor\Visitor;
-use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Sequence;
+use Doctrine\DBAL\Schema\Table;
+use Doctrine\DBAL\Schema\Visitor\Visitor;
 
 /**
  * Converts a single tenant schema into a multi-tenant schema for SQL Azure
@@ -50,6 +50,7 @@ use Doctrine\DBAL\Schema\Index;
  */
 class MultiTenantVisitor implements Visitor
 {
+
     /**
      * @var array
      */
@@ -78,8 +79,12 @@ class MultiTenantVisitor implements Visitor
      * @param string      $tenantColumnName
      * @param string|null $distributionName
      */
-    public function __construct(array $excludedTables = array(), $tenantColumnName = 'tenant_id', $distributionName = null)
-    {
+    public function __construct(
+        array $excludedTables = array(),
+        $tenantColumnName = 'tenant_id',
+        $distributionName = null
+    ) {
+
         $this->excludedTables = $excludedTables;
         $this->tenantColumnName = $tenantColumnName;
         $this->distributionName = $distributionName ?: $tenantColumnName;
@@ -90,12 +95,13 @@ class MultiTenantVisitor implements Visitor
      */
     public function acceptTable(Table $table)
     {
+
         if (in_array($table->getName(), $this->excludedTables)) {
             return;
         }
 
         $table->addColumn($this->tenantColumnName, $this->tenantColumnType, array(
-            'default' => "federation_filtering_value('". $this->distributionName ."')",
+            'default' => "federation_filtering_value('".$this->distributionName."')",
         ));
 
         $clusteredIndex = $this->getClusteredIndex($table);
@@ -122,14 +128,15 @@ class MultiTenantVisitor implements Visitor
      */
     private function getClusteredIndex($table)
     {
+
         foreach ($table->getIndexes() as $index) {
-            if ($index->isPrimary() && ! $index->hasFlag('nonclustered')) {
+            if ($index->isPrimary() && !$index->hasFlag('nonclustered')) {
                 return $index;
             } elseif ($index->hasFlag('clustered')) {
                 return $index;
             }
         }
-        throw new \RuntimeException("No clustered index found on table " . $table->getName());
+        throw new \RuntimeException("No clustered index found on table ".$table->getName());
     }
 
     /**

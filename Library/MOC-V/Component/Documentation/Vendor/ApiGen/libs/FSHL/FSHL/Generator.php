@@ -244,7 +244,7 @@ class Generator
      *
      * @param \FSHL\Lexer $lexer
      */
-    public function __construct( Lexer $lexer )
+    public function __construct(Lexer $lexer)
     {
 
         $this->lexer = $lexer;
@@ -263,20 +263,20 @@ class Generator
         $this->optimize();
 
         $constructor = '';
-        $constructor .= $this->getVarSource( '$this->language', $this->lexer->getLanguage() );
-        $constructor .= $this->getVarSource( '$this->trans', $this->trans );
-        $constructor .= $this->getVarSource( '$this->initialState', $this->states[$this->lexer->getInitialState()] );
-        $constructor .= $this->getVarSource( '$this->returnState', $this->states[self::STATE_RETURN] );
-        $constructor .= $this->getVarSource( '$this->quitState', $this->states[self::STATE_QUIT] );
-        $constructor .= $this->getVarSource( '$this->flags', $this->flags );
-        $constructor .= $this->getVarSource( '$this->data', $this->data );
-        $constructor .= $this->getVarSource( '$this->classes', $this->classes );
-        $constructor .= $this->getVarSource( '$this->keywords', $this->lexer->getKeywords() );
+        $constructor .= $this->getVarSource('$this->language', $this->lexer->getLanguage());
+        $constructor .= $this->getVarSource('$this->trans', $this->trans);
+        $constructor .= $this->getVarSource('$this->initialState', $this->states[$this->lexer->getInitialState()]);
+        $constructor .= $this->getVarSource('$this->returnState', $this->states[self::STATE_RETURN]);
+        $constructor .= $this->getVarSource('$this->quitState', $this->states[self::STATE_QUIT]);
+        $constructor .= $this->getVarSource('$this->flags', $this->flags);
+        $constructor .= $this->getVarSource('$this->data', $this->data);
+        $constructor .= $this->getVarSource('$this->classes', $this->classes);
+        $constructor .= $this->getVarSource('$this->keywords', $this->lexer->getKeywords());
 
         $functions = '';
         foreach ($this->delimiters as $state => $delimiter) {
             if (null !== $delimiter) {
-                $functions .= $this->generateState( $state );
+                $functions .= $this->generateState($state);
             }
         }
 
@@ -400,7 +400,7 @@ SOURCE;
     {
 
         $i = 0;
-        foreach (array_keys( $this->lexer->getStates() ) as $stateName) {
+        foreach (array_keys($this->lexer->getStates()) as $stateName) {
             if (self::STATE_QUIT === $stateName) {
                 continue;
             }
@@ -417,16 +417,16 @@ SOURCE;
             $this->flags[$stateId] = $state[self::STATE_INDEX_FLAGS];
             $this->data[$stateId] = $state[self::STATE_INDEX_DATA];
 
-            if (is_array( $state[self::STATE_INDEX_DIAGRAM] )) {
+            if (is_array($state[self::STATE_INDEX_DIAGRAM])) {
                 $i = 0;
                 foreach ($state[self::STATE_INDEX_DIAGRAM] as $delimiter => $trans) {
                     $transName = $trans[self::STATE_DIAGRAM_INDEX_STATE];
                     if (self::STATE_SELF === $transName) {
-                        $transName = array_search( $stateId, $this->states );
+                        $transName = array_search($stateId, $this->states);
                     }
                     if (!isset( $this->states[$transName] )) {
-                        throw new \RuntimeException( sprintf( 'Unknown state in transition %s [%s] => %s', $stateName,
-                            $delimiter, $transName ) );
+                        throw new \RuntimeException(sprintf('Unknown state in transition %s [%s] => %s', $stateName,
+                            $delimiter, $transName));
                     }
                     $this->delimiters[$stateId][$i] = $delimiter;
                     $trans[self::STATE_DIAGRAM_INDEX_STATE] = $this->states[$transName];
@@ -440,7 +440,7 @@ SOURCE;
         }
 
         if (!isset( $this->states[$this->lexer->getInitialState()] )) {
-            throw new \RuntimeException( sprintf( 'Unknown initial state "%s"', $this->lexer->getInitialState() ) );
+            throw new \RuntimeException(sprintf('Unknown initial state "%s"', $this->lexer->getInitialState()));
         }
 
         return $this;
@@ -454,10 +454,10 @@ SOURCE;
      *
      * @return string
      */
-    private function getVarSource( $name, $value )
+    private function getVarSource($name, $value)
     {
 
-        return sprintf( "\t\t%s = %s;\n", $name, $this->getVarValueSource( $value ) );
+        return sprintf("\t\t%s = %s;\n", $name, $this->getVarValueSource($value));
     }
 
     /**
@@ -468,32 +468,32 @@ SOURCE;
      *
      * @return string
      */
-    private function getVarValueSource( $value, $level = 0 )
+    private function getVarValueSource($value, $level = 0)
     {
 
-        if (is_array( $value )) {
+        if (is_array($value)) {
             $tmp = '';
             $line = 0;
             $total = 0;
             foreach ($value as $k => $v) {
                 if ($line > 25) {
-                    $tmp .= ",\n\t\t".str_repeat( "\t", $level );
+                    $tmp .= ",\n\t\t".str_repeat("\t", $level);
                     $line = 0;
                 } elseif (0 !== $total) {
                     $tmp .= ', ';
                 }
-                $tmp .= $this->getVarValueSource( $k, $level + 1 ).' => '.$this->getVarValueSource( $v, $level + 1 );
+                $tmp .= $this->getVarValueSource($k, $level + 1).' => '.$this->getVarValueSource($v, $level + 1);
 
                 $line++;
                 $total++;
             }
-            return "array(\n\t\t\t".str_repeat( "\t", $level ).$tmp."\n".str_repeat( "\t", $level )."\t\t)";
-        } elseif (is_string( $value ) && preg_match( '~[\\t\\n\\r]~', $value )) {
-            $export = var_export( $value, true );
-            $export = str_replace( array( "\t", "\n", "\r" ), array( '\t', '\n', '\r' ), $export );
-            return '"'.substr( $export, 1, -1 ).'"';
+            return "array(\n\t\t\t".str_repeat("\t", $level).$tmp."\n".str_repeat("\t", $level)."\t\t)";
+        } elseif (is_string($value) && preg_match('~[\\t\\n\\r]~', $value)) {
+            $export = var_export($value, true);
+            $export = str_replace(array("\t", "\n", "\r"), array('\t', '\n', '\r'), $export);
+            return '"'.substr($export, 1, -1).'"';
         } else {
-            return var_export( $value, true );
+            return var_export($value, true);
         }
     }
 
@@ -504,7 +504,7 @@ SOURCE;
      *
      * @return string
      */
-    private function generateState( $state )
+    private function generateState($state)
     {
 
         // Delimiter => Condition
@@ -528,7 +528,7 @@ SOURCE;
             '!DOTNUM' => 'preg_match(\'~^(?:[^\\.]|\\.\\\\D)~\', $part, $matches)'
         );
 
-        $allDelimiters = array_merge( $commonDelimiters, $this->lexer->getDelimiters() );
+        $allDelimiters = array_merge($commonDelimiters, $this->lexer->getDelimiters());
 
         $conditionsSource = '';
         $delimiters = array();
@@ -539,7 +539,7 @@ SOURCE;
 			return array($no, \$letter, \$buffer);
 CONDITION;
             } else {
-                if (isset( $allDelimiters[$delimiter] ) && 0 === strpos( $allDelimiters[$delimiter], 'preg_match' )) {
+                if (isset( $allDelimiters[$delimiter] ) && 0 === strpos($allDelimiters[$delimiter], 'preg_match')) {
                     $delimiterSource = '$matches[0]';
                     $condition = $allDelimiters[$delimiter];
                 } else {
@@ -549,11 +549,11 @@ CONDITION;
 
                     $delimiters[$no] = $delimiter;
 
-                    $delimiterSource = sprintf( '$delimiters[%d]', $no );
-                    if (1 === strlen( $delimiter )) {
-                        $condition = sprintf( '$delimiters[%d] === $letter', $no );
+                    $delimiterSource = sprintf('$delimiters[%d]', $no);
+                    if (1 === strlen($delimiter)) {
+                        $condition = sprintf('$delimiters[%d] === $letter', $no);
                     } else {
-                        $condition = sprintf( '0 === strpos($part, $delimiters[%d])', $no );
+                        $condition = sprintf('0 === strpos($part, $delimiters[%d])', $no);
                     }
                 }
 
@@ -568,8 +568,8 @@ CONDITION;
             $conditionsSource .= $conditionSource;
         }
 
-        $partSource = preg_match( '~\\$part~', $conditionsSource ) ? 'substr($text, $textPos, 10)' : '';
-        if (preg_match( '~\\$letter~', $conditionsSource )) {
+        $partSource = preg_match('~\\$part~', $conditionsSource) ? 'substr($text, $textPos, 10)' : '';
+        if (preg_match('~\\$letter~', $conditionsSource)) {
             $letterSource = '$text[$textPos]';
             $bufferSource = '$letter';
         } else {
@@ -579,7 +579,7 @@ CONDITION;
 
         $source = '
 	/**
-	 * Finds a delimiter for state '.array_search( $state, $this->states ).'.
+	 * Finds a delimiter for state '.array_search($state, $this->states).'.
 	 *
 	 * @param string $text
 	 * @param string $textLength
@@ -588,13 +588,13 @@ CONDITION;
 	 */
 	public function findDelimiter'.$state.'($text, $textLength, $textPos)
 	{
-		'.( !empty( $delimiters ) ? sprintf( 'static $delimiters = %s;',
-                $this->getVarValueSource( $delimiters ) ) : '' ).'
+		'.( !empty( $delimiters ) ? sprintf('static $delimiters = %s;',
+                $this->getVarValueSource($delimiters)) : '' ).'
 
 		$buffer = false;
 		while ($textPos < $textLength) {
-			'.( !empty( $partSource ) ? sprintf( '$part = %s;', $partSource ) : '' ).'
-			'.( !empty( $letterSource ) ? sprintf( '$letter = %s;', $letterSource ) : '' ).'
+			'.( !empty( $partSource ) ? sprintf('$part = %s;', $partSource) : '' ).'
+			'.( !empty( $letterSource ) ? sprintf('$letter = %s;', $letterSource) : '' ).'
 '.$conditionsSource.'
 			$buffer .= '.$bufferSource.';
 			$textPos++;
@@ -603,7 +603,7 @@ CONDITION;
 	}
 ';
         // Removes traling whitespaces and unnecessary empty lines
-        $source = preg_replace( '~\n{3,}~', "\n\n", preg_replace( '~\t+\n~', "\n", $source ) );
+        $source = preg_replace('~\n{3,}~', "\n\n", preg_replace('~\t+\n~', "\n", $source));
 
         return $source;
     }
@@ -618,8 +618,8 @@ CONDITION;
     {
 
         $file = __DIR__.'/Lexer/Cache/'.$this->lexerName.'.php';
-        if (false === @file_put_contents( $file, $this->getSource() )) {
-            throw new \RuntimeException( sprintf( 'Cannot save source to "%s"', $file ) );
+        if (false === @file_put_contents($file, $this->getSource())) {
+            throw new \RuntimeException(sprintf('Cannot save source to "%s"', $file));
         }
         require_once $file;
         return $this;

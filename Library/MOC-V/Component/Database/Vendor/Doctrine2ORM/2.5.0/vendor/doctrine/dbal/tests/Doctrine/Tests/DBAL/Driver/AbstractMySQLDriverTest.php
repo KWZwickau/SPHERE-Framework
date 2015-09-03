@@ -8,12 +8,14 @@ use Doctrine\DBAL\Schema\MySqlSchemaManager;
 
 class AbstractMySQLDriverTest extends AbstractDriverTest
 {
+
     public function testReturnsDatabaseName()
     {
+
         parent::testReturnsDatabaseName();
 
         $database = 'bloo';
-        $params   = array(
+        $params = array(
             'user'     => 'foo',
             'password' => 'bar',
         );
@@ -39,21 +41,25 @@ class AbstractMySQLDriverTest extends AbstractDriverTest
 
     protected function createDriver()
     {
+
         return $this->getMockForAbstractClass('Doctrine\DBAL\Driver\AbstractMySQLDriver');
     }
 
     protected function createPlatform()
     {
+
         return new MySqlPlatform();
     }
 
     protected function createSchemaManager(Connection $connection)
     {
+
         return new MySqlSchemaManager($connection);
     }
 
     protected function getDatabasePlatformsForVersions()
     {
+
         return array(
             array('5.6.9', 'Doctrine\DBAL\Platforms\MySqlPlatform'),
             array('5.7', 'Doctrine\DBAL\Platforms\MySQL57Platform'),
@@ -68,8 +74,9 @@ class AbstractMySQLDriverTest extends AbstractDriverTest
 
     protected function getExceptionConversionData()
     {
+
         return array(
-            self::EXCEPTION_CONNECTION => array(
+            self::EXCEPTION_CONNECTION                    => array(
                 array('1044', null, null),
                 array('1045', null, null),
                 array('1046', null, null),
@@ -88,12 +95,12 @@ class AbstractMySQLDriverTest extends AbstractDriverTest
                 array('1451', null, null),
                 array('1452', null, null),
             ),
-            self::EXCEPTION_INVALID_FIELD_NAME => array(
+            self::EXCEPTION_INVALID_FIELD_NAME            => array(
                 array('1054', null, null),
                 array('1166', null, null),
                 array('1611', null, null),
             ),
-            self::EXCEPTION_NON_UNIQUE_FIELD_NAME => array(
+            self::EXCEPTION_NON_UNIQUE_FIELD_NAME         => array(
                 array('1052', null, null),
                 array('1060', null, null),
                 array('1110', null, null),
@@ -107,7 +114,7 @@ class AbstractMySQLDriverTest extends AbstractDriverTest
                 array('1263', null, null),
                 array('1566', null, null),
             ),
-            self::EXCEPTION_SYNTAX_ERROR => array(
+            self::EXCEPTION_SYNTAX_ERROR                  => array(
                 array('1064', null, null),
                 array('1149', null, null),
                 array('1287', null, null),
@@ -121,14 +128,14 @@ class AbstractMySQLDriverTest extends AbstractDriverTest
                 array('1554', null, null),
                 array('1626', null, null),
             ),
-            self::EXCEPTION_TABLE_EXISTS => array(
+            self::EXCEPTION_TABLE_EXISTS                  => array(
                 array('1050', null, null),
             ),
-            self::EXCEPTION_TABLE_NOT_FOUND => array(
+            self::EXCEPTION_TABLE_NOT_FOUND               => array(
                 array('1051', null, null),
                 array('1146', null, null),
             ),
-            self::EXCEPTION_UNIQUE_CONSTRAINT_VIOLATION => array(
+            self::EXCEPTION_UNIQUE_CONSTRAINT_VIOLATION   => array(
                 array('1062', null, null),
                 array('1557', null, null),
                 array('1569', null, null),

@@ -15,10 +15,10 @@
 class Table_Row_Positioner extends Positioner
 {
 
-    function __construct( Frame_Decorator $frame )
+    function __construct(Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     //........................................................................
@@ -30,12 +30,12 @@ class Table_Row_Positioner extends Positioner
         $p = $this->_frame->get_prev_sibling();
 
         if ($p) {
-            $y = $p->get_position( "y" ) + $p->get_margin_height();
+            $y = $p->get_position("y") + $p->get_margin_height();
         } else {
             $y = $cb["y"];
         }
 
-        $this->_frame->set_position( $cb["x"], $y );
+        $this->_frame->set_position($cb["x"], $y);
 
     }
 }

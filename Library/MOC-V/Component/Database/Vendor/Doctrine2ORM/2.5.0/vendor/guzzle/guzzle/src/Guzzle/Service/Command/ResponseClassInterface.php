@@ -7,6 +7,7 @@ namespace Guzzle\Service\Command;
  */
 interface ResponseClassInterface
 {
+
     /**
      * Create a response model object from a completed command
      *

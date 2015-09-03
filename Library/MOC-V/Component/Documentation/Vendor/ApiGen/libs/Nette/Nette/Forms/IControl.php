@@ -35,7 +35,7 @@ interface IControl
      *
      * @return void
      */
-    function setValue( $value );
+    function setValue($value);
 
     /**
      * Returns control's value.
@@ -71,6 +71,6 @@ interface IControl
      *
      * @return string
      */
-    function translate( $s, $count = null );
+    function translate($s, $count = null);
 
 }

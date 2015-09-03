@@ -1,8 +1,11 @@
 <?php
+
 class Framework_MockObject_Matcher_ConsecutiveParametersTest extends PHPUnit_Framework_TestCase
 {
+
     public function testIntegration()
     {
+
         $mock = $this->getMock('stdClass', array('foo'));
         $mock
             ->expects($this->any())
@@ -17,6 +20,7 @@ class Framework_MockObject_Matcher_ConsecutiveParametersTest extends PHPUnit_Fra
 
     public function testIntegrationWithLessAssertionsThenMethodCalls()
     {
+
         $mock = $this->getMock('stdClass', array('foo'));
         $mock
             ->expects($this->any())
@@ -30,6 +34,7 @@ class Framework_MockObject_Matcher_ConsecutiveParametersTest extends PHPUnit_Fra
 
     public function testIntegrationExpectingException()
     {
+
         $mock = $this->getMock('stdClass', array('foo'));
         $mock
             ->expects($this->any())

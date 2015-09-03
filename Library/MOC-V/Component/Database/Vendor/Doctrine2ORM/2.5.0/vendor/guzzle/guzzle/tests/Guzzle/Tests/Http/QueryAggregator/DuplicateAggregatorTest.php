@@ -2,13 +2,15 @@
 
 namespace Guzzle\Tests\Http;
 
-use Guzzle\Http\QueryString;
 use Guzzle\Http\QueryAggregator\DuplicateAggregator as Ag;
+use Guzzle\Http\QueryString;
 
 class DuplicateAggregatorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testAggregates()
     {
+
         $query = new QueryString();
         $a = new Ag();
         $key = 'facet 1';
@@ -19,6 +21,7 @@ class DuplicateAggregatorTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEncodes()
     {
+
         $query = new QueryString();
         $query->useUrlEncoding(false);
         $a = new Ag();

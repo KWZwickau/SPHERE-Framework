@@ -27,12 +27,13 @@ abstract class SessionListener implements EventSubscriberInterface
     {
 
         return array(
-            KernelEvents::REQUEST => array( 'onKernelRequest', 128 ),
+            KernelEvents::REQUEST => array('onKernelRequest', 128),
         );
     }
 
     public function onKernelRequest(GetResponseEvent $event)
     {
+
         if (!$event->isMasterRequest()) {
             return;
         }

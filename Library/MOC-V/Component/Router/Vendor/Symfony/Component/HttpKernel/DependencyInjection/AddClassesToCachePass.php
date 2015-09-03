@@ -22,10 +22,12 @@ use Symfony\Component\HttpKernel\Kernel;
  */
 class AddClassesToCachePass implements CompilerPassInterface
 {
+
     private $kernel;
 
     public function __construct(Kernel $kernel)
     {
+
         $this->kernel = $kernel;
     }
 
@@ -34,6 +36,7 @@ class AddClassesToCachePass implements CompilerPassInterface
      */
     public function process(ContainerBuilder $container)
     {
+
         $classes = array();
         foreach ($container->getExtensions() as $extension) {
             if ($extension instanceof Extension) {

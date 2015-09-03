@@ -10,11 +10,13 @@ use Guzzle\Parser\Message\MessageParser;
  */
 class MessageParserTest extends MessageParserProvider
 {
+
     /**
      * @dataProvider requestProvider
      */
     public function testParsesRequests($message, $parts)
     {
+
         $parser = new MessageParser();
         $this->compareRequestResults($parts, $parser->parseRequest($message));
     }
@@ -24,12 +26,14 @@ class MessageParserTest extends MessageParserProvider
      */
     public function testParsesResponses($message, $parts)
     {
+
         $parser = new MessageParser();
         $this->compareResponseResults($parts, $parser->parseResponse($message));
     }
 
     public function testParsesRequestsWithMissingProtocol()
     {
+
         $parser = new MessageParser();
         $parts = $parser->parseRequest("GET /\r\nHost: Foo.com\r\n\r\n");
         $this->assertEquals('GET', $parts['method']);
@@ -39,6 +43,7 @@ class MessageParserTest extends MessageParserProvider
 
     public function testParsesRequestsWithMissingVersion()
     {
+
         $parser = new MessageParser();
         $parts = $parser->parseRequest("GET / HTTP\r\nHost: Foo.com\r\n\r\n");
         $this->assertEquals('GET', $parts['method']);
@@ -48,6 +53,7 @@ class MessageParserTest extends MessageParserProvider
 
     public function testParsesResponsesWithMissingReasonPhrase()
     {
+
         $parser = new MessageParser();
         $parts = $parser->parseResponse("HTTP/1.1 200\r\n\r\n");
         $this->assertEquals('200', $parts['code']);

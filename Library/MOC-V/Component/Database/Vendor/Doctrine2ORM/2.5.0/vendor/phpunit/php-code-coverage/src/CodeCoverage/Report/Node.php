@@ -15,6 +15,7 @@
  */
 abstract class PHP_CodeCoverage_Report_Node implements Countable
 {
+
     /**
      * @var string
      */
@@ -48,11 +49,12 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
      */
     public function __construct($name, PHP_CodeCoverage_Report_Node $parent = null)
     {
+
         if (substr($name, -1) == '/') {
             $name = substr($name, 0, -1);
         }
 
-        $this->name   = $name;
+        $this->name = $name;
         $this->parent = $parent;
     }
 
@@ -61,6 +63,7 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -69,6 +72,7 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
      */
     public function getId()
     {
+
         if ($this->id === null) {
             $parent = $this->getParent();
 
@@ -80,7 +84,7 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
                 if ($parentId == 'index') {
                     $this->id = str_replace(':', '_', $this->name);
                 } else {
-                    $this->id = $parentId . '/' . $this->name;
+                    $this->id = $parentId.'/'.$this->name;
                 }
             }
         }
@@ -89,15 +93,25 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
     }
 
     /**
+     * @return PHP_CodeCoverage_Report_Node
+     */
+    public function getParent()
+    {
+
+        return $this->parent;
+    }
+
+    /**
      * @return string
      */
     public function getPath()
     {
+
         if ($this->path === null) {
             if ($this->parent === null || $this->parent->getPath() === null || $this->parent->getPath() === false) {
                 $this->path = $this->name;
             } else {
-                $this->path = $this->parent->getPath() . '/' . $this->name;
+                $this->path = $this->parent->getPath().'/'.$this->name;
             }
         }
 
@@ -109,6 +123,7 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
      */
     public function getPathAsArray()
     {
+
         if ($this->pathArray === null) {
             if ($this->parent === null) {
                 $this->pathArray = array();
@@ -123,21 +138,15 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
     }
 
     /**
-     * @return PHP_CodeCoverage_Report_Node
-     */
-    public function getParent()
-    {
-        return $this->parent;
-    }
-
-    /**
      * Returns the percentage of classes that has been tested.
      *
      * @param  bool $asString
+     *
      * @return int
      */
     public function getTestedClassesPercent($asString = true)
     {
+
         return PHP_CodeCoverage_Util::percent(
             $this->getNumTestedClasses(),
             $this->getNumClasses(),
@@ -146,13 +155,29 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
     }
 
     /**
+     * Returns the number of tested classes.
+     *
+     * @return int
+     */
+    abstract public function getNumTestedClasses();
+
+    /**
+     * Returns the number of classes.
+     *
+     * @return int
+     */
+    abstract public function getNumClasses();
+
+    /**
      * Returns the percentage of traits that has been tested.
      *
      * @param  bool $asString
+     *
      * @return int
      */
     public function getTestedTraitsPercent($asString = true)
     {
+
         return PHP_CodeCoverage_Util::percent(
             $this->getNumTestedTraits(),
             $this->getNumTraits(),
@@ -161,60 +186,35 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
     }
 
     /**
+     * Returns the number of tested traits.
+     *
+     * @return int
+     */
+    abstract public function getNumTestedTraits();
+
+    /**
+     * Returns the number of traits.
+     *
+     * @return int
+     */
+    abstract public function getNumTraits();
+
+    /**
      * Returns the percentage of traits that has been tested.
      *
      * @param  bool $asString
+     *
      * @return int
      * @since  Method available since Release 1.2.0
      */
     public function getTestedClassesAndTraitsPercent($asString = true)
     {
+
         return PHP_CodeCoverage_Util::percent(
             $this->getNumTestedClassesAndTraits(),
             $this->getNumClassesAndTraits(),
             $asString
         );
-    }
-
-    /**
-     * Returns the percentage of methods that has been tested.
-     *
-     * @param  bool $asString
-     * @return int
-     */
-    public function getTestedMethodsPercent($asString = true)
-    {
-        return PHP_CodeCoverage_Util::percent(
-            $this->getNumTestedMethods(),
-            $this->getNumMethods(),
-            $asString
-        );
-    }
-
-    /**
-     * Returns the percentage of executed lines.
-     *
-     * @param  bool $asString
-     * @return int
-     */
-    public function getLineExecutedPercent($asString = true)
-    {
-        return PHP_CodeCoverage_Util::percent(
-            $this->getNumExecutedLines(),
-            $this->getNumExecutableLines(),
-            $asString
-        );
-    }
-
-    /**
-     * Returns the number of classes and traits.
-     *
-     * @return int
-     * @since  Method available since Release 1.2.0
-     */
-    public function getNumClassesAndTraits()
-    {
-        return $this->getNumClasses() + $this->getNumTraits();
     }
 
     /**
@@ -225,8 +225,83 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
      */
     public function getNumTestedClassesAndTraits()
     {
+
         return $this->getNumTestedClasses() + $this->getNumTestedTraits();
     }
+
+    /**
+     * Returns the number of classes and traits.
+     *
+     * @return int
+     * @since  Method available since Release 1.2.0
+     */
+    public function getNumClassesAndTraits()
+    {
+
+        return $this->getNumClasses() + $this->getNumTraits();
+    }
+
+    /**
+     * Returns the percentage of methods that has been tested.
+     *
+     * @param  bool $asString
+     *
+     * @return int
+     */
+    public function getTestedMethodsPercent($asString = true)
+    {
+
+        return PHP_CodeCoverage_Util::percent(
+            $this->getNumTestedMethods(),
+            $this->getNumMethods(),
+            $asString
+        );
+    }
+
+    /**
+     * Returns the number of tested methods.
+     *
+     * @return int
+     */
+    abstract public function getNumTestedMethods();
+
+    /**
+     * Returns the number of methods.
+     *
+     * @return int
+     */
+    abstract public function getNumMethods();
+
+    /**
+     * Returns the percentage of executed lines.
+     *
+     * @param  bool $asString
+     *
+     * @return int
+     */
+    public function getLineExecutedPercent($asString = true)
+    {
+
+        return PHP_CodeCoverage_Util::percent(
+            $this->getNumExecutedLines(),
+            $this->getNumExecutableLines(),
+            $asString
+        );
+    }
+
+    /**
+     * Returns the number of executed lines.
+     *
+     * @return int
+     */
+    abstract public function getNumExecutedLines();
+
+    /**
+     * Returns the number of executable lines.
+     *
+     * @return int
+     */
+    abstract public function getNumExecutableLines();
 
     /**
      * Returns the classes and traits of this node.
@@ -236,6 +311,7 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
      */
     public function getClassesAndTraits()
     {
+
         return array_merge($this->getClasses(), $this->getTraits());
     }
 
@@ -266,62 +342,6 @@ abstract class PHP_CodeCoverage_Report_Node implements Countable
      * @return array
      */
     abstract public function getLinesOfCode();
-
-    /**
-     * Returns the number of executable lines.
-     *
-     * @return int
-     */
-    abstract public function getNumExecutableLines();
-
-    /**
-     * Returns the number of executed lines.
-     *
-     * @return int
-     */
-    abstract public function getNumExecutedLines();
-
-    /**
-     * Returns the number of classes.
-     *
-     * @return int
-     */
-    abstract public function getNumClasses();
-
-    /**
-     * Returns the number of tested classes.
-     *
-     * @return int
-     */
-    abstract public function getNumTestedClasses();
-
-    /**
-     * Returns the number of traits.
-     *
-     * @return int
-     */
-    abstract public function getNumTraits();
-
-    /**
-     * Returns the number of tested traits.
-     *
-     * @return int
-     */
-    abstract public function getNumTestedTraits();
-
-    /**
-     * Returns the number of methods.
-     *
-     * @return int
-     */
-    abstract public function getNumMethods();
-
-    /**
-     * Returns the number of tested methods.
-     *
-     * @return int
-     */
-    abstract public function getNumTestedMethods();
 
     /**
      * Returns the number of functions.

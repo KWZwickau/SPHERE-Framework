@@ -63,10 +63,10 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      * @param string                  $name   Extension name
      * @param \TokenReflection\Broker $broker Reflection broker
      */
-    public function __construct( $name, Broker $broker )
+    public function __construct($name, Broker $broker)
     {
 
-        parent::__construct( $name );
+        parent::__construct($name);
         $this->broker = $broker;
     }
 
@@ -79,18 +79,18 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      * @return \TokenReflection\Php\ReflectionExtension
      * @throws \TokenReflection\Exception\RuntimeException If an invalid internal reflection object was provided.
      */
-    public static function create( Reflector $internalReflection, Broker $broker )
+    public static function create(Reflector $internalReflection, Broker $broker)
     {
 
         static $cache = array();
 
         if (!$internalReflection instanceof InternalReflectionExtension) {
-            throw new Exception\RuntimeException( 'Invalid reflection instance provided, ReflectionExtension expected.',
-                Exception\RuntimeException::INVALID_ARGUMENT );
+            throw new Exception\RuntimeException('Invalid reflection instance provided, ReflectionExtension expected.',
+                Exception\RuntimeException::INVALID_ARGUMENT);
         }
 
         if (!isset( $cache[$internalReflection->getName()] )) {
-            $cache[$internalReflection->getName()] = new self( $internalReflection->getName(), $broker );
+            $cache[$internalReflection->getName()] = new self($internalReflection->getName(), $broker);
         }
 
         return $cache[$internalReflection->getName()];
@@ -147,7 +147,7 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      *
      * @return \TokenReflection\IReflectionClass|null
      */
-    public function getClass( $name )
+    public function getClass($name)
     {
 
         $classes = $this->getClasses();
@@ -164,10 +164,10 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
 
         if (null === $this->classes) {
             $broker = $this->broker;
-            $this->classes = array_map( function ( $className ) use ( $broker ) {
+            $this->classes = array_map(function ($className) use ($broker) {
 
-                return $broker->getClass( $className );
-            }, $this->getClassNames() );
+                return $broker->getClass($className);
+            }, $this->getClassNames());
         }
 
         return $this->classes;
@@ -180,7 +180,7 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      *
      * @return mixed|false
      */
-    public function getConstant( $name )
+    public function getConstant($name)
     {
 
         $constants = $this->getConstants();
@@ -194,7 +194,7 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      *
      * @return \TokenReflection\IReflectionConstant
      */
-    public function getConstantReflection( $name )
+    public function getConstantReflection($name)
     {
 
         $constants = $this->getConstantReflections();
@@ -211,10 +211,10 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
 
         if (null === $this->constants) {
             $broker = $this->broker;
-            $this->constants = array_map( function ( $constantName ) use ( $broker ) {
+            $this->constants = array_map(function ($constantName) use ($broker) {
 
-                return $broker->getConstant( $constantName );
-            }, array_keys( $this->getConstants() ) );
+                return $broker->getConstant($constantName);
+            }, array_keys($this->getConstants()));
         }
 
         return $this->constants;
@@ -227,7 +227,7 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      *
      * @return \TokenReflection\IReflectionFunction
      */
-    public function getFunction( $name )
+    public function getFunction($name)
     {
 
         $functions = $this->getFunctions();
@@ -244,10 +244,10 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
 
         if (null === $this->functions) {
             $broker = $this->broker;
-            $this->classes = array_map( function ( $functionName ) use ( $broker ) {
+            $this->classes = array_map(function ($functionName) use ($broker) {
 
-                return $broker->getFunction( $functionName );
-            }, array_keys( parent::getFunctions() ) );
+                return $broker->getFunction($functionName);
+            }, array_keys(parent::getFunctions()));
         }
 
         return $this->functions;
@@ -261,7 +261,7 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
     public function getFunctionNames()
     {
 
-        return array_keys( $this->getFunctions() );
+        return array_keys($this->getFunctions());
     }
 
     /**
@@ -293,10 +293,10 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return TokenReflection\ReflectionElement::get( $this, $key );
+        return TokenReflection\ReflectionElement::get($this, $key);
     }
 
     /**
@@ -306,9 +306,9 @@ class ReflectionExtension extends InternalReflectionExtension implements IReflec
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return TokenReflection\ReflectionElement::exists( $this, $key );
+        return TokenReflection\ReflectionElement::exists($this, $key);
     }
 }

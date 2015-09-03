@@ -7,8 +7,32 @@ namespace Doctrine\Tests\DBAL\Functional\Ticket;
  */
 class DBAL202Test extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
+    public function testStatementRollback()
+    {
+
+        $stmt = $this->_conn->prepare('INSERT INTO DBAL202 VALUES (8)');
+        $this->_conn->beginTransaction();
+        $stmt->execute();
+        $this->_conn->rollback();
+
+        $this->assertEquals(0, $this->_conn->query('SELECT COUNT(1) FROM DBAL202')->fetchColumn());
+    }
+
+    public function testStatementCommit()
+    {
+
+        $stmt = $this->_conn->prepare('INSERT INTO DBAL202 VALUES (8)');
+        $this->_conn->beginTransaction();
+        $stmt->execute();
+        $this->_conn->commit();
+
+        $this->assertEquals(1, $this->_conn->query('SELECT COUNT(1) FROM DBAL202')->fetchColumn());
+    }
+
     protected function setUp()
     {
+
         parent::setUp();
 
         if ($this->_conn->getDatabasePlatform()->getName() != 'oracle') {
@@ -24,25 +48,5 @@ class DBAL202Test extends \Doctrine\Tests\DbalFunctionalTestCase
 
             $this->_conn->getSchemaManager()->createTable($table);
         }
-    }
-
-    public function testStatementRollback()
-    {
-        $stmt = $this->_conn->prepare('INSERT INTO DBAL202 VALUES (8)');
-        $this->_conn->beginTransaction();
-        $stmt->execute();
-        $this->_conn->rollback();
-
-        $this->assertEquals(0, $this->_conn->query('SELECT COUNT(1) FROM DBAL202')->fetchColumn());
-    }
-
-    public function testStatementCommit()
-    {
-        $stmt = $this->_conn->prepare('INSERT INTO DBAL202 VALUES (8)');
-        $this->_conn->beginTransaction();
-        $stmt->execute();
-        $this->_conn->commit();
-
-        $this->assertEquals(1, $this->_conn->query('SELECT COUNT(1) FROM DBAL202')->fetchColumn());
     }
 }

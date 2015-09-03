@@ -3,25 +3,26 @@
 namespace Guzzle\Tests\Log;
 
 use Guzzle\Http\Client;
-use Guzzle\Http\Curl\CurlHandle;
-use Guzzle\Http\Message\EntityEnclosingRequest;
 use Guzzle\Http\EntityBody;
+use Guzzle\Http\Message\EntityEnclosingRequest;
 use Guzzle\Http\Message\Response;
+use Guzzle\Log\ClosureLogAdapter;
 use Guzzle\Log\MessageFormatter;
 use Guzzle\Plugin\Log\LogPlugin;
-use Guzzle\Log\ClosureLogAdapter;
 
 /**
  * @covers Guzzle\Log\MessageFormatter
  */
 class MessageFormatterTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $request;
     protected $response;
     protected $handle;
 
     public function setUp()
     {
+
         $this->request = new EntityEnclosingRequest('POST', 'http://foo.com?q=test', array(
             'X-Foo'         => 'bar',
             'Authorization' => 'Baz'
@@ -59,6 +60,7 @@ class MessageFormatterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function logProvider()
     {
+
         return array(
             // Uses the cache for the second time
             array('{method} - {method}', 'POST - POST'),
@@ -89,25 +91,29 @@ class MessageFormatterTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testFormatsMessages($template, $output)
     {
+
         $formatter = new MessageFormatter($template);
         $this->assertEquals($output, $formatter->format($this->request, $this->response, $this->handle));
     }
 
     public function testFormatsRequestsAndResponses()
     {
+
         $formatter = new MessageFormatter();
         $formatter->setTemplate('{request}{response}');
-        $this->assertEquals($this->request . $this->response, $formatter->format($this->request, $this->response));
+        $this->assertEquals($this->request.$this->response, $formatter->format($this->request, $this->response));
     }
 
     public function testAddsTimestamp()
     {
+
         $formatter = new MessageFormatter('{ts}');
         $this->assertNotEmpty($formatter->format($this->request, $this->response));
     }
 
     public function testUsesResponseWhenNoHandleAndGettingCurlInformation()
     {
+
         $formatter = new MessageFormatter('{connect_time}/{total_time}');
         $response = $this->getMockBuilder('Guzzle\Http\Message\Response')
             ->setConstructorArgs(array(200))
@@ -124,15 +130,20 @@ class MessageFormatterTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsesEmptyStringWhenNoHandleAndNoResponse()
     {
+
         $formatter = new MessageFormatter('{connect_time}/{total_time}');
         $this->assertEquals('/', $formatter->format($this->request));
     }
 
     public function testInjectsTotalTime()
     {
+
         $out = '';
         $formatter = new MessageFormatter('{connect_time}/{total_time}');
-        $adapter = new ClosureLogAdapter(function ($m) use (&$out) { $out .= $m; });
+        $adapter = new ClosureLogAdapter(function ($m) use (&$out) {
+
+            $out .= $m;
+        });
         $log = new LogPlugin($adapter, $formatter);
         $this->getServer()->enqueue("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nHI");
         $client = new Client($this->getServer()->getUrl());

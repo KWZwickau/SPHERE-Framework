@@ -15,5 +15,6 @@ use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class FooBarBundle extends Bundle
 {
+
     // We need a full namespaced bundle instance to test isClassInActiveBundle
 }

@@ -4,12 +4,14 @@ namespace Doctrine\Tests\DBAL\Functional\Schema;
 
 use Doctrine\DBAL\Schema\Table;
 
-require_once __DIR__ . '/../../../TestInit.php';
+require_once __DIR__.'/../../../TestInit.php';
 
 class DrizzleSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
+
     public function testListTableWithBinary()
     {
+
         $tableName = 'test_binary_table';
 
         $table = new Table($tableName);
@@ -31,6 +33,7 @@ class DrizzleSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testColumnCollation()
     {
+
         $table = new Table('test_collation');
         $table->addOption('collate', $collation = 'utf8_unicode_ci');
         $table->addColumn('id', 'integer');

@@ -31,6 +31,7 @@ namespace Doctrine\DBAL\Driver;
  */
 interface DriverException
 {
+
     /**
      * Returns the driver specific error code if available.
      *

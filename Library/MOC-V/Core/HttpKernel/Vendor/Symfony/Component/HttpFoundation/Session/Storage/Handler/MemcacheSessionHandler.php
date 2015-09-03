@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpFoundation\Session\Storage\Handler;
  */
 class MemcacheSessionHandler implements \SessionHandlerInterface
 {
+
     /**
      * @var \Memcache Memcache driver.
      */
@@ -47,6 +48,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     public function __construct(\Memcache $memcache, array $options = array())
     {
+
         if ($diff = array_diff(array_keys($options), array('prefix', 'expiretime'))) {
             throw new \InvalidArgumentException(sprintf(
                 'The following options are not supported "%s"', implode(', ', $diff)
@@ -54,8 +56,8 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
         }
 
         $this->memcache = $memcache;
-        $this->ttl = isset($options['expiretime']) ? (int) $options['expiretime'] : 86400;
-        $this->prefix = isset($options['prefix']) ? $options['prefix'] : 'sf2s';
+        $this->ttl = isset( $options['expiretime'] ) ? (int)$options['expiretime'] : 86400;
+        $this->prefix = isset( $options['prefix'] ) ? $options['prefix'] : 'sf2s';
     }
 
     /**
@@ -63,6 +65,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     public function open($savePath, $sessionName)
     {
+
         return true;
     }
 
@@ -71,6 +74,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     public function close()
     {
+
         return $this->memcache->close();
     }
 
@@ -79,6 +83,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     public function read($sessionId)
     {
+
         return $this->memcache->get($this->prefix.$sessionId) ?: '';
     }
 
@@ -87,6 +92,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     public function write($sessionId, $data)
     {
+
         return $this->memcache->set($this->prefix.$sessionId, $data, 0, time() + $this->ttl);
     }
 
@@ -95,6 +101,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     public function destroy($sessionId)
     {
+
         return $this->memcache->delete($this->prefix.$sessionId);
     }
 
@@ -103,6 +110,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     public function gc($maxlifetime)
     {
+
         // not required here because memcache will auto expire the records anyhow.
         return true;
     }
@@ -114,6 +122,7 @@ class MemcacheSessionHandler implements \SessionHandlerInterface
      */
     protected function getMemcache()
     {
+
         return $this->memcache;
     }
 }

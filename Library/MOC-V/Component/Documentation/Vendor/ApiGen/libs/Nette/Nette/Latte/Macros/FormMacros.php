@@ -30,18 +30,18 @@ use Nette\Latte\PhpWriter;
 class FormMacros extends MacroSet
 {
 
-    public static function install( Latte\Compiler $compiler )
+    public static function install(Latte\Compiler $compiler)
     {
 
-        $me = new static( $compiler );
-        $me->addMacro( 'form',
+        $me = new static($compiler);
+        $me->addMacro('form',
             'Nette\Latte\Macros\FormMacros::renderFormBegin($form = $_form = (is_object(%node.word) ? %node.word : $_control[%node.word]), %node.array)',
-            'Nette\Latte\Macros\FormMacros::renderFormEnd($_form)' );
-        $me->addMacro( 'label', array( $me, 'macroLabel' ), '?></label><?php' );
-        $me->addMacro( 'input', 'echo $_form[%node.word]->getControl()->addAttributes(%node.array)', null,
-            array( $me, 'macroAttrInput' ) );
-        $me->addMacro( 'formContainer', '$_formStack[] = $_form; $formContainer = $_form = $_form[%node.word]',
-            '$_form = array_pop($_formStack)' );
+            'Nette\Latte\Macros\FormMacros::renderFormEnd($_form)');
+        $me->addMacro('label', array($me, 'macroLabel'), '?></label><?php');
+        $me->addMacro('input', 'echo $_form[%node.word]->getControl()->addAttributes(%node.array)', null,
+            array($me, 'macroAttrInput'));
+        $me->addMacro('formContainer', '$_formStack[] = $_form; $formContainer = $_form = $_form[%node.word]',
+            '$_form = array_pop($_formStack)');
     }
 
 
@@ -53,16 +53,16 @@ class FormMacros extends MacroSet
      *
      * @return void
      */
-    public static function renderFormBegin( Form $form, array $attrs )
+    public static function renderFormBegin(Form $form, array $attrs)
     {
 
         $el = $form->getElementPrototype();
         $el->action = (string)$el->action;
         $el = clone $el;
-        if (strcasecmp( $form->getMethod(), 'get' ) === 0) {
-            list( $el->action ) = explode( '?', $el->action, 2 );
+        if (strcasecmp($form->getMethod(), 'get') === 0) {
+            list( $el->action ) = explode('?', $el->action, 2);
         }
-        echo $el->addAttributes( $attrs )->startTag();
+        echo $el->addAttributes($attrs)->startTag();
     }
 
     /**
@@ -70,31 +70,31 @@ class FormMacros extends MacroSet
      *
      * @return string
      */
-    public static function renderFormEnd( Form $form )
+    public static function renderFormEnd(Form $form)
     {
 
         $s = '';
-        if (strcasecmp( $form->getMethod(), 'get' ) === 0) {
-            $url = explode( '?', $form->getElementPrototype()->action, 2 );
+        if (strcasecmp($form->getMethod(), 'get') === 0) {
+            $url = explode('?', $form->getElementPrototype()->action, 2);
             if (isset( $url[1] )) {
-                foreach (preg_split( '#[;&]#', $url[1] ) as $param) {
-                    $parts = explode( '=', $param, 2 );
-                    $name = urldecode( $parts[0] );
+                foreach (preg_split('#[;&]#', $url[1]) as $param) {
+                    $parts = explode('=', $param, 2);
+                    $name = urldecode($parts[0]);
                     if (!isset( $form[$name] )) {
-                        $s .= Nette\Utils\Html::el( 'input',
-                            array( 'type' => 'hidden', 'name' => $name, 'value' => urldecode( $parts[1] ) ) );
+                        $s .= Nette\Utils\Html::el('input',
+                            array('type' => 'hidden', 'name' => $name, 'value' => urldecode($parts[1])));
                     }
                 }
             }
         }
 
-        foreach ($form->getComponents( true, 'Nette\Forms\Controls\HiddenField' ) as $control) {
-            if (!$control->getOption( 'rendered' )) {
+        foreach ($form->getComponents(true, 'Nette\Forms\Controls\HiddenField') as $control) {
+            if (!$control->getOption('rendered')) {
                 $s .= $control->getControl();
             }
         }
 
-        if (iterator_count( $form->getComponents( true, 'Nette\Forms\Controls\TextInput' ) ) < 2) {
+        if (iterator_count($form->getComponents(true, 'Nette\Forms\Controls\TextInput')) < 2) {
             $s .= '<!--[if IE]><input type=IEbug disabled style="display:none"><![endif]-->';
         }
 
@@ -108,29 +108,29 @@ class FormMacros extends MacroSet
     /**
      * {label ...} and optionally {/label}
      */
-    public function macroLabel( MacroNode $node, PhpWriter $writer )
+    public function macroLabel(MacroNode $node, PhpWriter $writer)
     {
 
         $cmd = 'if ($_label = $_form[%node.word]->getLabel()) echo $_label->addAttributes(%node.array)';
-        if ($node->isEmpty = ( substr( $node->args, -1 ) === '/' )) {
-            $node->setArgs( substr( $node->args, 0, -1 ) );
-            return $writer->write( $cmd );
+        if ($node->isEmpty = ( substr($node->args, -1) === '/' )) {
+            $node->setArgs(substr($node->args, 0, -1));
+            return $writer->write($cmd);
         } else {
-            return $writer->write( $cmd.'->startTag()' );
+            return $writer->write($cmd.'->startTag()');
         }
     }
 
     /**
      * n:input
      */
-    public function macroAttrInput( MacroNode $node, PhpWriter $writer )
+    public function macroAttrInput(MacroNode $node, PhpWriter $writer)
     {
 
         if ($node->htmlNode->attrs) {
-            $reset = array_fill_keys( array_keys( $node->htmlNode->attrs ), null );
-            return $writer->write( 'echo $_form[%node.word]->getControl()->addAttributes(%var)->attributes()', $reset );
+            $reset = array_fill_keys(array_keys($node->htmlNode->attrs), null);
+            return $writer->write('echo $_form[%node.word]->getControl()->addAttributes(%var)->attributes()', $reset);
         }
-        return $writer->write( 'echo $_form[%node.word]->getControl()->attributes()' );
+        return $writer->write('echo $_form[%node.word]->getControl()->attributes()');
     }
 
 }

@@ -1,6 +1,8 @@
 <?php
+
 class ExceptionTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * Exception message
      *
@@ -60,7 +62,7 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException Class
      * @expectedExceptionMessage Message
-     * @expectedExceptionCode 1234
+     * @expectedExceptionCode    1234
      */
     public function testSix()
     {
@@ -69,7 +71,7 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException Class
      * @expectedExceptionMessage Message
-     * @expectedExceptionCode ExceptionCode
+     * @expectedExceptionCode    ExceptionCode
      */
     public function testSeven()
     {
@@ -78,7 +80,7 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException Class
      * @expectedExceptionMessage Message
-     * @expectedExceptionCode 0
+     * @expectedExceptionCode    0
      */
     public function testEight()
     {
@@ -87,7 +89,7 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
     /**
      * @expectedException Class
      * @expectedExceptionMessage ExceptionTest::ERROR_MESSAGE
-     * @expectedExceptionCode ExceptionTest::ERROR_CODE
+     * @expectedExceptionCode    ExceptionTest::ERROR_CODE
      */
     public function testNine()
     {
@@ -100,7 +102,7 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Class
-     * @expectedExceptionCode ExceptionTest::UNKNOWN_CODE_CONSTANT
+     * @expectedExceptionCode    ExceptionTest::UNKNOWN_CODE_CONSTANT
      * @expectedExceptionMessage ExceptionTest::UNKNOWN_MESSAGE_CONSTANT
      */
     public function testUnknownConstants()
@@ -109,7 +111,7 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Class
-     * @expectedExceptionCode 1234
+     * @expectedExceptionCode    1234
      * @expectedExceptionMessage Message
      * @expectedExceptionMessageRegExp #regex#
      */
@@ -119,8 +121,8 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Class
-     * @expectedExceptionCode 1234
-     * @expectedExceptionMessage Message
+     * @expectedExceptionCode          1234
+     * @expectedExceptionMessage       Message
      * @expectedExceptionMessageRegExp ExceptionTest::ERROR_MESSAGE_REGEX
      */
     public function testWithRegexMessageFromClassConstant()
@@ -129,8 +131,8 @@ class ExceptionTest extends PHPUnit_Framework_TestCase
 
     /**
      * @expectedException Class
-     * @expectedExceptionCode 1234
-     * @expectedExceptionMessage Message
+     * @expectedExceptionCode          1234
+     * @expectedExceptionMessage       Message
      * @expectedExceptionMessageRegExp ExceptionTest::UNKNOWN_MESSAGE_REGEX_CONSTANT
      */
     public function testWithUnknowRegexMessageFromClassConstant()

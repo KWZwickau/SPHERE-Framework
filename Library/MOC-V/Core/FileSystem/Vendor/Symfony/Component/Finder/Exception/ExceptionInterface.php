@@ -16,6 +16,7 @@ namespace Symfony\Component\Finder\Exception;
  */
 interface ExceptionInterface
 {
+
     /**
      * @return \Symfony\Component\Finder\Adapter\AdapterInterface
      */

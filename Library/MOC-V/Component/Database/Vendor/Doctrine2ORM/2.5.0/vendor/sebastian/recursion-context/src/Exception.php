@@ -14,4 +14,5 @@ namespace SebastianBergmann\RecursionContext;
  */
 interface Exception
 {
+
 }

@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Proxy;
  */
 class MagicSetClass
 {
+
     /**
      * @var string
      */
@@ -30,6 +31,7 @@ class MagicSetClass
      */
     public function __set($name, $value)
     {
+
         if ($name === 'test') {
             $this->testAttribute = $value;
         }

@@ -16,12 +16,12 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function loadFile( FileParameter $Location );
+    public function loadFile(FileParameter $Location);
 
     /**
      * @param null|FileParameter $Location
      *
      * @return IBridgeInterface
      */
-    public function saveFile( FileParameter $Location = null );
+    public function saveFile(FileParameter $Location = null);
 }

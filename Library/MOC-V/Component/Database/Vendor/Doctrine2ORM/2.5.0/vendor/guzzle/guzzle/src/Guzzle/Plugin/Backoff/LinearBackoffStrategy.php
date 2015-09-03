@@ -2,9 +2,9 @@
 
 namespace Guzzle\Plugin\Backoff;
 
+use Guzzle\Http\Exception\HttpException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
-use Guzzle\Http\Exception\HttpException;
 
 /**
  * Implements a linear backoff retry strategy.
@@ -13,6 +13,7 @@ use Guzzle\Http\Exception\HttpException;
  */
 class LinearBackoffStrategy extends AbstractBackoffStrategy
 {
+
     /** @var int Amount of time to progress each delay */
     protected $step;
 
@@ -21,16 +22,19 @@ class LinearBackoffStrategy extends AbstractBackoffStrategy
      */
     public function __construct($step = 1)
     {
+
         $this->step = $step;
     }
 
     public function makesDecision()
     {
+
         return false;
     }
 
     protected function getDelay($retries, RequestInterface $request, Response $response = null, HttpException $e = null)
     {
+
         return $retries * $this->step;
     }
 }

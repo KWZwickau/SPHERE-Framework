@@ -9,24 +9,34 @@ namespace Guzzle\Service\Command;
  */
 class OperationCommand extends AbstractCommand
 {
+
     /** @var RequestSerializerInterface */
     protected $requestSerializer;
 
     /** @var ResponseParserInterface Response parser */
     protected $responseParser;
 
-    /**
-     * Set the response parser used with the command
-     *
-     * @param ResponseParserInterface $parser Response parser
-     *
-     * @return self
-     */
-    public function setResponseParser(ResponseParserInterface $parser)
+    protected function build()
     {
-        $this->responseParser = $parser;
 
-        return $this;
+        // Prepare and serialize the request
+        $this->request = $this->getRequestSerializer()->prepare($this);
+    }
+
+    /**
+     * Get the request serializer used with the command
+     *
+     * @return RequestSerializerInterface
+     */
+    public function getRequestSerializer()
+    {
+
+        if (!$this->requestSerializer) {
+            // Use the default request serializer if none was found
+            $this->requestSerializer = DefaultRequestSerializer::getInstance();
+        }
+
+        return $this->requestSerializer;
     }
 
     /**
@@ -38,24 +48,19 @@ class OperationCommand extends AbstractCommand
      */
     public function setRequestSerializer(RequestSerializerInterface $serializer)
     {
+
         $this->requestSerializer = $serializer;
 
         return $this;
     }
 
-    /**
-     * Get the request serializer used with the command
-     *
-     * @return RequestSerializerInterface
-     */
-    public function getRequestSerializer()
+    protected function process()
     {
-        if (!$this->requestSerializer) {
-            // Use the default request serializer if none was found
-            $this->requestSerializer = DefaultRequestSerializer::getInstance();
-        }
 
-        return $this->requestSerializer;
+        // Do not process the response if 'command.response_processing' is set to 'raw'
+        $this->result = $this[self::RESPONSE_PROCESSING] == self::TYPE_RAW
+            ? $this->request->getResponse()
+            : $this->getResponseParser()->parse($this);
     }
 
     /**
@@ -65,6 +70,7 @@ class OperationCommand extends AbstractCommand
      */
     public function getResponseParser()
     {
+
         if (!$this->responseParser) {
             // Use the default response parser if none was found
             $this->responseParser = OperationResponseParser::getInstance();
@@ -73,17 +79,18 @@ class OperationCommand extends AbstractCommand
         return $this->responseParser;
     }
 
-    protected function build()
+    /**
+     * Set the response parser used with the command
+     *
+     * @param ResponseParserInterface $parser Response parser
+     *
+     * @return self
+     */
+    public function setResponseParser(ResponseParserInterface $parser)
     {
-        // Prepare and serialize the request
-        $this->request = $this->getRequestSerializer()->prepare($this);
-    }
 
-    protected function process()
-    {
-        // Do not process the response if 'command.response_processing' is set to 'raw'
-        $this->result = $this[self::RESPONSE_PROCESSING] == self::TYPE_RAW
-            ? $this->request->getResponse()
-            : $this->getResponseParser()->parse($this);
+        $this->responseParser = $parser;
+
+        return $this;
     }
 }

@@ -17,14 +17,14 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 
         try {
             throw new DocumentException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Document\Exception\DocumentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Document\Exception\DocumentException', $E);
         }
 
         try {
             throw new ComponentException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Document\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Document\Component\Exception\ComponentException', $E);
         }
     }
 }

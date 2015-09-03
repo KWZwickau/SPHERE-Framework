@@ -19,20 +19,32 @@
 
 namespace Doctrine\Tests\Common\Proxy;
 
-use PHPUnit_Framework_TestCase;
 use Doctrine\Common\Proxy\Autoloader;
+use PHPUnit_Framework_TestCase;
 
 /**
  * @group DDC-1698
  */
 class AutoloaderTest extends PHPUnit_Framework_TestCase
 {
+
     public static function dataResolveFile()
     {
+
         return array(
-            array('/tmp', 'MyProxy', 'MyProxy\__CG__\RealClass', '/tmp' . DIRECTORY_SEPARATOR . '__CG__RealClass.php'),
-            array('/tmp', 'MyProxy\Subdir', 'MyProxy\Subdir\__CG__\RealClass', '/tmp' . DIRECTORY_SEPARATOR . '__CG__RealClass.php'),
-            array('/tmp', 'MyProxy', 'MyProxy\__CG__\Other\RealClass', '/tmp' . DIRECTORY_SEPARATOR . '__CG__OtherRealClass.php'),
+            array('/tmp', 'MyProxy', 'MyProxy\__CG__\RealClass', '/tmp'.DIRECTORY_SEPARATOR.'__CG__RealClass.php'),
+            array(
+                '/tmp',
+                'MyProxy\Subdir',
+                'MyProxy\Subdir\__CG__\RealClass',
+                '/tmp'.DIRECTORY_SEPARATOR.'__CG__RealClass.php'
+            ),
+            array(
+                '/tmp',
+                'MyProxy',
+                'MyProxy\__CG__\Other\RealClass',
+                '/tmp'.DIRECTORY_SEPARATOR.'__CG__OtherRealClass.php'
+            ),
         );
     }
 
@@ -41,26 +53,32 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase
      */
     public function testResolveFile($proxyDir, $proxyNamespace, $className, $expectedProxyFile)
     {
+
         $actualProxyFile = Autoloader::resolveFile($proxyDir, $proxyNamespace, $className);
         $this->assertEquals($expectedProxyFile, $actualProxyFile);
     }
 
     public function testAutoload()
     {
-        if (file_exists(sys_get_temp_dir() ."/AutoloaderTestClass.php")) {
-            unlink(sys_get_temp_dir() ."/AutoloaderTestClass.php");
+
+        if (file_exists(sys_get_temp_dir()."/AutoloaderTestClass.php")) {
+            unlink(sys_get_temp_dir()."/AutoloaderTestClass.php");
         }
 
-        $autoloader = Autoloader::register(sys_get_temp_dir(), 'ProxyAutoloaderTest', function($proxyDir, $proxyNamespace, $className) {
-            file_put_contents(sys_get_temp_dir() . "/AutoloaderTestClass.php", "<?php namespace ProxyAutoloaderTest; class AutoloaderTestClass {} ");
-        });
+        $autoloader = Autoloader::register(sys_get_temp_dir(), 'ProxyAutoloaderTest',
+            function ($proxyDir, $proxyNamespace, $className) {
+
+                file_put_contents(sys_get_temp_dir()."/AutoloaderTestClass.php",
+                    "<?php namespace ProxyAutoloaderTest; class AutoloaderTestClass {} ");
+            });
 
         $this->assertTrue(class_exists('ProxyAutoloaderTest\AutoloaderTestClass', true));
-        unlink(sys_get_temp_dir() ."/AutoloaderTestClass.php");
+        unlink(sys_get_temp_dir()."/AutoloaderTestClass.php");
     }
 
     public function testRegisterWithInvalidCallback()
     {
+
         $this->setExpectedException(
             'Doctrine\Common\Proxy\Exception\InvalidArgumentException',
             'Invalid \$notFoundCallback given: must be a callable, "stdClass" given'

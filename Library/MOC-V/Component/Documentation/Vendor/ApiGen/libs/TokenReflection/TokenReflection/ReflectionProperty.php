@@ -96,20 +96,20 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      * @return string|null
      * @throws \TokenReflection\Exception\RuntimeException If requested parameter doesn't exist.
      */
-    public static function export( Broker $broker, $class, $property, $return = false )
+    public static function export(Broker $broker, $class, $property, $return = false)
     {
 
-        $className = is_object( $class ) ? get_class( $class ) : $class;
+        $className = is_object($class) ? get_class($class) : $class;
         $propertyName = $property;
 
-        $class = $broker->getClass( $className );
+        $class = $broker->getClass($className);
         if ($class instanceof Invalid\ReflectionClass) {
-            throw new Exception\RuntimeException( 'Class is invalid.', Exception\RuntimeException::UNSUPPORTED );
+            throw new Exception\RuntimeException('Class is invalid.', Exception\RuntimeException::UNSUPPORTED);
         } elseif ($class instanceof Dummy\ReflectionClass) {
-            throw new Exception\RuntimeException( sprintf( 'Class %s does not exist.', $className ),
-                Exception\RuntimeException::DOES_NOT_EXIST );
+            throw new Exception\RuntimeException(sprintf('Class %s does not exist.', $className),
+                Exception\RuntimeException::DOES_NOT_EXIST);
         }
-        $property = $class->getProperty( $propertyName );
+        $property = $class->getProperty($propertyName);
 
         if ($return) {
             return $property->__toString();
@@ -200,9 +200,9 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
     public function getDefaultValue()
     {
 
-        if (is_array( $this->defaultValueDefinition )) {
-            $this->defaultValue = Resolver::getValueDefinition( $this->defaultValueDefinition, $this );
-            $this->defaultValueDefinition = Resolver::getSourceCode( $this->defaultValueDefinition );
+        if (is_array($this->defaultValueDefinition)) {
+            $this->defaultValue = Resolver::getValueDefinition($this->defaultValueDefinition, $this);
+            $this->defaultValueDefinition = Resolver::getSourceCode($this->defaultValueDefinition);
         }
 
         return $this->defaultValue;
@@ -213,11 +213,11 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      *
      * @param mixed $value
      */
-    public function setDefaultValue( $value )
+    public function setDefaultValue($value)
     {
 
         $this->defaultValue = $value;
-        $this->defaultValueDefinition = var_export( $value, true );
+        $this->defaultValueDefinition = var_export($value, true);
     }
 
     /**
@@ -228,7 +228,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
     public function getDefaultValueDefinition()
     {
 
-        return is_array( $this->defaultValueDefinition ) ? Resolver::getSourceCode( $this->defaultValueDefinition ) : $this->defaultValueDefinition;
+        return is_array($this->defaultValueDefinition) ? Resolver::getSourceCode($this->defaultValueDefinition) : $this->defaultValueDefinition;
     }
 
     /**
@@ -239,30 +239,30 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      * @return mixed
      * @throws \TokenReflection\Exception\RuntimeException If it is not possible to return the property value.
      */
-    public function getValue( $object )
+    public function getValue($object)
     {
 
         $declaringClass = $this->getDeclaringClass();
-        if (!$declaringClass->isInstance( $object )) {
-            throw new Exception\RuntimeException( 'The given class is not an instance or subclass of the current class.',
-                Exception\RuntimeException::INVALID_ARGUMENT, $this );
+        if (!$declaringClass->isInstance($object)) {
+            throw new Exception\RuntimeException('The given class is not an instance or subclass of the current class.',
+                Exception\RuntimeException::INVALID_ARGUMENT, $this);
         }
 
         if ($this->isPublic()) {
             return $object->{$this->name};
         } elseif ($this->isAccessible()) {
-            $refClass = new InternalReflectionClass( $object );
-            $refProperty = $refClass->getProperty( $this->name );
+            $refClass = new InternalReflectionClass($object);
+            $refProperty = $refClass->getProperty($this->name);
 
-            $refProperty->setAccessible( true );
-            $value = $refProperty->getValue( $object );
-            $refProperty->setAccessible( false );
+            $refProperty->setAccessible(true);
+            $value = $refProperty->getValue($object);
+            $refProperty->setAccessible(false);
 
             return $value;
         }
 
-        throw new Exception\RuntimeException( 'Only public and accessible properties can return their values.',
-            Exception\RuntimeException::NOT_ACCESSBILE, $this );
+        throw new Exception\RuntimeException('Only public and accessible properties can return their values.',
+            Exception\RuntimeException::NOT_ACCESSBILE, $this);
     }
 
     /**
@@ -273,7 +273,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
     public function getDeclaringClass()
     {
 
-        return $this->getBroker()->getClass( $this->declaringClassName );
+        return $this->getBroker()->getClass($this->declaringClassName);
     }
 
     /**
@@ -292,7 +292,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      *
      * @param boolean $accessible If the property should be accessible.
      */
-    public function setAccessible( $accessible )
+    public function setAccessible($accessible)
     {
 
         $this->accessible = (bool)$accessible;
@@ -323,8 +323,8 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
             $declaringClass = $this->getDeclaringClass();
             $declaringClassParent = $declaringClass->getParentClass();
 
-            if ($declaringClassParent && $declaringClassParent->hasProperty( $this->name )) {
-                $property = $declaringClassParent->getProperty( $this->name );
+            if ($declaringClassParent && $declaringClassParent->hasProperty($this->name)) {
+                $property = $declaringClassParent->getProperty($this->name);
                 if (( $this->isPublic() && !$property->isPublic() ) || ( $this->isProtected() && $property->isPrivate() )) {
                     $this->modifiers |= self::ACCESS_LEVEL_CHANGED;
                 }
@@ -344,31 +344,31 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      *
      * @throws \TokenReflection\Exception\RuntimeException If it is not possible to set the property value.
      */
-    public function setValue( $object, $value )
+    public function setValue($object, $value)
     {
 
         $declaringClass = $this->getDeclaringClass();
-        if (!$declaringClass->isInstance( $object )) {
-            throw new Exception\RuntimeException( 'Instance of or subclass expected.',
-                Exception\RuntimeException::INVALID_ARGUMENT, $this );
+        if (!$declaringClass->isInstance($object)) {
+            throw new Exception\RuntimeException('Instance of or subclass expected.',
+                Exception\RuntimeException::INVALID_ARGUMENT, $this);
         }
 
         if ($this->isPublic()) {
             $object->{$this->name} = $value;
         } elseif ($this->isAccessible()) {
-            $refClass = new InternalReflectionClass( $object );
-            $refProperty = $refClass->getProperty( $this->name );
+            $refClass = new InternalReflectionClass($object);
+            $refProperty = $refClass->getProperty($this->name);
 
-            $refProperty->setAccessible( true );
-            $refProperty->setValue( $object, $value );
-            $refProperty->setAccessible( false );
+            $refProperty->setAccessible(true);
+            $refProperty->setValue($object, $value);
+            $refProperty->setAccessible(false);
 
             if ($this->isStatic()) {
-                $this->setDefaultValue( $value );
+                $this->setDefaultValue($value);
             }
         } else {
-            throw new Exception\RuntimeException( 'Only public and accessible properties can be set.',
-                Exception\RuntimeException::NOT_ACCESSBILE, $this );
+            throw new Exception\RuntimeException('Only public and accessible properties can be set.',
+                Exception\RuntimeException::NOT_ACCESSBILE, $this);
         }
     }
 
@@ -390,7 +390,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      *
      * @return \TokenReflection\ReflectionProperty
      */
-    public function alias( ReflectionClass $parent )
+    public function alias(ReflectionClass $parent)
     {
 
         $property = clone $this;
@@ -406,7 +406,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
     public function getDeclaringTrait()
     {
 
-        return null === $this->declaringTraitName ? null : $this->getBroker()->getClass( $this->declaringTraitName );
+        return null === $this->declaringTraitName ? null : $this->getBroker()->getClass($this->declaringTraitName);
     }
 
     /**
@@ -428,7 +428,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
     public function getPrettyName()
     {
 
-        return sprintf( '%s::$%s', $this->declaringClassName ?: $this->declaringTraitName, $this->name );
+        return sprintf('%s::$%s', $this->declaringClassName ?: $this->declaringTraitName, $this->name);
     }
 
     /**
@@ -440,20 +440,20 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      * @return \TokenReflection\ReflectionElement
      * @throws \TokenReflection\Exception\Parse If an invalid parent reflection object was provided.
      */
-    protected function processParent( IReflection $parent, Stream $tokenStream )
+    protected function processParent(IReflection $parent, Stream $tokenStream)
     {
 
         if (!$parent instanceof ReflectionClass) {
-            throw new Exception\ParseException( $this, $tokenStream,
+            throw new Exception\ParseException($this, $tokenStream,
                 'The parent object has to be an instance of TokenReflection\ReflectionClass.',
-                Exception\ParseException::INVALID_PARENT );
+                Exception\ParseException::INVALID_PARENT);
         }
 
         $this->declaringClassName = $parent->getName();
         if ($parent->isTrait()) {
             $this->declaringTraitName = $parent->getName();
         }
-        return parent::processParent( $parent, $tokenStream );
+        return parent::processParent($parent, $tokenStream);
     }
 
     /**
@@ -464,17 +464,17 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      *
      * @return \TokenReflection\ReflectionProperty
      */
-    protected function parse( Stream $tokenStream, IReflection $parent )
+    protected function parse(Stream $tokenStream, IReflection $parent)
     {
 
-        $this->parseModifiers( $tokenStream, $parent );
+        $this->parseModifiers($tokenStream, $parent);
 
         if (false === $this->docComment->getDocComment()) {
-            $this->parseDocComment( $tokenStream, $parent );
+            $this->parseDocComment($tokenStream, $parent);
         }
 
-        return $this->parseName( $tokenStream )
-            ->parseDefaultValue( $tokenStream );
+        return $this->parseName($tokenStream)
+            ->parseDefaultValue($tokenStream);
     }
 
     /**
@@ -486,7 +486,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      * @return \TokenReflection\ReflectionClass
      * @throws \TokenReflection\Exception\ParseException If the modifiers value cannot be determined.
      */
-    private function parseModifiers( Stream $tokenStream, ReflectionClass $class )
+    private function parseModifiers(Stream $tokenStream, ReflectionClass $class)
     {
 
         while (true) {
@@ -508,7 +508,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
                     break 2;
             }
 
-            $tokenStream->skipWhitespaces( true );
+            $tokenStream->skipWhitespaces(true);
         }
 
         if (InternalReflectionProperty::IS_STATIC === $this->modifiers) {
@@ -516,12 +516,12 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
         } elseif (0 === $this->modifiers) {
             $parentProperties = $class->getOwnProperties();
             if (empty( $parentProperties )) {
-                throw new Exception\ParseException( $this, $tokenStream,
+                throw new Exception\ParseException($this, $tokenStream,
                     'No access level defined and no previous defining class property present.',
-                    Exception\ParseException::LOGICAL_ERROR );
+                    Exception\ParseException::LOGICAL_ERROR);
             }
 
-            $sibling = array_pop( $parentProperties );
+            $sibling = array_pop($parentProperties);
             if ($sibling->isPublic()) {
                 $this->modifiers = InternalReflectionProperty::IS_PUBLIC;
             } elseif ($sibling->isPrivate()) {
@@ -529,9 +529,9 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
             } elseif ($sibling->isProtected()) {
                 $this->modifiers = InternalReflectionProperty::IS_PROTECTED;
             } else {
-                throw new Exception\ParseException( $this, $tokenStream,
-                    sprintf( 'Property sibling "%s" has no access level defined.', $sibling->getName() ),
-                    Exception\Parse::PARSE_ELEMENT_ERROR );
+                throw new Exception\ParseException($this, $tokenStream,
+                    sprintf('Property sibling "%s" has no access level defined.', $sibling->getName()),
+                    Exception\Parse::PARSE_ELEMENT_ERROR);
             }
 
             if ($sibling->isStatic()) {
@@ -550,7 +550,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      * @return \TokenReflection\ReflectionProperty
      * @throws \TokenReflection\Exception\ParseException If the property default value could not be determined.
      */
-    private function parseDefaultValue( Stream $tokenStream )
+    private function parseDefaultValue(Stream $tokenStream)
     {
 
         $type = $tokenStream->getType();
@@ -561,7 +561,7 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
         }
 
         if ('=' === $type) {
-            $tokenStream->skipWhitespaces( true );
+            $tokenStream->skipWhitespaces(true);
         }
 
         $level = 0;
@@ -592,9 +592,9 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
         }
 
         if (',' !== $type && ';' !== $type) {
-            throw new Exception\ParseException( $this, $tokenStream,
+            throw new Exception\ParseException($this, $tokenStream,
                 'The property default value is not terminated properly. Expected "," or ";".',
-                Exception\ParseException::UNEXPECTED_TOKEN );
+                Exception\ParseException::UNEXPECTED_TOKEN);
         }
 
         return $this;
@@ -608,17 +608,17 @@ class ReflectionProperty extends ReflectionElement implements IReflectionPropert
      * @return \TokenReflection\ReflectionProperty
      * @throws \TokenReflection\Exception\ParseException If the property name could not be determined.
      */
-    protected function parseName( Stream $tokenStream )
+    protected function parseName(Stream $tokenStream)
     {
 
-        if (!$tokenStream->is( T_VARIABLE )) {
-            throw new Exception\ParseException( $this, $tokenStream, 'The property name could not be determined.',
-                Exception\ParseException::LOGICAL_ERROR );
+        if (!$tokenStream->is(T_VARIABLE)) {
+            throw new Exception\ParseException($this, $tokenStream, 'The property name could not be determined.',
+                Exception\ParseException::LOGICAL_ERROR);
         }
 
-        $this->name = substr( $tokenStream->getTokenValue(), 1 );
+        $this->name = substr($tokenStream->getTokenValue(), 1);
 
-        $tokenStream->skipWhitespaces( true );
+        $tokenStream->skipWhitespaces(true);
 
         return $this;
     }

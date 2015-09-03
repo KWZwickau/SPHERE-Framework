@@ -16,11 +16,11 @@ class MissingParameterException extends ComponentException
      * @param int    $Code
      * @param null   $Previous
      */
-    public function __construct( $Message = "", $Code = 0, $Previous = null )
+    public function __construct($Message = "", $Code = 0, $Previous = null)
     {
 
         $Message = 'Parameter '.$Message.' not defined!';
 
-        parent::__construct( $Message, $Code, $Previous );
+        parent::__construct($Message, $Code, $Previous);
     }
 }

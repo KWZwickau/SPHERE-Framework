@@ -16,6 +16,7 @@ namespace Symfony\Component\Config;
  */
 interface FileLocatorInterface
 {
+
     /**
      * Returns a full path for a given file name.
      *

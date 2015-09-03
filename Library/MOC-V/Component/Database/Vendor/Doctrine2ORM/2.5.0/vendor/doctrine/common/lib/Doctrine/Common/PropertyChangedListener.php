@@ -31,6 +31,7 @@ namespace Doctrine\Common;
  */
 interface PropertyChangedListener
 {
+
     /**
      * Notifies the listener of a property change.
      *

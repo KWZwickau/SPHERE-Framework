@@ -86,23 +86,23 @@ class trendClass
     private static $_trendCache = array();
 
 
-    public static function calculate( $trendType = self::TREND_BEST_FIT, $yValues, $xValues = array(), $const = true )
+    public static function calculate($trendType = self::TREND_BEST_FIT, $yValues, $xValues = array(), $const = true)
     {
 
         //	Calculate number of points in each dataset
-        $nY = count( $yValues );
-        $nX = count( $xValues );
+        $nY = count($yValues);
+        $nX = count($xValues);
 
         //	Define X Values if necessary
         if ($nX == 0) {
-            $xValues = range( 1, $nY );
+            $xValues = range(1, $nY);
             $nX = $nY;
         } elseif ($nY != $nX) {
             //	Ensure both arrays of points are the same size
-            trigger_error( "trend(): Number of elements in coordinate arrays do not match.", E_USER_ERROR );
+            trigger_error("trend(): Number of elements in coordinate arrays do not match.", E_USER_ERROR);
         }
 
-        $key = md5( $trendType.$const.serialize( $yValues ).serialize( $xValues ) );
+        $key = md5($trendType.$const.serialize($yValues).serialize($xValues));
         //	Determine which trend method has been requested
         switch ($trendType) {
             //	Instantiate and return the class for the requested trend method
@@ -112,7 +112,7 @@ class trendClass
             case self::TREND_POWER :
                 if (!isset( self::$_trendCache[$key] )) {
                     $className = 'PHPExcel_'.$trendType.'_Best_Fit';
-                    self::$_trendCache[$key] = new $className( $yValues, $xValues, $const );
+                    self::$_trendCache[$key] = new $className($yValues, $xValues, $const);
                 }
                 return self::$_trendCache[$key];
                 break;
@@ -122,8 +122,8 @@ class trendClass
             case self::TREND_POLYNOMIAL_5    :
             case self::TREND_POLYNOMIAL_6    :
                 if (!isset( self::$_trendCache[$key] )) {
-                    $order = substr( $trendType, -1 );
-                    self::$_trendCache[$key] = new PHPExcel_Polynomial_Best_Fit( $order, $yValues, $xValues, $const );
+                    $order = substr($trendType, -1);
+                    self::$_trendCache[$key] = new PHPExcel_Polynomial_Best_Fit($order, $yValues, $xValues, $const);
                 }
                 return self::$_trendCache[$key];
                 break;
@@ -133,13 +133,13 @@ class trendClass
                 //	Start by generating an instance of each available trend method
                 foreach (self::$_trendTypes as $trendMethod) {
                     $className = 'PHPExcel_'.$trendMethod.'BestFit';
-                    $bestFit[$trendMethod] = new $className( $yValues, $xValues, $const );
+                    $bestFit[$trendMethod] = new $className($yValues, $xValues, $const);
                     $bestFitValue[$trendMethod] = $bestFit[$trendMethod]->getGoodnessOfFit();
                 }
                 if ($trendType != self::TREND_BEST_FIT_NO_POLY) {
                     foreach (self::$_trendTypePolyOrders as $trendMethod) {
-                        $order = substr( $trendMethod, -1 );
-                        $bestFit[$trendMethod] = new PHPExcel_Polynomial_Best_Fit( $order, $yValues, $xValues, $const );
+                        $order = substr($trendMethod, -1);
+                        $bestFit[$trendMethod] = new PHPExcel_Polynomial_Best_Fit($order, $yValues, $xValues, $const);
                         if ($bestFit[$trendMethod]->getError()) {
                             unset( $bestFit[$trendMethod] );
                         } else {
@@ -148,8 +148,8 @@ class trendClass
                     }
                 }
                 //	Determine which of our trend lines is the best fit, and then we return the instance of that trend class
-                arsort( $bestFitValue );
-                $bestFitType = key( $bestFitValue );
+            arsort($bestFitValue);
+            $bestFitType = key($bestFitValue);
                 return $bestFit[$bestFitType];
                 break;
             default    :

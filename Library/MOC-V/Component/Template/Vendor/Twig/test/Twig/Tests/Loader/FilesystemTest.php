@@ -11,11 +11,13 @@
 
 class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getSecurityTests
      */
     public function testSecurity($template)
     {
+
         $loader = new Twig_Loader_Filesystem(array(dirname(__FILE__).'/../Fixtures'));
 
         try {
@@ -28,6 +30,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function getSecurityTests()
     {
+
         return array(
             array("AutoloaderTest\0.php"),
             array('..\\AutoloaderTest.php'),
@@ -53,6 +56,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function testPaths()
     {
+
         $basePath = dirname(__FILE__).'/Fixtures';
 
         $loader = new Twig_Loader_Filesystem(array($basePath.'/normal', $basePath.'/normal_bis'));
@@ -82,12 +86,14 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function testEmptyConstructor()
     {
+
         $loader = new Twig_Loader_Filesystem();
         $this->assertEquals(array(), $loader->getPaths());
     }
 
     public function testGetNamespaces()
     {
+
         $loader = new Twig_Loader_Filesystem(sys_get_temp_dir());
         $this->assertEquals(array(Twig_Loader_Filesystem::MAIN_NAMESPACE), $loader->getNamespaces());
 
@@ -97,6 +103,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function testFindTemplateExceptionNamespace()
     {
+
         $basePath = dirname(__FILE__).'/Fixtures';
 
         $loader = new Twig_Loader_Filesystem(array($basePath.'/normal'));
@@ -112,6 +119,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function testFindTemplateWithCache()
     {
+
         $basePath = dirname(__FILE__).'/Fixtures';
 
         $loader = new Twig_Loader_Filesystem(array($basePath.'/normal'));
@@ -127,6 +135,7 @@ class Twig_Tests_Loader_FilesystemTest extends PHPUnit_Framework_TestCase
 
     public function testLoadTemplateAndRenderBlockWithCache()
     {
+
         $loader = new Twig_Loader_Filesystem(array());
         $loader->addPath(dirname(__FILE__).'/Fixtures/themes/theme2');
         $loader->addPath(dirname(__FILE__).'/Fixtures/themes/theme1');

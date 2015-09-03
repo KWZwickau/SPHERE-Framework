@@ -22,11 +22,13 @@ use Symfony\Component\HttpKernel\Exception\FlattenException;
  */
 class ExceptionDataCollector extends DataCollector
 {
+
     /**
      * {@inheritdoc}
      */
     public function collect(Request $request, Response $response, \Exception $exception = null)
     {
+
         if (null !== $exception) {
             $this->data = array(
                 'exception' => FlattenException::create($exception),
@@ -41,7 +43,8 @@ class ExceptionDataCollector extends DataCollector
      */
     public function hasException()
     {
-        return isset($this->data['exception']);
+
+        return isset( $this->data['exception'] );
     }
 
     /**
@@ -51,6 +54,7 @@ class ExceptionDataCollector extends DataCollector
      */
     public function getException()
     {
+
         return $this->data['exception'];
     }
 
@@ -61,6 +65,7 @@ class ExceptionDataCollector extends DataCollector
      */
     public function getMessage()
     {
+
         return $this->data['exception']->getMessage();
     }
 
@@ -71,6 +76,7 @@ class ExceptionDataCollector extends DataCollector
      */
     public function getCode()
     {
+
         return $this->data['exception']->getCode();
     }
 
@@ -81,6 +87,7 @@ class ExceptionDataCollector extends DataCollector
      */
     public function getStatusCode()
     {
+
         return $this->data['exception']->getStatusCode();
     }
 
@@ -91,6 +98,7 @@ class ExceptionDataCollector extends DataCollector
      */
     public function getTrace()
     {
+
         return $this->data['exception']->getTrace();
     }
 
@@ -99,6 +107,7 @@ class ExceptionDataCollector extends DataCollector
      */
     public function getName()
     {
+
         return 'exception';
     }
 }

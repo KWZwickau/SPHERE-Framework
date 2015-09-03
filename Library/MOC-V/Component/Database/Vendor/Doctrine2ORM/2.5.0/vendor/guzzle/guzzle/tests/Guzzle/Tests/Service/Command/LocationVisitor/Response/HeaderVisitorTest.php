@@ -2,17 +2,19 @@
 
 namespace Guzzle\Tests\Service\Command\LocationVisitor\Response;
 
-use Guzzle\Service\Description\Parameter;
 use Guzzle\Http\Message\Response;
 use Guzzle\Service\Command\LocationVisitor\Response\HeaderVisitor as Visitor;
+use Guzzle\Service\Description\Parameter;
 
 /**
  * @covers Guzzle\Service\Command\LocationVisitor\Response\HeaderVisitor
  */
 class HeaderVisitorTest extends AbstractResponseVisitorTest
 {
+
     public function testVisitsLocation()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location' => 'header',
@@ -25,6 +27,7 @@ class HeaderVisitorTest extends AbstractResponseVisitorTest
 
     public function testVisitsLocationWithFilters()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location' => 'header',
@@ -37,6 +40,7 @@ class HeaderVisitorTest extends AbstractResponseVisitorTest
 
     public function testVisitsMappedPrefixHeaders()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location'             => 'header',
@@ -67,6 +71,7 @@ class HeaderVisitorTest extends AbstractResponseVisitorTest
      */
     public function testDiscardingUnknownHeaders()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location'             => 'header',
@@ -84,6 +89,7 @@ class HeaderVisitorTest extends AbstractResponseVisitorTest
      */
     public function testDiscardingUnknownPropertiesWithAliasing()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location'             => 'header',

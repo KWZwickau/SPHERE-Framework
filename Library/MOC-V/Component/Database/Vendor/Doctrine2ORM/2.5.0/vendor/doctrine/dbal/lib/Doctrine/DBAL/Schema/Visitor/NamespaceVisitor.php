@@ -28,6 +28,7 @@ namespace Doctrine\DBAL\Schema\Visitor;
  */
 interface NamespaceVisitor
 {
+
     /**
      * Accepts a schema namespace name.
      *

@@ -2,27 +2,30 @@
 
 namespace Doctrine\Tests\Common\Cache;
 
-use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\ChainCache;
 
 class ChainCacheTest extends CacheTest
 {
-    protected function _getCacheDriver()
-    {
-        return new ChainCache(array(new ArrayCache()));
-    }
 
     public function testGetStats()
     {
+
         $cache = $this->_getCacheDriver();
         $stats = $cache->getStats();
 
         $this->assertInternalType('array', $stats);
     }
 
+    protected function _getCacheDriver()
+    {
+
+        return new ChainCache(array(new ArrayCache()));
+    }
+
     public function testOnlyFetchFirstOne()
     {
+
         $cache1 = new ArrayCache();
         $cache2 = $this->getMockForAbstractClass('Doctrine\Common\Cache\CacheProvider');
 
@@ -36,6 +39,7 @@ class ChainCacheTest extends CacheTest
 
     public function testFetchPropagateToFastestCache()
     {
+
         $cache1 = new ArrayCache();
         $cache2 = new ArrayCache();
 
@@ -53,6 +57,7 @@ class ChainCacheTest extends CacheTest
 
     public function testNamespaceIsPropagatedToAllProviders()
     {
+
         $cache1 = new ArrayCache();
         $cache2 = new ArrayCache();
 
@@ -65,6 +70,7 @@ class ChainCacheTest extends CacheTest
 
     public function testDeleteToAllProviders()
     {
+
         $cache1 = $this->getMockForAbstractClass('Doctrine\Common\Cache\CacheProvider');
         $cache2 = $this->getMockForAbstractClass('Doctrine\Common\Cache\CacheProvider');
 
@@ -77,6 +83,7 @@ class ChainCacheTest extends CacheTest
 
     public function testFlushToAllProviders()
     {
+
         $cache1 = $this->getMockForAbstractClass('Doctrine\Common\Cache\CacheProvider');
         $cache2 = $this->getMockForAbstractClass('Doctrine\Common\Cache\CacheProvider');
 
@@ -89,6 +96,7 @@ class ChainCacheTest extends CacheTest
 
     protected function isSharedStorage()
     {
+
         return false;
     }
 }

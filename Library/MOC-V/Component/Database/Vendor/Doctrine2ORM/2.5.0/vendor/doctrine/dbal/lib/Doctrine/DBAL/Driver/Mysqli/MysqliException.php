@@ -29,4 +29,5 @@ use Doctrine\DBAL\Driver\AbstractDriverException;
  */
 class MysqliException extends AbstractDriverException
 {
+
 }

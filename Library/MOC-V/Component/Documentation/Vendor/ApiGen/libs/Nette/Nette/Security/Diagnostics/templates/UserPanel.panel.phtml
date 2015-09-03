@@ -20,6 +20,6 @@ use Nette\Diagnostics\Helpers;
 <div class="nette-UserPanel">
     <h1><?php if ($this->user->isLoggedIn()): ?>Logged in<?php else: ?>Unlogged<?php endif ?></h1>
 
-    <?php if ($this->user->getIdentity()): echo Helpers::clickableDump( $this->user->getIdentity() );
+    <?php if ($this->user->getIdentity()): echo Helpers::clickableDump($this->user->getIdentity());
     else: ?><p>no identity</p><?php endif ?>
 </div>

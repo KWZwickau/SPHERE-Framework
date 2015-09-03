@@ -37,7 +37,7 @@ class PresenterFactory implements IPresenterFactory
     /**
      * @param  string
      */
-    public function __construct( $baseDir, Nette\DI\Container $container )
+    public function __construct($baseDir, Nette\DI\Container $container)
     {
 
         $this->baseDir = $baseDir;
@@ -52,16 +52,16 @@ class PresenterFactory implements IPresenterFactory
      *
      * @return IPresenter
      */
-    public function createPresenter( $name )
+    public function createPresenter($name)
     {
 
-        $presenter = $this->container->createInstance( $this->getPresenterClass( $name ) );
-        if (method_exists( $presenter, 'setContext' )) {
-            $this->container->callMethod( array( $presenter, 'setContext' ) );
+        $presenter = $this->container->createInstance($this->getPresenterClass($name));
+        if (method_exists($presenter, 'setContext')) {
+            $this->container->callMethod(array($presenter, 'setContext'));
         }
-        foreach (array_reverse( get_class_methods( $presenter ) ) as $method) {
-            if (substr( $method, 0, 6 ) === 'inject') {
-                $this->container->callMethod( array( $presenter, $method ) );
+        foreach (array_reverse(get_class_methods($presenter)) as $method) {
+            if (substr($method, 0, 6) === 'inject') {
+                $this->container->callMethod(array($presenter, $method));
             }
         }
 
@@ -78,7 +78,7 @@ class PresenterFactory implements IPresenterFactory
      * @return string  class name
      * @throws InvalidPresenterException
      */
-    public function getPresenterClass( & $name )
+    public function getPresenterClass(& $name)
     {
 
         if (isset( $this->cache[$name] )) {
@@ -86,47 +86,47 @@ class PresenterFactory implements IPresenterFactory
             return $class;
         }
 
-        if (!is_string( $name ) || !Nette\Utils\Strings::match( $name, "#^[a-zA-Z\x7f-\xff][a-zA-Z0-9\x7f-\xff:]*$#" )
+        if (!is_string($name) || !Nette\Utils\Strings::match($name, "#^[a-zA-Z\x7f-\xff][a-zA-Z0-9\x7f-\xff:]*$#")
         ) {
-            throw new InvalidPresenterException( "Presenter name must be alphanumeric string, '$name' is invalid." );
+            throw new InvalidPresenterException("Presenter name must be alphanumeric string, '$name' is invalid.");
         }
 
-        $class = $this->formatPresenterClass( $name );
+        $class = $this->formatPresenterClass($name);
 
-        if (!class_exists( $class )) {
+        if (!class_exists($class)) {
             // internal autoloading
-            $file = $this->formatPresenterFile( $name );
-            if (is_file( $file ) && is_readable( $file )) {
-                Nette\Utils\LimitedScope::load( $file, true );
+            $file = $this->formatPresenterFile($name);
+            if (is_file($file) && is_readable($file)) {
+                Nette\Utils\LimitedScope::load($file, true);
             }
 
-            if (!class_exists( $class )) {
-                throw new InvalidPresenterException( "Cannot load presenter '$name', class '$class' was not found in '$file'." );
+            if (!class_exists($class)) {
+                throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' was not found in '$file'.");
             }
         }
 
-        $reflection = new Nette\Reflection\ClassType( $class );
+        $reflection = new Nette\Reflection\ClassType($class);
         $class = $reflection->getName();
 
-        if (!$reflection->implementsInterface( 'Nette\Application\IPresenter' )) {
-            throw new InvalidPresenterException( "Cannot load presenter '$name', class '$class' is not Nette\\Application\\IPresenter implementor." );
+        if (!$reflection->implementsInterface('Nette\Application\IPresenter')) {
+            throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' is not Nette\\Application\\IPresenter implementor.");
         }
 
         if ($reflection->isAbstract()) {
-            throw new InvalidPresenterException( "Cannot load presenter '$name', class '$class' is abstract." );
+            throw new InvalidPresenterException("Cannot load presenter '$name', class '$class' is abstract.");
         }
 
         // canonicalize presenter name
-        $realName = $this->unformatPresenterClass( $class );
+        $realName = $this->unformatPresenterClass($class);
         if ($name !== $realName) {
             if ($this->caseSensitive) {
-                throw new InvalidPresenterException( "Cannot load presenter '$name', case mismatch. Real name is '$realName'." );
+                throw new InvalidPresenterException("Cannot load presenter '$name', case mismatch. Real name is '$realName'.");
             } else {
-                $this->cache[$name] = array( $class, $realName );
+                $this->cache[$name] = array($class, $realName);
                 $name = $realName;
             }
         } else {
-            $this->cache[$name] = array( $class, $realName );
+            $this->cache[$name] = array($class, $realName);
         }
 
         return $class;
@@ -140,11 +140,11 @@ class PresenterFactory implements IPresenterFactory
      *
      * @return string
      */
-    public function formatPresenterClass( $presenter )
+    public function formatPresenterClass($presenter)
     {
 
         /*5.2*return strtr($presenter, ':', '_') . 'Presenter';*/
-        return str_replace( ':', 'Module\\', $presenter ).'Presenter';
+        return str_replace(':', 'Module\\', $presenter).'Presenter';
     }
 
     /**
@@ -154,11 +154,11 @@ class PresenterFactory implements IPresenterFactory
      *
      * @return string
      */
-    public function formatPresenterFile( $presenter )
+    public function formatPresenterFile($presenter)
     {
 
-        $path = '/'.str_replace( ':', 'Module/', $presenter );
-        return $this->baseDir.substr_replace( $path, '/presenters', strrpos( $path, '/' ), 0 ).'Presenter.php';
+        $path = '/'.str_replace(':', 'Module/', $presenter);
+        return $this->baseDir.substr_replace($path, '/presenters', strrpos($path, '/'), 0).'Presenter.php';
     }
 
     /**
@@ -168,11 +168,11 @@ class PresenterFactory implements IPresenterFactory
      *
      * @return string
      */
-    public function unformatPresenterClass( $class )
+    public function unformatPresenterClass($class)
     {
 
         /*5.2*return strtr(substr($class, 0, -9), '_', ':');*/
-        return str_replace( 'Module\\', ':', substr( $class, 0, -9 ) );
+        return str_replace('Module\\', ':', substr($class, 0, -9));
     }
 
 }

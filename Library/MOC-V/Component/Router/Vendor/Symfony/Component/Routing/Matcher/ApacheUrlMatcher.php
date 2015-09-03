@@ -20,11 +20,12 @@ use Symfony\Component\Routing\Exception\MethodNotAllowedException;
  *             The performance gains are minimal and it's very hard to replicate
  *             the behavior of PHP implementation.
  *
- * @author Fabien Potencier <fabien@symfony.com>
- * @author Arnaud Le Blanc <arnaud.lb@gmail.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
+ * @author     Arnaud Le Blanc <arnaud.lb@gmail.com>
  */
 class ApacheUrlMatcher extends UrlMatcher
 {
+
     /**
      * Tries to match a URL based on Apache mod_rewrite matching.
      *
@@ -38,6 +39,7 @@ class ApacheUrlMatcher extends UrlMatcher
      */
     public function match($pathinfo)
     {
+
         $parameters = array();
         $defaults = array();
         $allow = array();
@@ -64,8 +66,8 @@ class ApacheUrlMatcher extends UrlMatcher
                 continue;
             }
             if (false !== $pos = strpos($name, '_', 9)) {
-                $type = substr($name, 9, $pos-9);
-                $name = substr($name, $pos+1);
+                $type = substr($name, 9, $pos - 9);
+                $name = substr($name, $pos + 1);
             } else {
                 $type = substr($name, 9);
             }
@@ -82,7 +84,7 @@ class ApacheUrlMatcher extends UrlMatcher
                 $allow[] = $name;
             }
 
-            unset($_SERVER[$key]);
+            unset( $_SERVER[$key] );
         }
 
         if (null !== $route) {
@@ -105,13 +107,14 @@ class ApacheUrlMatcher extends UrlMatcher
      */
     private function denormalizeValues(array $values)
     {
+
         $normalizedValues = array();
         foreach ($values as $key => $value) {
             if (preg_match('~^(.*)\[(\d+)\]$~', $key, $matches)) {
-                if (!isset($normalizedValues[$matches[1]])) {
+                if (!isset( $normalizedValues[$matches[1]] )) {
                     $normalizedValues[$matches[1]] = array();
                 }
-                $normalizedValues[$matches[1]][(int) $matches[2]] = $value;
+                $normalizedValues[$matches[1]][(int)$matches[2]] = $value;
             } else {
                 $normalizedValues[$key] = $value;
             }

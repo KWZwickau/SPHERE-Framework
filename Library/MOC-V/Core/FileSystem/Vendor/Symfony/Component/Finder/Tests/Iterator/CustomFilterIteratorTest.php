@@ -15,34 +15,36 @@ use Symfony\Component\Finder\Iterator\CustomFilterIterator;
 
 class CustomFilterIteratorTest extends IteratorTestCase
 {
+
     /**
      * @expectedException \InvalidArgumentException
      */
     public function testWithInvalidFilter()
     {
 
-        new CustomFilterIterator( new Iterator(), array( 'foo' ) );
+        new CustomFilterIterator(new Iterator(), array('foo'));
     }
 
     /**
      * @dataProvider getAcceptData
      */
-    public function testAccept( $filters, $expected )
+    public function testAccept($filters, $expected)
     {
 
-        $inner = new Iterator( array( 'test.php', 'test.py', 'foo.php' ) );
+        $inner = new Iterator(array('test.php', 'test.py', 'foo.php'));
 
-        $iterator = new CustomFilterIterator( $inner, $filters );
+        $iterator = new CustomFilterIterator($inner, $filters);
 
-        $this->assertIterator( $expected, $iterator );
+        $this->assertIterator($expected, $iterator);
     }
 
     public function getAcceptData()
     {
+
         return array(
             array(
                 array(
-                    function ( \SplFileInfo $fileinfo ) {
+                    function (\SplFileInfo $fileinfo) {
 
                         return false;
                     }
@@ -51,14 +53,14 @@ class CustomFilterIteratorTest extends IteratorTestCase
             ),
             array(
                 array(
-                    function ( \SplFileInfo $fileinfo ) {
+                    function (\SplFileInfo $fileinfo) {
 
-                        return preg_match( '/^test/', $fileinfo ) > 0;
+                        return preg_match('/^test/', $fileinfo) > 0;
                     }
                 ),
-                array( 'test.php', 'test.py' )
+                array('test.php', 'test.py')
             ),
-            array( array( 'is_dir' ), array() ),
+            array(array('is_dir'), array()),
         );
     }
 }

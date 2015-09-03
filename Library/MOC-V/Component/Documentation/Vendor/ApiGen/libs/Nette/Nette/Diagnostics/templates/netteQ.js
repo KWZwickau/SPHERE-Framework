@@ -11,7 +11,7 @@ var Nette = Nette || {};
 {
 
 // simple class builder
-    Nette.Class = function( def )
+    Nette.Class = function(def)
     {
         var cl = def.constructor || function()
             {
@@ -30,7 +30,7 @@ var Nette = Nette || {};
 
         if (def.Static) {
             for (nm in def.Static) {
-                if (__hasProp.call( def.Static, nm )) {
+                if (__hasProp.call(def.Static, nm)) {
                     cl[nm] = def.Static[nm];
                 }
             }
@@ -38,7 +38,7 @@ var Nette = Nette || {};
         }
 
         for (nm in def) {
-            if (__hasProp.call( def, nm )) {
+            if (__hasProp.call(def, nm)) {
                 cl.prototype[nm] = def[nm];
             }
         }
@@ -46,37 +46,37 @@ var Nette = Nette || {};
     };
 
 // supported cross-browser selectors: #id  |  div  |  div.class  |  .class
-    Nette.Q = Nette.Class( {
+    Nette.Q = Nette.Class({
 
         Static: {
-            factory: function( selector )
+            factory: function(selector)
             {
-                return new Nette.Q( selector );
+                return new Nette.Q(selector);
             },
 
-            implement: function( methods )
+            implement: function(methods)
             {
                 var nm, fn = Nette.Q.implement, prot = Nette.Q.prototype, __hasProp = Object.prototype.hasOwnProperty;
                 for (nm in methods) {
-                    if (!__hasProp.call( methods, nm )) {
+                    if (!__hasProp.call(methods, nm)) {
                         continue;
                     }
                     fn[nm] = methods[nm];
-                    prot[nm] = (function( nm )
+                    prot[nm] = (function(nm)
                     {
                         return function()
                         {
-                            return this.each( fn[nm], arguments );
+                            return this.each(fn[nm], arguments);
                         };
-                    }( nm ));
+                    }(nm));
                 }
             }
         },
 
-        constructor: function( selector )
+        constructor: function(selector)
         {
             if (typeof selector === "string") {
-                selector = this._find( document, selector );
+                selector = this._find(document, selector);
 
             } else {
                 if (!selector || selector.nodeType || selector.length === undefined || selector === window) {
@@ -93,33 +93,33 @@ var Nette = Nette || {};
 
         length: 0,
 
-        find: function( selector )
+        find: function(selector)
         {
-            return new Nette.Q( this._find( this[0], selector ) );
+            return new Nette.Q(this._find(this[0], selector));
         },
 
-        _find: function( context, selector )
+        _find: function(context, selector)
         {
             if (!context || !selector) {
                 return [];
 
             } else {
                 if (document.querySelectorAll) {
-                    return context.querySelectorAll( selector );
+                    return context.querySelectorAll(selector);
 
                 } else {
-                    if (selector.charAt( 0 ) === '#') { // #id
-                        return [document.getElementById( selector.substring( 1 ) )];
+                    if (selector.charAt(0) === '#') { // #id
+                        return [document.getElementById(selector.substring(1))];
 
                     } else { // div  |  div.class  |  .class
-                        selector = selector.split( '.' );
-                        var elms = context.getElementsByTagName( selector[0] || '*' );
+                        selector = selector.split('.');
+                        var elms = context.getElementsByTagName(selector[0] || '*');
 
                         if (selector[1]) {
-                            var list = [], pattern = new RegExp( '(^|\\s)' + selector[1] + '(\\s|$)' );
+                            var list = [], pattern = new RegExp('(^|\\s)' + selector[1] + '(\\s|$)');
                             for (var i = 0, len = elms.length; i < len; i++) {
-                                if (pattern.test( elms[i].className )) {
-                                    list.push( elms[i] );
+                                if (pattern.test(elms[i].className)) {
+                                    list.push(elms[i]);
                                 }
                             }
                             return list;
@@ -136,44 +136,44 @@ var Nette = Nette || {};
             return this[0];
         },
 
-        each: function( callback, args )
+        each: function(callback, args)
         {
             for (var i = 0, res; i < this.length; i++) {
-                if ((res = callback.apply( this[i], args || [] )) !== undefined) {
+                if ((res = callback.apply(this[i], args || [])) !== undefined) {
                     return res;
                 }
             }
             return this;
         }
-    } );
+    });
 
     var $ = Nette.Q.factory, fn = Nette.Q.implement;
 
-    fn( {
+    fn({
         // cross-browser event attach
-        bind: function( event, handler )
+        bind: function(event, handler)
         {
             if (document.addEventListener && (event === 'mouseenter' || event === 'mouseleave')) { // simulate mouseenter & mouseleave using mouseover & mouseout
                 var old = handler;
                 event = event === 'mouseenter' ? 'mouseover' : 'mouseout';
-                handler = function( e )
+                handler = function(e)
                 {
                     for (var target = e.relatedTarget; target; target = target.parentNode) {
                         if (target === this) {
                             return;
                         } // target must not be inside this
                     }
-                    old.call( this, e );
+                    old.call(this, e);
                 };
             }
 
-            var data = fn.data.call( this ),
+            var data = fn.data.call(this),
                 events = data.events = data.events || {}; // use own handler queue
 
             if (!events[event]) {
                 var el = this, // fixes 'this' in iE
                     handlers = events[event] = [],
-                    generic = fn.bind.genericHandler = function( e )
+                    generic = fn.bind.genericHandler = function(e)
                     { // dont worry, 'e' is passed in IE
                         if (!e.target) {
                             e.target = e.srcElement;
@@ -196,47 +196,47 @@ var Nette = Nette || {};
                             i = handlers.length;
                         };
                         for (var i = 0; i < handlers.length; i++) {
-                            handlers[i].call( el, e );
+                            handlers[i].call(el, e);
                         }
                     };
 
                 if (document.addEventListener) { // non-IE
-                    this.addEventListener( event, generic, false );
+                    this.addEventListener(event, generic, false);
                 } else {
                     if (document.attachEvent) { // IE < 9
-                        this.attachEvent( 'on' + event, generic );
+                        this.attachEvent('on' + event, generic);
                     }
                 }
             }
 
-            events[event].push( handler );
+            events[event].push(handler);
         },
 
         // adds class to element
-        addClass: function( className )
+        addClass: function(className)
         {
-            this.className = this.className.replace( /^|\s+|$/g, ' ' ).replace( ' ' + className + ' ',
-                ' ' ) + ' ' + className;
+            this.className = this.className.replace(/^|\s+|$/g, ' ').replace(' ' + className + ' ',
+                    ' ') + ' ' + className;
         },
 
         // removes class from element
-        removeClass: function( className )
+        removeClass: function(className)
         {
-            this.className = this.className.replace( /^|\s+|$/g, ' ' ).replace( ' ' + className + ' ', ' ' );
+            this.className = this.className.replace(/^|\s+|$/g, ' ').replace(' ' + className + ' ', ' ');
         },
 
         // tests whether element has given class
-        hasClass: function( className )
+        hasClass: function(className)
         {
-            return this.className.replace( /^|\s+|$/g, ' ' ).indexOf( ' ' + className + ' ' ) > -1;
+            return this.className.replace(/^|\s+|$/g, ' ').indexOf(' ' + className + ' ') > -1;
         },
 
         show: function()
         {
             var dsp = fn.show.display = fn.show.display || {}, tag = this.tagName;
             if (!dsp[tag]) {
-                var el = document.body.appendChild( document.createElement( tag ) );
-                dsp[tag] = fn.css.call( el, 'display' );
+                var el = document.body.appendChild(document.createElement(tag));
+                dsp[tag] = fn.css.call(el, 'display');
             }
             this.style.display = dsp[tag];
         },
@@ -246,11 +246,11 @@ var Nette = Nette || {};
             this.style.display = 'none';
         },
 
-        css: function( property )
+        css: function(property)
         {
             return this.currentStyle ? this.currentStyle[property]
-                : (window.getComputedStyle ? document.defaultView.getComputedStyle( this,
-                null ).getPropertyValue( property ) : undefined);
+                : (window.getComputedStyle ? document.defaultView.getComputedStyle(this,
+                null).getPropertyValue(property) : undefined);
         },
 
         data: function()
@@ -284,7 +284,7 @@ var Nette = Nette || {};
 
                 for (i = 0, values = [], len = options.length; i < len; i++) {
                     if (options[i].selected) {
-                        values.push( options[i].value );
+                        values.push(options[i].value);
                     }
                 }
                 return values;
@@ -294,57 +294,57 @@ var Nette = Nette || {};
                 return this.checked;
             }
 
-            return this.value.replace( /^\s+|\s+$/g, '' );
+            return this.value.replace(/^\s+|\s+$/g, '');
         },
 
-        _trav: function( el, selector, fce )
+        _trav: function(el, selector, fce)
         {
-            selector = selector.split( '.' );
+            selector = selector.split('.');
             while (el && !(el.nodeType === 1 &&
             (!selector[0] || el.tagName.toLowerCase() === selector[0]) &&
-            (!selector[1] || fn.hasClass.call( el, selector[1] )))) {
+            (!selector[1] || fn.hasClass.call(el, selector[1])))) {
                 el = el[fce];
             }
-            return $( el );
+            return $(el);
         },
 
-        closest: function( selector )
+        closest: function(selector)
         {
-            return fn._trav( this, selector, 'parentNode' );
+            return fn._trav(this, selector, 'parentNode');
         },
 
-        prev: function( selector )
+        prev: function(selector)
         {
-            return fn._trav( this.previousSibling, selector, 'previousSibling' );
+            return fn._trav(this.previousSibling, selector, 'previousSibling');
         },
 
-        next: function( selector )
+        next: function(selector)
         {
-            return fn._trav( this.nextSibling, selector, 'nextSibling' );
+            return fn._trav(this.nextSibling, selector, 'nextSibling');
         },
 
         // returns total offset for element
-        offset: function( coords )
+        offset: function(coords)
         {
-            var el = this, ofs = coords ? {left: -coords.left || 0, top: -coords.top || 0} : fn.position.call( el );
+            var el = this, ofs = coords ? {left: -coords.left || 0, top: -coords.top || 0} : fn.position.call(el);
             while (el = el.offsetParent) {
                 ofs.left += el.offsetLeft;
                 ofs.top += el.offsetTop;
             }
 
             if (coords) {
-                fn.position.call( this, {left: -ofs.left, top: -ofs.top} );
+                fn.position.call(this, {left: -ofs.left, top: -ofs.top});
             } else {
                 return ofs;
             }
         },
 
         // returns current position or move to new position
-        position: function( coords )
+        position: function(coords)
         {
             if (coords) {
                 if (this.nette && this.nette.onmove) {
-                    this.nette.onmove.call( this, coords );
+                    this.nette.onmove.call(this, coords);
                 }
                 this.style.left = (coords.left || 0) + 'px';
                 this.style.top = (coords.top || 0) + 'px';
@@ -354,62 +354,62 @@ var Nette = Nette || {};
         },
 
         // makes element draggable
-        draggable: function( options )
+        draggable: function(options)
         {
-            var $el = $( this ), dE = document.documentElement, started;
+            var $el = $(this), dE = document.documentElement, started;
             options = options || {};
 
-            $( options.handle || this ).bind( 'mousedown', function( e )
+            $(options.handle || this).bind('mousedown', function(e)
             {
                 e.preventDefault();
                 e.stopPropagation();
 
                 if (fn.draggable.binded) { // missed mouseup out of window?
-                    return dE.onmouseup( e );
+                    return dE.onmouseup(e);
                 }
 
                 var deltaX = $el[0].offsetLeft - e.clientX, deltaY = $el[0].offsetTop - e.clientY;
                 fn.draggable.binded = true;
                 started = false;
 
-                dE.onmousemove = function( e )
+                dE.onmousemove = function(e)
                 {
                     e = e || event;
                     if (!started) {
                         if (options.draggedClass) {
-                            $el.addClass( options.draggedClass );
+                            $el.addClass(options.draggedClass);
                         }
                         if (options.start) {
-                            options.start( e, $el );
+                            options.start(e, $el);
                         }
                         started = true;
                     }
-                    $el.position( {left: e.clientX + deltaX, top: e.clientY + deltaY} );
+                    $el.position({left: e.clientX + deltaX, top: e.clientY + deltaY});
                     return false;
                 };
 
-                dE.onmouseup = function( e )
+                dE.onmouseup = function(e)
                 {
                     if (started) {
                         if (options.draggedClass) {
-                            $el.removeClass( options.draggedClass );
+                            $el.removeClass(options.draggedClass);
                         }
                         if (options.stop) {
-                            options.stop( e || event, $el );
+                            options.stop(e || event, $el);
                         }
                     }
                     fn.draggable.binded = dE.onmousemove = dE.onmouseup = null;
                     return false;
                 };
 
-            } ).bind( 'click', function( e )
+            }).bind('click', function(e)
             {
                 if (started) {
                     e.stopImmediatePropagation();
                     preventClick = false;
                 }
-            } );
+            });
         }
-    } );
+    });
 
 })();

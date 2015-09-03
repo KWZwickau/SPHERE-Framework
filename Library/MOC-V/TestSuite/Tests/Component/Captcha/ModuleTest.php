@@ -16,17 +16,17 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Component\Captcha\Component\Bridge\Bridge $MockBridge */
-        $MockBridge = $this->getMockBuilder( 'MOC\V\Component\Captcha\Component\Bridge\Bridge' )->getMock();
-        $Vendor = new Vendor( new $MockBridge );
-        $Module = new Captcha( $Vendor );
+        $MockBridge = $this->getMockBuilder('MOC\V\Component\Captcha\Component\Bridge\Bridge')->getMock();
+        $Vendor = new Vendor(new $MockBridge);
+        $Module = new Captcha($Vendor);
 
-        $this->assertInstanceOf( 'MOC\V\Component\Captcha\Component\IVendorInterface',
+        $this->assertInstanceOf('MOC\V\Component\Captcha\Component\IVendorInterface',
             $Module->getVendorInterface()
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Captcha\Component\IVendorInterface',
-            $Module->setBridgeInterface( $MockBridge )
+        $this->assertInstanceOf('MOC\V\Component\Captcha\Component\IVendorInterface',
+            $Module->setBridgeInterface($MockBridge)
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Captcha\Component\IBridgeInterface',
+        $this->assertInstanceOf('MOC\V\Component\Captcha\Component\IBridgeInterface',
             $Module->getBridgeInterface()
         );
 

@@ -8,11 +8,13 @@ use Doctrine\Tests\DBAL\Mocks\MockPlatform;
 
 class TableDiffTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @group DBAL-1013
      */
     public function testReturnsName()
     {
+
         $tableDiff = new TableDiff('foo');
 
         $this->assertEquals(new Identifier('foo'), $tableDiff->getName(new MockPlatform()));
@@ -23,6 +25,7 @@ class TableDiffTest extends \PHPUnit_Framework_TestCase
      */
     public function testPrefersNameFromTableObject()
     {
+
         $platformMock = new MockPlatform();
         $tableMock = $this->getMockBuilder('Doctrine\DBAL\Schema\Table')
             ->disableOriginalConstructor()
@@ -44,6 +47,7 @@ class TableDiffTest extends \PHPUnit_Framework_TestCase
      */
     public function testReturnsNewName()
     {
+
         $tableDiff = new TableDiff('foo');
 
         $this->assertFalse($tableDiff->getNewName());

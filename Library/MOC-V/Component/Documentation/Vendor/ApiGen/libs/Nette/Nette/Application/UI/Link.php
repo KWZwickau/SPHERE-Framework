@@ -43,7 +43,7 @@ class Link extends Nette\Object
      * @param  string
      * @param  array
      */
-    public function __construct( PresenterComponent $component, $destination, array $params )
+    public function __construct(PresenterComponent $component, $destination, array $params)
     {
 
         $this->component = $component;
@@ -72,7 +72,7 @@ class Link extends Nette\Object
      *
      * @return Link  provides a fluent interface
      */
-    public function setParameter( $key, $value )
+    public function setParameter($key, $value)
     {
 
         $this->params[$key] = $value;
@@ -87,7 +87,7 @@ class Link extends Nette\Object
      *
      * @return mixed
      */
-    public function getParameter( $key )
+    public function getParameter($key)
     {
 
         return isset( $this->params[$key] ) ? $this->params[$key] : null;
@@ -115,10 +115,10 @@ class Link extends Nette\Object
     {
 
         try {
-            return $this->component->link( $this->destination, $this->params );
+            return $this->component->link($this->destination, $this->params);
 
-        } catch( \Exception $e ) {
-            Nette\Diagnostics\Debugger::toStringException( $e );
+        } catch (\Exception $e) {
+            Nette\Diagnostics\Debugger::toStringException($e);
         }
     }
 

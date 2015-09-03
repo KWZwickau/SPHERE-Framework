@@ -33,6 +33,7 @@ use Doctrine\Common\Persistence\Proxy;
  */
 final class Debug
 {
+
     /**
      * Private constructor (prevents instantiation).
      */
@@ -54,6 +55,7 @@ final class Debug
      */
     public static function dump($var, $maxDepth = 2, $stripTags = true, $echo = true)
     {
+
         $html = ini_get('html_errors');
 
         if ($html !== true) {
@@ -73,14 +75,14 @@ final class Debug
 
         ob_end_clean();
 
-        $dumpText = ($stripTags ? strip_tags(html_entity_decode($dump)) : $dump);
+        $dumpText = ( $stripTags ? strip_tags(html_entity_decode($dump)) : $dump );
 
         ini_set('html_errors', $html);
-        
+
         if ($echo) {
             echo $dumpText;
         }
-        
+
         return $dumpText;
     }
 
@@ -92,6 +94,7 @@ final class Debug
      */
     public static function export($var, $maxDepth)
     {
+
         $return = null;
         $isObj = is_object($var);
 
@@ -106,38 +109,40 @@ final class Debug
                 foreach ($var as $k => $v) {
                     $return[$k] = self::export($v, $maxDepth - 1);
                 }
-            } else if ($isObj) {
-                $return = new \stdclass();
-                if ($var instanceof \DateTime) {
-                    $return->__CLASS__ = "DateTime";
-                    $return->date = $var->format('c');
-                    $return->timezone = $var->getTimeZone()->getName();
-                } else {
-                    $reflClass = ClassUtils::newReflectionObject($var);
-                    $return->__CLASS__ = ClassUtils::getClass($var);
-
-                    if ($var instanceof Proxy) {
-                        $return->__IS_PROXY__ = true;
-                        $return->__PROXY_INITIALIZED__ = $var->__isInitialized();
-                    }
-
-                    if ($var instanceof \ArrayObject || $var instanceof \ArrayIterator) {
-                        $return->__STORAGE__ = self::export($var->getArrayCopy(), $maxDepth - 1);
-                    }
-
-                    foreach ($reflClass->getProperties() as $reflProperty) {
-                        $name  = $reflProperty->getName();
-
-                        $reflProperty->setAccessible(true);
-                        $return->$name = self::export($reflProperty->getValue($var), $maxDepth - 1);
-                    }
-                }
             } else {
-                $return = $var;
+                if ($isObj) {
+                    $return = new \stdclass();
+                    if ($var instanceof \DateTime) {
+                        $return->__CLASS__ = "DateTime";
+                        $return->date = $var->format('c');
+                        $return->timezone = $var->getTimeZone()->getName();
+                    } else {
+                        $reflClass = ClassUtils::newReflectionObject($var);
+                        $return->__CLASS__ = ClassUtils::getClass($var);
+
+                        if ($var instanceof Proxy) {
+                            $return->__IS_PROXY__ = true;
+                            $return->__PROXY_INITIALIZED__ = $var->__isInitialized();
+                        }
+
+                        if ($var instanceof \ArrayObject || $var instanceof \ArrayIterator) {
+                            $return->__STORAGE__ = self::export($var->getArrayCopy(), $maxDepth - 1);
+                        }
+
+                        foreach ($reflClass->getProperties() as $reflProperty) {
+                            $name = $reflProperty->getName();
+
+                            $reflProperty->setAccessible(true);
+                            $return->$name = self::export($reflProperty->getValue($var), $maxDepth - 1);
+                        }
+                    }
+                } else {
+                    $return = $var;
+                }
             }
         } else {
             $return = is_object($var) ? get_class($var)
-                : (is_array($var) ? 'Array(' . count($var) . ')' : $var);
+                : ( is_array($var) ? 'Array('.count($var).')' : $var );
         }
 
         return $return;
@@ -152,6 +157,7 @@ final class Debug
      */
     public static function toString($obj)
     {
-        return method_exists($obj, '__toString') ? (string) $obj : get_class($obj) . '@' . spl_object_hash($obj);
+
+        return method_exists($obj, '__toString') ? (string)$obj : get_class($obj).'@'.spl_object_hash($obj);
     }
 }

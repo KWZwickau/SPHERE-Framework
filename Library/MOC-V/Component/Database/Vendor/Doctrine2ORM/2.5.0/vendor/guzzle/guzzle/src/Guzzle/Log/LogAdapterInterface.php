@@ -7,6 +7,7 @@ namespace Guzzle\Log;
  */
 interface LogAdapterInterface
 {
+
     /**
      * Log a message at a priority
      *

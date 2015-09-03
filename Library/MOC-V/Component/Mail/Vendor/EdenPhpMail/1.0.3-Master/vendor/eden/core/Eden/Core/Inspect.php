@@ -34,23 +34,23 @@ class Inspect extends Base
      *
      * @return mixed
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
         Argument::i()
             //argument 1 must be a string
-            ->test( 1, 'string' )
+            ->test(1, 'string')
             //argument 2 must be an array
-            ->test( 2, 'array' );
+            ->test(2, 'array');
 
         //if the scope is null
-        if (is_null( $this->scope )) {
+        if (is_null($this->scope)) {
             //just call the parent
-            return parent::__call( $name, $args );
+            return parent::__call($name, $args);
         }
 
         //get the results from the method call
-        $results = $this->getResults( $name, $args );
+        $results = $this->getResults($name, $args);
 
         //set temp variables
         $name = $this->name;
@@ -63,15 +63,15 @@ class Inspect extends Base
         //if there's a property name
         if ($name) {
             //output that
-            $scope->inspect( $name );
+            $scope->inspect($name);
             //and return the results
             return $results;
         }
 
         //at this point we should output the results
-        $class = get_class( $scope );
+        $class = get_class($scope);
 
-        $this->output( sprintf( self::INSPECT, $class.'->'.$name ) )->output( $results );
+        $this->output(sprintf(self::INSPECT, $class.'->'.$name))->output($results);
 
         //and return the results
         return $results;
@@ -85,14 +85,14 @@ class Inspect extends Base
      *
      * @return mixed
      */
-    protected function getResults( $name, $args )
+    protected function getResults($name, $args)
     {
 
-        if (method_exists( $this->scope, $name )) {
-            return call_user_func_array( array( $this->scope, $name ), $args );
+        if (method_exists($this->scope, $name)) {
+            return call_user_func_array(array($this->scope, $name), $args);
         }
 
-        return $this->scope->call( $name, $args );
+        return $this->scope->call($name, $args);
     }
 
     /**
@@ -102,7 +102,7 @@ class Inspect extends Base
      *
      * @return Eden\Core\Inspect
      */
-    public function output( $variable )
+    public function output($variable)
     {
 
         if ($variable === true) {
@@ -111,13 +111,13 @@ class Inspect extends Base
             if ($variable === false) {
                 $variable = '*FALSE*';
             } else {
-                if (is_null( $variable )) {
+                if (is_null($variable)) {
                     $variable = '*null*';
                 }
             }
         }
 
-        echo '<pre>'.print_r( $variable, true ).'</pre>';
+        echo '<pre>'.print_r($variable, true).'</pre>';
         return $this;
     }
 
@@ -130,12 +130,12 @@ class Inspect extends Base
      *
      * @return Eden\Core\Inspect
      */
-    public function next( $scope, $name = null )
+    public function next($scope, $name = null)
     {
 
         Argument::i()
-            ->test( 1, 'object' )//argument 1 must be an object
-            ->test( 2, 'string', 'null' ); //argument 2 must be a string or null
+            ->test(1, 'object')//argument 1 must be an object
+            ->test(2, 'string', 'null'); //argument 2 must be a string or null
 
         $this->scope = $scope;
         $this->name = $name;

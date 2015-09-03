@@ -2,15 +2,16 @@
 
 namespace Guzzle\Batch\Exception;
 
-use Guzzle\Common\Exception\GuzzleException;
-use Guzzle\Batch\BatchTransferInterface as TransferStrategy;
 use Guzzle\Batch\BatchDivisorInterface as DivisorStrategy;
+use Guzzle\Batch\BatchTransferInterface as TransferStrategy;
+use Guzzle\Common\Exception\GuzzleException;
 
 /**
  * Exception thrown during a batch transfer
  */
 class BatchTransferException extends \Exception implements GuzzleException
 {
+
     /** @var array The batch being sent when the exception occurred */
     protected $batch;
 
@@ -37,12 +38,13 @@ class BatchTransferException extends \Exception implements GuzzleException
         TransferStrategy $transferStrategy = null,
         DivisorStrategy $divisorStrategy = null
     ) {
+
         $this->batch = $batch;
         $this->transferredItems = $transferredItems;
         $this->transferStrategy = $transferStrategy;
         $this->divisorStrategy = $divisorStrategy;
         parent::__construct(
-            'Exception encountered while transferring batch: ' . $exception->getMessage(),
+            'Exception encountered while transferring batch: '.$exception->getMessage(),
             $exception->getCode(),
             $exception
         );
@@ -55,6 +57,7 @@ class BatchTransferException extends \Exception implements GuzzleException
      */
     public function getBatch()
     {
+
         return $this->batch;
     }
 
@@ -65,6 +68,7 @@ class BatchTransferException extends \Exception implements GuzzleException
      */
     public function getTransferredItems()
     {
+
         return $this->transferredItems;
     }
 
@@ -75,6 +79,7 @@ class BatchTransferException extends \Exception implements GuzzleException
      */
     public function getTransferStrategy()
     {
+
         return $this->transferStrategy;
     }
 
@@ -85,6 +90,7 @@ class BatchTransferException extends \Exception implements GuzzleException
      */
     public function getDivisorStrategy()
     {
+
         return $this->divisorStrategy;
     }
 }

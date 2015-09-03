@@ -23,12 +23,13 @@ namespace Doctrine\ORM\Internal;
  * The CommitOrderCalculator is used by the UnitOfWork to sort out the
  * correct order in which changes to entities need to be persisted.
  *
- * @since 	2.0
- * @author 	Roman Borschel <roman@code-factory.org>
- * @author	Guilherme Blanco <guilhermeblanco@hotmail.com>
+ * @since     2.0
+ * @author    Roman Borschel <roman@code-factory.org>
+ * @author    Guilherme Blanco <guilhermeblanco@hotmail.com>
  */
 class CommitOrderCalculator
 {
+
     const NOT_VISITED = 1;
     const IN_PROGRESS = 2;
     const VISITED = 3;
@@ -62,6 +63,7 @@ class CommitOrderCalculator
      */
     public function clear()
     {
+
         $this->_classes = array();
         $this->_relatedClasses = array();
     }
@@ -76,11 +78,12 @@ class CommitOrderCalculator
      */
     public function getCommitOrder()
     {
+
         // Check whether we need to do anything. 0 or 1 node is easy.
         $nodeCount = count($this->_classes);
 
         if ($nodeCount <= 1) {
-            return ($nodeCount == 1) ? array_values($this->_classes) : array();
+            return ( $nodeCount == 1 ) ? array_values($this->_classes) : array();
         }
 
         // Init
@@ -109,9 +112,10 @@ class CommitOrderCalculator
      */
     private function _visitNode($node)
     {
+
         $this->_nodeStates[$node->name] = self::IN_PROGRESS;
 
-        if (isset($this->_relatedClasses[$node->name])) {
+        if (isset( $this->_relatedClasses[$node->name] )) {
             foreach ($this->_relatedClasses[$node->name] as $relatedNode) {
                 if ($this->_nodeStates[$relatedNode->name] == self::NOT_VISITED) {
                     $this->_visitNode($relatedNode);
@@ -131,6 +135,7 @@ class CommitOrderCalculator
      */
     public function addDependency($fromClass, $toClass)
     {
+
         $this->_relatedClasses[$fromClass->name][] = $toClass;
     }
 
@@ -141,7 +146,8 @@ class CommitOrderCalculator
      */
     public function hasClass($className)
     {
-        return isset($this->_classes[$className]);
+
+        return isset( $this->_classes[$className] );
     }
 
     /**
@@ -151,6 +157,7 @@ class CommitOrderCalculator
      */
     public function addClass($class)
     {
+
         $this->_classes[$class->name] = $class;
     }
 }

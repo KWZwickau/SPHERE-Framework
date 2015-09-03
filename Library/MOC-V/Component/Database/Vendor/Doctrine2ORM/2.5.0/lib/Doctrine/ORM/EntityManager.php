@@ -19,14 +19,14 @@
 
 namespace Doctrine\ORM;
 
-use Exception;
 use Doctrine\Common\EventManager;
+use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\LockMode;
-use Doctrine\ORM\Query\ResultSetMapping;
 use Doctrine\ORM\Proxy\ProxyFactory;
 use Doctrine\ORM\Query\FilterCollection;
-use Doctrine\Common\Util\ClassUtils;
+use Doctrine\ORM\Query\ResultSetMapping;
+use Exception;
 
 /**
  * The EntityManager is the central access point to ORM functionality.
@@ -59,8 +59,11 @@ use Doctrine\Common\Util\ClassUtils;
  * @author  Jonathan Wage <jonwage@gmail.com>
  * @author  Roman Borschel <roman@code-factory.org>
  */
-/* final */class EntityManager implements EntityManagerInterface
+/* final */
+
+class EntityManager implements EntityManagerInterface
 {
+
     /**
      * The used Configuration.
      *
@@ -146,9 +149,10 @@ use Doctrine\Common\Util\ClassUtils;
      */
     protected function __construct(Connection $conn, Configuration $config, EventManager $eventManager)
     {
-        $this->conn              = $conn;
-        $this->config            = $config;
-        $this->eventManager      = $eventManager;
+
+        $this->conn = $conn;
+        $this->config = $config;
+        $this->eventManager = $eventManager;
 
         $metadataFactoryClassName = $config->getClassMetadataFactoryName();
 
@@ -157,8 +161,8 @@ use Doctrine\Common\Util\ClassUtils;
         $this->metadataFactory->setCacheDriver($this->config->getMetadataCacheImpl());
 
         $this->repositoryFactory = $config->getRepositoryFactory();
-        $this->unitOfWork        = new UnitOfWork($this);
-        $this->proxyFactory      = new ProxyFactory(
+        $this->unitOfWork = new UnitOfWork($this);
+        $this->proxyFactory = new ProxyFactory(
             $this,
             $config->getProxyDir(),
             $config->getProxyNamespace(),
@@ -166,18 +170,49 @@ use Doctrine\Common\Util\ClassUtils;
         );
 
         if ($config->isSecondLevelCacheEnabled()) {
-            $cacheConfig    = $config->getSecondLevelCacheConfiguration();
-            $cacheFactory   = $cacheConfig->getCacheFactory();
-            $this->cache    = $cacheFactory->createCache($this);
+            $cacheConfig = $config->getSecondLevelCacheConfiguration();
+            $cacheFactory = $cacheConfig->getCacheFactory();
+            $this->cache = $cacheFactory->createCache($this);
         }
     }
 
     /**
-     * {@inheritDoc}
+     * Factory method to create EntityManager instances.
+     *
+     * @param mixed         $conn         An array with the connection parameters or an existing Connection instance.
+     * @param Configuration $config       The Configuration instance to use.
+     * @param EventManager  $eventManager The EventManager instance to use.
+     *
+     * @return EntityManager The created EntityManager.
+     *
+     * @throws \InvalidArgumentException
+     * @throws ORMException
      */
-    public function getConnection()
+    public static function create($conn, Configuration $config, EventManager $eventManager = null)
     {
-        return $this->conn;
+
+        if (!$config->getMetadataDriverImpl()) {
+            throw ORMException::missingMappingDriverImpl();
+        }
+
+        switch (true) {
+            case ( is_array($conn) ):
+                $conn = \Doctrine\DBAL\DriverManager::getConnection(
+                    $conn, $config, ( $eventManager ?: new EventManager() )
+                );
+                break;
+
+            case ( $conn instanceof Connection ):
+                if ($eventManager !== null && $conn->getEventManager() !== $eventManager) {
+                    throw ORMException::mismatchedEventManager();
+                }
+                break;
+
+            default:
+                throw new \InvalidArgumentException("Invalid argument: ".$conn);
+        }
+
+        return new EntityManager($conn, $config, $conn->getEventManager());
     }
 
     /**
@@ -187,6 +222,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getMetadataFactory()
     {
+
         return $this->metadataFactory;
     }
 
@@ -195,6 +231,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getExpressionBuilder()
     {
+
         if ($this->expressionBuilder === null) {
             $this->expressionBuilder = new Query\Expr;
         }
@@ -207,6 +244,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function beginTransaction()
     {
+
         $this->conn->beginTransaction();
     }
 
@@ -215,6 +253,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getCache()
     {
+
         return $this->cache;
     }
 
@@ -223,8 +262,9 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function transactional($func)
     {
+
         if (!is_callable($func)) {
-            throw new \InvalidArgumentException('Expected argument of type "callable", got "' . gettype($func) . '"');
+            throw new \InvalidArgumentException('Expected argument of type "callable", got "'.gettype($func).'"');
         }
 
         $this->conn->beginTransaction();
@@ -245,10 +285,74 @@ use Doctrine\Common\Util\ClassUtils;
     }
 
     /**
+     * Flushes all changes to objects that have been queued up to now to the database.
+     * This effectively synchronizes the in-memory state of managed objects with the
+     * database.
+     *
+     * If an entity is explicitly passed to this method only this entity and
+     * the cascade-persist semantics + scheduled inserts/removals are synchronized.
+     *
+     * @param null|object|array $entity
+     *
+     * @return void
+     *
+     * @throws \Doctrine\ORM\OptimisticLockException If a version check on an entity that
+     *         makes use of optimistic locking fails.
+     */
+    public function flush($entity = null)
+    {
+
+        $this->errorIfClosed();
+
+        $this->unitOfWork->commit($entity);
+    }
+
+    /**
+     * Throws an exception if the EntityManager is closed or currently not active.
+     *
+     * @return void
+     *
+     * @throws ORMException If the EntityManager is closed.
+     */
+    private function errorIfClosed()
+    {
+
+        if ($this->closed) {
+            throw ORMException::entityManagerClosed();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function close()
+    {
+
+        $this->clear();
+
+        $this->closed = true;
+    }
+
+    /**
+     * Clears the EntityManager. All entities that are currently managed
+     * by this EntityManager become detached.
+     *
+     * @param string|null $entityName if given, only entities of this type will get detached
+     *
+     * @return void
+     */
+    public function clear($entityName = null)
+    {
+
+        $this->unitOfWork->clear($entityName);
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function commit()
     {
+
         $this->conn->commit();
     }
 
@@ -257,6 +361,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function rollback()
     {
+
         $this->conn->rollback();
     }
 
@@ -278,7 +383,17 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getClassMetadata($className)
     {
+
         return $this->metadataFactory->getMetadataFor($className);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function createNamedQuery($name)
+    {
+
+        return $this->createQuery($this->config->getNamedQuery($name));
     }
 
     /**
@@ -286,9 +401,10 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function createQuery($dql = '')
     {
+
         $query = new Query($this);
 
-        if ( ! empty($dql)) {
+        if (!empty( $dql )) {
             $query->setDql($dql);
         }
 
@@ -298,9 +414,12 @@ use Doctrine\Common\Util\ClassUtils;
     /**
      * {@inheritDoc}
      */
-    public function createNamedQuery($name)
+    public function createNamedNativeQuery($name)
     {
-        return $this->createQuery($this->config->getNamedQuery($name));
+
+        list( $sql, $rsm ) = $this->config->getNamedNativeQuery($name);
+
+        return $this->createNativeQuery($sql, $rsm);
     }
 
     /**
@@ -308,6 +427,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function createNativeQuery($sql, ResultSetMapping $rsm)
     {
+
         $query = new NativeQuery($this);
 
         $query->setSql($sql);
@@ -319,41 +439,52 @@ use Doctrine\Common\Util\ClassUtils;
     /**
      * {@inheritDoc}
      */
-    public function createNamedNativeQuery($name)
+    public function createQueryBuilder()
     {
-        list($sql, $rsm) = $this->config->getNamedNativeQuery($name);
 
-        return $this->createNativeQuery($sql, $rsm);
+        return new QueryBuilder($this);
     }
 
     /**
      * {@inheritDoc}
      */
-    public function createQueryBuilder()
+    public function getReference($entityName, $id)
     {
-        return new QueryBuilder($this);
-    }
 
-    /**
-     * Flushes all changes to objects that have been queued up to now to the database.
-     * This effectively synchronizes the in-memory state of managed objects with the
-     * database.
-     *
-     * If an entity is explicitly passed to this method only this entity and
-     * the cascade-persist semantics + scheduled inserts/removals are synchronized.
-     *
-     * @param null|object|array $entity
-     *
-     * @return void
-     *
-     * @throws \Doctrine\ORM\OptimisticLockException If a version check on an entity that
-     *         makes use of optimistic locking fails.
-     */
-    public function flush($entity = null)
-    {
-        $this->errorIfClosed();
+        $class = $this->metadataFactory->getMetadataFor(ltrim($entityName, '\\'));
 
-        $this->unitOfWork->commit($entity);
+        if (!is_array($id)) {
+            $id = array($class->identifier[0] => $id);
+        }
+
+        $sortedId = array();
+
+        foreach ($class->identifier as $identifier) {
+            if (!isset( $id[$identifier] )) {
+                throw ORMException::missingIdentifierField($class->name, $identifier);
+            }
+
+            $sortedId[$identifier] = $id[$identifier];
+        }
+
+        // Check identity map first, if its already in there just return it.
+        if (( $entity = $this->unitOfWork->tryGetById($sortedId, $class->rootEntityName) ) !== false) {
+            return ( $entity instanceof $class->name ) ? $entity : null;
+        }
+
+        if ($class->subClasses) {
+            return $this->find($entityName, $sortedId);
+        }
+
+        if (!is_array($sortedId)) {
+            $sortedId = array($class->identifier[0] => $sortedId);
+        }
+
+        $entity = $this->proxyFactory->getProxy($class->name, $sortedId);
+
+        $this->unitOfWork->registerManaged($entity, $sortedId, array());
+
+        return $entity;
     }
 
     /**
@@ -376,9 +507,10 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function find($entityName, $id, $lockMode = null, $lockVersion = null)
     {
+
         $class = $this->metadataFactory->getMetadataFor(ltrim($entityName, '\\'));
 
-        if ( ! is_array($id)) {
+        if (!is_array($id)) {
             if ($class->isIdentifierComposite) {
                 throw ORMInvalidArgumentException::invalidCompositeIdentifier();
             }
@@ -399,12 +531,12 @@ use Doctrine\Common\Util\ClassUtils;
         $sortedId = array();
 
         foreach ($class->identifier as $identifier) {
-            if ( ! isset($id[$identifier])) {
+            if (!isset( $id[$identifier] )) {
                 throw ORMException::missingIdentifierField($class->name, $identifier);
             }
 
             $sortedId[$identifier] = $id[$identifier];
-            unset($id[$identifier]);
+            unset( $id[$identifier] );
         }
 
         if ($id) {
@@ -414,8 +546,8 @@ use Doctrine\Common\Util\ClassUtils;
         $unitOfWork = $this->getUnitOfWork();
 
         // Check identity map first
-        if (($entity = $unitOfWork->tryGetById($sortedId, $class->rootEntityName)) !== false) {
-            if ( ! ($entity instanceof $class->name)) {
+        if (( $entity = $unitOfWork->tryGetById($sortedId, $class->rootEntityName) ) !== false) {
+            if (!( $entity instanceof $class->name )) {
                 return null;
             }
 
@@ -439,7 +571,7 @@ use Doctrine\Common\Util\ClassUtils;
 
         switch (true) {
             case LockMode::OPTIMISTIC === $lockMode:
-                if ( ! $class->isVersioned) {
+                if (!$class->isVersioned) {
                     throw OptimisticLockException::notVersioned($class->name);
                 }
 
@@ -452,7 +584,7 @@ use Doctrine\Common\Util\ClassUtils;
             case LockMode::NONE === $lockMode:
             case LockMode::PESSIMISTIC_READ === $lockMode:
             case LockMode::PESSIMISTIC_WRITE === $lockMode:
-                if ( ! $this->getConnection()->isTransactionActive()) {
+            if (!$this->getConnection()->isTransactionActive()) {
                     throw TransactionRequiredException::transactionRequired();
                 }
 
@@ -466,42 +598,28 @@ use Doctrine\Common\Util\ClassUtils;
     /**
      * {@inheritDoc}
      */
-    public function getReference($entityName, $id)
+    public function getUnitOfWork()
     {
-        $class = $this->metadataFactory->getMetadataFor(ltrim($entityName, '\\'));
 
-        if ( ! is_array($id)) {
-            $id = array($class->identifier[0] => $id);
-        }
+        return $this->unitOfWork;
+    }
 
-        $sortedId = array();
+    /**
+     * {@inheritDoc}
+     */
+    public function lock($entity, $lockMode, $lockVersion = null)
+    {
 
-        foreach ($class->identifier as $identifier) {
-            if ( ! isset($id[$identifier])) {
-                throw ORMException::missingIdentifierField($class->name, $identifier);
-            }
+        $this->unitOfWork->lock($entity, $lockMode, $lockVersion);
+    }
 
-            $sortedId[$identifier] = $id[$identifier];
-        }
+    /**
+     * {@inheritDoc}
+     */
+    public function getConnection()
+    {
 
-        // Check identity map first, if its already in there just return it.
-        if (($entity = $this->unitOfWork->tryGetById($sortedId, $class->rootEntityName)) !== false) {
-            return ($entity instanceof $class->name) ? $entity : null;
-        }
-
-        if ($class->subClasses) {
-            return $this->find($entityName, $sortedId);
-        }
-
-        if ( ! is_array($sortedId)) {
-            $sortedId = array($class->identifier[0] => $sortedId);
-        }
-
-        $entity = $this->proxyFactory->getProxy($class->name, $sortedId);
-
-        $this->unitOfWork->registerManaged($entity, $sortedId, array());
-
-        return $entity;
+        return $this->conn;
     }
 
     /**
@@ -509,14 +627,15 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getPartialReference($entityName, $identifier)
     {
+
         $class = $this->metadataFactory->getMetadataFor(ltrim($entityName, '\\'));
 
         // Check identity map first, if its already in there just return it.
-        if (($entity = $this->unitOfWork->tryGetById($identifier, $class->rootEntityName)) !== false) {
-            return ($entity instanceof $class->name) ? $entity : null;
+        if (( $entity = $this->unitOfWork->tryGetById($identifier, $class->rootEntityName) ) !== false) {
+            return ( $entity instanceof $class->name ) ? $entity : null;
         }
 
-        if ( ! is_array($identifier)) {
+        if (!is_array($identifier)) {
             $identifier = array($class->identifier[0] => $identifier);
         }
 
@@ -528,29 +647,6 @@ use Doctrine\Common\Util\ClassUtils;
         $this->unitOfWork->markReadOnly($entity);
 
         return $entity;
-    }
-
-    /**
-     * Clears the EntityManager. All entities that are currently managed
-     * by this EntityManager become detached.
-     *
-     * @param string|null $entityName if given, only entities of this type will get detached
-     *
-     * @return void
-     */
-    public function clear($entityName = null)
-    {
-        $this->unitOfWork->clear($entityName);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function close()
-    {
-        $this->clear();
-
-        $this->closed = true;
     }
 
     /**
@@ -570,8 +666,9 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function persist($entity)
     {
-        if ( ! is_object($entity)) {
-            throw ORMInvalidArgumentException::invalidObject('EntityManager#persist()' , $entity);
+
+        if (!is_object($entity)) {
+            throw ORMInvalidArgumentException::invalidObject('EntityManager#persist()', $entity);
         }
 
         $this->errorIfClosed();
@@ -593,8 +690,9 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function remove($entity)
     {
-        if ( ! is_object($entity)) {
-            throw ORMInvalidArgumentException::invalidObject('EntityManager#remove()' , $entity);
+
+        if (!is_object($entity)) {
+            throw ORMInvalidArgumentException::invalidObject('EntityManager#remove()', $entity);
         }
 
         $this->errorIfClosed();
@@ -614,8 +712,9 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function refresh($entity)
     {
-        if ( ! is_object($entity)) {
-            throw ORMInvalidArgumentException::invalidObject('EntityManager#refresh()' , $entity);
+
+        if (!is_object($entity)) {
+            throw ORMInvalidArgumentException::invalidObject('EntityManager#refresh()', $entity);
         }
 
         $this->errorIfClosed();
@@ -638,8 +737,9 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function detach($entity)
     {
-        if ( ! is_object($entity)) {
-            throw ORMInvalidArgumentException::invalidObject('EntityManager#detach()' , $entity);
+
+        if (!is_object($entity)) {
+            throw ORMInvalidArgumentException::invalidObject('EntityManager#detach()', $entity);
         }
 
         $this->unitOfWork->detach($entity);
@@ -658,8 +758,9 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function merge($entity)
     {
-        if ( ! is_object($entity)) {
-            throw ORMInvalidArgumentException::invalidObject('EntityManager#merge()' , $entity);
+
+        if (!is_object($entity)) {
+            throw ORMInvalidArgumentException::invalidObject('EntityManager#merge()', $entity);
         }
 
         $this->errorIfClosed();
@@ -675,15 +776,8 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function copy($entity, $deep = false)
     {
-        throw new \BadMethodCallException("Not implemented.");
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function lock($entity, $lockMode, $lockVersion = null)
-    {
-        $this->unitOfWork->lock($entity, $lockMode, $lockVersion);
+        throw new \BadMethodCallException("Not implemented.");
     }
 
     /**
@@ -695,6 +789,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getRepository($entityName)
     {
+
         return $this->repositoryFactory->getRepository($this, $entityName);
     }
 
@@ -707,9 +802,10 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function contains($entity)
     {
+
         return $this->unitOfWork->isScheduledForInsert($entity)
-            || $this->unitOfWork->isInIdentityMap($entity)
-            && ! $this->unitOfWork->isScheduledForDelete($entity);
+        || $this->unitOfWork->isInIdentityMap($entity)
+        && !$this->unitOfWork->isScheduledForDelete($entity);
     }
 
     /**
@@ -717,6 +813,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getEventManager()
     {
+
         return $this->eventManager;
     }
 
@@ -725,21 +822,8 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getConfiguration()
     {
-        return $this->config;
-    }
 
-    /**
-     * Throws an exception if the EntityManager is closed or currently not active.
-     *
-     * @return void
-     *
-     * @throws ORMException If the EntityManager is closed.
-     */
-    private function errorIfClosed()
-    {
-        if ($this->closed) {
-            throw ORMException::entityManagerClosed();
-        }
+        return $this->config;
     }
 
     /**
@@ -747,15 +831,8 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function isOpen()
     {
-        return (!$this->closed);
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function getUnitOfWork()
-    {
-        return $this->unitOfWork;
+        return ( !$this->closed );
     }
 
     /**
@@ -763,6 +840,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getHydrator($hydrationMode)
     {
+
         return $this->newHydrator($hydrationMode);
     }
 
@@ -771,6 +849,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function newHydrator($hydrationMode)
     {
+
         switch ($hydrationMode) {
             case Query::HYDRATE_OBJECT:
                 return new Internal\Hydration\ObjectHydrator($this);
@@ -788,7 +867,7 @@ use Doctrine\Common\Util\ClassUtils;
                 return new Internal\Hydration\SimpleObjectHydrator($this);
 
             default:
-                if (($class = $this->config->getCustomHydrationMode($hydrationMode)) !== null) {
+                if (( $class = $this->config->getCustomHydrationMode($hydrationMode) ) !== null) {
                     return new $class($this);
                 }
         }
@@ -801,6 +880,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getProxyFactory()
     {
+
         return $this->proxyFactory;
     }
 
@@ -809,45 +889,8 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function initializeObject($obj)
     {
+
         $this->unitOfWork->initializeObject($obj);
-    }
-
-    /**
-     * Factory method to create EntityManager instances.
-     *
-     * @param mixed         $conn         An array with the connection parameters or an existing Connection instance.
-     * @param Configuration $config       The Configuration instance to use.
-     * @param EventManager  $eventManager The EventManager instance to use.
-     *
-     * @return EntityManager The created EntityManager.
-     *
-     * @throws \InvalidArgumentException
-     * @throws ORMException
-     */
-    public static function create($conn, Configuration $config, EventManager $eventManager = null)
-    {
-        if ( ! $config->getMetadataDriverImpl()) {
-            throw ORMException::missingMappingDriverImpl();
-        }
-
-        switch (true) {
-            case (is_array($conn)):
-                $conn = \Doctrine\DBAL\DriverManager::getConnection(
-                    $conn, $config, ($eventManager ?: new EventManager())
-                );
-                break;
-
-            case ($conn instanceof Connection):
-                if ($eventManager !== null && $conn->getEventManager() !== $eventManager) {
-                     throw ORMException::mismatchedEventManager();
-                }
-                break;
-
-            default:
-                throw new \InvalidArgumentException("Invalid argument: " . $conn);
-        }
-
-        return new EntityManager($conn, $config, $conn->getEventManager());
     }
 
     /**
@@ -855,6 +898,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function getFilters()
     {
+
         if (null === $this->filterCollection) {
             $this->filterCollection = new FilterCollection($this);
         }
@@ -867,6 +911,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function isFiltersStateClean()
     {
+
         return null === $this->filterCollection || $this->filterCollection->isClean();
     }
 
@@ -875,6 +920,7 @@ use Doctrine\Common\Util\ClassUtils;
      */
     public function hasFilters()
     {
+
         return null !== $this->filterCollection;
     }
 }

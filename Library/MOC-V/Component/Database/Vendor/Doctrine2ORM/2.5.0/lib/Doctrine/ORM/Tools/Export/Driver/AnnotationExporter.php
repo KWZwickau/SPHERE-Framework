@@ -31,6 +31,7 @@ use Doctrine\ORM\Tools\EntityGenerator;
  */
 class AnnotationExporter extends AbstractExporter
 {
+
     /**
      * @var string
      */
@@ -46,7 +47,8 @@ class AnnotationExporter extends AbstractExporter
      */
     public function exportClassMetadata(ClassMetadataInfo $metadata)
     {
-        if ( ! $this->_entityGenerator) {
+
+        if (!$this->_entityGenerator) {
             throw new \RuntimeException('For the AnnotationExporter you must set an EntityGenerator instance with the setEntityGenerator() method.');
         }
 
@@ -59,22 +61,24 @@ class AnnotationExporter extends AbstractExporter
     }
 
     /**
-     * @param \Doctrine\ORM\Mapping\ClassMetadataInfo $metadata
-     *
-     * @return string
-     */
-    protected function _generateOutputPath(ClassMetadataInfo $metadata)
-    {
-        return $this->_outputDir . '/' . str_replace('\\', '/', $metadata->name) . $this->_extension;
-    }
-
-    /**
      * @param \Doctrine\ORM\Tools\EntityGenerator $entityGenerator
      *
      * @return void
      */
     public function setEntityGenerator(EntityGenerator $entityGenerator)
     {
+
         $this->_entityGenerator = $entityGenerator;
+    }
+
+    /**
+     * @param \Doctrine\ORM\Mapping\ClassMetadataInfo $metadata
+     *
+     * @return string
+     */
+    protected function _generateOutputPath(ClassMetadataInfo $metadata)
+    {
+
+        return $this->_outputDir.'/'.str_replace('\\', '/', $metadata->name).$this->_extension;
     }
 }

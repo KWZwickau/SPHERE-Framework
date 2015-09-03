@@ -13,6 +13,7 @@ class SqliteSchemaManagerTest extends \PHPUnit_Framework_TestCase
      */
     public function testParseColumnCollation($collation, $column, $sql)
     {
+
         $conn = $this->getMockBuilder('Doctrine\DBAL\Connection')->disableOriginalConstructor()->getMock();
         $conn->expects($this->any())->method('getDatabasePlatform')->will($this->returnValue(new SqlitePlatform()));
 
@@ -25,21 +26,32 @@ class SqliteSchemaManagerTest extends \PHPUnit_Framework_TestCase
 
     public function getDataColumnCollation()
     {
+
         return array(
             array(
-                'RTRIM', 'a', 'CREATE TABLE "a" ("a" text DEFAULT "aa" COLLATE "RTRIM" NOT NULL)'
+                'RTRIM',
+                'a',
+                'CREATE TABLE "a" ("a" text DEFAULT "aa" COLLATE "RTRIM" NOT NULL)'
             ),
             array(
-                'utf-8', 'a', 'CREATE TABLE "a" ("b" text UNIQUE NOT NULL COLLATE NOCASE, "a" text DEFAULT "aa" COLLATE "utf-8" NOT NULL)'
+                'utf-8',
+                'a',
+                'CREATE TABLE "a" ("b" text UNIQUE NOT NULL COLLATE NOCASE, "a" text DEFAULT "aa" COLLATE "utf-8" NOT NULL)'
             ),
             array(
-                'NOCASE', 'a', 'CREATE TABLE "a" ("a" text DEFAULT (lower(ltrim(" a") || rtrim("a "))) CHECK ("a") NOT NULL COLLATE NOCASE UNIQUE, "b" text COLLATE RTRIM)'
+                'NOCASE',
+                'a',
+                'CREATE TABLE "a" ("a" text DEFAULT (lower(ltrim(" a") || rtrim("a "))) CHECK ("a") NOT NULL COLLATE NOCASE UNIQUE, "b" text COLLATE RTRIM)'
             ),
             array(
-                false, 'a', 'CREATE TABLE "a" ("a" text CHECK ("a") NOT NULL, "b" text COLLATE RTRIM)'
+                false,
+                'a',
+                'CREATE TABLE "a" ("a" text CHECK ("a") NOT NULL, "b" text COLLATE RTRIM)'
             ),
             array(
-                'RTRIM', 'a"b', 'CREATE TABLE "a" ("a""b" text COLLATE RTRIM)'
+                'RTRIM',
+                'a"b',
+                'CREATE TABLE "a" ("a""b" text COLLATE RTRIM)'
             ),
         );
     }

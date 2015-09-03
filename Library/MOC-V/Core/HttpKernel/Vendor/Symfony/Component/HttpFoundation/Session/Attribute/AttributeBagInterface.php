@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
  */
 interface AttributeBagInterface extends SessionBagInterface
 {
+
     /**
      * Checks if an attribute is defined.
      *

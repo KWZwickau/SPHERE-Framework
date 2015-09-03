@@ -19,14 +19,15 @@
 
 namespace Doctrine\DBAL\Tools\Console\Command;
 
-use Symfony\Component\Console\Input\InputOption;
+use Doctrine\DBAL\Platforms\Keywords\ReservedKeywordsValidator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Doctrine\DBAL\Platforms\Keywords\ReservedKeywordsValidator;
 
 class ReservedWordsCommand extends Command
 {
+
     /**
      * @var array
      */
@@ -59,6 +60,7 @@ class ReservedWordsCommand extends Command
      */
     public function setKeywordListClass($name, $class)
     {
+
         $this->keywordListClasses[$name] = $class;
     }
 
@@ -67,15 +69,16 @@ class ReservedWordsCommand extends Command
      */
     protected function configure()
     {
+
         $this
-        ->setName('dbal:reserved-words')
-        ->setDescription('Checks if the current database contains identifiers that are reserved.')
-        ->setDefinition(array(
-            new InputOption(
-                'list', 'l', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Keyword-List name.'
-            )
-        ))
-        ->setHelp(<<<EOT
+            ->setName('dbal:reserved-words')
+            ->setDescription('Checks if the current database contains identifiers that are reserved.')
+            ->setDefinition(array(
+                new InputOption(
+                    'list', 'l', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Keyword-List name.'
+                )
+            ))
+            ->setHelp(<<<EOT
 Checks if the current database contains tables and columns
 with names that are identifiers in this dialect or in other SQL dialects.
 
@@ -107,7 +110,7 @@ The following keyword lists are currently shipped with Doctrine:
     * sqlanywhere16
     * db2 (Not checked by default)
 EOT
-        );
+            );
     }
 
     /**
@@ -115,11 +118,12 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         /* @var $conn \Doctrine\DBAL\Connection */
         $conn = $this->getHelper('db')->getConnection();
 
-        $keywordLists = (array) $input->getOption('list');
-        if ( ! $keywordLists) {
+        $keywordLists = (array)$input->getOption('list');
+        if (!$keywordLists) {
             $keywordLists = array(
                 'mysql',
                 'mysql57',
@@ -140,17 +144,17 @@ EOT
 
         $keywords = array();
         foreach ($keywordLists as $keywordList) {
-            if (!isset($this->keywordListClasses[$keywordList])) {
+            if (!isset( $this->keywordListClasses[$keywordList] )) {
                 throw new \InvalidArgumentException(
-                    "There exists no keyword list with name '" . $keywordList . "'. ".
-                    "Known lists: " . implode(", ", array_keys($this->keywordListClasses))
+                    "There exists no keyword list with name '".$keywordList."'. ".
+                    "Known lists: ".implode(", ", array_keys($this->keywordListClasses))
                 );
             }
             $class = $this->keywordListClasses[$keywordList];
             $keywords[] = new $class;
         }
 
-        $output->write('Checking keyword violations for <comment>' . implode(", ", $keywordLists) . "</comment>...", true);
+        $output->write('Checking keyword violations for <comment>'.implode(", ", $keywordLists)."</comment>...", true);
 
         /* @var $schema \Doctrine\DBAL\Schema\Schema */
         $schema = $conn->getSchemaManager()->createSchema();
@@ -161,9 +165,10 @@ EOT
         if (count($violations) == 0) {
             $output->write("No reserved keywords violations have been found!", true);
         } else {
-            $output->write('There are <error>' . count($violations) . '</error> reserved keyword violations in your database schema:', true);
+            $output->write('There are <error>'.count($violations).'</error> reserved keyword violations in your database schema:',
+                true);
             foreach ($violations as $violation) {
-                $output->write('  - ' . $violation, true);
+                $output->write('  - '.$violation, true);
             }
 
             return 1;

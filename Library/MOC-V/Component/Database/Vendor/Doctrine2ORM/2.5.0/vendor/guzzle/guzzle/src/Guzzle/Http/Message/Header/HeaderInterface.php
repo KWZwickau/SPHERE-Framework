@@ -6,6 +6,7 @@ use Guzzle\Common\ToArrayInterface;
 
 interface HeaderInterface extends ToArrayInterface, \Countable, \IteratorAggregate
 {
+
     /**
      * Convert the header to a string
      *

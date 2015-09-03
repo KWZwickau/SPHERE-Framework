@@ -8,13 +8,13 @@ require_once "functions.inc.php";
 function li_arrow()
 {
 
-    return '<li style="list-style-image: url(\'images/arrow_0'.rand( 1, 6 ).'.gif\');">';
+    return '<li style="list-style-image: url(\'images/arrow_0'.rand(1, 6).'.gif\');">';
 }
 
 function li_star()
 {
 
-    return '<li style="list-style-image: url(\'images/star_0'.rand( 1, 5 ).'.gif\');">';
+    return '<li style="list-style-image: url(\'images/star_0'.rand(1, 5).'.gif\');">';
 }
 
 auth_check();
@@ -30,7 +30,7 @@ auth_check();
 
     <?php if (isset( $_SESSION["auth_message"] )) { ?>
         <script type="text/javascript">
-            alert( "<?php echo $_SESSION["auth_message"]; ?>" );
+            alert("<?php echo $_SESSION["auth_message"]; ?>");
         </script>
     <?php } ?>
 </head>

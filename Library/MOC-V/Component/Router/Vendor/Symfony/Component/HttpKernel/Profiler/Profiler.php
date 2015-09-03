@@ -24,6 +24,7 @@ use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
  */
 class Profiler
 {
+
     /**
      * @var ProfilerStorageInterface
      */
@@ -52,6 +53,7 @@ class Profiler
      */
     public function __construct(ProfilerStorageInterface $storage, LoggerInterface $logger = null)
     {
+
         $this->storage = $storage;
         $this->logger = $logger;
     }
@@ -61,6 +63,7 @@ class Profiler
      */
     public function disable()
     {
+
         $this->enabled = false;
     }
 
@@ -69,6 +72,7 @@ class Profiler
      */
     public function enable()
     {
+
         $this->enabled = true;
     }
 
@@ -81,6 +85,7 @@ class Profiler
      */
     public function loadProfileFromResponse(Response $response)
     {
+
         if (!$token = $response->headers->get('X-Debug-Token')) {
             return false;
         }
@@ -97,6 +102,7 @@ class Profiler
      */
     public function loadProfile($token)
     {
+
         return $this->storage->read($token);
     }
 
@@ -105,6 +111,7 @@ class Profiler
      */
     public function purge()
     {
+
         $this->storage->purge();
     }
 
@@ -117,6 +124,7 @@ class Profiler
      */
     public function export(Profile $profile)
     {
+
         return base64_encode(serialize($profile));
     }
 
@@ -129,6 +137,7 @@ class Profiler
      */
     public function import($data)
     {
+
         $profile = unserialize(base64_decode($data));
 
         if ($this->storage->read($profile->getToken())) {
@@ -147,7 +156,7 @@ class Profiler
      *
      * @return bool
      */
-    public function saveProfile( Profile $profile )
+    public function saveProfile(Profile $profile)
     {
 
         // late collect
@@ -157,8 +166,8 @@ class Profiler
             }
         }
 
-        if (!( $ret = $this->storage->write( $profile ) ) && null !== $this->logger) {
-            $this->logger->warning( 'Unable to store the profiler information.' );
+        if (!( $ret = $this->storage->write($profile) ) && null !== $this->logger) {
+            $this->logger->warning('Unable to store the profiler information.');
         }
 
         return $ret;
@@ -180,10 +189,11 @@ class Profiler
      */
     public function find($ip, $url, $limit, $method, $start, $end)
     {
+
         return $this->storage->find($ip, $url, $limit, $method, $this->getTimestamp($start), $this->getTimestamp($end));
     }
 
-    private function getTimestamp( $value )
+    private function getTimestamp($value)
     {
 
         if (null === $value || '' == $value) {
@@ -191,8 +201,8 @@ class Profiler
         }
 
         try {
-            $value = new \DateTime( is_numeric( $value ) ? '@'.$value : $value );
-        } catch( \Exception $e ) {
+            $value = new \DateTime(is_numeric($value) ? '@'.$value : $value);
+        } catch (\Exception $e) {
             return;
         }
 
@@ -210,6 +220,7 @@ class Profiler
      */
     public function collect(Request $request, Response $response, \Exception $exception = null)
     {
+
         if (false === $this->enabled) {
             return;
         }
@@ -239,6 +250,7 @@ class Profiler
      */
     public function all()
     {
+
         return $this->collectors;
     }
 
@@ -249,6 +261,7 @@ class Profiler
      */
     public function set(array $collectors = array())
     {
+
         $this->collectors = array();
         foreach ($collectors as $collector) {
             $this->add($collector);
@@ -262,6 +275,7 @@ class Profiler
      */
     public function add(DataCollectorInterface $collector)
     {
+
         $this->collectors[$collector->getName()] = $collector;
     }
 
@@ -274,7 +288,8 @@ class Profiler
      */
     public function has($name)
     {
-        return isset($this->collectors[$name]);
+
+        return isset( $this->collectors[$name] );
     }
 
     /**
@@ -288,7 +303,8 @@ class Profiler
      */
     public function get($name)
     {
-        if (!isset($this->collectors[$name])) {
+
+        if (!isset( $this->collectors[$name] )) {
             throw new \InvalidArgumentException(sprintf('Collector "%s" does not exist.', $name));
         }
 

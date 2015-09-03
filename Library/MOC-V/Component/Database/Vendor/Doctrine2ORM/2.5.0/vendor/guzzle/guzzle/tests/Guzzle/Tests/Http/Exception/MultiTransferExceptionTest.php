@@ -3,7 +3,6 @@
 namespace Guzzle\Tests\Http\Exception;
 
 use Guzzle\Http\Exception\MultiTransferException;
-use Guzzle\Http\Curl\CurlHandle;
 use Guzzle\Http\Message\Request;
 
 /**
@@ -11,8 +10,10 @@ use Guzzle\Http\Message\Request;
  */
 class MultiTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testHasRequests()
     {
+
         $r1 = new Request('GET', 'http://www.foo.com');
         $r2 = new Request('GET', 'http://www.foo.com');
         $e = new MultiTransferException();
@@ -28,6 +29,7 @@ class MultiTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanSetRequests()
     {
+
         $s = array($r1 = new Request('GET', 'http://www.foo.com'));
         $f = array($r2 = new Request('GET', 'http://www.foo.com'));
         $e = new MultiTransferException();
@@ -39,6 +41,7 @@ class MultiTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAssociatesExceptionsWithRequests()
     {
+
         $r1 = new Request('GET', 'http://www.foo.com');
         $re1 = new \Exception('foo');
         $re2 = new \Exception('bar');

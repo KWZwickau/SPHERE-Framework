@@ -29,34 +29,34 @@ class Helpers
      *
      * @return string
      */
-    public static function dump( $var )
+    public static function dump($var)
     {
 
-        return self::_dump( $var );
+        return self::_dump($var);
     }
 
 
-    private static function _dump( &$var, $level = 0 )
+    private static function _dump(&$var, $level = 0)
     {
 
         if ($var instanceof PhpLiteral) {
             return $var->value;
 
-        } elseif (is_float( $var )) {
-            $var = var_export( $var, true );
-            return strpos( $var, '.' ) === false ? $var.'.0' : $var;
+        } elseif (is_float($var)) {
+            $var = var_export($var, true);
+            return strpos($var, '.') === false ? $var.'.0' : $var;
 
-        } elseif (is_bool( $var )) {
+        } elseif (is_bool($var)) {
             return $var ? 'TRUE' : 'FALSE';
 
-        } elseif (is_string( $var ) && ( preg_match( '#[^\x09\x20-\x7E\xA0-\x{10FFFF}]#u',
-                    $var ) || preg_last_error() )
+        } elseif (is_string($var) && ( preg_match('#[^\x09\x20-\x7E\xA0-\x{10FFFF}]#u',
+                    $var) || preg_last_error() )
         ) {
             static $table;
             if ($table === null) {
-                foreach (range( "\x00", "\xFF" ) as $ch) {
-                    $table[$ch] = ord( $ch ) < 32 || ord( $ch ) >= 127
-                        ? '\\x'.str_pad( dechex( ord( $ch ) ), 2, '0', STR_PAD_LEFT )
+                foreach (range("\x00", "\xFF") as $ch) {
+                    $table[$ch] = ord($ch) < 32 || ord($ch) >= 127
+                        ? '\\x'.str_pad(dechex(ord($ch)), 2, '0', STR_PAD_LEFT)
                         : $ch;
                 }
                 $table["\r"] = '\r';
@@ -66,20 +66,20 @@ class Helpers
                 $table['\\'] = '\\\\';
                 $table['"'] = '\\"';
             }
-            return '"'.strtr( $var, $table ).'"';
+            return '"'.strtr($var, $table).'"';
 
-        } elseif (is_array( $var )) {
+        } elseif (is_array($var)) {
             $s = '';
-            $space = str_repeat( "\t", $level );
+            $space = str_repeat("\t", $level);
 
             static $marker;
             if ($marker === null) {
-                $marker = uniqid( "\x00", true );
+                $marker = uniqid("\x00", true);
             }
             if (empty( $var )) {
 
             } elseif ($level > 50 || isset( $var[$marker] )) {
-                throw new Nette\InvalidArgumentException( 'Nesting level too deep or recursive dependency.' );
+                throw new Nette\InvalidArgumentException('Nesting level too deep or recursive dependency.');
 
             } else {
                 $s .= "\n";
@@ -87,9 +87,9 @@ class Helpers
                 $counter = 0;
                 foreach ($var as $k => &$v) {
                     if ($k !== $marker) {
-                        $s .= "$space\t".( $k === $counter ? '' : self::_dump( $k )." => " ).self::_dump( $v,
-                                $level + 1 ).",\n";
-                        $counter = is_int( $k ) ? max( $k + 1, $counter ) : $counter;
+                        $s .= "$space\t".( $k === $counter ? '' : self::_dump($k)." => " ).self::_dump($v,
+                                $level + 1).",\n";
+                        $counter = is_int($k) ? max($k + 1, $counter) : $counter;
                     }
                 }
                 unset( $var[$marker] );
@@ -97,35 +97,35 @@ class Helpers
             }
             return "array($s)";
 
-        } elseif (is_object( $var )) {
+        } elseif (is_object($var)) {
             $arr = (array)$var;
             $s = '';
-            $space = str_repeat( "\t", $level );
+            $space = str_repeat("\t", $level);
 
             static $list = array();
             if (empty( $arr )) {
 
-            } elseif ($level > 50 || in_array( $var, $list, true )) {
-                throw new Nette\InvalidArgumentException( 'Nesting level too deep or recursive dependency.' );
+            } elseif ($level > 50 || in_array($var, $list, true)) {
+                throw new Nette\InvalidArgumentException('Nesting level too deep or recursive dependency.');
 
             } else {
                 $s .= "\n";
                 $list[] = $var;
                 foreach ($arr as $k => &$v) {
                     if ($k[0] === "\x00") {
-                        $k = substr( $k, strrpos( $k, "\x00" ) + 1 );
+                        $k = substr($k, strrpos($k, "\x00") + 1);
                     }
-                    $s .= "$space\t".self::_dump( $k )." => ".self::_dump( $v, $level + 1 ).",\n";
+                    $s .= "$space\t".self::_dump($k)." => ".self::_dump($v, $level + 1).",\n";
                 }
-                array_pop( $list );
+                array_pop($list);
                 $s .= $space;
             }
-            return get_class( $var ) === 'stdClass'
+            return get_class($var) === 'stdClass'
                 ? "(object) array($s)"
-                : __CLASS__."::createObject('".get_class( $var )."', array($s))";
+                : __CLASS__."::createObject('".get_class($var)."', array($s))";
 
         } else {
-            return var_export( $var, true );
+            return var_export($var, true);
         }
     }
 
@@ -135,11 +135,11 @@ class Helpers
      *
      * @return string
      */
-    public static function format( $statement )
+    public static function format($statement)
     {
 
         $args = func_get_args();
-        return self::formatArgs( array_shift( $args ), $args );
+        return self::formatArgs(array_shift($args), $args);
     }
 
 
@@ -148,29 +148,29 @@ class Helpers
      *
      * @return string
      */
-    public static function formatArgs( $statement, array $args )
+    public static function formatArgs($statement, array $args)
     {
 
-        $a = strpos( $statement, '?' );
+        $a = strpos($statement, '?');
         while ($a !== false) {
             if (!$args) {
-                throw new Nette\InvalidArgumentException( 'Insufficient number of arguments.' );
+                throw new Nette\InvalidArgumentException('Insufficient number of arguments.');
             }
-            $arg = array_shift( $args );
-            if (substr( $statement, $a + 1, 1 ) === '*') { // ?*
-                if (!is_array( $arg )) {
-                    throw new Nette\InvalidArgumentException( 'Argument must be an array.' );
+            $arg = array_shift($args);
+            if (substr($statement, $a + 1, 1) === '*') { // ?*
+                if (!is_array($arg)) {
+                    throw new Nette\InvalidArgumentException('Argument must be an array.');
                 }
-                $arg = implode( ', ', array_map( array( __CLASS__, 'dump' ), $arg ) );
-                $statement = substr_replace( $statement, $arg, $a, 2 );
+                $arg = implode(', ', array_map(array(__CLASS__, 'dump'), $arg));
+                $statement = substr_replace($statement, $arg, $a, 2);
 
             } else {
-                $arg = substr( $statement, $a - 1, 1 ) === '$' || in_array( substr( $statement, $a - 2, 2 ),
-                    array( '->', '::' ) )
-                    ? self::formatMember( $arg ) : self::_dump( $arg );
-                $statement = substr_replace( $statement, $arg, $a, 1 );
+                $arg = substr($statement, $a - 1, 1) === '$' || in_array(substr($statement, $a - 2, 2),
+                    array('->', '::'))
+                    ? self::formatMember($arg) : self::_dump($arg);
+                $statement = substr_replace($statement, $arg, $a, 1);
             }
-            $a = strpos( $statement, '?', $a + strlen( $arg ) );
+            $a = strpos($statement, '?', $a + strlen($arg));
         }
         return $statement;
     }
@@ -181,11 +181,11 @@ class Helpers
      *
      * @return string
      */
-    public static function formatMember( $name )
+    public static function formatMember($name)
     {
 
-        return $name instanceof PhpLiteral || !self::isIdentifier( $name )
-            ? '{'.self::_dump( $name ).'}'
+        return $name instanceof PhpLiteral || !self::isIdentifier($name)
+            ? '{'.self::_dump($name).'}'
             : $name;
     }
 
@@ -193,17 +193,17 @@ class Helpers
     /**
      * @return bool
      */
-    public static function isIdentifier( $value )
+    public static function isIdentifier($value)
     {
 
-        return is_string( $value ) && preg_match( '#^'.self::PHP_IDENT.'$#', $value );
+        return is_string($value) && preg_match('#^'.self::PHP_IDENT.'$#', $value);
     }
 
 
-    public static function createObject( $class, array $props )
+    public static function createObject($class, array $props)
     {
 
-        return unserialize( 'O'.substr( serialize( (string)$class ), 1, -1 ).substr( serialize( $props ), 1 ) );
+        return unserialize('O'.substr(serialize((string)$class), 1, -1).substr(serialize($props), 1));
     }
 
 }

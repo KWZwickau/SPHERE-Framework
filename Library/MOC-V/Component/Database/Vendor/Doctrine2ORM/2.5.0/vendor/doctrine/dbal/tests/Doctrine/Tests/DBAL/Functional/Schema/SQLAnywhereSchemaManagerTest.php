@@ -8,8 +8,10 @@ use Doctrine\DBAL\Schema\View;
 
 class SQLAnywhereSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
+
     public function testCreateAndListViews()
     {
+
         $this->createTestTable('view_test_table');
 
         $name = "doctrine_test_view";
@@ -29,10 +31,12 @@ class SQLAnywhereSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testDropAndCreateAdvancedIndex()
     {
+
         $table = $this->getTestTable('test_create_advanced_index');
         $this->_sm->dropAndCreateTable($table);
         $this->_sm->dropAndCreateIndex(
-            new Index('test', array('test'), true, false, array('clustered', 'with_nulls_not_distinct', 'for_olap_workload')),
+            new Index('test', array('test'), true, false,
+                array('clustered', 'with_nulls_not_distinct', 'for_olap_workload')),
             $table->getName()
         );
 
@@ -49,6 +53,7 @@ class SQLAnywhereSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testListTableColumnsWithFixedStringTypeColumn()
     {
+
         $table = new Table('list_table_columns_char');
         $table->addColumn('id', 'integer', array('notnull' => true));
         $table->addColumn('test', 'string', array('fixed' => true));

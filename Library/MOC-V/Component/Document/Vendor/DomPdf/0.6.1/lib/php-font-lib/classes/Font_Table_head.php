@@ -40,7 +40,7 @@ class Font_Table_head extends Font_Table
         parent::_parse();
 
         if ($this->data["magicNumber"] != 0x5F0F3CF5) {
-            throw new Exception( "Incorrect magic number (".dechex( $this->data["magicNumber"] ).")" );
+            throw new Exception("Incorrect magic number (".dechex($this->data["magicNumber"]).")");
         }
     }
 }

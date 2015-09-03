@@ -5,7 +5,7 @@ machine:
     Europe/Berlin # Set the timezone
 
   php:
-    version: 5.5.8
+    version: 5.4.4
 
 ## Customize dependencies
 dependencies:
@@ -19,3 +19,9 @@ test:
     - mkdir -p build/logs
     - phpunit --configuration TestSuite/phpunit.xml --coverage-text --debug
     - phpunit --configuration TestSuite/phpunit.xml --coverage-clover build/logs/clover.xml
+
+## Specifying branches to build
+general:
+  branches:
+    ignore:
+      - gh-pages

@@ -14,28 +14,28 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 
         try {
             throw new DocumentationException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Documentation\Exception\DocumentationException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Documentation\Exception\DocumentationException', $E);
         }
 
         try {
             throw new ComponentException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Documentation\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Documentation\Component\Exception\ComponentException', $E);
         }
 
         try {
             throw new EmptyDirectoryException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Documentation\Component\Exception\Repository\EmptyDirectoryException',
-                $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Documentation\Component\Exception\Repository\EmptyDirectoryException',
+                $E);
         }
 
         try {
             throw new TypeDirectoryException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Documentation\Component\Exception\Repository\TypeDirectoryException',
-                $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Documentation\Component\Exception\Repository\TypeDirectoryException',
+                $E);
         }
     }
 

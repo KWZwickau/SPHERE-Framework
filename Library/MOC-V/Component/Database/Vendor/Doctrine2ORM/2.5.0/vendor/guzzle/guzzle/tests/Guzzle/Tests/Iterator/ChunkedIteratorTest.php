@@ -9,8 +9,10 @@ use Guzzle\Iterator\ChunkedIterator;
  */
 class ChunkedIteratorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testChunksIterator()
     {
+
         $chunked = new ChunkedIterator(new \ArrayIterator(range(0, 100)), 10);
         $chunks = iterator_to_array($chunked, false);
         $this->assertEquals(11, count($chunks));
@@ -21,6 +23,7 @@ class ChunkedIteratorTest extends \PHPUnit_Framework_TestCase
 
     public function testChunksIteratorWithOddValues()
     {
+
         $chunked = new ChunkedIterator(new \ArrayIterator(array(1, 2, 3, 4, 5)), 2);
         $chunks = iterator_to_array($chunked, false);
         $this->assertEquals(3, count($chunks));
@@ -31,13 +34,16 @@ class ChunkedIteratorTest extends \PHPUnit_Framework_TestCase
 
     public function testMustNotTerminateWithTraversable()
     {
+
         $traversable = simplexml_load_string('<root><foo/><foo/><foo/></root>')->foo;
         $chunked = new ChunkedIterator($traversable, 2);
         $actual = iterator_to_array($chunked, false);
         $this->assertCount(2, $actual);
     }
 
-    public function testSizeOfZeroMakesIteratorInvalid() {
+    public function testSizeOfZeroMakesIteratorInvalid()
+    {
+
         $chunked = new ChunkedIterator(new \ArrayIterator(range(1, 5)), 0);
         $chunked->rewind();
         $this->assertFalse($chunked->valid());
@@ -46,7 +52,9 @@ class ChunkedIteratorTest extends \PHPUnit_Framework_TestCase
     /**
      * @expectedException \InvalidArgumentException
      */
-    public function testSizeLowerZeroThrowsException() {
+    public function testSizeLowerZeroThrowsException()
+    {
+
         new ChunkedIterator(new \ArrayIterator(range(1, 5)), -1);
     }
 }

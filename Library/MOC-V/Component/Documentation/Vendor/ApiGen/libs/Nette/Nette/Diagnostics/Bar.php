@@ -33,13 +33,13 @@ class Bar extends Nette\Object
      *
      * @return Bar  provides a fluent interface
      */
-    public function addPanel( IBarPanel $panel, $id = null )
+    public function addPanel(IBarPanel $panel, $id = null)
     {
 
         if ($id === null) {
             $c = 0;
             do {
-                $id = get_class( $panel ).( $c++ ? "-$c" : '' );
+                $id = get_class($panel).( $c++ ? "-$c" : '' );
             } while (isset( $this->panels[$id] ));
         }
         $this->panels[$id] = $panel;
@@ -60,15 +60,15 @@ class Bar extends Nette\Object
         foreach ($this->panels as $id => $panel) {
             try {
                 $panels[] = array(
-                    'id'    => preg_replace( '#[^a-z0-9]+#i', '-', $id ),
+                    'id' => preg_replace('#[^a-z0-9]+#i', '-', $id),
                     'tab'   => $tab = (string)$panel->getTab(),
                     'panel' => $tab ? (string)$panel->getPanel() : null,
                 );
-            } catch( \Exception $e ) {
+            } catch (\Exception $e) {
                 $panels[] = array(
-                    'id'    => "error-".preg_replace( '#[^a-z0-9]+#i', '-', $id ),
+                    'id'    => "error-".preg_replace('#[^a-z0-9]+#i', '-', $id),
                     'tab'   => "Error in $id",
-                    'panel' => '<h1>Error: '.$id.'</h1><div class="nette-inner">'.nl2br( htmlSpecialChars( $e ) ).'</div>',
+                    'panel' => '<h1>Error: '.$id.'</h1><div class="nette-inner">'.nl2br(htmlSpecialChars($e)).'</div>',
                 );
                 while (ob_get_level() > $obLevel) { // restore ob-level if broken
                     ob_end_clean();

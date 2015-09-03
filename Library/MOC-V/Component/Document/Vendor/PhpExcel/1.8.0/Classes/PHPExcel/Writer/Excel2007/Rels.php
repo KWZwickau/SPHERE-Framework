@@ -44,24 +44,24 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
      * @return    string        XML Output
      * @throws    PHPExcel_Writer_Exception
      */
-    public function writeRelationships( PHPExcel $pPHPExcel = null )
+    public function writeRelationships(PHPExcel $pPHPExcel = null)
     {
 
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_DISK,
-                $this->getParentWriter()->getDiskCachingDirectory() );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_DISK,
+                $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_MEMORY );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
-        $objWriter->startDocument( '1.0', 'UTF-8', 'yes' );
+        $objWriter->startDocument('1.0', 'UTF-8', 'yes');
 
         // Relationships
-        $objWriter->startElement( 'Relationships' );
-        $objWriter->writeAttribute( 'xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships' );
+        $objWriter->startElement('Relationships');
+        $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships');
 
         $customPropertyList = $pPHPExcel->getProperties()->getCustomProperties();
         if (!empty( $customPropertyList )) {
@@ -104,7 +104,7 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
                 $objWriter,
                 5,
                 'http://schemas.microsoft.com/office/2006/relationships/ui/extensibility',
-                $pPHPExcel->getRibbonXMLData( 'target' )
+                $pPHPExcel->getRibbonXMLData('target')
             );
         }
 
@@ -135,18 +135,18 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 
         if ($pType != '' && $pTarget != '') {
             // Write relationship
-            $objWriter->startElement( 'Relationship' );
-            $objWriter->writeAttribute( 'Id', 'rId'.$pId );
-            $objWriter->writeAttribute( 'Type', $pType );
-            $objWriter->writeAttribute( 'Target', $pTarget );
+            $objWriter->startElement('Relationship');
+            $objWriter->writeAttribute('Id', 'rId'.$pId);
+            $objWriter->writeAttribute('Type', $pType);
+            $objWriter->writeAttribute('Target', $pTarget);
 
             if ($pTargetMode != '') {
-                $objWriter->writeAttribute( 'TargetMode', $pTargetMode );
+                $objWriter->writeAttribute('TargetMode', $pTargetMode);
             }
 
             $objWriter->endElement();
         } else {
-            throw new PHPExcel_Writer_Exception( "Invalid parameters passed." );
+            throw new PHPExcel_Writer_Exception("Invalid parameters passed.");
         }
     }
 
@@ -158,24 +158,24 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
      * @return    string        XML Output
      * @throws    PHPExcel_Writer_Exception
      */
-    public function writeWorkbookRelationships( PHPExcel $pPHPExcel = null )
+    public function writeWorkbookRelationships(PHPExcel $pPHPExcel = null)
     {
 
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_DISK,
-                $this->getParentWriter()->getDiskCachingDirectory() );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_DISK,
+                $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_MEMORY );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
-        $objWriter->startDocument( '1.0', 'UTF-8', 'yes' );
+        $objWriter->startDocument('1.0', 'UTF-8', 'yes');
 
         // Relationships
-        $objWriter->startElement( 'Relationships' );
-        $objWriter->writeAttribute( 'xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships' );
+        $objWriter->startElement('Relationships');
+        $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships');
 
         // Relationship styles.xml
         $this->_writeRelationship(
@@ -252,18 +252,18 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_DISK,
-                $this->getParentWriter()->getDiskCachingDirectory() );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_DISK,
+                $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_MEMORY );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
-        $objWriter->startDocument( '1.0', 'UTF-8', 'yes' );
+        $objWriter->startDocument('1.0', 'UTF-8', 'yes');
 
         // Relationships
-        $objWriter->startElement( 'Relationships' );
-        $objWriter->writeAttribute( 'xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships' );
+        $objWriter->startElement('Relationships');
+        $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships');
 
         // Write drawing relationships?
         $d = 0;
@@ -273,7 +273,7 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
             $charts = array();
         }
         if (( $pWorksheet->getDrawingCollection()->count() > 0 ) ||
-            ( count( $charts ) > 0 )
+            ( count($charts) > 0 )
         ) {
             $this->_writeRelationship(
                 $objWriter,
@@ -316,7 +316,7 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 
         // Write comments relationship?
         $i = 1;
-        if (count( $pWorksheet->getComments() ) > 0) {
+        if (count($pWorksheet->getComments()) > 0) {
             $this->_writeRelationship(
                 $objWriter,
                 '_comments_vml'.$i,
@@ -334,7 +334,7 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
 
         // Write header/footer relationship?
         $i = 1;
-        if (count( $pWorksheet->getHeaderFooter()->getImages() ) > 0) {
+        if (count($pWorksheet->getHeaderFooter()->getImages()) > 0) {
             $this->_writeRelationship(
                 $objWriter,
                 '_headerfooter_vml'.$i,
@@ -368,18 +368,18 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_DISK,
-                $this->getParentWriter()->getDiskCachingDirectory() );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_DISK,
+                $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_MEMORY );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
-        $objWriter->startDocument( '1.0', 'UTF-8', 'yes' );
+        $objWriter->startDocument('1.0', 'UTF-8', 'yes');
 
         // Relationships
-        $objWriter->startElement( 'Relationships' );
-        $objWriter->writeAttribute( 'xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships' );
+        $objWriter->startElement('Relationships');
+        $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships');
 
         // Loop through images and write relationships
         $i = 1;
@@ -393,7 +393,7 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
                     $objWriter,
                     $i,
                     'http://schemas.openxmlformats.org/officeDocument/2006/relationships/image',
-                    '../media/'.str_replace( ' ', '', $iterator->current()->getIndexedFilename() )
+                    '../media/'.str_replace(' ', '', $iterator->current()->getIndexedFilename())
                 );
             }
 
@@ -430,24 +430,24 @@ class PHPExcel_Writer_Excel2007_Rels extends PHPExcel_Writer_Excel2007_WriterPar
      * @return    string                        XML Output
      * @throws    PHPExcel_Writer_Exception
      */
-    public function writeHeaderFooterDrawingRelationships( PHPExcel_Worksheet $pWorksheet = null )
+    public function writeHeaderFooterDrawingRelationships(PHPExcel_Worksheet $pWorksheet = null)
     {
 
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_DISK,
-                $this->getParentWriter()->getDiskCachingDirectory() );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_DISK,
+                $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_MEMORY );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
-        $objWriter->startDocument( '1.0', 'UTF-8', 'yes' );
+        $objWriter->startDocument('1.0', 'UTF-8', 'yes');
 
         // Relationships
-        $objWriter->startElement( 'Relationships' );
-        $objWriter->writeAttribute( 'xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships' );
+        $objWriter->startElement('Relationships');
+        $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/package/2006/relationships');
 
         // Loop through images and write relationships
         foreach ($pWorksheet->getHeaderFooter()->getImages() as $key => $value) {

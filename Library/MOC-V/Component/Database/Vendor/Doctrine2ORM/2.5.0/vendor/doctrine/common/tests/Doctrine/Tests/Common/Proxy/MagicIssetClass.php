@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Proxy;
  */
 class MagicIssetClass
 {
+
     /**
      * @var string
      */
@@ -25,6 +26,7 @@ class MagicIssetClass
      */
     public function __isset($name)
     {
+
         if ('test' === $name) {
             return true;
         }

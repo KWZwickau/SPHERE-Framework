@@ -19,12 +19,12 @@
 
 namespace Doctrine\ORM\Tools\Console\Command\ClearCache;
 
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 use Doctrine\Common\Cache\ApcCache;
 use Doctrine\Common\Cache\XcacheCache;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Command to clear the metadata cache of the various cache drivers.
@@ -38,20 +38,22 @@ use Doctrine\Common\Cache\XcacheCache;
  */
 class MetadataCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
-        ->setName('orm:clear-cache:metadata')
-        ->setDescription('Clear all metadata cache of the various cache drivers.')
-        ->setDefinition(array(
-            new InputOption(
-                'flush', null, InputOption::VALUE_NONE,
-                'If defined, cache entries will be flushed instead of deleted/invalidated.'
-            )
-        ));
+            ->setName('orm:clear-cache:metadata')
+            ->setDescription('Clear all metadata cache of the various cache drivers.')
+            ->setDefinition(array(
+                new InputOption(
+                    'flush', null, InputOption::VALUE_NONE,
+                    'If defined, cache entries will be flushed instead of deleted/invalidated.'
+                )
+            ));
 
         $this->setHelp(<<<EOT
 The <info>%command.name%</info> command is meant to clear the metadata cache of associated Entity Manager.
@@ -78,10 +80,11 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
         $cacheDriver = $em->getConfiguration()->getMetadataCacheImpl();
 
-        if ( ! $cacheDriver) {
+        if (!$cacheDriver) {
             throw new \InvalidArgumentException('No Metadata cache driver is configured on given EntityManager.');
         }
 
@@ -93,15 +96,14 @@ EOT
             throw new \LogicException("Cannot clear XCache Cache from Console, its shared in the Webserver memory and not accessible from the CLI.");
         }
 
-
         $output->writeln('Clearing ALL Metadata cache entries');
 
-        $result  = $cacheDriver->deleteAll();
-        $message = ($result) ? 'Successfully deleted cache entries.' : 'No cache entries were deleted.';
+        $result = $cacheDriver->deleteAll();
+        $message = ( $result ) ? 'Successfully deleted cache entries.' : 'No cache entries were deleted.';
 
         if (true === $input->getOption('flush')) {
-            $result  = $cacheDriver->flushAll();
-            $message = ($result) ? 'Successfully flushed cache entries.' : $message;
+            $result = $cacheDriver->flushAll();
+            $message = ( $result ) ? 'Successfully flushed cache entries.' : $message;
         }
 
         $output->writeln($message);

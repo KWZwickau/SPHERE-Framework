@@ -29,6 +29,7 @@ namespace Doctrine\Common;
  */
 interface Comparable
 {
+
     /**
      * Compares the current object to the passed $other.
      *

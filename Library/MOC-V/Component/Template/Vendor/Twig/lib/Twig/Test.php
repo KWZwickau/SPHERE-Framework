@@ -12,16 +12,18 @@
 /**
  * Represents a template test.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
  * @deprecated since 1.12 (to be removed in 2.0)
  */
 abstract class Twig_Test implements Twig_TestInterface, Twig_TestCallableInterface
 {
+
     protected $options;
     protected $arguments = array();
 
     public function __construct(array $options = array())
     {
+
         $this->options = array_merge(array(
             'callable' => null,
         ), $options);
@@ -29,6 +31,7 @@ abstract class Twig_Test implements Twig_TestInterface, Twig_TestCallableInterfa
 
     public function getCallable()
     {
+
         return $this->options['callable'];
     }
 }

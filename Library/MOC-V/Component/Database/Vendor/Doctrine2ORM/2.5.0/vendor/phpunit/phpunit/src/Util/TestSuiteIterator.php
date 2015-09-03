@@ -15,6 +15,7 @@
  */
 class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
 {
+
     /**
      * @var int
      */
@@ -30,6 +31,7 @@ class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
      */
     public function __construct(PHPUnit_Framework_TestSuite $testSuite)
     {
+
         $this->tests = $testSuite->tests();
     }
 
@@ -38,17 +40,8 @@ class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
      */
     public function rewind()
     {
-        $this->position = 0;
-    }
 
-    /**
-     * Checks if there is a current element after calls to rewind() or next().
-     *
-     * @return bool
-     */
-    public function valid()
-    {
-        return $this->position < count($this->tests);
+        $this->position = 0;
     }
 
     /**
@@ -58,6 +51,7 @@ class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
      */
     public function key()
     {
+
         return $this->position;
     }
 
@@ -68,7 +62,19 @@ class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
      */
     public function current()
     {
+
         return $this->valid() ? $this->tests[$this->position] : null;
+    }
+
+    /**
+     * Checks if there is a current element after calls to rewind() or next().
+     *
+     * @return bool
+     */
+    public function valid()
+    {
+
+        return $this->position < count($this->tests);
     }
 
     /**
@@ -76,6 +82,7 @@ class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
      */
     public function next()
     {
+
         $this->position++;
     }
 
@@ -86,6 +93,7 @@ class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
      */
     public function getChildren()
     {
+
         return new self(
             $this->tests[$this->position]
         );
@@ -98,6 +106,7 @@ class PHPUnit_Util_TestSuiteIterator implements RecursiveIterator
      */
     public function hasChildren()
     {
+
         return $this->tests[$this->position] instanceof PHPUnit_Framework_TestSuite;
     }
 }

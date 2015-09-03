@@ -42,7 +42,7 @@ class ErrorHandler extends Event
      *
      * @return true
      */
-    public function handler( $errno, $errstr, $errfile, $errline )
+    public function handler($errno, $errstr, $errfile, $errline)
     {
 
         //depending on the error number
@@ -71,7 +71,7 @@ class ErrorHandler extends Event
         $class = self::UNKNOWN;
 
         //if there is a trace
-        if (count( $trace ) > 1) {
+        if (count($trace) > 1) {
             //formulate the class
             $class = $trace[1]['function'].'()';
             if (isset( $trace[1]['class'] )) {
@@ -82,7 +82,7 @@ class ErrorHandler extends Event
         $this->trigger(
             'error', $type, $level,
             $class, $errfile, $errline,
-            $errstr, $trace, 1 );
+            $errstr, $trace, 1);
 
         //Don't execute PHP internal error handler
         return true;
@@ -108,7 +108,7 @@ class ErrorHandler extends Event
     public function register()
     {
 
-        set_error_handler( array( $this, 'handler' ) );
+        set_error_handler(array($this, 'handler'));
         return $this;
     }
 
@@ -119,10 +119,10 @@ class ErrorHandler extends Event
      *
      * @return Eden\Core\Exception\ErrorHandler
      */
-    public function setReporting( $type )
+    public function setReporting($type)
     {
 
-        error_reporting( $type );
+        error_reporting($type);
         return $this;
     }
 }

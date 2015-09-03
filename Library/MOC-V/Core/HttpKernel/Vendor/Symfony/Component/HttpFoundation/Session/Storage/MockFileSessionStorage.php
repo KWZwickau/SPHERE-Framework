@@ -24,6 +24,7 @@ namespace Symfony\Component\HttpFoundation\Session\Storage;
  */
 class MockFileSessionStorage extends MockArraySessionStorage
 {
+
     /**
      * @var string
      */
@@ -38,6 +39,7 @@ class MockFileSessionStorage extends MockArraySessionStorage
      */
     public function __construct($savePath = null, $name = 'MOCKSESSID', MetadataBag $metaBag = null)
     {
+
         if (null === $savePath) {
             $savePath = sys_get_temp_dir();
         }
@@ -54,7 +56,7 @@ class MockFileSessionStorage extends MockArraySessionStorage
     /**
      * {@inheritdoc}
      */
-    public function regenerate( $destroy = false, $lifetime = null )
+    public function regenerate($destroy = false, $lifetime = null)
     {
 
         if (!$this->started) {
@@ -65,7 +67,7 @@ class MockFileSessionStorage extends MockArraySessionStorage
             $this->destroy();
         }
 
-        return parent::regenerate( $destroy, $lifetime );
+        return parent::regenerate($destroy, $lifetime);
     }
 
     /**
@@ -73,6 +75,7 @@ class MockFileSessionStorage extends MockArraySessionStorage
      */
     public function start()
     {
+
         if ($this->started) {
             return true;
         }
@@ -95,7 +98,7 @@ class MockFileSessionStorage extends MockArraySessionStorage
     {
 
         $filePath = $this->getFilePath();
-        $this->data = is_readable( $filePath ) && is_file( $filePath ) ? unserialize( file_get_contents( $filePath ) ) : array();
+        $this->data = is_readable($filePath) && is_file($filePath) ? unserialize(file_get_contents($filePath)) : array();
 
         $this->loadSession();
     }
@@ -117,6 +120,7 @@ class MockFileSessionStorage extends MockArraySessionStorage
      */
     private function destroy()
     {
+
         if (is_file($this->getFilePath())) {
             unlink($this->getFilePath());
         }
@@ -129,10 +133,10 @@ class MockFileSessionStorage extends MockArraySessionStorage
     {
 
         if (!$this->started) {
-            throw new \RuntimeException( "Trying to save a session that was not started yet or was already closed" );
+            throw new \RuntimeException("Trying to save a session that was not started yet or was already closed");
         }
 
-        file_put_contents( $this->getFilePath(), serialize( $this->data ) );
+        file_put_contents($this->getFilePath(), serialize($this->data));
 
         // this is needed for Silex, where the session object is re-used across requests
         // in functional tests. In Symfony, the container is rebooted, so we don't have

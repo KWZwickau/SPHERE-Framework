@@ -16,6 +16,7 @@
  */
 class Twig_NodeVisitor_Sandbox implements Twig_NodeVisitorInterface
 {
+
     protected $inAModule = false;
     protected $tags;
     protected $filters;
@@ -31,6 +32,7 @@ class Twig_NodeVisitor_Sandbox implements Twig_NodeVisitorInterface
      */
     public function enterNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         if ($node instanceof Twig_Node_Module) {
             $this->inAModule = true;
             $this->tags = array();
@@ -73,10 +75,12 @@ class Twig_NodeVisitor_Sandbox implements Twig_NodeVisitorInterface
      */
     public function leaveNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         if ($node instanceof Twig_Node_Module) {
             $this->inAModule = false;
 
-            return new Twig_Node_SandboxedModule($node, array_unique($this->filters), array_unique($this->tags), array_unique($this->functions));
+            return new Twig_Node_SandboxedModule($node, array_unique($this->filters), array_unique($this->tags),
+                array_unique($this->functions));
         }
 
         return $node;
@@ -87,6 +91,7 @@ class Twig_NodeVisitor_Sandbox implements Twig_NodeVisitorInterface
      */
     public function getPriority()
     {
+
         return 0;
     }
 }

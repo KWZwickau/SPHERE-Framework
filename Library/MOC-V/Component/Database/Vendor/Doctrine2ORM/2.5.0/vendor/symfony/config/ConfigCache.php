@@ -25,6 +25,7 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class ConfigCache implements ConfigCacheInterface
 {
+
     private $debug;
     private $file;
 
@@ -34,8 +35,9 @@ class ConfigCache implements ConfigCacheInterface
      */
     public function __construct($file, $debug)
     {
+
         $this->file = $file;
-        $this->debug = (bool) $debug;
+        $this->debug = (bool)$debug;
     }
 
     /**
@@ -46,7 +48,9 @@ class ConfigCache implements ConfigCacheInterface
      */
     public function __toString()
     {
-        @trigger_error('ConfigCache::__toString() is deprecated since version 2.7 and will be removed in 3.0. Use the getPath() method instead.', E_USER_DEPRECATED);
+
+        @trigger_error('ConfigCache::__toString() is deprecated since version 2.7 and will be removed in 3.0. Use the getPath() method instead.',
+            E_USER_DEPRECATED);
 
         return $this->file;
     }
@@ -58,6 +62,7 @@ class ConfigCache implements ConfigCacheInterface
      */
     public function getPath()
     {
+
         return $this->file;
     }
 
@@ -71,6 +76,7 @@ class ConfigCache implements ConfigCacheInterface
      */
     public function isFresh()
     {
+
         if (!is_file($this->file)) {
             return false;
         }
@@ -96,6 +102,17 @@ class ConfigCache implements ConfigCacheInterface
     }
 
     /**
+     * Gets the meta file path.
+     *
+     * @return string The meta file path
+     */
+    private function getMetaFile()
+    {
+
+        return $this->file.'.meta';
+    }
+
+    /**
      * Writes cache.
      *
      * @param string              $content  The content to write in the cache
@@ -105,6 +122,7 @@ class ConfigCache implements ConfigCacheInterface
      */
     public function write($content, array $metadata = null)
     {
+
         $mode = 0666;
         $umask = umask();
         $filesystem = new Filesystem();
@@ -123,15 +141,5 @@ class ConfigCache implements ConfigCacheInterface
                 // discard chmod failure (some filesystem may not support it)
             }
         }
-    }
-
-    /**
-     * Gets the meta file path.
-     *
-     * @return string The meta file path
-     */
-    private function getMetaFile()
-    {
-        return $this->file.'.meta';
     }
 }

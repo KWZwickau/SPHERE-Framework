@@ -17,35 +17,35 @@ $server_configs = array(
     "PHP Version"           => array(
         "required" => "5.0",
         "value"    => phpversion(),
-        "result"   => version_compare( phpversion(), "5.0" ),
+        "result" => version_compare(phpversion(), "5.0"),
     ),
     "DOMDocument extension" => array(
         "required" => true,
-        "value"    => phpversion( "DOM" ),
-        "result"   => class_exists( "DOMDocument" ),
+        "value"  => phpversion("DOM"),
+        "result" => class_exists("DOMDocument"),
     ),
     "PCRE"                  => array(
         "required" => true,
-        "value"    => phpversion( "pcre" ),
-        "result"   => function_exists( "preg_match" ) && @preg_match( "/./u", "a" ),
+        "value"  => phpversion("pcre"),
+        "result" => function_exists("preg_match") && @preg_match("/./u", "a"),
         "failure"  => "PCRE is required with Unicode support (the \"u\" modifier)",
     ),
     "Zlib"                  => array(
         "required" => true,
-        "value"    => phpversion( "zlib" ),
-        "result"   => function_exists( "gzcompress" ),
+        "value"  => phpversion("zlib"),
+        "result" => function_exists("gzcompress"),
         "fallback" => "Recommended to compress PDF documents",
     ),
     "MBString extension"    => array(
         "required" => true,
-        "value"    => phpversion( "mbstring" ),
-        "result"   => function_exists( "mb_send_mail" ), // Should never be reimplemented in dompdf
+        "value"  => phpversion("mbstring"),
+        "result" => function_exists("mb_send_mail"), // Should never be reimplemented in dompdf
         "fallback" => "Recommended, will use fallback functions",
     ),
     "GD"                    => array(
         "required" => true,
-        "value"    => phpversion( "gd" ),
-        "result"   => function_exists( "imagecreate" ),
+        "value"  => phpversion("gd"),
+        "result" => function_exists("imagecreate"),
         "fallback" => "Required if you have images in your documents",
     ),
     "opcache"               => array(
@@ -57,33 +57,33 @@ $server_configs = array(
     "GMagick or IMagick"    => array(
         "required" => "Better with transparent PNG images",
         "value"    => null,
-        "result"   => extension_loaded( "gmagick" ) || extension_loaded( "imagick" ),
+        "result" => extension_loaded("gmagick") || extension_loaded("imagick"),
         "fallback" => "Recommended for better performances",
     ),
 );
 
-if (( $xc = extension_loaded( "xcache" ) ) || ( $apc = extension_loaded( "apc" ) ) || ( $zop = extension_loaded( "Zend OPcache" ) ) || ( $op = extension_loaded( "opcache" ) )) {
+if (( $xc = extension_loaded("xcache") ) || ( $apc = extension_loaded("apc") ) || ( $zop = extension_loaded("Zend OPcache") ) || ( $op = extension_loaded("opcache") )) {
     $server_configs["opcache"]["result"] = true;
     $server_configs["opcache"]["value"] = (
-    $xc ? "XCache ".phpversion( "xcache" ) : (
-    $apc ? "APC ".phpversion( "apc" ) : (
-    $zop ? "Zend OPCache ".phpversion( "Zend OPcache" ) : "PHP OPCache ".phpversion( "opcache" )
+    $xc ? "XCache ".phpversion("xcache") : (
+    $apc ? "APC ".phpversion("apc") : (
+    $zop ? "Zend OPCache ".phpversion("Zend OPcache") : "PHP OPCache ".phpversion("opcache")
     )
     )
     );
 }
-if (( $gm = extension_loaded( "gmagick" ) ) || ( $im = extension_loaded( "imagick" ) )) {
-    $server_configs["GMagick or IMagick"]["value"] = ( $im ? "IMagick ".phpversion( "imagick" ) : "GMagick ".phpversion( "gmagick" ) );
+if (( $gm = extension_loaded("gmagick") ) || ( $im = extension_loaded("imagick") )) {
+    $server_configs["GMagick or IMagick"]["value"] = ( $im ? "IMagick ".phpversion("imagick") : "GMagick ".phpversion("gmagick") );
 }
 
 ?>
 
 <table class="setup">
-        <tr>
-            <th></th>
-            <th>Required</th>
-            <th>Present</th>
-        </tr>
+    <tr>
+        <th></th>
+        <th>Required</th>
+        <th>Present</th>
+    </tr>
 
     <?php foreach ($server_configs as $label => $server_config) { ?>
         <tr>
@@ -94,7 +94,7 @@ if (( $gm = extension_loaded( "gmagick" ) ) || ( $im = extension_loaded( "imagic
                 echo $server_config["value"];
                 if ($server_config["result"] && !$server_config["value"]) {
                     echo "Yes";
-                    }
+                }
                 if (!$server_config["result"]) {
                     if (isset( $server_config["fallback"] )) {
                         echo "<div>No. ".$server_config["fallback"]."</div>";
@@ -114,7 +114,7 @@ if (( $gm = extension_loaded( "gmagick" ) ) || ( $im = extension_loaded( "imagic
 
 <?php
 $dompdf_constants = array();
-$defined_constants = get_defined_constants( true );
+$defined_constants = get_defined_constants(true);
 
 $constants = array(
     "DOMPDF_DIR"                   => array(
@@ -233,12 +233,12 @@ $constants = array(
 ?>
 
 <table class="setup">
-        <tr>
-            <th>Config name</th>
-            <th>Value</th>
-            <th>Description</th>
-            <th>Status</th>
-        </tr>
+    <tr>
+        <th>Config name</th>
+        <th>Value</th>
+        <th>Description</th>
+        <th>Status</th>
+    </tr>
 
     <?php foreach ($defined_constants["user"] as $const => $value) { ?>
         <tr>
@@ -248,7 +248,7 @@ $constants = array(
                 if (isset( $constants[$const]["secret"] )) {
                     echo "******";
                 } else {
-                    var_export( $value );
+                    var_export($value);
                 }
                 ?>
             </td>
@@ -260,34 +260,34 @@ $constants = array(
             if (isset( $constants[$const]["success"] )) {
                 switch ($constants[$const]["success"]) {
                     case "read":
-                        $success = is_readable( $value );
+                        $success = is_readable($value);
                         $message = ( $success ? "Readable" : "Not readable" );
                         break;
                     case "write":
-                        $success = is_writable( $value );
+                        $success = is_writable($value);
                         $message = ( $success ? "Writable" : "Not writable" );
                         break;
                     case "remote":
-                        $success = ini_get( "allow_url_fopen" );
+                        $success = ini_get("allow_url_fopen");
                         $message = ( $success ? "allow_url_fopen enabled" : "allow_url_fopen disabled" );
                         break;
                     case "backend":
-                        switch (strtolower( $value )) {
+                        switch (strtolower($value)) {
                             case "cpdf":
                                 $success = true;
                                 break;
                             case "pdflib":
-                                $success = function_exists( "PDF_begin_document" );
+                                $success = function_exists("PDF_begin_document");
                                 $message = "The PDFLib backend needs the PDF PECL extension";
                                 break;
                             case "gd":
-                                $success = function_exists( "imagecreate" );
+                                $success = function_exists("imagecreate");
                                 $message = "The GD backend requires GD2";
                                 break;
                         }
                         break;
                     case "auth":
-                        $success = !in_array( $value, array( "admin", "password" ) );
+                        $success = !in_array($value, array("admin", "password"));
                         $message = ( $success ? "OK" : "Password should be changed" );
                         break;
                 }

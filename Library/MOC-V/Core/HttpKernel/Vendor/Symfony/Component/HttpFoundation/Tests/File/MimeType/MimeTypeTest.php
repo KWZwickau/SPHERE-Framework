@@ -16,20 +16,22 @@ use Symfony\Component\HttpFoundation\File\MimeType\MimeTypeGuesser;
 
 class MimeTypeTest extends \PHPUnit_Framework_TestCase
 {
+
     protected $path;
 
     public static function tearDownAfterClass()
     {
 
         $path = __DIR__.'/../Fixtures/to_delete';
-        if (file_exists( $path )) {
-            @chmod( $path, 0666 );
-            @unlink( $path );
+        if (file_exists($path)) {
+            @chmod($path, 0666);
+            @unlink($path);
         }
     }
 
     public function testGuessImageWithoutExtension()
     {
+
         if (extension_loaded('fileinfo')) {
             $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test'));
         } else {
@@ -39,6 +41,7 @@ class MimeTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testGuessImageWithDirectory()
     {
+
         $this->setExpectedException('Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException');
 
         MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/directory');
@@ -46,6 +49,7 @@ class MimeTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testGuessImageWithFileBinaryMimeTypeGuesser()
     {
+
         $guesser = MimeTypeGuesser::getInstance();
         $guesser->register(new FileBinaryMimeTypeGuesser());
         if (extension_loaded('fileinfo')) {
@@ -57,6 +61,7 @@ class MimeTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testGuessImageWithKnownExtension()
     {
+
         if (extension_loaded('fileinfo')) {
             $this->assertEquals('image/gif', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/test.gif'));
         } else {
@@ -66,8 +71,10 @@ class MimeTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testGuessFileWithUnknownExtension()
     {
+
         if (extension_loaded('fileinfo')) {
-            $this->assertEquals('application/octet-stream', MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/.unknownextension'));
+            $this->assertEquals('application/octet-stream',
+                MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/.unknownextension'));
         } else {
             $this->assertNull(MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/.unknownextension'));
         }
@@ -75,12 +82,14 @@ class MimeTypeTest extends \PHPUnit_Framework_TestCase
 
     public function testGuessWithIncorrectPath()
     {
+
         $this->setExpectedException('Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException');
         MimeTypeGuesser::getInstance()->guess(__DIR__.'/../Fixtures/not_here');
     }
 
     public function testGuessWithNonReadablePath()
     {
+
         if (defined('PHP_WINDOWS_VERSION_BUILD')) {
             $this->markTestSkipped('Can not verify chmod operations on Windows');
         }

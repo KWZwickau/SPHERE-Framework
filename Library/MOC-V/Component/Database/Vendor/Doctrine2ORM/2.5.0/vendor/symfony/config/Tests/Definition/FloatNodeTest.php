@@ -15,11 +15,13 @@ use Symfony\Component\Config\Definition\FloatNode;
 
 class FloatNodeTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getValidValues
      */
     public function testNormalize($value)
     {
+
         $node = new FloatNode('test');
         $this->assertSame($value, $node->normalize($value));
     }
@@ -31,6 +33,7 @@ class FloatNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testValidNonEmptyValues($value)
     {
+
         $node = new FloatNode('test');
         $node->setAllowEmptyValue(false);
 
@@ -39,6 +42,7 @@ class FloatNodeTest extends \PHPUnit_Framework_TestCase
 
     public function getValidValues()
     {
+
         return array(
             array(1798.0),
             array(-678.987),
@@ -57,12 +61,14 @@ class FloatNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testNormalizeThrowsExceptionOnInvalidValues($value)
     {
+
         $node = new FloatNode('test');
         $node->normalize($value);
     }
 
     public function getInvalidValues()
     {
+
         return array(
             array(null),
             array(''),

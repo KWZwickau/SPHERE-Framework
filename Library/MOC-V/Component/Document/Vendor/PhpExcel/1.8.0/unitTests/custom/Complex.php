@@ -7,60 +7,60 @@ class Complex
     private $imaginaryPart = 0;
     private $suffix = null;
 
-    public function __construct( $realPart, $imaginaryPart = null, $suffix = 'i' )
+    public function __construct($realPart, $imaginaryPart = null, $suffix = 'i')
     {
 
         if ($imaginaryPart === null) {
-            if (is_array( $realPart )) {
+            if (is_array($realPart)) {
                 //	We have an array of (potentially) real and imaginary parts, and any suffix
-                list ( $realPart, $imaginaryPart, $suffix ) = array_values( $realPart ) + array( 0.0, 0.0, 'i' );
-            } elseif (( is_string( $realPart ) ) || ( is_numeric( $realPart ) )) {
+                list ( $realPart, $imaginaryPart, $suffix ) = array_values($realPart) + array(0.0, 0.0, 'i');
+            } elseif (( is_string($realPart) ) || ( is_numeric($realPart) )) {
                 //	We've been given a string to parse to extract the real and imaginary parts, and any suffix
-                list ( $realPart, $imaginaryPart, $suffix ) = self::_parseComplex( $realPart );
+                list ( $realPart, $imaginaryPart, $suffix ) = self::_parseComplex($realPart);
             }
         }
 
         //	Set parsed values in our properties
         $this->realPart = (float)$realPart;
         $this->imaginaryPart = (float)$imaginaryPart;
-        $this->suffix = strtolower( $suffix );
+        $this->suffix = strtolower($suffix);
     }    //	function _parseComplex()
 
-    public static function _parseComplex( $complexNumber )
+    public static function _parseComplex($complexNumber)
     {
 
         //	Test for real number, with no imaginary part
-        if (is_numeric( $complexNumber )) {
-            return array( $complexNumber, 0, null );
+        if (is_numeric($complexNumber)) {
+            return array($complexNumber, 0, null);
         }
 
         //	Fix silly human errors
-        if (strpos( $complexNumber, '+-' ) !== false) {
-            $complexNumber = str_replace( '+-', '-', $complexNumber );
+        if (strpos($complexNumber, '+-') !== false) {
+            $complexNumber = str_replace('+-', '-', $complexNumber);
         }
-        if (strpos( $complexNumber, '++' ) !== false) {
-            $complexNumber = str_replace( '++', '+', $complexNumber );
+        if (strpos($complexNumber, '++') !== false) {
+            $complexNumber = str_replace('++', '+', $complexNumber);
         }
-        if (strpos( $complexNumber, '--' ) !== false) {
-            $complexNumber = str_replace( '--', '-', $complexNumber );
+        if (strpos($complexNumber, '--') !== false) {
+            $complexNumber = str_replace('--', '-', $complexNumber);
         }
 
         //	Basic validation of string, to parse out real and imaginary parts, and any suffix
-        $validComplex = preg_match( '/^([\-\+]?(\d+\.?\d*|\d*\.?\d+)([Ee][\-\+]?[0-2]?\d{1,3})?)([\-\+]?(\d+\.?\d*|\d*\.?\d+)([Ee][\-\+]?[0-2]?\d{1,3})?)?(([\-\+]?)([ij]?))$/ui',
-            $complexNumber, $complexParts );
+        $validComplex = preg_match('/^([\-\+]?(\d+\.?\d*|\d*\.?\d+)([Ee][\-\+]?[0-2]?\d{1,3})?)([\-\+]?(\d+\.?\d*|\d*\.?\d+)([Ee][\-\+]?[0-2]?\d{1,3})?)?(([\-\+]?)([ij]?))$/ui',
+            $complexNumber, $complexParts);
 
         if (!$validComplex) {
             //	Neither real nor imaginary part, so test to see if we actually have a suffix
-            $validComplex = preg_match( '/^([\-\+]?)([ij])$/ui', $complexNumber, $complexParts );
+            $validComplex = preg_match('/^([\-\+]?)([ij])$/ui', $complexNumber, $complexParts);
             if (!$validComplex) {
-                throw new Exception( 'COMPLEX: Invalid complex number' );
+                throw new Exception('COMPLEX: Invalid complex number');
             }
             //	We have a suffix, so set the real to 0, the imaginary to either 1 or -1 (as defined by the sign)
             $imaginary = 1;
             if ($complexParts[1] === '-') {
                 $imaginary = 0 - $imaginary;
             }
-            return array( 0, $imaginary, $complexParts[2] );
+            return array(0, $imaginary, $complexParts[2]);
         }
 
         //	If we don't have an imaginary part, identify whether it should be +1 or -1...
@@ -108,7 +108,7 @@ class Complex
 
         $str = "";
         if ($this->imaginaryPart != 0.0) {
-            if (abs( $this->imaginaryPart ) != 1.0) {
+            if (abs($this->imaginaryPart) != 1.0) {
                 $str .= $this->imaginaryPart.$this->suffix;
             } else {
                 $str .= ( ( $this->imaginaryPart < 0.0 ) ? '-' : '' ).$this->suffix;

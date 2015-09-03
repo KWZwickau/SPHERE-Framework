@@ -31,11 +31,11 @@ final class Callback extends Object
      * @param  mixed   class, object, callable
      * @param  string  method
      */
-    public function __construct( $cb, $m = null )
+    public function __construct($cb, $m = null)
     {
 
         if ($m !== null) {
-            $cb = array( $cb, $m );
+            $cb = array($cb, $m);
 
         } elseif ($cb instanceof self) { // prevents wrapping itself
             $this->cb = $cb->cb;
@@ -57,8 +57,8 @@ final class Callback extends Object
             $this->cb[0] = substr($this->cb[0], $a + 1);
         }
         */
-        if (!is_callable( $cb, true )) {
-            throw new InvalidArgumentException( "Invalid callback." );
+        if (!is_callable($cb, true)) {
+            throw new InvalidArgumentException("Invalid callback.");
         }
         $this->cb = $cb;
     }
@@ -71,10 +71,10 @@ final class Callback extends Object
      *
      * @return Callback
      */
-    public static function create( $callback, $m = null )
+    public static function create($callback, $m = null)
     {
 
-        return new self( $callback, $m );
+        return new self($callback, $m);
     }
 
     /**
@@ -85,11 +85,11 @@ final class Callback extends Object
     public function __invoke()
     {
 
-        if (!is_callable( $this->cb )) {
-            throw new InvalidStateException( "Callback '$this' is not callable." );
+        if (!is_callable($this->cb)) {
+            throw new InvalidStateException("Callback '$this' is not callable.");
         }
         $args = func_get_args();
-        return call_user_func_array( $this->cb, $args );
+        return call_user_func_array($this->cb, $args);
     }
 
 
@@ -101,11 +101,11 @@ final class Callback extends Object
     public function invoke()
     {
 
-        if (!is_callable( $this->cb )) {
-            throw new InvalidStateException( "Callback '$this' is not callable." );
+        if (!is_callable($this->cb)) {
+            throw new InvalidStateException("Callback '$this' is not callable.");
         }
         $args = func_get_args();
-        return call_user_func_array( $this->cb, $args );
+        return call_user_func_array($this->cb, $args);
     }
 
 
@@ -116,13 +116,13 @@ final class Callback extends Object
      *
      * @return mixed
      */
-    public function invokeArgs( array $args )
+    public function invokeArgs(array $args)
     {
 
-        if (!is_callable( $this->cb )) {
-            throw new InvalidStateException( "Callback '$this' is not callable." );
+        if (!is_callable($this->cb)) {
+            throw new InvalidStateException("Callback '$this' is not callable.");
         }
-        return call_user_func_array( $this->cb, $args );
+        return call_user_func_array($this->cb, $args);
     }
 
 
@@ -134,7 +134,7 @@ final class Callback extends Object
     public function isCallable()
     {
 
-        return is_callable( $this->cb );
+        return is_callable($this->cb);
     }
 
 
@@ -158,14 +158,14 @@ final class Callback extends Object
     public function toReflection()
     {
 
-        if (is_string( $this->cb ) && strpos( $this->cb, '::' )) {
-            return new Nette\Reflection\Method( $this->cb );
-        } elseif (is_array( $this->cb )) {
-            return new Nette\Reflection\Method( $this->cb[0], $this->cb[1] );
-        } elseif (is_object( $this->cb ) && !$this->cb instanceof \Closure) {
-            return new Nette\Reflection\Method( $this->cb, '__invoke' );
+        if (is_string($this->cb) && strpos($this->cb, '::')) {
+            return new Nette\Reflection\Method($this->cb);
+        } elseif (is_array($this->cb)) {
+            return new Nette\Reflection\Method($this->cb[0], $this->cb[1]);
+        } elseif (is_object($this->cb) && !$this->cb instanceof \Closure) {
+            return new Nette\Reflection\Method($this->cb, '__invoke');
         } else {
-            return new Nette\Reflection\GlobalFunction( $this->cb );
+            return new Nette\Reflection\GlobalFunction($this->cb);
         }
     }
 
@@ -176,7 +176,7 @@ final class Callback extends Object
     public function isStatic()
     {
 
-        return is_array( $this->cb ) ? is_string( $this->cb[0] ) : is_string( $this->cb );
+        return is_array($this->cb) ? is_string($this->cb[0]) : is_string($this->cb);
     }
 
 
@@ -188,10 +188,10 @@ final class Callback extends Object
 
         if ($this->cb instanceof \Closure) {
             return '{closure}';
-        } elseif (is_string( $this->cb ) && $this->cb[0] === "\0") {
+        } elseif (is_string($this->cb) && $this->cb[0] === "\0") {
             return '{lambda}';
         } else {
-            is_callable( $this->cb, true, $textual );
+            is_callable($this->cb, true, $textual);
             return $textual;
         }
     }

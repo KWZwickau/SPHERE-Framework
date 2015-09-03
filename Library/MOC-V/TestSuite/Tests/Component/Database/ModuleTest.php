@@ -17,17 +17,17 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Component\Database\Component\Bridge\Bridge $MockBridge */
-        $MockBridge = $this->getMockBuilder( 'MOC\V\Component\Database\Component\Bridge\Bridge' )->getMock();
-        $Vendor = new Vendor( new $MockBridge );
-        $Module = new Database( $Vendor );
+        $MockBridge = $this->getMockBuilder('MOC\V\Component\Database\Component\Bridge\Bridge')->getMock();
+        $Vendor = new Vendor(new $MockBridge);
+        $Module = new Database($Vendor);
 
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IVendorInterface',
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IVendorInterface',
             $Module->getVendorInterface()
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IVendorInterface',
-            $Module->setBridgeInterface( $MockBridge )
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IVendorInterface',
+            $Module->setBridgeInterface($MockBridge)
         );
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface',
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface',
             $Module->getBridgeInterface()
         );
 
@@ -36,22 +36,22 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     public function testStaticDoctrineDatabase()
     {
 
-        $Database = Database::getDoctrineDatabase( '', '', '', DriverParameter::DRIVER_PDO_SQLITE, 'sqlite::memory:' );
-        $this->assertInstanceOf( 'MOC\V\Component\Database\Component\IBridgeInterface', $Database );
+        $Database = Database::getDoctrineDatabase('', '', '', DriverParameter::DRIVER_PDO_SQLITE, 'sqlite::memory:');
+        $this->assertInstanceOf('MOC\V\Component\Database\Component\IBridgeInterface', $Database);
     }
 
-     public function testStaticDatabase()
-     {
+    public function testStaticDatabase()
+    {
 
-         try {
-             Database::getDatabase( '', '', '', DriverParameter::DRIVER_PDO_SQLITE, 'sqlite::memory:' );
-         } catch( \Exception $E ) {
+        try {
+            Database::getDatabase('', '', '', DriverParameter::DRIVER_PDO_SQLITE, 'sqlite::memory:');
+        } catch (\Exception $E) {
 
-         }
-         try {
-             Database::getDatabase( '', '', '', 0, 'Wrong' );
-         } catch( \Exception $E ) {
-             $this->assertInstanceOf( 'MOC\V\Component\Database\Exception\DatabaseException', $E );
-         }
-     }
+        }
+        try {
+            Database::getDatabase('', '', '', 0, 'Wrong');
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Database\Exception\DatabaseException', $E);
+        }
+    }
 }

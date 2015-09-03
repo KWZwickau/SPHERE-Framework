@@ -12,12 +12,13 @@
 /**
  * Adds an exists() method for loaders.
  *
- * @author Florin Patan <florinpatan@gmail.com>
+ * @author     Florin Patan <florinpatan@gmail.com>
  *
  * @deprecated since 1.12 (to be removed in 3.0)
  */
 interface Twig_ExistsLoaderInterface
 {
+
     /**
      * Check if we have the source code of a template, given its name.
      *

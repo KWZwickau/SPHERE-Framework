@@ -35,6 +35,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class HttpKernel implements HttpKernelInterface, TerminableInterface
 {
+
     protected $dispatcher;
     protected $resolver;
     protected $requestStack;
@@ -48,8 +49,12 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      *
      * @api
      */
-    public function __construct(EventDispatcherInterface $dispatcher, ControllerResolverInterface $resolver, RequestStack $requestStack = null)
-    {
+    public function __construct(
+        EventDispatcherInterface $dispatcher,
+        ControllerResolverInterface $resolver,
+        RequestStack $requestStack = null
+    ) {
+
         $this->dispatcher = $dispatcher;
         $this->resolver = $resolver;
         $this->requestStack = $requestStack ?: new RequestStack();
@@ -62,6 +67,7 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      */
     public function handle(Request $request, $type = HttpKernelInterface::MASTER_REQUEST, $catch = true)
     {
+
         try {
             return $this->handleRaw($request, $type);
         } catch (\Exception $e) {
@@ -90,6 +96,7 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      */
     private function handleRaw(Request $request, $type = self::MASTER_REQUEST)
     {
+
         $this->requestStack->push($request);
 
         // request
@@ -102,7 +109,8 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
 
         // load controller
         if (false === $controller = $this->resolver->getController($request)) {
-            throw new NotFoundHttpException(sprintf('Unable to find the controller for path "%s". Maybe you forgot to add the matching route in your routing configuration?', $request->getPathInfo()));
+            throw new NotFoundHttpException(sprintf('Unable to find the controller for path "%s". Maybe you forgot to add the matching route in your routing configuration?',
+                $request->getPathInfo()));
         }
 
         $event = new FilterControllerEvent($this, $controller, $request, $type);
@@ -151,6 +159,7 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      */
     private function filterResponse(Response $response, Request $request, $type)
     {
+
         $event = new FilterResponseEvent($this, $request, $type, $response);
 
         $this->dispatcher->dispatch(KernelEvents::RESPONSE, $event);
@@ -172,28 +181,29 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      */
     private function finishRequest(Request $request, $type)
     {
+
         $this->dispatcher->dispatch(KernelEvents::FINISH_REQUEST, new FinishRequestEvent($this, $request, $type));
         $this->requestStack->pop();
     }
 
-    private function varToString( $var )
+    private function varToString($var)
     {
 
-        if (is_object( $var )) {
-            return sprintf( 'Object(%s)', get_class( $var ) );
+        if (is_object($var)) {
+            return sprintf('Object(%s)', get_class($var));
         }
 
-        if (is_array( $var )) {
+        if (is_array($var)) {
             $a = array();
             foreach ($var as $k => $v) {
-                $a[] = sprintf( '%s => %s', $k, $this->varToString( $v ) );
+                $a[] = sprintf('%s => %s', $k, $this->varToString($v));
             }
 
-            return sprintf( "Array(%s)", implode( ', ', $a ) );
+            return sprintf("Array(%s)", implode(', ', $a));
         }
 
-        if (is_resource( $var )) {
-            return sprintf( 'Resource(%s)', get_resource_type( $var ) );
+        if (is_resource($var)) {
+            return sprintf('Resource(%s)', get_resource_type($var));
         }
 
         if (null === $var) {
@@ -224,6 +234,7 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      */
     private function handleException(\Exception $e, $request, $type)
     {
+
         $event = new GetResponseForExceptionEvent($this, $request, $type, $e);
         $this->dispatcher->dispatch(KernelEvents::EXCEPTION, $event);
 
@@ -266,19 +277,19 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      *
      * @internal
      */
-    public function terminateWithException( \Exception $exception )
+    public function terminateWithException(\Exception $exception)
     {
 
         if (!$request = $this->requestStack->getMasterRequest()) {
-            throw new \LogicException( 'Request stack is empty', 0, $exception );
+            throw new \LogicException('Request stack is empty', 0, $exception);
         }
 
-        $response = $this->handleException( $exception, $request, self::MASTER_REQUEST );
+        $response = $this->handleException($exception, $request, self::MASTER_REQUEST);
 
         $response->sendHeaders();
         $response->sendContent();
 
-        $this->terminate( $request, $response );
+        $this->terminate($request, $response);
     }
 
     /**
@@ -286,9 +297,9 @@ class HttpKernel implements HttpKernelInterface, TerminableInterface
      *
      * @api
      */
-    public function terminate( Request $request, Response $response )
+    public function terminate(Request $request, Response $response)
     {
 
-        $this->dispatcher->dispatch( KernelEvents::TERMINATE, new PostResponseEvent( $this, $request, $response ) );
+        $this->dispatcher->dispatch(KernelEvents::TERMINATE, new PostResponseEvent($this, $request, $response));
     }
 }

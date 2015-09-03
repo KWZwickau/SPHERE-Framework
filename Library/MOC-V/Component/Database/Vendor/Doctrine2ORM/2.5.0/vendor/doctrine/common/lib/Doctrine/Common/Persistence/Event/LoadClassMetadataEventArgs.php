@@ -31,6 +31,7 @@ use Doctrine\Common\Persistence\ObjectManager;
  */
 class LoadClassMetadataEventArgs extends EventArgs
 {
+
     /**
      * @var ClassMetadata
      */
@@ -49,6 +50,7 @@ class LoadClassMetadataEventArgs extends EventArgs
      */
     public function __construct(ClassMetadata $classMetadata, ObjectManager $objectManager)
     {
+
         $this->classMetadata = $classMetadata;
         $this->objectManager = $objectManager;
     }
@@ -60,6 +62,7 @@ class LoadClassMetadataEventArgs extends EventArgs
      */
     public function getClassMetadata()
     {
+
         return $this->classMetadata;
     }
 
@@ -70,6 +73,7 @@ class LoadClassMetadataEventArgs extends EventArgs
      */
     public function getObjectManager()
     {
+
         return $this->objectManager;
     }
 }

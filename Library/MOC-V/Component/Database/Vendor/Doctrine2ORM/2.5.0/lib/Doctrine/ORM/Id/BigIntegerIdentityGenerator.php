@@ -28,6 +28,7 @@ use Doctrine\ORM\EntityManager;
  */
 class BigIntegerIdentityGenerator extends AbstractIdGenerator
 {
+
     /**
      * The name of the sequence to pass to lastInsertId(), if any.
      *
@@ -44,6 +45,7 @@ class BigIntegerIdentityGenerator extends AbstractIdGenerator
      */
     public function __construct($sequenceName = null)
     {
+
         $this->sequenceName = $sequenceName;
     }
 
@@ -52,7 +54,8 @@ class BigIntegerIdentityGenerator extends AbstractIdGenerator
      */
     public function generate(EntityManager $em, $entity)
     {
-        return (string) $em->getConnection()->lastInsertId($this->sequenceName);
+
+        return (string)$em->getConnection()->lastInsertId($this->sequenceName);
     }
 
     /**
@@ -60,6 +63,7 @@ class BigIntegerIdentityGenerator extends AbstractIdGenerator
      */
     public function isPostInsertGenerator()
     {
+
         return true;
     }
 }

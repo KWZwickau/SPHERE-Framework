@@ -26,11 +26,11 @@ class ContainerPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
     private $container;
 
 
-    public function __construct( Container $container )
+    public function __construct(Container $container)
     {
 
         if (PHP_VERSION_ID < 50300) {
-            throw new Nette\NotSupportedException( __CLASS__.' requires PHP 5.3 or newer.' );
+            throw new Nette\NotSupportedException(__CLASS__.' requires PHP 5.3 or newer.');
         }
         $this->container = $container;
     }
@@ -58,24 +58,24 @@ class ContainerPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
     public function getPanel()
     {
 
-        $services = $this->getContainerProperty( 'factories' );
+        $services = $this->getContainerProperty('factories');
         $factories = array();
-        foreach (Nette\Reflection\ClassType::from( $this->container )->getMethods() as $method) {
-            if (preg_match( '#^create(Service)?(.+)$#', $method->getName(), $m )) {
-                $name = str_replace( '__', '.', strtolower( substr( $m[2], 0, 1 ) ).substr( $m[2], 1 ) );
+        foreach (Nette\Reflection\ClassType::from($this->container)->getMethods() as $method) {
+            if (preg_match('#^create(Service)?(.+)$#', $method->getName(), $m)) {
+                $name = str_replace('__', '.', strtolower(substr($m[2], 0, 1)).substr($m[2], 1));
                 if ($m[1]) {
-                    $services[$name] = $method->getAnnotation( 'return' );
+                    $services[$name] = $method->getAnnotation('return');
                 } elseif ($method->isPublic()) {
-                    $a = strrpos( ".$name", '.' );
-                    $factories[substr( $name, 0, $a ).'create'.ucfirst( substr( $name,
-                            $a ) )] = $method->getAnnotation( 'return' );
+                    $a = strrpos(".$name", '.');
+                    $factories[substr($name, 0, $a).'create'.ucfirst(substr($name,
+                        $a))] = $method->getAnnotation('return');
                 }
             }
         }
-        ksort( $services );
-        ksort( $factories );
+        ksort($services);
+        ksort($factories);
         $container = $this->container;
-        $registry = $this->getContainerProperty( 'registry' );
+        $registry = $this->getContainerProperty('registry');
 
         ob_start();
         require __DIR__.'/templates/ContainerPanel.panel.phtml';
@@ -83,12 +83,12 @@ class ContainerPanel extends Nette\Object implements Nette\Diagnostics\IBarPanel
     }
 
 
-    private function getContainerProperty( $name )
+    private function getContainerProperty($name)
     {
 
-        $prop = Nette\Reflection\ClassType::from( 'Nette\DI\Container' )->getProperty( $name );
-        $prop->setAccessible( true );
-        return $prop->getValue( $this->container );
+        $prop = Nette\Reflection\ClassType::from('Nette\DI\Container')->getProperty($name);
+        $prop->setAccessible(true);
+        return $prop->getValue($this->container);
     }
 
 }

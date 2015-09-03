@@ -20,6 +20,7 @@ use Symfony\Component\Finder\SplFileInfo;
  */
 class FilePathsIterator extends \ArrayIterator
 {
+
     /**
      * @var string
      */
@@ -49,12 +50,13 @@ class FilePathsIterator extends \ArrayIterator
      * @param array  $paths   List of paths returned by shell command
      * @param string $baseDir Base dir for relative path building
      */
-    public function __construct( array $paths, $baseDir )
+    public function __construct(array $paths, $baseDir)
     {
-        $this->baseDir = $baseDir;
-        $this->baseDirLength = strlen( $baseDir );
 
-        parent::__construct( $paths );
+        $this->baseDir = $baseDir;
+        $this->baseDirLength = strlen($baseDir);
+
+        parent::__construct($paths);
     }
 
     /**
@@ -63,10 +65,10 @@ class FilePathsIterator extends \ArrayIterator
      *
      * @return mixed
      */
-    public function __call( $name, array $arguments )
+    public function __call($name, array $arguments)
     {
 
-        return call_user_func_array( array( $this->current(), $name ), $arguments );
+        return call_user_func_array(array($this->current(), $name), $arguments);
     }
 
     /**
@@ -76,6 +78,7 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function current()
     {
+
         return $this->current;
     }
 
@@ -84,32 +87,36 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function key()
     {
+
         return $this->current->getPathname();
     }
 
     public function next()
     {
+
         parent::next();
         $this->buildProperties();
     }
 
     private function buildProperties()
     {
+
         $absolutePath = parent::current();
 
-        if ($this->baseDir === substr( $absolutePath, 0, $this->baseDirLength )) {
-            $this->subPathname = ltrim( substr( $absolutePath, $this->baseDirLength ), '/\\' );
-            $dir = dirname( $this->subPathname );
+        if ($this->baseDir === substr($absolutePath, 0, $this->baseDirLength)) {
+            $this->subPathname = ltrim(substr($absolutePath, $this->baseDirLength), '/\\');
+            $dir = dirname($this->subPathname);
             $this->subPath = '.' === $dir ? '' : $dir;
         } else {
             $this->subPath = $this->subPathname = '';
         }
 
-        $this->current = new SplFileInfo( parent::current(), $this->subPath, $this->subPathname );
+        $this->current = new SplFileInfo(parent::current(), $this->subPath, $this->subPathname);
     }
 
     public function rewind()
     {
+
         parent::rewind();
         $this->buildProperties();
     }
@@ -119,6 +126,7 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function getSubPath()
     {
+
         return $this->subPath;
     }
 
@@ -127,6 +135,7 @@ class FilePathsIterator extends \ArrayIterator
      */
     public function getSubPathname()
     {
+
         return $this->subPathname;
     }
 }

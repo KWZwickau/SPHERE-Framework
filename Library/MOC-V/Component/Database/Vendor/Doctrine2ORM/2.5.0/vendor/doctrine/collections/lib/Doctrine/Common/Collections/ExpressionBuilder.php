@@ -35,6 +35,7 @@ use Doctrine\Common\Collections\Expr\Value;
  */
 class ExpressionBuilder
 {
+
     /**
      * @param mixed $x
      *
@@ -42,6 +43,7 @@ class ExpressionBuilder
      */
     public function andX($x = null)
     {
+
         return new CompositeExpression(CompositeExpression::TYPE_AND, func_get_args());
     }
 
@@ -52,6 +54,7 @@ class ExpressionBuilder
      */
     public function orX($x = null)
     {
+
         return new CompositeExpression(CompositeExpression::TYPE_OR, func_get_args());
     }
 
@@ -63,6 +66,7 @@ class ExpressionBuilder
      */
     public function eq($field, $value)
     {
+
         return new Comparison($field, Comparison::EQ, new Value($value));
     }
 
@@ -74,6 +78,7 @@ class ExpressionBuilder
      */
     public function gt($field, $value)
     {
+
         return new Comparison($field, Comparison::GT, new Value($value));
     }
 
@@ -85,6 +90,7 @@ class ExpressionBuilder
      */
     public function lt($field, $value)
     {
+
         return new Comparison($field, Comparison::LT, new Value($value));
     }
 
@@ -96,6 +102,7 @@ class ExpressionBuilder
      */
     public function gte($field, $value)
     {
+
         return new Comparison($field, Comparison::GTE, new Value($value));
     }
 
@@ -107,6 +114,7 @@ class ExpressionBuilder
      */
     public function lte($field, $value)
     {
+
         return new Comparison($field, Comparison::LTE, new Value($value));
     }
 
@@ -118,6 +126,7 @@ class ExpressionBuilder
      */
     public function neq($field, $value)
     {
+
         return new Comparison($field, Comparison::NEQ, new Value($value));
     }
 
@@ -128,6 +137,7 @@ class ExpressionBuilder
      */
     public function isNull($field)
     {
+
         return new Comparison($field, Comparison::EQ, new Value(null));
     }
 
@@ -139,6 +149,7 @@ class ExpressionBuilder
      */
     public function in($field, array $values)
     {
+
         return new Comparison($field, Comparison::IN, new Value($values));
     }
 
@@ -150,6 +161,7 @@ class ExpressionBuilder
      */
     public function notIn($field, array $values)
     {
+
         return new Comparison($field, Comparison::NIN, new Value($values));
     }
 
@@ -161,6 +173,7 @@ class ExpressionBuilder
      */
     public function contains($field, $value)
     {
+
         return new Comparison($field, Comparison::CONTAINS, new Value($value));
     }
 }

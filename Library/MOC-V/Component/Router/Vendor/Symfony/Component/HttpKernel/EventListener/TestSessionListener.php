@@ -32,13 +32,14 @@ abstract class TestSessionListener implements EventSubscriberInterface
     {
 
         return array(
-            KernelEvents::REQUEST  => array( 'onKernelRequest', 192 ),
-            KernelEvents::RESPONSE => array( 'onKernelResponse', -128 ),
+            KernelEvents::REQUEST  => array('onKernelRequest', 192),
+            KernelEvents::RESPONSE => array('onKernelResponse', -128),
         );
     }
 
     public function onKernelRequest(GetResponseEvent $event)
     {
+
         if (!$event->isMasterRequest()) {
             return;
         }
@@ -71,6 +72,7 @@ abstract class TestSessionListener implements EventSubscriberInterface
      */
     public function onKernelResponse(FilterResponseEvent $event)
     {
+
         if (!$event->isMasterRequest()) {
             return;
         }
@@ -79,7 +81,9 @@ abstract class TestSessionListener implements EventSubscriberInterface
         if ($session && $session->isStarted()) {
             $session->save();
             $params = session_get_cookie_params();
-            $event->getResponse()->headers->setCookie(new Cookie($session->getName(), $session->getId(), 0 === $params['lifetime'] ? 0 : time() + $params['lifetime'], $params['path'], $params['domain'], $params['secure'], $params['httponly']));
+            $event->getResponse()->headers->setCookie(new Cookie($session->getName(), $session->getId(),
+                0 === $params['lifetime'] ? 0 : time() + $params['lifetime'], $params['path'], $params['domain'],
+                $params['secure'], $params['httponly']));
         }
     }
 }

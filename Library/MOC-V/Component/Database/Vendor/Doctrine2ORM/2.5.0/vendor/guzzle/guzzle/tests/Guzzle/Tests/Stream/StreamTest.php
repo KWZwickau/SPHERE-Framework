@@ -5,21 +5,24 @@ namespace Guzzle\Tests\Stream;
 use Guzzle\Stream\Stream;
 
 /**
- * @group server
+ * @group  server
  * @covers Guzzle\Stream\Stream
  */
 class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /**
      * @expectedException \InvalidArgumentException
      */
     public function testConstructorThrowsExceptionOnInvalidArgument()
     {
+
         $stream = new Stream(true);
     }
 
     public function testConstructor()
     {
+
         $handle = fopen('php://temp', 'r+');
         fwrite($handle, 'data');
         $stream = new Stream($handle);
@@ -34,11 +37,12 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
         $this->assertEquals('php://temp', $stream->getUri());
         $this->assertEquals(array(), $stream->getWrapperData());
         $this->assertFalse($stream->isConsumed());
-        unset($stream);
+        unset( $stream );
     }
 
     public function testCanModifyStream()
     {
+
         $handle1 = fopen('php://temp', 'r+');
         $handle2 = fopen('php://temp', 'r+');
         $stream = new Stream($handle1);
@@ -50,38 +54,42 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testStreamClosesHandleOnDestruct()
     {
+
         $handle = fopen('php://temp', 'r');
         $stream = new Stream($handle);
-        unset($stream);
+        unset( $stream );
         $this->assertFalse(is_resource($handle));
     }
 
     public function testConvertsToString()
     {
+
         $handle = fopen('php://temp', 'w+');
         fwrite($handle, 'data');
         $stream = new Stream($handle);
-        $this->assertEquals('data', (string) $stream);
-        unset($stream);
+        $this->assertEquals('data', (string)$stream);
+        unset( $stream );
 
-        $handle = fopen(__DIR__ . '/../TestData/FileBody.txt', 'r');
+        $handle = fopen(__DIR__.'/../TestData/FileBody.txt', 'r');
         $stream = new Stream($handle);
-        $this->assertEquals('', (string) $stream);
-        unset($stream);
+        $this->assertEquals('', (string)$stream);
+        unset( $stream );
     }
 
     public function testConvertsToStringAndRestoresCursorPos()
     {
+
         $handle = fopen('php://temp', 'w+');
         $stream = new Stream($handle);
         $stream->write('foobazbar');
         $stream->seek(3);
-        $this->assertEquals('foobazbar', (string) $stream);
+        $this->assertEquals('foobazbar', (string)$stream);
         $this->assertEquals(3, $stream->ftell());
     }
 
     public function testIsConsumed()
     {
+
         $handle = fopen('php://temp', 'w+');
         fwrite($handle, 'data');
         $stream = new Stream($handle);
@@ -92,16 +100,18 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsSettingManualSize()
     {
+
         $handle = fopen('php://temp', 'w+');
         fwrite($handle, 'data');
         $stream = new Stream($handle);
         $stream->setSize(10);
         $this->assertEquals(10, $stream->getSize());
-        unset($stream);
+        unset( $stream );
     }
 
     public function testWrapsStream()
     {
+
         $handle = fopen('php://temp', 'w+');
         fwrite($handle, 'data');
         $stream = new Stream($handle);
@@ -119,24 +129,26 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testGetSize()
     {
-        $size = filesize(__DIR__ . '/../../../bootstrap.php');
-        $handle = fopen(__DIR__ . '/../../../bootstrap.php', 'r');
+
+        $size = filesize(__DIR__.'/../../../bootstrap.php');
+        $handle = fopen(__DIR__.'/../../../bootstrap.php', 'r');
         $stream = new Stream($handle);
         $this->assertEquals($handle, $stream->getStream());
         $this->assertEquals($size, $stream->getSize());
         $this->assertEquals($size, $stream->getSize());
-        unset($stream);
+        unset( $stream );
 
         // Make sure that false is returned when the size cannot be determined
         $this->getServer()->enqueue("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
-        $handle = fopen('http://127.0.0.1:' . $this->getServer()->getPort(), 'r');
+        $handle = fopen('http://127.0.0.1:'.$this->getServer()->getPort(), 'r');
         $stream = new Stream($handle);
         $this->assertEquals(false, $stream->getSize());
-        unset($stream);
+        unset( $stream );
     }
 
     public function testEnsuresSizeIsConsistent()
     {
+
         $h = fopen('php://temp', 'r+');
         fwrite($h, 'foo');
         $stream = new Stream($h);
@@ -148,7 +160,8 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAbstractsMetaData()
     {
-        $handle = fopen(__DIR__ . '/../../../bootstrap.php', 'r');
+
+        $handle = fopen(__DIR__.'/../../../bootstrap.php', 'r');
         $stream = new Stream($handle);
         $this->assertEquals('plainfile', $stream->getMetaData('wrapper_type'));
         $this->assertEquals(null, $stream->getMetaData('wrapper_data'));
@@ -157,14 +170,16 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesNotAttemptToWriteToReadonlyStream()
     {
-        $handle = fopen(__DIR__ . '/../../../bootstrap.php', 'r');
+
+        $handle = fopen(__DIR__.'/../../../bootstrap.php', 'r');
         $stream = new Stream($handle);
         $this->assertEquals(0, $stream->write('foo'));
     }
 
     public function testProvidesStreamPosition()
     {
-        $handle = fopen(__DIR__ . '/../../../bootstrap.php', 'r');
+
+        $handle = fopen(__DIR__.'/../../../bootstrap.php', 'r');
         $stream = new Stream($handle);
         $stream->read(2);
         $this->assertSame(ftell($handle), $stream->ftell());
@@ -173,6 +188,7 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRewindIsSeekZero()
     {
+
         $stream = new Stream(fopen('php://temp', 'w+'));
         $stream->write('foobazbar');
         $this->assertTrue($stream->rewind());
@@ -181,6 +197,7 @@ class StreamTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanDetachStream()
     {
+
         $r = fopen('php://temp', 'w+');
         $stream = new Stream($r);
         $stream->detachStream();

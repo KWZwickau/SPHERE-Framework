@@ -15,7 +15,7 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
         require_once( __DIR__.'/../../../Vendor/SimplePhpCaptcha/0.0-Master/simple-php-captcha.php' );

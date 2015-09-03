@@ -3,29 +3,33 @@
 namespace Guzzle\Tests\Plugin\Mock;
 
 use Guzzle\Common\Event;
+use Guzzle\Http\Client;
 use Guzzle\Http\EntityBody;
+use Guzzle\Http\Exception\CurlException;
 use Guzzle\Http\Message\Response;
 use Guzzle\Plugin\Mock\MockPlugin;
-use Guzzle\Http\Client;
-use Guzzle\Http\Exception\CurlException;
 
 /**
  * @covers Guzzle\Plugin\Mock\MockPlugin
  */
 class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testDescribesSubscribedEvents()
     {
+
         $this->assertInternalType('array', MockPlugin::getSubscribedEvents());
     }
 
     public function testDescribesEvents()
     {
+
         $this->assertInternalType('array', MockPlugin::getAllEvents());
     }
 
     public function testCanBeTemporary()
     {
+
         $plugin = new MockPlugin();
         $this->assertFalse($plugin->isTemporary());
         $plugin = new MockPlugin(null, true);
@@ -34,6 +38,7 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIsCountable()
     {
+
         $plugin = new MockPlugin();
         $plugin->addResponse(Response::fromMessage("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"));
         $this->assertEquals(1, count($plugin));
@@ -44,6 +49,7 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testCanClearQueue()
     {
+
         $plugin = new MockPlugin();
         $plugin->addResponse(Response::fromMessage("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"));
         $plugin->clearQueue();
@@ -52,6 +58,7 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanInspectQueue()
     {
+
         $plugin = new MockPlugin();
         $this->assertInternalType('array', $plugin->getQueue());
         $plugin->addResponse(Response::fromMessage("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n"));
@@ -62,7 +69,8 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testRetrievesResponsesFromFiles()
     {
-        $response = MockPlugin::getMockFile(__DIR__ . '/../../TestData/mock_response');
+
+        $response = MockPlugin::getMockFile(__DIR__.'/../../TestData/mock_response');
         $this->assertInstanceOf('Guzzle\\Http\\Message\\Response', $response);
         $this->assertEquals(200, $response->getStatusCode());
     }
@@ -72,6 +80,7 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenResponseFileIsNotFound()
     {
+
         MockPlugin::getMockFile('missing/filename');
     }
 
@@ -80,12 +89,14 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testInvalidResponsesThrowAnException()
     {
+
         $p = new MockPlugin();
         $p->addResponse($this);
     }
 
     public function testAddsResponseObjectsToQueue()
     {
+
         $p = new MockPlugin();
         $response = Response::fromMessage("HTTP/1.1 200 OK\r\nContent-Length: 0\r\n\r\n");
         $p->addResponse($response);
@@ -94,8 +105,9 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsResponseFilesToQueue()
     {
+
         $p = new MockPlugin();
-        $p->addResponse(__DIR__ . '/../../TestData/mock_response');
+        $p->addResponse(__DIR__.'/../../TestData/mock_response');
         $this->assertEquals(1, count($p));
     }
 
@@ -104,8 +116,9 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testAddsMockResponseToRequestFromClient()
     {
+
         $p = new MockPlugin();
-        $response = MockPlugin::getMockFile(__DIR__ . '/../../TestData/mock_response');
+        $response = MockPlugin::getMockFile(__DIR__.'/../../TestData/mock_response');
         $p->addResponse($response);
 
         $client = new Client('http://127.0.0.1:123/');
@@ -123,6 +136,7 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testUpdateThrowsExceptionWhenEmpty()
     {
+
         $p = new MockPlugin();
         $p->onRequestBeforeSend(new Event());
     }
@@ -132,8 +146,9 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testDetachesTemporaryWhenEmpty()
     {
+
         $p = new MockPlugin(null, true);
-        $p->addResponse(MockPlugin::getMockFile(__DIR__ . '/../../TestData/mock_response'));
+        $p->addResponse(MockPlugin::getMockFile(__DIR__.'/../../TestData/mock_response'));
         $client = new Client('http://127.0.0.1:123/');
         $client->getEventDispatcher()->addSubscriber($p, 9999);
         $request = $client->get();
@@ -144,12 +159,14 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testLoadsResponsesFromConstructor()
     {
+
         $p = new MockPlugin(array(new Response(200)));
         $this->assertEquals(1, $p->count());
     }
 
     public function testStoresMockedRequests()
     {
+
         $p = new MockPlugin(array(new Response(200), new Response(200)));
         $client = new Client('http://127.0.0.1:123/');
         $client->getEventDispatcher()->addSubscriber($p, 9999);
@@ -168,6 +185,7 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReadsBodiesFromMockedRequests()
     {
+
         $p = new MockPlugin(array(new Response(200)));
         $p->readBodies(true);
         $client = new Client('http://127.0.0.1:123/');
@@ -182,6 +200,7 @@ class MockPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanMockBadRequestExceptions()
     {
+
         $client = new Client('http://127.0.0.1:123/');
         $ex = new CurlException('Foo');
         $mock = new MockPlugin(array($ex));

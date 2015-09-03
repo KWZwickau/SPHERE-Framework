@@ -15,26 +15,31 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class JsonResponseTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConstructorEmptyCreatesJsonObject()
     {
+
         $response = new JsonResponse();
         $this->assertSame('{}', $response->getContent());
     }
 
     public function testConstructorWithArrayCreatesJsonArray()
     {
+
         $response = new JsonResponse(array(0, 1, 2, 3));
         $this->assertSame('[0,1,2,3]', $response->getContent());
     }
 
     public function testConstructorWithAssocArrayCreatesJsonObject()
     {
+
         $response = new JsonResponse(array('foo' => 'bar'));
         $this->assertSame('{"foo":"bar"}', $response->getContent());
     }
 
     public function testConstructorWithSimpleTypes()
     {
+
         $response = new JsonResponse('foo');
         $this->assertSame('"foo"', $response->getContent());
 
@@ -50,18 +55,21 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorWithCustomStatus()
     {
+
         $response = new JsonResponse(array(), 202);
         $this->assertSame(202, $response->getStatusCode());
     }
 
     public function testConstructorAddsContentTypeHeader()
     {
+
         $response = new JsonResponse();
         $this->assertSame('application/json', $response->headers->get('Content-Type'));
     }
 
     public function testConstructorWithCustomHeaders()
     {
+
         $response = new JsonResponse(array(), 200, array('ETag' => 'foo'));
         $this->assertSame('application/json', $response->headers->get('Content-Type'));
         $this->assertSame('foo', $response->headers->get('ETag'));
@@ -69,6 +77,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructorWithCustomContentType()
     {
+
         $headers = array('Content-Type' => 'application/vnd.acme.blog-v1+json');
 
         $response = new JsonResponse(array(), 200, $headers);
@@ -77,6 +86,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testCreate()
     {
+
         $response = JsonResponse::create(array('foo' => 'bar'), 204);
 
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\JsonResponse', $response);
@@ -86,6 +96,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testStaticCreateEmptyJsonObject()
     {
+
         $response = JsonResponse::create();
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\JsonResponse', $response);
         $this->assertSame('{}', $response->getContent());
@@ -93,6 +104,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testStaticCreateJsonArray()
     {
+
         $response = JsonResponse::create(array(0, 1, 2, 3));
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\JsonResponse', $response);
         $this->assertSame('[0,1,2,3]', $response->getContent());
@@ -100,6 +112,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testStaticCreateJsonObject()
     {
+
         $response = JsonResponse::create(array('foo' => 'bar'));
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\JsonResponse', $response);
         $this->assertSame('{"foo":"bar"}', $response->getContent());
@@ -107,6 +120,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testStaticCreateWithSimpleTypes()
     {
+
         $response = JsonResponse::create('foo');
         $this->assertInstanceOf('Symfony\Component\HttpFoundation\JsonResponse', $response);
         $this->assertSame('"foo"', $response->getContent());
@@ -126,18 +140,21 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testStaticCreateWithCustomStatus()
     {
+
         $response = JsonResponse::create(array(), 202);
         $this->assertSame(202, $response->getStatusCode());
     }
 
     public function testStaticCreateAddsContentTypeHeader()
     {
+
         $response = JsonResponse::create();
         $this->assertSame('application/json', $response->headers->get('Content-Type'));
     }
 
     public function testStaticCreateWithCustomHeaders()
     {
+
         $response = JsonResponse::create(array(), 200, array('ETag' => 'foo'));
         $this->assertSame('application/json', $response->headers->get('Content-Type'));
         $this->assertSame('foo', $response->headers->get('ETag'));
@@ -145,6 +162,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testStaticCreateWithCustomContentType()
     {
+
         $headers = array('Content-Type' => 'application/vnd.acme.blog-v1+json');
 
         $response = JsonResponse::create(array(), 200, $headers);
@@ -153,6 +171,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testSetCallback()
     {
+
         $response = JsonResponse::create(array('foo' => 'bar'))->setCallback('callback');
 
         $this->assertEquals('/**/callback({"foo":"bar"});', $response->getContent());
@@ -161,6 +180,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testJsonEncodeFlags()
     {
+
         $response = new JsonResponse('<>\'&"');
 
         $this->assertEquals('"\u003C\u003E\u0027\u0026\u0022"', $response->getContent());
@@ -168,13 +188,16 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
 
     public function testGetEncodingOptions()
     {
+
         $response = new JsonResponse();
 
-        $this->assertEquals(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT, $response->getEncodingOptions());
+        $this->assertEquals(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT,
+            $response->getEncodingOptions());
     }
 
     public function testSetEncodingOptions()
     {
+
         $response = new JsonResponse();
         $response->setData(array(array(1, 2, 3)));
 
@@ -190,6 +213,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetCallbackInvalidIdentifier()
     {
+
         $response = new JsonResponse('foo');
         $response->setCallback('+invalid');
     }
@@ -199,6 +223,7 @@ class JsonResponseTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetContent()
     {
+
         JsonResponse::create("\xB1\x31");
     }
 }

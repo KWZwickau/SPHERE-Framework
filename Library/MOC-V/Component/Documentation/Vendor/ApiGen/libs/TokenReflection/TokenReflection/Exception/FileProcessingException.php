@@ -36,12 +36,12 @@ final class FileProcessingException extends RuntimeException
      * @param array                           $reasons Resons why the file could not be processed
      * @param \TokenReflection\ReflectionFile $sender  Reflection file
      */
-    public function __construct( array $reasons, ReflectionFile $sender = null )
+    public function __construct(array $reasons, ReflectionFile $sender = null)
     {
 
         parent::__construct(
-            null === $sender ? 'There was an error processing the file.' : sprintf( 'There was an error processing the file %s.',
-                $sender->getName() ),
+            null === $sender ? 'There was an error processing the file.' : sprintf('There was an error processing the file %s.',
+                $sender->getName()),
             0,
             $sender
         );
@@ -69,16 +69,16 @@ final class FileProcessingException extends RuntimeException
     {
 
         if (!empty( $this->reasons )) {
-            $reasons = array_map( function ( BaseException $reason ) {
+            $reasons = array_map(function (BaseException $reason) {
 
                 if ($reason instanceof ParseException) {
                     return $reason->getDetail();
                 } else {
                     return $reason->getMessage();
                 }
-            }, $this->reasons );
+            }, $this->reasons);
 
-            return "There were following reasons for this exception:\n".implode( "\n", $reasons );
+            return "There were following reasons for this exception:\n".implode("\n", $reasons);
         }
 
         return '';

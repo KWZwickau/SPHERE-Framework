@@ -32,25 +32,26 @@ use Doctrine\Common\Lexer\AbstractLexer;
  */
 final class DocLexer extends AbstractLexer
 {
-    const T_NONE                = 1;
-    const T_INTEGER             = 2;
-    const T_STRING              = 3;
-    const T_FLOAT               = 4;
+
+    const T_NONE = 1;
+    const T_INTEGER = 2;
+    const T_STRING = 3;
+    const T_FLOAT = 4;
 
     // All tokens that are also identifiers should be >= 100
-    const T_IDENTIFIER          = 100;
-    const T_AT                  = 101;
-    const T_CLOSE_CURLY_BRACES  = 102;
-    const T_CLOSE_PARENTHESIS   = 103;
-    const T_COMMA               = 104;
-    const T_EQUALS              = 105;
-    const T_FALSE               = 106;
+    const T_IDENTIFIER = 100;
+    const T_AT = 101;
+    const T_CLOSE_CURLY_BRACES = 102;
+    const T_CLOSE_PARENTHESIS = 103;
+    const T_COMMA = 104;
+    const T_EQUALS = 105;
+    const T_FALSE = 106;
     const T_NAMESPACE_SEPARATOR = 107;
-    const T_OPEN_CURLY_BRACES   = 108;
-    const T_OPEN_PARENTHESIS    = 109;
-    const T_TRUE                = 110;
-    const T_NULL                = 111;
-    const T_COLON               = 112;
+    const T_OPEN_CURLY_BRACES = 108;
+    const T_OPEN_PARENTHESIS = 109;
+    const T_TRUE = 110;
+    const T_NULL = 111;
+    const T_COLON = 112;
 
     /**
      * @var array
@@ -81,6 +82,7 @@ final class DocLexer extends AbstractLexer
      */
     protected function getCatchablePatterns()
     {
+
         return array(
             '[a-z_\\\][a-z0-9_\:\\\]*[a-z_][a-z0-9_]*',
             '(?:[+-]?[0-9]+(?:[\.][0-9]+)*)(?:[eE][+-]?[0-9]+)?',
@@ -93,6 +95,7 @@ final class DocLexer extends AbstractLexer
      */
     protected function getNonCatchablePatterns()
     {
+
         return array('\s+', '\*+', '(.)');
     }
 
@@ -101,6 +104,7 @@ final class DocLexer extends AbstractLexer
      */
     protected function getType(&$value)
     {
+
         $type = self::T_NONE;
 
         if ($value[0] === '"') {
@@ -109,7 +113,7 @@ final class DocLexer extends AbstractLexer
             return self::T_STRING;
         }
 
-        if (isset($this->noCase[$value])) {
+        if (isset( $this->noCase[$value] )) {
             return $this->noCase[$value];
         }
 
@@ -119,13 +123,13 @@ final class DocLexer extends AbstractLexer
 
         $lowerValue = strtolower($value);
 
-        if (isset($this->withCase[$lowerValue])) {
+        if (isset( $this->withCase[$lowerValue] )) {
             return $this->withCase[$lowerValue];
         }
 
         // Checking numeric value
         if (is_numeric($value)) {
-            return (strpos($value, '.') !== false || stripos($value, 'e') !== false)
+            return ( strpos($value, '.') !== false || stripos($value, 'e') !== false )
                 ? self::T_FLOAT : self::T_INTEGER;
         }
 

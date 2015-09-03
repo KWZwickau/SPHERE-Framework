@@ -65,12 +65,12 @@ class HtmlOnly implements FSHL\Lexer
         return array(
             'OUT'          => array(
                 array(
-                    '<!--' => array( 'COMMENT', Generator::NEXT ),
-                    '<?'   => array( Generator::STATE_SELF, Generator::CURRENT ),
-                    '<'    => array( 'TAG', Generator::NEXT ),
-                    '&'    => array( 'ENTITY', Generator::NEXT ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '<!--' => array('COMMENT', Generator::NEXT),
+                    '<?'   => array(Generator::STATE_SELF, Generator::CURRENT),
+                    '<'    => array('TAG', Generator::NEXT),
+                    '&'    => array('ENTITY', Generator::NEXT),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -78,9 +78,9 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'ENTITY'       => array(
                 array(
-                    ';'     => array( 'OUT', Generator::CURRENT ),
-                    '&'     => array( 'OUT', Generator::CURRENT ),
-                    'SPACE' => array( 'OUT', Generator::CURRENT )
+                    ';'     => array('OUT', Generator::CURRENT),
+                    '&'     => array('OUT', Generator::CURRENT),
+                    'SPACE' => array('OUT', Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-entity',
@@ -88,12 +88,12 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'TAG'          => array(
                 array(
-                    '>'      => array( 'OUT', Generator::CURRENT ),
-                    'SPACE'  => array( 'TAGIN', Generator::NEXT ),
-                    'style'  => array( 'STYLE', Generator::CURRENT ),
-                    'STYLE'  => array( 'STYLE', Generator::CURRENT ),
-                    'script' => array( 'SCRIPT', Generator::CURRENT ),
-                    'SCRIPT' => array( 'SCRIPT', Generator::CURRENT )
+                    '>'      => array('OUT', Generator::CURRENT),
+                    'SPACE'  => array('TAGIN', Generator::NEXT),
+                    'style'  => array('STYLE', Generator::CURRENT),
+                    'STYLE'  => array('STYLE', Generator::CURRENT),
+                    'script' => array('SCRIPT', Generator::CURRENT),
+                    'SCRIPT' => array('SCRIPT', Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-tag',
@@ -101,12 +101,12 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'TAGIN'        => array(
                 array(
-                    '"'    => array( 'QUOTE_DOUBLE', Generator::NEXT ),
-                    '\''   => array( 'QUOTE_SINGLE', Generator::NEXT ),
-                    '/>'   => array( 'TAG', Generator::BACK ),
-                    '>'    => array( 'TAG', Generator::BACK ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '"'    => array('QUOTE_DOUBLE', Generator::NEXT),
+                    '\''   => array('QUOTE_SINGLE', Generator::NEXT),
+                    '/>'   => array('TAG', Generator::BACK),
+                    '>'    => array('TAG', Generator::BACK),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-tagin',
@@ -114,11 +114,11 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'STYLE'        => array(
                 array(
-                    '"'    => array( 'QUOTE_DOUBLE', Generator::NEXT ),
-                    '\''   => array( 'QUOTE_SINGLE', Generator::NEXT ),
-                    '>'    => array( 'STYLE_END', Generator::BACK ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '"'    => array('QUOTE_DOUBLE', Generator::NEXT),
+                    '\''   => array('QUOTE_SINGLE', Generator::NEXT),
+                    '>'    => array('STYLE_END', Generator::BACK),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-tagin',
@@ -126,7 +126,7 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'STYLE_END'    => array(
                 array(
-                    '>' => array( 'CSS', Generator::CURRENT )
+                    '>' => array('CSS', Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-tag',
@@ -134,10 +134,10 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'CSS'          => array(
                 array(
-                    'LINE'    => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'     => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '</style' => array( 'TAG', Generator::NEXT ),
-                    '</STYLE' => array( 'TAG', Generator::NEXT )
+                    'LINE'    => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'     => array(Generator::STATE_SELF, Generator::NEXT),
+                    '</style' => array('TAG', Generator::NEXT),
+                    '</STYLE' => array('TAG', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -145,11 +145,11 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'SCRIPT'       => array(
                 array(
-                    '"'    => array( 'QUOTE_DOUBLE', Generator::NEXT ),
-                    '\''   => array( 'QUOTE_SINGLE', Generator::NEXT ),
-                    '>'    => array( 'SCRIPT_END', Generator::BACK ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '"'    => array('QUOTE_DOUBLE', Generator::NEXT),
+                    '\''   => array('QUOTE_SINGLE', Generator::NEXT),
+                    '>'    => array('SCRIPT_END', Generator::BACK),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-tagin',
@@ -157,7 +157,7 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'SCRIPT_END'   => array(
                 array(
-                    '>' => array( 'JAVASCRIPT', Generator::CURRENT )
+                    '>' => array('JAVASCRIPT', Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-tag',
@@ -165,10 +165,10 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'JAVASCRIPT'   => array(
                 array(
-                    'LINE'     => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'      => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '</script' => array( 'TAG', Generator::NEXT ),
-                    '</SCRIPT' => array( 'TAG', Generator::NEXT )
+                    'LINE'     => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'      => array(Generator::STATE_SELF, Generator::NEXT),
+                    '</script' => array('TAG', Generator::NEXT),
+                    '</SCRIPT' => array('TAG', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -176,7 +176,7 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'QUOTE_DOUBLE' => array(
                 array(
-                    '"' => array( Generator::STATE_RETURN, Generator::CURRENT )
+                    '"' => array(Generator::STATE_RETURN, Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'html-quote',
@@ -184,7 +184,7 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'QUOTE_SINGLE' => array(
                 array(
-                    '\'' => array( Generator::STATE_RETURN, Generator::CURRENT )
+                    '\'' => array(Generator::STATE_RETURN, Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'html-quote',
@@ -192,9 +192,9 @@ class HtmlOnly implements FSHL\Lexer
             ),
             'COMMENT'      => array(
                 array(
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '-->'  => array( 'OUT', Generator::CURRENT )
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    '-->'  => array('OUT', Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'html-comment',

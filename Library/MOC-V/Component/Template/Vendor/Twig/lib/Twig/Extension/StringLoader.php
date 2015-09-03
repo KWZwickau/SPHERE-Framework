@@ -8,15 +8,19 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 class Twig_Extension_StringLoader extends Twig_Extension
 {
+
     /**
      * {@inheritdoc}
      */
     public function getFunctions()
     {
+
         return array(
-            new Twig_SimpleFunction('template_from_string', 'twig_template_from_string', array('needs_environment' => true)),
+            new Twig_SimpleFunction('template_from_string', 'twig_template_from_string',
+                array('needs_environment' => true)),
         );
     }
 
@@ -25,6 +29,7 @@ class Twig_Extension_StringLoader extends Twig_Extension
      */
     public function getName()
     {
+
         return 'string_loader';
     }
 }
@@ -43,6 +48,7 @@ class Twig_Extension_StringLoader extends Twig_Extension
  */
 function twig_template_from_string(Twig_Environment $env, $template)
 {
+
     $name = sprintf('__string_template__%s', hash('sha256', uniqid(mt_rand(), true), false));
 
     $loader = new Twig_Loader_Chain(array(

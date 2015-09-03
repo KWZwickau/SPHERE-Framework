@@ -62,18 +62,18 @@ abstract class ReflectionFunctionBase extends ReflectionElement
      * @throws \InvalidArgumentException If there is no parameter of the given name.
      * @throws \InvalidArgumentException If there is no parameter at the given position.
      */
-    public function getParameter( $parameterName )
+    public function getParameter($parameterName)
     {
 
         $parameters = $this->getParameters();
 
-        if (is_numeric( $parameterName )) {
+        if (is_numeric($parameterName)) {
             if (isset( $parameters[$parameterName] )) {
                 return $parameters[$parameterName];
             }
 
-            throw new InvalidArgumentException( sprintf( 'There is no parameter at position "%d" in function/method "%s"',
-                $parameterName, $this->getName() ), Exception\Runtime::DOES_NOT_EXIST );
+            throw new InvalidArgumentException(sprintf('There is no parameter at position "%d" in function/method "%s"',
+                $parameterName, $this->getName()), Exception\Runtime::DOES_NOT_EXIST);
         } else {
             foreach ($parameters as $parameter) {
                 if ($parameter->getName() === $parameterName) {
@@ -81,8 +81,8 @@ abstract class ReflectionFunctionBase extends ReflectionElement
                 }
             }
 
-            throw new InvalidArgumentException( sprintf( 'There is no parameter "%s" in function/method "%s"',
-                $parameterName, $this->getName() ), Exception\Runtime::DOES_NOT_EXIST );
+            throw new InvalidArgumentException(sprintf('There is no parameter "%s" in function/method "%s"',
+                $parameterName, $this->getName()), Exception\Runtime::DOES_NOT_EXIST);
         }
     }
 
@@ -96,14 +96,14 @@ abstract class ReflectionFunctionBase extends ReflectionElement
 
         if (null === $this->parameters) {
             $generator = self::$generator;
-            $this->parameters = array_map( function ( TokenReflection\IReflectionParameter $parameter ) use (
+            $this->parameters = array_map(function (TokenReflection\IReflectionParameter $parameter) use (
                 $generator
             ) {
 
-                return new ReflectionParameter( $parameter, $generator );
-            }, $this->reflection->getParameters() );
+                return new ReflectionParameter($parameter, $generator);
+            }, $this->reflection->getParameters());
 
-            $annotations = $this->getAnnotation( 'param' );
+            $annotations = $this->getAnnotation('param');
             if (null !== $annotations) {
                 foreach ($annotations as $position => $annotation) {
                     if (isset( $parameters[$position] )) {
@@ -111,8 +111,8 @@ abstract class ReflectionFunctionBase extends ReflectionElement
                         continue;
                     }
 
-                    if (!preg_match( '~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?\\$(\\w+),\\.{3}(?:\\s+(.*))?($)~s',
-                        $annotation, $matches )
+                    if (!preg_match('~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?\\$(\\w+),\\.{3}(?:\\s+(.*))?($)~s',
+                        $annotation, $matches)
                     ) {
                         // Wrong annotation format
                         continue;
@@ -124,15 +124,15 @@ abstract class ReflectionFunctionBase extends ReflectionElement
                         $typeHint = 'mixed';
                     }
 
-                    $parameter = new ReflectionParameterMagic( null, self::$generator );
+                    $parameter = new ReflectionParameterMagic(null, self::$generator);
                     $parameter
-                        ->setName( $name )
-                        ->setPosition( $position )
-                        ->setTypeHint( $typeHint )
-                        ->setDefaultValueDefinition( null )
-                        ->setUnlimited( true )
-                        ->setPassedByReference( false )
-                        ->setDeclaringFunction( $this );
+                        ->setName($name)
+                        ->setPosition($position)
+                        ->setTypeHint($typeHint)
+                        ->setDefaultValueDefinition(null)
+                        ->setUnlimited(true)
+                        ->setPassedByReference(false)
+                        ->setDeclaringFunction($this);
 
                     $this->parameters[$position] = $parameter;
                 }

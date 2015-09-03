@@ -24,6 +24,7 @@ namespace Doctrine\Common\Annotations;
  */
 final class AnnotationRegistry
 {
+
     /**
      * A map of namespaces to use for autoloading purposes based on a PSR-0 convention.
      *
@@ -48,6 +49,7 @@ final class AnnotationRegistry
      */
     static public function reset()
     {
+
         self::$autoloadNamespaces = array();
         self::$loaders = array();
     }
@@ -61,6 +63,7 @@ final class AnnotationRegistry
      */
     static public function registerFile($file)
     {
+
         require_once $file;
     }
 
@@ -76,6 +79,7 @@ final class AnnotationRegistry
      */
     static public function registerAutoloadNamespace($namespace, $dirs = null)
     {
+
         self::$autoloadNamespaces[$namespace] = $dirs;
     }
 
@@ -90,6 +94,7 @@ final class AnnotationRegistry
      */
     static public function registerAutoloadNamespaces(array $namespaces)
     {
+
         self::$autoloadNamespaces = array_merge(self::$autoloadNamespaces, $namespaces);
     }
 
@@ -107,6 +112,7 @@ final class AnnotationRegistry
      */
     static public function registerLoader($callable)
     {
+
         if (!is_callable($callable)) {
             throw new \InvalidArgumentException("A callable is expected in AnnotationRegistry::registerLoader().");
         }
@@ -122,18 +128,19 @@ final class AnnotationRegistry
      */
     static public function loadAnnotationClass($class)
     {
+
         foreach (self::$autoloadNamespaces AS $namespace => $dirs) {
             if (strpos($class, $namespace) === 0) {
-                $file = str_replace("\\", DIRECTORY_SEPARATOR, $class) . ".php";
+                $file = str_replace("\\", DIRECTORY_SEPARATOR, $class).".php";
                 if ($dirs === null) {
                     if ($path = stream_resolve_include_path($file)) {
                         require $path;
                         return true;
                     }
                 } else {
-                    foreach((array)$dirs AS $dir) {
-                        if (is_file($dir . DIRECTORY_SEPARATOR . $file)) {
-                            require $dir . DIRECTORY_SEPARATOR . $file;
+                    foreach ((array)$dirs AS $dir) {
+                        if (is_file($dir.DIRECTORY_SEPARATOR.$file)) {
+                            require $dir.DIRECTORY_SEPARATOR.$file;
                             return true;
                         }
                     }

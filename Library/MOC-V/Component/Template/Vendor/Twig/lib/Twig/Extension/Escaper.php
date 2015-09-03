@@ -8,12 +8,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 class Twig_Extension_Escaper extends Twig_Extension
 {
+
     protected $defaultStrategy;
 
     public function __construct($defaultStrategy = 'html')
     {
+
         $this->setDefaultStrategy($defaultStrategy);
     }
 
@@ -24,6 +27,7 @@ class Twig_Extension_Escaper extends Twig_Extension
      */
     public function getTokenParsers()
     {
+
         return array(new Twig_TokenParser_AutoEscape());
     }
 
@@ -34,6 +38,7 @@ class Twig_Extension_Escaper extends Twig_Extension
      */
     public function getNodeVisitors()
     {
+
         return array(new Twig_NodeVisitor_Escaper());
     }
 
@@ -44,6 +49,7 @@ class Twig_Extension_Escaper extends Twig_Extension
      */
     public function getFilters()
     {
+
         return array(
             new Twig_SimpleFilter('raw', 'twig_raw_filter', array('is_safe' => array('all'))),
         );
@@ -58,6 +64,7 @@ class Twig_Extension_Escaper extends Twig_Extension
      */
     public function getDefaultStrategy($filename)
     {
+
         // disable string callables to avoid calling a function named html or js,
         // or any other upcoming escaping strategy
         if (!is_string($this->defaultStrategy) && is_callable($this->defaultStrategy)) {
@@ -75,7 +82,7 @@ class Twig_Extension_Escaper extends Twig_Extension
      *
      * @param mixed $defaultStrategy An escaping strategy
      */
-    public function setDefaultStrategy( $defaultStrategy )
+    public function setDefaultStrategy($defaultStrategy)
     {
 
         // for BC
@@ -93,6 +100,7 @@ class Twig_Extension_Escaper extends Twig_Extension
      */
     public function getName()
     {
+
         return 'escaper';
     }
 }
@@ -104,5 +112,6 @@ class Twig_Extension_Escaper extends Twig_Extension
  */
 function twig_raw_filter($string)
 {
+
     return $string;
 }

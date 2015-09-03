@@ -19,6 +19,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
 {
+
     protected $kernel;
     protected $cache;
     protected $caches;
@@ -31,21 +32,25 @@ class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
 
     public function assertHttpKernelIsCalled()
     {
+
         $this->assertTrue($this->kernel->hasBeenCalled());
     }
 
     public function assertHttpKernelIsNotCalled()
     {
+
         $this->assertFalse($this->kernel->hasBeenCalled());
     }
 
     public function assertResponseOk()
     {
+
         $this->assertEquals(200, $this->response->getStatusCode());
     }
 
     public function assertTraceContains($trace)
     {
+
         $traces = $this->cache->getTraces();
         $traces = current($traces);
 
@@ -54,6 +59,7 @@ class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
 
     public function assertTraceNotContains($trace)
     {
+
         $traces = $this->cache->getTraces();
         $traces = current($traces);
 
@@ -62,16 +68,25 @@ class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
 
     public function assertExceptionsAreCaught()
     {
+
         $this->assertTrue($this->kernel->isCatchingExceptions());
     }
 
     public function assertExceptionsAreNotCaught()
     {
+
         $this->assertFalse($this->kernel->isCatchingExceptions());
     }
 
-    public function request($method, $uri = '/', $server = array(), $cookies = array(), $esi = false, $headers = array())
-    {
+    public function request(
+        $method,
+        $uri = '/',
+        $server = array(),
+        $cookies = array(),
+        $esi = false,
+        $headers = array()
+    ) {
+
         if (null === $this->kernel) {
             throw new \LogicException('You must call setNextResponse() before calling request().');
         }
@@ -94,21 +109,29 @@ class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
 
     public function getMetaStorageValues()
     {
+
         $values = array();
-        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(sys_get_temp_dir().'/http_cache/md', \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::LEAVES_ONLY) as $file) {
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(sys_get_temp_dir().'/http_cache/md',
+            \RecursiveDirectoryIterator::SKIP_DOTS), \RecursiveIteratorIterator::LEAVES_ONLY) as $file) {
             $values[] = file_get_contents($file);
         }
 
         return $values;
     }
 
-    public function setNextResponse($statusCode = 200, array $headers = array(), $body = 'Hello World', \Closure $customizer = null)
-    {
+    public function setNextResponse(
+        $statusCode = 200,
+        array $headers = array(),
+        $body = 'Hello World',
+        \Closure $customizer = null
+    ) {
+
         $this->kernel = new TestHttpKernel($body, $statusCode, $headers, $customizer);
     }
 
     public function setNextResponses($responses)
     {
+
         $this->kernel = new TestMultipleHttpKernel($responses);
     }
 
@@ -116,6 +139,7 @@ class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
 
     public function catchExceptions($catch = true)
     {
+
         $this->catch = $catch;
     }
 
@@ -135,11 +159,12 @@ class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
 
         $this->catch = false;
 
-        $this->clearDirectory( sys_get_temp_dir().'/http_cache' );
+        $this->clearDirectory(sys_get_temp_dir().'/http_cache');
     }
 
     public static function clearDirectory($directory)
     {
+
         if (!is_dir($directory)) {
             return;
         }
@@ -174,6 +199,6 @@ class HttpCacheTestCase extends \PHPUnit_Framework_TestCase
         $this->catch = null;
         $this->esi = null;
 
-        $this->clearDirectory( sys_get_temp_dir().'/http_cache' );
+        $this->clearDirectory(sys_get_temp_dir().'/http_cache');
     }
 }

@@ -7,6 +7,7 @@ namespace Guzzle\Service\Description;
  */
 interface ServiceDescriptionInterface extends \Serializable
 {
+
     /**
      * Get the basePath/baseUrl of the description
      *

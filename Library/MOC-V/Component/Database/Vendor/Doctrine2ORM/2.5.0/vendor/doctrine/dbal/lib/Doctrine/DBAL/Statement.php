@@ -19,19 +19,20 @@
 
 namespace Doctrine\DBAL;
 
-use PDO;
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Driver\Statement as DriverStatement;
+use Doctrine\DBAL\Types\Type;
+use PDO;
 
 /**
  * A thin wrapper around a Doctrine\DBAL\Driver\Statement that adds support
  * for logging, DBAL mapping types, etc.
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since 2.0
+ * @since  2.0
  */
 class Statement implements \IteratorAggregate, DriverStatement
 {
+
     /**
      * The SQL statement.
      *
@@ -82,6 +83,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function __construct($sql, Connection $conn)
     {
+
         $this->sql = $sql;
         $this->stmt = $conn->getWrappedConnection()->prepare($sql);
         $this->conn = $conn;
@@ -104,6 +106,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function bindValue($name, $value, $type = null)
     {
+
         $this->params[$name] = $value;
         $this->types[$name] = $type;
         if ($type !== null) {
@@ -138,6 +141,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function bindParam($name, &$var, $type = PDO::PARAM_STR, $length = null)
     {
+
         return $this->stmt->bindParam($name, $var, $type, $length);
     }
 
@@ -152,6 +156,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function execute($params = null)
     {
+
         if (is_array($params)) {
             $this->params = $params;
         }
@@ -191,6 +196,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function closeCursor()
     {
+
         return $this->stmt->closeCursor();
     }
 
@@ -201,6 +207,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function columnCount()
     {
+
         return $this->stmt->columnCount();
     }
 
@@ -211,6 +218,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function errorCode()
     {
+
         return $this->stmt->errorCode();
     }
 
@@ -221,6 +229,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function errorInfo()
     {
+
         return $this->stmt->errorInfo();
     }
 
@@ -229,6 +238,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function setFetchMode($fetchMode, $arg2 = null, $arg3 = null)
     {
+
         if ($arg2 === null) {
             return $this->stmt->setFetchMode($fetchMode);
         } elseif ($arg3 === null) {
@@ -245,6 +255,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function getIterator()
     {
+
         return $this->stmt;
     }
 
@@ -258,6 +269,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function fetch($fetchMode = null)
     {
+
         return $this->stmt->fetch($fetchMode);
     }
 
@@ -271,6 +283,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function fetchAll($fetchMode = null, $fetchArgument = 0)
     {
+
         if ($fetchArgument !== 0) {
             return $this->stmt->fetchAll($fetchMode, $fetchArgument);
         }
@@ -287,6 +300,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function fetchColumn($columnIndex = 0)
     {
+
         return $this->stmt->fetchColumn($columnIndex);
     }
 
@@ -297,6 +311,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function rowCount()
     {
+
         return $this->stmt->rowCount();
     }
 
@@ -307,6 +322,7 @@ class Statement implements \IteratorAggregate, DriverStatement
      */
     public function getWrappedStatement()
     {
+
         return $this->stmt;
     }
 }

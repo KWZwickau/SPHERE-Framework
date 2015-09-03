@@ -3,25 +3,27 @@
 namespace Guzzle\Service\Command\LocationVisitor\Response;
 
 use Guzzle\Http\Message\Response;
-use Guzzle\Service\Description\Parameter;
 use Guzzle\Service\Command\CommandInterface;
+use Guzzle\Service\Description\Parameter;
 
 /**
  * Location visitor used to add a particular header of a response to a key in the result
  */
 class HeaderVisitor extends AbstractResponseVisitor
 {
+
     public function visit(
         CommandInterface $command,
         Response $response,
         Parameter $param,
         &$value,
-        $context =  null
+        $context = null
     ) {
+
         if ($param->getType() == 'object' && $param->getAdditionalProperties() instanceof Parameter) {
             $this->processPrefixedHeaders($response, $param, $value);
         } else {
-            $value[$param->getName()] = $param->filter((string) $response->getHeader($param->getWireName()));
+            $value[$param->getName()] = $param->filter((string)$response->getHeader($param->getWireName()));
         }
     }
 
@@ -34,6 +36,7 @@ class HeaderVisitor extends AbstractResponseVisitor
      */
     protected function processPrefixedHeaders(Response $response, Parameter $param, &$value)
     {
+
         // Grab prefixed headers that should be placed into an array with the prefix stripped
         if ($prefix = $param->getSentAs()) {
             $container = $param->getName();

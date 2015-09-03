@@ -19,6 +19,7 @@ namespace Symfony\Component\Yaml;
  */
 class Unescaper
 {
+
     /**
      * Parser and Inline assume UTF-8 encoding, so escaped Unicode characters
      * must be converted to that encoding.
@@ -42,6 +43,7 @@ class Unescaper
      */
     public function unescapeSingleQuotedString($value)
     {
+
         return str_replace('\'\'', '\'', $value);
     }
 
@@ -54,8 +56,10 @@ class Unescaper
      */
     public function unescapeDoubleQuotedString($value)
     {
+
         $self = $this;
         $callback = function ($match) use ($self) {
+
             return $self->unescapeCharacter($match[0]);
         };
 
@@ -72,6 +76,7 @@ class Unescaper
      */
     public function unescapeCharacter($value)
     {
+
         switch ($value{1}) {
             case '0':
                 return "\x0";
@@ -131,6 +136,7 @@ class Unescaper
      */
     private static function utf8chr($c)
     {
+
         if (0x80 > $c %= 0x200000) {
             return chr($c);
         }

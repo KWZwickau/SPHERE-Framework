@@ -16,8 +16,10 @@ use Symfony\Component\Config\Tests\Fixtures\Configuration\ExampleConfiguration;
 
 class YamlReferenceDumperTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testDumper()
     {
+
         $configuration = new ExampleConfiguration();
 
         $dumper = new YamlReferenceDumper();
@@ -28,6 +30,7 @@ class YamlReferenceDumperTest extends \PHPUnit_Framework_TestCase
 
     private function getConfigurationAsString()
     {
+
         return <<<EOL
 acme_root:
     boolean:              true

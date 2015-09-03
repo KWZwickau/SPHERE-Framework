@@ -1,8 +1,11 @@
 <?php
+
 class Issue1472Test extends PHPUnit_Framework_TestCase
 {
+
     public function testAssertEqualXMLStructure()
     {
+
         $doc = new DOMDocument;
         $doc->loadXML('<root><label>text content</label></root>');
 

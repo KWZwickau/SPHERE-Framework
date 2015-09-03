@@ -20,14 +20,15 @@ namespace Symfony\Component\HttpFoundation;
  */
 class RedirectResponse extends Response
 {
+
     protected $targetUrl;
 
     /**
      * Creates a redirect response so that it conforms to the rules defined for a redirect status code.
      *
-     * @param string  $url     The URL to redirect to
-     * @param int     $status  The status code (302 by default)
-     * @param array   $headers The headers (Location is always set to the given URL)
+     * @param string $url     The URL to redirect to
+     * @param int    $status  The status code (302 by default)
+     * @param array  $headers The headers (Location is always set to the given URL)
      *
      * @throws \InvalidArgumentException
      *
@@ -37,7 +38,8 @@ class RedirectResponse extends Response
      */
     public function __construct($url, $status = 302, $headers = array())
     {
-        if (empty($url)) {
+
+        if (empty( $url )) {
             throw new \InvalidArgumentException('Cannot redirect to an empty URL.');
         }
 
@@ -46,7 +48,8 @@ class RedirectResponse extends Response
         $this->setTargetUrl($url);
 
         if (!$this->isRedirect()) {
-            throw new \InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).', $status));
+            throw new \InvalidArgumentException(sprintf('The HTTP status code is not a redirect ("%s" given).',
+                $status));
         }
     }
 
@@ -55,6 +58,7 @@ class RedirectResponse extends Response
      */
     public static function create($url = '', $status = 302, $headers = array())
     {
+
         return new static($url, $status, $headers);
     }
 
@@ -65,13 +69,14 @@ class RedirectResponse extends Response
      */
     public function getTargetUrl()
     {
+
         return $this->targetUrl;
     }
 
     /**
      * Sets the redirect target of this response.
      *
-     * @param string  $url     The URL to redirect to
+     * @param string $url The URL to redirect to
      *
      * @return RedirectResponse The current response.
      *
@@ -79,7 +84,8 @@ class RedirectResponse extends Response
      */
     public function setTargetUrl($url)
     {
-        if (empty($url)) {
+
+        if (empty( $url )) {
             throw new \InvalidArgumentException('Cannot redirect to an empty URL.');
         }
 

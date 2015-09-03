@@ -30,17 +30,17 @@ class Page_Frame_Reflower extends Frame_Reflower
      */
     private $_canvas;
 
-    function __construct( Page_Frame_Decorator $frame )
+    function __construct(Page_Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     /**
      * Paged layout:
      * http://www.w3.org/TR/CSS21/page.html
      */
-    function reflow( Block_Frame_Decorator $block = null )
+    function reflow(Block_Frame_Decorator $block = null)
     {
 
         $fixed_children = array();
@@ -49,16 +49,16 @@ class Page_Frame_Reflower extends Frame_Reflower
         $current_page = 0;
 
         while ($child) {
-            $this->apply_page_style( $this->_frame, $current_page + 1 );
+            $this->apply_page_style($this->_frame, $current_page + 1);
 
             $style = $this->_frame->get_style();
 
             // Pages are only concerned with margins
             $cb = $this->_frame->get_containing_block();
-            $left = $style->length_in_pt( $style->margin_left, $cb["w"] );
-            $right = $style->length_in_pt( $style->margin_right, $cb["w"] );
-            $top = $style->length_in_pt( $style->margin_top, $cb["h"] );
-            $bottom = $style->length_in_pt( $style->margin_bottom, $cb["h"] );
+            $left = $style->length_in_pt($style->margin_left, $cb["w"]);
+            $right = $style->length_in_pt($style->margin_right, $cb["w"]);
+            $top = $style->length_in_pt($style->margin_top, $cb["h"]);
+            $bottom = $style->length_in_pt($style->margin_bottom, $cb["h"]);
 
             $content_x = $cb["x"] + $left;
             $content_y = $cb["y"] + $top;
@@ -73,18 +73,18 @@ class Page_Frame_Reflower extends Frame_Reflower
                         $fixed_children[] = $onechild->deep_copy();
                     }
                 }
-                $fixed_children = array_reverse( $fixed_children );
+                $fixed_children = array_reverse($fixed_children);
             }
 
-            $child->set_containing_block( $content_x, $content_y, $content_width, $content_height );
+            $child->set_containing_block($content_x, $content_y, $content_width, $content_height);
 
             // Check for begin reflow callback
-            $this->_check_callbacks( "begin_page_reflow", $child );
+            $this->_check_callbacks("begin_page_reflow", $child);
 
             //Insert a copy of each node which have a fixed position
             if ($current_page >= 1) {
                 foreach ($fixed_children as $fixed_child) {
-                    $child->insert_child_before( $fixed_child->deep_copy(), $child->get_first_child() );
+                    $child->insert_child_before($fixed_child->deep_copy(), $child->get_first_child());
                 }
             }
 
@@ -92,13 +92,13 @@ class Page_Frame_Reflower extends Frame_Reflower
             $next_child = $child->get_next_sibling();
 
             // Check for begin render callback
-            $this->_check_callbacks( "begin_page_render", $child );
+            $this->_check_callbacks("begin_page_render", $child);
 
             // Render the page
-            $this->_frame->get_renderer()->render( $child );
+            $this->_frame->get_renderer()->render($child);
 
             // Check for end render callback
-            $this->_check_callbacks( "end_page_render", $child );
+            $this->_check_callbacks("end_page_render", $child);
 
             if ($next_child) {
                 $this->_frame->next_page();
@@ -107,7 +107,7 @@ class Page_Frame_Reflower extends Frame_Reflower
             // Wait to dispose of all frames on the previous page
             // so callback will have access to them
             if ($prev_child) {
-                $prev_child->dispose( true );
+                $prev_child->dispose(true);
             }
             $prev_child = $child;
             $child = $next_child;
@@ -116,20 +116,20 @@ class Page_Frame_Reflower extends Frame_Reflower
 
         // Dispose of previous page if it still exists
         if ($prev_child) {
-            $prev_child->dispose( true );
+            $prev_child->dispose(true);
         }
     }
 
     //........................................................................
 
-    function apply_page_style( Frame $frame, $page_number )
+    function apply_page_style(Frame $frame, $page_number)
     {
 
         $style = $frame->get_style();
         $page_styles = $style->get_stylesheet()->get_page_styles();
 
         // http://www.w3.org/TR/CSS21/page.html#page-selectors
-        if (count( $page_styles ) > 1) {
+        if (count($page_styles) > 1) {
             $odd = $page_number % 2 == 1;
             $first = $page_number == 1;
 
@@ -137,27 +137,27 @@ class Page_Frame_Reflower extends Frame_Reflower
 
             // FIXME RTL
             if ($odd && isset( $page_styles[":right"] )) {
-                $style->merge( $page_styles[":right"] );
+                $style->merge($page_styles[":right"]);
             }
 
             if ($odd && isset( $page_styles[":odd"] )) {
-                $style->merge( $page_styles[":odd"] );
+                $style->merge($page_styles[":odd"]);
             }
 
             // FIXME RTL
             if (!$odd && isset( $page_styles[":left"] )) {
-                $style->merge( $page_styles[":left"] );
+                $style->merge($page_styles[":left"]);
             }
 
             if (!$odd && isset( $page_styles[":even"] )) {
-                $style->merge( $page_styles[":even"] );
+                $style->merge($page_styles[":even"]);
             }
 
             if ($first && isset( $page_styles[":first"] )) {
-                $style->merge( $page_styles[":first"] );
+                $style->merge($page_styles[":first"]);
             }
 
-            $frame->set_style( $style );
+            $frame->set_style($style);
         }
     }
 
@@ -170,7 +170,7 @@ class Page_Frame_Reflower extends Frame_Reflower
      * @param string $event the type of event
      * @param Frame  $frame the frame that event is triggered on
      */
-    protected function _check_callbacks( $event, $frame )
+    protected function _check_callbacks($event, $frame)
     {
 
         if (!isset( $this->_callbacks )) {
@@ -179,7 +179,7 @@ class Page_Frame_Reflower extends Frame_Reflower
             $this->_canvas = $dompdf->get_canvas();
         }
 
-        if (is_array( $this->_callbacks ) && isset( $this->_callbacks[$event] )) {
+        if (is_array($this->_callbacks) && isset( $this->_callbacks[$event] )) {
             $info = array(
                 0        => $this->_canvas,
                 "canvas" => $this->_canvas,
@@ -188,11 +188,11 @@ class Page_Frame_Reflower extends Frame_Reflower
             );
             $fs = $this->_callbacks[$event];
             foreach ($fs as $f) {
-                if (is_callable( $f )) {
-                    if (is_array( $f )) {
-                        $f[0]->$f[1]( $info );
+                if (is_callable($f)) {
+                    if (is_array($f)) {
+                        $f[0]->$f[1]($info);
                     } else {
-                        $f( $info );
+                        $f($info);
                     }
                 }
             }

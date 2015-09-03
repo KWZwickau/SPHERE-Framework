@@ -22,10 +22,12 @@ require_once __DIR__.'/ClockMock.php';
  */
 class StopwatchTest extends \PHPUnit_Framework_TestCase
 {
+
     const DELTA = 20;
 
     public function testStart()
     {
+
         $stopwatch = new Stopwatch();
         $event = $stopwatch->start('foo', 'cat');
 
@@ -36,6 +38,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
 
     public function testIsStarted()
     {
+
         $stopwatch = new Stopwatch();
         $stopwatch->start('foo', 'cat');
 
@@ -44,6 +47,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
 
     public function testIsNotStarted()
     {
+
         $stopwatch = new Stopwatch();
 
         $this->assertFalse($stopwatch->isStarted('foo'));
@@ -51,6 +55,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
 
     public function testIsNotStartedEvent()
     {
+
         $stopwatch = new Stopwatch();
 
         $sections = new \ReflectionProperty('Symfony\Component\Stopwatch\Stopwatch', 'sections');
@@ -62,8 +67,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
 
         $stopwatchMockEvent = $this->getMockBuilder('Symfony\Component\Stopwatch\StopwatchEvent')
             ->setConstructorArgs(array(microtime(true) * 1000))
-            ->getMock()
-        ;
+            ->getMock();
 
         $events->setValue(end($section), array('foo' => $stopwatchMockEvent));
 
@@ -72,6 +76,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
 
     public function testStop()
     {
+
         $stopwatch = new Stopwatch();
         $stopwatch->start('foo', 'cat');
         usleep(200000);
@@ -86,6 +91,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
      */
     public function testUnknownEvent()
     {
+
         $stopwatch = new Stopwatch();
         $stopwatch->getEvent('foo');
     }
@@ -95,12 +101,14 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
      */
     public function testStopWithoutStart()
     {
+
         $stopwatch = new Stopwatch();
         $stopwatch->stop('foo');
     }
 
     public function testSection()
     {
+
         $stopwatch = new Stopwatch();
 
         $stopwatch->openSection();
@@ -128,6 +136,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
 
     public function testReopenASection()
     {
+
         $stopwatch = new Stopwatch();
 
         $stopwatch->openSection();
@@ -149,6 +158,7 @@ class StopwatchTest extends \PHPUnit_Framework_TestCase
      */
     public function testReopenANewSectionShouldThrowAnException()
     {
+
         $stopwatch = new Stopwatch();
         $stopwatch->openSection('section');
     }

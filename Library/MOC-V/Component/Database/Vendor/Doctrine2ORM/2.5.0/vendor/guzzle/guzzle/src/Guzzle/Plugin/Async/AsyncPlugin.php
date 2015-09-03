@@ -3,8 +3,8 @@
 namespace Guzzle\Plugin\Async;
 
 use Guzzle\Common\Event;
-use Guzzle\Http\Message\Response;
 use Guzzle\Http\Exception\CurlException;
+use Guzzle\Http\Message\Response;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
@@ -12,8 +12,10 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 class AsyncPlugin implements EventSubscriberInterface
 {
+
     public static function getSubscribedEvents()
     {
+
         return array(
             'request.before_send'    => 'onBeforeSend',
             'request.exception'      => 'onRequestTimeout',
@@ -29,6 +31,7 @@ class AsyncPlugin implements EventSubscriberInterface
      */
     public function onBeforeSend(Event $event)
     {
+
         // Ensure that progress callbacks are dispatched
         $event['request']->getCurlOptions()->set('progress', true);
     }
@@ -42,8 +45,9 @@ class AsyncPlugin implements EventSubscriberInterface
      */
     public function onCurlProgress(Event $event)
     {
+
         if ($event['handle'] &&
-            ($event['downloaded'] || (isset($event['uploaded']) && $event['upload_size'] === $event['uploaded']))
+            ( $event['downloaded'] || ( isset( $event['uploaded'] ) && $event['upload_size'] === $event['uploaded'] ) )
         ) {
             // Timeout after 1ms
             curl_setopt($event['handle'], CURLOPT_TIMEOUT_MS, 1);
@@ -63,6 +67,7 @@ class AsyncPlugin implements EventSubscriberInterface
      */
     public function onRequestTimeout(Event $event)
     {
+
         if ($event['exception'] instanceof CurlException) {
             $event['request']->setResponse(new Response(200, array(
                 'X-Guzzle-Async' => 'Did not wait for the response'
@@ -78,6 +83,7 @@ class AsyncPlugin implements EventSubscriberInterface
      */
     public function onRequestSent(Event $event)
     {
+
         // Let the caller know this was meant to be async
         $event['request']->getResponse()->setHeader('X-Guzzle-Async', 'Did not wait for the response');
     }

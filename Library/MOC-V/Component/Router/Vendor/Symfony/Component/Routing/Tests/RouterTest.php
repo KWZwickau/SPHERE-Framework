@@ -16,15 +16,17 @@ use Symfony\Component\Routing\Router;
 
 class RouterTest extends \PHPUnit_Framework_TestCase
 {
+
     private $router = null;
 
     private $loader = null;
 
     public function testSetOptionsWithSupportedOptions()
     {
+
         $this->router->setOptions(array(
             'cache_dir' => './cache',
-            'debug' => true,
+            'debug'     => true,
             'resource_type' => 'ResourceType'
         ));
 
@@ -39,8 +41,9 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetOptionsWithUnsupportedOptions()
     {
+
         $this->router->setOptions(array(
-            'cache_dir' => './cache',
+            'cache_dir'  => './cache',
             'option_foo' => true,
             'option_bar' => 'baz',
             'resource_type' => 'ResourceType'
@@ -49,6 +52,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
     public function testSetOptionWithSupportedOption()
     {
+
         $this->router->setOption('cache_dir', './cache');
 
         $this->assertSame('./cache', $this->router->getOption('cache_dir'));
@@ -60,6 +64,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetOptionWithUnsupportedOption()
     {
+
         $this->router->setOption('option_foo', true);
     }
 
@@ -69,11 +74,13 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetOptionWithUnsupportedOption()
     {
+
         $this->router->getOption('option_foo', true);
     }
 
     public function testThatRouteCollectionIsLoaded()
     {
+
         $this->router->setOption('resource_type', 'ResourceType');
 
         $routeCollection = $this->getMock('Symfony\Component\Routing\RouteCollection');
@@ -90,6 +97,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testMatcherIsCreatedIfCacheIsNotConfigured($option)
     {
+
         $this->router->setOption($option, null);
 
         $this->loader->expects($this->once())
@@ -102,6 +110,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
     public function provideMatcherOptionsPreventingCaching()
     {
+
         return array(
             array('cache_dir'),
             array('matcher_cache_class')
@@ -113,6 +122,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
      */
     public function testGeneratorIsCreatedIfCacheIsNotConfigured($option)
     {
+
         $this->router->setOption($option, null);
 
         $this->loader->expects($this->once())
@@ -125,6 +135,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
     public function provideGeneratorOptionsPreventingCaching()
     {
+
         return array(
             array('cache_dir'),
             array('generator_cache_class')
@@ -133,6 +144,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
     public function testMatchRequestWithUrlMatcherInterface()
     {
+
         $matcher = $this->getMock('Symfony\Component\Routing\Matcher\UrlMatcherInterface');
         $matcher->expects($this->once())->method('match');
 
@@ -145,6 +157,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
 
     public function testMatchRequestWithRequestMatcherInterface()
     {
+
         $matcher = $this->getMock('Symfony\Component\Routing\Matcher\RequestMatcherInterface');
         $matcher->expects($this->once())->method('matchRequest');
 
@@ -158,7 +171,7 @@ class RouterTest extends \PHPUnit_Framework_TestCase
     protected function setUp()
     {
 
-        $this->loader = $this->getMock( 'Symfony\Component\Config\Loader\LoaderInterface' );
-        $this->router = new Router( $this->loader, 'routing.yml' );
+        $this->loader = $this->getMock('Symfony\Component\Config\Loader\LoaderInterface');
+        $this->router = new Router($this->loader, 'routing.yml');
     }
 }

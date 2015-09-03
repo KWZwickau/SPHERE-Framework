@@ -10,6 +10,7 @@ use Guzzle\Http\Message\RequestInterface;
  */
 class MultiTransferException extends ExceptionCollection
 {
+
     protected $successfulRequests = array();
     protected $failedRequests = array();
     protected $exceptionForRequest = array();
@@ -21,6 +22,7 @@ class MultiTransferException extends ExceptionCollection
      */
     public function getAllRequests()
     {
+
         return array_merge($this->successfulRequests, $this->failedRequests);
     }
 
@@ -33,6 +35,7 @@ class MultiTransferException extends ExceptionCollection
      */
     public function addSuccessfulRequest(RequestInterface $request)
     {
+
         $this->successfulRequests[] = $request;
 
         return $this;
@@ -47,6 +50,7 @@ class MultiTransferException extends ExceptionCollection
      */
     public function addFailedRequest(RequestInterface $request)
     {
+
         $this->failedRequests[] = $request;
 
         return $this;
@@ -62,9 +66,10 @@ class MultiTransferException extends ExceptionCollection
      */
     public function addFailedRequestWithException(RequestInterface $request, \Exception $exception)
     {
+
         $this->add($exception)
-             ->addFailedRequest($request)
-             ->exceptionForRequest[spl_object_hash($request)] = $exception;
+            ->addFailedRequest($request)
+            ->exceptionForRequest[spl_object_hash($request)] = $exception;
 
         return $this;
     }
@@ -78,9 +83,21 @@ class MultiTransferException extends ExceptionCollection
      */
     public function getExceptionForFailedRequest(RequestInterface $request)
     {
+
         $oid = spl_object_hash($request);
 
-        return isset($this->exceptionForRequest[$oid]) ? $this->exceptionForRequest[$oid] : null;
+        return isset( $this->exceptionForRequest[$oid] ) ? $this->exceptionForRequest[$oid] : null;
+    }
+
+    /**
+     * Get an array of successful requests sent in the multi transfer
+     *
+     * @return array
+     */
+    public function getSuccessfulRequests()
+    {
+
+        return $this->successfulRequests;
     }
 
     /**
@@ -92,9 +109,21 @@ class MultiTransferException extends ExceptionCollection
      */
     public function setSuccessfulRequests(array $requests)
     {
+
         $this->successfulRequests = $requests;
 
         return $this;
+    }
+
+    /**
+     * Get an array of failed requests sent in the multi transfer
+     *
+     * @return array
+     */
+    public function getFailedRequests()
+    {
+
+        return $this->failedRequests;
     }
 
     /**
@@ -106,29 +135,10 @@ class MultiTransferException extends ExceptionCollection
      */
     public function setFailedRequests(array $requests)
     {
+
         $this->failedRequests = $requests;
 
         return $this;
-    }
-
-    /**
-     * Get an array of successful requests sent in the multi transfer
-     *
-     * @return array
-     */
-    public function getSuccessfulRequests()
-    {
-        return $this->successfulRequests;
-    }
-
-    /**
-     * Get an array of failed requests sent in the multi transfer
-     *
-     * @return array
-     */
-    public function getFailedRequests()
-    {
-        return $this->failedRequests;
     }
 
     /**
@@ -140,6 +150,7 @@ class MultiTransferException extends ExceptionCollection
      */
     public function containsRequest(RequestInterface $request)
     {
+
         return in_array($request, $this->failedRequests, true) || in_array($request, $this->successfulRequests, true);
     }
 }

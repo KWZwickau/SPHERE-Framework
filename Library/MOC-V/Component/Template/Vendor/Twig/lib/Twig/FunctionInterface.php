@@ -15,11 +15,12 @@
  *
  * Use Twig_SimpleFunction instead.
  *
- * @author Arnaud Le Blanc <arnaud.lb@gmail.com>
+ * @author     Arnaud Le Blanc <arnaud.lb@gmail.com>
  * @deprecated since 1.12 (to be removed in 2.0)
  */
 interface Twig_FunctionInterface
 {
+
     /**
      * Compiles a function.
      *

@@ -42,12 +42,12 @@ class Identity extends Nette\FreezableObject implements IIdentity
      * @param  mixed   roles
      * @param  array   user data
      */
-    public function __construct( $id, $roles = null, $data = null )
+    public function __construct($id, $roles = null, $data = null)
     {
 
-        $this->setId( $id );
-        $this->setRoles( (array)$roles );
-        $this->data = $data instanceof \Traversable ? iterator_to_array( $data ) : (array)$data;
+        $this->setId($id);
+        $this->setRoles((array)$roles);
+        $this->data = $data instanceof \Traversable ? iterator_to_array($data) : (array)$data;
     }
 
     /**
@@ -68,11 +68,11 @@ class Identity extends Nette\FreezableObject implements IIdentity
      *
      * @return Identity  provides a fluent interface
      */
-    public function setId( $id )
+    public function setId($id)
     {
 
         $this->updating();
-        $this->id = is_numeric( $id ) ? 1 * $id : $id;
+        $this->id = is_numeric($id) ? 1 * $id : $id;
         return $this;
     }
 
@@ -94,7 +94,7 @@ class Identity extends Nette\FreezableObject implements IIdentity
      *
      * @return Identity  provides a fluent interface
      */
-    public function setRoles( array $roles )
+    public function setRoles(array $roles)
     {
 
         $this->updating();
@@ -120,11 +120,11 @@ class Identity extends Nette\FreezableObject implements IIdentity
      *
      * @return mixed
      */
-    public function &__get( $key )
+    public function &__get($key)
     {
 
-        if (parent::__isset( $key )) {
-            return parent::__get( $key );
+        if (parent::__isset($key)) {
+            return parent::__get($key);
 
         } else {
             return $this->data[$key];
@@ -139,12 +139,12 @@ class Identity extends Nette\FreezableObject implements IIdentity
      *
      * @return void
      */
-    public function __set( $key, $value )
+    public function __set($key, $value)
     {
 
         $this->updating();
-        if (parent::__isset( $key )) {
-            parent::__set( $key, $value );
+        if (parent::__isset($key)) {
+            parent::__set($key, $value);
 
         } else {
             $this->data[$key] = $value;
@@ -158,10 +158,10 @@ class Identity extends Nette\FreezableObject implements IIdentity
      *
      * @return bool
      */
-    public function __isset( $key )
+    public function __isset($key)
     {
 
-        return isset( $this->data[$key] ) || parent::__isset( $key );
+        return isset( $this->data[$key] ) || parent::__isset($key);
     }
 
 
@@ -173,10 +173,10 @@ class Identity extends Nette\FreezableObject implements IIdentity
      * @return void
      * @throws Nette\MemberAccessException
      */
-    public function __unset( $name )
+    public function __unset($name)
     {
 
-        Nette\ObjectMixin::remove( $this, $name );
+        Nette\ObjectMixin::remove($this, $name);
     }
 
 }

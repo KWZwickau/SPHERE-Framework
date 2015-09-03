@@ -29,6 +29,7 @@ namespace Doctrine\DBAL;
  */
 class LockMode
 {
+
     const NONE = 0;
     const OPTIMISTIC = 1;
     const PESSIMISTIC_READ = 2;

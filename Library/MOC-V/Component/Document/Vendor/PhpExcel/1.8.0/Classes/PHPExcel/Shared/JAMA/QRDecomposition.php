@@ -58,7 +58,7 @@ class PHPExcel_Shared_JAMA_QRDecomposition
      *
      * @return Structure to access R and the Householder vectors and compute Q.
      */
-    public function __construct( $A )
+    public function __construct($A)
     {
 
         if ($A instanceof PHPExcel_Shared_JAMA_Matrix) {
@@ -71,7 +71,7 @@ class PHPExcel_Shared_JAMA_QRDecomposition
                 // Compute 2-norm of k-th column without under/overflow.
                 $nrm = 0.0;
                 for ($i = $k; $i < $this->m; ++$i) {
-                    $nrm = hypo( $nrm, $this->QR[$i][$k] );
+                    $nrm = hypo($nrm, $this->QR[$i][$k]);
                 }
                 if ($nrm != 0.0) {
                     // Form k-th Householder vector.
@@ -97,7 +97,7 @@ class PHPExcel_Shared_JAMA_QRDecomposition
                 $this->Rdiag[$k] = -$nrm;
             }
         } else {
-            throw new PHPExcel_Calculation_Exception( PHPExcel_Shared_JAMA_Matrix::ArgumentTypeException );
+            throw new PHPExcel_Calculation_Exception(PHPExcel_Shared_JAMA_Matrix::ArgumentTypeException);
         }
     }    //	function __construct()
 
@@ -118,7 +118,7 @@ class PHPExcel_Shared_JAMA_QRDecomposition
                 }
             }
         }
-        return new PHPExcel_Shared_JAMA_Matrix( $H );
+        return new PHPExcel_Shared_JAMA_Matrix($H);
     }    //	function isFullRank()
 
     /**
@@ -140,7 +140,7 @@ class PHPExcel_Shared_JAMA_QRDecomposition
                 }
             }
         }
-        return new PHPExcel_Shared_JAMA_Matrix( $R );
+        return new PHPExcel_Shared_JAMA_Matrix($R);
     }    //	function getH()
 
     /**
@@ -178,7 +178,7 @@ class PHPExcel_Shared_JAMA_QRDecomposition
             }
         }
         */
-        return new PHPExcel_Shared_JAMA_Matrix( $Q );
+        return new PHPExcel_Shared_JAMA_Matrix($Q);
     }    //	function getR()
 
     /**
@@ -188,7 +188,7 @@ class PHPExcel_Shared_JAMA_QRDecomposition
      *
      * @return Matrix Matrix that minimizes the two norm of Q*R*X-B.
      */
-    public function solve( $B )
+    public function solve($B)
     {
 
         if ($B->getRowDimension() == $this->m) {
@@ -220,13 +220,13 @@ class PHPExcel_Shared_JAMA_QRDecomposition
                         }
                     }
                 }
-                $X = new PHPExcel_Shared_JAMA_Matrix( $X );
-                return ( $X->getMatrix( 0, $this->n - 1, 0, $nx ) );
+                $X = new PHPExcel_Shared_JAMA_Matrix($X);
+                return ( $X->getMatrix(0, $this->n - 1, 0, $nx) );
             } else {
-                throw new PHPExcel_Calculation_Exception( self::MatrixRankException );
+                throw new PHPExcel_Calculation_Exception(self::MatrixRankException);
             }
         } else {
-            throw new PHPExcel_Calculation_Exception( PHPExcel_Shared_JAMA_Matrix::MatrixDimensionException );
+            throw new PHPExcel_Calculation_Exception(PHPExcel_Shared_JAMA_Matrix::MatrixDimensionException);
         }
     }    //	function getQ()
 

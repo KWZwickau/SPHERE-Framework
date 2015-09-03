@@ -2,20 +2,22 @@
 
 namespace Guzzle\Tests\Service\Description;
 
-use Guzzle\Service\Description\ServiceDescription;
+use Guzzle\Service\Client;
 use Guzzle\Service\Description\Operation;
 use Guzzle\Service\Description\Parameter;
-use Guzzle\Service\Client;
+use Guzzle\Service\Description\ServiceDescription;
 
 /**
  * @covers Guzzle\Service\Description\ServiceDescription
  */
 class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $serviceData;
 
     public function setup()
     {
+
         $this->serviceData = array(
             'test_command' => new Operation(array(
                 'name'        => 'test_command',
@@ -23,8 +25,8 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
                 'httpMethod'  => 'DELETE',
                 'class'       => 'Guzzle\\Tests\\Service\\Mock\\Command\\MockCommand',
                 'parameters'  => array(
-                    'bucket'  => array('required' => true),
-                    'key'     => array('required' => true)
+                    'bucket' => array('required' => true),
+                    'key'    => array('required' => true)
                 )
             ))
         );
@@ -36,12 +38,15 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testFactoryDelegatesToConcreteFactories()
     {
-        $jsonFile = __DIR__ . '/../../TestData/test_service.json';
-        $this->assertInstanceOf('Guzzle\Service\Description\ServiceDescription', ServiceDescription::factory($jsonFile));
+
+        $jsonFile = __DIR__.'/../../TestData/test_service.json';
+        $this->assertInstanceOf('Guzzle\Service\Description\ServiceDescription',
+            ServiceDescription::factory($jsonFile));
     }
 
     public function testConstructor()
     {
+
         $service = new ServiceDescription(array('operations' => $this->serviceData));
         $this->assertEquals(1, count($service->getOperations()));
         $this->assertFalse($service->hasOperation('foobar'));
@@ -50,6 +55,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIsSerializable()
     {
+
         $service = new ServiceDescription(array('operations' => $this->serviceData));
         $data = serialize($service);
         $d2 = unserialize($data);
@@ -58,6 +64,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSerializesParameters()
     {
+
         $service = new ServiceDescription(array(
             'operations' => array(
                 'foo' => new Operation(array('parameters' => array('foo' => array('type' => 'string'))))
@@ -71,12 +78,13 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsForJsonBasedArrayParamsFunctionalTest()
     {
+
         $description = new ServiceDescription(array(
             'operations' => array(
                 'test' => new Operation(array(
                     'httpMethod' => 'PUT',
                     'parameters' => array(
-                        'data'   => array(
+                        'data' => array(
                             'required' => true,
                             'filters'  => 'json_encode',
                             'location' => 'body'
@@ -94,11 +102,12 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
         ));
 
         $request = $command->prepare();
-        $this->assertEquals('{"foo":"bar"}', (string) $request->getBody());
+        $this->assertEquals('{"foo":"bar"}', (string)$request->getBody());
     }
 
     public function testContainsModels()
     {
+
         $d = new ServiceDescription(array(
             'operations' => array('foo' => array()),
             'models' => array(
@@ -117,6 +126,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanAddModels()
     {
+
         $d = new ServiceDescription(array());
         $this->assertFalse($d->hasModel('Foo'));
         $d->addModel(new Parameter(array('name' => 'Foo')));
@@ -125,6 +135,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasAttributes()
     {
+
         $d = new ServiceDescription(array(
             'operations'  => array(),
             'name'        => 'Name',
@@ -149,6 +160,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testPersistsCustomAttributes()
     {
+
         $data = array(
             'operations'  => array('foo' => array('class' => 'foo', 'parameters' => array())),
             'name'        => 'Name',
@@ -170,6 +182,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasToArray()
     {
+
         $data = array(
             'operations'  => array(),
             'name'        => 'Name',
@@ -183,12 +196,14 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReturnsNullWhenRetrievingMissingOperation()
     {
+
         $s = new ServiceDescription(array());
         $this->assertNull($s->getOperation('foo'));
     }
 
     public function testCanAddOperations()
     {
+
         $s = new ServiceDescription(array());
         $this->assertFalse($s->hasOperation('Foo'));
         $s->addOperation(new Operation(array('name' => 'Foo')));
@@ -200,6 +215,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testValidatesOperationTypes()
     {
+
         $s = new ServiceDescription(array(
             'operations' => array('foo' => new \stdClass())
         ));
@@ -207,6 +223,7 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasBaseUrl()
     {
+
         $description = new ServiceDescription(array('baseUrl' => 'http://foo.com'));
         $this->assertEquals('http://foo.com', $description->getBaseUrl());
         $description->setBaseUrl('http://foobar.com');
@@ -215,16 +232,18 @@ class ServiceDescriptionTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanUseBasePath()
     {
+
         $description = new ServiceDescription(array('basePath' => 'http://foo.com'));
         $this->assertEquals('http://foo.com', $description->getBaseUrl());
     }
 
     public function testModelsHaveNames()
     {
+
         $desc = array(
             'models' => array(
                 'date' => array('type' => 'string'),
-                'user'=> array(
+                'user' => array(
                     'type' => 'object',
                     'properties' => array(
                         'dob' => array('$ref' => 'date')

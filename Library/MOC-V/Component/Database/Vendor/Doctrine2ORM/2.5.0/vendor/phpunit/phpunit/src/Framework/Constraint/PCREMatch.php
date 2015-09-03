@@ -21,6 +21,7 @@
  */
 class PHPUnit_Framework_Constraint_PCREMatch extends PHPUnit_Framework_Constraint
 {
+
     /**
      * @var string
      */
@@ -31,20 +32,9 @@ class PHPUnit_Framework_Constraint_PCREMatch extends PHPUnit_Framework_Constrain
      */
     public function __construct($pattern)
     {
+
         parent::__construct();
         $this->pattern = $pattern;
-    }
-
-    /**
-     * Evaluates the constraint for parameter $other. Returns true if the
-     * constraint is met, false otherwise.
-     *
-     * @param  mixed $other Value or object to evaluate.
-     * @return bool
-     */
-    protected function matches($other)
-    {
-        return preg_match($this->pattern, $other) > 0;
     }
 
     /**
@@ -54,9 +44,24 @@ class PHPUnit_Framework_Constraint_PCREMatch extends PHPUnit_Framework_Constrain
      */
     public function toString()
     {
+
         return sprintf(
             'matches PCRE pattern "%s"',
             $this->pattern
         );
+    }
+
+    /**
+     * Evaluates the constraint for parameter $other. Returns true if the
+     * constraint is met, false otherwise.
+     *
+     * @param  mixed $other Value or object to evaluate.
+     *
+     * @return bool
+     */
+    protected function matches($other)
+    {
+
+        return preg_match($this->pattern, $other) > 0;
     }
 }

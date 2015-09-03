@@ -20,6 +20,7 @@ use Symfony\Component\Config\Exception\FileLoaderLoadException;
  */
 abstract class Loader implements LoaderInterface
 {
+
     protected $resolver;
 
     /**
@@ -27,6 +28,7 @@ abstract class Loader implements LoaderInterface
      */
     public function getResolver()
     {
+
         return $this->resolver;
     }
 
@@ -35,6 +37,7 @@ abstract class Loader implements LoaderInterface
      */
     public function setResolver(LoaderResolverInterface $resolver)
     {
+
         $this->resolver = $resolver;
     }
 
@@ -48,6 +51,7 @@ abstract class Loader implements LoaderInterface
      */
     public function import($resource, $type = null)
     {
+
         return $this->resolve($resource, $type)->load($resource, $type);
     }
 
@@ -63,6 +67,7 @@ abstract class Loader implements LoaderInterface
      */
     public function resolve($resource, $type = null)
     {
+
         if ($this->supports($resource, $type)) {
             return $this;
         }

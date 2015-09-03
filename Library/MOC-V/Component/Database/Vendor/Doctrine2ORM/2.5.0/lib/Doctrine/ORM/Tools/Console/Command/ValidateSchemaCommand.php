@@ -19,11 +19,11 @@
 
 namespace Doctrine\ORM\Tools\Console\Command;
 
+use Doctrine\ORM\Tools\SchemaValidator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Doctrine\ORM\Tools\SchemaValidator;
 
 /**
  * Command to validate that the current mapping is valid.
@@ -38,31 +38,33 @@ use Doctrine\ORM\Tools\SchemaValidator;
  */
 class ValidateSchemaCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
-        ->setName('orm:validate-schema')
-        ->setDescription('Validate the mapping files.')
-        ->addOption(
-            'skip-mapping',
-            null,
-            InputOption::VALUE_NONE,
-            'Skip the mapping validation check'
-        )
-        ->addOption(
-            'skip-sync',
-            null,
-            InputOption::VALUE_NONE,
-            'Skip checking if the mapping is in sync with the database'
-        )
-        ->setHelp(
-            <<<EOT
-'Validate that the mapping files are correct and in sync with the database.'
+            ->setName('orm:validate-schema')
+            ->setDescription('Validate the mapping files.')
+            ->addOption(
+                'skip-mapping',
+                null,
+                InputOption::VALUE_NONE,
+                'Skip the mapping validation check'
+            )
+            ->addOption(
+                'skip-sync',
+                null,
+                InputOption::VALUE_NONE,
+                'Skip checking if the mapping is in sync with the database'
+            )
+            ->setHelp(
+                <<<EOT
+    'Validate that the mapping files are correct and in sync with the database.'
 EOT
-        );
+            );
     }
 
     /**
@@ -70,6 +72,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         $em = $this->getHelper('em')->getEntityManager();
         $validator = new SchemaValidator($em);
         $exit = 0;
@@ -78,10 +81,10 @@ EOT
             $output->writeln('<comment>[Mapping]  Skipped mapping check.</comment>');
         } elseif ($errors = $validator->validateMapping()) {
             foreach ($errors as $className => $errorMessages) {
-                $output->writeln("<error>[Mapping]  FAIL - The entity-class '" . $className . "' mapping is invalid:</error>");
+                $output->writeln("<error>[Mapping]  FAIL - The entity-class '".$className."' mapping is invalid:</error>");
 
                 foreach ($errorMessages as $errorMessage) {
-                    $output->writeln('* ' . $errorMessage);
+                    $output->writeln('* '.$errorMessage);
                 }
 
                 $output->writeln('');

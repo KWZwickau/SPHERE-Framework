@@ -18,6 +18,7 @@ namespace Symfony\Component\Console\Question;
  */
 class Question
 {
+
     private $question;
     private $attempts;
     private $hidden = false;
@@ -35,6 +36,7 @@ class Question
      */
     public function __construct($question, $default = null)
     {
+
         $this->question = $question;
         $this->default = $default;
     }
@@ -46,6 +48,7 @@ class Question
      */
     public function getQuestion()
     {
+
         return $this->question;
     }
 
@@ -56,6 +59,7 @@ class Question
      */
     public function getDefault()
     {
+
         return $this->default;
     }
 
@@ -66,6 +70,7 @@ class Question
      */
     public function isHidden()
     {
+
         return $this->hidden;
     }
 
@@ -80,11 +85,12 @@ class Question
      */
     public function setHidden($hidden)
     {
+
         if ($this->autocompleterValues) {
             throw new \LogicException('A hidden question cannot use the autocompleter.');
         }
 
-        $this->hidden = (bool) $hidden;
+        $this->hidden = (bool)$hidden;
 
         return $this;
     }
@@ -96,6 +102,7 @@ class Question
      */
     public function isHiddenFallback()
     {
+
         return $this->hiddenFallback;
     }
 
@@ -108,7 +115,8 @@ class Question
      */
     public function setHiddenFallback($fallback)
     {
-        $this->hiddenFallback = (bool) $fallback;
+
+        $this->hiddenFallback = (bool)$fallback;
 
         return $this;
     }
@@ -120,6 +128,7 @@ class Question
      */
     public function getAutocompleterValues()
     {
+
         return $this->autocompleterValues;
     }
 
@@ -135,6 +144,7 @@ class Question
      */
     public function setAutocompleterValues($values)
     {
+
         if (is_array($values) && $this->isAssoc($values)) {
             $values = array_merge(array_keys($values), array_values($values));
         }
@@ -154,18 +164,10 @@ class Question
         return $this;
     }
 
-    /**
-     * Sets a validator for the question.
-     *
-     * @param null|callable $validator
-     *
-     * @return Question The current instance
-     */
-    public function setValidator($validator)
+    protected function isAssoc($array)
     {
-        $this->validator = $validator;
 
-        return $this;
+        return (bool)count(array_filter(array_keys($array), 'is_string'));
     }
 
     /**
@@ -175,7 +177,23 @@ class Question
      */
     public function getValidator()
     {
+
         return $this->validator;
+    }
+
+    /**
+     * Sets a validator for the question.
+     *
+     * @param null|callable $validator
+     *
+     * @return Question The current instance
+     */
+    public function setValidator($validator)
+    {
+
+        $this->validator = $validator;
+
+        return $this;
     }
 
     /**
@@ -191,6 +209,7 @@ class Question
      */
     public function setMaxAttempts($attempts)
     {
+
         if (null !== $attempts && $attempts < 1) {
             throw new \InvalidArgumentException('Maximum number of attempts must be a positive value.');
         }
@@ -209,7 +228,21 @@ class Question
      */
     public function getMaxAttempts()
     {
+
         return $this->attempts;
+    }
+
+    /**
+     * Gets the normalizer for the response.
+     *
+     * The normalizer can ba a callable (a string), a closure or a class implementing __invoke.
+     *
+     * @return string|\Closure
+     */
+    public function getNormalizer()
+    {
+
+        return $this->normalizer;
     }
 
     /**
@@ -223,25 +256,9 @@ class Question
      */
     public function setNormalizer($normalizer)
     {
+
         $this->normalizer = $normalizer;
 
         return $this;
-    }
-
-    /**
-     * Gets the normalizer for the response.
-     *
-     * The normalizer can ba a callable (a string), a closure or a class implementing __invoke.
-     *
-     * @return string|\Closure
-     */
-    public function getNormalizer()
-    {
-        return $this->normalizer;
-    }
-
-    protected function isAssoc($array)
-    {
-        return (bool) count(array_filter(array_keys($array), 'is_string'));
     }
 }

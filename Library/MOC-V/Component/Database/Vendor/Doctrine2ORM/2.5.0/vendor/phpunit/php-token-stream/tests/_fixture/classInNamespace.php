@@ -3,4 +3,5 @@ namespace Foo\Bar;
 
 class TestClass
 {
+
 }

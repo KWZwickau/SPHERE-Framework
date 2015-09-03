@@ -10,16 +10,13 @@ use Doctrine\DBAL\Types\Type;
 
 class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
-    protected function getPlatformName()
-    {
-        return "mssql";
-    }
 
     /**
      * @group DBAL-255
      */
     public function testDropColumnConstraints()
     {
+
         $table = new Table('sqlsrv_drop_column');
         $table->addColumn('id', 'integer');
         $table->addColumn('todrop', 'decimal', array('default' => 10.2));
@@ -37,6 +34,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testColumnCollation()
     {
+
         $table = new \Doctrine\DBAL\Schema\Table($tableName = 'test_collation');
         $column = $table->addColumn($columnName = 'test', 'string');
 
@@ -55,6 +53,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testDefaultContraints()
     {
+
         $table = new Table('sqlsrv_default_constraints');
         $table->addColumn('no_default', 'string');
         $table->addColumn('df_integer', 'integer', array('default' => 666));
@@ -80,7 +79,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
                 new Column('df_current_timestamp', Type::getType('datetime'), array('default' => 'CURRENT_TIMESTAMP'))
             ),
             array(
-                'df_integer' => new ColumnDiff(
+                'df_integer'  => new ColumnDiff(
                     'df_integer',
                     new Column('df_integer', Type::getType('integer'), array('default' => 0)),
                     array('default'),
@@ -94,11 +93,13 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
                 ),
                 'df_string_3' => new ColumnDiff(
                     'df_string_3',
-                    new Column('df_string_3', Type::getType('string'), array('length' => 50, 'default' => 'another default value')),
+                    new Column('df_string_3', Type::getType('string'),
+                        array('length' => 50, 'default' => 'another default value')),
                     array('length'),
-                    new Column('df_string_3', Type::getType('string'), array('length' => 50, 'default' => 'another default value'))
+                    new Column('df_string_3', Type::getType('string'),
+                        array('length' => 50, 'default' => 'another default value'))
                 ),
-                'df_boolean' => new ColumnDiff(
+                'df_boolean'  => new ColumnDiff(
                     'df_boolean',
                     new Column('df_boolean', Type::getType('boolean'), array('default' => false)),
                     array('default'),
@@ -142,9 +143,10 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
                     'df_current_timestamp',
                     new Column('df_current_timestamp', Type::getType('datetime')),
                     array('default'),
-                    new Column('df_current_timestamp', Type::getType('datetime'), array('default' => 'CURRENT_TIMESTAMP'))
+                    new Column('df_current_timestamp', Type::getType('datetime'),
+                        array('default' => 'CURRENT_TIMESTAMP'))
                 ),
-                'df_integer' => new ColumnDiff(
+                'df_integer'           => new ColumnDiff(
                     'df_integer',
                     new Column('df_integer', Type::getType('integer'), array('default' => 666)),
                     array('default'),
@@ -170,6 +172,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testColumnComments()
     {
+
         $table = new Table('sqlsrv_column_comment');
         $table->addColumn('id', 'integer', array('autoincrement' => true));
         $table->addColumn('comment_null', 'integer', array('comment' => null));
@@ -179,8 +182,10 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $table->addColumn('comment_float_0', 'integer', array('comment' => 0.0));
         $table->addColumn('comment_string_0', 'integer', array('comment' => '0'));
         $table->addColumn('comment', 'integer', array('comment' => 'Doctrine 0wnz you!'));
-        $table->addColumn('`comment_quoted`', 'integer', array('comment' => 'Doctrine 0wnz comments for explicitely quoted columns!'));
-        $table->addColumn('create', 'integer', array('comment' => 'Doctrine 0wnz comments for reserved keyword columns!'));
+        $table->addColumn('`comment_quoted`', 'integer',
+            array('comment' => 'Doctrine 0wnz comments for explicitely quoted columns!'));
+        $table->addColumn('create', 'integer',
+            array('comment' => 'Doctrine 0wnz comments for reserved keyword columns!'));
         $table->addColumn('commented_type', 'object');
         $table->addColumn('commented_type_with_comment', 'array', array('comment' => 'Doctrine array type.'));
         $table->setPrimaryKey(array('id'));
@@ -197,7 +202,8 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $this->assertEquals('0', $columns['comment_float_0']->getComment());
         $this->assertEquals('0', $columns['comment_string_0']->getComment());
         $this->assertEquals('Doctrine 0wnz you!', $columns['comment']->getComment());
-        $this->assertEquals('Doctrine 0wnz comments for explicitely quoted columns!', $columns['comment_quoted']->getComment());
+        $this->assertEquals('Doctrine 0wnz comments for explicitely quoted columns!',
+            $columns['comment_quoted']->getComment());
         $this->assertEquals('Doctrine 0wnz comments for reserved keyword columns!', $columns['[create]']->getComment());
         $this->assertNull($columns['commented_type']->getComment());
         $this->assertEquals('Doctrine array type.', $columns['commented_type_with_comment']->getComment());
@@ -205,19 +211,29 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $tableDiff = new TableDiff('sqlsrv_column_comment');
         $tableDiff->fromTable = $table;
         $tableDiff->addedColumns['added_comment_none'] = new Column('added_comment_none', Type::getType('integer'));
-        $tableDiff->addedColumns['added_comment_null'] = new Column('added_comment_null', Type::getType('integer'), array('comment' => null));
-        $tableDiff->addedColumns['added_comment_false'] = new Column('added_comment_false', Type::getType('integer'), array('comment' => false));
-        $tableDiff->addedColumns['added_comment_empty_string'] = new Column('added_comment_empty_string', Type::getType('integer'), array('comment' => ''));
-        $tableDiff->addedColumns['added_comment_integer_0'] = new Column('added_comment_integer_0', Type::getType('integer'), array('comment' => 0));
-        $tableDiff->addedColumns['added_comment_float_0'] = new Column('added_comment_float_0', Type::getType('integer'), array('comment' => 0.0));
-        $tableDiff->addedColumns['added_comment_string_0'] = new Column('added_comment_string_0', Type::getType('integer'), array('comment' => '0'));
-        $tableDiff->addedColumns['added_comment'] = new Column('added_comment', Type::getType('integer'), array('comment' => 'Doctrine'));
-        $tableDiff->addedColumns['`added_comment_quoted`'] = new Column('`added_comment_quoted`', Type::getType('integer'), array('comment' => 'rulez'));
+        $tableDiff->addedColumns['added_comment_null'] = new Column('added_comment_null', Type::getType('integer'),
+            array('comment' => null));
+        $tableDiff->addedColumns['added_comment_false'] = new Column('added_comment_false', Type::getType('integer'),
+            array('comment' => false));
+        $tableDiff->addedColumns['added_comment_empty_string'] = new Column('added_comment_empty_string',
+            Type::getType('integer'), array('comment' => ''));
+        $tableDiff->addedColumns['added_comment_integer_0'] = new Column('added_comment_integer_0',
+            Type::getType('integer'), array('comment' => 0));
+        $tableDiff->addedColumns['added_comment_float_0'] = new Column('added_comment_float_0',
+            Type::getType('integer'), array('comment' => 0.0));
+        $tableDiff->addedColumns['added_comment_string_0'] = new Column('added_comment_string_0',
+            Type::getType('integer'), array('comment' => '0'));
+        $tableDiff->addedColumns['added_comment'] = new Column('added_comment', Type::getType('integer'),
+            array('comment' => 'Doctrine'));
+        $tableDiff->addedColumns['`added_comment_quoted`'] = new Column('`added_comment_quoted`',
+            Type::getType('integer'), array('comment' => 'rulez'));
         $tableDiff->addedColumns['select'] = new Column('select', Type::getType('integer'), array('comment' => '666'));
         $tableDiff->addedColumns['added_commented_type'] = new Column('added_commented_type', Type::getType('object'));
-        $tableDiff->addedColumns['added_commented_type_with_comment'] = new Column('added_commented_type_with_comment', Type::getType('array'), array('comment' => '666'));
+        $tableDiff->addedColumns['added_commented_type_with_comment'] = new Column('added_commented_type_with_comment',
+            Type::getType('array'), array('comment' => '666'));
 
-        $tableDiff->renamedColumns['comment_float_0'] = new Column('comment_double_0', Type::getType('decimal'), array('comment' => 'Double for real!'));
+        $tableDiff->renamedColumns['comment_float_0'] = new Column('comment_double_0', Type::getType('decimal'),
+            array('comment' => 'Double for real!'));
 
         // Add comment to non-commented column.
         $tableDiff->changedColumns['id'] = new ColumnDiff(
@@ -280,7 +296,8 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
             'create',
             new Column('create', Type::getType('object')),
             array('comment', 'type'),
-            new Column('create', Type::getType('integer'), array('comment' => 'Doctrine 0wnz comments for reserved keyword columns!'))
+            new Column('create', Type::getType('integer'),
+                array('comment' => 'Doctrine 0wnz comments for reserved keyword columns!'))
         );
 
         // Add comment and change custom type to regular type from non-commented column.
@@ -296,10 +313,12 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
             'commented_type_with_comment',
             new Column('commented_type_with_comment', Type::getType('array')),
             array('comment'),
-            new Column('commented_type_with_comment', Type::getType('array'), array('comment' => 'Doctrine array type.'))
+            new Column('commented_type_with_comment', Type::getType('array'),
+                array('comment' => 'Doctrine array type.'))
         );
 
-        $tableDiff->removedColumns['comment_integer_0'] = new Column('comment_integer_0', Type::getType('integer'), array('comment' => 0));
+        $tableDiff->removedColumns['comment_integer_0'] = new Column('comment_integer_0', Type::getType('integer'),
+            array('comment' => 0));
 
         $this->_sm->alterTable($tableDiff);
 
@@ -332,6 +351,7 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testPkOrdering()
     {
+
         // SQL Server stores index column information in a system table with two
         // columns that almost always have the same value: index_column_id and key_ordinal.
         // The only situation when the two values doesn't match up is when a clustered index
@@ -354,5 +374,11 @@ class SQLServerSchemaManagerTest extends SchemaManagerFunctionalTestCase
         $this->assertCount(2, $columns);
         $this->assertEquals('colB', $columns[0]);
         $this->assertEquals('colA', $columns[1]);
+    }
+
+    protected function getPlatformName()
+    {
+
+        return "mssql";
     }
 }

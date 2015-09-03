@@ -19,13 +19,13 @@
 
 namespace Doctrine\ORM\Tools\Console\Command\ClearCache;
 
+use Doctrine\ORM\Cache;
+use Doctrine\ORM\Cache\Region\DefaultRegion;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Doctrine\ORM\Cache\Region\DefaultRegion;
-use Doctrine\ORM\Cache;
 
 /**
  * Command to clear a query cache region.
@@ -35,18 +35,20 @@ use Doctrine\ORM\Cache;
  */
 class QueryRegionCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
-        $this
-        ->setName('orm:clear-cache:region:query')
-        ->setDescription('Clear a second-level cache query region.')
-        ->addArgument('region-name', InputArgument::OPTIONAL, 'The query region to clear.')
-        ->addOption('all', null, InputOption::VALUE_NONE, 'If defined, all query regions will be deleted/invalidated.')
-        ->addOption('flush', null, InputOption::VALUE_NONE,'If defined, all cache entries will be flushed.');
 
+        $this
+            ->setName('orm:clear-cache:region:query')
+            ->setDescription('Clear a second-level cache query region.')
+            ->addArgument('region-name', InputArgument::OPTIONAL, 'The query region to clear.')
+            ->addOption('all', null, InputOption::VALUE_NONE,
+                'If defined, all query regions will be deleted/invalidated.')
+            ->addOption('flush', null, InputOption::VALUE_NONE, 'If defined, all cache entries will be flushed.');
 
         $this->setHelp(<<<EOT
 The <info>%command.name%</info> command is meant to clear a second-level cache query region for an associated Entity Manager.
@@ -80,23 +82,24 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $em    = $this->getHelper('em')->getEntityManager();
-        $name  = $input->getArgument('region-name');
+
+        $em = $this->getHelper('em')->getEntityManager();
+        $name = $input->getArgument('region-name');
         $cache = $em->getCache();
 
         if ($name === null) {
             $name = Cache::DEFAULT_QUERY_REGION_NAME;
         }
 
-        if ( ! $cache instanceof Cache) {
+        if (!$cache instanceof Cache) {
             throw new \InvalidArgumentException('No second-level cache is configured on the given EntityManager.');
         }
 
         if ($input->getOption('flush')) {
-            $queryCache  = $cache->getQueryCache($name);
+            $queryCache = $cache->getQueryCache($name);
             $queryRegion = $queryCache->getRegion();
 
-            if ( ! $queryRegion instanceof DefaultRegion) {
+            if (!$queryRegion instanceof DefaultRegion) {
                 throw new \InvalidArgumentException(sprintf(
                     'The option "--flush" expects a "Doctrine\ORM\Cache\Region\DefaultRegion", but got "%s".',
                     is_object($queryRegion) ? get_class($queryRegion) : gettype($queryRegion)
@@ -105,7 +108,8 @@ EOT
 
             $queryRegion->getCache()->flushAll();
 
-            $output->writeln(sprintf('Flushing cache provider configured for second-level cache query region named <info>"%s"</info>', $name));
+            $output->writeln(sprintf('Flushing cache provider configured for second-level cache query region named <info>"%s"</info>',
+                $name));
 
             return;
         }

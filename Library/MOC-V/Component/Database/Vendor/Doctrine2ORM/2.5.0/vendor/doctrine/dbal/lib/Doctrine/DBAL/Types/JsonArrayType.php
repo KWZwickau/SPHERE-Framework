@@ -29,11 +29,13 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class JsonArrayType extends Type
 {
+
     /**
      * {@inheritdoc}
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
+
         return $platform->getJsonTypeDeclarationSQL($fieldDeclaration);
     }
 
@@ -42,6 +44,7 @@ class JsonArrayType extends Type
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
+
         if (null === $value) {
             return null;
         }
@@ -54,11 +57,12 @@ class JsonArrayType extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
+
         if ($value === null || $value === '') {
             return array();
         }
 
-        $value = (is_resource($value)) ? stream_get_contents($value) : $value;
+        $value = ( is_resource($value) ) ? stream_get_contents($value) : $value;
 
         return json_decode($value, true);
     }
@@ -68,6 +72,7 @@ class JsonArrayType extends Type
      */
     public function getName()
     {
+
         return Type::JSON_ARRAY;
     }
 
@@ -76,6 +81,7 @@ class JsonArrayType extends Type
      */
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {
-        return ! $platform->hasNativeJsonType();
+
+        return !$platform->hasNativeJsonType();
     }
 }

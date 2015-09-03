@@ -40,13 +40,13 @@ interface IMacro
      *
      * @return bool
      */
-    function nodeOpened( MacroNode $node );
+    function nodeOpened(MacroNode $node);
 
     /**
      * Node is closed.
      *
      * @return void
      */
-    function nodeClosed( MacroNode $node );
+    function nodeClosed(MacroNode $node);
 
 }

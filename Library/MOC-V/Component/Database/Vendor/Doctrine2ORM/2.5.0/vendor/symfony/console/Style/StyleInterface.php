@@ -18,6 +18,7 @@ namespace Symfony\Component\Console\Style;
  */
 interface StyleInterface
 {
+
     /**
      * Formats a command title.
      *

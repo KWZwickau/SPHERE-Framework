@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Proxy;
  */
 class MagicGetClass
 {
+
     /**
      * @var string
      */
@@ -25,6 +26,7 @@ class MagicGetClass
      */
     public function __get($name)
     {
+
         if ($name === 'test') {
             return 'test';
         }

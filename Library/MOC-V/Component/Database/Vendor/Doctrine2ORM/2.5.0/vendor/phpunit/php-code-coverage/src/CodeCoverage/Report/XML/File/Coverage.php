@@ -13,6 +13,7 @@
  */
 class PHP_CodeCoverage_Report_XML_File_Coverage
 {
+
     /**
      * @var XMLWriter
      */
@@ -30,6 +31,7 @@ class PHP_CodeCoverage_Report_XML_File_Coverage
 
     public function __construct(DOMElement $context, $line)
     {
+
         $this->contextNode = $context;
 
         $this->writer = new XMLWriter();
@@ -40,6 +42,7 @@ class PHP_CodeCoverage_Report_XML_File_Coverage
 
     public function addTest($test)
     {
+
         if ($this->finalized) {
             throw new PHP_CodeCoverage_Exception('Coverage Report already finalized');
         }
@@ -51,6 +54,7 @@ class PHP_CodeCoverage_Report_XML_File_Coverage
 
     public function finalize()
     {
+
         $this->writer->endElement();
 
         $fragment = $this->contextNode->ownerDocument->createDocumentFragment();

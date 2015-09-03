@@ -25,6 +25,7 @@ namespace Symfony\Component\HttpFoundation\File\MimeType;
  */
 class ExtensionGuesser implements ExtensionGuesserInterface
 {
+
     /**
      * The singleton instance
      *
@@ -44,6 +45,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
      */
     private function __construct()
     {
+
         $this->register(new MimeTypeExtensionGuesser());
     }
 
@@ -56,6 +58,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
      */
     public function register(ExtensionGuesserInterface $guesser)
     {
+
         array_unshift($this->guessers, $guesser);
     }
 
@@ -88,6 +91,7 @@ class ExtensionGuesser implements ExtensionGuesserInterface
      */
     public function guess($mimeType)
     {
+
         foreach ($this->guessers as $guesser) {
             if (null !== $extension = $guesser->guess($mimeType)) {
                 return $extension;

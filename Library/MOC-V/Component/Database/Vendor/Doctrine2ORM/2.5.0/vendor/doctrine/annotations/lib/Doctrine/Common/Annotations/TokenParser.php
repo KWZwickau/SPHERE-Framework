@@ -27,6 +27,7 @@ namespace Doctrine\Common\Annotations;
  */
 class TokenParser
 {
+
     /**
      * The token list.
      *
@@ -53,6 +54,7 @@ class TokenParser
      */
     public function __construct($contents)
     {
+
         $this->tokens = token_get_all($contents);
 
         // The PHP parser sets internal compiler globals for certain things. Annoyingly, the last docblock comment it
@@ -68,68 +70,6 @@ class TokenParser
     }
 
     /**
-     * Gets the next non whitespace and non comment token.
-     *
-     * @param boolean $docCommentIsComment If TRUE then a doc comment is considered a comment and skipped.
-     *                                     If FALSE then only whitespace and normal comments are skipped.
-     *
-     * @return array|null The token if exists, null otherwise.
-     */
-    public function next($docCommentIsComment = TRUE)
-    {
-        for ($i = $this->pointer; $i < $this->numTokens; $i++) {
-            $this->pointer++;
-            if ($this->tokens[$i][0] === T_WHITESPACE ||
-                $this->tokens[$i][0] === T_COMMENT ||
-                ($docCommentIsComment && $this->tokens[$i][0] === T_DOC_COMMENT)) {
-
-                continue;
-            }
-
-            return $this->tokens[$i];
-        }
-
-        return null;
-    }
-
-    /**
-     * Parses a single use statement.
-     *
-     * @return array A list with all found class names for a use statement.
-     */
-    public function parseUseStatement()
-    {
-        $class = '';
-        $alias = '';
-        $statements = array();
-        $explicitAlias = false;
-        while (($token = $this->next())) {
-            $isNameToken = $token[0] === T_STRING || $token[0] === T_NS_SEPARATOR;
-            if (!$explicitAlias && $isNameToken) {
-                $class .= $token[1];
-                $alias = $token[1];
-            } else if ($explicitAlias && $isNameToken) {
-                $alias .= $token[1];
-            } else if ($token[0] === T_AS) {
-                $explicitAlias = true;
-                $alias = '';
-            } else if ($token === ',') {
-                $statements[strtolower($alias)] = $class;
-                $class = '';
-                $alias = '';
-                $explicitAlias = false;
-            } else if ($token === ';') {
-                $statements[strtolower($alias)] = $class;
-                break;
-            } else {
-                break;
-            }
-        }
-
-        return $statements;
-    }
-
-    /**
      * Gets all use statements.
      *
      * @param string $namespaceName The namespace name of the reflected class.
@@ -138,8 +78,9 @@ class TokenParser
      */
     public function parseUseStatements($namespaceName)
     {
+
         $statements = array();
-        while (($token = $this->next())) {
+        while (( $token = $this->next() )) {
             if ($token[0] === T_USE) {
                 $statements = array_merge($statements, $this->parseUseStatement());
                 continue;
@@ -158,14 +99,88 @@ class TokenParser
     }
 
     /**
+     * Gets the next non whitespace and non comment token.
+     *
+     * @param boolean $docCommentIsComment If TRUE then a doc comment is considered a comment and skipped.
+     *                                     If FALSE then only whitespace and normal comments are skipped.
+     *
+     * @return array|null The token if exists, null otherwise.
+     */
+    public function next($docCommentIsComment = true)
+    {
+
+        for ($i = $this->pointer; $i < $this->numTokens; $i++) {
+            $this->pointer++;
+            if ($this->tokens[$i][0] === T_WHITESPACE ||
+                $this->tokens[$i][0] === T_COMMENT ||
+                ( $docCommentIsComment && $this->tokens[$i][0] === T_DOC_COMMENT )
+            ) {
+
+                continue;
+            }
+
+            return $this->tokens[$i];
+        }
+
+        return null;
+    }
+
+    /**
+     * Parses a single use statement.
+     *
+     * @return array A list with all found class names for a use statement.
+     */
+    public function parseUseStatement()
+    {
+
+        $class = '';
+        $alias = '';
+        $statements = array();
+        $explicitAlias = false;
+        while (( $token = $this->next() )) {
+            $isNameToken = $token[0] === T_STRING || $token[0] === T_NS_SEPARATOR;
+            if (!$explicitAlias && $isNameToken) {
+                $class .= $token[1];
+                $alias = $token[1];
+            } else {
+                if ($explicitAlias && $isNameToken) {
+                    $alias .= $token[1];
+                } else {
+                    if ($token[0] === T_AS) {
+                        $explicitAlias = true;
+                        $alias = '';
+                    } else {
+                        if ($token === ',') {
+                            $statements[strtolower($alias)] = $class;
+                            $class = '';
+                            $alias = '';
+                            $explicitAlias = false;
+                        } else {
+                            if ($token === ';') {
+                                $statements[strtolower($alias)] = $class;
+                                break;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $statements;
+    }
+
+    /**
      * Gets the namespace.
      *
      * @return string The found namespace.
      */
     public function parseNamespace()
     {
+
         $name = '';
-        while (($token = $this->next()) && ($token[0] === T_STRING || $token[0] === T_NS_SEPARATOR)) {
+        while (( $token = $this->next() ) && ( $token[0] === T_STRING || $token[0] === T_NS_SEPARATOR )) {
             $name .= $token[1];
         }
 
@@ -179,6 +194,7 @@ class TokenParser
      */
     public function parseClass()
     {
+
         // Namespaces and class names are tokenized the same: T_STRINGs
         // separated by T_NS_SEPARATOR so we can use one function to provide
         // both.

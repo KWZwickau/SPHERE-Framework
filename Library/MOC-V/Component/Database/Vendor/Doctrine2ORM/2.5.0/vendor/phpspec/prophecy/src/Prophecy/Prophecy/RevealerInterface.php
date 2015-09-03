@@ -18,6 +18,7 @@ namespace Prophecy\Prophecy;
  */
 interface RevealerInterface
 {
+
     /**
      * Unwraps value(s).
      *

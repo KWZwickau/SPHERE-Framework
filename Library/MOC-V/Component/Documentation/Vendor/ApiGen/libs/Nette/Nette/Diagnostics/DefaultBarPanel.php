@@ -25,7 +25,7 @@ final class DefaultBarPanel extends Nette\Object implements IBarPanel
     public $data;
     private $id;
 
-    public function __construct( $id )
+    public function __construct($id)
     {
 
         $this->id = $id;

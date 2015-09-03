@@ -26,6 +26,7 @@ namespace Doctrine\Common\Annotations;
  */
 interface Reader
 {
+
     /**
      * Gets the annotations applied to a class.
      *

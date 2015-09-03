@@ -1,6 +1,6 @@
 <?php
 
-include_once dirname( __FILE__ ).'/Complex.php';
+include_once dirname(__FILE__).'/Complex.php';
 
 
 class complexAssert
@@ -8,7 +8,7 @@ class complexAssert
 
     private $_errorMessage = '';
 
-    public function assertComplexEquals( $expected, $actual, $delta = 0 )
+    public function assertComplexEquals($expected, $actual, $delta = 0)
     {
 
         if ($expected{0} === '#') {
@@ -21,10 +21,10 @@ class complexAssert
             return false;
         }
 
-        $expectedComplex = new Complex( $expected );
-        $actualComplex = new Complex( $actual );
+        $expectedComplex = new Complex($expected);
+        $actualComplex = new Complex($actual);
 
-        if (!is_numeric( $actualComplex->getReal() ) || !is_numeric( $expectedComplex->getReal() )) {
+        if (!is_numeric($actualComplex->getReal()) || !is_numeric($expectedComplex->getReal())) {
             if ($actualComplex->getReal() !== $expectedComplex->getReal()) {
                 $this->_errorMessage = 'Mismatched String: '.
                     $actualComplex->getReal().' !== '.$expectedComplex->getReal();

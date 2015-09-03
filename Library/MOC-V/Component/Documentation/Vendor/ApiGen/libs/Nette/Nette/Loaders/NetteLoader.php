@@ -101,24 +101,24 @@ class NetteLoader extends AutoLoader
      *
      * @return void
      */
-    public function tryLoad( $type )
+    public function tryLoad($type)
     {
 
-        $type = ltrim( $type, '\\' );
+        $type = ltrim($type, '\\');
         /**/
         if (isset( $this->renamed[$type] )) {
-            class_alias( $this->renamed[$type], $type );
-            trigger_error( "Class $type has been renamed to {$this->renamed[$type]}.", E_USER_WARNING );
+            class_alias($this->renamed[$type], $type);
+            trigger_error("Class $type has been renamed to {$this->renamed[$type]}.", E_USER_WARNING);
 
         } else/**/ {
             if (isset( $this->list[$type] )) {
-                Nette\Utils\LimitedScope::load( NETTE_DIR.$this->list[$type].'.php', true );
+                Nette\Utils\LimitedScope::load(NETTE_DIR.$this->list[$type].'.php', true);
                 self::$count++;
 
-            }/**/ elseif (substr( $type, 0, 6 ) === 'Nette\\' && is_file( $file = NETTE_DIR.strtr( substr( $type, 5 ),
-                        '\\', '/' ).'.php' )
+            }/**/ elseif (substr($type, 0, 6) === 'Nette\\' && is_file($file = NETTE_DIR.strtr(substr($type, 5),
+                        '\\', '/').'.php')
             ) {
-                Nette\Utils\LimitedScope::load( $file, true );
+                Nette\Utils\LimitedScope::load($file, true);
                 self::$count++;
             }
         }/**/

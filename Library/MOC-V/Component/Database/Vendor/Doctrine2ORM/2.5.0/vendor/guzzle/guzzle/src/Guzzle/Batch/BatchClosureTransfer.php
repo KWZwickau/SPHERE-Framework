@@ -10,6 +10,7 @@ use Guzzle\Common\Exception\InvalidArgumentException;
  */
 class BatchClosureTransfer implements BatchTransferInterface
 {
+
     /** @var callable A closure that performs the transfer */
     protected $callable;
 
@@ -25,6 +26,7 @@ class BatchClosureTransfer implements BatchTransferInterface
      */
     public function __construct($callable, $context = null)
     {
+
         if (!is_callable($callable)) {
             throw new InvalidArgumentException('Argument must be callable');
         }
@@ -35,6 +37,7 @@ class BatchClosureTransfer implements BatchTransferInterface
 
     public function transfer(array $batch)
     {
-        return empty($batch) ? null : call_user_func($this->callable, $batch, $this->context);
+
+        return empty( $batch ) ? null : call_user_func($this->callable, $batch, $this->context);
     }
 }

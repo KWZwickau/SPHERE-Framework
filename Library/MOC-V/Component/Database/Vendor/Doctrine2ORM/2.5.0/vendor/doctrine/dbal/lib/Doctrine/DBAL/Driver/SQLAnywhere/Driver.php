@@ -31,6 +31,7 @@ use Doctrine\DBAL\Driver\AbstractSQLAnywhereDriver;
  */
 class Driver extends AbstractSQLAnywhereDriver
 {
+
     /**
      * {@inheritdoc}
      *
@@ -38,30 +39,23 @@ class Driver extends AbstractSQLAnywhereDriver
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = array())
     {
+
         try {
             return new SQLAnywhereConnection(
                 $this->buildDsn(
-                    isset($params['host']) ? $params['host'] : null,
-                    isset($params['port']) ? $params['port'] : null,
-                    isset($params['server']) ? $params['server'] : null,
-                    isset($params['dbname']) ? $params['dbname'] : null,
+                    isset( $params['host'] ) ? $params['host'] : null,
+                    isset( $params['port'] ) ? $params['port'] : null,
+                    isset( $params['server'] ) ? $params['server'] : null,
+                    isset( $params['dbname'] ) ? $params['dbname'] : null,
                     $username,
                     $password,
                     $driverOptions
                 ),
-                isset($params['persistent']) ? $params['persistent'] : false
+                isset( $params['persistent'] ) ? $params['persistent'] : false
             );
         } catch (SQLAnywhereException $e) {
             throw DBALException::driverException($this, $e);
         }
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getName()
-    {
-        return 'sqlanywhere';
     }
 
     /**
@@ -79,26 +73,44 @@ class Driver extends AbstractSQLAnywhereDriver
      *
      * @return string
      */
-    private function buildDsn($host, $port, $server, $dbname, $username = null, $password = null, array $driverOptions = array())
-    {
+    private function buildDsn(
+        $host,
+        $port,
+        $server,
+        $dbname,
+        $username = null,
+        $password = null,
+        array $driverOptions = array()
+    ) {
+
         $host = $host ?: 'localhost';
         $port = $port ?: 2638;
 
-        if (! empty($server)) {
-            $server = ';ServerName=' . $server;
+        if (!empty( $server )) {
+            $server = ';ServerName='.$server;
         }
 
         return
-            'HOST=' . $host . ':' . $port .
-            $server .
-            ';DBN=' . $dbname .
-            ';UID=' . $username .
-            ';PWD=' . $password .
-            ';' . implode(
+            'HOST='.$host.':'.$port.
+            $server.
+            ';DBN='.$dbname.
+            ';UID='.$username.
+            ';PWD='.$password.
+            ';'.implode(
                 ';',
                 array_map(function ($key, $value) {
-                    return $key . '=' . $value;
+
+                    return $key.'='.$value;
                 }, array_keys($driverOptions), $driverOptions)
             );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getName()
+    {
+
+        return 'sqlanywhere';
     }
 }

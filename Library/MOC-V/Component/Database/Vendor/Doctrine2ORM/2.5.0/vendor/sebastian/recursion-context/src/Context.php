@@ -16,6 +16,7 @@ namespace SebastianBergmann\RecursionContext;
  */
 final class Context
 {
+
     /**
      * @var array[]
      */
@@ -31,14 +32,16 @@ final class Context
      */
     public function __construct()
     {
-        $this->arrays  = array();
+
+        $this->arrays = array();
         $this->objects = new \SplObjectStorage;
     }
 
     /**
      * Adds a value to the context.
      *
-     * @param  array|object             $value The value to add.
+     * @param  array|object $value The value to add.
+     *
      * @return int|string               The ID of the stored value, either as
      *                                        a string or integer.
      * @throws InvalidArgumentException Thrown if $value is not an array or
@@ -46,12 +49,13 @@ final class Context
      */
     public function add(&$value)
     {
+
         if (is_array($value)) {
             return $this->addArray($value);
-        }
-
-        else if (is_object($value)) {
-            return $this->addObject($value);
+        } else {
+            if (is_object($value)) {
+                return $this->addObject($value);
+            }
         }
 
         throw new InvalidArgumentException(
@@ -60,36 +64,13 @@ final class Context
     }
 
     /**
-     * Checks if the given value exists within the context.
+     * @param  array $array
      *
-     * @param  array|object             $value The value to check.
-     * @return int|string|false         The string or integer ID of the stored
-     *                                        value if it has already been seen, or
-     *                                        false if the value is not stored.
-     * @throws InvalidArgumentException Thrown if $value is not an array or
-     *                                        object
-     */
-    public function contains(&$value)
-    {
-        if (is_array($value)) {
-            return $this->containsArray($value);
-        }
-
-        else if (is_object($value)) {
-            return $this->containsObject($value);
-        }
-
-        throw new InvalidArgumentException(
-            'Only arrays and objects are supported'
-        );
-    }
-
-    /**
-     * @param  array    $array
      * @return bool|int
      */
     private function addArray(array &$array)
     {
+
         $key = $this->containsArray($array);
 
         if ($key !== false) {
@@ -102,11 +83,39 @@ final class Context
     }
 
     /**
+     * @param  array $array
+     *
+     * @return int|false
+     */
+    private function containsArray(array &$array)
+    {
+
+        $keys = array_keys($this->arrays, $array, true);
+        $hash = '_Key_'.hash('sha512', microtime(true));
+
+        foreach ($keys as $key) {
+            $this->arrays[$key][$hash] = $hash;
+
+            if (isset( $array[$hash] ) && $array[$hash] === $hash) {
+                unset( $this->arrays[$key][$hash] );
+
+                return $key;
+            }
+
+            unset( $this->arrays[$key][$hash] );
+        }
+
+        return false;
+    }
+
+    /**
      * @param  object $object
+     *
      * @return string
      */
     private function addObject($object)
     {
+
         if (!$this->objects->contains($object)) {
             $this->objects->attach($object);
         }
@@ -115,35 +124,40 @@ final class Context
     }
 
     /**
-     * @param  array     $array
-     * @return int|false
+     * Checks if the given value exists within the context.
+     *
+     * @param  array|object $value The value to check.
+     *
+     * @return int|string|false         The string or integer ID of the stored
+     *                                        value if it has already been seen, or
+     *                                        false if the value is not stored.
+     * @throws InvalidArgumentException Thrown if $value is not an array or
+     *                                        object
      */
-    private function containsArray(array &$array)
+    public function contains(&$value)
     {
-        $keys = array_keys($this->arrays, $array, true);
-        $hash = '_Key_' . hash('sha512', microtime(true));
 
-        foreach ($keys as $key) {
-            $this->arrays[$key][$hash] = $hash;
-
-            if (isset($array[$hash]) && $array[$hash] === $hash) {
-                unset($this->arrays[$key][$hash]);
-
-                return $key;
+        if (is_array($value)) {
+            return $this->containsArray($value);
+        } else {
+            if (is_object($value)) {
+                return $this->containsObject($value);
             }
-
-            unset($this->arrays[$key][$hash]);
         }
 
-        return false;
+        throw new InvalidArgumentException(
+            'Only arrays and objects are supported'
+        );
     }
 
     /**
-     * @param  object       $value
+     * @param  object $value
+     *
      * @return string|false
      */
     private function containsObject($value)
     {
+
         if ($this->objects->contains($value)) {
             return spl_object_hash($value);
         }

@@ -86,7 +86,7 @@ class ReflectionAnnotation
      * @param \TokenReflection\ReflectionBase $reflection Parent reflection object
      * @param string|boolean                  $docComment Docblock definition
      */
-    public function __construct( ReflectionBase $reflection, $docComment = false )
+    public function __construct(ReflectionBase $reflection, $docComment = false)
     {
 
         $this->reflection = $reflection;
@@ -111,7 +111,7 @@ class ReflectionAnnotation
      *
      * @return boolean
      */
-    public function hasAnnotation( $annotation )
+    public function hasAnnotation($annotation)
     {
 
         if (null === $this->annotations) {
@@ -135,8 +135,8 @@ class ReflectionAnnotation
             $docblock = trim(
                 preg_replace(
                     array(
-                        '~^'.preg_quote( ReflectionElement::DOCBLOCK_TEMPLATE_START, '~' ).'~',
-                        '~^'.preg_quote( ReflectionElement::DOCBLOCK_TEMPLATE_END, '~' ).'$~',
+                        '~^'.preg_quote(ReflectionElement::DOCBLOCK_TEMPLATE_START, '~').'~',
+                        '~^'.preg_quote(ReflectionElement::DOCBLOCK_TEMPLATE_END, '~').'$~',
                         '~^/\\*\\*~',
                         '~\\*/$~'
                     ),
@@ -144,8 +144,8 @@ class ReflectionAnnotation
                     $this->docComment
                 )
             );
-            foreach (explode( "\n", $docblock ) as $line) {
-                $line = preg_replace( '~^\\*\\s?~', '', trim( $line ) );
+            foreach (explode("\n", $docblock) as $line) {
+                $line = preg_replace('~^\\*\\s?~', '', trim($line));
 
                 // End of short description
                 if ('' === $line && self::SHORT_DESCRIPTION === $name) {
@@ -154,7 +154,7 @@ class ReflectionAnnotation
                 }
 
                 // @annotation
-                if (preg_match( '~^\\s*@([\\S]+)\\s*(.*)~', $line, $matches )) {
+                if (preg_match('~^\\s*@([\\S]+)\\s*(.*)~', $line, $matches)) {
                     $name = $matches[1];
                     $this->annotations[$name][] = $matches[2];
                     continue;
@@ -168,16 +168,16 @@ class ReflectionAnnotation
                         $this->annotations[$name] .= "\n".$line;
                     }
                 } else {
-                    $this->annotations[$name][count( $this->annotations[$name] ) - 1] .= "\n".$line;
+                    $this->annotations[$name][count($this->annotations[$name]) - 1] .= "\n".$line;
                 }
             }
 
-            array_walk_recursive( $this->annotations, function ( &$value ) {
+            array_walk_recursive($this->annotations, function (&$value) {
 
                 // {@*} is a placeholder for */ (phpDocumentor compatibility)
-                $value = str_replace( '{@*}', '*/', $value );
-                $value = trim( $value );
-            } );
+                $value = str_replace('{@*}', '*/', $value);
+                $value = trim($value);
+            });
         }
 
         if ($this->reflection instanceof ReflectionElement) {
@@ -218,7 +218,7 @@ class ReflectionAnnotation
                 } elseif ($name !== self::SHORT_DESCRIPTION) {
                     // Tags; short description is not inherited
                     if (isset( $this->annotations[$name] )) {
-                        $this->annotations[$name] = array_merge( $this->annotations[$name], $value );
+                        $this->annotations[$name] = array_merge($this->annotations[$name], $value);
                     } else {
                         $this->annotations[$name] = $value;
                     }
@@ -244,19 +244,19 @@ class ReflectionAnnotation
         foreach ($parentNames as $parentName) {
             try {
                 if ($this->reflection instanceof ReflectionClass) {
-                    $parent = $broker->getClass( $parentName );
+                    $parent = $broker->getClass($parentName);
                     if ($parent instanceof Dummy\ReflectionClass) {
                         // The class to copy from is not usable
                         return;
                     }
                 } elseif ($this->reflection instanceof ReflectionFunction) {
-                    $parent = $broker->getFunction( rtrim( $parentName, '()' ) );
+                    $parent = $broker->getFunction(rtrim($parentName, '()'));
                 } elseif ($this->reflection instanceof ReflectionConstant && null === $this->reflection->getDeclaringClassName()) {
-                    $parent = $broker->getConstant( $parentName );
+                    $parent = $broker->getConstant($parentName);
                 } elseif ($this->reflection instanceof ReflectionMethod || $this->reflection instanceof ReflectionProperty || $this->reflection instanceof ReflectionConstant) {
-                    if (false !== strpos( $parentName, '::' )) {
-                        list( $className, $parentName ) = explode( '::', $parentName, 2 );
-                        $class = $broker->getClass( $className );
+                    if (false !== strpos($parentName, '::')) {
+                        list( $className, $parentName ) = explode('::', $parentName, 2);
+                        $class = $broker->getClass($className);
                     } else {
                         $class = $this->reflection->getDeclaringClass();
                     }
@@ -267,19 +267,19 @@ class ReflectionAnnotation
                     }
 
                     if ($this->reflection instanceof ReflectionMethod) {
-                        $parent = $class->getMethod( rtrim( $parentName, '()' ) );
+                        $parent = $class->getMethod(rtrim($parentName, '()'));
                     } elseif ($this->reflection instanceof ReflectionConstant) {
-                        $parent = $class->getConstantReflection( $parentName );
+                        $parent = $class->getConstantReflection($parentName);
                     } else {
-                        $parent = $class->getProperty( ltrim( $parentName, '$' ) );
+                        $parent = $class->getProperty(ltrim($parentName, '$'));
                     }
                 }
 
                 if (!empty( $parent )) {
                     // Don't get into an infinite recursion loop
-                    if (in_array( $parent, self::$copydocStack, true )) {
-                        throw new Exception\RuntimeException( 'Infinite loop detected when copying annotations using the @copydoc tag.',
-                            Exception\RuntimeException::INVALID_ARGUMENT, $this->reflection );
+                    if (in_array($parent, self::$copydocStack, true)) {
+                        throw new Exception\RuntimeException('Infinite loop detected when copying annotations using the @copydoc tag.',
+                            Exception\RuntimeException::INVALID_ARGUMENT, $this->reflection);
                     }
 
                     self::$copydocStack[] = $parent;
@@ -292,14 +292,14 @@ class ReflectionAnnotation
                         }
                     }
 
-                    array_pop( self::$copydocStack );
+                    array_pop(self::$copydocStack);
                 }
-            } catch( Exception\BaseException $e ) {
+            } catch (Exception\BaseException $e) {
                 // Ignoring links to non existent elements, ...
             }
         }
 
-        array_pop( self::$copydocStack );
+        array_pop(self::$copydocStack);
     }
 
     /**
@@ -316,11 +316,11 @@ class ReflectionAnnotation
             $declaringClass = $this->reflection->getDeclaringClass();
         }
 
-        $parents = array_filter( array_merge( array( $declaringClass->getParentClass() ),
-            $declaringClass->getOwnInterfaces() ), function ( $class ) {
+        $parents = array_filter(array_merge(array($declaringClass->getParentClass()),
+            $declaringClass->getOwnInterfaces()), function ($class) {
 
             return $class instanceof ReflectionClass;
-        } );
+        });
 
         // In case of properties and methods, look for a property/method of the same name and return
         // and array of such members.
@@ -328,8 +328,8 @@ class ReflectionAnnotation
         if ($this->reflection instanceof ReflectionProperty) {
             $name = $this->reflection->getName();
             foreach ($parents as $parent) {
-                if ($parent->hasProperty( $name )) {
-                    $parentDefinitions[] = $parent->getProperty( $name );
+                if ($parent->hasProperty($name)) {
+                    $parentDefinitions[] = $parent->getProperty($name);
                 }
             }
 
@@ -337,8 +337,8 @@ class ReflectionAnnotation
         } elseif ($this->reflection instanceof ReflectionMethod) {
             $name = $this->reflection->getName();
             foreach ($parents as $parent) {
-                if ($parent->hasMethod( $name )) {
-                    $parentDefinitions[] = $parent->getMethod( $name );
+                if ($parent->hasMethod($name)) {
+                    $parentDefinitions[] = $parent->getMethod($name);
                 }
             }
 
@@ -355,67 +355,67 @@ class ReflectionAnnotation
                 }
             }
         } else {
-            if (isset( $this->annotations[self::LONG_DESCRIPTION] ) && false !== stripos( $this->annotations[self::LONG_DESCRIPTION],
-                    '{@inheritdoc}' )
+            if (isset( $this->annotations[self::LONG_DESCRIPTION] ) && false !== stripos($this->annotations[self::LONG_DESCRIPTION],
+                    '{@inheritdoc}')
             ) {
                 // Inherit long description
                 foreach ($parents as $parent) {
-                    if ($parent->hasAnnotation( self::LONG_DESCRIPTION )) {
+                    if ($parent->hasAnnotation(self::LONG_DESCRIPTION)) {
                         $this->annotations[self::LONG_DESCRIPTION] = str_ireplace(
                             '{@inheritdoc}',
-                            $parent->getAnnotation( self::LONG_DESCRIPTION ),
+                            $parent->getAnnotation(self::LONG_DESCRIPTION),
                             $this->annotations[self::LONG_DESCRIPTION]
                         );
                         break;
                     }
                 }
 
-                $this->annotations[self::LONG_DESCRIPTION] = str_ireplace( '{@inheritdoc}', '',
-                    $this->annotations[self::LONG_DESCRIPTION] );
+                $this->annotations[self::LONG_DESCRIPTION] = str_ireplace('{@inheritdoc}', '',
+                    $this->annotations[self::LONG_DESCRIPTION]);
             }
-            if (isset( $this->annotations[self::SHORT_DESCRIPTION] ) && false !== stripos( $this->annotations[self::SHORT_DESCRIPTION],
-                    '{@inheritdoc}' )
+            if (isset( $this->annotations[self::SHORT_DESCRIPTION] ) && false !== stripos($this->annotations[self::SHORT_DESCRIPTION],
+                    '{@inheritdoc}')
             ) {
                 // Inherit short description
                 foreach ($parents as $parent) {
-                    if ($parent->hasAnnotation( self::SHORT_DESCRIPTION )) {
+                    if ($parent->hasAnnotation(self::SHORT_DESCRIPTION)) {
                         $this->annotations[self::SHORT_DESCRIPTION] = str_ireplace(
                             '{@inheritdoc}',
-                            $parent->getAnnotation( self::SHORT_DESCRIPTION ),
+                            $parent->getAnnotation(self::SHORT_DESCRIPTION),
                             $this->annotations[self::SHORT_DESCRIPTION]
                         );
                         break;
                     }
                 }
 
-                $this->annotations[self::SHORT_DESCRIPTION] = str_ireplace( '{@inheritdoc}', '',
-                    $this->annotations[self::SHORT_DESCRIPTION] );
+                $this->annotations[self::SHORT_DESCRIPTION] = str_ireplace('{@inheritdoc}', '',
+                    $this->annotations[self::SHORT_DESCRIPTION]);
             }
         }
 
         // In case of properties check if we need and can inherit the data type
         if ($this->reflection instanceof ReflectionProperty && empty( $this->annotations['var'] )) {
             foreach ($parents as $parent) {
-                if ($parent->hasAnnotation( 'var' )) {
-                    $this->annotations['var'] = $parent->getAnnotation( 'var' );
+                if ($parent->hasAnnotation('var')) {
+                    $this->annotations['var'] = $parent->getAnnotation('var');
                     break;
                 }
             }
         }
 
         if ($this->reflection instanceof ReflectionMethod) {
-            if (0 !== $this->reflection->getNumberOfParameters() && ( empty( $this->annotations['param'] ) || count( $this->annotations['param'] ) < $this->reflection->getNumberOfParameters() )) {
+            if (0 !== $this->reflection->getNumberOfParameters() && ( empty( $this->annotations['param'] ) || count($this->annotations['param']) < $this->reflection->getNumberOfParameters() )) {
                 // In case of methods check if we need and can inherit parameter descriptions
                 $params = isset( $this->annotations['param'] ) ? $this->annotations['param'] : array();
                 $complete = false;
                 foreach ($parents as $parent) {
-                    if ($parent->hasAnnotation( 'param' )) {
-                        $parentParams = array_slice( $parent->getAnnotation( 'param' ), count( $params ) );
+                    if ($parent->hasAnnotation('param')) {
+                        $parentParams = array_slice($parent->getAnnotation('param'), count($params));
 
                         while (!empty( $parentParams ) && !$complete) {
-                            array_push( $params, array_shift( $parentParams ) );
+                            array_push($params, array_shift($parentParams));
 
-                            if (count( $params ) === $this->reflection->getNumberOfParameters()) {
+                            if (count($params) === $this->reflection->getNumberOfParameters()) {
                                 $complete = true;
                             }
                         }
@@ -432,11 +432,11 @@ class ReflectionAnnotation
             }
 
             // And check if we need and can inherit the return and throws value
-            foreach (array( 'return', 'throws' ) as $paramName) {
+            foreach (array('return', 'throws') as $paramName) {
                 if (!isset( $this->annotations[$paramName] )) {
                     foreach ($parents as $parent) {
-                        if ($parent->hasAnnotation( $paramName )) {
-                            $this->annotations[$paramName] = $parent->getAnnotation( $paramName );
+                        if ($parent->hasAnnotation($paramName)) {
+                            $this->annotations[$paramName] = $parent->getAnnotation($paramName);
                             break;
                         }
                     }
@@ -452,7 +452,7 @@ class ReflectionAnnotation
      *
      * @return string|array|null
      */
-    public function getAnnotation( $annotation )
+    public function getAnnotation($annotation)
     {
 
         if (null === $this->annotations) {
@@ -485,7 +485,7 @@ class ReflectionAnnotation
      * @return \TokenReflection\ReflectionAnnotation
      * @throws \TokenReflection\Exception\RuntimeException If an invalid annotation template was provided.
      */
-    public function setTemplates( array $templates )
+    public function setTemplates(array $templates)
     {
 
         foreach ($templates as $template) {
@@ -493,7 +493,7 @@ class ReflectionAnnotation
                 throw new Exception\RuntimeException(
                     sprintf(
                         'All templates have to be instances of \\TokenReflection\\ReflectionAnnotation; %s given.',
-                        is_object( $template ) ? get_class( $template ) : gettype( $template )
+                        is_object($template) ? get_class($template) : gettype($template)
                     ),
                     Exception\RuntimeException::INVALID_ARGUMENT,
                     $this->reflection

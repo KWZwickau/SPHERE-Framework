@@ -16,13 +16,13 @@
 class Image_Frame_Reflower extends Frame_Reflower
 {
 
-    function __construct( Image_Frame_Decorator $frame )
+    function __construct(Image_Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
-    function reflow( Block_Frame_Decorator $block = null )
+    function reflow(Block_Frame_Decorator $block = null)
     {
 
         $this->_frame->position();
@@ -39,7 +39,7 @@ class Image_Frame_Reflower extends Frame_Reflower
         $this->get_min_max_width();
 
         if ($block) {
-            $block->add_frame_to_line( $this->_frame );
+            $block->add_frame_to_line($this->_frame);
         }
     }
 
@@ -48,7 +48,7 @@ class Image_Frame_Reflower extends Frame_Reflower
 
         if (DEBUGPNG) {
             // Determine the image's size. Time consuming. Only when really needed?
-            list( $img_width, $img_height ) = dompdf_getimagesize( $this->_frame->get_image_url() );
+            list( $img_width, $img_height ) = dompdf_getimagesize($this->_frame->get_image_url());
             print "get_min_max_width() ".
                 $this->_frame->get_style()->width.' '.
                 $this->_frame->get_style()->height.';'.
@@ -72,52 +72,52 @@ class Image_Frame_Reflower extends Frame_Reflower
         //special ignored unit: e.g. 10ex: e treated as exponent; x ignored; 10e completely invalid ->like auto
 
         $width = ( $style->width > 0 ? $style->width : 0 );
-        if (is_percent( $width )) {
+        if (is_percent($width)) {
             $t = 0.0;
             for ($f = $this->_frame->get_parent(); $f; $f = $f->get_parent()) {
                 $f_style = $f->get_style();
-                $t = $f_style->length_in_pt( $f_style->width );
+                $t = $f_style->length_in_pt($f_style->width);
                 if ($t != 0) {
                     break;
                 }
             }
-            $width = ( (float)rtrim( $width, "%" ) * $t ) / 100; //maybe 0
-        } elseif (!mb_strpos( $width, 'pt' )) {
+            $width = ( (float)rtrim($width, "%") * $t ) / 100; //maybe 0
+        } elseif (!mb_strpos($width, 'pt')) {
             // Don't set image original size if "%" branch was 0 or size not given.
             // Otherwise aspect changed on %/auto combination for width/height
             // Resample according to px per inch
             // See also List_Bullet_Image_Frame_Decorator::__construct
-            $width = $style->length_in_pt( $width );
+            $width = $style->length_in_pt($width);
         }
 
         $height = ( $style->height > 0 ? $style->height : 0 );
-        if (is_percent( $height )) {
+        if (is_percent($height)) {
             $t = 0.0;
             for ($f = $this->_frame->get_parent(); $f; $f = $f->get_parent()) {
                 $f_style = $f->get_style();
-                $t = $f_style->length_in_pt( $f_style->height );
+                $t = $f_style->length_in_pt($f_style->height);
                 if ($t != 0) {
                     break;
                 }
             }
-            $height = ( (float)rtrim( $height, "%" ) * $t ) / 100; //maybe 0
-        } elseif (!mb_strpos( $height, 'pt' )) {
+            $height = ( (float)rtrim($height, "%") * $t ) / 100; //maybe 0
+        } elseif (!mb_strpos($height, 'pt')) {
             // Don't set image original size if "%" branch was 0 or size not given.
             // Otherwise aspect changed on %/auto combination for width/height
             // Resample according to px per inch
             // See also List_Bullet_Image_Frame_Decorator::__construct
-            $height = $style->length_in_pt( $height );
+            $height = $style->length_in_pt($height);
         }
 
         if ($width == 0 || $height == 0) {
             // Determine the image's size. Time consuming. Only when really needed!
-            list( $img_width, $img_height ) = dompdf_getimagesize( $this->_frame->get_image_url() );
+            list( $img_width, $img_height ) = dompdf_getimagesize($this->_frame->get_image_url());
 
             // don't treat 0 as error. Can be downscaled or can be catched elsewhere if image not readable.
             // Resample according to px per inch
             // See also List_Bullet_Image_Frame_Decorator::__construct
             if ($width == 0 && $height == 0) {
-                $dpi = $this->_frame->get_dompdf()->get_option( "dpi" );
+                $dpi = $this->_frame->get_dompdf()->get_option("dpi");
                 $width = (float)( $img_width * 72 ) / $dpi;
                 $height = (float)( $img_height * 72 ) / $dpi;
                 $width_forced = false;
@@ -140,10 +140,10 @@ class Image_Frame_Reflower extends Frame_Reflower
 
             list(/*$x*/, /*$y*/, $w, $h ) = $this->_frame->get_containing_block();
 
-            $min_width = $style->length_in_pt( $style->min_width, $w );
-            $max_width = $style->length_in_pt( $style->max_width, $w );
-            $min_height = $style->length_in_pt( $style->min_height, $h );
-            $max_height = $style->length_in_pt( $style->max_height, $h );
+            $min_width = $style->length_in_pt($style->min_width, $w);
+            $max_width = $style->length_in_pt($style->max_width, $w);
+            $min_height = $style->length_in_pt($style->min_height, $h);
+            $max_height = $style->length_in_pt($style->max_height, $h);
 
             if ($max_width !== "none" && $width > $max_width) {
                 if (!$height_forced) {
@@ -190,7 +190,7 @@ class Image_Frame_Reflower extends Frame_Reflower
         $style->min_height = "none";
         $style->max_height = "none";
 
-        return array( $width, $width, "min" => $width, "max" => $width );
+        return array($width, $width, "min" => $width, "max" => $width);
 
     }
 }

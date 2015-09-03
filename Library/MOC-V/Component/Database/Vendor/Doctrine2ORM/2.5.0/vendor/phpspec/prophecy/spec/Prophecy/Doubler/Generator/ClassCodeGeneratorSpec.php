@@ -6,6 +6,7 @@ use PhpSpec\ObjectBehavior;
 
 class ClassCodeGeneratorSpec extends ObjectBehavior
 {
+
     /**
      * @param \Prophecy\Doubler\Generator\Node\ClassNode    $class
      * @param \Prophecy\Doubler\Generator\Node\MethodNode   $method1
@@ -17,12 +18,21 @@ class ClassCodeGeneratorSpec extends ObjectBehavior
      * @param \Prophecy\Doubler\Generator\Node\ArgumentNode $argument31
      */
     function it_generates_proper_php_code_for_specific_ClassNode(
-        $class, $method1, $method2, $method3, $argument11, $argument12, $argument21, $argument31
-    )
-    {
+        $class,
+        $method1,
+        $method2,
+        $method3,
+        $argument11,
+        $argument12,
+        $argument21,
+        $argument31
+    ) {
+
         $class->getParentClass()->willReturn('RuntimeException');
         $class->getInterfaces()->willReturn(array(
-            'Prophecy\Doubler\Generator\MirroredInterface', 'ArrayAccess', 'ArrayIterator'
+            'Prophecy\Doubler\Generator\MirroredInterface',
+            'ArrayAccess',
+            'ArrayIterator'
         ));
         $class->getProperties()->willReturn(array('name' => 'public', 'email' => 'private'));
         $class->getMethods()->willReturn(array($method1, $method2, $method3));
@@ -101,9 +111,11 @@ PHP;
      * @param \Prophecy\Doubler\Generator\Node\ArgumentNode $argument
      */
     function it_overrides_properly_methods_with_args_passed_by_reference(
-        $class, $method, $argument
-    )
-    {
+        $class,
+        $method,
+        $argument
+    ) {
+
         $class->getParentClass()->willReturn('RuntimeException');
         $class->getInterfaces()->willReturn(array('Prophecy\Doubler\Generator\MirroredInterface'));
         $class->getProperties()->willReturn(array());
@@ -123,7 +135,7 @@ PHP;
         $argument->isPassedByReference()->willReturn(true);
 
         $code = $this->generate('CustomClass', $class);
-        $expected =<<<'PHP'
+        $expected = <<<'PHP'
 namespace  {
 class CustomClass extends \RuntimeException implements \Prophecy\Doubler\Generator\MirroredInterface {
 
@@ -143,13 +155,14 @@ PHP;
      */
     function it_generates_empty_class_for_empty_ClassNode($class)
     {
+
         $class->getParentClass()->willReturn('stdClass');
         $class->getInterfaces()->willReturn(array('Prophecy\Doubler\Generator\MirroredInterface'));
         $class->getProperties()->willReturn(array());
         $class->getMethods()->willReturn(array());
 
         $code = $this->generate('CustomClass', $class);
-        $expected =<<<'PHP'
+        $expected = <<<'PHP'
 namespace  {
 class CustomClass extends \stdClass implements \Prophecy\Doubler\Generator\MirroredInterface {
 
@@ -166,13 +179,14 @@ PHP;
      */
     function it_wraps_class_in_namespace_if_it_is_namespaced($class)
     {
+
         $class->getParentClass()->willReturn('stdClass');
         $class->getInterfaces()->willReturn(array('Prophecy\Doubler\Generator\MirroredInterface'));
         $class->getProperties()->willReturn(array());
         $class->getMethods()->willReturn(array());
 
         $code = $this->generate('My\Awesome\CustomClass', $class);
-        $expected =<<<'PHP'
+        $expected = <<<'PHP'
 namespace My\Awesome {
 class CustomClass extends \stdClass implements \Prophecy\Doubler\Generator\MirroredInterface {
 

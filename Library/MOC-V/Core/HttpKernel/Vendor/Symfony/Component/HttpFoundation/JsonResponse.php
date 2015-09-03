@@ -18,12 +18,13 @@ namespace Symfony\Component\HttpFoundation;
  * object. It is however recommended that you do return an object as it
  * protects yourself against XSSI and JSON-JavaScript Hijacking.
  *
- * @see https://www.owasp.org/index.php/OWASP_AJAX_Security_Guidelines#Always_return_JSON_with_an_Object_on_the_outside
+ * @see    https://www.owasp.org/index.php/OWASP_AJAX_Security_Guidelines#Always_return_JSON_with_an_Object_on_the_outside
  *
  * @author Igor Wiedler <igor@wiedler.ch>
  */
 class JsonResponse extends Response
 {
+
     protected $data;
     protected $callback;
     protected $encodingOptions;
@@ -31,12 +32,13 @@ class JsonResponse extends Response
     /**
      * Constructor.
      *
-     * @param mixed   $data    The response data
-     * @param int     $status  The response status code
-     * @param array   $headers An array of response headers
+     * @param mixed $data    The response data
+     * @param int   $status  The response status code
+     * @param array $headers An array of response headers
      */
     public function __construct($data = null, $status = 200, $headers = array())
     {
+
         parent::__construct('', $status, $headers);
 
         if (null === $data) {
@@ -58,13 +60,13 @@ class JsonResponse extends Response
      *
      * @throws \InvalidArgumentException
      */
-    public function setData( $data = array() )
+    public function setData($data = array())
     {
 
-        $this->data = @json_encode( $data, $this->encodingOptions );
+        $this->data = @json_encode($data, $this->encodingOptions);
 
         if (JSON_ERROR_NONE !== json_last_error()) {
-            throw new \InvalidArgumentException( $this->transformJsonError() );
+            throw new \InvalidArgumentException($this->transformJsonError());
         }
 
         return $this->update();
@@ -73,7 +75,7 @@ class JsonResponse extends Response
     private function transformJsonError()
     {
 
-        if (function_exists( 'json_last_error_msg' )) {
+        if (function_exists('json_last_error_msg')) {
             return json_last_error_msg();
         }
 
@@ -108,18 +110,18 @@ class JsonResponse extends Response
 
         if (null !== $this->callback) {
             // Not using application/javascript for compatibility reasons with older browsers.
-            $this->headers->set( 'Content-Type', 'text/javascript' );
+            $this->headers->set('Content-Type', 'text/javascript');
 
-            return $this->setContent( sprintf( '/**/%s(%s);', $this->callback, $this->data ) );
+            return $this->setContent(sprintf('/**/%s(%s);', $this->callback, $this->data));
         }
 
         // Only set the header when there is none or when it equals 'text/javascript' (from a previous update with callback)
         // in order to not overwrite a custom definition.
-        if (!$this->headers->has( 'Content-Type' ) || 'text/javascript' === $this->headers->get( 'Content-Type' )) {
-            $this->headers->set( 'Content-Type', 'application/json' );
+        if (!$this->headers->has('Content-Type') || 'text/javascript' === $this->headers->get('Content-Type')) {
+            $this->headers->set('Content-Type', 'application/json');
         }
 
-        return $this->setContent( $this->data );
+        return $this->setContent($this->data);
     }
 
     /**
@@ -127,6 +129,7 @@ class JsonResponse extends Response
      */
     public static function create($data = null, $status = 200, $headers = array())
     {
+
         return new static($data, $status, $headers);
     }
 
@@ -141,6 +144,7 @@ class JsonResponse extends Response
      */
     public function setCallback($callback = null)
     {
+
         if (null !== $callback) {
             // taken from http://www.geekality.net/2011/08/03/valid-javascript-identifier/
             $pattern = '/^[$_\p{L}][$_\p{L}\p{Mn}\p{Mc}\p{Nd}\p{Pc}\x{200C}\x{200D}]*+$/u';
@@ -164,19 +168,21 @@ class JsonResponse extends Response
      */
     public function getEncodingOptions()
     {
+
         return $this->encodingOptions;
     }
 
     /**
      * Sets options used while encoding data to JSON.
      *
-     * @param int     $encodingOptions
+     * @param int $encodingOptions
      *
      * @return JsonResponse
      */
     public function setEncodingOptions($encodingOptions)
     {
-        $this->encodingOptions = (int) $encodingOptions;
+
+        $this->encodingOptions = (int)$encodingOptions;
 
         return $this->setData(json_decode($this->data));
     }

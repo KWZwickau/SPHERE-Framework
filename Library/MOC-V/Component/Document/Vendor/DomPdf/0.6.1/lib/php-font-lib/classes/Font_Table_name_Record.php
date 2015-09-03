@@ -30,7 +30,7 @@ class Font_Table_name_Record extends Font_Binary_Stream
     public $offset;
     public $string;
 
-    public function map( $data )
+    public function map($data)
     {
 
         foreach ($data as $key => $value) {
@@ -47,7 +47,7 @@ class Font_Table_name_Record extends Font_Binary_Stream
     public function getUTF16()
     {
 
-        return Font::UTF8ToUTF16( $this->string );
+        return Font::UTF8ToUTF16($this->string);
     }
 
     function __toString()

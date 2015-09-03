@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MetadataBag;
  */
 class MetadataBagTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var MetadataBag
      */
@@ -30,6 +31,7 @@ class MetadataBagTest extends \PHPUnit_Framework_TestCase
 
     public function testInitialize()
     {
+
         $sessionMetadata = array();
 
         $bag1 = new MetadataBag();
@@ -54,6 +56,7 @@ class MetadataBagTest extends \PHPUnit_Framework_TestCase
 
     public function testGetSetName()
     {
+
         $this->assertEquals('__metadata', $this->bag->getName());
         $this->bag->setName('foo');
         $this->assertEquals('foo', $this->bag->getName());
@@ -62,34 +65,44 @@ class MetadataBagTest extends \PHPUnit_Framework_TestCase
 
     public function testGetStorageKey()
     {
+
         $this->assertEquals('_sf2_meta', $this->bag->getStorageKey());
     }
 
     public function testGetLifetime()
     {
+
         $bag = new MetadataBag();
-        $array = array(MetadataBag::CREATED => 1234567, MetadataBag::UPDATED => 12345678, MetadataBag::LIFETIME => 1000);
+        $array = array(
+            MetadataBag::CREATED  => 1234567,
+            MetadataBag::UPDATED  => 12345678,
+            MetadataBag::LIFETIME => 1000
+        );
         $bag->initialize($array);
         $this->assertEquals(1000, $bag->getLifetime());
     }
 
     public function testGetCreated()
     {
+
         $this->assertEquals(1234567, $this->bag->getCreated());
     }
 
     public function testGetLastUsed()
     {
+
         $this->assertLessThanOrEqual(time(), $this->bag->getLastUsed());
     }
 
     public function testClear()
     {
+
         $this->bag->clear();
     }
 
     public function testSkipLastUsedUpdate()
     {
+
         $bag = new MetadataBag('', 30);
         $timeStamp = time();
 
@@ -106,6 +119,7 @@ class MetadataBagTest extends \PHPUnit_Framework_TestCase
 
     public function testDoesNotSkipLastUsedUpdate()
     {
+
         $bag = new MetadataBag('', 30);
         $timeStamp = time();
 
@@ -129,7 +143,7 @@ class MetadataBagTest extends \PHPUnit_Framework_TestCase
             MetadataBag::UPDATED  => 12345678,
             MetadataBag::LIFETIME => 0
         );
-        $this->bag->initialize( $this->array );
+        $this->bag->initialize($this->array);
     }
 
     protected function tearDown()

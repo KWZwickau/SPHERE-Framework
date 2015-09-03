@@ -34,6 +34,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function __construct($storageKey = '_sf2_attributes')
     {
+
         $this->storageKey = $storageKey;
     }
 
@@ -42,11 +43,13 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function getName()
     {
+
         return $this->name;
     }
 
     public function setName($name)
     {
+
         $this->name = $name;
     }
 
@@ -55,6 +58,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function initialize(array &$attributes)
     {
+
         $this->attributes = &$attributes;
     }
 
@@ -63,6 +67,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function getStorageKey()
     {
+
         return $this->storageKey;
     }
 
@@ -71,6 +76,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function has($name)
     {
+
         return array_key_exists($name, $this->attributes);
     }
 
@@ -79,6 +85,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function get($name, $default = null)
     {
+
         return array_key_exists($name, $this->attributes) ? $this->attributes[$name] : $default;
     }
 
@@ -87,6 +94,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function all()
     {
+
         return $this->attributes;
     }
 
@@ -95,6 +103,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function replace(array $attributes)
     {
+
         $this->attributes = array();
         foreach ($attributes as $key => $value) {
             $this->set($key, $value);
@@ -104,7 +113,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
     /**
      * {@inheritdoc}
      */
-    public function set( $name, $value )
+    public function set($name, $value)
     {
 
         $this->attributes[$name] = $value;
@@ -115,10 +124,11 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function remove($name)
     {
+
         $retval = null;
         if (array_key_exists($name, $this->attributes)) {
             $retval = $this->attributes[$name];
-            unset($this->attributes[$name]);
+            unset( $this->attributes[$name] );
         }
 
         return $retval;
@@ -129,6 +139,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function clear()
     {
+
         $return = $this->attributes;
         $this->attributes = array();
 
@@ -142,6 +153,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->attributes);
     }
 
@@ -152,6 +164,7 @@ class AttributeBag implements AttributeBagInterface, \IteratorAggregate, \Counta
      */
     public function count()
     {
+
         return count($this->attributes);
     }
 }

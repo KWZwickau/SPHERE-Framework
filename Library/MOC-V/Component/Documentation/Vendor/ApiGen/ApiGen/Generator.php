@@ -155,7 +155,7 @@ class Generator extends Nette\Object
      *
      * @param array $config
      */
-    public function __construct( Config $config )
+    public function __construct(Config $config)
     {
 
         $this->config = $config;
@@ -176,42 +176,42 @@ class Generator extends Nette\Object
         $files = array();
 
         $flags = \RecursiveDirectoryIterator::CURRENT_AS_FILEINFO | \RecursiveDirectoryIterator::SKIP_DOTS;
-        if (defined( '\\RecursiveDirectoryIterator::FOLLOW_SYMLINKS' )) {
+        if (defined('\\RecursiveDirectoryIterator::FOLLOW_SYMLINKS')) {
             // Available from PHP 5.3.1
             $flags |= \RecursiveDirectoryIterator::FOLLOW_SYMLINKS;
         }
 
         foreach ($this->config->source as $source) {
             $entries = array();
-            if (is_dir( $source )) {
-                foreach (new \RecursiveIteratorIterator( new SourceFilesFilterIterator( new \RecursiveDirectoryIterator( $source,
-                    $flags ), $this->config->exclude ) ) as $entry) {
+            if (is_dir($source)) {
+                foreach (new \RecursiveIteratorIterator(new SourceFilesFilterIterator(new \RecursiveDirectoryIterator($source,
+                    $flags), $this->config->exclude)) as $entry) {
                     if (!$entry->isFile()) {
                         continue;
                     }
                     $entries[] = $entry;
                 }
-            } elseif ($this->isPhar( $source )) {
-                if (!extension_loaded( 'phar' )) {
-                    throw new RuntimeException( 'Phar extension is not loaded' );
+            } elseif ($this->isPhar($source)) {
+                if (!extension_loaded('phar')) {
+                    throw new RuntimeException('Phar extension is not loaded');
                 }
-                foreach (new \RecursiveIteratorIterator( new \Phar( $source, $flags ) ) as $entry) {
+                foreach (new \RecursiveIteratorIterator(new \Phar($source, $flags)) as $entry) {
                     if (!$entry->isFile()) {
                         continue;
                     }
                     $entries[] = $entry;
                 }
             } else {
-                $entries[] = new \SplFileInfo( $source );
+                $entries[] = new \SplFileInfo($source);
             }
 
-            $regexp = '~\\.'.implode( '|', $this->config->extensions ).'$~i';
+            $regexp = '~\\.'.implode('|', $this->config->extensions).'$~i';
             foreach ($entries as $entry) {
-                if (!preg_match( $regexp, $entry->getFilename() )) {
+                if (!preg_match($regexp, $entry->getFilename())) {
                     continue;
                 }
 
-                $pathName = $this->normalizePath( $entry->getPathName() );
+                $pathName = $this->normalizePath($entry->getPathName());
                 $files[$pathName] = $entry->getSize();
                 if (false !== $entry->getRealPath() && $pathName !== $entry->getRealPath()) {
                     $this->symlinks[$entry->getRealPath()] = $pathName;
@@ -220,62 +220,62 @@ class Generator extends Nette\Object
         }
 
         if (empty( $files )) {
-            throw new RuntimeException( 'No PHP files found' );
+            throw new RuntimeException('No PHP files found');
         }
 
         if ($this->config->progressbar) {
-            $this->prepareProgressBar( array_sum( $files ) );
+            $this->prepareProgressBar(array_sum($files));
         }
 
-        $broker = new Broker( new Backend( $this, !empty( $this->config->report ) ),
-            Broker::OPTION_DEFAULT & ~( Broker::OPTION_PARSE_FUNCTION_BODY | Broker::OPTION_SAVE_TOKEN_STREAM ) );
+        $broker = new Broker(new Backend($this, !empty( $this->config->report )),
+            Broker::OPTION_DEFAULT & ~( Broker::OPTION_PARSE_FUNCTION_BODY | Broker::OPTION_SAVE_TOKEN_STREAM ));
 
         $errors = array();
 
         foreach ($files as $fileName => $size) {
-            $content = file_get_contents( $fileName );
-            $charset = $this->detectCharset( $content );
+            $content = file_get_contents($fileName);
+            $charset = $this->detectCharset($content);
             $this->charsets[$fileName] = $charset;
-            $content = $this->toUtf( $content, $charset );
+            $content = $this->toUtf($content, $charset);
 
             try {
-                $broker->processString( $content, $fileName );
-            } catch( \Exception $e ) {
+                $broker->processString($content, $fileName);
+            } catch (\Exception $e) {
                 $errors[] = $e;
             }
 
-            $this->incrementProgressBar( $size );
+            $this->incrementProgressBar($size);
             $this->checkMemory();
         }
 
         // Classes
-        $this->parsedClasses->exchangeArray( $broker->getClasses( Backend::TOKENIZED_CLASSES | Backend::INTERNAL_CLASSES | Backend::NONEXISTENT_CLASSES ) );
-        $this->parsedClasses->uksort( 'strcasecmp' );
+        $this->parsedClasses->exchangeArray($broker->getClasses(Backend::TOKENIZED_CLASSES | Backend::INTERNAL_CLASSES | Backend::NONEXISTENT_CLASSES));
+        $this->parsedClasses->uksort('strcasecmp');
 
         // Constants
-        $this->parsedConstants->exchangeArray( $broker->getConstants() );
-        $this->parsedConstants->uksort( 'strcasecmp' );
+        $this->parsedConstants->exchangeArray($broker->getConstants());
+        $this->parsedConstants->uksort('strcasecmp');
 
         // Functions
-        $this->parsedFunctions->exchangeArray( $broker->getFunctions() );
-        $this->parsedFunctions->uksort( 'strcasecmp' );
+        $this->parsedFunctions->exchangeArray($broker->getFunctions());
+        $this->parsedFunctions->uksort('strcasecmp');
 
-        $documentedCounter = function ( $count, $element ) {
+        $documentedCounter = function ($count, $element) {
 
             return $count += (int)$element->isDocumented();
         };
 
         return (object)array(
-            'classes'                   => count( $broker->getClasses( Backend::TOKENIZED_CLASSES ) ),
-            'constants'                 => count( $this->parsedConstants ),
-            'functions'                 => count( $this->parsedFunctions ),
-            'internalClasses'           => count( $broker->getClasses( Backend::INTERNAL_CLASSES ) ),
-            'documentedClasses'         => array_reduce( $broker->getClasses( Backend::TOKENIZED_CLASSES ),
-                $documentedCounter ),
-            'documentedConstants'       => array_reduce( $this->parsedConstants->getArrayCopy(), $documentedCounter ),
-            'documentedFunctions'       => array_reduce( $this->parsedFunctions->getArrayCopy(), $documentedCounter ),
-            'documentedInternalClasses' => array_reduce( $broker->getClasses( Backend::INTERNAL_CLASSES ),
-                $documentedCounter ),
+            'classes'                   => count($broker->getClasses(Backend::TOKENIZED_CLASSES)),
+            'constants'                 => count($this->parsedConstants),
+            'functions'                 => count($this->parsedFunctions),
+            'internalClasses'           => count($broker->getClasses(Backend::INTERNAL_CLASSES)),
+            'documentedClasses'         => array_reduce($broker->getClasses(Backend::TOKENIZED_CLASSES),
+                $documentedCounter),
+            'documentedConstants'       => array_reduce($this->parsedConstants->getArrayCopy(), $documentedCounter),
+            'documentedFunctions'       => array_reduce($this->parsedFunctions->getArrayCopy(), $documentedCounter),
+            'documentedInternalClasses' => array_reduce($broker->getClasses(Backend::INTERNAL_CLASSES),
+                $documentedCounter),
             'errors'                    => $errors
         );
     }
@@ -287,10 +287,10 @@ class Generator extends Nette\Object
      *
      * @return boolean
      */
-    private function isPhar( $path )
+    private function isPhar($path)
     {
 
-        return (bool)preg_match( '~\\.phar(?:\\.zip|\\.tar|(?:(?:\\.tar)?(?:\\.gz|\\.bz2))|$)~i', $path );
+        return (bool)preg_match('~\\.phar(?:\\.zip|\\.tar|(?:(?:\\.tar)?(?:\\.gz|\\.bz2))|$)~i', $path);
     }
 
     /**
@@ -300,11 +300,11 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function normalizePath( $path )
+    private function normalizePath($path)
     {
 
-        $path = str_replace( array( '/', '\\' ), DIRECTORY_SEPARATOR, $path );
-        $path = str_replace( 'phar:\\\\', 'phar://', $path );
+        $path = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $path);
+        $path = str_replace('phar:\\\\', 'phar://', $path);
         return $path;
     }
 
@@ -313,7 +313,7 @@ class Generator extends Nette\Object
      *
      * @param integer $maximum Maximum progressbar value
      */
-    private function prepareProgressBar( $maximum = 1 )
+    private function prepareProgressBar($maximum = 1)
     {
 
         if (!$this->config->progressbar) {
@@ -331,17 +331,17 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function detectCharset( $text )
+    private function detectCharset($text)
     {
 
         // One character set
-        if (1 === count( $this->config->charset ) && 'AUTO' !== $this->config->charset[0]) {
+        if (1 === count($this->config->charset) && 'AUTO' !== $this->config->charset[0]) {
             return $this->config->charset[0];
         }
 
         static $charsets = array();
         if (empty( $charsets )) {
-            if (1 === count( $this->config->charset ) && 'AUTO' === $this->config->charset[0]) {
+            if (1 === count($this->config->charset) && 'AUTO' === $this->config->charset[0]) {
                 // Autodetection
                 $charsets = array(
                     'Windows-1251',
@@ -363,21 +363,21 @@ class Generator extends Nette\Object
             } else {
                 // More character sets
                 $charsets = $this->config->charset;
-                if (false !== ( $key = array_search( 'WINDOWS-1250', $charsets ) )) {
+                if (false !== ( $key = array_search('WINDOWS-1250', $charsets) )) {
                     // WINDOWS-1250 is not supported
                     $charsets[$key] = 'ISO-8859-2';
                 }
             }
             // Only supported character sets
-            $charsets = array_intersect( $charsets, mb_list_encodings() );
+            $charsets = array_intersect($charsets, mb_list_encodings());
 
             // UTF-8 have to be first
-            array_unshift( $charsets, 'UTF-8' );
+            array_unshift($charsets, 'UTF-8');
         }
 
-        $charset = mb_detect_encoding( $text, $charsets );
+        $charset = mb_detect_encoding($text, $charsets);
         // The previous function can not handle WINDOWS-1250 and returns ISO-8859-2 instead
-        if ('ISO-8859-2' === $charset && preg_match( '~[\x7F-\x9F\xBC]~', $text )) {
+        if ('ISO-8859-2' === $charset && preg_match('~[\x7F-\x9F\xBC]~', $text)) {
             $charset = 'WINDOWS-1250';
         }
 
@@ -392,14 +392,14 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function toUtf( $text, $charset )
+    private function toUtf($text, $charset)
     {
 
         if ('UTF-8' === $charset) {
             return $text;
         }
 
-        return @iconv( $charset, 'UTF-8//TRANSLIT//IGNORE', $text );
+        return @iconv($charset, 'UTF-8//TRANSLIT//IGNORE', $text);
     }
 
     /**
@@ -407,24 +407,24 @@ class Generator extends Nette\Object
      *
      * @param integer $increment Progressbar increment
      */
-    private function incrementProgressBar( $increment = 1 )
+    private function incrementProgressBar($increment = 1)
     {
 
         if (!$this->config->progressbar) {
             return;
         }
 
-        echo str_repeat( chr( 0x08 ), $this->progressbar['width'] );
+        echo str_repeat(chr(0x08), $this->progressbar['width']);
 
         $this->progressbar['current'] += $increment;
 
         $percent = $this->progressbar['current'] / $this->progressbar['maximum'];
 
-        $progress = str_pad( str_pad( '>', round( $percent * $this->progressbar['bar'] ), '=', STR_PAD_LEFT ),
-            $this->progressbar['bar'], ' ', STR_PAD_RIGHT );
+        $progress = str_pad(str_pad('>', round($percent * $this->progressbar['bar']), '=', STR_PAD_LEFT),
+            $this->progressbar['bar'], ' ', STR_PAD_RIGHT);
 
-        echo sprintf( $this->progressbar['skeleton'], $progress, $percent * 100,
-            round( memory_get_usage( true ) / 1024 / 1024 ) );
+        echo sprintf($this->progressbar['skeleton'], $progress, $percent * 100,
+            round(memory_get_usage(true) / 1024 / 1024));
 
         if ($this->progressbar['current'] === $this->progressbar['maximum']) {
             echo "\n";
@@ -442,8 +442,8 @@ class Generator extends Nette\Object
 
         static $limit = null;
         if (null === $limit) {
-            $value = ini_get( 'memory_limit' );
-            $unit = substr( $value, -1 );
+            $value = ini_get('memory_limit');
+            $unit = substr($value, -1);
             if ('-1' === $value) {
                 $limit = 0;
             } elseif ('G' === $unit) {
@@ -455,9 +455,9 @@ class Generator extends Nette\Object
             }
         }
 
-        if ($limit && memory_get_usage( true ) / $limit >= 0.9) {
-            throw new RuntimeException( sprintf( 'Used %d%% of the current memory limit, please increase the limit to generate the whole documentation.',
-                round( memory_get_usage( true ) / $limit * 100 ) ) );
+        if ($limit && memory_get_usage(true) / $limit >= 0.9) {
+            throw new RuntimeException(sprintf('Used %d%% of the current memory limit, please increase the limit to generate the whole documentation.',
+                round(memory_get_usage(true) / $limit * 100)));
         }
 
         return $this;
@@ -516,13 +516,13 @@ class Generator extends Nette\Object
     {
 
         foreach ($this->getGeneratedFiles() as $path) {
-            if (is_file( $path ) && !@unlink( $path )) {
+            if (is_file($path) && !@unlink($path)) {
                 return false;
             }
         }
 
         $archive = $this->getArchivePath();
-        if (is_file( $archive ) && !@unlink( $archive )) {
+        if (is_file($archive) && !@unlink($archive)) {
             return false;
         }
 
@@ -542,8 +542,8 @@ class Generator extends Nette\Object
         // Resources
         foreach ($this->config->template['resources'] as $item) {
             $path = $this->getTemplateDir().DIRECTORY_SEPARATOR.$item;
-            if (is_dir( $path )) {
-                $iterator = Nette\Utils\Finder::findFiles( '*' )->from( $path )->getIterator();
+            if (is_dir($path)) {
+                $iterator = Nette\Utils\Finder::findFiles('*')->from($path)->getIterator();
                 foreach ($iterator as $innerItem) {
                     $files[] = $this->config->destination.DIRECTORY_SEPARATOR.$item.DIRECTORY_SEPARATOR.$iterator->getSubPathName();
                 }
@@ -563,21 +563,21 @@ class Generator extends Nette\Object
         }
 
         // Main files
-        $masks = array_map( function ( $config ) {
+        $masks = array_map(function ($config) {
 
-            return preg_replace( '~%[^%]*?s~', '*', $config['filename'] );
-        }, $this->config->template['templates']['main'] );
-        $filter = function ( $item ) use ( $masks ) {
+            return preg_replace('~%[^%]*?s~', '*', $config['filename']);
+        }, $this->config->template['templates']['main']);
+        $filter = function ($item) use ($masks) {
 
             foreach ($masks as $mask) {
-                if (fnmatch( $mask, $item->getFilename() )) {
+                if (fnmatch($mask, $item->getFilename())) {
                     return true;
                 }
             }
             return false;
         };
 
-        foreach (Nette\Utils\Finder::findFiles( '*' )->filter( $filter )->from( $this->config->destination ) as $item) {
+        foreach (Nette\Utils\Finder::findFiles('*')->filter($filter)->from($this->config->destination) as $item) {
             $files[] = $item->getPathName();
         }
 
@@ -592,7 +592,7 @@ class Generator extends Nette\Object
     private function getTemplateDir()
     {
 
-        return dirname( $this->config->templateConfig );
+        return dirname($this->config->templateConfig);
     }
 
     /**
@@ -603,8 +603,8 @@ class Generator extends Nette\Object
     private function getArchivePath()
     {
 
-        $name = trim( sprintf( '%s API documentation', $this->config->title ) );
-        return $this->config->destination.DIRECTORY_SEPARATOR.Nette\Utils\Strings::webalize( $name ).'.zip';
+        $name = trim(sprintf('%s API documentation', $this->config->title));
+        return $this->config->destination.DIRECTORY_SEPARATOR.Nette\Utils\Strings::webalize($name).'.zip';
     }
 
     /**
@@ -615,29 +615,29 @@ class Generator extends Nette\Object
     public function generate()
     {
 
-        if (!is_dir( $this->config->destination )) {
-            @mkdir( $this->config->destination, 0755, true );
+        if (!is_dir($this->config->destination)) {
+            @mkdir($this->config->destination, 0755, true);
         }
 
-        if (!is_dir( $this->config->destination ) || !is_writable( $this->config->destination )) {
-            throw new RuntimeException( sprintf( 'Directory "%s" isn\'t writable', $this->config->destination ) );
+        if (!is_dir($this->config->destination) || !is_writable($this->config->destination)) {
+            throw new RuntimeException(sprintf('Directory "%s" isn\'t writable', $this->config->destination));
         }
 
         // Copy resources
         foreach ($this->config->template['resources'] as $resourceSource => $resourceDestination) {
             // File
             $resourcePath = $this->getTemplateDir().DIRECTORY_SEPARATOR.$resourceSource;
-            if (is_file( $resourcePath )) {
-                copy( $resourcePath,
-                    $this->forceDir( $this->config->destination.DIRECTORY_SEPARATOR.$resourceDestination ) );
+            if (is_file($resourcePath)) {
+                copy($resourcePath,
+                    $this->forceDir($this->config->destination.DIRECTORY_SEPARATOR.$resourceDestination));
                 continue;
             }
 
             // Dir
-            $iterator = Nette\Utils\Finder::findFiles( '*' )->from( $resourcePath )->getIterator();
+            $iterator = Nette\Utils\Finder::findFiles('*')->from($resourcePath)->getIterator();
             foreach ($iterator as $item) {
-                copy( $item->getPathName(),
-                    $this->forceDir( $this->config->destination.DIRECTORY_SEPARATOR.$resourceDestination.DIRECTORY_SEPARATOR.$iterator->getSubPathName() ) );
+                copy($item->getPathName(),
+                    $this->forceDir($this->config->destination.DIRECTORY_SEPARATOR.$resourceDestination.DIRECTORY_SEPARATOR.$iterator->getSubPathName()));
             }
         }
 
@@ -646,15 +646,15 @@ class Generator extends Nette\Object
 
         // Prepare progressbar
         if ($this->config->progressbar) {
-            $max = count( $this->packages )
-                + count( $this->namespaces )
-                + count( $this->classes )
-                + count( $this->interfaces )
-                + count( $this->traits )
-                + count( $this->exceptions )
-                + count( $this->constants )
-                + count( $this->functions )
-                + count( $this->config->template['templates']['common'] )
+            $max = count($this->packages)
+                + count($this->namespaces)
+                + count($this->classes)
+                + count($this->interfaces)
+                + count($this->traits)
+                + count($this->exceptions)
+                + count($this->constants)
+                + count($this->functions)
+                + count($this->config->template['templates']['common'])
                 + (int)!empty( $this->config->report )
                 + (int)$this->config->tree
                 + (int)$this->config->deprecated
@@ -665,39 +665,39 @@ class Generator extends Nette\Object
                 + (int)$this->isRobotsEnabled();
 
             if ($this->config->sourceCode) {
-                $tokenizedFilter = function ( ReflectionClass $class ) {
+                $tokenizedFilter = function (ReflectionClass $class) {
 
                     return $class->isTokenized();
                 };
-                $max += count( array_filter( $this->classes, $tokenizedFilter ) )
-                    + count( array_filter( $this->interfaces, $tokenizedFilter ) )
-                    + count( array_filter( $this->traits, $tokenizedFilter ) )
-                    + count( array_filter( $this->exceptions, $tokenizedFilter ) )
-                    + count( $this->constants )
-                    + count( $this->functions );
+                $max += count(array_filter($this->classes, $tokenizedFilter))
+                    + count(array_filter($this->interfaces, $tokenizedFilter))
+                    + count(array_filter($this->traits, $tokenizedFilter))
+                    + count(array_filter($this->exceptions, $tokenizedFilter))
+                    + count($this->constants)
+                    + count($this->functions);
                 unset( $tokenizedFilter );
             }
 
-            $this->prepareProgressBar( $max );
+            $this->prepareProgressBar($max);
         }
 
         // Prepare template
         $tmp = $this->config->destination.DIRECTORY_SEPARATOR.'tmp';
-        $this->deleteDir( $tmp );
-        @mkdir( $tmp, 0755, true );
-        $template = new Template( $this );
-        $template->setCacheStorage( new Nette\Caching\Storages\PhpFileStorage( $tmp ) );
+        $this->deleteDir($tmp);
+        @mkdir($tmp, 0755, true);
+        $template = new Template($this);
+        $template->setCacheStorage(new Nette\Caching\Storages\PhpFileStorage($tmp));
         $template->generator = self::NAME;
         $template->version = self::VERSION;
         $template->config = $this->config;
 
-        $this->registerCustomTemplateMacros( $template );
+        $this->registerCustomTemplateMacros($template);
 
         // Common files
-        $this->generateCommon( $template );
+        $this->generateCommon($template);
 
         // Optional files
-        $this->generateOptional( $template );
+        $this->generateOptional($template);
 
         // List of poorly documented elements
         if (!empty( $this->config->report )) {
@@ -706,27 +706,27 @@ class Generator extends Nette\Object
 
         // List of deprecated elements
         if ($this->config->deprecated) {
-            $this->generateDeprecated( $template );
+            $this->generateDeprecated($template);
         }
 
         // List of tasks
         if ($this->config->todo) {
-            $this->generateTodo( $template );
+            $this->generateTodo($template);
         }
 
         // Classes/interfaces/traits/exceptions tree
         if ($this->config->tree) {
-            $this->generateTree( $template );
+            $this->generateTree($template);
         }
 
         // Generate packages summary
-        $this->generatePackages( $template );
+        $this->generatePackages($template);
 
         // Generate namespaces summary
-        $this->generateNamespaces( $template );
+        $this->generateNamespaces($template);
 
         // Generate classes, interfaces, traits, exceptions, constants and functions files
-        $this->generateElements( $template );
+        $this->generateElements($template);
 
         // Generate ZIP archive
         if ($this->config->download) {
@@ -734,7 +734,7 @@ class Generator extends Nette\Object
         }
 
         // Delete temporary directory
-        $this->deleteDir( $tmp );
+        $this->deleteDir($tmp);
     }
 
     /**
@@ -744,11 +744,11 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function forceDir( $path )
+    private function forceDir($path)
     {
 
-        if (!is_dir( dirname( $path ) )) {
-            @mkdir( dirname( $path ), 0755, true );
+        if (!is_dir(dirname($path))) {
+            @mkdir(dirname($path), 0755, true);
         }
         return $path;
     }
@@ -761,8 +761,8 @@ class Generator extends Nette\Object
     private function categorize()
     {
 
-        foreach (array( 'classes', 'constants', 'functions' ) as $type) {
-            foreach ($this->{'parsed'.ucfirst( $type )} as $elementName => $element) {
+        foreach (array('classes', 'constants', 'functions') as $type) {
+            foreach ($this->{'parsed'.ucfirst($type)} as $elementName => $element) {
                 if (!$element->isDocumented()) {
                     continue;
                 }
@@ -799,18 +799,18 @@ class Generator extends Nette\Object
         }
 
         // Select only packages or namespaces
-        $userPackagesCount = count( array_diff( array_keys( $this->packages ), array( 'PHP', 'None' ) ) );
-        $userNamespacesCount = count( array_diff( array_keys( $this->namespaces ), array( 'PHP', 'None' ) ) );
+        $userPackagesCount = count(array_diff(array_keys($this->packages), array('PHP', 'None')));
+        $userNamespacesCount = count(array_diff(array_keys($this->namespaces), array('PHP', 'None')));
 
         $namespacesEnabled = ( 'auto' === $this->config->groups && ( $userNamespacesCount > 0 || 0 === $userPackagesCount ) ) || 'namespaces' === $this->config->groups;
         $packagesEnabled = ( 'auto' === $this->config->groups && !$namespacesEnabled ) || 'packages' === $this->config->groups;
 
         if ($namespacesEnabled) {
             $this->packages = array();
-            $this->namespaces = $this->sortGroups( $this->namespaces );
+            $this->namespaces = $this->sortGroups($this->namespaces);
         } elseif ($packagesEnabled) {
             $this->namespaces = array();
-            $this->packages = $this->sortGroups( $this->packages );
+            $this->packages = $this->sortGroups($this->packages);
         } else {
             $this->namespaces = array();
             $this->packages = array();
@@ -826,11 +826,11 @@ class Generator extends Nette\Object
      *
      * @return array
      */
-    private function sortGroups( array $groups )
+    private function sortGroups(array $groups)
     {
 
         // Don't generate only 'None' groups
-        if (1 === count( $groups ) && isset( $groups['None'] )) {
+        if (1 === count($groups) && isset( $groups['None'] )) {
             return array();
         }
 
@@ -843,18 +843,18 @@ class Generator extends Nette\Object
             'functions'  => array()
         );
 
-        $groupNames = array_keys( $groups );
-        $lowerGroupNames = array_flip( array_map( function ( $y ) {
+        $groupNames = array_keys($groups);
+        $lowerGroupNames = array_flip(array_map(function ($y) {
 
-            return strtolower( $y );
-        }, $groupNames ) );
+            return strtolower($y);
+        }, $groupNames));
 
         foreach ($groupNames as $groupName) {
             // Add missing parent groups
             $parent = '';
-            foreach (explode( '\\', $groupName ) as $part) {
-                $parent = ltrim( $parent.'\\'.$part, '\\' );
-                if (!isset( $lowerGroupNames[strtolower( $parent )] )) {
+            foreach (explode('\\', $groupName) as $part) {
+                $parent = ltrim($parent.'\\'.$part, '\\');
+                if (!isset( $lowerGroupNames[strtolower($parent)] )) {
                     $groups[$parent] = $emptyList;
                 }
             }
@@ -868,22 +868,22 @@ class Generator extends Nette\Object
         }
 
         $main = $this->config->main;
-        uksort( $groups, function ( $one, $two ) use ( $main ) {
+        uksort($groups, function ($one, $two) use ($main) {
 
             // \ as separator has to be first
-            $one = str_replace( '\\', ' ', $one );
-            $two = str_replace( '\\', ' ', $two );
+            $one = str_replace('\\', ' ', $one);
+            $two = str_replace('\\', ' ', $two);
 
             if ($main) {
-                if (0 === strpos( $one, $main ) && 0 !== strpos( $two, $main )) {
+                if (0 === strpos($one, $main) && 0 !== strpos($two, $main)) {
                     return -1;
-                } elseif (0 !== strpos( $one, $main ) && 0 === strpos( $two, $main )) {
+                } elseif (0 !== strpos($one, $main) && 0 === strpos($two, $main)) {
                     return 1;
                 }
             }
 
-            return strcasecmp( $one, $two );
-        } );
+            return strcasecmp($one, $two);
+        });
 
         return $groups;
     }
@@ -896,7 +896,7 @@ class Generator extends Nette\Object
     private function getElementTypes()
     {
 
-        static $types = array( 'classes', 'interfaces', 'traits', 'exceptions', 'constants', 'functions' );
+        static $types = array('classes', 'interfaces', 'traits', 'exceptions', 'constants', 'functions');
         return $types;
     }
 
@@ -908,7 +908,7 @@ class Generator extends Nette\Object
     private function isSitemapEnabled()
     {
 
-        return !empty( $this->config->baseUrl ) && $this->templateExists( 'sitemap', 'optional' );
+        return !empty( $this->config->baseUrl ) && $this->templateExists('sitemap', 'optional');
     }
 
     /**
@@ -919,7 +919,7 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function templateExists( $name, $type = 'main' )
+    private function templateExists($name, $type = 'main')
     {
 
         return isset( $this->config->template['templates'][$type][$name] );
@@ -933,8 +933,8 @@ class Generator extends Nette\Object
     private function isOpensearchEnabled()
     {
 
-        return !empty( $this->config->googleCseId ) && !empty( $this->config->baseUrl ) && $this->templateExists( 'opensearch',
-            'optional' );
+        return !empty( $this->config->googleCseId ) && !empty( $this->config->baseUrl ) && $this->templateExists('opensearch',
+            'optional');
     }
 
     /**
@@ -945,7 +945,7 @@ class Generator extends Nette\Object
     private function isRobotsEnabled()
     {
 
-        return !empty( $this->config->baseUrl ) && $this->templateExists( 'robots', 'optional' );
+        return !empty( $this->config->baseUrl ) && $this->templateExists('robots', 'optional');
     }
 
     /**
@@ -955,25 +955,25 @@ class Generator extends Nette\Object
      *
      * @return boolean
      */
-    private function deleteDir( $path )
+    private function deleteDir($path)
     {
 
-        if (!is_dir( $path )) {
+        if (!is_dir($path)) {
             return true;
         }
 
-        foreach (Nette\Utils\Finder::find( '*' )->from( $path )->childFirst() as $item) {
+        foreach (Nette\Utils\Finder::find('*')->from($path)->childFirst() as $item) {
             if ($item->isDir()) {
-                if (!@rmdir( $item )) {
+                if (!@rmdir($item)) {
                     return false;
                 }
             } elseif ($item->isFile()) {
-                if (!@unlink( $item )) {
+                if (!@unlink($item)) {
                     return false;
                 }
             }
         }
-        if (!@rmdir( $path )) {
+        if (!@rmdir($path)) {
             return false;
         }
 
@@ -985,54 +985,54 @@ class Generator extends Nette\Object
      *
      * @param \ApiGen\Template $template Template instance
      */
-    private function registerCustomTemplateMacros( Template $template )
+    private function registerCustomTemplateMacros(Template $template)
     {
 
         $latte = new Nette\Latte\Engine();
 
         if (!empty( $this->config->template['options']['extensions'] )) {
-            $this->output( "Loading custom template macro and helper libraries\n" );
-            $broker = new Broker( new Broker\Backend\Memory(), 0 );
+            $this->output("Loading custom template macro and helper libraries\n");
+            $broker = new Broker(new Broker\Backend\Memory(), 0);
 
-            $baseDir = dirname( $this->config->template['config'] );
+            $baseDir = dirname($this->config->template['config']);
             foreach ((array)$this->config->template['options']['extensions'] as $fileName) {
                 $pathName = $baseDir.DIRECTORY_SEPARATOR.$fileName;
-                if (is_file( $pathName )) {
+                if (is_file($pathName)) {
                     try {
-                        $reflectionFile = $broker->processFile( $pathName, true );
+                        $reflectionFile = $broker->processFile($pathName, true);
 
                         foreach ($reflectionFile->getNamespaces() as $namespace) {
                             foreach ($namespace->getClasses() as $class) {
-                                if ($class->isSubclassOf( 'ApiGen\\MacroSet' )) {
+                                if ($class->isSubclassOf('ApiGen\\MacroSet')) {
                                     // Macro set
 
                                     include $pathName;
-                                    call_user_func( array( $class->getName(), 'install' ), $latte->compiler );
+                                    call_user_func(array($class->getName(), 'install'), $latte->compiler);
 
-                                    $this->output( sprintf( "  %s (macro set)\n", $class->getName() ) );
-                                } elseif ($class->implementsInterface( 'ApiGen\\IHelperSet' )) {
+                                    $this->output(sprintf("  %s (macro set)\n", $class->getName()));
+                                } elseif ($class->implementsInterface('ApiGen\\IHelperSet')) {
                                     // Helpers set
 
                                     include $pathName;
                                     $className = $class->getName();
-                                    $template->registerHelperLoader( callback( new $className( $template ),
-                                        'loader' ) );
+                                    $template->registerHelperLoader(callback(new $className($template),
+                                        'loader'));
 
-                                    $this->output( sprintf( "  %s (helper set)\n", $class->getName() ) );
+                                    $this->output(sprintf("  %s (helper set)\n", $class->getName()));
                                 }
                             }
                         }
-                    } catch( \Exception $e ) {
-                        throw new \Exception( sprintf( 'Could not load macros and helpers from file "%s"', $pathName ),
-                            0, $e );
+                    } catch (\Exception $e) {
+                        throw new \Exception(sprintf('Could not load macros and helpers from file "%s"', $pathName),
+                            0, $e);
                     }
                 } else {
-                    throw new \Exception( sprintf( 'Helper file "%s" does not exist.', $pathName ) );
+                    throw new \Exception(sprintf('Helper file "%s" does not exist.', $pathName));
                 }
             }
         }
 
-        $template->registerFilter( $latte );
+        $template->registerFilter($latte);
     }
 
     /**
@@ -1040,11 +1040,11 @@ class Generator extends Nette\Object
      *
      * @param string $message Output message
      */
-    public function output( $message )
+    public function output($message)
     {
 
         if (!$this->config->quiet) {
-            echo $this->colorize( $message );
+            echo $this->colorize($message);
         }
     }
 
@@ -1055,7 +1055,7 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    public function colorize( $message )
+    public function colorize($message)
     {
 
         static $placeholders = array(
@@ -1068,10 +1068,10 @@ class Generator extends Nette\Object
         );
 
         if (!$this->config->colors) {
-            $placeholders = array_fill_keys( array_keys( $placeholders ), '' );
+            $placeholders = array_fill_keys(array_keys($placeholders), '');
         }
 
-        return strtr( $message, $placeholders );
+        return strtr($message, $placeholders);
     }
 
     /**
@@ -1081,71 +1081,71 @@ class Generator extends Nette\Object
      *
      * @return \ApiGen\Generator
      */
-    private function generateCommon( Template $template )
+    private function generateCommon(Template $template)
     {
 
         $template->namespace = null;
-        $template->namespaces = array_keys( $this->namespaces );
+        $template->namespaces = array_keys($this->namespaces);
         $template->package = null;
-        $template->packages = array_keys( $this->packages );
+        $template->packages = array_keys($this->packages);
         $template->class = null;
-        $template->classes = array_filter( $this->classes, $this->getMainFilter() );
-        $template->interfaces = array_filter( $this->interfaces, $this->getMainFilter() );
-        $template->traits = array_filter( $this->traits, $this->getMainFilter() );
-        $template->exceptions = array_filter( $this->exceptions, $this->getMainFilter() );
+        $template->classes = array_filter($this->classes, $this->getMainFilter());
+        $template->interfaces = array_filter($this->interfaces, $this->getMainFilter());
+        $template->traits = array_filter($this->traits, $this->getMainFilter());
+        $template->exceptions = array_filter($this->exceptions, $this->getMainFilter());
         $template->constant = null;
-        $template->constants = array_filter( $this->constants, $this->getMainFilter() );
+        $template->constants = array_filter($this->constants, $this->getMainFilter());
         $template->function = null;
-        $template->functions = array_filter( $this->functions, $this->getMainFilter() );
-        $template->archive = basename( $this->getArchivePath() );
+        $template->functions = array_filter($this->functions, $this->getMainFilter());
+        $template->archive = basename($this->getArchivePath());
 
         // Elements for autocomplete
         $elements = array();
-        $autocomplete = array_flip( $this->config->autocomplete );
+        $autocomplete = array_flip($this->config->autocomplete);
         foreach ($this->getElementTypes() as $type) {
             foreach ($this->$type as $element) {
                 if ($element instanceof ReflectionClass) {
                     if (isset( $autocomplete['classes'] )) {
-                        $elements[] = array( 'c', $element->getPrettyName() );
+                        $elements[] = array('c', $element->getPrettyName());
                     }
                     if (isset( $autocomplete['methods'] )) {
                         foreach ($element->getOwnMethods() as $method) {
-                            $elements[] = array( 'm', $method->getPrettyName() );
+                            $elements[] = array('m', $method->getPrettyName());
                         }
                         foreach ($element->getOwnMagicMethods() as $method) {
-                            $elements[] = array( 'mm', $method->getPrettyName() );
+                            $elements[] = array('mm', $method->getPrettyName());
                         }
                     }
                     if (isset( $autocomplete['properties'] )) {
                         foreach ($element->getOwnProperties() as $property) {
-                            $elements[] = array( 'p', $property->getPrettyName() );
+                            $elements[] = array('p', $property->getPrettyName());
                         }
                         foreach ($element->getOwnMagicProperties() as $property) {
-                            $elements[] = array( 'mp', $property->getPrettyName() );
+                            $elements[] = array('mp', $property->getPrettyName());
                         }
                     }
                     if (isset( $autocomplete['classconstants'] )) {
                         foreach ($element->getOwnConstants() as $constant) {
-                            $elements[] = array( 'cc', $constant->getPrettyName() );
+                            $elements[] = array('cc', $constant->getPrettyName());
                         }
                     }
                 } elseif ($element instanceof ReflectionConstant && isset( $autocomplete['constants'] )) {
-                    $elements[] = array( 'co', $element->getPrettyName() );
+                    $elements[] = array('co', $element->getPrettyName());
                 } elseif ($element instanceof ReflectionFunction && isset( $autocomplete['functions'] )) {
-                    $elements[] = array( 'f', $element->getPrettyName() );
+                    $elements[] = array('f', $element->getPrettyName());
                 }
             }
         }
-        usort( $elements, function ( $one, $two ) {
+        usort($elements, function ($one, $two) {
 
-            return strcasecmp( $one[1], $two[1] );
-        } );
+            return strcasecmp($one[1], $two[1]);
+        });
         $template->elements = $elements;
 
         foreach ($this->config->template['templates']['common'] as $source => $destination) {
             $template
-                ->setFile( $this->getTemplateDir().DIRECTORY_SEPARATOR.$source )
-                ->save( $this->forceDir( $this->config->destination.DIRECTORY_SEPARATOR.$destination ) );
+                ->setFile($this->getTemplateDir().DIRECTORY_SEPARATOR.$source)
+                ->save($this->forceDir($this->config->destination.DIRECTORY_SEPARATOR.$destination));
 
             $this->incrementProgressBar();
         }
@@ -1165,7 +1165,7 @@ class Generator extends Nette\Object
     private function getMainFilter()
     {
 
-        return function ( $element ) {
+        return function ($element) {
 
             return $element->isMain();
         };
@@ -1178,25 +1178,25 @@ class Generator extends Nette\Object
      *
      * @return \ApiGen\Generator
      */
-    private function generateOptional( Template $template )
+    private function generateOptional(Template $template)
     {
 
         if ($this->isSitemapEnabled()) {
             $template
-                ->setFile( $this->getTemplatePath( 'sitemap', 'optional' ) )
-                ->save( $this->forceDir( $this->getTemplateFileName( 'sitemap', 'optional' ) ) );
+                ->setFile($this->getTemplatePath('sitemap', 'optional'))
+                ->save($this->forceDir($this->getTemplateFileName('sitemap', 'optional')));
             $this->incrementProgressBar();
         }
         if ($this->isOpensearchEnabled()) {
             $template
-                ->setFile( $this->getTemplatePath( 'opensearch', 'optional' ) )
-                ->save( $this->forceDir( $this->getTemplateFileName( 'opensearch', 'optional' ) ) );
+                ->setFile($this->getTemplatePath('opensearch', 'optional'))
+                ->save($this->forceDir($this->getTemplateFileName('opensearch', 'optional')));
             $this->incrementProgressBar();
         }
         if ($this->isRobotsEnabled()) {
             $template
-                ->setFile( $this->getTemplatePath( 'robots', 'optional' ) )
-                ->save( $this->forceDir( $this->getTemplateFileName( 'robots', 'optional' ) ) );
+                ->setFile($this->getTemplatePath('robots', 'optional'))
+                ->save($this->forceDir($this->getTemplateFileName('robots', 'optional')));
             $this->incrementProgressBar();
         }
 
@@ -1213,7 +1213,7 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function getTemplatePath( $name, $type = 'main' )
+    private function getTemplatePath($name, $type = 'main')
     {
 
         return $this->getTemplateDir().DIRECTORY_SEPARATOR.$this->config->template['templates'][$type][$name]['template'];
@@ -1227,7 +1227,7 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function getTemplateFileName( $name, $type = 'main' )
+    private function getTemplateFileName($name, $type = 'main')
     {
 
         return $this->config->destination.DIRECTORY_SEPARATOR.$this->config->template['templates'][$type][$name]['filename'];
@@ -1244,7 +1244,7 @@ class Generator extends Nette\Object
 
         // Function for element labels
         $that = $this;
-        $labeler = function ( $element ) use ( $that ) {
+        $labeler = function ($element) use ($that) {
 
             if ($element instanceof ReflectionClass) {
                 if ($element->isInterface()) {
@@ -1267,16 +1267,16 @@ class Generator extends Nette\Object
             } elseif ($element instanceof ReflectionParameter) {
                 $label = 'parameter';
             }
-            return sprintf( '%s %s', $label, $element->getPrettyName() );
+            return sprintf('%s %s', $label, $element->getPrettyName());
         };
 
         $list = array();
         foreach ($this->getElementTypes() as $type) {
             foreach ($this->$type as $parentElement) {
-                $fileName = $this->unPharPath( $parentElement->getFileName() );
+                $fileName = $this->unPharPath($parentElement->getFileName());
 
                 if (!$parentElement->isValid()) {
-                    $list[$fileName][] = array( 'error', 0, sprintf( 'Duplicate %s', $labeler( $parentElement ) ) );
+                    $list[$fileName][] = array('error', 0, sprintf('Duplicate %s', $labeler($parentElement)));
                     continue;
                 }
 
@@ -1290,21 +1290,21 @@ class Generator extends Nette\Object
                     continue;
                 }
 
-                $elements = array( $parentElement );
+                $elements = array($parentElement);
                 if ($parentElement instanceof ReflectionClass) {
                     $elements = array_merge(
                         $elements,
-                        array_values( $parentElement->getOwnMethods() ),
-                        array_values( $parentElement->getOwnConstants() ),
-                        array_values( $parentElement->getOwnProperties() )
+                        array_values($parentElement->getOwnMethods()),
+                        array_values($parentElement->getOwnConstants()),
+                        array_values($parentElement->getOwnProperties())
                     );
                 }
 
-                $tokens = $parentElement->getBroker()->getFileTokens( $parentElement->getFileName() );
+                $tokens = $parentElement->getBroker()->getFileTokens($parentElement->getFileName());
 
                 foreach ($elements as $element) {
                     $line = $element->getStartLine();
-                    $label = $labeler( $element );
+                    $label = $labeler($element);
 
                     $annotations = $element->getAnnotations();
 
@@ -1314,12 +1314,12 @@ class Generator extends Nette\Object
                             $list[$fileName][] = array(
                                 'error',
                                 $line,
-                                sprintf( 'Missing documentation of %s', $label )
+                                sprintf('Missing documentation of %s', $label)
                             );
                             continue;
                         }
                         // Description
-                        $list[$fileName][] = array( 'error', $line, sprintf( 'Missing description of %s', $label ) );
+                        $list[$fileName][] = array('error', $line, sprintf('Missing description of %s', $label));
                     }
 
                     // Documentation of method
@@ -1331,19 +1331,19 @@ class Generator extends Nette\Object
                                 $list[$fileName][] = array(
                                     'error',
                                     $line,
-                                    sprintf( 'Missing documentation of %s', $labeler( $parameter ) )
+                                    sprintf('Missing documentation of %s', $labeler($parameter))
                                 );
                                 continue;
                             }
 
-                            if (!preg_match( '~^[\\w\\\\]+(?:\\[\\])?(?:\\|[\\w\\\\]+(?:\\[\\])?)*(?:\\s+\\$'.$parameter->getName().( $parameter->isUnlimited() ? ',\\.{3}' : '' ).')?(?:\\s+.+)?$~s',
-                                $annotations['param'][$no] )
+                            if (!preg_match('~^[\\w\\\\]+(?:\\[\\])?(?:\\|[\\w\\\\]+(?:\\[\\])?)*(?:\\s+\\$'.$parameter->getName().( $parameter->isUnlimited() ? ',\\.{3}' : '' ).')?(?:\\s+.+)?$~s',
+                                $annotations['param'][$no])
                             ) {
                                 $list[$fileName][] = array(
                                     'warning',
                                     $line,
-                                    sprintf( 'Invalid documentation "%s" of %s', $annotations['param'][$no],
-                                        $labeler( $parameter ) )
+                                    sprintf('Invalid documentation "%s" of %s', $annotations['param'][$no],
+                                        $labeler($parameter))
                                 );
                             }
 
@@ -1351,7 +1351,7 @@ class Generator extends Nette\Object
                                 $list[$fileName][] = array(
                                     'warning',
                                     $line,
-                                    sprintf( 'More than one unlimited parameters of %s', $labeler( $element ) )
+                                    sprintf('More than one unlimited parameters of %s', $labeler($element))
                                 );
                             } elseif ($parameter->isUnlimited()) {
                                 $unlimited = true;
@@ -1364,22 +1364,22 @@ class Generator extends Nette\Object
                                 $list[$fileName][] = array(
                                     'warning',
                                     $line,
-                                    sprintf( 'Existing documentation "%s" of nonexistent parameter of %s', $annotation,
-                                        $label )
+                                    sprintf('Existing documentation "%s" of nonexistent parameter of %s', $annotation,
+                                        $label)
                                 );
                             }
                         }
 
                         // Return values
                         $return = false;
-                        $tokens->seek( $element->getStartPosition() )
-                            ->find( T_FUNCTION );
+                        $tokens->seek($element->getStartPosition())
+                            ->find(T_FUNCTION);
                         while ($tokens->next() && $tokens->key() < $element->getEndPosition()) {
                             $type = $tokens->getType();
                             if (T_FUNCTION === $type) {
                                 // Skip annonymous functions
-                                $tokens->find( '{' )->findMatchingBracket();
-                            } elseif (T_RETURN === $type && !$tokens->skipWhitespaces()->is( ';' )) {
+                                $tokens->find('{')->findMatchingBracket();
+                            } elseif (T_RETURN === $type && !$tokens->skipWhitespaces()->is(';')) {
                                 // Skip return without return value
                                 $return = true;
                                 break;
@@ -1389,24 +1389,24 @@ class Generator extends Nette\Object
                             $list[$fileName][] = array(
                                 'error',
                                 $line,
-                                sprintf( 'Missing documentation of return value of %s', $label )
+                                sprintf('Missing documentation of return value of %s', $label)
                             );
                         } elseif (isset( $annotations['return'] )) {
                             if (!$return && 'void' !== $annotations['return'][0] && ( $element instanceof ReflectionFunction || ( !$parentElement->isInterface() && !$element->isAbstract() ) )) {
                                 $list[$fileName][] = array(
                                     'warning',
                                     $line,
-                                    sprintf( 'Existing documentation "%s" of nonexistent return value of %s',
-                                        $annotations['return'][0], $label )
+                                    sprintf('Existing documentation "%s" of nonexistent return value of %s',
+                                        $annotations['return'][0], $label)
                                 );
-                            } elseif (!preg_match( '~^[\\w\\\\]+(?:\\[\\])?(?:\\|[\\w\\\\]+(?:\\[\\])?)*(?:\\s+.+)?$~s',
-                                $annotations['return'][0] )
+                            } elseif (!preg_match('~^[\\w\\\\]+(?:\\[\\])?(?:\\|[\\w\\\\]+(?:\\[\\])?)*(?:\\s+.+)?$~s',
+                                $annotations['return'][0])
                             ) {
                                 $list[$fileName][] = array(
                                     'warning',
                                     $line,
-                                    sprintf( 'Invalid documentation "%s" of return value of %s',
-                                        $annotations['return'][0], $label )
+                                    sprintf('Invalid documentation "%s" of return value of %s',
+                                        $annotations['return'][0], $label)
                                 );
                             }
                         }
@@ -1414,20 +1414,20 @@ class Generator extends Nette\Object
                             $list[$fileName][] = array(
                                 'warning',
                                 $line,
-                                sprintf( 'Duplicate documentation "%s" of return value of %s',
-                                    $annotations['return'][1], $label )
+                                sprintf('Duplicate documentation "%s" of return value of %s',
+                                    $annotations['return'][1], $label)
                             );
                         }
 
                         // Throwing exceptions
                         $throw = false;
-                        $tokens->seek( $element->getStartPosition() )
-                            ->find( T_FUNCTION );
+                        $tokens->seek($element->getStartPosition())
+                            ->find(T_FUNCTION);
                         while ($tokens->next() && $tokens->key() < $element->getEndPosition()) {
                             $type = $tokens->getType();
                             if (T_TRY === $type) {
                                 // Skip try
-                                $tokens->find( '{' )->findMatchingBracket();
+                                $tokens->find('{')->findMatchingBracket();
                             } elseif (T_THROW === $type) {
                                 $throw = true;
                                 break;
@@ -1437,16 +1437,16 @@ class Generator extends Nette\Object
                             $list[$fileName][] = array(
                                 'error',
                                 $line,
-                                sprintf( 'Missing documentation of throwing an exception of %s', $label )
+                                sprintf('Missing documentation of throwing an exception of %s', $label)
                             );
-                        } elseif (isset( $annotations['throws'] ) && !preg_match( '~^[\\w\\\\]+(?:\\|[\\w\\\\]+)*(?:\\s+.+)?$~s',
-                                $annotations['throws'][0] )
+                        } elseif (isset( $annotations['throws'] ) && !preg_match('~^[\\w\\\\]+(?:\\|[\\w\\\\]+)*(?:\\s+.+)?$~s',
+                                $annotations['throws'][0])
                         ) {
                             $list[$fileName][] = array(
                                 'warning',
                                 $line,
-                                sprintf( 'Invalid documentation "%s" of throwing an exception of %s',
-                                    $annotations['throws'][0], $label )
+                                sprintf('Invalid documentation "%s" of throwing an exception of %s',
+                                    $annotations['throws'][0], $label)
                             );
                         }
                     }
@@ -1457,16 +1457,16 @@ class Generator extends Nette\Object
                             $list[$fileName][] = array(
                                 'error',
                                 $line,
-                                sprintf( 'Missing documentation of the data type of %s', $label )
+                                sprintf('Missing documentation of the data type of %s', $label)
                             );
-                        } elseif (!preg_match( '~^[\\w\\\\]+(?:\\[\\])?(?:\\|[\\w\\\\]+(?:\\[\\])?)*(?:\\s+.+)?$~s',
-                            $annotations['var'][0] )
+                        } elseif (!preg_match('~^[\\w\\\\]+(?:\\[\\])?(?:\\|[\\w\\\\]+(?:\\[\\])?)*(?:\\s+.+)?$~s',
+                            $annotations['var'][0])
                         ) {
                             $list[$fileName][] = array(
                                 'warning',
                                 $line,
-                                sprintf( 'Invalid documentation "%s" of the data type of %s', $annotations['var'][0],
-                                    $label )
+                                sprintf('Invalid documentation "%s" of the data type of %s', $annotations['var'][0],
+                                    $label)
                             );
                         }
 
@@ -1474,8 +1474,8 @@ class Generator extends Nette\Object
                             $list[$fileName][] = array(
                                 'warning',
                                 $line,
-                                sprintf( 'Duplicate documentation "%s" of the data type of %s', $annotations['var'][1],
-                                    $label )
+                                sprintf('Duplicate documentation "%s" of the data type of %s', $annotations['var'][1],
+                                    $label)
                             );
                         }
                     }
@@ -1483,35 +1483,35 @@ class Generator extends Nette\Object
                 unset( $tokens );
             }
         }
-        uksort( $list, 'strcasecmp' );
+        uksort($list, 'strcasecmp');
 
-        $file = @fopen( $this->config->report, 'w' );
+        $file = @fopen($this->config->report, 'w');
         if (false === $file) {
-            throw new RuntimeException( sprintf( 'File "%s" isn\'t writable', $this->config->report ) );
+            throw new RuntimeException(sprintf('File "%s" isn\'t writable', $this->config->report));
         }
-        fwrite( $file, sprintf( '<?xml version="1.0" encoding="UTF-8"?>%s', "\n" ) );
-        fwrite( $file, sprintf( '<checkstyle version="1.3.0">%s', "\n" ) );
+        fwrite($file, sprintf('<?xml version="1.0" encoding="UTF-8"?>%s', "\n"));
+        fwrite($file, sprintf('<checkstyle version="1.3.0">%s', "\n"));
         foreach ($list as $fileName => $reports) {
-            fwrite( $file, sprintf( '%s<file name="%s">%s', "\t", $fileName, "\n" ) );
+            fwrite($file, sprintf('%s<file name="%s">%s', "\t", $fileName, "\n"));
 
             // Sort by line
-            usort( $reports, function ( $one, $two ) {
+            usort($reports, function ($one, $two) {
 
-                return strnatcmp( $one[1], $two[1] );
-            } );
+                return strnatcmp($one[1], $two[1]);
+            });
 
             foreach ($reports as $report) {
                 list( $severity, $line, $message ) = $report;
-                $message = preg_replace( '~\\s+~u', ' ', $message );
-                fwrite( $file,
-                    sprintf( '%s<error severity="%s" line="%s" message="%s" source="ApiGen.Documentation.Documentation"/>%s',
-                        "\t\t", $severity, $line, htmlspecialchars( $message ), "\n" ) );
+                $message = preg_replace('~\\s+~u', ' ', $message);
+                fwrite($file,
+                    sprintf('%s<error severity="%s" line="%s" message="%s" source="ApiGen.Documentation.Documentation"/>%s',
+                        "\t\t", $severity, $line, htmlspecialchars($message), "\n"));
             }
 
-            fwrite( $file, sprintf( '%s</file>%s', "\t", "\n" ) );
+            fwrite($file, sprintf('%s</file>%s', "\t", "\n"));
         }
-        fwrite( $file, sprintf( '</checkstyle>%s', "\n" ) );
-        fclose( $file );
+        fwrite($file, sprintf('</checkstyle>%s', "\n"));
+        fclose($file);
 
         $this->incrementProgressBar();
         $this->checkMemory();
@@ -1526,11 +1526,11 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    public function unPharPath( $path )
+    public function unPharPath($path)
     {
 
-        if (0 === strpos( $path, 'phar://' )) {
-            $path = substr( $path, 7 );
+        if (0 === strpos($path, 'phar://')) {
+            $path = substr($path, 7);
         }
         return $path;
     }
@@ -1543,12 +1543,12 @@ class Generator extends Nette\Object
      * @return \ApiGen\Generator
      * @throws \RuntimeException If template is not set.
      */
-    private function generateDeprecated( Template $template )
+    private function generateDeprecated(Template $template)
     {
 
-        $this->prepareTemplate( 'deprecated' );
+        $this->prepareTemplate('deprecated');
 
-        $deprecatedFilter = function ( $element ) {
+        $deprecatedFilter = function ($element) {
 
             return $element->isDeprecated();
         };
@@ -1556,9 +1556,9 @@ class Generator extends Nette\Object
         $template->deprecatedMethods = array();
         $template->deprecatedConstants = array();
         $template->deprecatedProperties = array();
-        foreach (array_reverse( $this->getElementTypes() ) as $type) {
-            $template->{'deprecated'.ucfirst( $type )} = array_filter( array_filter( $this->$type,
-                $this->getMainFilter() ), $deprecatedFilter );
+        foreach (array_reverse($this->getElementTypes()) as $type) {
+            $template->{'deprecated'.ucfirst($type)} = array_filter(array_filter($this->$type,
+                $this->getMainFilter()), $deprecatedFilter);
 
             if ('constants' === $type || 'functions' === $type) {
                 continue;
@@ -1573,25 +1573,25 @@ class Generator extends Nette\Object
                     continue;
                 }
 
-                $template->deprecatedMethods = array_merge( $template->deprecatedMethods,
-                    array_values( array_filter( $class->getOwnMethods(), $deprecatedFilter ) ) );
-                $template->deprecatedConstants = array_merge( $template->deprecatedConstants,
-                    array_values( array_filter( $class->getOwnConstants(), $deprecatedFilter ) ) );
-                $template->deprecatedProperties = array_merge( $template->deprecatedProperties,
-                    array_values( array_filter( $class->getOwnProperties(), $deprecatedFilter ) ) );
+                $template->deprecatedMethods = array_merge($template->deprecatedMethods,
+                    array_values(array_filter($class->getOwnMethods(), $deprecatedFilter)));
+                $template->deprecatedConstants = array_merge($template->deprecatedConstants,
+                    array_values(array_filter($class->getOwnConstants(), $deprecatedFilter)));
+                $template->deprecatedProperties = array_merge($template->deprecatedProperties,
+                    array_values(array_filter($class->getOwnProperties(), $deprecatedFilter)));
             }
         }
-        usort( $template->deprecatedMethods, array( $this, 'sortMethods' ) );
-        usort( $template->deprecatedConstants, array( $this, 'sortConstants' ) );
-        usort( $template->deprecatedFunctions, array( $this, 'sortFunctions' ) );
-        usort( $template->deprecatedProperties, array( $this, 'sortProperties' ) );
+        usort($template->deprecatedMethods, array($this, 'sortMethods'));
+        usort($template->deprecatedConstants, array($this, 'sortConstants'));
+        usort($template->deprecatedFunctions, array($this, 'sortFunctions'));
+        usort($template->deprecatedProperties, array($this, 'sortProperties'));
 
         $template
-            ->setFile( $this->getTemplatePath( 'deprecated' ) )
-            ->save( $this->forceDir( $this->getTemplateFileName( 'deprecated' ) ) );
+            ->setFile($this->getTemplatePath('deprecated'))
+            ->save($this->forceDir($this->getTemplateFileName('deprecated')));
 
         foreach ($this->getElementTypes() as $type) {
-            unset( $template->{'deprecated'.ucfirst( $type )} );
+            unset( $template->{'deprecated'.ucfirst($type)} );
         }
         unset( $template->deprecatedMethods );
         unset( $template->deprecatedProperties );
@@ -1609,14 +1609,14 @@ class Generator extends Nette\Object
      *
      * @throws \RuntimeException If template is not set.
      */
-    private function prepareTemplate( $name )
+    private function prepareTemplate($name)
     {
 
-        if (!$this->templateExists( $name )) {
-            throw new RuntimeException( sprintf( 'Template for "%s" is not set', $name ) );
+        if (!$this->templateExists($name)) {
+            throw new RuntimeException(sprintf('Template for "%s" is not set', $name));
         }
 
-        $this->forceDir( $this->getTemplateFileName( $name ) );
+        $this->forceDir($this->getTemplateFileName($name));
         return $this;
     }
 
@@ -1628,22 +1628,22 @@ class Generator extends Nette\Object
      * @return \ApiGen\Generator
      * @throws \RuntimeException If template is not set.
      */
-    private function generateTodo( Template $template )
+    private function generateTodo(Template $template)
     {
 
-        $this->prepareTemplate( 'todo' );
+        $this->prepareTemplate('todo');
 
-        $todoFilter = function ( $element ) {
+        $todoFilter = function ($element) {
 
-            return $element->hasAnnotation( 'todo' );
+            return $element->hasAnnotation('todo');
         };
 
         $template->todoMethods = array();
         $template->todoConstants = array();
         $template->todoProperties = array();
-        foreach (array_reverse( $this->getElementTypes() ) as $type) {
-            $template->{'todo'.ucfirst( $type )} = array_filter( array_filter( $this->$type, $this->getMainFilter() ),
-                $todoFilter );
+        foreach (array_reverse($this->getElementTypes()) as $type) {
+            $template->{'todo'.ucfirst($type)} = array_filter(array_filter($this->$type, $this->getMainFilter()),
+                $todoFilter);
 
             if ('constants' === $type || 'functions' === $type) {
                 continue;
@@ -1654,25 +1654,25 @@ class Generator extends Nette\Object
                     continue;
                 }
 
-                $template->todoMethods = array_merge( $template->todoMethods,
-                    array_values( array_filter( $class->getOwnMethods(), $todoFilter ) ) );
-                $template->todoConstants = array_merge( $template->todoConstants,
-                    array_values( array_filter( $class->getOwnConstants(), $todoFilter ) ) );
-                $template->todoProperties = array_merge( $template->todoProperties,
-                    array_values( array_filter( $class->getOwnProperties(), $todoFilter ) ) );
+                $template->todoMethods = array_merge($template->todoMethods,
+                    array_values(array_filter($class->getOwnMethods(), $todoFilter)));
+                $template->todoConstants = array_merge($template->todoConstants,
+                    array_values(array_filter($class->getOwnConstants(), $todoFilter)));
+                $template->todoProperties = array_merge($template->todoProperties,
+                    array_values(array_filter($class->getOwnProperties(), $todoFilter)));
             }
         }
-        usort( $template->todoMethods, array( $this, 'sortMethods' ) );
-        usort( $template->todoConstants, array( $this, 'sortConstants' ) );
-        usort( $template->todoFunctions, array( $this, 'sortFunctions' ) );
-        usort( $template->todoProperties, array( $this, 'sortProperties' ) );
+        usort($template->todoMethods, array($this, 'sortMethods'));
+        usort($template->todoConstants, array($this, 'sortConstants'));
+        usort($template->todoFunctions, array($this, 'sortFunctions'));
+        usort($template->todoProperties, array($this, 'sortProperties'));
 
         $template
-            ->setFile( $this->getTemplatePath( 'todo' ) )
-            ->save( $this->forceDir( $this->getTemplateFileName( 'todo' ) ) );
+            ->setFile($this->getTemplatePath('todo'))
+            ->save($this->forceDir($this->getTemplateFileName('todo')));
 
         foreach ($this->getElementTypes() as $type) {
-            unset( $template->{'todo'.ucfirst( $type )} );
+            unset( $template->{'todo'.ucfirst($type)} );
         }
         unset( $template->todoMethods );
         unset( $template->todoProperties );
@@ -1691,10 +1691,10 @@ class Generator extends Nette\Object
      * @return \ApiGen\Generator
      * @throws \RuntimeException If template is not set.
      */
-    private function generateTree( Template $template )
+    private function generateTree(Template $template)
     {
 
-        $this->prepareTemplate( 'tree' );
+        $this->prepareTemplate('tree');
 
         $classTree = array();
         $interfaceTree = array();
@@ -1719,7 +1719,7 @@ class Generator extends Nette\Object
                     $t = &$classTree;
                 }
             } else {
-                foreach (array_values( array_reverse( $reflection->getParentClasses() ) ) as $level => $parent) {
+                foreach (array_values(array_reverse($reflection->getParentClasses())) as $level => $parent) {
                     if (0 === $level) {
                         // The topmost parent decides about the reflection type
                         if ($parent->isInterface()) {
@@ -1737,26 +1737,26 @@ class Generator extends Nette\Object
                     if (!isset( $t[$parentName] )) {
                         $t[$parentName] = array();
                         $processed[$parentName] = true;
-                        ksort( $t, SORT_STRING );
+                        ksort($t, SORT_STRING);
                     }
 
                     $t = &$t[$parentName];
                 }
             }
             $t[$className] = array();
-            ksort( $t, SORT_STRING );
+            ksort($t, SORT_STRING);
             $processed[$className] = true;
             unset( $t );
         }
 
-        $template->classTree = new Tree( $classTree, $this->parsedClasses );
-        $template->interfaceTree = new Tree( $interfaceTree, $this->parsedClasses );
-        $template->traitTree = new Tree( $traitTree, $this->parsedClasses );
-        $template->exceptionTree = new Tree( $exceptionTree, $this->parsedClasses );
+        $template->classTree = new Tree($classTree, $this->parsedClasses);
+        $template->interfaceTree = new Tree($interfaceTree, $this->parsedClasses);
+        $template->traitTree = new Tree($traitTree, $this->parsedClasses);
+        $template->exceptionTree = new Tree($exceptionTree, $this->parsedClasses);
 
         $template
-            ->setFile( $this->getTemplatePath( 'tree' ) )
-            ->save( $this->forceDir( $this->getTemplateFileName( 'tree' ) ) );
+            ->setFile($this->getTemplatePath('tree'))
+            ->save($this->forceDir($this->getTemplateFileName('tree')));
 
         unset( $template->classTree );
         unset( $template->interfaceTree );
@@ -1777,24 +1777,24 @@ class Generator extends Nette\Object
      * @return \ApiGen\Generator
      * @throws \RuntimeException If template is not set.
      */
-    private function generatePackages( Template $template )
+    private function generatePackages(Template $template)
     {
 
         if (empty( $this->packages )) {
             return $this;
         }
 
-        $this->prepareTemplate( 'package' );
+        $this->prepareTemplate('package');
 
         $template->namespace = null;
 
         foreach ($this->packages as $packageName => $package) {
             $template->package = $packageName;
-            $template->subpackages = array_filter( $template->packages,
-                function ( $subpackageName ) use ( $packageName ) {
+            $template->subpackages = array_filter($template->packages,
+                function ($subpackageName) use ($packageName) {
 
-                    return (bool)preg_match( '~^'.preg_quote( $packageName ).'\\\\[^\\\\]+$~', $subpackageName );
-                } );
+                    return (bool)preg_match('~^'.preg_quote($packageName).'\\\\[^\\\\]+$~', $subpackageName);
+                });
             $template->classes = $package['classes'];
             $template->interfaces = $package['interfaces'];
             $template->traits = $package['traits'];
@@ -1802,8 +1802,8 @@ class Generator extends Nette\Object
             $template->constants = $package['constants'];
             $template->functions = $package['functions'];
             $template
-                ->setFile( $this->getTemplatePath( 'package' ) )
-                ->save( $this->config->destination.DIRECTORY_SEPARATOR.$template->getPackageUrl( $packageName ) );
+                ->setFile($this->getTemplatePath('package'))
+                ->save($this->config->destination.DIRECTORY_SEPARATOR.$template->getPackageUrl($packageName));
 
             $this->incrementProgressBar();
         }
@@ -1822,24 +1822,24 @@ class Generator extends Nette\Object
      * @return \ApiGen\Generator
      * @throws \RuntimeException If template is not set.
      */
-    private function generateNamespaces( Template $template )
+    private function generateNamespaces(Template $template)
     {
 
         if (empty( $this->namespaces )) {
             return $this;
         }
 
-        $this->prepareTemplate( 'namespace' );
+        $this->prepareTemplate('namespace');
 
         $template->package = null;
 
         foreach ($this->namespaces as $namespaceName => $namespace) {
             $template->namespace = $namespaceName;
-            $template->subnamespaces = array_filter( $template->namespaces,
-                function ( $subnamespaceName ) use ( $namespaceName ) {
+            $template->subnamespaces = array_filter($template->namespaces,
+                function ($subnamespaceName) use ($namespaceName) {
 
-                    return (bool)preg_match( '~^'.preg_quote( $namespaceName ).'\\\\[^\\\\]+$~', $subnamespaceName );
-                } );
+                    return (bool)preg_match('~^'.preg_quote($namespaceName).'\\\\[^\\\\]+$~', $subnamespaceName);
+                });
             $template->classes = $namespace['classes'];
             $template->interfaces = $namespace['interfaces'];
             $template->traits = $namespace['traits'];
@@ -1847,8 +1847,8 @@ class Generator extends Nette\Object
             $template->constants = $namespace['constants'];
             $template->functions = $namespace['functions'];
             $template
-                ->setFile( $this->getTemplatePath( 'namespace' ) )
-                ->save( $this->config->destination.DIRECTORY_SEPARATOR.$template->getNamespaceUrl( $namespaceName ) );
+                ->setFile($this->getTemplatePath('namespace'))
+                ->save($this->config->destination.DIRECTORY_SEPARATOR.$template->getNamespaceUrl($namespaceName));
 
             $this->incrementProgressBar();
         }
@@ -1867,48 +1867,48 @@ class Generator extends Nette\Object
      * @return \ApiGen\Generator
      * @throws \RuntimeException If template is not set.
      */
-    private function generateElements( Template $template )
+    private function generateElements(Template $template)
     {
 
         if (!empty( $this->classes ) || !empty( $this->interfaces ) || !empty( $this->traits ) || !empty( $this->exceptions )) {
-            $this->prepareTemplate( 'class' );
+            $this->prepareTemplate('class');
         }
         if (!empty( $this->constants )) {
-            $this->prepareTemplate( 'constant' );
+            $this->prepareTemplate('constant');
         }
         if (!empty( $this->functions )) {
-            $this->prepareTemplate( 'function' );
+            $this->prepareTemplate('function');
         }
         if ($this->config->sourceCode) {
-            $this->prepareTemplate( 'source' );
+            $this->prepareTemplate('source');
 
-            $fshl = new FSHL\Highlighter( new FSHL\Output\Html(),
-                FSHL\Highlighter::OPTION_TAB_INDENT | FSHL\Highlighter::OPTION_LINE_COUNTER );
-            $fshl->setLexer( new FSHL\Lexer\Php() );
+            $fshl = new FSHL\Highlighter(new FSHL\Output\Html(),
+                FSHL\Highlighter::OPTION_TAB_INDENT | FSHL\Highlighter::OPTION_LINE_COUNTER);
+            $fshl->setLexer(new FSHL\Lexer\Php());
         }
 
         // Add @usedby annotation
         foreach ($this->getElementTypes() as $type) {
             foreach ($this->$type as $parentElement) {
-                $elements = array( $parentElement );
+                $elements = array($parentElement);
                 if ($parentElement instanceof ReflectionClass) {
                     $elements = array_merge(
                         $elements,
-                        array_values( $parentElement->getOwnMethods() ),
-                        array_values( $parentElement->getOwnConstants() ),
-                        array_values( $parentElement->getOwnProperties() )
+                        array_values($parentElement->getOwnMethods()),
+                        array_values($parentElement->getOwnConstants()),
+                        array_values($parentElement->getOwnProperties())
                     );
                 }
                 foreach ($elements as $element) {
-                    $uses = $element->getAnnotation( 'uses' );
+                    $uses = $element->getAnnotation('uses');
                     if (null === $uses) {
                         continue;
                     }
                     foreach ($uses as $value) {
-                        list( $link, $description ) = preg_split( '~\s+|$~', $value, 2 );
-                        $resolved = $this->resolveElement( $link, $element );
+                        list( $link, $description ) = preg_split('~\s+|$~', $value, 2);
+                        $resolved = $this->resolveElement($link, $element);
                         if (null !== $resolved) {
-                            $resolved->addAnnotation( 'usedby', $element->getPrettyName().' '.$description );
+                            $resolved->addAnnotation('usedby', $element->getPrettyName().' '.$description);
                         }
                     }
                 }
@@ -1948,55 +1948,55 @@ class Generator extends Nette\Object
                 $template->function = null;
                 if ($element instanceof ReflectionClass) {
                     // Class
-                    $template->tree = array_merge( array_reverse( $element->getParentClasses() ), array( $element ) );
+                    $template->tree = array_merge(array_reverse($element->getParentClasses()), array($element));
 
                     $template->directSubClasses = $element->getDirectSubClasses();
-                    uksort( $template->directSubClasses, 'strcasecmp' );
+                    uksort($template->directSubClasses, 'strcasecmp');
                     $template->indirectSubClasses = $element->getIndirectSubClasses();
-                    uksort( $template->indirectSubClasses, 'strcasecmp' );
+                    uksort($template->indirectSubClasses, 'strcasecmp');
 
                     $template->directImplementers = $element->getDirectImplementers();
-                    uksort( $template->directImplementers, 'strcasecmp' );
+                    uksort($template->directImplementers, 'strcasecmp');
                     $template->indirectImplementers = $element->getIndirectImplementers();
-                    uksort( $template->indirectImplementers, 'strcasecmp' );
+                    uksort($template->indirectImplementers, 'strcasecmp');
 
                     $template->directUsers = $element->getDirectUsers();
-                    uksort( $template->directUsers, 'strcasecmp' );
+                    uksort($template->directUsers, 'strcasecmp');
                     $template->indirectUsers = $element->getIndirectUsers();
-                    uksort( $template->indirectUsers, 'strcasecmp' );
+                    uksort($template->indirectUsers, 'strcasecmp');
 
                     $template->class = $element;
 
                     $template
-                        ->setFile( $this->getTemplatePath( 'class' ) )
-                        ->save( $this->config->destination.DIRECTORY_SEPARATOR.$template->getClassUrl( $element ) );
+                        ->setFile($this->getTemplatePath('class'))
+                        ->save($this->config->destination.DIRECTORY_SEPARATOR.$template->getClassUrl($element));
                 } elseif ($element instanceof ReflectionConstant) {
                     // Constant
                     $template->constant = $element;
 
                     $template
-                        ->setFile( $this->getTemplatePath( 'constant' ) )
-                        ->save( $this->config->destination.DIRECTORY_SEPARATOR.$template->getConstantUrl( $element ) );
+                        ->setFile($this->getTemplatePath('constant'))
+                        ->save($this->config->destination.DIRECTORY_SEPARATOR.$template->getConstantUrl($element));
                 } elseif ($element instanceof ReflectionFunction) {
                     // Function
                     $template->function = $element;
 
                     $template
-                        ->setFile( $this->getTemplatePath( 'function' ) )
-                        ->save( $this->config->destination.DIRECTORY_SEPARATOR.$template->getFunctionUrl( $element ) );
+                        ->setFile($this->getTemplatePath('function'))
+                        ->save($this->config->destination.DIRECTORY_SEPARATOR.$template->getFunctionUrl($element));
                 }
 
                 $this->incrementProgressBar();
 
                 // Generate source codes
                 if ($this->config->sourceCode && $element->isTokenized()) {
-                    $template->fileName = $this->getRelativePath( $element->getFileName() );
-                    $template->source = $fshl->highlight( $this->toUtf( file_get_contents( $element->getFileName() ),
-                        $this->charsets[$element->getFileName()] ) );
+                    $template->fileName = $this->getRelativePath($element->getFileName());
+                    $template->source = $fshl->highlight($this->toUtf(file_get_contents($element->getFileName()),
+                        $this->charsets[$element->getFileName()]));
                     $template
-                        ->setFile( $this->getTemplatePath( 'source' ) )
-                        ->save( $this->config->destination.DIRECTORY_SEPARATOR.$template->getSourceUrl( $element,
-                                false ) );
+                        ->setFile($this->getTemplatePath('source'))
+                        ->save($this->config->destination.DIRECTORY_SEPARATOR.$template->getSourceUrl($element,
+                                false));
 
                     $this->incrementProgressBar();
                 }
@@ -2017,7 +2017,7 @@ class Generator extends Nette\Object
      *
      * @return \ApiGen\ReflectionElement|null
      */
-    public function resolveElement( $definition, $context, &$expectedName = null )
+    public function resolveElement($definition, $context, &$expectedName = null)
     {
 
         // No simple type resolving
@@ -2045,13 +2045,13 @@ class Generator extends Nette\Object
 
         if ($context instanceof ReflectionParameter && null === $context->getDeclaringClassName()) {
             // Parameter of function in namespace or global space
-            $context = $this->getFunction( $context->getDeclaringFunctionName() );
+            $context = $this->getFunction($context->getDeclaringFunctionName());
         } elseif ($context instanceof ReflectionMethod || $context instanceof ReflectionParameter
             || ( $context instanceof ReflectionConstant && null !== $context->getDeclaringClassName() )
             || $context instanceof ReflectionProperty
         ) {
             // Member of a class
-            $context = $this->getClass( $context->getDeclaringClassName() );
+            $context = $this->getClass($context->getDeclaringClassName());
         }
 
         if (null === $context) {
@@ -2063,49 +2063,49 @@ class Generator extends Nette\Object
             return $context instanceof ReflectionClass ? $context : null;
         }
 
-        $definitionBase = substr( $definition, 0, strcspn( $definition, '\\:' ) );
+        $definitionBase = substr($definition, 0, strcspn($definition, '\\:'));
         $namespaceAliases = $context->getNamespaceAliases();
-        if (!empty( $definitionBase ) && isset( $namespaceAliases[$definitionBase] ) && $definition !== ( $className = \TokenReflection\Resolver::resolveClassFQN( $definition,
-                $namespaceAliases, $context->getNamespaceName() ) )
+        if (!empty( $definitionBase ) && isset( $namespaceAliases[$definitionBase] ) && $definition !== ( $className = \TokenReflection\Resolver::resolveClassFQN($definition,
+                $namespaceAliases, $context->getNamespaceName()) )
         ) {
             // Aliased class
             $expectedName = $className;
 
-            if (false === strpos( $className, ':' )) {
-                return $this->getClass( $className, $context->getNamespaceName() );
+            if (false === strpos($className, ':')) {
+                return $this->getClass($className, $context->getNamespaceName());
             } else {
                 $definition = $className;
             }
-        } elseif ($class = $this->getClass( $definition, $context->getNamespaceName() )) {
+        } elseif ($class = $this->getClass($definition, $context->getNamespaceName())) {
             // Class
             return $class;
-        } elseif ($constant = $this->getConstant( $definition, $context->getNamespaceName() )) {
+        } elseif ($constant = $this->getConstant($definition, $context->getNamespaceName())) {
             // Constant
             return $constant;
-        } elseif (( $function = $this->getFunction( $definition, $context->getNamespaceName() ) )
-            || ( '()' === substr( $definition, -2 ) && ( $function = $this->getFunction( substr( $definition, 0, -2 ),
-                    $context->getNamespaceName() ) ) )
+        } elseif (( $function = $this->getFunction($definition, $context->getNamespaceName()) )
+            || ( '()' === substr($definition, -2) && ( $function = $this->getFunction(substr($definition, 0, -2),
+                    $context->getNamespaceName()) ) )
         ) {
             // Function
             return $function;
         }
 
-        if (( $pos = strpos( $definition, '::' ) ) || ( $pos = strpos( $definition, '->' ) )) {
+        if (( $pos = strpos($definition, '::') ) || ( $pos = strpos($definition, '->') )) {
             // Class::something or Class->something
-            if (0 === strpos( $definition, 'parent::' ) && ( $parentClassName = $context->getParentClassName() )) {
-                $context = $this->getClass( $parentClassName );
-            } elseif (0 !== strpos( $definition, 'self::' )) {
-                $class = $this->getClass( substr( $definition, 0, $pos ), $context->getNamespaceName() );
+            if (0 === strpos($definition, 'parent::') && ( $parentClassName = $context->getParentClassName() )) {
+                $context = $this->getClass($parentClassName);
+            } elseif (0 !== strpos($definition, 'self::')) {
+                $class = $this->getClass(substr($definition, 0, $pos), $context->getNamespaceName());
 
                 if (null === $class) {
-                    $class = $this->getClass( \TokenReflection\Resolver::resolveClassFQN( substr( $definition, 0,
-                        $pos ), $context->getNamespaceAliases(), $context->getNamespaceName() ) );
+                    $class = $this->getClass(\TokenReflection\Resolver::resolveClassFQN(substr($definition, 0,
+                        $pos), $context->getNamespaceAliases(), $context->getNamespaceName()));
                 }
 
                 $context = $class;
             }
 
-            $definition = substr( $definition, $pos + 2 );
+            $definition = substr($definition, $pos + 2);
         } elseif ($originalContext instanceof ReflectionParameter) {
             return null;
         }
@@ -2115,21 +2115,21 @@ class Generator extends Nette\Object
             return null;
         }
 
-        if ($context->hasProperty( $definition )) {
+        if ($context->hasProperty($definition)) {
             // Class property
-            return $context->getProperty( $definition );
-        } elseif ('$' === $definition{0} && $context->hasProperty( substr( $definition, 1 ) )) {
+            return $context->getProperty($definition);
+        } elseif ('$' === $definition{0} && $context->hasProperty(substr($definition, 1))) {
             // Class $property
-            return $context->getProperty( substr( $definition, 1 ) );
-        } elseif ($context->hasMethod( $definition )) {
+            return $context->getProperty(substr($definition, 1));
+        } elseif ($context->hasMethod($definition)) {
             // Class method
-            return $context->getMethod( $definition );
-        } elseif ('()' === substr( $definition, -2 ) && $context->hasMethod( substr( $definition, 0, -2 ) )) {
+            return $context->getMethod($definition);
+        } elseif ('()' === substr($definition, -2) && $context->hasMethod(substr($definition, 0, -2))) {
             // Class method()
-            return $context->getMethod( substr( $definition, 0, -2 ) );
-        } elseif ($context->hasConstant( $definition )) {
+            return $context->getMethod(substr($definition, 0, -2));
+        } elseif ($context->hasConstant($definition)) {
             // Class constant
-            return $context->getConstant( $definition );
+            return $context->getConstant($definition);
         }
 
         return null;
@@ -2143,13 +2143,13 @@ class Generator extends Nette\Object
      *
      * @return \ApiGen\ReflectionFunction
      */
-    public function getFunction( $functionName, $namespace = '' )
+    public function getFunction($functionName, $namespace = '')
     {
 
         if (isset( $this->parsedFunctions[$namespace.'\\'.$functionName] )) {
             $function = $this->parsedFunctions[$namespace.'\\'.$functionName];
-        } elseif (isset( $this->parsedFunctions[ltrim( $functionName, '\\' )] )) {
-            $function = $this->parsedFunctions[ltrim( $functionName, '\\' )];
+        } elseif (isset( $this->parsedFunctions[ltrim($functionName, '\\')] )) {
+            $function = $this->parsedFunctions[ltrim($functionName, '\\')];
         } else {
             return null;
         }
@@ -2170,13 +2170,13 @@ class Generator extends Nette\Object
      *
      * @return \ApiGen\ReflectionClass
      */
-    public function getClass( $className, $namespace = '' )
+    public function getClass($className, $namespace = '')
     {
 
         if (isset( $this->parsedClasses[$namespace.'\\'.$className] )) {
             $class = $this->parsedClasses[$namespace.'\\'.$className];
-        } elseif (isset( $this->parsedClasses[ltrim( $className, '\\' )] )) {
-            $class = $this->parsedClasses[ltrim( $className, '\\' )];
+        } elseif (isset( $this->parsedClasses[ltrim($className, '\\')] )) {
+            $class = $this->parsedClasses[ltrim($className, '\\')];
         } else {
             return null;
         }
@@ -2197,13 +2197,13 @@ class Generator extends Nette\Object
      *
      * @return \ApiGen\ReflectionConstant
      */
-    public function getConstant( $constantName, $namespace = '' )
+    public function getConstant($constantName, $namespace = '')
     {
 
         if (isset( $this->parsedConstants[$namespace.'\\'.$constantName] )) {
             $constant = $this->parsedConstants[$namespace.'\\'.$constantName];
-        } elseif (isset( $this->parsedConstants[ltrim( $constantName, '\\' )] )) {
-            $constant = $this->parsedConstants[ltrim( $constantName, '\\' )];
+        } elseif (isset( $this->parsedConstants[ltrim($constantName, '\\')] )) {
+            $constant = $this->parsedConstants[ltrim($constantName, '\\')];
         } else {
             return null;
         }
@@ -2224,23 +2224,23 @@ class Generator extends Nette\Object
      * @return string
      * @throws \InvalidArgumentException If relative path could not be determined.
      */
-    public function getRelativePath( $fileName )
+    public function getRelativePath($fileName)
     {
 
         if (isset( $this->symlinks[$fileName] )) {
             $fileName = $this->symlinks[$fileName];
         }
         foreach ($this->config->source as $source) {
-            if ($this->isPhar( $source )) {
-                $source = $this->pharPath( $source );
+            if ($this->isPhar($source)) {
+                $source = $this->pharPath($source);
             }
-            if (0 === strpos( $fileName, $source )) {
-                return is_dir( $source ) ? str_replace( '\\', '/',
-                    substr( $fileName, strlen( $source ) + 1 ) ) : basename( $fileName );
+            if (0 === strpos($fileName, $source)) {
+                return is_dir($source) ? str_replace('\\', '/',
+                    substr($fileName, strlen($source) + 1)) : basename($fileName);
             }
         }
 
-        throw new InvalidArgumentException( sprintf( 'Could not determine "%s" relative path', $fileName ) );
+        throw new InvalidArgumentException(sprintf('Could not determine "%s" relative path', $fileName));
     }
 
     /**
@@ -2250,7 +2250,7 @@ class Generator extends Nette\Object
      *
      * @return string
      */
-    private function pharPath( $path )
+    private function pharPath($path)
     {
 
         return 'phar://'.$path;
@@ -2265,29 +2265,29 @@ class Generator extends Nette\Object
     private function generateArchive()
     {
 
-        if (!extension_loaded( 'zip' )) {
-            throw new RuntimeException( 'Extension zip is not loaded' );
+        if (!extension_loaded('zip')) {
+            throw new RuntimeException('Extension zip is not loaded');
         }
 
         $archive = new \ZipArchive();
-        if (true !== $archive->open( $this->getArchivePath(), \ZipArchive::CREATE )) {
-            throw new RuntimeException( 'Could not open ZIP archive' );
+        if (true !== $archive->open($this->getArchivePath(), \ZipArchive::CREATE)) {
+            throw new RuntimeException('Could not open ZIP archive');
         }
 
-        $archive->setArchiveComment( trim( sprintf( '%s API documentation generated by %s %s on %s',
-            $this->config->title, self::NAME, self::VERSION, date( 'Y-m-d H:i:s' ) ) ) );
+        $archive->setArchiveComment(trim(sprintf('%s API documentation generated by %s %s on %s',
+            $this->config->title, self::NAME, self::VERSION, date('Y-m-d H:i:s'))));
 
-        $directory = Nette\Utils\Strings::webalize( trim( sprintf( '%s API documentation', $this->config->title ) ),
-            null, false );
-        $destinationLength = strlen( $this->config->destination );
+        $directory = Nette\Utils\Strings::webalize(trim(sprintf('%s API documentation', $this->config->title)),
+            null, false);
+        $destinationLength = strlen($this->config->destination);
         foreach ($this->getGeneratedFiles() as $file) {
-            if (is_file( $file )) {
-                $archive->addFile( $file, $directory.DIRECTORY_SEPARATOR.substr( $file, $destinationLength + 1 ) );
+            if (is_file($file)) {
+                $archive->addFile($file, $directory.DIRECTORY_SEPARATOR.substr($file, $destinationLength + 1));
             }
         }
 
         if (false === $archive->close()) {
-            throw new RuntimeException( 'Could not save ZIP archive' );
+            throw new RuntimeException('Could not save ZIP archive');
         }
 
         $this->incrementProgressBar();
@@ -2304,8 +2304,8 @@ class Generator extends Nette\Object
     public function getHeader()
     {
 
-        $name = sprintf( '%s %s', self::NAME, self::VERSION );
-        return sprintf( "@header@%s@c\n%s\n", $name, str_repeat( '-', strlen( $name ) ) );
+        $name = sprintf('%s %s', self::NAME, self::VERSION);
+        return sprintf("@header@%s@c\n%s\n", $name, str_repeat('-', strlen($name)));
     }
 
     /**
@@ -2316,11 +2316,11 @@ class Generator extends Nette\Object
      *
      * @return integer
      */
-    private function sortMethods( ReflectionMethod $one, ReflectionMethod $two )
+    private function sortMethods(ReflectionMethod $one, ReflectionMethod $two)
     {
 
-        return strcasecmp( $one->getDeclaringClassName().'::'.$one->getName(),
-            $two->getDeclaringClassName().'::'.$two->getName() );
+        return strcasecmp($one->getDeclaringClassName().'::'.$one->getName(),
+            $two->getDeclaringClassName().'::'.$two->getName());
     }
 
     /**
@@ -2331,11 +2331,11 @@ class Generator extends Nette\Object
      *
      * @return integer
      */
-    private function sortConstants( ReflectionConstant $one, ReflectionConstant $two )
+    private function sortConstants(ReflectionConstant $one, ReflectionConstant $two)
     {
 
-        return strcasecmp( ( $one->getDeclaringClassName() ?: $one->getNamespaceName() ).'\\'.$one->getName(),
-            ( $two->getDeclaringClassName() ?: $two->getNamespaceName() ).'\\'.$two->getName() );
+        return strcasecmp(( $one->getDeclaringClassName() ?: $one->getNamespaceName() ).'\\'.$one->getName(),
+            ( $two->getDeclaringClassName() ?: $two->getNamespaceName() ).'\\'.$two->getName());
     }
 
     /**
@@ -2346,11 +2346,11 @@ class Generator extends Nette\Object
      *
      * @return integer
      */
-    private function sortFunctions( ReflectionFunction $one, ReflectionFunction $two )
+    private function sortFunctions(ReflectionFunction $one, ReflectionFunction $two)
     {
 
-        return strcasecmp( $one->getNamespaceName().'\\'.$one->getName(),
-            $two->getNamespaceName().'\\'.$two->getName() );
+        return strcasecmp($one->getNamespaceName().'\\'.$one->getName(),
+            $two->getNamespaceName().'\\'.$two->getName());
     }
 
     /**
@@ -2361,10 +2361,10 @@ class Generator extends Nette\Object
      *
      * @return integer
      */
-    private function sortProperties( ReflectionProperty $one, ReflectionProperty $two )
+    private function sortProperties(ReflectionProperty $one, ReflectionProperty $two)
     {
 
-        return strcasecmp( $one->getDeclaringClassName().'::'.$one->getName(),
-            $two->getDeclaringClassName().'::'.$two->getName() );
+        return strcasecmp($one->getDeclaringClassName().'::'.$one->getName(),
+            $two->getDeclaringClassName().'::'.$two->getName());
     }
 }

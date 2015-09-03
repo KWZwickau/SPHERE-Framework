@@ -1,6 +1,5 @@
 <?php
 
-
 // Optionally define a folder which contains TTF fonts
 // mPDF will look here before looking in the usual _MPDF_TTFONTPATH
 // Useful if you already have a folder for your fonts
@@ -14,7 +13,7 @@
 // More than 1 font can be specified but each will add to the processing time of the script
 
 // $this->backupSubsFont = array('dejavusanscondensed','arialunicodems','sun-exta');	// this will recognise most scripts
-$this->backupSubsFont = array( 'dejavusanscondensed', 'freeserif' );
+$this->backupSubsFont = array('dejavusanscondensed', 'freeserif');
 
 // Optionally set a font (name as defined below in $this->fontdata) to use for CJK characters
 // in Plane 2 Unicode (> U+20000) when using useSubstitutions.
@@ -291,7 +290,5 @@ $this->mono_fonts = array(
     'couriernew',
     'monotypecorsiva'
 );
-
-
 
 ?>

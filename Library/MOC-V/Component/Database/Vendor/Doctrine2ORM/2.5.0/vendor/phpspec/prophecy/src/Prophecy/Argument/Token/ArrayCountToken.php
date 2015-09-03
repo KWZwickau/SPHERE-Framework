@@ -19,6 +19,7 @@ namespace Prophecy\Argument\Token;
 
 class ArrayCountToken implements TokenInterface
 {
+
     private $count;
 
     /**
@@ -26,6 +27,7 @@ class ArrayCountToken implements TokenInterface
      */
     public function __construct($value)
     {
+
         $this->count = $value;
     }
 
@@ -38,38 +40,21 @@ class ArrayCountToken implements TokenInterface
      */
     public function scoreArgument($argument)
     {
+
         return $this->isCountable($argument) && $this->hasProperCount($argument) ? 6 : false;
-    }
-
-    /**
-     * Returns false.
-     *
-     * @return boolean
-     */
-    public function isLast()
-    {
-        return false;
-    }
-
-    /**
-     * Returns string representation for token.
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        return sprintf('count(%s)', $this->count);
     }
 
     /**
      * Returns true if object is either array or instance of \Countable
      *
      * @param $argument
+     *
      * @return bool
      */
     private function isCountable($argument)
     {
-        return (is_array($argument) || $argument instanceof \Countable);
+
+        return ( is_array($argument) || $argument instanceof \Countable );
     }
 
     /**
@@ -81,6 +66,29 @@ class ArrayCountToken implements TokenInterface
      */
     private function hasProperCount($argument)
     {
+
         return $this->count === count($argument);
+    }
+
+    /**
+     * Returns false.
+     *
+     * @return boolean
+     */
+    public function isLast()
+    {
+
+        return false;
+    }
+
+    /**
+     * Returns string representation for token.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+
+        return sprintf('count(%s)', $this->count);
     }
 }

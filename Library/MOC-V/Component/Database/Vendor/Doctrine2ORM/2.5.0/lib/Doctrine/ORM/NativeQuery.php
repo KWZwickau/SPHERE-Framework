@@ -23,28 +23,15 @@ namespace Doctrine\ORM;
  * Represents a native SQL query.
  *
  * @author Roman Borschel <roman@code-factory.org>
- * @since 2.0
+ * @since  2.0
  */
 final class NativeQuery extends AbstractQuery
 {
+
     /**
      * @var string
      */
     private $_sql;
-
-    /**
-     * Sets the SQL of the query.
-     *
-     * @param string $sql
-     *
-     * @return NativeQuery This query instance.
-     */
-    public function setSQL($sql)
-    {
-        $this->_sql = $sql;
-
-        return $this;
-    }
 
     /**
      * Gets the SQL query.
@@ -55,7 +42,23 @@ final class NativeQuery extends AbstractQuery
      */
     public function getSQL()
     {
+
         return $this->_sql;
+    }
+
+    /**
+     * Sets the SQL of the query.
+     *
+     * @param string $sql
+     *
+     * @return NativeQuery This query instance.
+     */
+    public function setSQL($sql)
+    {
+
+        $this->_sql = $sql;
+
+        return $this;
     }
 
     /**
@@ -63,18 +66,19 @@ final class NativeQuery extends AbstractQuery
      */
     protected function _doExecute()
     {
+
         $parameters = array();
-        $types      = array();
+        $types = array();
 
         foreach ($this->getParameters() as $parameter) {
-            $name  = $parameter->getName();
+            $name = $parameter->getName();
             $value = $this->processParameterValue($parameter->getValue());
-            $type  = ($parameter->getValue() === $value)
+            $type = ( $parameter->getValue() === $value )
                 ? $parameter->getType()
                 : Query\ParameterTypeInferer::inferType($value);
 
             $parameters[$name] = $value;
-            $types[$name]      = $type;
+            $types[$name] = $type;
         }
 
         if ($parameters && is_int(key($parameters))) {
@@ -82,7 +86,7 @@ final class NativeQuery extends AbstractQuery
             ksort($types);
 
             $parameters = array_values($parameters);
-            $types      = array_values($types);
+            $types = array_values($types);
         }
 
         return $this->_em->getConnection()->executeQuery(

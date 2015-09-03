@@ -10,5 +10,7 @@
 
 namespace SebastianBergmann\Comparator;
 
-class TestClassComparator extends ObjectComparator {
+class TestClassComparator extends ObjectComparator
+{
+
 }

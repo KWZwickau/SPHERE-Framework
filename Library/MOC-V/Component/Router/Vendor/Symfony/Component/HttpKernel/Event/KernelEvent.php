@@ -24,14 +24,17 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
  */
 class KernelEvent extends Event
 {
+
     /**
      * The kernel in which this event was thrown
+     *
      * @var HttpKernelInterface
      */
     private $kernel;
 
     /**
      * The request the kernel is currently processing
+     *
      * @var Request
      */
     private $request;
@@ -39,12 +42,14 @@ class KernelEvent extends Event
     /**
      * The request type the kernel is currently processing.  One of
      * HttpKernelInterface::MASTER_REQUEST and HttpKernelInterface::SUB_REQUEST
+     *
      * @var int
      */
     private $requestType;
 
     public function __construct(HttpKernelInterface $kernel, Request $request, $requestType)
     {
+
         $this->kernel = $kernel;
         $this->request = $request;
         $this->requestType = $requestType;
@@ -59,6 +64,7 @@ class KernelEvent extends Event
      */
     public function getKernel()
     {
+
         return $this->kernel;
     }
 
@@ -71,6 +77,7 @@ class KernelEvent extends Event
      */
     public function getRequest()
     {
+
         return $this->request;
     }
 
@@ -84,6 +91,7 @@ class KernelEvent extends Event
      */
     public function getRequestType()
     {
+
         return $this->requestType;
     }
 
@@ -96,6 +104,7 @@ class KernelEvent extends Event
      */
     public function isMasterRequest()
     {
+
         return HttpKernelInterface::MASTER_REQUEST === $this->requestType;
     }
 }

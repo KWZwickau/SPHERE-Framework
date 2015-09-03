@@ -57,7 +57,7 @@ class PHPExcel_WorksheetIterator implements Iterator
      *
      * @param PHPExcel $subject
      */
-    public function __construct( PHPExcel $subject = null )
+    public function __construct(PHPExcel $subject = null)
     {
 
         // Set subject
@@ -90,7 +90,7 @@ class PHPExcel_WorksheetIterator implements Iterator
     public function current()
     {
 
-        return $this->_subject->getSheet( $this->_position );
+        return $this->_subject->getSheet($this->_position);
     }
 
     /**

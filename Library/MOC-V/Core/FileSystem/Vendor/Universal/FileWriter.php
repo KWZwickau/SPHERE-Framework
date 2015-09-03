@@ -15,10 +15,10 @@ class FileWriter
     /**
      * @param string $Location
      */
-    function __construct( $Location )
+    function __construct($Location)
     {
 
-        $this->setLocation( $Location );
+        $this->setLocation($Location);
     }
 
     /**
@@ -33,7 +33,7 @@ class FileWriter
     /**
      * @param string $Location
      */
-    public function setLocation( $Location )
+    public function setLocation($Location)
     {
 
         $this->Location = $Location;

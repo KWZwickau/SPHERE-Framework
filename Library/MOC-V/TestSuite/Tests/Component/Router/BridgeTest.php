@@ -17,26 +17,26 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
     {
 
         $Bridge = new UniversalRouter();
-        $this->assertInstanceOf( 'MOC\V\Component\Router\Component\IBridgeInterface',
-            $Bridge->addRoute( new RouteParameter( '/',
-                '\MOC\V\Core\HttpKernel\Component\Bridge\Repository\UniversalRequest::getParameterArray' ) )
+        $this->assertInstanceOf('MOC\V\Component\Router\Component\IBridgeInterface',
+            $Bridge->addRoute(new RouteParameter('/',
+                '\MOC\V\Core\HttpKernel\Component\Bridge\Repository\UniversalRequest::getParameterArray'))
         );
-        $this->assertInternalType( 'array', $Bridge->getRoute() );
+        $this->assertInternalType('array', $Bridge->getRoute());
     }
 
     public function testSymfonyRouter()
     {
 
         $Bridge = new SymfonyRouter();
-        $this->assertInstanceOf( 'MOC\V\Component\Router\Component\IBridgeInterface',
-            $Bridge->addRoute( new RouteParameter( '/',
-                '\MOC\V\Core\HttpKernel\Component\Bridge\Repository\UniversalRequest::getParameterArray' ) )
+        $this->assertInstanceOf('MOC\V\Component\Router\Component\IBridgeInterface',
+            $Bridge->addRoute(new RouteParameter('/',
+                '\MOC\V\Core\HttpKernel\Component\Bridge\Repository\UniversalRequest::getParameterArray'))
         );
         try {
             $Bridge->getRoute();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( 'MOC\V\Component\Router\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Component\Router\Component\Exception\ComponentException', $E);
         }
-        $this->assertInternalType( 'array', $Bridge->getRouteList() );
+        $this->assertInternalType('array', $Bridge->getRouteList());
     }
 }

@@ -4,10 +4,11 @@ namespace Doctrine\Tests\DBAL\Functional\Schema;
 
 use Doctrine\DBAL\Schema;
 
-require_once __DIR__ . '/../../../TestInit.php';
+require_once __DIR__.'/../../../TestInit.php';
 
 class SqliteSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
+
     /**
      * SQLITE does not support databases.
      *
@@ -15,11 +16,13 @@ class SqliteSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testListDatabases()
     {
+
         $this->_sm->listDatabases();
     }
 
     public function testCreateAndDropDatabase()
     {
+
         $path = dirname(__FILE__).'/test_create_and_drop_sqlite_database.sqlite';
 
         $this->_sm->createDatabase($path);
@@ -30,6 +33,7 @@ class SqliteSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testRenameTable()
     {
+
         $this->createTestTable('oldname');
         $this->_sm->renameTable('oldname', 'newname');
 
@@ -40,6 +44,7 @@ class SqliteSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function createListTableColumns()
     {
+
         $table = parent::createListTableColumns();
         $table->getColumn('id')->setAutoincrement(true);
 
@@ -48,6 +53,7 @@ class SqliteSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testListForeignKeysFromExistingDatabase()
     {
+
         $this->_conn->executeQuery(<<<EOS
 CREATE TABLE user (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +79,7 @@ EOS
 
     public function testColumnCollation()
     {
+
         $table = new Schema\Table('test_collation');
         $table->addColumn('id', 'integer');
         $table->addColumn('text', 'text');
@@ -90,6 +97,7 @@ EOS
 
     public function testListTableWithBinary()
     {
+
         $tableName = 'test_binary_table';
 
         $table = new \Doctrine\DBAL\Schema\Table($tableName);
@@ -111,8 +119,9 @@ EOS
 
     public function testNonDefaultPKOrder()
     {
+
         $version = \SQLite3::version();
-        if(version_compare($version['versionString'], '3.7.16', '<')) {
+        if (version_compare($version['versionString'], '3.7.16', '<')) {
             $this->markTestSkipped('This version of sqlite doesn\'t return the order of the Primary Key.');
         }
         $this->_conn->executeQuery(<<<EOS
@@ -126,7 +135,7 @@ EOS
 
         $tableIndexes = $this->_sm->listTableIndexes('non_default_pk_order');
 
-         $this->assertEquals(1, count($tableIndexes));
+        $this->assertEquals(1, count($tableIndexes));
 
         $this->assertArrayHasKey('primary', $tableIndexes, 'listTableIndexes() has to return a "primary" array key.');
         $this->assertEquals(array('other_id', 'id'), array_map('strtolower', $tableIndexes['primary']->getColumns()));
@@ -134,10 +143,11 @@ EOS
 
     /**
      * @dataProvider getDiffListIntegerAutoincrementTableColumnsData
-     * @group DBAL-924
+     * @group        DBAL-924
      */
     public function testDiffListIntegerAutoincrementTableColumns($integerType, $unsigned, $expectedComparatorDiff)
     {
+
         $tableName = 'test_int_autoincrement_table';
 
         $offlineTable = new \Doctrine\DBAL\Schema\Table($tableName);
@@ -162,6 +172,7 @@ EOS
      */
     public function getDiffListIntegerAutoincrementTableColumnsData()
     {
+
         return array(
             array('smallint', false, true),
             array('smallint', true, true),

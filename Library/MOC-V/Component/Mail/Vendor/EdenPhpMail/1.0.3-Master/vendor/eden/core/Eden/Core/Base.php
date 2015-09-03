@@ -46,14 +46,14 @@ class Base
      *
      * @return mixed
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
         Argument::i()
             //argument 1 must be a string
-            ->test( 1, 'string' )
+            ->test(1, 'string')
             //argument 2 must be an array
-            ->test( 2, 'array' );
+            ->test(2, 'array');
 
         //if it's a registered method
         if (isset( $this->invokables[$name] )) {
@@ -61,39 +61,39 @@ class Base
             //into the last part of the argument
             $args[] = $this;
             //call and return it
-            return call_user_func_array( $this->invokables[$name], $args );
+            return call_user_func_array($this->invokables[$name], $args);
         }
 
         //if the method name starts with a capital letter
         //most likely they want a class
-        if (preg_match( "/^[A-Z]/", $name )) {
+        if (preg_match("/^[A-Z]/", $name)) {
             //lets first consider that they may just
             //want to load a class so lets try
             try {
                 //return the class
-                return Route::i()->callArray( $name, $args );
+                return Route::i()->callArray($name, $args);
                 //only if there's a Reflection exception do we want to catch it
                 //this is because a class can throw an exception in their construct
                 //so if that happens then we do know that the class has actually
                 //been called and an exception is suppose to happen
-            } catch( \ReflectionException $e ) {
+            } catch (\ReflectionException $e) {
                 //Bad class name? try namespacing
-                $class = '\\'.str_replace( '_', '\\', $name );
+                $class = '\\'.str_replace('_', '\\', $name);
                 //same explanation as the previous try
                 try {
                     //return the class
-                    return Route::i()->callArray( $class, $args );
+                    return Route::i()->callArray($class, $args);
                     //same explanation as the previous catch
-                } catch( \ReflectionException $e ) {
+                } catch (\ReflectionException $e) {
                 }
             }
         }
 
         //let it fail
         Exception::i()
-            ->setMessage( self::ERROR_CALL )
-            ->addVariable( get_class( $this ) )
-            ->addVariable( $name )
+            ->setMessage(self::ERROR_CALL)
+            ->addVariable(get_class($this))
+            ->addVariable($name)
             ->trigger();
     }
 
@@ -111,26 +111,26 @@ class Base
         //if arguments are 0
         if (func_num_args() == 0) {
             //return this
-            return Route::i()->callArray( '\\Eden\\Core\\Controller' );
+            return Route::i()->callArray('\\Eden\\Core\\Controller');
         }
 
         //get the arguments
         $args = func_get_args();
 
         //if the first argument is an array
-        if (is_array( $args[0] )) {
+        if (is_array($args[0])) {
             //make the args that
             $args = $args[0];
         }
 
         //Fix class name
-        $namespace = ucwords( array_shift( $args ) );
+        $namespace = ucwords(array_shift($args));
         $class = '\\Eden\\'.$namespace.'\\Factory';
 
         //if factory isn't a class
-        if (!class_exists( $class )) {
+        if (!class_exists($class)) {
             //test reflection of base
-            $inspect = new \ReflectionClass( '\\Eden\\'.$namespace.'\\Base' );
+            $inspect = new \ReflectionClass('\\Eden\\'.$namespace.'\\Base');
             //if it's not abstract
             if (!$inspect->isAbstract()) {
                 //make class to instantiate the base
@@ -141,11 +141,11 @@ class Base
         //try to
         try { //load factory
             //instantiate it
-            return Route::i()->callArray( $class, $args );
-        } catch( Exception $e ) {
+            return Route::i()->callArray($class, $args);
+        } catch (Exception $e) {
             //throw the error at this point
             //to get rid of false positives
-            Exception::i( $e->getMessage() )->trigger();
+            Exception::i($e->getMessage())->trigger();
         }
     }
 
@@ -157,7 +157,7 @@ class Base
     public function __toString()
     {
 
-        return get_class( $this );
+        return get_class($this);
     }
 
     /**
@@ -169,13 +169,13 @@ class Base
      *
      * @return mixed
      */
-    public function callArray( $method, array $args = array() )
+    public function callArray($method, array $args = array())
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        return call_user_func_array( array( $this, $method ), $args );
+        return call_user_func_array(array($this, $method), $args);
     }
 
     /**
@@ -186,21 +186,21 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function inspect( $variable = null, $next = null )
+    public function inspect($variable = null, $next = null)
     {
 
         //argument 2 must be a string or null
-        Argument::i()->test( 2, 'string', 'null' );
+        Argument::i()->test(2, 'string', 'null');
 
         //we are using tool in all cases
-        $class = get_class( $this );
+        $class = get_class($this);
 
         //if variable is null
-        if (is_null( $variable )) {
+        if (is_null($variable)) {
             //output the class
             Inspect::i()
-                ->output( sprintf( Inspect::INSPECT, $class ) )
-                ->output( $this );
+                ->output(sprintf(Inspect::INSPECT, $class))
+                ->output($this);
 
             return $this;
         }
@@ -209,15 +209,15 @@ class Base
         if ($variable === true) {
             //return whatever the next response is
             //or return the next specified variable
-            return Inspect::i()->next( $this, $next );
+            return Inspect::i()->next($this, $next);
         }
 
         //if variable is not a string
-        if (!is_string( $variable )) {
+        if (!is_string($variable)) {
             //output variable
             Inspect::i()
-                ->output( sprintf( Inspect::INSPECT, 'Variable' ) )
-                ->output( $variable );
+                ->output(sprintf(Inspect::INSPECT, 'Variable'))
+                ->output($variable);
 
             return $this;
         }
@@ -226,16 +226,16 @@ class Base
         if (isset( $this->$variable )) {
             //output it
             Inspect::i()
-                ->output( sprintf( Inspect::INSPECT, $class.'->'.$variable ) )
-                ->output( $this->$variable );
+                ->output(sprintf(Inspect::INSPECT, $class.'->'.$variable))
+                ->output($this->$variable);
 
             return $this;
         }
 
         //any other case output variable
         Inspect::i()
-            ->output( sprintf( Inspect::INSPECT, 'Variable' ) )
-            ->output( $variable );
+            ->output(sprintf(Inspect::INSPECT, 'Variable'))
+            ->output($variable);
 
         return $this;
     }
@@ -272,21 +272,21 @@ class Base
      *
      * @return object
      */
-    protected static function getSingleton( $class = null )
+    protected static function getSingleton($class = null)
     {
 
         //super magic sauce getting the callers class
-        if (is_null( $class ) && function_exists( 'get_called_class' )) {
+        if (is_null($class) && function_exists('get_called_class')) {
             $class = get_called_class();
         }
 
         //get routed class, if any
-        $class = Route::i()->get( $class );
+        $class = Route::i()->get($class);
 
         //if it's not set
         if (!isset( self::$instances[$class] )) {
             //set it
-            self::$instances[$class] = self::getInstance( $class );
+            self::$instances[$class] = self::getInstance($class);
         }
 
         //return the cached version
@@ -302,7 +302,7 @@ class Base
      *
      * @return object
      */
-    private static function getInstance( $class )
+    private static function getInstance($class)
     {
 
         //get the backtrace
@@ -310,36 +310,36 @@ class Base
         $args = array();
 
         //the 2nd line is the caller method
-        if (isset( $trace[1]['args'] ) && count( $trace[1]['args'] ) > 1) {
+        if (isset( $trace[1]['args'] ) && count($trace[1]['args']) > 1) {
             //get the args
             $args = $trace[1]['args'];
             //shift out the class name
-            array_shift( $args );
+            array_shift($args);
             //then maybe it's the 3rd line?
         } else {
-            if (isset( $trace[2]['args'] ) && count( $trace[2]['args'] ) > 0) {
+            if (isset( $trace[2]['args'] ) && count($trace[2]['args']) > 0) {
                 //get the args
                 $args = $trace[2]['args'];
             }
         }
 
         //if there's no args or there's no construct to accept the args
-        if (count( $args ) === 0 || !method_exists( $class, '__construct' )) {
+        if (count($args) === 0 || !method_exists($class, '__construct')) {
             //just return the instantiation
             return new $class;
         }
 
         //at this point, we need to vitually call the class
-        $reflect = new \ReflectionClass( $class );
+        $reflect = new \ReflectionClass($class);
 
         try { //to return the instantiation
-            return $reflect->newInstanceArgs( $args );
-        } catch( \Reflection_Exception $e ) {
+            return $reflect->newInstanceArgs($args);
+        } catch (\Reflection_Exception $e) {
             //trigger error
             Exception::i()
-                ->setMessage( self::ERROR_REFLECTION_ERROR )
-                ->addVariable( $class )
-                ->addVariable( 'new' )
+                ->setMessage(self::ERROR_REFLECTION_ERROR)
+                ->addVariable($class)
+                ->addVariable('new')
                 ->trigger();
         }
     }
@@ -351,17 +351,17 @@ class Base
      *
      * @return object
      */
-    protected static function getMultiple( $class = null )
+    protected static function getMultiple($class = null)
     {
 
         //super magic sauce getting the callers class
-        if (is_null( $class ) && function_exists( 'get_called_class' )) {
+        if (is_null($class) && function_exists('get_called_class')) {
             $class = get_called_class();
         }
 
         //get routed class, if any
-        $class = Route::i()->get( $class );
-        return self::getInstance( $class );
+        $class = Route::i()->get($class);
+        return self::getInstance($class);
     }
 
     /**
@@ -371,7 +371,7 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function loadState( $key )
+    public function loadState($key)
     {
 
         if (self::$states[$key]) {
@@ -388,14 +388,14 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function loop( $callback, $i = 0 )
+    public function loop($callback, $i = 0)
     {
 
         //argument 1 must be callable
-        Argument::i()->test( 1, 'callable' );
+        Argument::i()->test(1, 'callable');
 
-        if (call_user_func( $callback, $i, $this ) !== false) {
-            $this->loop( $callback, $i + 1 );
+        if (call_user_func($callback, $i, $this) !== false) {
+            $this->loop($callback, $i + 1);
         }
 
         return $this;
@@ -411,18 +411,18 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function listen( $event, $callable, $important = false )
+    public function listen($event, $callable, $important = false)
     {
 
         Argument::i()
             //argument 1 must be string
-            ->test( 1, 'string' )
+            ->test(1, 'string')
             //argument 2 must be callable or null
-            ->test( 2, 'callable', 'null' )
+            ->test(2, 'callable', 'null')
             //argument 3 must be boolean
-            ->test( 3, 'bool' );
+            ->test(3, 'bool');
 
-        Event::i()->listen( $event, $callable, $important );
+        Event::i()->listen($event, $callable, $important);
 
         return $this;
     }
@@ -435,19 +435,19 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function alias( $source, $destination = null )
+    public function alias($source, $destination = null)
     {
 
         //argument test
         Argument::i()
             //argument 1 must be a string
-            ->test( 1, 'string' )
+            ->test(1, 'string')
             //argument 2 must be callable or null
-            ->test( 2, 'callable', 'null' );
+            ->test(2, 'callable', 'null');
 
-        if (is_null( $destination )) {
+        if (is_null($destination)) {
             //when someone calls a class call this instead
-            Route::i()->set( $source, $this );
+            Route::i()->set($source, $this);
             return $this;
         }
 
@@ -465,14 +465,14 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function saveState( $key, $value = null )
+    public function saveState($key, $value = null)
     {
 
-        if (is_null( $value )) {
+        if (is_null($value)) {
             $value = $this;
         } else {
-            if (is_callable( $value )) {
-                $value = call_user_func( $callback, $this );
+            if (is_callable($value)) {
+                $value = call_user_func($callback, $this);
             }
         }
 
@@ -488,15 +488,15 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function trigger( $event = null )
+    public function trigger($event = null)
     {
 
         //argument 1 must be string
-        Argument::i()->test( 1, 'string', 'null' );
+        Argument::i()->test(1, 'string', 'null');
 
         call_user_func_array(
-            array( Event::i(), 'trigger' ),
-            func_get_args() );
+            array(Event::i(), 'trigger'),
+            func_get_args());
 
         return $this;
     }
@@ -509,16 +509,16 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function unlisten( $event = null, $callable = null )
+    public function unlisten($event = null, $callable = null)
     {
 
         Argument::i()
             //argument 1 must be a string or null
-            ->test( 1, 'string', 'null' )
+            ->test(1, 'string', 'null')
             //argument 2 must be a callable or null
-            ->test( 2, 'callable', 'null' );
+            ->test(2, 'callable', 'null');
 
-        Event::i()->unlisten( $event, $callable );
+        Event::i()->unlisten($event, $callable);
 
         return $this;
     }
@@ -531,19 +531,19 @@ class Base
      *
      * @return Eden\Core\Base
      */
-    public function when( $conditional, $callback )
+    public function when($conditional, $callback)
     {
 
         Argument::i()
             //argument 1 must be callable, scalar or null
-            ->test( 1, 'callable', 'scalar', 'null' )
+            ->test(1, 'callable', 'scalar', 'null')
             //argument 2 must be callable
-            ->test( 2, 'callable' );
+            ->test(2, 'callable');
 
-        if (( is_callable( $conditional ) && call_user_func( $conditional, $this ) )
-            || ( !is_callable( $conditional ) && $conditional )
+        if (( is_callable($conditional) && call_user_func($conditional, $this) )
+            || ( !is_callable($conditional) && $conditional )
         ) {
-            call_user_func( $callback, $this );
+            call_user_func($callback, $this);
         }
 
         return $this;

@@ -29,11 +29,13 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class BinaryType extends Type
 {
+
     /**
      * {@inheritdoc}
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
+
         return $platform->getBinaryTypeDeclarationSQL($fieldDeclaration);
     }
 
@@ -42,6 +44,7 @@ class BinaryType extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
+
         if (null === $value) {
             return null;
         }
@@ -53,7 +56,7 @@ class BinaryType extends Type
             $value = $fp;
         }
 
-        if ( ! is_resource($value)) {
+        if (!is_resource($value)) {
             throw ConversionException::conversionFailed($value, self::BINARY);
         }
 
@@ -65,6 +68,7 @@ class BinaryType extends Type
      */
     public function getName()
     {
+
         return Type::BINARY;
     }
 
@@ -73,6 +77,7 @@ class BinaryType extends Type
      */
     public function getBindingType()
     {
+
         return \PDO::PARAM_LOB;
     }
 }

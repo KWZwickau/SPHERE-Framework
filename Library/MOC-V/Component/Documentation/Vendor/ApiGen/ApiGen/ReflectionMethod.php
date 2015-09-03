@@ -174,8 +174,8 @@ class ReflectionMethod extends ReflectionFunctionBase
     {
 
         foreach ($this->getDeclaringClass()->getOwnInterfaces() as $interface) {
-            if ($interface->hasMethod( $this->getName() )) {
-                return $interface->getMethod( $this->getName() );
+            if ($interface->hasMethod($this->getName())) {
+                return $interface->getMethod($this->getName());
             }
         }
 
@@ -251,7 +251,7 @@ class ReflectionMethod extends ReflectionFunctionBase
     {
 
         $originalName = $this->reflection->getOriginalName();
-        return null === $originalName ? null : self::$parsedClasses[$this->reflection->getOriginal()->getDeclaringClassName()]->getMethod( $originalName );
+        return null === $originalName ? null : self::$parsedClasses[$this->reflection->getOriginal()->getDeclaringClassName()]->getMethod($originalName);
     }
 
     /**

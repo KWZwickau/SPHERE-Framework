@@ -7,19 +7,10 @@ namespace Doctrine\Tests\DBAL\Functional\Ticket;
  */
 class DBAL752Test extends \Doctrine\Tests\DbalFunctionalTestCase
 {
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $platform = $this->_conn->getDatabasePlatform()->getName();
-
-        if (!in_array($platform, array('sqlite'))) {
-            $this->markTestSkipped('Related to SQLite only');
-        }
-    }
 
     public function testUnsignedIntegerDetection()
     {
+
         $this->_conn->exec(<<<SQL
 CREATE TABLE dbal752_unsigneds (
     small SMALLINT,
@@ -56,5 +47,17 @@ SQL
         $this->assertFalse($fetchedTable->getColumn('medium')->getUnsigned());
         $this->assertFalse($fetchedTable->getColumn('integer')->getUnsigned());
         $this->assertFalse($fetchedTable->getColumn('big')->getUnsigned());
+    }
+
+    protected function setUp()
+    {
+
+        parent::setUp();
+
+        $platform = $this->_conn->getDatabasePlatform()->getName();
+
+        if (!in_array($platform, array('sqlite'))) {
+            $this->markTestSkipped('Related to SQLite only');
+        }
     }
 }

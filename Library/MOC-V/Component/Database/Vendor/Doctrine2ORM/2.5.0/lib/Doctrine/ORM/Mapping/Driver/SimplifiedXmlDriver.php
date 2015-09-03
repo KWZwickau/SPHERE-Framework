@@ -24,12 +24,13 @@ use Doctrine\Common\Persistence\Mapping\Driver\SymfonyFileLocator;
 /**
  * XmlDriver that additionally looks for mapping information in a global file.
  *
- * @author Fabien Potencier <fabien@symfony.com>
- * @author Benjamin Eberlei <kontakt@beberlei.de>
+ * @author  Fabien Potencier <fabien@symfony.com>
+ * @author  Benjamin Eberlei <kontakt@beberlei.de>
  * @license MIT
  */
 class SimplifiedXmlDriver extends XmlDriver
 {
+
     const DEFAULT_FILE_EXTENSION = '.orm.xml';
 
     /**
@@ -37,7 +38,8 @@ class SimplifiedXmlDriver extends XmlDriver
      */
     public function __construct($prefixes, $fileExtension = self::DEFAULT_FILE_EXTENSION)
     {
-        $locator = new SymfonyFileLocator((array) $prefixes, $fileExtension);
+
+        $locator = new SymfonyFileLocator((array)$prefixes, $fileExtension);
         parent::__construct($locator, $fileExtension);
     }
 }

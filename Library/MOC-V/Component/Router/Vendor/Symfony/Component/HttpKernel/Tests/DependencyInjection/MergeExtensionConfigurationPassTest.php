@@ -15,8 +15,10 @@ use Symfony\Component\HttpKernel\DependencyInjection\MergeExtensionConfiguration
 
 class MergeExtensionConfigurationPassTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testAutoloadMainExtension()
     {
+
         $container = $this->getMock('Symfony\\Component\\DependencyInjection\\ContainerBuilder');
         $params = $this->getMock('Symfony\\Component\\DependencyInjection\\ParameterBag\\ParameterBag');
 

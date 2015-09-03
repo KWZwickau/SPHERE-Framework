@@ -4,11 +4,11 @@
 </head>
 <body>
 <h1>
-	Test
+    Test
 </h1>
 
 <h2>
-	{$smarty.now|date_format:'d.m.Y H:i:s'}
+    {$smarty.now|date_format:'d.m.Y H:i:s'}
 </h2>
 </body>
 </html>

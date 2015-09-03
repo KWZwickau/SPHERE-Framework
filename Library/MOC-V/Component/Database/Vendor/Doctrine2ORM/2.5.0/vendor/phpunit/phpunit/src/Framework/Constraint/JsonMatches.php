@@ -15,6 +15,7 @@
  */
 class PHPUnit_Framework_Constraint_JsonMatches extends PHPUnit_Framework_Constraint
 {
+
     /**
      * @var string
      */
@@ -27,8 +28,23 @@ class PHPUnit_Framework_Constraint_JsonMatches extends PHPUnit_Framework_Constra
      */
     public function __construct($value)
     {
+
         parent::__construct();
         $this->value = $value;
+    }
+
+    /**
+     * Returns a string representation of the object.
+     *
+     * @return string
+     */
+    public function toString()
+    {
+
+        return sprintf(
+            'matches JSON string "%s"',
+            $this->value
+        );
     }
 
     /**
@@ -38,10 +54,12 @@ class PHPUnit_Framework_Constraint_JsonMatches extends PHPUnit_Framework_Constra
      * This method can be overridden to implement the evaluation algorithm.
      *
      * @param  mixed $other Value or object to evaluate.
+     *
      * @return bool
      */
     protected function matches($other)
     {
+
         $decodedOther = json_decode($other);
         if (json_last_error()) {
             return false;
@@ -53,18 +71,5 @@ class PHPUnit_Framework_Constraint_JsonMatches extends PHPUnit_Framework_Constra
         }
 
         return $decodedOther == $decodedValue;
-    }
-
-    /**
-     * Returns a string representation of the object.
-     *
-     * @return string
-     */
-    public function toString()
-    {
-        return sprintf(
-            'matches JSON string "%s"',
-            $this->value
-        );
     }
 }

@@ -27,7 +27,7 @@ class RequestFactory extends Nette\Object
 
     /** @var array */
     public $urlFilters = array(
-        'path' => array( '#/{2,}#' => '/' ), // '%20' => ''
+        'path' => array('#/{2,}#' => '/'), // '%20' => ''
         'url'  => array(), // '#[.,)]$#' => ''
     );
 
@@ -40,7 +40,7 @@ class RequestFactory extends Nette\Object
      *
      * @return RequestFactory  provides a fluent interface
      */
-    public function setEncoding( $encoding )
+    public function setEncoding($encoding)
     {
 
         $this->encoding = $encoding;
@@ -58,22 +58,22 @@ class RequestFactory extends Nette\Object
 
         // DETECTS URI, base path and script path of the request.
         $url = new UrlScript;
-        $url->scheme = !empty( $_SERVER['HTTPS'] ) && strcasecmp( $_SERVER['HTTPS'], 'off' ) ? 'https' : 'http';
+        $url->scheme = !empty( $_SERVER['HTTPS'] ) && strcasecmp($_SERVER['HTTPS'], 'off') ? 'https' : 'http';
         $url->user = isset( $_SERVER['PHP_AUTH_USER'] ) ? $_SERVER['PHP_AUTH_USER'] : '';
         $url->password = isset( $_SERVER['PHP_AUTH_PW'] ) ? $_SERVER['PHP_AUTH_PW'] : '';
 
         // host & port
         if (isset( $_SERVER['HTTP_HOST'] )) {
-            $pair = explode( ':', $_SERVER['HTTP_HOST'] );
+            $pair = explode(':', $_SERVER['HTTP_HOST']);
 
         } elseif (isset( $_SERVER['SERVER_NAME'] )) {
-            $pair = explode( ':', $_SERVER['SERVER_NAME'] );
+            $pair = explode(':', $_SERVER['SERVER_NAME']);
 
         } else {
-            $pair = array( '' );
+            $pair = array('');
         }
 
-        $url->host = preg_match( '#^[-._a-z0-9]+$#', $pair[0] ) ? $pair[0] : '';
+        $url->host = preg_match('#^[-._a-z0-9]+$#', $pair[0]) ? $pair[0] : '';
 
         if (isset( $pair[1] )) {
             $url->port = (int)$pair[1];
@@ -95,91 +95,91 @@ class RequestFactory extends Nette\Object
             $requestUrl = '';
         }
 
-        $requestUrl = Strings::replace( $requestUrl, $this->urlFilters['url'] );
-        $tmp = explode( '?', $requestUrl, 2 );
-        $url->path = Strings::replace( $tmp[0], $this->urlFilters['path'] );
+        $requestUrl = Strings::replace($requestUrl, $this->urlFilters['url']);
+        $tmp = explode('?', $requestUrl, 2);
+        $url->path = Strings::replace($tmp[0], $this->urlFilters['path']);
         $url->query = isset( $tmp[1] ) ? $tmp[1] : '';
 
         // normalized url
         $url->canonicalize();
-        $url->path = Strings::fixEncoding( $url->path );
+        $url->path = Strings::fixEncoding($url->path);
 
         // detect script path
         if (isset( $_SERVER['SCRIPT_NAME'] )) {
             $script = $_SERVER['SCRIPT_NAME'];
         } elseif (isset( $_SERVER['DOCUMENT_ROOT'], $_SERVER['SCRIPT_FILENAME'] )
-            && strncmp( $_SERVER['DOCUMENT_ROOT'], $_SERVER['SCRIPT_FILENAME'],
-                strlen( $_SERVER['DOCUMENT_ROOT'] ) ) === 0
+            && strncmp($_SERVER['DOCUMENT_ROOT'], $_SERVER['SCRIPT_FILENAME'],
+                strlen($_SERVER['DOCUMENT_ROOT'])) === 0
         ) {
-            $script = '/'.ltrim( strtr( substr( $_SERVER['SCRIPT_FILENAME'], strlen( $_SERVER['DOCUMENT_ROOT'] ) ),
-                    '\\', '/' ), '/' );
+            $script = '/'.ltrim(strtr(substr($_SERVER['SCRIPT_FILENAME'], strlen($_SERVER['DOCUMENT_ROOT'])),
+                    '\\', '/'), '/');
         } else {
             $script = '/';
         }
 
-        $path = strtolower( $url->path ).'/';
-        $script = strtolower( $script ).'/';
-        $max = min( strlen( $path ), strlen( $script ) );
+        $path = strtolower($url->path).'/';
+        $script = strtolower($script).'/';
+        $max = min(strlen($path), strlen($script));
         for ($i = 0; $i < $max; $i++) {
             if ($path[$i] !== $script[$i]) {
                 break;
             } elseif ($path[$i] === '/') {
-                $url->scriptPath = substr( $url->path, 0, $i + 1 );
+                $url->scriptPath = substr($url->path, 0, $i + 1);
             }
         }
 
         // GET, POST, COOKIE
-        $useFilter = ( !in_array( ini_get( 'filter.default' ),
-                array( '', 'unsafe_raw' ) ) || ini_get( 'filter.default_flags' ) );
+        $useFilter = ( !in_array(ini_get('filter.default'),
+                array('', 'unsafe_raw')) || ini_get('filter.default_flags') );
 
-        parse_str( $url->query, $query );
+        parse_str($url->query, $query);
         if (!$query) {
-            $query = $useFilter ? filter_input_array( INPUT_GET,
-                FILTER_UNSAFE_RAW ) : ( empty( $_GET ) ? array() : $_GET );
+            $query = $useFilter ? filter_input_array(INPUT_GET,
+                FILTER_UNSAFE_RAW) : ( empty( $_GET ) ? array() : $_GET );
         }
-        $post = $useFilter ? filter_input_array( INPUT_POST,
-            FILTER_UNSAFE_RAW ) : ( empty( $_POST ) ? array() : $_POST );
-        $cookies = $useFilter ? filter_input_array( INPUT_COOKIE,
-            FILTER_UNSAFE_RAW ) : ( empty( $_COOKIE ) ? array() : $_COOKIE );
+        $post = $useFilter ? filter_input_array(INPUT_POST,
+            FILTER_UNSAFE_RAW) : ( empty( $_POST ) ? array() : $_POST );
+        $cookies = $useFilter ? filter_input_array(INPUT_COOKIE,
+            FILTER_UNSAFE_RAW) : ( empty( $_COOKIE ) ? array() : $_COOKIE );
 
         $gpc = (bool)get_magic_quotes_gpc();
-        $old = error_reporting( error_reporting() ^ E_NOTICE );
+        $old = error_reporting(error_reporting() ^ E_NOTICE);
 
         // remove fucking quotes and check (and optionally convert) encoding
         if ($gpc || $this->encoding) {
-            $utf = strcasecmp( $this->encoding, 'UTF-8' ) === 0;
-            $list = array( & $query, & $post, & $cookies );
-            while (list( $key, $val ) = each( $list )) {
+            $utf = strcasecmp($this->encoding, 'UTF-8') === 0;
+            $list = array(& $query, & $post, & $cookies);
+            while (list( $key, $val ) = each($list)) {
                 foreach ($val as $k => $v) {
                     unset( $list[$key][$k] );
 
                     if ($gpc) {
-                        $k = stripslashes( $k );
+                        $k = stripslashes($k);
                     }
 
-                    if ($this->encoding && is_string( $k ) && ( preg_match( self::NONCHARS, $k ) || preg_last_error() )
+                    if ($this->encoding && is_string($k) && ( preg_match(self::NONCHARS, $k) || preg_last_error() )
                     ) {
                         // invalid key -> ignore
 
-                    } elseif (is_array( $v )) {
+                    } elseif (is_array($v)) {
                         $list[$key][$k] = $v;
                         $list[] = &$list[$key][$k];
 
                     } else {
                         if ($gpc && !$useFilter) {
-                            $v = stripSlashes( $v );
+                            $v = stripSlashes($v);
                         }
                         if ($this->encoding) {
                             if ($utf) {
-                                $v = Strings::fixEncoding( $v );
+                                $v = Strings::fixEncoding($v);
 
                             } else {
-                                if (!Strings::checkEncoding( $v )) {
-                                    $v = iconv( $this->encoding, 'UTF-8//IGNORE', $v );
+                                if (!Strings::checkEncoding($v)) {
+                                    $v = iconv($this->encoding, 'UTF-8//IGNORE', $v);
                                 }
-                                $v = html_entity_decode( $v, ENT_QUOTES, 'UTF-8' );
+                                $v = html_entity_decode($v, ENT_QUOTES, 'UTF-8');
                             }
-                            $v = preg_replace( self::NONCHARS, '', $v );
+                            $v = preg_replace(self::NONCHARS, '', $v);
                         }
                         $list[$key][$k] = $v;
                     }
@@ -193,7 +193,7 @@ class RequestFactory extends Nette\Object
         $list = array();
         if (!empty( $_FILES )) {
             foreach ($_FILES as $k => $v) {
-                if ($this->encoding && is_string( $k ) && ( preg_match( self::NONCHARS, $k ) || preg_last_error() )) {
+                if ($this->encoding && is_string($k) && ( preg_match(self::NONCHARS, $k) || preg_last_error() )) {
                     continue;
                 }
                 $v['@'] = &$files[$k];
@@ -201,23 +201,23 @@ class RequestFactory extends Nette\Object
             }
         }
 
-        while (list( , $v ) = each( $list )) {
+        while (list( , $v ) = each($list)) {
             if (!isset( $v['name'] )) {
                 continue;
 
-            } elseif (!is_array( $v['name'] )) {
+            } elseif (!is_array($v['name'])) {
                 if ($gpc) {
-                    $v['name'] = stripSlashes( $v['name'] );
+                    $v['name'] = stripSlashes($v['name']);
                 }
                 if ($this->encoding) {
-                    $v['name'] = preg_replace( self::NONCHARS, '', Strings::fixEncoding( $v['name'] ) );
+                    $v['name'] = preg_replace(self::NONCHARS, '', Strings::fixEncoding($v['name']));
                 }
-                $v['@'] = new FileUpload( $v );
+                $v['@'] = new FileUpload($v);
                 continue;
             }
 
             foreach ($v['name'] as $k => $foo) {
-                if ($this->encoding && is_string( $k ) && ( preg_match( self::NONCHARS, $k ) || preg_last_error() )) {
+                if ($this->encoding && is_string($k) && ( preg_match(self::NONCHARS, $k) || preg_last_error() )) {
                     continue;
                 }
                 $list[] = array(
@@ -231,24 +231,24 @@ class RequestFactory extends Nette\Object
             }
         }
 
-        error_reporting( $old );
+        error_reporting($old);
 
         // HEADERS
-        if (function_exists( 'apache_request_headers' )) {
-            $headers = array_change_key_case( apache_request_headers(), CASE_LOWER );
+        if (function_exists('apache_request_headers')) {
+            $headers = array_change_key_case(apache_request_headers(), CASE_LOWER);
         } else {
             $headers = array();
             foreach ($_SERVER as $k => $v) {
-                if (strncmp( $k, 'HTTP_', 5 ) == 0) {
-                    $k = substr( $k, 5 );
-                } elseif (strncmp( $k, 'CONTENT_', 8 )) {
+                if (strncmp($k, 'HTTP_', 5) == 0) {
+                    $k = substr($k, 5);
+                } elseif (strncmp($k, 'CONTENT_', 8)) {
                     continue;
                 }
-                $headers[strtr( strtolower( $k ), '_', '-' )] = $v;
+                $headers[strtr(strtolower($k), '_', '-')] = $v;
             }
         }
 
-        return new Request( $url, $query, $post, $files, $cookies, $headers,
+        return new Request($url, $query, $post, $files, $cookies, $headers,
             isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : null,
             isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : null,
             isset( $_SERVER['REMOTE_HOST'] ) ? $_SERVER['REMOTE_HOST'] : null

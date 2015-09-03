@@ -1,7 +1,7 @@
 <?php
 /**
  * phpDocumentor Var Tag Test
- * 
+ *
  * PHP version 5.3
  *
  * @author    Daniel O'Connor <daniel.oconnor@gmail.com>
@@ -13,7 +13,6 @@
 namespace phpDocumentor\Reflection\DocBlock;
 
 use phpDocumentor\Reflection\DocBlock;
-use phpDocumentor\Reflection\DocBlock\Context;
 
 /**
  * Test class for \phpDocumentor\Reflection\DocBlock\Tag\VarTag
@@ -25,32 +24,34 @@ use phpDocumentor\Reflection\DocBlock\Context;
  */
 class TagTest extends \PHPUnit_Framework_TestCase
 {
-    
+
     /**
      * @expectedException \InvalidArgumentException
-     * 
+     *
      * @return void
      */
     public function testInvalidTagLine()
     {
+
         Tag::createInstance('Invalid tag line');
     }
 
     /**
      * @covers \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
-     * 
+     *
      * @return void
      */
     public function testTagHandlerUnregistration()
     {
-        $currentHandler = __NAMESPACE__ . '\Tag\VarTag';
+
+        $currentHandler = __NAMESPACE__.'\Tag\VarTag';
         $tagPreUnreg = Tag::createInstance('@var mixed');
         $this->assertInstanceOf(
             $currentHandler,
             $tagPreUnreg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPreUnreg
         );
 
@@ -62,7 +63,7 @@ class TagTest extends \PHPUnit_Framework_TestCase
             $tagPostUnreg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPostUnreg
         );
 
@@ -71,31 +72,32 @@ class TagTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @covers \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
-     * 
+     *
      * @return void
      */
     public function testTagHandlerCorrectRegistration()
     {
+
         if (0 == ini_get('allow_url_include')) {
             $this->markTestSkipped('"data" URIs for includes are required.');
         }
-        $currentHandler = __NAMESPACE__ . '\Tag\VarTag';
+        $currentHandler = __NAMESPACE__.'\Tag\VarTag';
         $tagPreReg = Tag::createInstance('@var mixed');
         $this->assertInstanceOf(
             $currentHandler,
             $tagPreReg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPreReg
         );
 
-        include 'data:text/plain;base64,'. base64_encode(
-<<<TAG_HANDLER
-<?php
+        include 'data:text/plain;base64,'.base64_encode(
+                <<<TAG_HANDLER
+                <?php
     class MyTagHandler extends \phpDocumentor\Reflection\DocBlock\Tag {}
 TAG_HANDLER
-        );
+            );
 
         $this->assertTrue(Tag::registerTagHandler('var', '\MyTagHandler'));
 
@@ -105,7 +107,7 @@ TAG_HANDLER
             $tagPostReg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPostReg
         );
         $this->assertInstanceOf(
@@ -115,19 +117,20 @@ TAG_HANDLER
 
         $this->assertTrue(Tag::registerTagHandler('var', $currentHandler));
     }
-    
+
     /**
      * @depends testTagHandlerCorrectRegistration
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag::createInstance
-     * 
+     * @covers  \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
+     * @covers  \phpDocumentor\Reflection\DocBlock\Tag::createInstance
+     *
      * @return void
      */
     public function testNamespacedTagHandlerCorrectRegistration()
     {
+
         $tagPreReg = Tag::createInstance('@T something');
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPreReg
         );
         $this->assertNotInstanceOf(
@@ -147,7 +150,7 @@ TAG_HANDLER
             )
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPostReg
         );
         $this->assertInstanceOf(
@@ -159,19 +162,20 @@ TAG_HANDLER
             Tag::registerTagHandler('\MyNamespace\MyTag', null)
         );
     }
-    
+
     /**
      * @depends testTagHandlerCorrectRegistration
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag::createInstance
-     * 
+     * @covers  \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
+     * @covers  \phpDocumentor\Reflection\DocBlock\Tag::createInstance
+     *
      * @return void
      */
     public function testNamespacedTagHandlerIncorrectRegistration()
     {
+
         $tagPreReg = Tag::createInstance('@T something');
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPreReg
         );
         $this->assertNotInstanceOf(
@@ -191,7 +195,7 @@ TAG_HANDLER
             )
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPostReg
         );
         $this->assertNotInstanceOf(
@@ -202,19 +206,20 @@ TAG_HANDLER
 
     /**
      * @covers \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
-     * 
+     *
      * @return void
      */
     public function testNonExistentTagHandlerRegistration()
     {
-        $currentHandler = __NAMESPACE__ . '\Tag\VarTag';
+
+        $currentHandler = __NAMESPACE__.'\Tag\VarTag';
         $tagPreReg = Tag::createInstance('@var mixed');
         $this->assertInstanceOf(
             $currentHandler,
             $tagPreReg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPreReg
         );
 
@@ -226,31 +231,32 @@ TAG_HANDLER
             $tagPostReg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPostReg
         );
     }
 
     /**
      * @covers \phpDocumentor\Reflection\DocBlock\Tag::registerTagHandler
-     * 
+     *
      * @return void
      */
     public function testIncompatibleTagHandlerRegistration()
     {
-        $currentHandler = __NAMESPACE__ . '\Tag\VarTag';
+
+        $currentHandler = __NAMESPACE__.'\Tag\VarTag';
         $tagPreReg = Tag::createInstance('@var mixed');
         $this->assertInstanceOf(
             $currentHandler,
             $tagPreReg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPreReg
         );
 
         $this->assertFalse(
-            Tag::registerTagHandler('var', __NAMESPACE__ . '\TagTest')
+            Tag::registerTagHandler('var', __NAMESPACE__.'\TagTest')
         );
 
         $tagPostReg = Tag::createInstance('@var mixed');
@@ -259,7 +265,7 @@ TAG_HANDLER
             $tagPostReg
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\Tag',
+            __NAMESPACE__.'\Tag',
             $tagPostReg
         );
     }
@@ -272,7 +278,7 @@ TAG_HANDLER
      * @param string $content
      * @param string $exDescription
      *
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag
+     * @covers       \phpDocumentor\Reflection\DocBlock\Tag
      * @dataProvider provideDataForConstuctor
      *
      * @return void
@@ -282,6 +288,7 @@ TAG_HANDLER
         $content,
         $exDescription
     ) {
+
         $tag = new Tag($type, $content);
 
         $this->assertEquals($type, $tag->getName());
@@ -296,6 +303,7 @@ TAG_HANDLER
      */
     public function provideDataForConstuctor()
     {
+
         // $type, $content, $exDescription
         return array(
             array(

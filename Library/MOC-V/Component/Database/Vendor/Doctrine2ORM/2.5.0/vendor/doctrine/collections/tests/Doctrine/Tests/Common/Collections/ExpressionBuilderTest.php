@@ -2,27 +2,24 @@
 
 namespace Doctrine\Tests\Common\Collections;
 
-use Doctrine\Common\Collections\ExpressionBuilder;
 use Doctrine\Common\Collections\Expr\Comparison;
 use Doctrine\Common\Collections\Expr\CompositeExpression;
+use Doctrine\Common\Collections\ExpressionBuilder;
 
 /**
  * @group DDC-1637
  */
 class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var ExpressionBuilder
      */
     private $builder;
 
-    protected function setUp()
-    {
-        $this->builder = new ExpressionBuilder();
-    }
-
     public function testAndX()
     {
+
         $expr = $this->builder->andX($this->builder->eq("a", "b"));
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\CompositeExpression', $expr);
@@ -31,6 +28,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testOrX()
     {
+
         $expr = $this->builder->orX($this->builder->eq("a", "b"));
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\CompositeExpression', $expr);
@@ -39,12 +37,14 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testInvalidAndXArgument()
     {
+
         $this->setExpectedException("RuntimeException");
         $this->builder->andX("foo");
     }
 
     public function testEq()
     {
+
         $expr = $this->builder->eq("a", "b");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -53,6 +53,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testNeq()
     {
+
         $expr = $this->builder->neq("a", "b");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -61,6 +62,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testLt()
     {
+
         $expr = $this->builder->lt("a", "b");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -69,6 +71,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testGt()
     {
+
         $expr = $this->builder->gt("a", "b");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -77,6 +80,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testGte()
     {
+
         $expr = $this->builder->gte("a", "b");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -85,6 +89,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testLte()
     {
+
         $expr = $this->builder->lte("a", "b");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -93,6 +98,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testIn()
     {
+
         $expr = $this->builder->in("a", array("b"));
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -101,6 +107,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testNotIn()
     {
+
         $expr = $this->builder->notIn("a", array("b"));
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -109,6 +116,7 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testIsNull()
     {
+
         $expr = $this->builder->isNull("a");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
@@ -117,9 +125,16 @@ class ExpressionBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testContains()
     {
+
         $expr = $this->builder->contains("a", "b");
 
         $this->assertInstanceOf('Doctrine\Common\Collections\Expr\Comparison', $expr);
         $this->assertEquals(Comparison::CONTAINS, $expr->getOperator());
+    }
+
+    protected function setUp()
+    {
+
+        $this->builder = new ExpressionBuilder();
     }
 }

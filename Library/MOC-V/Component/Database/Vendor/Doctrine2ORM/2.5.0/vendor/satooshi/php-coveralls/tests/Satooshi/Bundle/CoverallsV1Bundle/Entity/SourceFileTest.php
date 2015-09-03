@@ -11,16 +11,14 @@ use Satooshi\ProjectTestCase;
  */
 class SourceFileTest extends ProjectTestCase
 {
-    protected function setUp()
+
+    /**
+     * @test
+     */
+    public function shouldHaveNameOnConstruction()
     {
-        $this->projectDir = realpath(__DIR__ . '/../../../..');
 
-        $this->setUpDir($this->projectDir);
-
-        $this->filename = 'test.php';
-        $this->path     = $this->srcDir . DIRECTORY_SEPARATOR . $this->filename;
-
-        $this->object = new SourceFile($this->path, $this->filename);
+        $this->assertEquals($this->filename, $this->object->getName());
     }
 
     // getName()
@@ -28,9 +26,12 @@ class SourceFileTest extends ProjectTestCase
     /**
      * @test
      */
-    public function shouldHaveNameOnConstruction()
+    public function shouldHaveSourceOnConstruction()
     {
-        $this->assertEquals($this->filename, $this->object->getName());
+
+        $expected = trim(file_get_contents($this->path));
+
+        $this->assertEquals($expected, $this->object->getSource());
     }
 
     // getSource()
@@ -38,11 +39,12 @@ class SourceFileTest extends ProjectTestCase
     /**
      * @test
      */
-    public function shouldHaveSourceOnConstruction()
+    public function shouldHaveNullCoverageOnConstruction()
     {
-        $expected = trim(file_get_contents($this->path));
 
-        $this->assertEquals($expected, $this->object->getSource());
+        $expected = array_fill(0, 9, null);
+
+        $this->assertEquals($expected, $this->object->getCoverage());
     }
 
     // getCoverage()
@@ -50,11 +52,10 @@ class SourceFileTest extends ProjectTestCase
     /**
      * @test
      */
-    public function shouldHaveNullCoverageOnConstruction()
+    public function shouldHavePathOnConstruction()
     {
-        $expected = array_fill(0, 9, null);
 
-        $this->assertEquals($expected, $this->object->getCoverage());
+        $this->assertEquals($this->path, $this->object->getPath());
     }
 
     // getPath()
@@ -62,9 +63,10 @@ class SourceFileTest extends ProjectTestCase
     /**
      * @test
      */
-    public function shouldHavePathOnConstruction()
+    public function shouldHaveFileLinesOnConstruction()
     {
-        $this->assertEquals($this->path, $this->object->getPath());
+
+        $this->assertEquals(9, $this->object->getFileLines());
     }
 
     // getFileLines()
@@ -72,18 +74,9 @@ class SourceFileTest extends ProjectTestCase
     /**
      * @test
      */
-    public function shouldHaveFileLinesOnConstruction()
-    {
-        $this->assertEquals(9, $this->object->getFileLines());
-    }
-
-    // toArray()
-
-    /**
-     * @test
-     */
     public function shouldConvertToArray()
     {
+
         $expected = array(
             'name'     => $this->filename,
             'source'   => trim(file_get_contents($this->path)),
@@ -94,13 +87,14 @@ class SourceFileTest extends ProjectTestCase
         $this->assertEquals(json_encode($expected), (string)$this->object);
     }
 
-    // addCoverage()
+    // toArray()
 
     /**
      * @test
      */
     public function shouldAddCoverage()
     {
+
         $this->object->addCoverage(5, 1);
 
         $expected = array_fill(0, 9, null);
@@ -109,14 +103,14 @@ class SourceFileTest extends ProjectTestCase
         $this->assertEquals($expected, $this->object->getCoverage());
     }
 
-    // getMetrics()
-    // reportLineCoverage()
+    // addCoverage()
 
     /**
      * @test
      */
     public function shouldReportLineCoverage0PercentWithoutAddingCoverage()
     {
+
         $metrics = $this->object->getMetrics();
 
         $this->assertEquals(0, $metrics->getStatements());
@@ -125,11 +119,15 @@ class SourceFileTest extends ProjectTestCase
         $this->assertEquals(0, $this->object->reportLineCoverage());
     }
 
+    // getMetrics()
+    // reportLineCoverage()
+
     /**
      * @test
      */
     public function shouldReportLineCoverage100PercentAfterAddingCoverage()
     {
+
         $this->object->addCoverage(6, 1);
 
         $metrics = $this->object->getMetrics();
@@ -138,5 +136,18 @@ class SourceFileTest extends ProjectTestCase
         $this->assertEquals(1, $metrics->getCoveredStatements());
         $this->assertEquals(100, $metrics->getLineCoverage());
         $this->assertEquals(100, $this->object->reportLineCoverage());
+    }
+
+    protected function setUp()
+    {
+
+        $this->projectDir = realpath(__DIR__.'/../../../..');
+
+        $this->setUpDir($this->projectDir);
+
+        $this->filename = 'test.php';
+        $this->path = $this->srcDir.DIRECTORY_SEPARATOR.$this->filename;
+
+        $this->object = new SourceFile($this->path, $this->filename);
     }
 }

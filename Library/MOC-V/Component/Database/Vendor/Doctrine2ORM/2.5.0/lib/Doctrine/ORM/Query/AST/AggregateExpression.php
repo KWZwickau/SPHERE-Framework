@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class AggregateExpression extends Node
 {
+
     /**
      * @var string
      */
@@ -54,6 +55,7 @@ class AggregateExpression extends Node
      */
     public function __construct($functionName, $pathExpression, $isDistinct)
     {
+
         $this->functionName = $functionName;
         $this->pathExpression = $pathExpression;
         $this->isDistinct = $isDistinct;
@@ -64,6 +66,7 @@ class AggregateExpression extends Node
      */
     public function dispatch($walker)
     {
+
         return $walker->walkAggregateExpression($this);
     }
 }

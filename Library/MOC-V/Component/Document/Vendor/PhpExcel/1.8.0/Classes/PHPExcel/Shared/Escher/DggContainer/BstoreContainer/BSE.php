@@ -72,7 +72,7 @@ class PHPExcel_Shared_Escher_DggContainer_BstoreContainer_BSE
      *
      * @param PHPExcel_Shared_Escher_DggContainer_BstoreContainer $parent
      */
-    public function setParent( $parent )
+    public function setParent($parent)
     {
 
         $this->_parent = $parent;
@@ -94,11 +94,11 @@ class PHPExcel_Shared_Escher_DggContainer_BstoreContainer_BSE
      *
      * @param PHPExcel_Shared_Escher_DggContainer_BstoreContainer_BSE_Blip $blip
      */
-    public function setBlip( $blip )
+    public function setBlip($blip)
     {
 
         $this->_blip = $blip;
-        $blip->setParent( $this );
+        $blip->setParent($this);
     }
 
     /**
@@ -117,7 +117,7 @@ class PHPExcel_Shared_Escher_DggContainer_BstoreContainer_BSE
      *
      * @param int
      */
-    public function setBlipType( $blipType )
+    public function setBlipType($blipType)
     {
 
         $this->_blipType = $blipType;

@@ -18,11 +18,13 @@
  */
 class PHPUnit_Framework_MockObject_Matcher_InvokedAtLeastOnce extends PHPUnit_Framework_MockObject_Matcher_InvokedRecorder
 {
+
     /**
      * @return string
      */
     public function toString()
     {
+
         return 'invoked at least once';
     }
 
@@ -34,6 +36,7 @@ class PHPUnit_Framework_MockObject_Matcher_InvokedAtLeastOnce extends PHPUnit_Fr
      */
     public function verify()
     {
+
         $count = $this->getInvocationCount();
 
         if ($count < 1) {

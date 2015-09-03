@@ -19,6 +19,7 @@ namespace Symfony\Component\HttpKernel\Profiler;
  */
 class RedisProfilerStorage implements ProfilerStorageInterface
 {
+
     const TOKEN_PREFIX = 'sf_profiler_';
 
     const REDIS_OPT_SERIALIZER = 1;
@@ -44,8 +45,9 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      */
     public function __construct($dsn, $username = '', $password = '', $lifetime = 86400)
     {
+
         $this->dsn = $dsn;
-        $this->lifetime = (int) $lifetime;
+        $this->lifetime = (int)$lifetime;
     }
 
     /**
@@ -53,6 +55,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      */
     public function find($ip, $url, $limit, $method, $start = null, $end = null)
     {
+
         $indexName = $this->getIndexName();
 
         if (!$indexContent = $this->getValue($indexName, self::REDIS_SERIALIZER_NONE)) {
@@ -71,19 +74,21 @@ class RedisProfilerStorage implements ProfilerStorageInterface
                 continue;
             }
 
-            list($itemToken, $itemIp, $itemMethod, $itemUrl, $itemTime, $itemParent) = explode("\t", $item, 6);
+            list( $itemToken, $itemIp, $itemMethod, $itemUrl, $itemTime, $itemParent ) = explode("\t", $item, 6);
 
-            $itemTime = (int) $itemTime;
+            $itemTime = (int)$itemTime;
 
-            if ($ip && false === strpos($itemIp, $ip) || $url && false === strpos($itemUrl, $url) || $method && false === strpos($itemMethod, $method)) {
+            if ($ip && false === strpos($itemIp, $ip) || $url && false === strpos($itemUrl,
+                    $url) || $method && false === strpos($itemMethod, $method)
+            ) {
                 continue;
             }
 
-            if (!empty($start) && $itemTime < $start) {
+            if (!empty( $start ) && $itemTime < $start) {
                 continue;
             }
 
-            if (!empty($end) && $itemTime > $end) {
+            if (!empty( $end ) && $itemTime > $end) {
                 continue;
             }
 
@@ -111,21 +116,21 @@ class RedisProfilerStorage implements ProfilerStorageInterface
 
         $name = 'index';
 
-        if ($this->isItemNameValid( $name )) {
+        if ($this->isItemNameValid($name)) {
             return $name;
         }
 
         return false;
     }
 
-    private function isItemNameValid( $name )
+    private function isItemNameValid($name)
     {
 
-        $length = strlen( $name );
+        $length = strlen($name);
 
         if ($length > 2147483648) {
-            throw new \RuntimeException( sprintf( 'The Redis item key "%s" is too long (%s bytes). Allowed maximum size is 2^31 bytes.',
-                $name, $length ) );
+            throw new \RuntimeException(sprintf('The Redis item key "%s" is too long (%s bytes). Allowed maximum size is 2^31 bytes.',
+                $name, $length));
         }
 
         return true;
@@ -139,13 +144,13 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      *
      * @return mixed
      */
-    private function getValue( $key, $serializer = self::REDIS_SERIALIZER_NONE )
+    private function getValue($key, $serializer = self::REDIS_SERIALIZER_NONE)
     {
 
         $redis = $this->getRedis();
-        $redis->setOption( self::REDIS_OPT_SERIALIZER, $serializer );
+        $redis->setOption(self::REDIS_OPT_SERIALIZER, $serializer);
 
-        return $redis->get( $key );
+        return $redis->get($key);
     }
 
     /**
@@ -157,11 +162,13 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      */
     protected function getRedis()
     {
+
         if (null === $this->redis) {
             $data = parse_url($this->dsn);
 
-            if (false === $data || !isset($data['scheme']) || $data['scheme'] !== 'redis' || !isset($data['host']) || !isset($data['port'])) {
-                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Redis with an invalid dsn "%s". The minimal expected format is "redis://[host]:port".', $this->dsn));
+            if (false === $data || !isset( $data['scheme'] ) || $data['scheme'] !== 'redis' || !isset( $data['host'] ) || !isset( $data['port'] )) {
+                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Redis with an invalid dsn "%s". The minimal expected format is "redis://[host]:port".',
+                    $this->dsn));
             }
 
             if (!extension_loaded('redis')) {
@@ -171,11 +178,11 @@ class RedisProfilerStorage implements ProfilerStorageInterface
             $redis = new \Redis();
             $redis->connect($data['host'], $data['port']);
 
-            if (isset($data['path'])) {
+            if (isset( $data['path'] )) {
                 $redis->select(substr($data['path'], 1));
             }
 
-            if (isset($data['pass'])) {
+            if (isset( $data['pass'] )) {
                 $redis->auth($data['pass']);
             }
 
@@ -194,6 +201,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      */
     public function setRedis($redis)
     {
+
         $this->redis = $redis;
     }
 
@@ -206,13 +214,13 @@ class RedisProfilerStorage implements ProfilerStorageInterface
         // delete only items from index
         $indexName = $this->getIndexName();
 
-        $indexContent = $this->getValue( $indexName, self::REDIS_SERIALIZER_NONE );
+        $indexContent = $this->getValue($indexName, self::REDIS_SERIALIZER_NONE);
 
         if (!$indexContent) {
             return false;
         }
 
-        $profileList = explode( "\n", $indexContent );
+        $profileList = explode("\n", $indexContent);
 
         $result = array();
 
@@ -221,14 +229,14 @@ class RedisProfilerStorage implements ProfilerStorageInterface
                 continue;
             }
 
-            if (false !== $pos = strpos( $item, "\t" )) {
-                $result[] = $this->getItemName( substr( $item, 0, $pos ) );
+            if (false !== $pos = strpos($item, "\t")) {
+                $result[] = $this->getItemName(substr($item, 0, $pos));
             }
         }
 
         $result[] = $indexName;
 
-        return $this->delete( $result );
+        return $this->delete($result);
     }
 
     /**
@@ -240,6 +248,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      */
     private function getItemName($token)
     {
+
         $name = $token;
 
         if ($this->isItemNameValid($name)) {
@@ -256,47 +265,47 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      *
      * @return bool
      */
-    private function delete( array $keys )
+    private function delete(array $keys)
     {
 
-        return (bool)$this->getRedis()->delete( $keys );
+        return (bool)$this->getRedis()->delete($keys);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function read( $token )
+    public function read($token)
     {
 
         if (empty( $token )) {
             return false;
         }
 
-        $profile = $this->getValue( $this->getItemName( $token ), self::REDIS_SERIALIZER_PHP );
+        $profile = $this->getValue($this->getItemName($token), self::REDIS_SERIALIZER_PHP);
 
         if (false !== $profile) {
-            $profile = $this->createProfileFromData( $token, $profile );
+            $profile = $this->createProfileFromData($token, $profile);
         }
 
         return $profile;
     }
 
-    private function createProfileFromData( $token, $data, $parent = null )
+    private function createProfileFromData($token, $data, $parent = null)
     {
 
-        $profile = new Profile( $token );
-        $profile->setIp( $data['ip'] );
-        $profile->setMethod( $data['method'] );
-        $profile->setUrl( $data['url'] );
-        $profile->setTime( $data['time'] );
-        $profile->setCollectors( $data['data'] );
+        $profile = new Profile($token);
+        $profile->setIp($data['ip']);
+        $profile->setMethod($data['method']);
+        $profile->setUrl($data['url']);
+        $profile->setTime($data['time']);
+        $profile->setCollectors($data['data']);
 
         if (!$parent && $data['parent']) {
-            $parent = $this->read( $data['parent'] );
+            $parent = $this->read($data['parent']);
         }
 
         if ($parent) {
-            $profile->setParent( $parent );
+            $profile->setParent($parent);
         }
 
         foreach ($data['children'] as $token) {
@@ -304,11 +313,11 @@ class RedisProfilerStorage implements ProfilerStorageInterface
                 continue;
             }
 
-            if (!$childProfileData = $this->getValue( $this->getItemName( $token ), self::REDIS_SERIALIZER_PHP )) {
+            if (!$childProfileData = $this->getValue($this->getItemName($token), self::REDIS_SERIALIZER_PHP)) {
                 continue;
             }
 
-            $profile->addChild( $this->createProfileFromData( $token, $childProfileData, $profile ) );
+            $profile->addChild($this->createProfileFromData($token, $childProfileData, $profile));
         }
 
         return $profile;
@@ -317,16 +326,16 @@ class RedisProfilerStorage implements ProfilerStorageInterface
     /**
      * {@inheritdoc}
      */
-    public function write( Profile $profile )
+    public function write(Profile $profile)
     {
 
         $data = array(
             'token'    => $profile->getToken(),
             'parent'   => $profile->getParentToken(),
-            'children' => array_map( function ( $p ) {
+            'children' => array_map(function ($p) {
 
                 return $p->getToken();
-            }, $profile->getChildren() ),
+            }, $profile->getChildren()),
             'data'     => $profile->getCollectors(),
             'ip'       => $profile->getIp(),
             'method'   => $profile->getMethod(),
@@ -334,26 +343,26 @@ class RedisProfilerStorage implements ProfilerStorageInterface
             'time'     => $profile->getTime(),
         );
 
-        $profileIndexed = false !== $this->getValue( $this->getItemName( $profile->getToken() ) );
+        $profileIndexed = false !== $this->getValue($this->getItemName($profile->getToken()));
 
-        if ($this->setValue( $this->getItemName( $profile->getToken() ), $data, $this->lifetime,
-            self::REDIS_SERIALIZER_PHP )
+        if ($this->setValue($this->getItemName($profile->getToken()), $data, $this->lifetime,
+            self::REDIS_SERIALIZER_PHP)
         ) {
 
             if (!$profileIndexed) {
                 // Add to index
                 $indexName = $this->getIndexName();
 
-                $indexRow = implode( "\t", array(
+                $indexRow = implode("\t", array(
                         $profile->getToken(),
                         $profile->getIp(),
                         $profile->getMethod(),
                         $profile->getUrl(),
                         $profile->getTime(),
                         $profile->getParentToken(),
-                    ) )."\n";
+                    ))."\n";
 
-                return $this->appendValue( $indexName, $indexRow, $this->lifetime );
+                return $this->appendValue($indexName, $indexRow, $this->lifetime);
             }
 
             return true;
@@ -374,6 +383,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      */
     private function setValue($key, $value, $expiration = 0, $serializer = self::REDIS_SERIALIZER_NONE)
     {
+
         $redis = $this->getRedis();
         $redis->setOption(self::REDIS_OPT_SERIALIZER, $serializer);
 
@@ -391,6 +401,7 @@ class RedisProfilerStorage implements ProfilerStorageInterface
      */
     private function appendValue($key, $value, $expiration = 0)
     {
+
         $redis = $this->getRedis();
         $redis->setOption(self::REDIS_OPT_SERIALIZER, self::REDIS_SERIALIZER_NONE);
 

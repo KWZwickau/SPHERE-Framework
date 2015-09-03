@@ -20,6 +20,7 @@ use Symfony\Component\Routing\Route;
  */
 class DumperRoute
 {
+
     /**
      * @var string
      */
@@ -38,6 +39,7 @@ class DumperRoute
      */
     public function __construct($name, Route $route)
     {
+
         $this->name = $name;
         $this->route = $route;
     }
@@ -49,6 +51,7 @@ class DumperRoute
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -59,6 +62,7 @@ class DumperRoute
      */
     public function getRoute()
     {
+
         return $this->route;
     }
 }

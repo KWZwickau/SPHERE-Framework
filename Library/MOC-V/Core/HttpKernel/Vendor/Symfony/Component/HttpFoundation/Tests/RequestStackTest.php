@@ -16,8 +16,10 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 class RequestStackTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testGetCurrentRequest()
     {
+
         $requestStack = new RequestStack();
         $this->assertNull($requestStack->getCurrentRequest());
 
@@ -34,6 +36,7 @@ class RequestStackTest extends \PHPUnit_Framework_TestCase
 
     public function testGetMasterRequest()
     {
+
         $requestStack = new RequestStack();
         $this->assertNull($requestStack->getMasterRequest());
 
@@ -48,6 +51,7 @@ class RequestStackTest extends \PHPUnit_Framework_TestCase
 
     public function testGetParentRequest()
     {
+
         $requestStack = new RequestStack();
         $this->assertNull($requestStack->getParentRequest());
 

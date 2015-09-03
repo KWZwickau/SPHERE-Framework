@@ -9,8 +9,10 @@ use Guzzle\Batch\Batch;
  */
 class AbstractBatchDecoratorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testProxiesToWrappedObject()
     {
+
         $batch = new Batch(
             $this->getMock('Guzzle\Batch\BatchTransferInterface'),
             $this->getMock('Guzzle\Batch\BatchDivisorInterface')

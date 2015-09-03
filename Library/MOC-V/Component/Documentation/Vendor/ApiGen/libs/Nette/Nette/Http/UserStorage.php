@@ -32,7 +32,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
     private $sessionSection;
 
 
-    public function  __construct( Session $sessionHandler )
+    public function  __construct(Session $sessionHandler)
     {
 
         $this->sessionHandler = $sessionHandler;
@@ -46,10 +46,10 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
      *
      * @return UserStorage Provides a fluent interface
      */
-    public function setAuthenticated( $state )
+    public function setAuthenticated($state)
     {
 
-        $section = $this->getSessionSection( true );
+        $section = $this->getSessionSection(true);
         $section->authenticated = (bool)$state;
 
         // Session Fixation defence
@@ -71,7 +71,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
      *
      * @return SessionSection
      */
-    protected function getSessionSection( $need )
+    protected function getSessionSection($need)
     {
 
         if ($this->sessionSection !== null) {
@@ -82,9 +82,9 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
             return null;
         }
 
-        $this->sessionSection = $section = $this->sessionHandler->getSection( 'Nette.Http.UserStorage/'.$this->namespace );
+        $this->sessionSection = $section = $this->sessionHandler->getSection('Nette.Http.UserStorage/'.$this->namespace);
 
-        if (!$section->identity instanceof IIdentity || !is_bool( $section->authenticated )) {
+        if (!$section->identity instanceof IIdentity || !is_bool($section->authenticated)) {
             $section->remove();
         }
 
@@ -123,7 +123,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
     public function isAuthenticated()
     {
 
-        $session = $this->getSessionSection( false );
+        $session = $this->getSessionSection(false);
         return $session && $session->authenticated;
     }
 
@@ -134,10 +134,10 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
      *
      * @return UserStorage Provides a fluent interface
      */
-    public function setIdentity( IIdentity $identity = null )
+    public function setIdentity(IIdentity $identity = null)
     {
 
-        $this->getSessionSection( true )->identity = $identity;
+        $this->getSessionSection(true)->identity = $identity;
         return $this;
     }
 
@@ -149,7 +149,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
     public function getIdentity()
     {
 
-        $session = $this->getSessionSection( false );
+        $session = $this->getSessionSection(false);
         return $session ? $session->identity : null;
     }
 
@@ -171,7 +171,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
      *
      * @return UserStorage Provides a fluent interface
      */
-    public function setNamespace( $namespace )
+    public function setNamespace($namespace)
     {
 
         if ($this->namespace !== $namespace) {
@@ -189,12 +189,12 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
      *
      * @return UserStorage Provides a fluent interface
      */
-    public function setExpiration( $time, $flags = 0 )
+    public function setExpiration($time, $flags = 0)
     {
 
-        $section = $this->getSessionSection( true );
+        $section = $this->getSessionSection(true);
         if ($time) {
-            $time = Nette\DateTime::from( $time )->format( 'U' );
+            $time = Nette\DateTime::from($time)->format('U');
             $section->expireTime = $time;
             $section->expireDelta = $time - time();
 
@@ -205,8 +205,8 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
         $section->expireIdentity = (bool)( $flags & self::CLEAR_IDENTITY );
         $section->expireBrowser = (bool)( $flags & self::BROWSER_CLOSED );
         $section->browserCheck = true;
-        $section->setExpiration( 0, 'browserCheck' );
-        $section->setExpiration( $time, 'foo' ); // time check
+        $section->setExpiration(0, 'browserCheck');
+        $section->setExpiration($time, 'foo'); // time check
         return $this;
     }
 
@@ -218,7 +218,7 @@ class UserStorage extends Nette\Object implements Nette\Security\IUserStorage
     public function getLogoutReason()
     {
 
-        $session = $this->getSessionSection( false );
+        $session = $this->getSessionSection(false);
         return $session ? $session->reason : null;
     }
 

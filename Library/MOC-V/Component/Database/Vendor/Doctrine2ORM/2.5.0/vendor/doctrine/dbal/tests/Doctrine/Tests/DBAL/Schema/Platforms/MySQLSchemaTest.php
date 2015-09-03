@@ -2,12 +2,13 @@
 
 namespace Doctrine\Tests\DBAL\Schema\Platforms;
 
-require_once __DIR__ . '/../../../TestInit.php';
+require_once __DIR__.'/../../../TestInit.php';
 
 use Doctrine\DBAL\Schema\Table;
 
 class MySQLSchemaTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var Comparator
      */
@@ -20,12 +21,14 @@ class MySQLSchemaTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
+
         $this->comparator = new \Doctrine\DBAL\Schema\Comparator;
         $this->platform = new \Doctrine\DBAL\Platforms\MySqlPlatform;
     }
 
     public function testSwitchPrimaryKeyOrder()
     {
+
         $tableOld = new Table("test");
         $tableOld->addColumn('foo_id', 'integer');
         $tableOld->addColumn('bar_id', 'integer');
@@ -50,6 +53,7 @@ class MySQLSchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testGenerateForeignKeySQL()
     {
+
         $tableOld = new Table("test");
         $tableOld->addColumn('foo_id', 'integer');
         $tableOld->addUnnamedForeignKeyConstraint('test_foreign', array('foo_id'), array('foo_id'));
@@ -59,7 +63,8 @@ class MySQLSchemaTest extends \PHPUnit_Framework_TestCase
             $sqls[] = $this->platform->getCreateForeignKeySQL($fk, $tableOld);
         }
 
-        $this->assertEquals(array("ALTER TABLE test ADD CONSTRAINT FK_D87F7E0C8E48560F FOREIGN KEY (foo_id) REFERENCES test_foreign (foo_id)"), $sqls);
+        $this->assertEquals(array("ALTER TABLE test ADD CONSTRAINT FK_D87F7E0C8E48560F FOREIGN KEY (foo_id) REFERENCES test_foreign (foo_id)"),
+            $sqls);
     }
 
     /**
@@ -67,6 +72,7 @@ class MySQLSchemaTest extends \PHPUnit_Framework_TestCase
      */
     public function testClobNoAlterTable()
     {
+
         $tableOld = new Table("test");
         $tableOld->addColumn('id', 'integer');
         $tableOld->addColumn('description', 'string', array('length' => 65536));

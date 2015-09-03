@@ -25,6 +25,7 @@ use SplObjectStorage;
  */
 class ExportUtil
 {
+
     /**
      * Exports a value into a string.
      *
@@ -45,48 +46,8 @@ class ExportUtil
      */
     public static function export($value, $indentation = 0)
     {
+
         return static::recursiveExport($value, $indentation);
-    }
-
-    /**
-     * Converts an object to an array containing all of its private, protected
-     * and public properties.
-     *
-     * @param  object $object
-     *
-     * @return array
-     */
-    public static function toArray($object)
-    {
-        $array = array();
-
-        foreach ((array) $object as $key => $value) {
-            // properties are transformed to keys in the following way:
-
-            // private   $property => "\0Classname\0property"
-            // protected $property => "\0*\0property"
-            // public    $property => "property"
-
-            if (preg_match('/^\0.+\0(.+)$/', $key, $matches)) {
-                $key = $matches[1];
-            }
-
-            $array[$key] = $value;
-        }
-
-        // Some internal classes like SplObjectStorage don't work with the
-        // above (fast) mechanism nor with reflection
-        // Format the output similarly to print_r() in this case
-        if ($object instanceof SplObjectStorage) {
-            foreach ($object as $key => $value) {
-                $array[spl_object_hash($value)] = array(
-                    'obj' => $value,
-                    'inf' => $object->getInfo(),
-                );
-            }
-        }
-
-        return $array;
     }
 
     /**
@@ -101,6 +62,7 @@ class ExportUtil
      */
     protected static function recursiveExport($value, $indentation, &$processedObjects = array())
     {
+
         if ($value === null) {
             return 'null';
         }
@@ -116,10 +78,10 @@ class ExportUtil
         if (is_string($value)) {
             // Match for most non printable chars somewhat taking multibyte chars into account
             if (preg_match('/[^\x09-\x0d\x20-\xff]/', $value)) {
-                return 'Binary String: 0x' . bin2hex($value);
+                return 'Binary String: 0x'.bin2hex($value);
             }
 
-            return "'" . str_replace(array("\r\n", "\n\r", "\r"), array("\n", "\n", "\n"), $value) . "'";
+            return "'".str_replace(array("\r\n", "\n\r", "\r"), array("\n", "\n", "\n"), $value)."'";
         }
 
         $origValue = $value;
@@ -149,8 +111,8 @@ class ExportUtil
             // Numeric integer strings are automatically converted to integers
             // by PHP
             foreach ($recursiveKeys as $key => $recursiveKey) {
-                if ((string) (integer) $recursiveKey === $recursiveKey) {
-                    $recursiveKeys[$key] = (integer) $recursiveKey;
+                if ((string)(integer)$recursiveKey === $recursiveKey) {
+                    $recursiveKeys[$key] = (integer)$recursiveKey;
                 }
             }
 
@@ -163,23 +125,66 @@ class ExportUtil
                     $val = self::recursiveExport($val, $indentation + 1, $processedObjects);
                 }
 
-                $content .= $whitespace . '    ' . self::export($key) . ' => ' . $val . "\n";
+                $content .= $whitespace.'    '.self::export($key).' => '.$val."\n";
             }
 
             if (strlen($content) > 0) {
-                $content = "\n" . $content . $whitespace;
+                $content = "\n".$content.$whitespace;
             }
 
             return sprintf(
                 "%s (%s)",
-                is_object($origValue) ? sprintf('%s:%s', get_class($origValue), spl_object_hash($origValue)) . ' Object' : 'Array', $content
+                is_object($origValue) ? sprintf('%s:%s', get_class($origValue),
+                        spl_object_hash($origValue)).' Object' : 'Array', $content
             );
         }
 
-        if (is_double($value) && (double)(integer) $value === $value) {
-            return $value . '.0';
+        if (is_double($value) && (double)(integer)$value === $value) {
+            return $value.'.0';
         }
 
-        return (string) $value;
+        return (string)$value;
+    }
+
+    /**
+     * Converts an object to an array containing all of its private, protected
+     * and public properties.
+     *
+     * @param  object $object
+     *
+     * @return array
+     */
+    public static function toArray($object)
+    {
+
+        $array = array();
+
+        foreach ((array)$object as $key => $value) {
+            // properties are transformed to keys in the following way:
+
+            // private   $property => "\0Classname\0property"
+            // protected $property => "\0*\0property"
+            // public    $property => "property"
+
+            if (preg_match('/^\0.+\0(.+)$/', $key, $matches)) {
+                $key = $matches[1];
+            }
+
+            $array[$key] = $value;
+        }
+
+        // Some internal classes like SplObjectStorage don't work with the
+        // above (fast) mechanism nor with reflection
+        // Format the output similarly to print_r() in this case
+        if ($object instanceof SplObjectStorage) {
+            foreach ($object as $key => $value) {
+                $array[spl_object_hash($value)] = array(
+                    'obj' => $value,
+                    'inf' => $object->getInfo(),
+                );
+            }
+        }
+
+        return $array;
     }
 }

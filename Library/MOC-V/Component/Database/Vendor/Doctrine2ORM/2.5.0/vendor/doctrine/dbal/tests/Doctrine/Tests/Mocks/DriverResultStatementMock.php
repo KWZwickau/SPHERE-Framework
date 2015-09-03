@@ -6,4 +6,5 @@ use Doctrine\DBAL\Driver\ResultStatement;
 
 interface DriverResultStatementMock extends ResultStatement, \IteratorAggregate
 {
+
 }

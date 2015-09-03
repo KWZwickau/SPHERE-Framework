@@ -1,13 +1,16 @@
 <?php
 
 namespace Doctrine\Tests\DBAL\Functional;
+
 use Doctrine\DBAL\Types\Type;
 use PDO;
 
 class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     public function setUp()
     {
+
         parent::setUp();
 
         try {
@@ -21,7 +24,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
             foreach ($this->_conn->getDatabasePlatform()->getCreateTableSQL($table) as $sql) {
                 $this->_conn->executeQuery($sql);
             }
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
 
         }
         $this->_conn->executeUpdate('DELETE FROM write_table');
@@ -32,6 +35,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testExecuteUpdateFirstTypeIsNull()
     {
+
         $sql = "INSERT INTO write_table (test_string, test_int) VALUES (?, ?)";
         $this->_conn->executeUpdate($sql, array("text", 1111), array(null, PDO::PARAM_INT));
 
@@ -41,7 +45,8 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testExecuteUpdate()
     {
-        $sql = "INSERT INTO write_table (test_int) VALUES ( " . $this->_conn->quote(1) . ")";
+
+        $sql = "INSERT INTO write_table (test_int) VALUES ( ".$this->_conn->quote(1).")";
         $affected = $this->_conn->executeUpdate($sql);
 
         $this->assertEquals(1, $affected, "executeUpdate() should return the number of affected rows!");
@@ -49,6 +54,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testExecuteUpdateWithTypes()
     {
+
         $sql = "INSERT INTO write_table (test_int, test_string) VALUES (?, ?)";
         $affected = $this->_conn->executeUpdate($sql, array(1, 'foo'), array(\PDO::PARAM_INT, \PDO::PARAM_STR));
 
@@ -57,6 +63,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testPrepareRowCountReturnsAffectedRows()
     {
+
         $sql = "INSERT INTO write_table (test_int, test_string) VALUES (?, ?)";
         $stmt = $this->_conn->prepare($sql);
 
@@ -69,6 +76,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testPrepareWithPdoTypes()
     {
+
         $sql = "INSERT INTO write_table (test_int, test_string) VALUES (?, ?)";
         $stmt = $this->_conn->prepare($sql);
 
@@ -81,6 +89,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testPrepareWithDbalTypes()
     {
+
         $sql = "INSERT INTO write_table (test_int, test_string) VALUES (?, ?)";
         $stmt = $this->_conn->prepare($sql);
 
@@ -93,6 +102,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testPrepareWithDbalTypeNames()
     {
+
         $sql = "INSERT INTO write_table (test_int, test_string) VALUES (?, ?)";
         $stmt = $this->_conn->prepare($sql);
 
@@ -103,19 +113,22 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
         $this->assertEquals(1, $stmt->rowCount());
     }
 
+    public function testInsert()
+    {
+
+        $this->insertRows();
+    }
+
     public function insertRows()
     {
+
         $this->assertEquals(1, $this->_conn->insert('write_table', array('test_int' => 1, 'test_string' => 'foo')));
         $this->assertEquals(1, $this->_conn->insert('write_table', array('test_int' => 2, 'test_string' => 'bar')));
     }
 
-    public function testInsert()
-    {
-        $this->insertRows();
-    }
-
     public function testDelete()
     {
+
         $this->insertRows();
 
         $this->assertEquals(1, $this->_conn->delete('write_table', array('test_int' => 2)));
@@ -127,16 +140,21 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testUpdate()
     {
+
         $this->insertRows();
 
-        $this->assertEquals(1, $this->_conn->update('write_table', array('test_string' => 'bar'), array('test_string' => 'foo')));
-        $this->assertEquals(2, $this->_conn->update('write_table', array('test_string' => 'baz'), array('test_string' => 'bar')));
-        $this->assertEquals(0, $this->_conn->update('write_table', array('test_string' => 'baz'), array('test_string' => 'bar')));
+        $this->assertEquals(1,
+            $this->_conn->update('write_table', array('test_string' => 'bar'), array('test_string' => 'foo')));
+        $this->assertEquals(2,
+            $this->_conn->update('write_table', array('test_string' => 'baz'), array('test_string' => 'bar')));
+        $this->assertEquals(0,
+            $this->_conn->update('write_table', array('test_string' => 'baz'), array('test_string' => 'bar')));
     }
 
     public function testLastInsertId()
     {
-        if ( ! $this->_conn->getDatabasePlatform()->prefersIdentityColumns()) {
+
+        if (!$this->_conn->getDatabasePlatform()->prefersIdentityColumns()) {
             $this->markTestSkipped('Test only works on platforms with identity columns.');
         }
 
@@ -149,18 +167,20 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testLastInsertIdSequence()
     {
-        if ( ! $this->_conn->getDatabasePlatform()->supportsSequences()) {
+
+        if (!$this->_conn->getDatabasePlatform()->supportsSequences()) {
             $this->markTestSkipped('Test only works on platforms with sequences.');
         }
 
         $sequence = new \Doctrine\DBAL\Schema\Sequence('write_table_id_seq');
         try {
             $this->_conn->getSchemaManager()->createSequence($sequence);
-        } catch(\Exception $e) {
+        } catch (\Exception $e) {
         }
 
         $sequences = $this->_conn->getSchemaManager()->listSequences();
-        $this->assertEquals(1, count(array_filter($sequences, function($sequence) {
+        $this->assertEquals(1, count(array_filter($sequences, function ($sequence) {
+
             return strtolower($sequence->getName()) === 'write_table_id_seq';
         })));
 
@@ -175,11 +195,12 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testLastInsertIdNoSequenceGiven()
     {
-        if ( ! $this->_conn->getDatabasePlatform()->supportsSequences() || $this->_conn->getDatabasePlatform()->supportsIdentityColumns()) {
+
+        if (!$this->_conn->getDatabasePlatform()->supportsSequences() || $this->_conn->getDatabasePlatform()->supportsIdentityColumns()) {
             $this->markTestSkipped("Test only works consistently on platforms that support sequences and don't support identity columns.");
         }
 
-        $this->assertFalse($this->_conn->lastInsertId( null ));
+        $this->assertFalse($this->_conn->lastInsertId(null));
 
     }
 
@@ -188,6 +209,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testInsertWithKeyValueTypes()
     {
+
         $testString = new \DateTime('2013-04-14 10:10:10');
 
         $this->_conn->insert(
@@ -206,6 +228,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testUpdateWithKeyValueTypes()
     {
+
         $testString = new \DateTime('2013-04-14 10:10:10');
 
         $this->_conn->insert(
@@ -233,6 +256,7 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testDeleteWithKeyValueTypes()
     {
+
         $val = new \DateTime('2013-04-14 10:10:10');
         $this->_conn->insert(
             'write_table',
@@ -240,7 +264,8 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
             array('test_string' => 'datetime', 'test_int' => 'integer')
         );
 
-        $this->_conn->delete('write_table', array('test_int' => 30, 'test_string' => $val), array('test_string' => 'datetime', 'test_int' => 'integer'));
+        $this->_conn->delete('write_table', array('test_int' => 30, 'test_string' => $val),
+            array('test_string' => 'datetime', 'test_int' => 'integer'));
 
         $data = $this->_conn->fetchColumn('SELECT test_string FROM write_table WHERE test_int = 30');
 
@@ -249,9 +274,10 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testEmptyIdentityInsert()
     {
+
         $platform = $this->_conn->getDatabasePlatform();
 
-        if ( ! ($platform->supportsIdentityColumns() || $platform->usesSequenceEmulatedIdentityColumns()) ) {
+        if (!( $platform->supportsIdentityColumns() || $platform->usesSequenceEmulatedIdentityColumns() )) {
             $this->markTestSkipped(
                 'Test only works on platforms with identity columns or sequence emulated identity columns.'
             );
@@ -263,7 +289,8 @@ class WriteTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
         try {
             $this->_conn->getSchemaManager()->dropTable($table);
-        } catch(\Exception $e) { }
+        } catch (\Exception $e) {
+        }
 
         foreach ($platform->getCreateTableSQL($table) as $sql) {
             $this->_conn->exec($sql);

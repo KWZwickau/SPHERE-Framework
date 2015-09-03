@@ -21,6 +21,7 @@ use Prophecy\Exception\Doubler\ClassCreatorException;
  */
 class ClassCreator
 {
+
     private $generator;
 
     /**
@@ -30,6 +31,7 @@ class ClassCreator
      */
     public function __construct(ClassCodeGenerator $generator = null)
     {
+
         $this->generator = $generator ?: new ClassCodeGenerator;
     }
 
@@ -45,8 +47,9 @@ class ClassCreator
      */
     public function create($classname, Node\ClassNode $class)
     {
+
         $code = $this->generator->generate($classname, $class);
-        $return = eval($code);
+        $return = eval( $code );
 
         if (!class_exists($classname, false)) {
             if (count($class->getInterfaces())) {

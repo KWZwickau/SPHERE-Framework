@@ -8,65 +8,80 @@ use Doctrine\Common\Collections\Criteria;
 
 class CollectionTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var Collection
      */
     private $collection;
 
-    protected function setUp()
-    {
-        $this->collection = new ArrayCollection();
-    }
-
     public function testIssetAndUnset()
     {
-        $this->assertFalse(isset($this->collection[0]));
+
+        $this->assertFalse(isset( $this->collection[0] ));
         $this->collection->add('testing');
-        $this->assertTrue(isset($this->collection[0]));
-        unset($this->collection[0]);
-        $this->assertFalse(isset($this->collection[0]));
+        $this->assertTrue(isset( $this->collection[0] ));
+        unset( $this->collection[0] );
+        $this->assertFalse(isset( $this->collection[0] ));
     }
 
     public function testToString()
     {
+
         $this->collection->add('testing');
-        $this->assertTrue(is_string((string) $this->collection));
+        $this->assertTrue(is_string((string)$this->collection));
     }
 
     public function testRemovingNonExistentEntryReturnsNull()
     {
+
         $this->assertEquals(null, $this->collection->remove('testing_does_not_exist'));
     }
 
     public function testExists()
     {
+
         $this->collection->add("one");
         $this->collection->add("two");
-        $exists = $this->collection->exists(function($k, $e) { return $e == "one"; });
+        $exists = $this->collection->exists(function ($k, $e) {
+
+            return $e == "one";
+        });
         $this->assertTrue($exists);
-        $exists = $this->collection->exists(function($k, $e) { return $e == "other"; });
+        $exists = $this->collection->exists(function ($k, $e) {
+
+            return $e == "other";
+        });
         $this->assertFalse($exists);
     }
 
     public function testMap()
     {
+
         $this->collection->add(1);
         $this->collection->add(2);
-        $res = $this->collection->map(function($e) { return $e * 2; });
+        $res = $this->collection->map(function ($e) {
+
+            return $e * 2;
+        });
         $this->assertEquals(array(2, 4), $res->toArray());
     }
 
     public function testFilter()
     {
+
         $this->collection->add(1);
         $this->collection->add("foo");
         $this->collection->add(3);
-        $res = $this->collection->filter(function($e) { return is_numeric($e); });
+        $res = $this->collection->filter(function ($e) {
+
+            return is_numeric($e);
+        });
         $this->assertEquals(array(0 => 1, 2 => 3), $res->toArray());
     }
 
     public function testFirstAndLast()
     {
+
         $this->collection->add('one');
         $this->collection->add('two');
 
@@ -76,42 +91,48 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testArrayAccess()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
 
         $this->assertEquals($this->collection[0], 'one');
         $this->assertEquals($this->collection[1], 'two');
 
-        unset($this->collection[0]);
+        unset( $this->collection[0] );
         $this->assertEquals($this->collection->count(), 1);
     }
 
     public function testContainsKey()
     {
+
         $this->collection[5] = 'five';
         $this->assertTrue($this->collection->containsKey(5));
     }
 
     public function testContains()
     {
+
         $this->collection[0] = 'test';
         $this->assertTrue($this->collection->contains('test'));
     }
 
     public function testSearch()
     {
+
         $this->collection[0] = 'test';
         $this->assertEquals(0, $this->collection->indexOf('test'));
     }
 
     public function testGet()
     {
+
         $this->collection[0] = 'test';
         $this->assertEquals('test', $this->collection->get(0));
     }
 
     public function testGetKeys()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
         $this->assertEquals(array(0, 1), $this->collection->getKeys());
@@ -119,6 +140,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testGetValues()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
         $this->assertEquals(array('one', 'two'), $this->collection->getValues());
@@ -126,6 +148,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testCount()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
         $this->assertEquals($this->collection->count(), 2);
@@ -134,23 +157,35 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testForAll()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
-        $this->assertEquals($this->collection->forAll(function($k, $e) { return is_string($e); }), true);
-        $this->assertEquals($this->collection->forAll(function($k, $e) { return is_array($e); }), false);
+        $this->assertEquals($this->collection->forAll(function ($k, $e) {
+
+            return is_string($e);
+        }), true);
+        $this->assertEquals($this->collection->forAll(function ($k, $e) {
+
+            return is_array($e);
+        }), false);
     }
 
     public function testPartition()
     {
+
         $this->collection[] = true;
         $this->collection[] = false;
-        $partition = $this->collection->partition(function($k, $e) { return $e == true; });
+        $partition = $this->collection->partition(function ($k, $e) {
+
+            return $e == true;
+        });
         $this->assertEquals($partition[0][0], true);
         $this->assertEquals($partition[1][0], false);
     }
 
     public function testClear()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
         $this->collection->clear();
@@ -159,6 +194,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testRemove()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
         $el = $this->collection->remove(0);
@@ -170,6 +206,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testRemoveElement()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
 
@@ -180,6 +217,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testSlice()
     {
+
         $this->collection[] = 'one';
         $this->collection[] = 'two';
         $this->collection[] = 'three';
@@ -195,8 +233,23 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(array(1 => 'two'), $slice);
     }
 
+    /**
+     * @group DDC-1637
+     */
+    public function testMatching()
+    {
+
+        $this->fillMatchingFixture();
+
+        $col = $this->collection->matching(new Criteria(Criteria::expr()->eq("foo", "bar")));
+        $this->assertInstanceOf('Doctrine\Common\Collections\Collection', $col);
+        $this->assertNotSame($col, $this->collection);
+        $this->assertEquals(1, count($col));
+    }
+
     public function fillMatchingFixture()
     {
+
         $std1 = new \stdClass();
         $std1->foo = "bar";
         $this->collection[] = $std1;
@@ -209,21 +262,9 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
     /**
      * @group DDC-1637
      */
-    public function testMatching()
-    {
-        $this->fillMatchingFixture();
-
-        $col = $this->collection->matching(new Criteria(Criteria::expr()->eq("foo", "bar")));
-        $this->assertInstanceOf('Doctrine\Common\Collections\Collection', $col);
-        $this->assertNotSame($col, $this->collection);
-        $this->assertEquals(1, count($col));
-    }
-
-    /**
-     * @group DDC-1637
-     */
     public function testMatchingOrdering()
     {
+
         $this->fillMatchingFixture();
 
         $col = $this->collection->matching(new Criteria(null, array('foo' => 'DESC')));
@@ -240,6 +281,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
      */
     public function testMatchingSlice()
     {
+
         $this->fillMatchingFixture();
 
         $col = $this->collection->matching(new Criteria(null, null, 1, 1));
@@ -252,6 +294,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testCanRemoveNullValuesByKey()
     {
+
         $this->collection->add(null);
         $this->collection->remove(0);
         $this->assertTrue($this->collection->isEmpty());
@@ -259,7 +302,14 @@ class CollectionTest extends \PHPUnit_Framework_TestCase
 
     public function testCanVerifyExistingKeysWithNullValues()
     {
+
         $this->collection->set('key', null);
         $this->assertTrue($this->collection->containsKey('key'));
+    }
+
+    protected function setUp()
+    {
+
+        $this->collection = new ArrayCollection();
     }
 }

@@ -102,15 +102,15 @@ class PHPExcel_Worksheet_SheetView
      * @throws    PHPExcel_Exception
      * @return PHPExcel_Worksheet_SheetView
      */
-    public function setZoomScale( $pValue = 100 )
+    public function setZoomScale($pValue = 100)
     {
 
         // Microsoft Office Excel 2007 only allows setting a scale between 10 and 400 via the user interface,
         // but it is apparently still able to handle any scale >= 1
-        if (( $pValue >= 1 ) || is_null( $pValue )) {
+        if (( $pValue >= 1 ) || is_null($pValue)) {
             $this->_zoomScale = $pValue;
         } else {
-            throw new PHPExcel_Exception( "Scale must be greater than or equal to 1." );
+            throw new PHPExcel_Exception("Scale must be greater than or equal to 1.");
         }
         return $this;
     }
@@ -136,13 +136,13 @@ class PHPExcel_Worksheet_SheetView
      * @throws    PHPExcel_Exception
      * @return PHPExcel_Worksheet_SheetView
      */
-    public function setZoomScaleNormal( $pValue = 100 )
+    public function setZoomScaleNormal($pValue = 100)
     {
 
-        if (( $pValue >= 1 ) || is_null( $pValue )) {
+        if (( $pValue >= 1 ) || is_null($pValue)) {
             $this->_zoomScaleNormal = $pValue;
         } else {
-            throw new PHPExcel_Exception( "Scale must be greater than or equal to 1." );
+            throw new PHPExcel_Exception("Scale must be greater than or equal to 1.");
         }
         return $this;
     }
@@ -171,7 +171,7 @@ class PHPExcel_Worksheet_SheetView
      * @throws    PHPExcel_Exception
      * @return PHPExcel_Worksheet_SheetView
      */
-    public function setView( $pValue = null )
+    public function setView($pValue = null)
     {
 
         //	MS Excel 2007 allows setting the view to 'normal', 'pageLayout' or 'pageBreakPreview'
@@ -179,10 +179,10 @@ class PHPExcel_Worksheet_SheetView
         if ($pValue === null) {
             $pValue = self::SHEETVIEW_NORMAL;
         }
-        if (in_array( $pValue, self::$_sheetViewTypes )) {
+        if (in_array($pValue, self::$_sheetViewTypes)) {
             $this->_sheetviewType = $pValue;
         } else {
-            throw new PHPExcel_Exception( "Invalid sheetview layout type." );
+            throw new PHPExcel_Exception("Invalid sheetview layout type.");
         }
 
         return $this;
@@ -194,9 +194,9 @@ class PHPExcel_Worksheet_SheetView
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

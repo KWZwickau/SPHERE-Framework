@@ -19,8 +19,8 @@
 
 namespace Doctrine\DBAL\Types;
 
-use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\DBALException;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 
 /**
  * The base class for so-called Doctrine mapping types.
@@ -33,6 +33,7 @@ use Doctrine\DBAL\DBALException;
  */
 abstract class Type
 {
+
     const TARRAY = 'array';
     const SIMPLE_ARRAY = 'simple_array';
     const JSON_ARRAY = 'json_array';
@@ -66,25 +67,25 @@ abstract class Type
      * @var array
      */
     private static $_typesMap = array(
-        self::TARRAY => 'Doctrine\DBAL\Types\ArrayType',
+        self::TARRAY     => 'Doctrine\DBAL\Types\ArrayType',
         self::SIMPLE_ARRAY => 'Doctrine\DBAL\Types\SimpleArrayType',
         self::JSON_ARRAY => 'Doctrine\DBAL\Types\JsonArrayType',
-        self::OBJECT => 'Doctrine\DBAL\Types\ObjectType',
-        self::BOOLEAN => 'Doctrine\DBAL\Types\BooleanType',
-        self::INTEGER => 'Doctrine\DBAL\Types\IntegerType',
-        self::SMALLINT => 'Doctrine\DBAL\Types\SmallIntType',
-        self::BIGINT => 'Doctrine\DBAL\Types\BigIntType',
-        self::STRING => 'Doctrine\DBAL\Types\StringType',
-        self::TEXT => 'Doctrine\DBAL\Types\TextType',
-        self::DATETIME => 'Doctrine\DBAL\Types\DateTimeType',
+        self::OBJECT     => 'Doctrine\DBAL\Types\ObjectType',
+        self::BOOLEAN    => 'Doctrine\DBAL\Types\BooleanType',
+        self::INTEGER    => 'Doctrine\DBAL\Types\IntegerType',
+        self::SMALLINT   => 'Doctrine\DBAL\Types\SmallIntType',
+        self::BIGINT     => 'Doctrine\DBAL\Types\BigIntType',
+        self::STRING     => 'Doctrine\DBAL\Types\StringType',
+        self::TEXT       => 'Doctrine\DBAL\Types\TextType',
+        self::DATETIME   => 'Doctrine\DBAL\Types\DateTimeType',
         self::DATETIMETZ => 'Doctrine\DBAL\Types\DateTimeTzType',
-        self::DATE => 'Doctrine\DBAL\Types\DateType',
-        self::TIME => 'Doctrine\DBAL\Types\TimeType',
-        self::DECIMAL => 'Doctrine\DBAL\Types\DecimalType',
-        self::FLOAT => 'Doctrine\DBAL\Types\FloatType',
-        self::BINARY => 'Doctrine\DBAL\Types\BinaryType',
-        self::BLOB => 'Doctrine\DBAL\Types\BlobType',
-        self::GUID => 'Doctrine\DBAL\Types\GuidType',
+        self::DATE       => 'Doctrine\DBAL\Types\DateType',
+        self::TIME       => 'Doctrine\DBAL\Types\TimeType',
+        self::DECIMAL    => 'Doctrine\DBAL\Types\DecimalType',
+        self::FLOAT      => 'Doctrine\DBAL\Types\FloatType',
+        self::BINARY     => 'Doctrine\DBAL\Types\BinaryType',
+        self::BLOB       => 'Doctrine\DBAL\Types\BlobType',
+        self::GUID       => 'Doctrine\DBAL\Types\GuidType',
     );
 
     /**
@@ -92,6 +93,98 @@ abstract class Type
      */
     final private function __construct()
     {
+    }
+
+    /**
+     * Factory method to create type instances.
+     * Type instances are implemented as flyweights.
+     *
+     * @param string $name The name of the type (as returned by getName()).
+     *
+     * @return \Doctrine\DBAL\Types\Type
+     *
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public static function getType($name)
+    {
+
+        if (!isset( self::$_typeObjects[$name] )) {
+            if (!isset( self::$_typesMap[$name] )) {
+                throw DBALException::unknownColumnType($name);
+            }
+            self::$_typeObjects[$name] = new self::$_typesMap[$name]();
+        }
+
+        return self::$_typeObjects[$name];
+    }
+
+    /**
+     * Adds a custom type to the type map.
+     *
+     * @param string $name      The name of the type. This should correspond to what getName() returns.
+     * @param string $className The class name of the custom type.
+     *
+     * @return void
+     *
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public static function addType($name, $className)
+    {
+
+        if (isset( self::$_typesMap[$name] )) {
+            throw DBALException::typeExists($name);
+        }
+
+        self::$_typesMap[$name] = $className;
+    }
+
+    /**
+     * Checks if exists support for a type.
+     *
+     * @param string $name The name of the type.
+     *
+     * @return boolean TRUE if type is supported; FALSE otherwise.
+     */
+    public static function hasType($name)
+    {
+
+        return isset( self::$_typesMap[$name] );
+    }
+
+    /**
+     * Overrides an already defined type to use a different implementation.
+     *
+     * @param string $name
+     * @param string $className
+     *
+     * @return void
+     *
+     * @throws \Doctrine\DBAL\DBALException
+     */
+    public static function overrideType($name, $className)
+    {
+
+        if (!isset( self::$_typesMap[$name] )) {
+            throw DBALException::typeNotFound($name);
+        }
+
+        if (isset( self::$_typeObjects[$name] )) {
+            unset( self::$_typeObjects[$name] );
+        }
+
+        self::$_typesMap[$name] = $className;
+    }
+
+    /**
+     * Gets the types array map which holds all registered types and the corresponding
+     * type class
+     *
+     * @return array
+     */
+    public static function getTypesMap()
+    {
+
+        return self::$_typesMap;
     }
 
     /**
@@ -105,6 +198,7 @@ abstract class Type
      */
     public function convertToDatabaseValue($value, AbstractPlatform $platform)
     {
+
         return $value;
     }
 
@@ -119,6 +213,7 @@ abstract class Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
+
         return $value;
     }
 
@@ -133,6 +228,7 @@ abstract class Type
      */
     public function getDefaultLength(AbstractPlatform $platform)
     {
+
         return null;
     }
 
@@ -156,82 +252,6 @@ abstract class Type
     abstract public function getName();
 
     /**
-     * Factory method to create type instances.
-     * Type instances are implemented as flyweights.
-     *
-     * @param string $name The name of the type (as returned by getName()).
-     *
-     * @return \Doctrine\DBAL\Types\Type
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public static function getType($name)
-    {
-        if ( ! isset(self::$_typeObjects[$name])) {
-            if ( ! isset(self::$_typesMap[$name])) {
-                throw DBALException::unknownColumnType($name);
-            }
-            self::$_typeObjects[$name] = new self::$_typesMap[$name]();
-        }
-
-        return self::$_typeObjects[$name];
-    }
-
-    /**
-     * Adds a custom type to the type map.
-     *
-     * @param string $name      The name of the type. This should correspond to what getName() returns.
-     * @param string $className The class name of the custom type.
-     *
-     * @return void
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public static function addType($name, $className)
-    {
-        if (isset(self::$_typesMap[$name])) {
-            throw DBALException::typeExists($name);
-        }
-
-        self::$_typesMap[$name] = $className;
-    }
-
-    /**
-     * Checks if exists support for a type.
-     *
-     * @param string $name The name of the type.
-     *
-     * @return boolean TRUE if type is supported; FALSE otherwise.
-     */
-    public static function hasType($name)
-    {
-        return isset(self::$_typesMap[$name]);
-    }
-
-    /**
-     * Overrides an already defined type to use a different implementation.
-     *
-     * @param string $name
-     * @param string $className
-     *
-     * @return void
-     *
-     * @throws \Doctrine\DBAL\DBALException
-     */
-    public static function overrideType($name, $className)
-    {
-        if ( ! isset(self::$_typesMap[$name])) {
-            throw DBALException::typeNotFound($name);
-        }
-
-        if (isset(self::$_typeObjects[$name])) {
-            unset(self::$_typeObjects[$name]);
-        }
-
-        self::$_typesMap[$name] = $className;
-    }
-
-    /**
      * Gets the (preferred) binding type for values of this type that
      * can be used when binding parameters to prepared statements.
      *
@@ -247,18 +267,8 @@ abstract class Type
      */
     public function getBindingType()
     {
-        return \PDO::PARAM_STR;
-    }
 
-    /**
-     * Gets the types array map which holds all registered types and the corresponding
-     * type class
-     *
-     * @return array
-     */
-    public static function getTypesMap()
-    {
-        return self::$_typesMap;
+        return \PDO::PARAM_STR;
     }
 
     /**
@@ -266,6 +276,7 @@ abstract class Type
      */
     public function __toString()
     {
+
         $e = explode('\\', get_class($this));
 
         return str_replace('Type', '', end($e));
@@ -283,6 +294,7 @@ abstract class Type
      */
     public function canRequireSQLConversion()
     {
+
         return false;
     }
 
@@ -296,6 +308,7 @@ abstract class Type
      */
     public function convertToDatabaseValueSQL($sqlExpr, AbstractPlatform $platform)
     {
+
         return $sqlExpr;
     }
 
@@ -309,6 +322,7 @@ abstract class Type
      */
     public function convertToPHPValueSQL($sqlExpr, $platform)
     {
+
         return $sqlExpr;
     }
 
@@ -321,6 +335,7 @@ abstract class Type
      */
     public function getMappedDatabaseTypes(AbstractPlatform $platform)
     {
+
         return array();
     }
 
@@ -336,6 +351,7 @@ abstract class Type
      */
     public function requiresSQLCommentHint(AbstractPlatform $platform)
     {
+
         return false;
     }
 }

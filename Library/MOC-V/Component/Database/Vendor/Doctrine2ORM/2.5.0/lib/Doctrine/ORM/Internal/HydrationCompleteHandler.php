@@ -30,10 +30,11 @@ use Doctrine\ORM\Mapping\ClassMetadata;
  * In current implementation triggers deferred postLoad event.
  *
  * @author Artur Eshenbrener <strate@yandex.ru>
- * @since 2.5
+ * @since  2.5
  */
 final class HydrationCompleteHandler
 {
+
     /**
      * @var ListenersInvoker
      */
@@ -57,8 +58,9 @@ final class HydrationCompleteHandler
      */
     public function __construct(ListenersInvoker $listenersInvoker, EntityManagerInterface $em)
     {
+
         $this->listenersInvoker = $listenersInvoker;
-        $this->em               = $em;
+        $this->em = $em;
     }
 
     /**
@@ -69,6 +71,7 @@ final class HydrationCompleteHandler
      */
     public function deferPostLoadInvoking(ClassMetadata $class, $entity)
     {
+
         $invoke = $this->listenersInvoker->getSubscribedSystems($class, Events::postLoad);
 
         if ($invoke === ListenersInvoker::INVOKE_NONE) {
@@ -85,11 +88,12 @@ final class HydrationCompleteHandler
      */
     public function hydrationComplete()
     {
-        $toInvoke                          = $this->deferredPostLoadInvocations;
+
+        $toInvoke = $this->deferredPostLoadInvocations;
         $this->deferredPostLoadInvocations = array();
 
         foreach ($toInvoke as $classAndEntity) {
-            list($class, $invoke, $entity) = $classAndEntity;
+            list( $class, $invoke, $entity ) = $classAndEntity;
 
             $this->listenersInvoker->invoke(
                 $class,

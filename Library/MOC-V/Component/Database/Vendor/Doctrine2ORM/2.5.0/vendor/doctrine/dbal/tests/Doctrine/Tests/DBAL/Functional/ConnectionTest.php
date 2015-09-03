@@ -6,29 +6,34 @@ use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Types\Type;
 
-require_once __DIR__ . '/../../TestInit.php';
+require_once __DIR__.'/../../TestInit.php';
 
 class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     public function setUp()
     {
+
         $this->resetSharedConn();
         parent::setUp();
     }
 
     public function tearDown()
     {
+
         parent::tearDown();
         $this->resetSharedConn();
     }
 
     public function testGetWrappedConnection()
     {
+
         $this->assertInstanceOf('Doctrine\DBAL\Driver\Connection', $this->_conn->getWrappedConnection());
     }
 
     public function testCommitWithRollbackOnlyThrowsException()
     {
+
         $this->_conn->beginTransaction();
         $this->_conn->setRollbackOnly();
         $this->setExpectedException('Doctrine\DBAL\ConnectionException');
@@ -37,6 +42,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTransactionNestingBehavior()
     {
+
         try {
             $this->_conn->beginTransaction();
             $this->assertEquals(1, $this->_conn->getTransactionNestingLevel());
@@ -64,6 +70,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTransactionNestingBehaviorWithSavepoints()
     {
+
         if (!$this->_conn->getDatabasePlatform()->supportsSavepoints()) {
             $this->markTestSkipped('This test requires the platform to support savepoints.');
         }
@@ -103,6 +110,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTransactionNestingBehaviorCantBeChangedInActiveTransaction()
     {
+
         if (!$this->_conn->getDatabasePlatform()->supportsSavepoints()) {
             $this->markTestSkipped('This test requires the platform to support savepoints.');
         }
@@ -111,57 +119,66 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
         try {
             $this->_conn->setNestTransactionsWithSavepoints(true);
             $this->fail('An exception should have been thrown by chaning the nesting transaction behavior within an transaction.');
-        } catch(ConnectionException $e) {
+        } catch (ConnectionException $e) {
             $this->_conn->rollBack();
         }
     }
 
     public function testSetNestedTransactionsThroughSavepointsNotSupportedThrowsException()
     {
+
         if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
             $this->markTestSkipped('This test requires the platform not to support savepoints.');
         }
 
-        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException',
+            "Savepoints are not supported by this driver.");
 
         $this->_conn->setNestTransactionsWithSavepoints(true);
     }
 
     public function testCreateSavepointsNotSupportedThrowsException()
     {
+
         if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
             $this->markTestSkipped('This test requires the platform not to support savepoints.');
         }
 
-        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException',
+            "Savepoints are not supported by this driver.");
 
         $this->_conn->createSavepoint('foo');
     }
 
     public function testReleaseSavepointsNotSupportedThrowsException()
     {
+
         if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
             $this->markTestSkipped('This test requires the platform not to support savepoints.');
         }
 
-        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException',
+            "Savepoints are not supported by this driver.");
 
         $this->_conn->releaseSavepoint('foo');
     }
 
     public function testRollbackSavepointsNotSupportedThrowsException()
     {
+
         if ($this->_conn->getDatabasePlatform()->supportsSavepoints()) {
             $this->markTestSkipped('This test requires the platform not to support savepoints.');
         }
 
-        $this->setExpectedException('Doctrine\DBAL\ConnectionException', "Savepoints are not supported by this driver.");
+        $this->setExpectedException('Doctrine\DBAL\ConnectionException',
+            "Savepoints are not supported by this driver.");
 
         $this->_conn->rollbackSavepoint('foo');
     }
 
     public function testTransactionBehaviorWithRollback()
     {
+
         try {
             $this->_conn->beginTransaction();
             $this->assertEquals(1, $this->_conn->getTransactionNestingLevel());
@@ -178,6 +195,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTransactionBehaviour()
     {
+
         try {
             $this->_conn->beginTransaction();
             $this->assertEquals(1, $this->_conn->getTransactionNestingLevel());
@@ -192,8 +210,10 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTransactionalWithException()
     {
+
         try {
-            $this->_conn->transactional(function($conn) {
+            $this->_conn->transactional(function ($conn) {
+
                 /* @var $conn \Doctrine\DBAL\Connection */
                 $conn->executeQuery($conn->getDatabasePlatform()->getDummySelectSQL());
                 throw new \RuntimeException("Ooops!");
@@ -205,7 +225,9 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testTransactional()
     {
-        $this->_conn->transactional(function($conn) {
+
+        $this->_conn->transactional(function ($conn) {
+
             /* @var $conn \Doctrine\DBAL\Connection */
             $conn->executeQuery($conn->getDatabasePlatform()->getDummySelectSQL());
         });
@@ -216,11 +238,13 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testQuote()
     {
+
         $this->assertEquals($this->_conn->quote("foo", Type::STRING), $this->_conn->quote("foo", \PDO::PARAM_STR));
     }
 
     public function testPingDoesTriggersConnect()
     {
+
         $this->assertTrue($this->_conn->ping());
         $this->assertTrue($this->_conn->isConnected());
     }
@@ -230,12 +254,13 @@ class ConnectionTest extends \Doctrine\Tests\DbalFunctionalTestCase
      */
     public function testConnectWithoutExplicitDatabaseName()
     {
+
         if (in_array($this->_conn->getDatabasePlatform()->getName(), array('oracle', 'db2'), true)) {
             $this->markTestSkipped('Platform does not support connecting without database name.');
         }
 
         $params = $this->_conn->getParams();
-        unset($params['dbname']);
+        unset( $params['dbname'] );
 
         $connection = DriverManager::getConnection(
             $params,

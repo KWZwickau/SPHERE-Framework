@@ -30,10 +30,11 @@ namespace Doctrine\ORM\Query\Expr;
  */
 class GroupBy extends Base
 {
+
     /**
      * @var string
      */
-    protected $preSeparator  = '';
+    protected $preSeparator = '';
 
     /**
      * @var string
@@ -45,6 +46,7 @@ class GroupBy extends Base
      */
     public function getParts()
     {
+
         return $this->parts;
     }
 }

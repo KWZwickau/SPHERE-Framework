@@ -23,14 +23,14 @@ class Text_Frame_Decorator extends Frame_Decorator
     // buggy DOMText::splitText (PHP < 5.2.7)
     protected $_text_spacing;
 
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
         if (!$frame->is_text_node()) {
-            throw new DOMPDF_Exception( "Text_Decorator can only be applied to #text nodes." );
+            throw new DOMPDF_Exception("Text_Decorator can only be applied to #text nodes.");
         }
 
-        parent::__construct( $frame, $dompdf );
+        parent::__construct($frame, $dompdf);
         $this->_text_spacing = null;
     }
 
@@ -52,17 +52,17 @@ class Text_Frame_Decorator extends Frame_Decorator
         return $this->_text_spacing;
     }
 
-    function set_text_spacing( $spacing )
+    function set_text_spacing($spacing)
     {
 
         $style = $this->_frame->get_style();
 
         $this->_text_spacing = $spacing;
-        $char_spacing = $style->length_in_pt( $style->letter_spacing );
+        $char_spacing = $style->length_in_pt($style->letter_spacing);
 
         // Re-adjust our width to account for the change in spacing
-        $style->width = Font_Metrics::get_text_width( $this->get_text(), $style->font_family, $style->font_size,
-            $spacing, $char_spacing );
+        $style->width = Font_Metrics::get_text_width($this->get_text(), $style->font_family, $style->font_size,
+            $spacing, $char_spacing);
     }
 
     //........................................................................
@@ -114,7 +114,7 @@ class Text_Frame_Decorator extends Frame_Decorator
         pre_r(($style->line_height / $size) * Font_Metrics::get_font_height($font, $size));
         */
 
-        return ( $style->line_height / ( $size > 0 ? $size : 1 ) ) * Font_Metrics::get_font_height( $font, $size );
+        return ( $style->line_height / ( $size > 0 ? $size : 1 ) ) * Font_Metrics::get_font_height($font, $size);
 
     }
     //........................................................................
@@ -140,10 +140,10 @@ class Text_Frame_Decorator extends Frame_Decorator
         $text = $this->get_text();
         $size = $style->font_size;
         $font = $style->font_family;
-        $word_spacing = $style->length_in_pt( $style->word_spacing );
-        $char_spacing = $style->length_in_pt( $style->letter_spacing );
+        $word_spacing = $style->length_in_pt($style->word_spacing);
+        $char_spacing = $style->length_in_pt($style->letter_spacing);
 
-        return $style->width = Font_Metrics::get_text_width( $text, $font, $size, $word_spacing, $char_spacing );
+        return $style->width = Font_Metrics::get_text_width($text, $font, $size, $word_spacing, $char_spacing);
     }
 
     //........................................................................
@@ -152,7 +152,7 @@ class Text_Frame_Decorator extends Frame_Decorator
 
     // split the text in this frame at the offset specified.  The remaining
     // text is added a sibling frame following this one and is returned.
-    function split_text( $offset )
+    function split_text($offset)
     {
 
         if ($offset == 0) {
@@ -162,22 +162,22 @@ class Text_Frame_Decorator extends Frame_Decorator
         if (self::$_buggy_splittext) {
             // workaround to solve DOMText::spliText() bug parsing multibyte strings
             $node = $this->_frame->get_node();
-            $txt0 = $node->substringData( 0, $offset );
-            $txt1 = $node->substringData( $offset, mb_strlen( $node->textContent ) - 1 );
+            $txt0 = $node->substringData(0, $offset);
+            $txt1 = $node->substringData($offset, mb_strlen($node->textContent) - 1);
 
-            $node->replaceData( 0, mb_strlen( $node->textContent ), $txt0 );
-            $split = $node->parentNode->appendChild( new DOMText( $txt1 ) );
+            $node->replaceData(0, mb_strlen($node->textContent), $txt0);
+            $split = $node->parentNode->appendChild(new DOMText($txt1));
         } else {
-            $split = $this->_frame->get_node()->splitText( $offset );
+            $split = $this->_frame->get_node()->splitText($offset);
         }
 
-        $deco = $this->copy( $split );
+        $deco = $this->copy($split);
 
         $p = $this->get_parent();
-        $p->insert_child_after( $deco, $this, false );
+        $p->insert_child_after($deco, $this, false);
 
         if ($p instanceof Inline_Frame_Decorator) {
-            $p->split( $deco );
+            $p->split($deco);
         }
 
         return $deco;
@@ -185,15 +185,15 @@ class Text_Frame_Decorator extends Frame_Decorator
 
     //........................................................................
 
-    function delete_text( $offset, $count )
+    function delete_text($offset, $count)
     {
 
-        $this->_frame->get_node()->deleteData( $offset, $count );
+        $this->_frame->get_node()->deleteData($offset, $count);
     }
 
     //........................................................................
 
-    function set_text( $text )
+    function set_text($text)
     {
 
         $this->_frame->get_node()->data = $text;

@@ -20,19 +20,20 @@
 namespace Doctrine\ORM\Query\AST\Functions;
 
 use Doctrine\ORM\Query\Lexer;
-use Doctrine\ORM\Query\SqlWalker;
 use Doctrine\ORM\Query\Parser;
+use Doctrine\ORM\Query\SqlWalker;
 
 /**
  * "DATE_DIFF" "(" ArithmeticPrimary "," ArithmeticPrimary ")"
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @author  Benjamin Eberlei <kontakt@beberlei.de>
  */
 class DateDiffFunction extends FunctionNode
 {
+
     public $date1;
     public $date2;
 
@@ -41,6 +42,7 @@ class DateDiffFunction extends FunctionNode
      */
     public function getSql(SqlWalker $sqlWalker)
     {
+
         return $sqlWalker->getConnection()->getDatabasePlatform()->getDateDiffExpression(
             $this->date1->dispatch($sqlWalker),
             $this->date2->dispatch($sqlWalker)
@@ -52,6 +54,7 @@ class DateDiffFunction extends FunctionNode
      */
     public function parse(Parser $parser)
     {
+
         $parser->match(Lexer::T_IDENTIFIER);
         $parser->match(Lexer::T_OPEN_PARENTHESIS);
 

@@ -38,22 +38,22 @@ class Factory extends CoreBase
      *
      * @return object
      */
-    public static function i( $type = null )
+    public static function i($type = null)
     {
 
         if (func_num_args() > 1) {
             $type = func_get_args();
         }
 
-        if (is_array( $type )) {
-            return ArrayType::i( $type );
+        if (is_array($type)) {
+            return ArrayType::i($type);
         }
 
-        if (is_string( $type )) {
-            return StringType::i( $type );
+        if (is_string($type)) {
+            return StringType::i($type);
         }
 
-        return self::getSingleton( __CLASS__ );
+        return self::getSingleton(__CLASS__);
     }
 
     /**
@@ -63,15 +63,15 @@ class Factory extends CoreBase
      *
      * @return Eden\Type\Type\ArrayType
      */
-    public function getArray( $array )
+    public function getArray($array)
     {
 
         $args = func_get_args();
-        if (count( $args ) > 1 || !is_array( $array )) {
+        if (count($args) > 1 || !is_array($array)) {
             $array = $args;
         }
 
-        return ArrayType::i( $array );
+        return ArrayType::i($array);
     }
 
     /**
@@ -81,13 +81,13 @@ class Factory extends CoreBase
      *
      * @return Eden\Type\Type\StringType
      */
-    public function getString( $string )
+    public function getString($string)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
-        return StringType::i( $string );
+        return StringType::i($string);
     }
 
 }

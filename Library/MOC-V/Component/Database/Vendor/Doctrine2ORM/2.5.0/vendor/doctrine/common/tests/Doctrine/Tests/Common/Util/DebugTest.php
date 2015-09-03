@@ -2,31 +2,35 @@
 
 namespace Doctrine\Tests\Common\Util;
 
-use Doctrine\Tests\DoctrineTestCase;
 use Doctrine\Common\Util\Debug;
+use Doctrine\Tests\DoctrineTestCase;
 
 class DebugTest extends DoctrineTestCase
 {
-    public function testExportObject( )
+
+    public function testExportObject()
     {
+
         $obj = new \stdClass;
         $obj->foo = "bar";
         $obj->bar = 1234;
 
         $var = Debug::export($obj, 2);
-        $this->assertEquals( "stdClass", $var->__CLASS__ );
+        $this->assertEquals("stdClass", $var->__CLASS__);
     }
 
     public function testExportDateTime()
     {
-        $obj = new \DateTime( "2010-10-10 10:10:10" );
 
-        $var = Debug::export( $obj, 2 );
-        $this->assertEquals( "DateTime", $var->__CLASS__ );
+        $obj = new \DateTime("2010-10-10 10:10:10");
+
+        $var = Debug::export($obj, 2);
+        $this->assertEquals("DateTime", $var->__CLASS__);
     }
 
     public function testExportArrayTraversable()
     {
+
         $obj = new \ArrayObject(array('foobar'));
 
         $var = Debug::export($obj, 2);
@@ -40,9 +44,10 @@ class DebugTest extends DoctrineTestCase
 
     public function testReturnsOutput()
     {
+
         ob_start();
 
-        $dump        = Debug::dump('foo');
+        $dump = Debug::dump('foo');
         $outputValue = ob_get_contents();
 
         ob_end_clean();
@@ -52,9 +57,10 @@ class DebugTest extends DoctrineTestCase
 
     public function testDisablesOutput()
     {
+
         ob_start();
 
-        $dump        = Debug::dump('foo', 2, true, false);
+        $dump = Debug::dump('foo', 2, true, false);
         $outputValue = ob_get_contents();
 
         ob_end_clean();

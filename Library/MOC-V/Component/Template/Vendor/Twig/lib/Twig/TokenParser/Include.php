@@ -21,6 +21,7 @@
  */
 class Twig_TokenParser_Include extends Twig_TokenParser
 {
+
     /**
      * Parses a token and returns a node.
      *
@@ -30,15 +31,17 @@ class Twig_TokenParser_Include extends Twig_TokenParser
      */
     public function parse(Twig_Token $token)
     {
+
         $expr = $this->parser->getExpressionParser()->parseExpression();
 
-        list($variables, $only, $ignoreMissing) = $this->parseArguments();
+        list( $variables, $only, $ignoreMissing ) = $this->parseArguments();
 
         return new Twig_Node_Include($expr, $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
     }
 
     protected function parseArguments()
     {
+
         $stream = $this->parser->getStream();
 
         $ignoreMissing = false;
@@ -70,6 +73,7 @@ class Twig_TokenParser_Include extends Twig_TokenParser
      */
     public function getTag()
     {
+
         return 'include';
     }
 }

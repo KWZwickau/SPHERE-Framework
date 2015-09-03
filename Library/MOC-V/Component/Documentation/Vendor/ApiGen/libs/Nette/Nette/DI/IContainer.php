@@ -27,7 +27,7 @@ interface IContainer
      *
      * @return void
      */
-    function addService( $name, $service );
+    function addService($name, $service);
 
     /**
      * Gets the service object.
@@ -36,7 +36,7 @@ interface IContainer
      *
      * @return mixed
      */
-    function getService( $name );
+    function getService($name);
 
     /**
      * Removes the service from the container.
@@ -45,13 +45,13 @@ interface IContainer
      *
      * @return void
      */
-    function removeService( $name );
+    function removeService($name);
 
     /**
      * Does the service exist?
      *
      * @return bool
      */
-    function hasService( $name );
+    function hasService($name);
 
 }

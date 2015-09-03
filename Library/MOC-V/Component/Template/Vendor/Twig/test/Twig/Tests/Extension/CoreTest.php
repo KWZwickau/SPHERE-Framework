@@ -11,20 +11,24 @@
 
 class Twig_Tests_Extension_CoreTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getRandomFunctionTestData
      */
     public function testRandomFunction($value, $expectedInArray)
     {
+
         $env = new Twig_Environment();
 
         for ($i = 0; $i < 100; $i++) {
-            $this->assertTrue(in_array(twig_random($env, $value), $expectedInArray, true)); // assertContains() would not consider the type
+            $this->assertTrue(in_array(twig_random($env, $value), $expectedInArray,
+                true)); // assertContains() would not consider the type
         }
     }
 
     public function getRandomFunctionTestData()
     {
+
         return array(
             array( // array
                 array('apple', 'orange', 'citrus'),
@@ -59,6 +63,7 @@ class Twig_Tests_Extension_CoreTest extends PHPUnit_Framework_TestCase
 
     public function testRandomFunctionWithoutParameter()
     {
+
         $max = mt_getrandmax();
 
         for ($i = 0; $i < 100; $i++) {
@@ -69,6 +74,7 @@ class Twig_Tests_Extension_CoreTest extends PHPUnit_Framework_TestCase
 
     public function testRandomFunctionReturnsAsIs()
     {
+
         $this->assertSame('', twig_random(new Twig_Environment(), ''));
         $this->assertSame('', twig_random(new Twig_Environment(null, array('charset' => null)), ''));
 
@@ -81,11 +87,13 @@ class Twig_Tests_Extension_CoreTest extends PHPUnit_Framework_TestCase
      */
     public function testRandomFunctionOfEmptyArrayThrowsException()
     {
+
         twig_random(new Twig_Environment(), array());
     }
 
     public function testRandomFunctionOnNonUTF8String()
     {
+
         if (!function_exists('iconv') && !function_exists('mb_convert_encoding')) {
             $this->markTestSkipped('needs iconv or mbstring');
         }
@@ -102,6 +110,7 @@ class Twig_Tests_Extension_CoreTest extends PHPUnit_Framework_TestCase
 
     public function testReverseFilterOnNonUTF8String()
     {
+
         if (!function_exists('iconv') && !function_exists('mb_convert_encoding')) {
             $this->markTestSkipped('needs iconv or mbstring');
         }
@@ -117,6 +126,7 @@ class Twig_Tests_Extension_CoreTest extends PHPUnit_Framework_TestCase
 
     public function testCustomEscaper()
     {
+
         $twig = new Twig_Environment();
         $twig->getExtension('core')->setEscaper('foo', 'foo_escaper_for_test');
 
@@ -128,11 +138,13 @@ class Twig_Tests_Extension_CoreTest extends PHPUnit_Framework_TestCase
      */
     public function testUnknownCustomEscaper()
     {
+
         twig_escape_filter(new Twig_Environment(), 'foo', 'bar');
     }
 }
 
 function foo_escaper_for_test(Twig_Environment $env, $string, $charset)
 {
+
     return $string.$charset;
 }

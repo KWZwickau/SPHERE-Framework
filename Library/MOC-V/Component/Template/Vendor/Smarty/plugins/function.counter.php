@@ -21,7 +21,7 @@
  *
  * @return string|null
  */
-function smarty_function_counter( $params, $template )
+function smarty_function_counter($params, $template)
 {
 
     static $counters = array();
@@ -46,7 +46,7 @@ function smarty_function_counter( $params, $template )
     }
 
     if (isset( $counter['assign'] )) {
-        $template->assign( $counter['assign'], $counter['count'] );
+        $template->assign($counter['assign'], $counter['count']);
     }
 
     if (isset( $params['print'] )) {

@@ -26,13 +26,15 @@ use phpDocumentor\Reflection\DocBlock\Tag\ReturnTag;
  */
 class DocBlockTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @covers \phpDocumentor\Reflection\DocBlock
-     * 
+     *
      * @return void
      */
     public function testConstruct()
     {
+
         $fixture = <<<DOCBLOCK
 /**
  * This is a short description
@@ -60,7 +62,7 @@ DOCBLOCK;
         $this->assertTrue($object->hasTag('see'));
         $this->assertTrue($object->hasTag('return'));
         $this->assertFalse($object->hasTag('category'));
-        
+
         $this->assertSame('MyNamespace', $object->getContext()->getNamespace());
         $this->assertSame(
             array('PHPDoc' => '\phpDocumentor'),
@@ -76,6 +78,7 @@ DOCBLOCK;
      */
     public function testConstructWithTagsOnly()
     {
+
         $fixture = <<<DOCBLOCK
 /**
  * @see \MyClass
@@ -96,6 +99,7 @@ DOCBLOCK;
      */
     public function testIfStartOfTemplateIsDiscovered()
     {
+
         $fixture = <<<DOCBLOCK
 /**#@+
  * @see \MyClass
@@ -117,6 +121,7 @@ DOCBLOCK;
      */
     public function testIfEndOfTemplateIsDiscovered()
     {
+
         $fixture = <<<DOCBLOCK
 /**#@-*/
 DOCBLOCK;
@@ -128,11 +133,12 @@ DOCBLOCK;
 
     /**
      * @covers \phpDocumentor\Reflection\DocBlock::cleanInput
-     * 
+     *
      * @return void
      */
     public function testConstructOneLiner()
     {
+
         $fixture = '/** Short description and nothing more. */';
         $object = new DocBlock($fixture);
         $this->assertEquals(
@@ -145,11 +151,12 @@ DOCBLOCK;
 
     /**
      * @covers \phpDocumentor\Reflection\DocBlock::__construct
-     * 
+     *
      * @return void
      */
     public function testConstructFromReflector()
     {
+
         $object = new DocBlock(new \ReflectionClass($this));
         $this->assertEquals(
             'Test class for phpDocumentor\Reflection\DocBlock',
@@ -166,16 +173,18 @@ DOCBLOCK;
 
     /**
      * @expectedException \InvalidArgumentException
-     * 
+     *
      * @return void
      */
     public function testExceptionOnInvalidObject()
     {
+
         new DocBlock($this);
     }
 
     public function testDotSeperation()
     {
+
         $fixture = <<<DOCBLOCK
 /**
  * This is a short description.
@@ -198,31 +207,33 @@ DOCBLOCK;
     /**
      * @covers \phpDocumentor\Reflection\DocBlock::parseTags
      * @expectedException \LogicException
-     * 
+     *
      * @return void
      */
     public function testInvalidTagBlock()
     {
+
         if (0 == ini_get('allow_url_include')) {
             $this->markTestSkipped('"data" URIs for includes are required.');
         }
 
-        include 'data:text/plain;base64,'. base64_encode(
-            <<<DOCBLOCK_EXTENSION
-<?php
+        include 'data:text/plain;base64,'.base64_encode(
+                <<<DOCBLOCK_EXTENSION
+    <?php
 class MyReflectionDocBlock extends \phpDocumentor\Reflection\DocBlock {
     protected function splitDocBlock(\$comment) {
         return array('', '', 'Invalid tag block');
     }
 }
 DOCBLOCK_EXTENSION
-        );
+            );
         new \MyReflectionDocBlock('');
-        
+
     }
 
     public function testTagCaseSensitivity()
     {
+
         $fixture = <<<DOCBLOCK
 /**
  * This is a short description.
@@ -247,27 +258,28 @@ DOCBLOCK;
         $this->assertTrue($object->hasTag('method'));
         $this->assertTrue($object->hasTag('Method'));
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\DocBlock\Tag\MethodTag',
+            __NAMESPACE__.'\DocBlock\Tag\MethodTag',
             $tags[0]
         );
         $this->assertInstanceOf(
-            __NAMESPACE__ . '\DocBlock\Tag',
+            __NAMESPACE__.'\DocBlock\Tag',
             $tags[1]
         );
         $this->assertNotInstanceOf(
-            __NAMESPACE__ . '\DocBlock\Tag\MethodTag',
+            __NAMESPACE__.'\DocBlock\Tag\MethodTag',
             $tags[1]
         );
     }
 
     /**
      * @depends testConstructFromReflector
-     * @covers \phpDocumentor\Reflection\DocBlock::getTagsByName
-     * 
+     * @covers  \phpDocumentor\Reflection\DocBlock::getTagsByName
+     *
      * @return void
      */
     public function testGetTagsByNameZeroAndOneMatch()
     {
+
         $object = new DocBlock(new \ReflectionClass($this));
         $this->assertEmpty($object->getTagsByName('category'));
         $this->assertCount(1, $object->getTagsByName('author'));
@@ -275,12 +287,13 @@ DOCBLOCK;
 
     /**
      * @depends testConstructWithTagsOnly
-     * @covers \phpDocumentor\Reflection\DocBlock::parseTags
-     * 
+     * @covers  \phpDocumentor\Reflection\DocBlock::parseTags
+     *
      * @return void
      */
     public function testParseMultilineTag()
     {
+
         $fixture = <<<DOCBLOCK
 /**
  * @return void Content on
@@ -293,12 +306,13 @@ DOCBLOCK;
 
     /**
      * @depends testConstructWithTagsOnly
-     * @covers \phpDocumentor\Reflection\DocBlock::parseTags
-     * 
+     * @covers  \phpDocumentor\Reflection\DocBlock::parseTags
+     *
      * @return void
      */
     public function testParseMultilineTagWithLineBreaks()
     {
+
         $fixture = <<<DOCBLOCK
 /**
  * @return void Content on
@@ -309,19 +323,21 @@ DOCBLOCK;
 DOCBLOCK;
         $object = new DocBlock($fixture);
         $this->assertCount(1, $tags = $object->getTags());
-	    /** @var ReturnTag $tag */
-	    $tag = reset($tags);
-	    $this->assertEquals("Content on\n    multiple lines.\n\n    One more, after the break.", $tag->getDescription());
+        /** @var ReturnTag $tag */
+        $tag = reset($tags);
+        $this->assertEquals("Content on\n    multiple lines.\n\n    One more, after the break.",
+            $tag->getDescription());
     }
 
     /**
      * @depends testConstructWithTagsOnly
-     * @covers \phpDocumentor\Reflection\DocBlock::getTagsByName
-     * 
+     * @covers  \phpDocumentor\Reflection\DocBlock::getTagsByName
+     *
      * @return void
      */
     public function testGetTagsByNameMultipleMatch()
     {
+
         $fixture = <<<DOCBLOCK
 /**
  * @param string

@@ -29,24 +29,24 @@ class FilterLZW
     var $bitPointer;
     var $nextData = 0;
     var $nextBits = 0;
-    var $andTable = array( 511, 1023, 2047, 4095 );
+    var $andTable = array(511, 1023, 2047, 4095);
 
     /**
      * Method to decode LZW compressed data.
      *
      * @param string data    The compressed data.
      */
-    function decode( $data )
+    function decode($data)
     {
 
         if ($data[0] == 0x00 && $data[1] == 0x01) {
-            $this->error( 'LZW flavour not supported.' );
+            $this->error('LZW flavour not supported.');
         }
 
         $this->initsTable();
 
         $this->data = $data;
-        $this->dataLength = strlen( $data );
+        $this->dataLength = strlen($data);
 
         // Initialize pointers
         $this->bytePointer = 0;
@@ -78,14 +78,14 @@ class FilterLZW
                     $string = $this->sTable[$code];
                     $uncompData .= $string;
 
-                    $this->addStringToTable( $this->sTable[$oldCode], $string[0] );
+                    $this->addStringToTable($this->sTable[$oldCode], $string[0]);
                     $oldCode = $code;
                 } else {
                     $string = $this->sTable[$oldCode];
                     $string = $string.$string[0];
                     $uncompData .= $string;
 
-                    $this->addStringToTable( $string );
+                    $this->addStringToTable($string);
                     $oldCode = $code;
                 }
             }
@@ -94,7 +94,7 @@ class FilterLZW
         return $uncompData;
     }
 
-    function error( $msg )
+    function error($msg)
     {
 
         die( $msg );
@@ -109,7 +109,7 @@ class FilterLZW
         $this->sTable = array();
 
         for ($i = 0; $i < 256; $i++) {
-            $this->sTable[$i] = chr( $i );
+            $this->sTable[$i] = chr($i);
         }
 
         $this->tIdx = 258;
@@ -123,11 +123,11 @@ class FilterLZW
             return 257;
         }
 
-        $this->nextData = ( $this->nextData << 8 ) | ( ord( $this->data[$this->bytePointer++] ) & 0xff );
+        $this->nextData = ( $this->nextData << 8 ) | ( ord($this->data[$this->bytePointer++]) & 0xff );
         $this->nextBits += 8;
 
         if ($this->nextBits < $this->bitsToGet) {
-            $this->nextData = ( $this->nextData << 8 ) | ( ord( $this->data[$this->bytePointer++] ) & 0xff );
+            $this->nextData = ( $this->nextData << 8 ) | ( ord($this->data[$this->bytePointer++]) & 0xff );
             $this->nextBits += 8;
         }
 
@@ -142,7 +142,7 @@ class FilterLZW
     /**
      * Add a new string to the string table.
      */
-    function addStringToTable( $oldString, $newString = '' )
+    function addStringToTable($oldString, $newString = '')
     {
 
         $string = $oldString.$newString;
@@ -163,9 +163,9 @@ class FilterLZW
         }
     }
 
-    function encode( $in )
+    function encode($in)
     {
 
-        $this->error( "LZW encoding not implemented." );
+        $this->error("LZW encoding not implemented.");
     }
 }

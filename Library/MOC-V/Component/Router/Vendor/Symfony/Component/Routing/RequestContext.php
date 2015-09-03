@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class RequestContext
 {
+
     private $baseUrl;
     private $pathInfo;
     private $method;
@@ -39,19 +40,28 @@ class RequestContext
     /**
      * Constructor.
      *
-     * @param string  $baseUrl      The base URL
-     * @param string  $method       The HTTP method
-     * @param string  $host         The HTTP host name
-     * @param string  $scheme       The HTTP scheme
-     * @param int     $httpPort     The HTTP port
-     * @param int     $httpsPort    The HTTPS port
-     * @param string  $path         The path
-     * @param string  $queryString  The query string
+     * @param string $baseUrl     The base URL
+     * @param string $method      The HTTP method
+     * @param string $host        The HTTP host name
+     * @param string $scheme      The HTTP scheme
+     * @param int    $httpPort    The HTTP port
+     * @param int    $httpsPort   The HTTPS port
+     * @param string $path        The path
+     * @param string $queryString The query string
      *
      * @api
      */
-    public function __construct($baseUrl = '', $method = 'GET', $host = 'localhost', $scheme = 'http', $httpPort = 80, $httpsPort = 443, $path = '/', $queryString = '')
-    {
+    public function __construct(
+        $baseUrl = '',
+        $method = 'GET',
+        $host = 'localhost',
+        $scheme = 'http',
+        $httpPort = 80,
+        $httpsPort = 443,
+        $path = '/',
+        $queryString = ''
+    ) {
+
         $this->baseUrl = $baseUrl;
         $this->method = strtoupper($method);
         $this->host = $host;
@@ -64,6 +74,7 @@ class RequestContext
 
     public function fromRequest(Request $request)
     {
+
         $this->setBaseUrl($request->getBaseUrl());
         $this->setPathInfo($request->getPathInfo());
         $this->setMethod($request->getMethod());
@@ -81,6 +92,7 @@ class RequestContext
      */
     public function getBaseUrl()
     {
+
         return $this->baseUrl;
     }
 
@@ -93,6 +105,7 @@ class RequestContext
      */
     public function setBaseUrl($baseUrl)
     {
+
         $this->baseUrl = $baseUrl;
     }
 
@@ -103,6 +116,7 @@ class RequestContext
      */
     public function getPathInfo()
     {
+
         return $this->pathInfo;
     }
 
@@ -113,6 +127,7 @@ class RequestContext
      */
     public function setPathInfo($pathInfo)
     {
+
         $this->pathInfo = $pathInfo;
     }
 
@@ -125,6 +140,7 @@ class RequestContext
      */
     public function getMethod()
     {
+
         return $this->method;
     }
 
@@ -137,6 +153,7 @@ class RequestContext
      */
     public function setMethod($method)
     {
+
         $this->method = strtoupper($method);
     }
 
@@ -147,6 +164,7 @@ class RequestContext
      */
     public function getHost()
     {
+
         return $this->host;
     }
 
@@ -159,6 +177,7 @@ class RequestContext
      */
     public function setHost($host)
     {
+
         $this->host = $host;
     }
 
@@ -169,6 +188,7 @@ class RequestContext
      */
     public function getScheme()
     {
+
         return $this->scheme;
     }
 
@@ -181,6 +201,7 @@ class RequestContext
      */
     public function setScheme($scheme)
     {
+
         $this->scheme = strtolower($scheme);
     }
 
@@ -191,6 +212,7 @@ class RequestContext
      */
     public function getHttpPort()
     {
+
         return $this->httpPort;
     }
 
@@ -203,6 +225,7 @@ class RequestContext
      */
     public function setHttpPort($httpPort)
     {
+
         $this->httpPort = $httpPort;
     }
 
@@ -213,6 +236,7 @@ class RequestContext
      */
     public function getHttpsPort()
     {
+
         return $this->httpsPort;
     }
 
@@ -225,6 +249,7 @@ class RequestContext
      */
     public function setHttpsPort($httpsPort)
     {
+
         $this->httpsPort = $httpsPort;
     }
 
@@ -235,6 +260,7 @@ class RequestContext
      */
     public function getQueryString()
     {
+
         return $this->queryString;
     }
 
@@ -247,6 +273,7 @@ class RequestContext
      */
     public function setQueryString($queryString)
     {
+
         $this->queryString = $queryString;
     }
 
@@ -257,6 +284,7 @@ class RequestContext
      */
     public function getParameters()
     {
+
         return $this->parameters;
     }
 
@@ -271,6 +299,7 @@ class RequestContext
      */
     public function setParameters(array $parameters)
     {
+
         $this->parameters = $parameters;
 
         return $this;
@@ -285,7 +314,8 @@ class RequestContext
      */
     public function getParameter($name)
     {
-        return isset($this->parameters[$name]) ? $this->parameters[$name] : null;
+
+        return isset( $this->parameters[$name] ) ? $this->parameters[$name] : null;
     }
 
     /**
@@ -297,6 +327,7 @@ class RequestContext
      */
     public function hasParameter($name)
     {
+
         return array_key_exists($name, $this->parameters);
     }
 
@@ -310,6 +341,7 @@ class RequestContext
      */
     public function setParameter($name, $parameter)
     {
+
         $this->parameters[$name] = $parameter;
     }
 }

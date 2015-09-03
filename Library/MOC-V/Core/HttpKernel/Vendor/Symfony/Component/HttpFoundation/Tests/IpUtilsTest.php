@@ -15,16 +15,19 @@ use Symfony\Component\HttpFoundation\IpUtils;
 
 class IpUtilsTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider testIpv4Provider
      */
     public function testIpv4($matches, $remoteAddr, $cidr)
     {
+
         $this->assertSame($matches, IpUtils::checkIp($remoteAddr, $cidr));
     }
 
     public function testIpv4Provider()
     {
+
         return array(
             array(true, '192.168.1.1', '192.168.1.1'),
             array(true, '192.168.1.1', '192.168.1.1/1'),
@@ -42,6 +45,7 @@ class IpUtilsTest extends \PHPUnit_Framework_TestCase
      */
     public function testIpv6($matches, $remoteAddr, $cidr)
     {
+
         if (!defined('AF_INET6')) {
             $this->markTestSkipped('Only works when PHP is compiled without the option "disable-ipv6".');
         }
@@ -51,6 +55,7 @@ class IpUtilsTest extends \PHPUnit_Framework_TestCase
 
     public function testIpv6Provider()
     {
+
         return array(
             array(true, '2a01:198:603:0:396e:4789:8e99:890f', '2a01:198:603:0::/65'),
             array(false, '2a00:198:603:0:396e:4789:8e99:890f', '2a01:198:603:0::/65'),
@@ -68,6 +73,7 @@ class IpUtilsTest extends \PHPUnit_Framework_TestCase
      */
     public function testAnIpv6WithOptionDisabledIpv6()
     {
+
         if (!extension_loaded('sockets')) {
             $this->markTestSkipped('Only works when the socket extension is enabled');
         }

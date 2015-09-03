@@ -20,6 +20,7 @@ use Symfony\Component\Finder\Comparator\DateComparator;
  */
 class DateRangeFilterIterator extends FilterIterator
 {
+
     private $comparators = array();
 
     /**
@@ -28,11 +29,12 @@ class DateRangeFilterIterator extends FilterIterator
      * @param \Iterator        $iterator    The Iterator to filter
      * @param DateComparator[] $comparators An array of DateComparator instances
      */
-    public function __construct( \Iterator $iterator, array $comparators )
+    public function __construct(\Iterator $iterator, array $comparators)
     {
+
         $this->comparators = $comparators;
 
-        parent::__construct( $iterator );
+        parent::__construct($iterator);
     }
 
     /**
@@ -42,15 +44,16 @@ class DateRangeFilterIterator extends FilterIterator
      */
     public function accept()
     {
+
         $fileinfo = $this->current();
 
-        if (!file_exists( $fileinfo->getRealPath() )) {
+        if (!file_exists($fileinfo->getRealPath())) {
             return false;
         }
 
         $filedate = $fileinfo->getMTime();
         foreach ($this->comparators as $compare) {
-            if (!$compare->test( $filedate )) {
+            if (!$compare->test($filedate)) {
                 return false;
             }
         }

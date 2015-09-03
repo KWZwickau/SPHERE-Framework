@@ -12,26 +12,37 @@
 namespace Symfony\Component\Config\Tests\Definition\Builder;
 
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
-use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\Definition\Builder\ScalarNodeDefinition;
 use Symfony\Component\Config\Definition\Exception\InvalidDefinitionException;
+use Symfony\Component\Config\Definition\Processor;
 
 class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testAppendingSomeNode()
     {
+
         $parent = new ArrayNodeDefinition('root');
         $child = new ScalarNodeDefinition('child');
 
         $parent
             ->children()
-                ->scalarNode('foo')->end()
-                ->scalarNode('bar')->end()
+            ->scalarNode('foo')->end()
+            ->scalarNode('bar')->end()
             ->end()
             ->append($child);
 
         $this->assertCount(3, $this->getField($parent, 'children'));
         $this->assertTrue(in_array($child, $this->getField($parent, 'children')));
+    }
+
+    protected function getField($object, $field)
+    {
+
+        $reflection = new \ReflectionProperty($object, $field);
+        $reflection->setAccessible(true);
+
+        return $reflection->getValue($object);
     }
 
     /**
@@ -40,6 +51,7 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
      */
     public function testPrototypeNodeSpecificOption($method, $args)
     {
+
         $node = new ArrayNodeDefinition('root');
 
         call_user_func_array(array($node, $method), $args);
@@ -49,6 +61,7 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
 
     public function providePrototypeNodeSpecificCalls()
     {
+
         return array(
             array('defaultValue', array(array())),
             array('addDefaultChildrenIfNoneSet', array()),
@@ -62,11 +75,11 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
      */
     public function testConcreteNodeSpecificOption()
     {
+
         $node = new ArrayNodeDefinition('root');
         $node
             ->addDefaultsIfNotSet()
-            ->prototype('array')
-        ;
+            ->prototype('array');
         $node->getNode();
     }
 
@@ -75,22 +88,22 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
      */
     public function testPrototypeNodesCantHaveADefaultValueWhenUsingDefaultChildren()
     {
+
         $node = new ArrayNodeDefinition('root');
         $node
             ->defaultValue(array())
             ->addDefaultChildrenIfNoneSet('foo')
-            ->prototype('array')
-        ;
+            ->prototype('array');
         $node->getNode();
     }
 
     public function testPrototypedArrayNodeDefaultWhenUsingDefaultChildren()
     {
+
         $node = new ArrayNodeDefinition('root');
         $node
             ->addDefaultChildrenIfNoneSet()
-            ->prototype('array')
-        ;
+            ->prototype('array');
         $tree = $node->getNode();
         $this->assertEquals(array(array()), $tree->getDefaultValue());
     }
@@ -98,13 +111,17 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providePrototypedArrayNodeDefaults
      */
-    public function testPrototypedArrayNodeDefault($args, $shouldThrowWhenUsingAttrAsKey, $shouldThrowWhenNotUsingAttrAsKey, $defaults)
-    {
+    public function testPrototypedArrayNodeDefault(
+        $args,
+        $shouldThrowWhenUsingAttrAsKey,
+        $shouldThrowWhenNotUsingAttrAsKey,
+        $defaults
+    ) {
+
         $node = new ArrayNodeDefinition('root');
         $node
             ->addDefaultChildrenIfNoneSet($args)
-            ->prototype('array')
-        ;
+            ->prototype('array');
 
         try {
             $tree = $node->getNode();
@@ -118,8 +135,7 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
         $node
             ->useAttributeAsKey('attr')
             ->addDefaultChildrenIfNoneSet($args)
-            ->prototype('array')
-        ;
+            ->prototype('array');
 
         try {
             $tree = $node->getNode();
@@ -132,6 +148,7 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
 
     public function providePrototypedArrayNodeDefaults()
     {
+
         return array(
             array(null, true, false, array(array())),
             array(2, true, false, array(array(), array())),
@@ -144,23 +161,23 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
 
     public function testNestedPrototypedArrayNodes()
     {
+
         $node = new ArrayNodeDefinition('root');
         $node
             ->addDefaultChildrenIfNoneSet()
             ->prototype('array')
-                  ->prototype('array')
-        ;
+            ->prototype('array');
         $node->getNode();
     }
 
     public function testEnabledNodeDefaults()
     {
+
         $node = new ArrayNodeDefinition('root');
         $node
             ->canBeEnabled()
             ->children()
-                ->scalarNode('foo')->defaultValue('bar')->end()
-        ;
+            ->scalarNode('foo')->defaultValue('bar')->end();
 
         $this->assertEquals(array('enabled' => false, 'foo' => 'bar'), $node->getNode()->getDefaultValue());
     }
@@ -170,13 +187,13 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
      */
     public function testTrueEnableEnabledNode($expected, $config, $message)
     {
+
         $processor = new Processor();
         $node = new ArrayNodeDefinition('root');
         $node
             ->canBeEnabled()
             ->children()
-                ->scalarNode('foo')->defaultValue('bar')->end()
-        ;
+            ->scalarNode('foo')->defaultValue('bar')->end();
 
         $this->assertEquals(
             $expected,
@@ -187,21 +204,26 @@ class ArrayNodeDefinitionTest extends \PHPUnit_Framework_TestCase
 
     public function getEnableableNodeFixtures()
     {
+
         return array(
             array(array('enabled' => true, 'foo' => 'bar'), array(true), 'true enables an enableable node'),
             array(array('enabled' => true, 'foo' => 'bar'), array(null), 'null enables an enableable node'),
-            array(array('enabled' => true, 'foo' => 'bar'), array(array('enabled' => true)), 'An enableable node can be enabled'),
-            array(array('enabled' => true, 'foo' => 'baz'), array(array('foo' => 'baz')), 'any configuration enables an enableable node'),
-            array(array('enabled' => false, 'foo' => 'baz'), array(array('foo' => 'baz', 'enabled' => false)), 'An enableable node can be disabled'),
+            array(
+                array('enabled' => true, 'foo' => 'bar'),
+                array(array('enabled' => true)),
+                'An enableable node can be enabled'
+            ),
+            array(
+                array('enabled' => true, 'foo' => 'baz'),
+                array(array('foo' => 'baz')),
+                'any configuration enables an enableable node'
+            ),
+            array(
+                array('enabled' => false, 'foo' => 'baz'),
+                array(array('foo' => 'baz', 'enabled' => false)),
+                'An enableable node can be disabled'
+            ),
             array(array('enabled' => false, 'foo' => 'bar'), array(false), 'false disables an enableable node'),
         );
-    }
-
-    protected function getField($object, $field)
-    {
-        $reflection = new \ReflectionProperty($object, $field);
-        $reflection->setAccessible(true);
-
-        return $reflection->getValue($object);
     }
 }

@@ -29,6 +29,7 @@ namespace Doctrine\DBAL\Driver;
  */
 interface Connection
 {
+
     /**
      * Prepares a statement for execution and returns a Statement object.
      *
@@ -53,7 +54,7 @@ interface Connection
      *
      * @return string
      */
-    function quote($input, $type=\PDO::PARAM_STR);
+    function quote($input, $type = \PDO::PARAM_STR);
 
     /**
      * Executes an SQL statement and return the number of affected rows.

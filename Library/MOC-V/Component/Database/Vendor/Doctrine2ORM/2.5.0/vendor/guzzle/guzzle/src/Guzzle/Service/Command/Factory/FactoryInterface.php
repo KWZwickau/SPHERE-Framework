@@ -9,6 +9,7 @@ use Guzzle\Service\Command\CommandInterface;
  */
 interface FactoryInterface
 {
+
     /**
      * Create a command by name
      *

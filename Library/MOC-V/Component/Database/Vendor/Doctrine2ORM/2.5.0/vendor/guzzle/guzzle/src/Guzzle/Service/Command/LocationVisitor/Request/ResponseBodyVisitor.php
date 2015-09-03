@@ -11,8 +11,10 @@ use Guzzle\Service\Description\Parameter;
  */
 class ResponseBodyVisitor extends AbstractRequestVisitor
 {
+
     public function visit(CommandInterface $command, RequestInterface $request, Parameter $param, $value)
     {
+
         $request->setResponseBody($value);
     }
 }

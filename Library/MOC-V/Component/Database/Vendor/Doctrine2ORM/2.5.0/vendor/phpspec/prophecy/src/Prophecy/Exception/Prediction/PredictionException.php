@@ -15,4 +15,5 @@ use Prophecy\Exception\Exception;
 
 interface PredictionException extends Exception
 {
+
 }

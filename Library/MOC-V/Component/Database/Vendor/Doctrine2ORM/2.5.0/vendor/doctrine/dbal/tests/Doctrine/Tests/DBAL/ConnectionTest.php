@@ -2,7 +2,7 @@
 
 namespace Doctrine\Tests\DBAL;
 
-require_once __DIR__ . '/../TestInit.php';
+require_once __DIR__.'/../TestInit.php';
 
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Configuration;
@@ -13,6 +13,7 @@ use Doctrine\Tests\Mocks\DriverMock;
 
 class ConnectionTest extends \Doctrine\Tests\DbalTestCase
 {
+
     /**
      * @var \Doctrine\DBAL\Connection
      */
@@ -20,53 +21,61 @@ class ConnectionTest extends \Doctrine\Tests\DbalTestCase
 
     protected $params = array(
         'driver' => 'pdo_mysql',
-        'host' => 'localhost',
-        'user' => 'root',
+        'host'   => 'localhost',
+        'user'   => 'root',
         'password' => 'password',
-        'port' => '1234'
+        'port'   => '1234'
     );
 
     public function setUp()
     {
+
         $this->_conn = \Doctrine\DBAL\DriverManager::getConnection($this->params);
     }
 
     public function testIsConnected()
     {
+
         $this->assertFalse($this->_conn->isConnected());
     }
 
     public function testNoTransactionActiveByDefault()
     {
+
         $this->assertFalse($this->_conn->isTransactionActive());
     }
 
     public function testCommitWithNoActiveTransaction_ThrowsException()
     {
+
         $this->setExpectedException('Doctrine\DBAL\ConnectionException');
         $this->_conn->commit();
     }
 
     public function testRollbackWithNoActiveTransaction_ThrowsException()
     {
+
         $this->setExpectedException('Doctrine\DBAL\ConnectionException');
         $this->_conn->rollback();
     }
 
     public function testSetRollbackOnlyNoActiveTransaction_ThrowsException()
     {
+
         $this->setExpectedException('Doctrine\DBAL\ConnectionException');
         $this->_conn->setRollbackOnly();
     }
 
     public function testIsRollbackOnlyNoActiveTransaction_ThrowsException()
     {
+
         $this->setExpectedException('Doctrine\DBAL\ConnectionException');
         $this->_conn->isRollbackOnly();
     }
 
     public function testGetConfiguration()
     {
+
         $config = $this->_conn->getConfiguration();
 
         $this->assertInstanceOf('Doctrine\DBAL\Configuration', $config);
@@ -74,36 +83,43 @@ class ConnectionTest extends \Doctrine\Tests\DbalTestCase
 
     public function testGetHost()
     {
+
         $this->assertEquals('localhost', $this->_conn->getHost());
     }
 
     public function testGetPort()
     {
+
         $this->assertEquals('1234', $this->_conn->getPort());
     }
 
     public function testGetUsername()
     {
+
         $this->assertEquals('root', $this->_conn->getUsername());
     }
 
     public function testGetPassword()
     {
+
         $this->assertEquals('password', $this->_conn->getPassword());
     }
 
     public function testGetDriver()
     {
+
         $this->assertInstanceOf('Doctrine\DBAL\Driver\PDOMySql\Driver', $this->_conn->getDriver());
     }
 
     public function testGetEventManager()
     {
+
         $this->assertInstanceOf('Doctrine\Common\EventManager', $this->_conn->getEventManager());
     }
 
     public function testConnectDispatchEvent()
     {
+
         $listenerMock = $this->getMock('ConnectDispatchEventListener', array('postConnect'));
         $listenerMock->expects($this->once())->method('postConnect');
 
@@ -111,8 +127,8 @@ class ConnectionTest extends \Doctrine\Tests\DbalTestCase
         $eventManager->addEventListener(array(Events::postConnect), $listenerMock);
 
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
-        $driverMock->expects(($this->at(0)))
-                   ->method('connect');
+        $driverMock->expects(( $this->at(0) ))
+            ->method('connect');
         $platform = new Mocks\MockPlatform();
 
         $conn = new Connection(array('platform' => $platform), $driverMock, new Configuration(), $eventManager);
@@ -121,6 +137,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalTestCase
 
     public function testEventManagerPassedToPlatform()
     {
+
         $driverMock = new DriverMock();
         $connection = new Connection($this->params, $driverMock);
         $this->assertInstanceOf('Doctrine\Common\EventManager', $connection->getDatabasePlatform()->getEventManager());
@@ -133,6 +150,7 @@ class ConnectionTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testDriverExceptionIsWrapped($method)
     {
+
         $this->setExpectedException('Doctrine\DBAL\DBALException', "An exception occurred while executing 'MUUHAAAAHAAAA':
 
 SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
@@ -147,6 +165,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function getQueryMethods()
     {
+
         return array(
             array('exec'),
             array('query'),
@@ -163,6 +182,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testEchoSQLLogger()
     {
+
         $logger = new \Doctrine\DBAL\Logging\EchoSQLLogger();
         $this->_conn->getConfiguration()->setSQLLogger($logger);
         $this->assertSame($logger, $this->_conn->getConfiguration()->getSQLLogger());
@@ -175,6 +195,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testDebugSQLStack()
     {
+
         $logger = new \Doctrine\DBAL\Logging\DebugStack();
         $this->_conn->getConfiguration()->setSQLLogger($logger);
         $this->assertSame($logger, $this->_conn->getConfiguration()->getSQLLogger());
@@ -185,6 +206,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testIsAutoCommit()
     {
+
         $this->assertTrue($this->_conn->isAutoCommit());
     }
 
@@ -193,6 +215,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testSetAutoCommit()
     {
+
         $this->_conn->setAutoCommit(false);
         $this->assertFalse($this->_conn->isAutoCommit());
         $this->_conn->setAutoCommit(0);
@@ -204,6 +227,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testConnectStartsTransactionInNoAutoCommitMode()
     {
+
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
         $driverMock->expects($this->any())
             ->method('connect')
@@ -224,6 +248,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testCommitStartsTransactionInNoAutoCommitMode()
     {
+
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
         $driverMock->expects($this->any())
             ->method('connect')
@@ -242,6 +267,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testRollBackStartsTransactionInNoAutoCommitMode()
     {
+
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
         $driverMock->expects($this->any())
             ->method('connect')
@@ -260,6 +286,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
      */
     public function testSwitchingAutoCommitModeCommitsAllCurrentTransactions()
     {
+
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
         $driverMock->expects($this->any())
             ->method('connect')
@@ -282,6 +309,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testEmptyInsert()
     {
+
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
 
         $driverMock->expects($this->any())
@@ -302,10 +330,11 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testFetchAssoc()
     {
+
         $statement = 'SELECT * FROM foo WHERE bar = ?';
-        $params    = array(666);
-        $types     = array(\PDO::PARAM_INT);
-        $result    = array();
+        $params = array(666);
+        $types = array(\PDO::PARAM_INT);
+        $result = array();
 
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
 
@@ -336,10 +365,11 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testFetchArray()
     {
+
         $statement = 'SELECT * FROM foo WHERE bar = ?';
-        $params    = array(666);
-        $types     = array(\PDO::PARAM_INT);
-        $result    = array();
+        $params = array(666);
+        $types = array(\PDO::PARAM_INT);
+        $result = array();
 
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
 
@@ -370,11 +400,12 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testFetchColumn()
     {
+
         $statement = 'SELECT * FROM foo WHERE bar = ?';
-        $params    = array(666);
-        $types     = array(\PDO::PARAM_INT);
-        $column    = 0;
-        $result    = array();
+        $params = array(666);
+        $types = array(\PDO::PARAM_INT);
+        $column = 0;
+        $result = array();
 
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
 
@@ -405,6 +436,7 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testConnectionIsClosed()
     {
+
         $this->_conn->close();
 
         $this->setExpectedException('Doctrine\\DBAL\\Exception\\DriverException');
@@ -414,10 +446,11 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testFetchAll()
     {
+
         $statement = 'SELECT * FROM foo WHERE bar = ?';
-        $params    = array(666);
-        $types     = array(\PDO::PARAM_INT);
-        $result    = array();
+        $params = array(666);
+        $types = array(\PDO::PARAM_INT);
+        $result = array();
 
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
 
@@ -447,17 +480,20 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testConnectionDoesNotMaintainTwoReferencesToExternalPDO()
     {
+
         $params['pdo'] = new \stdClass();
 
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
 
         $conn = new Connection($params, $driverMock);
 
-        $this->assertArrayNotHasKey('pdo', $conn->getParams(), "Connection is maintaining additional reference to the PDO connection");
+        $this->assertArrayNotHasKey('pdo', $conn->getParams(),
+            "Connection is maintaining additional reference to the PDO connection");
     }
 
     public function testPassingExternalPDOMeansConnectionIsConnected()
     {
+
         $params['pdo'] = new \stdClass();
 
         $driverMock = $this->getMock('Doctrine\DBAL\Driver');
@@ -469,8 +505,9 @@ SQLSTATE[HY000]: General error: 1 near \"MUUHAAAAHAAAA\"");
 
     public function testCallingDeleteWithNoDeletionCriteriaResultsInInvalidArgumentException()
     {
+
         /* @var $driver \Doctrine\DBAL\Driver */
-        $driver  = $this->getMock('Doctrine\DBAL\Driver');
+        $driver = $this->getMock('Doctrine\DBAL\Driver');
         $pdoMock = $this->getMock('Doctrine\DBAL\Driver\Connection');
 
         // should never execute queries with invalid arguments

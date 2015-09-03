@@ -31,13 +31,13 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
-        AutoLoader::getNamespaceAutoLoader( 'Doctrine\DBAL',
-            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/dbal/lib' );
-        AutoLoader::getNamespaceAutoLoader( 'Doctrine\Common',
-            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/common/lib' );
+        AutoLoader::getNamespaceAutoLoader('Doctrine\DBAL',
+            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/dbal/lib');
+        AutoLoader::getNamespaceAutoLoader('Doctrine\Common',
+            __DIR__.'/../../../Vendor/Doctrine2ORM/2.5.0/vendor/doctrine/common/lib');
     }
 
     /**
@@ -64,7 +64,7 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
     ) {
 
         try {
-            $Connection = DriverManager::getConnection( array(
+            $Connection = DriverManager::getConnection(array(
                 'driver'        => $Driver->getDriver(),
                 'user'          => $Username->getUsername(),
                 'password'      => $Password->getPassword(),
@@ -75,18 +75,17 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
                     \PDO::ATTR_TIMEOUT => $Timeout,
                     \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
                 )
-            ) );
-        } catch
-        ( \Exception $E ) {
+            ));
+        } catch (\Exception $E) {
             // @codeCoverageIgnoreStart
-            throw new ComponentException( $E->getMessage(), $E->getCode(), $E );
+            throw new ComponentException($E->getMessage(), $E->getCode(), $E);
             // @codeCoverageIgnoreEnd
         }
 
         try {
             $Connection->connect();
-        } catch( \Exception $E ) {
-            throw new ComponentException( $E->getMessage(), $E->getCode(), $E );
+        } catch (\Exception $E) {
+            throw new ComponentException($E->getMessage(), $E->getCode(), $E);
         }
 
         $this->Connection = $Connection;
@@ -155,7 +154,7 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
     {
 
         $Query = $this->prepareQuery();
-        return $this->prepareConnection()->executeUpdate( $Query[0], $Query[1], $Query[2] );
+        return $this->prepareConnection()->executeUpdate($Query[0], $Query[1], $Query[2]);
     }
 
     /**
@@ -165,16 +164,16 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
     {
 
         /** @var Statement $Statement */
-        $Statement = array_pop( self::$StatementList );
-        $ParameterCount = substr_count( $Statement, '?' );
+        $Statement = array_pop(self::$StatementList);
+        $ParameterCount = substr_count($Statement, '?');
         $QueryValue = array();
         $QueryType = array();
         for ($Run = 0; $Run < $ParameterCount; $Run++) {
-            $Parameter = array_pop( self::$ParameterList );
-            array_unshift( $QueryValue, $Parameter[0] );
-            array_unshift( $QueryType, $Parameter[1] );
+            $Parameter = array_pop(self::$ParameterList);
+            array_unshift($QueryValue, $Parameter[0]);
+            array_unshift($QueryType, $Parameter[1]);
         }
-        return array( $Statement, $QueryValue, $QueryType );
+        return array($Statement, $QueryValue, $QueryType);
     }
 
     /**
@@ -185,6 +184,6 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
     {
 
         $Query = $this->prepareQuery();
-        return $this->prepareConnection()->executeQuery( $Query[0], $Query[1], $Query[2] )->fetchAll();
+        return $this->prepareConnection()->executeQuery($Query[0], $Query[1], $Query[2])->fetchAll();
     }
 }

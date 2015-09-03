@@ -3,15 +3,16 @@
 namespace Guzzle\Tests\Service\Command\LocationVisitor\Request;
 
 use Guzzle\Http\Message\EntityEnclosingRequest;
+use Guzzle\Service\Command\OperationCommand;
 use Guzzle\Service\Description\Operation;
 use Guzzle\Service\Description\Parameter;
 use Guzzle\Service\Description\SchemaValidator;
-use Guzzle\Service\Command\OperationCommand;
 use Guzzle\Tests\Service\Mock\Command\MockCommand;
 use Guzzle\Tests\Service\Mock\MockClient;
 
 abstract class AbstractVisitorTestCase extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $command;
     protected $request;
     protected $param;
@@ -19,6 +20,7 @@ abstract class AbstractVisitorTestCase extends \Guzzle\Tests\GuzzleTestCase
 
     public function setUp()
     {
+
         $this->command = new MockCommand();
         $this->request = new EntityEnclosingRequest('POST', 'http://www.test.com/some/path.php');
         $this->validator = new SchemaValidator();
@@ -26,6 +28,7 @@ abstract class AbstractVisitorTestCase extends \Guzzle\Tests\GuzzleTestCase
 
     protected function getCommand($location)
     {
+
         $command = new OperationCommand(array(), $this->getNestedCommand($location));
         $command->setClient(new MockClient());
 
@@ -34,18 +37,19 @@ abstract class AbstractVisitorTestCase extends \Guzzle\Tests\GuzzleTestCase
 
     protected function getNestedCommand($location)
     {
+
         return new Operation(array(
             'httpMethod' => 'POST',
             'parameters' => array(
                 'foo' => new Parameter(array(
-                    'type'         => 'object',
-                    'location'     => $location,
-                    'sentAs'       => 'Foo',
-                    'required'     => true,
-                    'properties'   => array(
+                    'type'                 => 'object',
+                    'location'             => $location,
+                    'sentAs'               => 'Foo',
+                    'required'             => true,
+                    'properties'           => array(
                         'test' => array(
-                            'type'      => 'object',
-                            'required'  => true,
+                            'type'       => 'object',
+                            'required'   => true,
                             'properties' => array(
                                 'baz' => array(
                                     'type'    => 'boolean',
@@ -59,21 +63,21 @@ abstract class AbstractVisitorTestCase extends \Guzzle\Tests\GuzzleTestCase
                                 )
                             )
                         ),
-                        'bar' => array('default' => 123)
+                        'bar'  => array('default' => 123)
                     ),
                     'additionalProperties' => array(
-                        'type' => 'string',
+                        'type'    => 'string',
                         'filters' => array('strtoupper'),
                         'location' => $location
                     )
                 )),
                 'arr' => new Parameter(array(
-                    'type'         => 'array',
-                    'location'     => $location,
-                    'items' => array(
+                    'type'     => 'array',
+                    'location' => $location,
+                    'items'    => array(
                         'type' => 'string',
                         'filters' => array('strtoupper')
-                     )
+                    )
                 )),
             )
         ));
@@ -81,21 +85,22 @@ abstract class AbstractVisitorTestCase extends \Guzzle\Tests\GuzzleTestCase
 
     protected function getCommandWithArrayParamAndFilters()
     {
+
         $operation = new Operation(array(
             'httpMethod' => 'POST',
             'parameters' => array(
                 'foo' => new Parameter(array(
-                    'type' => 'string',
+                    'type'    => 'string',
                     'location' => 'query',
-                    'sentAs' => 'Foo',
+                    'sentAs'  => 'Foo',
                     'required' => true,
                     'default' => 'bar',
                     'filters' => array('strtoupper')
                 )),
                 'arr' => new Parameter(array(
-                    'type' => 'array',
+                    'type'    => 'array',
                     'location' => 'query',
-                    'sentAs' => 'Arr',
+                    'sentAs'  => 'Arr',
                     'required' => true,
                     'default' => array(123, 456, 789),
                     'filters' => array(array('method' => 'implode', 'args' => array(',', '@value')))

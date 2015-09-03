@@ -18,6 +18,7 @@ namespace Prophecy\Prophecy;
  */
 interface ProphecySubjectInterface
 {
+
     /**
      * Sets subject prophecy.
      *

@@ -81,10 +81,10 @@ class PHPExcel_Cell_DataType
      *
      * @return      string
      */
-    public static function dataTypeForValue( $pValue = null )
+    public static function dataTypeForValue($pValue = null)
     {
 
-        return PHPExcel_Cell_DefaultValueBinder::dataTypeForValue( $pValue );
+        return PHPExcel_Cell_DefaultValueBinder::dataTypeForValue($pValue);
     }
 
     /**
@@ -94,7 +94,7 @@ class PHPExcel_Cell_DataType
      *
      * @return mixed  Sanitized value
      */
-    public static function checkString( $pValue = null )
+    public static function checkString($pValue = null)
     {
 
         if ($pValue instanceof PHPExcel_RichText) {
@@ -103,10 +103,10 @@ class PHPExcel_Cell_DataType
         }
 
         // string must never be longer than 32,767 characters, truncate if necessary
-        $pValue = PHPExcel_Shared_String::Substring( $pValue, 0, 32767 );
+        $pValue = PHPExcel_Shared_String::Substring($pValue, 0, 32767);
 
         // we require that newline is represented as "\n" in core, not as "\r\n" or "\r"
-        $pValue = str_replace( array( "\r\n", "\r" ), "\n", $pValue );
+        $pValue = str_replace(array("\r\n", "\r"), "\n", $pValue);
 
         return $pValue;
     }
@@ -118,12 +118,12 @@ class PHPExcel_Cell_DataType
      *
      * @return string  Sanitized value
      */
-    public static function checkErrorCode( $pValue = null )
+    public static function checkErrorCode($pValue = null)
     {
 
         $pValue = (string)$pValue;
 
-        if (!array_key_exists( $pValue, self::$_errorCodes )) {
+        if (!array_key_exists($pValue, self::$_errorCodes)) {
             $pValue = '#NULL!';
         }
 

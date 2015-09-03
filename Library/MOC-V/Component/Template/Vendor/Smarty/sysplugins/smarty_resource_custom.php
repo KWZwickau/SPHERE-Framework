@@ -23,17 +23,17 @@ abstract class Smarty_Resource_Custom extends Smarty_Resource
      * @param Smarty_Template_Source   $source    source object
      * @param Smarty_Internal_Template $_template template object
      */
-    public function populate( Smarty_Template_Source $source, Smarty_Internal_Template $_template = null )
+    public function populate(Smarty_Template_Source $source, Smarty_Internal_Template $_template = null)
     {
 
         $source->filepath = $source->type.':'.$source->name;
-        $source->uid = sha1( $source->type.':'.$source->name );
+        $source->uid = sha1($source->type.':'.$source->name);
 
-        $mtime = $this->fetchTimestamp( $source->name );
+        $mtime = $this->fetchTimestamp($source->name);
         if ($mtime !== null) {
             $source->timestamp = $mtime;
         } else {
-            $this->fetch( $source->name, $content, $timestamp );
+            $this->fetch($source->name, $content, $timestamp);
             $source->timestamp = isset( $timestamp ) ? $timestamp : false;
             if (isset( $content )) {
                 $source->content = $content;
@@ -51,7 +51,7 @@ abstract class Smarty_Resource_Custom extends Smarty_Resource
      *
      * @return integer|boolean timestamp (epoch) the template was modified, or false if not found
      */
-    protected function fetchTimestamp( $name )
+    protected function fetchTimestamp($name)
     {
 
         return null;
@@ -64,7 +64,7 @@ abstract class Smarty_Resource_Custom extends Smarty_Resource
      * @param string  &$source template source
      * @param integer &$mtime  template modification timestamp (epoch)
      */
-    abstract protected function fetch( $name, &$source, &$mtime );
+    abstract protected function fetch($name, &$source, &$mtime);
 
     /**
      * Load template's source into current template object
@@ -74,15 +74,15 @@ abstract class Smarty_Resource_Custom extends Smarty_Resource
      * @return string                 template source
      * @throws SmartyException        if source cannot be loaded
      */
-    public function getContent( Smarty_Template_Source $source )
+    public function getContent(Smarty_Template_Source $source)
     {
 
-        $this->fetch( $source->name, $content, $timestamp );
+        $this->fetch($source->name, $content, $timestamp);
         if (isset( $content )) {
             return $content;
         }
 
-        throw new SmartyException( "Unable to read template {$source->type} '{$source->name}'" );
+        throw new SmartyException("Unable to read template {$source->type} '{$source->name}'");
     }
 
     /**
@@ -92,9 +92,9 @@ abstract class Smarty_Resource_Custom extends Smarty_Resource
      *
      * @return string                 resource's basename
      */
-    protected function getBasename( Smarty_Template_Source $source )
+    protected function getBasename(Smarty_Template_Source $source)
     {
 
-        return basename( $source->name );
+        return basename($source->name);
     }
 }

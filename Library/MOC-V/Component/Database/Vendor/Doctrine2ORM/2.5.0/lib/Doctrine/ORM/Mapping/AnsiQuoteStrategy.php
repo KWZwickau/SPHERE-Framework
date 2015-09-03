@@ -24,17 +24,19 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 /**
  * ANSI compliant quote strategy, this strategy does not apply any quote.
  * To use this strategy all mapped tables and columns should be ANSI compliant.
- * 
+ *
  * @since   2.5
  * @author  Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
 class AnsiQuoteStrategy implements QuoteStrategy
 {
+
     /**
      * {@inheritdoc}
      */
     public function getColumnName($fieldName, ClassMetadata $class, AbstractPlatform $platform)
     {
+
         return $class->fieldMappings[$fieldName]['columnName'];
     }
 
@@ -43,6 +45,7 @@ class AnsiQuoteStrategy implements QuoteStrategy
      */
     public function getTableName(ClassMetadata $class, AbstractPlatform $platform)
     {
+
         return $class->table['name'];
     }
 
@@ -51,6 +54,7 @@ class AnsiQuoteStrategy implements QuoteStrategy
      */
     public function getSequenceName(array $definition, ClassMetadata $class, AbstractPlatform $platform)
     {
+
         return $definition['sequenceName'];
     }
 
@@ -59,6 +63,7 @@ class AnsiQuoteStrategy implements QuoteStrategy
      */
     public function getJoinColumnName(array $joinColumn, ClassMetadata $class, AbstractPlatform $platform)
     {
+
         return $joinColumn['name'];
     }
 
@@ -67,6 +72,7 @@ class AnsiQuoteStrategy implements QuoteStrategy
      */
     public function getReferencedJoinColumnName(array $joinColumn, ClassMetadata $class, AbstractPlatform $platform)
     {
+
         return $joinColumn['referencedColumnName'];
     }
 
@@ -75,6 +81,7 @@ class AnsiQuoteStrategy implements QuoteStrategy
      */
     public function getJoinTableName(array $association, ClassMetadata $class, AbstractPlatform $platform)
     {
+
         return $association['joinTable']['name'];
     }
 
@@ -83,6 +90,7 @@ class AnsiQuoteStrategy implements QuoteStrategy
      */
     public function getIdentifierColumnNames(ClassMetadata $class, AbstractPlatform $platform)
     {
+
         return $class->identifier;
     }
 
@@ -91,6 +99,7 @@ class AnsiQuoteStrategy implements QuoteStrategy
      */
     public function getColumnAlias($columnName, $counter, AbstractPlatform $platform, ClassMetadata $class = null)
     {
-        return $platform->getSQLResultCasing($columnName . '_' . $counter);
+
+        return $platform->getSQLResultCasing($columnName.'_'.$counter);
     }
 }

@@ -44,18 +44,18 @@ final class TexyImageModule extends TexyModule
     private $references = array();
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
 
         $texy->allowed['image/definition'] = true;
-        $texy->addHandler( 'image', array( $this, 'solve' ) );
-        $texy->addHandler( 'beforeParse', array( $this, 'beforeParse' ) );
+        $texy->addHandler('image', array($this, 'solve'));
+        $texy->addHandler('beforeParse', array($this, 'beforeParse'));
 
         // [*image*]:LINK
         $texy->registerLinePattern(
-            array( $this, 'patternImage' ),
+            array($this, 'patternImage'),
             '#'.TEXY_IMAGE.TEXY_LINK_N.'??()#Uu',
             'image'
         );
@@ -70,14 +70,14 @@ final class TexyImageModule extends TexyModule
      *
      * @return void
      */
-    public function beforeParse( $texy, & $text )
+    public function beforeParse($texy, & $text)
     {
 
         if (!empty( $texy->allowed['image/definition'] )) {
             // [*image*]: urls .(title)[class]{style}
             $text = preg_replace_callback(
                 '#^\[\*([^\n]+)\*\]:\ +(.+)\ *'.TEXY_MODIFIER.'?\s*()$#mUu',
-                array( $this, 'patternReferenceDef' ),
+                array($this, 'patternReferenceDef'),
                 $text
             );
         }
@@ -92,7 +92,7 @@ final class TexyImageModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function patternImage( $parser, $matches )
+    public function patternImage($parser, $matches)
     {
 
         list( , $mURLs, $mMod, $mAlign, $mLink ) = $matches;
@@ -103,21 +103,21 @@ final class TexyImageModule extends TexyModule
 
         $tx = $this->texy;
 
-        $image = $this->factoryImage( $mURLs, $mMod.$mAlign );
+        $image = $this->factoryImage($mURLs, $mMod.$mAlign);
 
         if ($mLink) {
             if ($mLink === ':') {
-                $link = new TexyLink( $image->linkedURL === null ? $image->URL : $image->linkedURL );
+                $link = new TexyLink($image->linkedURL === null ? $image->URL : $image->linkedURL);
                 $link->raw = ':';
                 $link->type = TexyLink::IMAGE;
             } else {
-                $link = $tx->linkModule->factoryLink( $mLink, null, null );
+                $link = $tx->linkModule->factoryLink($mLink, null, null);
             }
         } else {
             $link = null;
         }
 
-        return $tx->invokeAroundHandlers( 'image', $parser, array( $image, $link ) );
+        return $tx->invokeAroundHandlers('image', $parser, array($image, $link));
     }
 
     /**
@@ -129,49 +129,49 @@ final class TexyImageModule extends TexyModule
      *
      * @return TexyImage
      */
-    public function factoryImage( $content, $mod, $tryRef = true )
+    public function factoryImage($content, $mod, $tryRef = true)
     {
 
-        $image = $tryRef ? $this->getReference( trim( $content ) ) : false;
+        $image = $tryRef ? $this->getReference(trim($content)) : false;
 
         if (!$image) {
             $tx = $this->texy;
-            $content = explode( '|', $content );
+            $content = explode('|', $content);
             $image = new TexyImage;
 
             // dimensions
             $matches = null;
-            if (preg_match( '#^(.*) (\d+|\?) *(X|x) *(\d+|\?) *()$#U', $content[0], $matches )) {
-                $image->URL = trim( $matches[1] );
+            if (preg_match('#^(.*) (\d+|\?) *(X|x) *(\d+|\?) *()$#U', $content[0], $matches)) {
+                $image->URL = trim($matches[1]);
                 $image->asMax = $matches[3] === 'X';
                 $image->width = $matches[2] === '?' ? null : (int)$matches[2];
                 $image->height = $matches[4] === '?' ? null : (int)$matches[4];
             } else {
-                $image->URL = trim( $content[0] );
+                $image->URL = trim($content[0]);
             }
 
-            if (!$tx->checkURL( $image->URL, Texy::FILTER_IMAGE )) {
+            if (!$tx->checkURL($image->URL, Texy::FILTER_IMAGE)) {
                 $image->URL = null;
             }
 
             // onmouseover image
             if (isset( $content[1] )) {
-                $tmp = trim( $content[1] );
-                if ($tmp !== '' && $tx->checkURL( $tmp, Texy::FILTER_IMAGE )) {
+                $tmp = trim($content[1]);
+                if ($tmp !== '' && $tx->checkURL($tmp, Texy::FILTER_IMAGE)) {
                     $image->overURL = $tmp;
                 }
             }
 
             // linked image
             if (isset( $content[2] )) {
-                $tmp = trim( $content[2] );
-                if ($tmp !== '' && $tx->checkURL( $tmp, Texy::FILTER_ANCHOR )) {
+                $tmp = trim($content[2]);
+                if ($tmp !== '' && $tx->checkURL($tmp, Texy::FILTER_ANCHOR)) {
                     $image->linkedURL = $tmp;
                 }
             }
         }
 
-        $image->modifier->setProperties( $mod );
+        $image->modifier->setProperties($mod);
         return $image;
     }
 
@@ -182,10 +182,10 @@ final class TexyImageModule extends TexyModule
      *
      * @return TexyImage  reference descriptor (or FALSE)
      */
-    public function getReference( $name )
+    public function getReference($name)
     {
 
-        $name = TexyUtf::strtolower( $name );
+        $name = TexyUtf::strtolower($name);
         if (isset( $this->references[$name] )) {
             return clone $this->references[$name];
         }
@@ -202,7 +202,7 @@ final class TexyImageModule extends TexyModule
      *
      * @return TexyHtml|FALSE
      */
-    public function solve( $invocation, TexyImage $image, $link )
+    public function solve($invocation, TexyImage $image, $link)
     {
 
         if ($image->URL == null) {
@@ -217,13 +217,13 @@ final class TexyImageModule extends TexyModule
         $hAlign = $mod->hAlign;
         $mod->hAlign = null;
 
-        $el = TexyHtml::el( 'img' );
+        $el = TexyHtml::el('img');
         $el->attrs['src'] = null; // trick - move to front
-        $mod->decorate( $tx, $el );
-        $el->attrs['src'] = Texy::prependRoot( $image->URL, $this->root );
+        $mod->decorate($tx, $el);
+        $el->attrs['src'] = Texy::prependRoot($image->URL, $this->root);
         if (!isset( $el->attrs['alt'] )) {
             if ($alt !== null) {
-                $el->attrs['alt'] = $tx->typographyModule->postLine( $alt );
+                $el->attrs['alt'] = $tx->typographyModule->postLine($alt);
             } else {
                 $el->attrs['alt'] = $this->defaultAlt;
             }
@@ -242,36 +242,36 @@ final class TexyImageModule extends TexyModule
             }
         }
 
-        if (!is_int( $image->width ) || !is_int( $image->height ) || $image->asMax) {
+        if (!is_int($image->width) || !is_int($image->height) || $image->asMax) {
             // autodetect fileRoot
             if ($this->fileRoot === null && isset( $_SERVER['SCRIPT_FILENAME'] )) {
-                $this->fileRoot = dirname( $_SERVER['SCRIPT_FILENAME'] ).'/'.$this->root;
+                $this->fileRoot = dirname($_SERVER['SCRIPT_FILENAME']).'/'.$this->root;
             }
 
             // detect dimensions
             // absolute URL & security check for double dot
-            if (Texy::isRelative( $image->URL ) && strpos( $image->URL, '..' ) === false) {
-                $file = rtrim( $this->fileRoot, '/\\' ).'/'.$image->URL;
-                if (@is_file( $file )) { // intentionally @
-                    $size = @getImageSize( $file ); // intentionally @
-                    if (is_array( $size )) {
+            if (Texy::isRelative($image->URL) && strpos($image->URL, '..') === false) {
+                $file = rtrim($this->fileRoot, '/\\').'/'.$image->URL;
+                if (@is_file($file)) { // intentionally @
+                    $size = @getImageSize($file); // intentionally @
+                    if (is_array($size)) {
                         if ($image->asMax) {
                             $ratio = 1;
-                            if (is_int( $image->width )) {
-                                $ratio = min( $ratio, $image->width / $size[0] );
+                            if (is_int($image->width)) {
+                                $ratio = min($ratio, $image->width / $size[0]);
                             }
-                            if (is_int( $image->height )) {
-                                $ratio = min( $ratio, $image->height / $size[1] );
+                            if (is_int($image->height)) {
+                                $ratio = min($ratio, $image->height / $size[1]);
                             }
-                            $image->width = round( $ratio * $size[0] );
-                            $image->height = round( $ratio * $size[1] );
+                            $image->width = round($ratio * $size[0]);
+                            $image->height = round($ratio * $size[1]);
 
-                        } elseif (is_int( $image->width )) {
-                            $ratio = round( $size[1] / $size[0] * $image->width );
-                            $image->height = round( $size[1] / $size[0] * $image->width );
+                        } elseif (is_int($image->width)) {
+                            $ratio = round($size[1] / $size[0] * $image->width);
+                            $image->height = round($size[1] / $size[0] * $image->width);
 
-                        } elseif (is_int( $image->height )) {
-                            $image->width = round( $size[0] / $size[1] * $image->height );
+                        } elseif (is_int($image->height)) {
+                            $image->width = round($size[0] / $size[1] * $image->height);
 
                         } else {
                             $image->width = $size[0];
@@ -287,17 +287,17 @@ final class TexyImageModule extends TexyModule
 
         // onmouseover actions generate
         if ($image->overURL !== null) {
-            $overSrc = Texy::prependRoot( $image->overURL, $this->root );
-            $el->attrs['onmouseover'] = 'this.src=\''.addSlashes( $overSrc ).'\'';
-            $el->attrs['onmouseout'] = 'this.src=\''.addSlashes( $el->attrs['src'] ).'\'';
-            $el->attrs['onload'] = str_replace( '%i', addSlashes( $overSrc ), $this->onLoad );
+            $overSrc = Texy::prependRoot($image->overURL, $this->root);
+            $el->attrs['onmouseover'] = 'this.src=\''.addSlashes($overSrc).'\'';
+            $el->attrs['onmouseout'] = 'this.src=\''.addSlashes($el->attrs['src']).'\'';
+            $el->attrs['onload'] = str_replace('%i', addSlashes($overSrc), $this->onLoad);
             $tx->summary['preload'][] = $overSrc;
         }
 
         $tx->summary['images'][] = $el->attrs['src'];
 
         if ($link) {
-            return $tx->linkModule->solve( null, $link, $el );
+            return $tx->linkModule->solve(null, $link, $el);
         }
 
         return $el;
@@ -310,7 +310,7 @@ final class TexyImageModule extends TexyModule
      *
      * @return string
      */
-    private function patternReferenceDef( $matches )
+    private function patternReferenceDef($matches)
     {
 
         list( , $mRef, $mURLs, $mMod ) = $matches;
@@ -318,8 +318,8 @@ final class TexyImageModule extends TexyModule
         //    [2] => urls
         //    [3] => .(title)[class]{style}<>
 
-        $image = $this->factoryImage( $mURLs, $mMod, false );
-        $this->addReference( $mRef, $image );
+        $image = $this->factoryImage($mURLs, $mMod, false);
+        $this->addReference($mRef, $image);
         return '';
     }
 
@@ -331,10 +331,10 @@ final class TexyImageModule extends TexyModule
      *
      * @return void
      */
-    public function addReference( $name, TexyImage $image )
+    public function addReference($name, TexyImage $image)
     {
 
-        $image->name = TexyUtf::strtolower( $name );
+        $image->name = TexyUtf::strtolower($name);
         $this->references[$image->name] = $image;
     }
 

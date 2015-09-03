@@ -2,19 +2,20 @@
 
 namespace Guzzle\Http\Curl;
 
+use Guzzle\Common\Collection;
 use Guzzle\Common\Exception\InvalidArgumentException;
 use Guzzle\Common\Exception\RuntimeException;
-use Guzzle\Common\Collection;
 use Guzzle\Http\Message\EntityEnclosingRequest;
 use Guzzle\Http\Message\RequestInterface;
-use Guzzle\Parser\ParserRegistry;
 use Guzzle\Http\Url;
+use Guzzle\Parser\ParserRegistry;
 
 /**
  * Immutable wrapper for a cURL handle
  */
 class CurlHandle
 {
+
     const BODY_AS_STRING = 'body_as_string';
     const PROGRESS = 'progress';
     const DEBUG = 'debug';
@@ -27,6 +28,30 @@ class CurlHandle
 
     /** @var int CURLE_* error */
     protected $errorNo = CURLE_OK;
+
+    /**
+     * Construct a new CurlHandle object that wraps a cURL handle
+     *
+     * @param resource         $handle  Configured cURL handle resource
+     * @param Collection|array $options Curl options to use with the handle
+     *
+     * @throws InvalidArgumentException
+     */
+    public function __construct($handle, $options)
+    {
+
+        if (!is_resource($handle)) {
+            throw new InvalidArgumentException('Invalid handle provided');
+        }
+        if (is_array($options)) {
+            $this->options = new Collection($options);
+        } elseif ($options instanceof Collection) {
+            $this->options = $options;
+        } else {
+            throw new InvalidArgumentException('Expected array or Collection');
+        }
+        $this->handle = $handle;
+    }
 
     /**
      * Factory method to create a new curl handle based on an HTTP request.
@@ -42,6 +67,7 @@ class CurlHandle
      */
     public static function factory(RequestInterface $request)
     {
+
         $requestCurlOptions = $request->getCurlOptions();
         $mediator = new RequestMediator($request, $requestCurlOptions->get('emit_io'));
         $tempContentLength = null;
@@ -50,7 +76,7 @@ class CurlHandle
 
         // Prepare url
         $url = (string)$request->getUrl();
-        if(($pos = strpos($url, '#')) !== false ){
+        if (( $pos = strpos($url, '#') ) !== false) {
             // strip fragment from url
             $url = substr($url, 0, $pos);
         }
@@ -80,7 +106,7 @@ class CurlHandle
 
         // Add CURLOPT_ENCODING if Accept-Encoding header is provided
         if ($acceptEncodingHeader = $request->getHeader('Accept-Encoding')) {
-            $curlOptions[CURLOPT_ENCODING] = (string) $acceptEncodingHeader;
+            $curlOptions[CURLOPT_ENCODING] = (string)$acceptEncodingHeader;
             // Let cURL set the Accept-Encoding header, prevents duplicate values
             $request->removeHeader('Accept-Encoding');
         }
@@ -102,8 +128,8 @@ class CurlHandle
         } elseif ($method == 'HEAD') {
             $curlOptions[CURLOPT_NOBODY] = true;
             // HEAD requests do not use a write function
-            unset($curlOptions[CURLOPT_WRITEFUNCTION]);
-        } elseif (!($request instanceof EntityEnclosingRequest)) {
+            unset( $curlOptions[CURLOPT_WRITEFUNCTION] );
+        } elseif (!( $request instanceof EntityEnclosingRequest )) {
             $curlOptions[CURLOPT_CUSTOMREQUEST] = $method;
         } else {
 
@@ -113,11 +139,11 @@ class CurlHandle
             if ($request->getBody()) {
                 // You can send the body as a string using curl's CURLOPT_POSTFIELDS
                 if ($bodyAsString) {
-                    $curlOptions[CURLOPT_POSTFIELDS] = (string) $request->getBody();
+                    $curlOptions[CURLOPT_POSTFIELDS] = (string)$request->getBody();
                     // Allow curl to add the Content-Length for us to account for the times when
                     // POST redirects are followed by GET requests
                     if ($tempContentLength = $request->getHeader('Content-Length')) {
-                        $tempContentLength = (int) (string) $tempContentLength;
+                        $tempContentLength = (int)(string)$tempContentLength;
                     }
                     // Remove the curl generated Content-Type header if none was set manually
                     if (!$request->hasHeader('Content-Type')) {
@@ -127,7 +153,7 @@ class CurlHandle
                     $curlOptions[CURLOPT_UPLOAD] = true;
                     // Let cURL handle setting the Content-Length header
                     if ($tempContentLength = $request->getHeader('Content-Length')) {
-                        $tempContentLength = (int) (string) $tempContentLength;
+                        $tempContentLength = (int)(string)$tempContentLength;
                         $curlOptions[CURLOPT_INFILESIZE] = $tempContentLength;
                     }
                     // Add a callback for curl to read data to send with the request only if a body was specified
@@ -151,12 +177,12 @@ class CurlHandle
                         }
                     }
                 } elseif (count($request->getPostFields())) {
-                    $postFields = (string) $request->getPostFields()->useUrlEncoding(true);
+                    $postFields = (string)$request->getPostFields()->useUrlEncoding(true);
                 }
 
                 if ($postFields !== false) {
                     if ($method == 'POST') {
-                        unset($curlOptions[CURLOPT_CUSTOMREQUEST]);
+                        unset( $curlOptions[CURLOPT_CUSTOMREQUEST] );
                         $curlOptions[CURLOPT_POST] = true;
                     }
                     $curlOptions[CURLOPT_POSTFIELDS] = $postFields;
@@ -183,7 +209,7 @@ class CurlHandle
         }
 
         // Do not set an Accept header by default
-        if (!isset($curlOptions[CURLOPT_ENCODING])) {
+        if (!isset( $curlOptions[CURLOPT_ENCODING] )) {
             $curlOptions[CURLOPT_HTTPHEADER][] = 'Accept:';
         }
 
@@ -205,6 +231,7 @@ class CurlHandle
             // Wrap the function in a function that provides the curl handle to the mediator's progress function
             // Using this rather than injecting the handle into the mediator prevents a circular reference
             $curlOptions[CURLOPT_PROGRESSFUNCTION] = function () use ($mediator, $handle) {
+
                 $args = func_get_args();
                 $args[] = $handle;
 
@@ -224,26 +251,28 @@ class CurlHandle
     }
 
     /**
-     * Construct a new CurlHandle object that wraps a cURL handle
+     * Parse the config and replace curl.* configurators into the constant based values so it can be used elsewhere
      *
-     * @param resource         $handle  Configured cURL handle resource
-     * @param Collection|array $options Curl options to use with the handle
+     * @param array|Collection $config The configuration we want to parse
      *
-     * @throws InvalidArgumentException
+     * @return array
      */
-    public function __construct($handle, $options)
+    public static function parseCurlConfig($config)
     {
-        if (!is_resource($handle)) {
-            throw new InvalidArgumentException('Invalid handle provided');
+
+        $curlOptions = array();
+        foreach ($config as $key => $value) {
+            if (is_string($key) && defined($key)) {
+                // Convert constants represented as string to constant int values
+                $key = constant($key);
+            }
+            if (is_string($value) && defined($value)) {
+                $value = constant($value);
+            }
+            $curlOptions[$key] = $value;
         }
-        if (is_array($options)) {
-            $this->options = new Collection($options);
-        } elseif ($options instanceof Collection) {
-            $this->options = $options;
-        } else {
-            throw new InvalidArgumentException('Expected array or Collection');
-        }
-        $this->handle = $handle;
+
+        return $curlOptions;
     }
 
     /**
@@ -251,6 +280,7 @@ class CurlHandle
      */
     public function __destruct()
     {
+
         $this->close();
     }
 
@@ -259,20 +289,11 @@ class CurlHandle
      */
     public function close()
     {
+
         if (is_resource($this->handle)) {
             curl_close($this->handle);
         }
         $this->handle = null;
-    }
-
-    /**
-     * Check if the handle is available and still OK
-     *
-     * @return bool
-     */
-    public function isAvailable()
-    {
-        return is_resource($this->handle);
     }
 
     /**
@@ -282,7 +303,19 @@ class CurlHandle
      */
     public function getError()
     {
+
         return $this->isAvailable() ? curl_error($this->handle) : '';
+    }
+
+    /**
+     * Check if the handle is available and still OK
+     *
+     * @return bool
+     */
+    public function isAvailable()
+    {
+
+        return is_resource($this->handle);
     }
 
     /**
@@ -292,6 +325,7 @@ class CurlHandle
      */
     public function getErrorNo()
     {
+
         if ($this->errorNo) {
             return $this->errorNo;
         }
@@ -308,9 +342,82 @@ class CurlHandle
      */
     public function setErrorNo($error)
     {
+
         $this->errorNo = $error;
 
         return $this;
+    }
+
+    /**
+     * Get the URL that this handle is connecting to
+     *
+     * @return Url
+     */
+    public function getUrl()
+    {
+
+        return Url::factory($this->options->get(CURLOPT_URL));
+    }
+
+    /**
+     * Get the wrapped curl handle
+     *
+     * @return resource|null Returns the cURL handle or null if it was closed
+     */
+    public function getHandle()
+    {
+
+        return $this->isAvailable() ? $this->handle : null;
+    }
+
+    /**
+     * Update a request based on the log messages of the CurlHandle
+     *
+     * @param RequestInterface $request Request to update
+     */
+    public function updateRequestFromTransfer(RequestInterface $request)
+    {
+
+        if (!$request->getResponse()) {
+            return;
+        }
+
+        // Update the transfer stats of the response
+        $request->getResponse()->setInfo($this->getInfo());
+
+        if (!$log = $this->getStderr(true)) {
+            return;
+        }
+
+        // Parse the cURL stderr output for outgoing requests
+        $headers = '';
+        fseek($log, 0);
+        while (( $line = fgets($log) ) !== false) {
+            if ($line && $line[0] == '>') {
+                $headers = substr(trim($line), 2)."\r\n";
+                while (( $line = fgets($log) ) !== false) {
+                    if ($line[0] == '*' || $line[0] == '<') {
+                        break;
+                    } else {
+                        $headers .= trim($line)."\r\n";
+                    }
+                }
+            }
+        }
+
+        // Add request headers to the request exactly as they were sent
+        if ($headers) {
+            $parsed = ParserRegistry::getInstance()->getParser('message')->parseRequest($headers);
+            if (!empty( $parsed['headers'] )) {
+                $request->setHeaders(array());
+                foreach ($parsed['headers'] as $name => $value) {
+                    $request->setHeader($name, $value);
+                }
+            }
+            if (!empty( $parsed['version'] )) {
+                $request->setProtocolVersion($parsed['version']);
+            }
+        }
     }
 
     /**
@@ -322,6 +429,7 @@ class CurlHandle
      */
     public function getInfo($option = null)
     {
+
         if (!is_resource($this->handle)) {
             return null;
         }
@@ -342,6 +450,7 @@ class CurlHandle
      */
     public function getStderr($asResource = false)
     {
+
         $stderr = $this->getOptions()->get(CURLOPT_STDERR);
         if (!$stderr) {
             return null;
@@ -359,26 +468,6 @@ class CurlHandle
     }
 
     /**
-     * Get the URL that this handle is connecting to
-     *
-     * @return Url
-     */
-    public function getUrl()
-    {
-        return Url::factory($this->options->get(CURLOPT_URL));
-    }
-
-    /**
-     * Get the wrapped curl handle
-     *
-     * @return resource|null Returns the cURL handle or null if it was closed
-     */
-    public function getHandle()
-    {
-        return $this->isAvailable() ? $this->handle : null;
-    }
-
-    /**
      * Get the cURL setopt options of the handle. Changing values in the return object will have no effect on the curl
      * handle after it is created.
      *
@@ -386,79 +475,7 @@ class CurlHandle
      */
     public function getOptions()
     {
+
         return $this->options;
-    }
-
-    /**
-     * Update a request based on the log messages of the CurlHandle
-     *
-     * @param RequestInterface $request Request to update
-     */
-    public function updateRequestFromTransfer(RequestInterface $request)
-    {
-        if (!$request->getResponse()) {
-            return;
-        }
-
-        // Update the transfer stats of the response
-        $request->getResponse()->setInfo($this->getInfo());
-
-        if (!$log = $this->getStderr(true)) {
-            return;
-        }
-
-        // Parse the cURL stderr output for outgoing requests
-        $headers = '';
-        fseek($log, 0);
-        while (($line = fgets($log)) !== false) {
-            if ($line && $line[0] == '>') {
-                $headers = substr(trim($line), 2) . "\r\n";
-                while (($line = fgets($log)) !== false) {
-                    if ($line[0] == '*' || $line[0] == '<') {
-                        break;
-                    } else {
-                        $headers .= trim($line) . "\r\n";
-                    }
-                }
-            }
-        }
-
-        // Add request headers to the request exactly as they were sent
-        if ($headers) {
-            $parsed = ParserRegistry::getInstance()->getParser('message')->parseRequest($headers);
-            if (!empty($parsed['headers'])) {
-                $request->setHeaders(array());
-                foreach ($parsed['headers'] as $name => $value) {
-                    $request->setHeader($name, $value);
-                }
-            }
-            if (!empty($parsed['version'])) {
-                $request->setProtocolVersion($parsed['version']);
-            }
-        }
-    }
-
-    /**
-     * Parse the config and replace curl.* configurators into the constant based values so it can be used elsewhere
-     *
-     * @param array|Collection $config The configuration we want to parse
-     *
-     * @return array
-     */
-    public static function parseCurlConfig($config)
-    {
-        $curlOptions = array();
-        foreach ($config as $key => $value) {
-            if (is_string($key) && defined($key)) {
-                // Convert constants represented as string to constant int values
-                $key = constant($key);
-            }
-            if (is_string($value) && defined($value)) {
-                $value = constant($value);
-            }
-            $curlOptions[$key] = $value;
-        }
-
-        return $curlOptions;
     }
 }

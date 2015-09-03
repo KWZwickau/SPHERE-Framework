@@ -2,17 +2,19 @@
 
 namespace Guzzle\Tests\Service\Command\LocationVisitor\Response;
 
-use Guzzle\Service\Description\Parameter;
 use Guzzle\Http\Message\Response;
 use Guzzle\Service\Command\LocationVisitor\Response\XmlVisitor as Visitor;
+use Guzzle\Service\Description\Parameter;
 
 /**
  * @covers Guzzle\Service\Command\LocationVisitor\Response\XmlVisitor
  */
 class XmlVisitorTest extends AbstractResponseVisitorTest
 {
+
     public function testBeforeMethodParsesXml()
     {
+
         $visitor = new Visitor();
         $command = $this->getMockBuilder('Guzzle\Service\Command\AbstractCommand')
             ->setMethods(array('getResponse'))
@@ -27,6 +29,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testBeforeMethodParsesXmlWithNamespace()
     {
+
         $this->markTestSkipped("Response/XmlVisitor cannot accept 'xmlns' in response, see #368 (http://git.io/USa1mA).");
 
         $visitor = new Visitor();
@@ -35,7 +38,8 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
             ->getMockForAbstractClass();
         $command->expects($this->once())
             ->method('getResponse')
-            ->will($this->returnValue(new Response(200, null, '<foo xmlns="urn:foo"><bar:Bar xmlns:bar="urn:bar">test</bar:Bar></foo>')));
+            ->will($this->returnValue(new Response(200, null,
+                '<foo xmlns="urn:foo"><bar:Bar xmlns:bar="urn:bar">test</bar:Bar></foo>')));
         $result = array();
         $visitor->before($command, $result);
         $this->assertEquals(array('Bar' => 'test'), $result);
@@ -43,6 +47,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testBeforeMethodParsesNestedXml()
     {
+
         $visitor = new Visitor();
         $command = $this->getMockBuilder('Guzzle\Service\Command\AbstractCommand')
             ->setMethods(array('getResponse'))
@@ -57,6 +62,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testCanExtractAndRenameTopLevelXmlValues()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location' => 'xml',
@@ -71,6 +77,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testEnsuresRepeatedArraysAreInCorrectLocations()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location' => 'xml',
@@ -92,7 +99,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
         $visitor->visit($this->command, $this->response, $param, $value);
         $this->assertEquals(array(
             'foo' => array(
-                array (
+                array(
                     'Bar' => '1',
                     'Baz' => '2'
                 )
@@ -102,6 +109,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testEnsuresFlatArraysAreFlat()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'location' => 'xml',
@@ -121,6 +129,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function xmlDataProvider()
     {
+
         $param = new Parameter(array(
             'location' => 'xml',
             'name'     => 'Items',
@@ -136,20 +145,32 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
         ));
 
         return array(
-            array($param, '<Test><Items><Item><Bar>1</Bar></Item><Item><Bar>2</Bar></Item></Items></Test>', array(
-                'Items' => array(
-                    array('Bar' => 1),
-                    array('Bar' => 2)
+            array(
+                $param,
+                '<Test><Items><Item><Bar>1</Bar></Item><Item><Bar>2</Bar></Item></Items></Test>',
+                array(
+                    'Items' => array(
+                        array('Bar' => 1),
+                        array('Bar' => 2)
+                    )
                 )
-            )),
-            array($param, '<Test><Items><Item><Bar>1</Bar></Item></Items></Test>', array(
-                'Items' => array(
-                    array('Bar' => 1)
+            ),
+            array(
+                $param,
+                '<Test><Items><Item><Bar>1</Bar></Item></Items></Test>',
+                array(
+                    'Items' => array(
+                        array('Bar' => 1)
+                    )
                 )
-            )),
-            array($param, '<Test><Items /></Test>', array(
-                'Items' => array()
-            ))
+            ),
+            array(
+                $param,
+                '<Test><Items /></Test>',
+                array(
+                    'Items' => array()
+                )
+            )
         );
     }
 
@@ -158,6 +179,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
      */
     public function testEnsuresWrappedArraysAreInCorrectLocations($param, $xml, $result)
     {
+
         $visitor = new Visitor();
         $xml = new \SimpleXMLElement($xml);
         $value = json_decode(json_encode($xml), true);
@@ -167,6 +189,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testCanRenameValues()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'     => 'TerminatingInstances',
@@ -174,17 +197,17 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
             'location' => 'xml',
             'sentAs'   => 'instancesSet',
             'items'    => array(
-                'name' => 'item',
-                'type' => 'object',
-                'sentAs' => 'item',
+                'name'       => 'item',
+                'type'       => 'object',
+                'sentAs'     => 'item',
                 'properties' => array(
-                    'InstanceId' => array(
+                    'InstanceId'    => array(
                         'type'   => 'string',
                         'sentAs' => 'instanceId',
                     ),
-                    'CurrentState' => array(
-                        'type'   => 'object',
-                        'sentAs' => 'currentState',
+                    'CurrentState'  => array(
+                        'type'       => 'object',
+                        'sentAs'     => 'currentState',
                         'properties' => array(
                             'Code' => array(
                                 'type' => 'numeric',
@@ -197,8 +220,8 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
                         ),
                     ),
                     'PreviousState' => array(
-                        'type'   => 'object',
-                        'sentAs' => 'previousState',
+                        'type'       => 'object',
+                        'sentAs'     => 'previousState',
                         'properties' => array(
                             'Code' => array(
                                 'type' => 'numeric',
@@ -215,9 +238,9 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
         ));
 
         $value = array(
-            'instancesSet' => array (
-                'item' => array (
-                    'instanceId' => 'i-3ea74257',
+            'instancesSet' => array(
+                'item' => array(
+                    'instanceId'   => 'i-3ea74257',
                     'currentState' => array(
                         'code' => '32',
                         'name' => 'shutting-down',
@@ -235,7 +258,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
         $this->assertEquals(array(
             'TerminatingInstances' => array(
                 array(
-                    'InstanceId' => 'i-3ea74257',
+                    'InstanceId'   => 'i-3ea74257',
                     'CurrentState' => array(
                         'Code' => '32',
                         'Name' => 'shutting-down',
@@ -251,16 +274,17 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testCanRenameAttributes()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'     => 'RunningQueues',
             'type'     => 'array',
             'location' => 'xml',
             'items'    => array(
-                'type' => 'object',
-                'sentAs' => 'item',
+                'type'       => 'object',
+                'sentAs'     => 'item',
                 'properties' => array(
-                    'QueueId' => array(
+                    'QueueId'      => array(
                         'type'   => 'string',
                         'sentAs' => 'queue_id',
                         'data'   => array(
@@ -314,7 +338,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
         $this->assertEquals(array(
             'RunningQueues' => array(
                 array(
-                    'QueueId' => 'q-3ea74257',
+                    'QueueId'      => 'q-3ea74257',
                     'CurrentState' => array(
                         'Code' => '32',
                         'Name' => 'processing',
@@ -330,20 +354,21 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testAddsEmptyArraysWhenValueIsMissing()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'     => 'Foo',
             'type'     => 'array',
             'location' => 'xml',
             'items' => array(
-                'type' => 'object',
+                'type'       => 'object',
                 'properties' => array(
                     'Baz' => array('type' => 'array'),
                     'Bar' => array(
-                        'type'   => 'object',
+                        'type'       => 'object',
                         'properties' => array(
                             'Baz' => array('type' => 'array'),
-                         )
+                        )
                     )
                 )
             )
@@ -373,6 +398,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
      */
     public function testDiscardingUnknownProperties()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'                 => 'foo',
@@ -396,6 +422,7 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
      */
     public function testDiscardingUnknownPropertiesWithAliasing()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'                 => 'foo',
@@ -415,11 +442,12 @@ class XmlVisitorTest extends AbstractResponseVisitorTest
 
     public function testProperlyHandlesEmptyStringValues()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
-            'name'                 => 'foo',
-            'type'                 => 'object',
-            'properties'           => array(
+            'name'       => 'foo',
+            'type'       => 'object',
+            'properties' => array(
                 'bar' => array('type' => 'string')
             ),
         ));

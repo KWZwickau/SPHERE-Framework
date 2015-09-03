@@ -4,10 +4,12 @@
 
 class ComposerAutoloaderInit6ff2b5f3982edb7d4079fc175f593c00
 {
+
     private static $loader;
 
     public static function loadClassLoader($class)
     {
+
         if ('Composer\Autoload\ClassLoader' === $class) {
             require __DIR__.'/ClassLoader.php';
         }
@@ -15,11 +17,13 @@ class ComposerAutoloaderInit6ff2b5f3982edb7d4079fc175f593c00
 
     public static function getLoader()
     {
+
         if (null !== self::$loader) {
             return self::$loader;
         }
 
-        spl_autoload_register(array('ComposerAutoloaderInit6ff2b5f3982edb7d4079fc175f593c00', 'loadClassLoader'), true, true);
+        spl_autoload_register(array('ComposerAutoloaderInit6ff2b5f3982edb7d4079fc175f593c00', 'loadClassLoader'), true,
+            true);
         self::$loader = $loader = new \Composer\Autoload\ClassLoader();
         spl_autoload_unregister(array('ComposerAutoloaderInit6ff2b5f3982edb7d4079fc175f593c00', 'loadClassLoader'));
 
@@ -46,5 +50,6 @@ class ComposerAutoloaderInit6ff2b5f3982edb7d4079fc175f593c00
 
 function composerRequire6ff2b5f3982edb7d4079fc175f593c00($file)
 {
+
     require $file;
 }

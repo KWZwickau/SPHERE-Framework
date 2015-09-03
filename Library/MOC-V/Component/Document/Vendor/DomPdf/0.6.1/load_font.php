@@ -65,94 +65,94 @@ if ($_SERVER["argc"] < 3 && @$_SERVER["argv"][1] != "system_fonts") {
  *
  * @throws DOMPDF_Exception
  */
-function install_font_family( $fontname, $normal, $bold = null, $italic = null, $bold_italic = null )
+function install_font_family($fontname, $normal, $bold = null, $italic = null, $bold_italic = null)
 {
 
     Font_Metrics::init();
 
     // Check if the base filename is readable
-    if (!is_readable( $normal )) {
-        throw new DOMPDF_Exception( "Unable to read '$normal'." );
+    if (!is_readable($normal)) {
+        throw new DOMPDF_Exception("Unable to read '$normal'.");
     }
 
-    $dir = dirname( $normal );
-    $basename = basename( $normal );
-    $last_dot = strrpos( $basename, '.' );
+    $dir = dirname($normal);
+    $basename = basename($normal);
+    $last_dot = strrpos($basename, '.');
     if ($last_dot !== false) {
-        $file = substr( $basename, 0, $last_dot );
-        $ext = strtolower( substr( $basename, $last_dot ) );
+        $file = substr($basename, 0, $last_dot);
+        $ext = strtolower(substr($basename, $last_dot));
     } else {
         $file = $basename;
         $ext = '';
     }
 
-    if (!in_array( $ext, array( ".ttf", ".otf" ) )) {
-        throw new DOMPDF_Exception( "Unable to process fonts of type '$ext'." );
+    if (!in_array($ext, array(".ttf", ".otf"))) {
+        throw new DOMPDF_Exception("Unable to process fonts of type '$ext'.");
     }
 
     // Try $file_Bold.$ext etc.
     $path = "$dir/$file";
 
     $patterns = array(
-        "bold"        => array( "_Bold", "b", "B", "bd", "BD" ),
-        "italic"      => array( "_Italic", "i", "I" ),
-        "bold_italic" => array( "_Bold_Italic", "bi", "BI", "ib", "IB" ),
+        "bold"        => array("_Bold", "b", "B", "bd", "BD"),
+        "italic"      => array("_Italic", "i", "I"),
+        "bold_italic" => array("_Bold_Italic", "bi", "BI", "ib", "IB"),
     );
 
     foreach ($patterns as $type => $_patterns) {
-        if (!isset( $$type ) || !is_readable( $$type )) {
+        if (!isset( $$type ) || !is_readable($$type)) {
             foreach ($_patterns as $_pattern) {
-                if (is_readable( "$path$_pattern$ext" )) {
+                if (is_readable("$path$_pattern$ext")) {
                     $$type = "$path$_pattern$ext";
                     break;
                 }
             }
 
-            if (is_null( $$type )) {
+            if (is_null($$type)) {
                 echo( "Unable to find $type face file.\n" );
             }
         }
     }
 
-    $fonts = compact( "normal", "bold", "italic", "bold_italic" );
+    $fonts = compact("normal", "bold", "italic", "bold_italic");
     $entry = array();
 
     // Copy the files to the font directory.
     foreach ($fonts as $var => $src) {
-        if (is_null( $src )) {
-            $entry[$var] = DOMPDF_FONT_DIR.mb_substr( basename( $normal ), 0, -4 );
+        if (is_null($src)) {
+            $entry[$var] = DOMPDF_FONT_DIR.mb_substr(basename($normal), 0, -4);
             continue;
         }
 
         // Verify that the fonts exist and are readable
-        if (!is_readable( $src )) {
-            throw new DOMPDF_Exception( "Requested font '$src' is not readable" );
+        if (!is_readable($src)) {
+            throw new DOMPDF_Exception("Requested font '$src' is not readable");
         }
 
-        $dest = DOMPDF_FONT_DIR.basename( $src );
+        $dest = DOMPDF_FONT_DIR.basename($src);
 
-        if (!is_writeable( dirname( $dest ) )) {
-            throw new DOMPDF_Exception( "Unable to write to destination '$dest'." );
+        if (!is_writeable(dirname($dest))) {
+            throw new DOMPDF_Exception("Unable to write to destination '$dest'.");
         }
 
         echo "Copying $src to $dest...\n";
 
-        if (!copy( $src, $dest )) {
-            throw new DOMPDF_Exception( "Unable to copy '$src' to '$dest'" );
+        if (!copy($src, $dest)) {
+            throw new DOMPDF_Exception("Unable to copy '$src' to '$dest'");
         }
 
-        $entry_name = mb_substr( $dest, 0, -4 );
+        $entry_name = mb_substr($dest, 0, -4);
 
         echo "Generating Adobe Font Metrics for $entry_name...\n";
 
-        $font_obj = Font::load( $dest );
-        $font_obj->saveAdobeFontMetrics( "$entry_name.ufm" );
+        $font_obj = Font::load($dest);
+        $font_obj->saveAdobeFontMetrics("$entry_name.ufm");
 
         $entry[$var] = $entry_name;
     }
 
     // Store the fonts in the lookup table
-    Font_Metrics::set_font_family( $fontname, $entry );
+    Font_Metrics::set_font_family($fontname, $entry);
 
     // Save the changes
     Font_Metrics::save_font_families();
@@ -168,13 +168,13 @@ if ($_SERVER["argv"][1] === "system_fonts") {
         if (!isset( $files["normal"] )) {
             echo "No 'normal' style font file\n";
         } else {
-            install_font_family( $family, @$files["normal"], @$files["bold"], @$files["italic"],
-                @$files["bold_italic"] );
+            install_font_family($family, @$files["normal"], @$files["bold"], @$files["italic"],
+                @$files["bold_italic"]);
             echo "Done !\n";
         }
 
         echo "\n";
     }
 } else {
-    call_user_func_array( "install_font_family", array_slice( $_SERVER["argv"], 1 ) );
+    call_user_func_array("install_font_family", array_slice($_SERVER["argv"], 1));
 }

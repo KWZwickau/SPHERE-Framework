@@ -21,6 +21,7 @@ use Symfony\Component\Console\Command\Command;
  */
 class ApplicationDescription
 {
+
     const GLOBAL_NAMESPACE = '_global';
 
     /**
@@ -56,6 +57,7 @@ class ApplicationDescription
      */
     public function __construct(Application $application, $namespace = null)
     {
+
         $this->application = $application;
         $this->namespace = $namespace;
     }
@@ -65,6 +67,7 @@ class ApplicationDescription
      */
     public function getNamespaces()
     {
+
         if (null === $this->namespaces) {
             $this->inspectApplication();
         }
@@ -72,36 +75,9 @@ class ApplicationDescription
         return $this->namespaces;
     }
 
-    /**
-     * @return Command[]
-     */
-    public function getCommands()
-    {
-        if (null === $this->commands) {
-            $this->inspectApplication();
-        }
-
-        return $this->commands;
-    }
-
-    /**
-     * @param string $name
-     *
-     * @return Command
-     *
-     * @throws \InvalidArgumentException
-     */
-    public function getCommand($name)
-    {
-        if (!isset($this->commands[$name]) && !isset($this->aliases[$name])) {
-            throw new \InvalidArgumentException(sprintf('Command %s does not exist.', $name));
-        }
-
-        return isset($this->commands[$name]) ? $this->commands[$name] : $this->aliases[$name];
-    }
-
     private function inspectApplication()
     {
+
         $this->commands = array();
         $this->namespaces = array();
 
@@ -135,6 +111,7 @@ class ApplicationDescription
      */
     private function sortCommands(array $commands)
     {
+
         $namespacedCommands = array();
         foreach ($commands as $name => $command) {
             $key = $this->application->extractNamespace($name, 1);
@@ -150,8 +127,38 @@ class ApplicationDescription
             ksort($commandsSet);
         }
         // unset reference to keep scope clear
-        unset($commandsSet);
+        unset( $commandsSet );
 
         return $namespacedCommands;
+    }
+
+    /**
+     * @return Command[]
+     */
+    public function getCommands()
+    {
+
+        if (null === $this->commands) {
+            $this->inspectApplication();
+        }
+
+        return $this->commands;
+    }
+
+    /**
+     * @param string $name
+     *
+     * @return Command
+     *
+     * @throws \InvalidArgumentException
+     */
+    public function getCommand($name)
+    {
+
+        if (!isset( $this->commands[$name] ) && !isset( $this->aliases[$name] )) {
+            throw new \InvalidArgumentException(sprintf('Command %s does not exist.', $name));
+        }
+
+        return isset( $this->commands[$name] ) ? $this->commands[$name] : $this->aliases[$name];
     }
 }

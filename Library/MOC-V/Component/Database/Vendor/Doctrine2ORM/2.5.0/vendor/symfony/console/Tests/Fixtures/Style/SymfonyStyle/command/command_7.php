@@ -6,6 +6,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 //Ensure questions do not output anything when input is non-interactive
 return function (InputInterface $input, OutputInterface $output) {
+
     $output = new SymfonyStyle($input, $output);
     $output->title('Title');
     $output->askHidden('Hidden question');

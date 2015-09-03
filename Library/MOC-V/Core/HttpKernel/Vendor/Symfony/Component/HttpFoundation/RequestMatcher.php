@@ -20,6 +20,7 @@ namespace Symfony\Component\HttpFoundation;
  */
 class RequestMatcher implements RequestMatcherInterface
 {
+
     /**
      * @var string
      */
@@ -54,6 +55,7 @@ class RequestMatcher implements RequestMatcherInterface
      */
     public function __construct($path = null, $host = null, $methods = null, $ips = null, array $attributes = array())
     {
+
         $this->matchPath($path);
         $this->matchHost($host);
         $this->matchMethod($methods);
@@ -68,7 +70,7 @@ class RequestMatcher implements RequestMatcherInterface
      *
      * @param string $regexp A Regexp
      */
-    public function matchPath( $regexp )
+    public function matchPath($regexp)
     {
 
         $this->path = $regexp;
@@ -79,7 +81,7 @@ class RequestMatcher implements RequestMatcherInterface
      *
      * @param string $regexp A Regexp
      */
-    public function matchHost( $regexp )
+    public function matchHost($regexp)
     {
 
         $this->host = $regexp;
@@ -90,10 +92,10 @@ class RequestMatcher implements RequestMatcherInterface
      *
      * @param string|string[]|null $method An HTTP method or an array of HTTP methods
      */
-    public function matchMethod( $method )
+    public function matchMethod($method)
     {
 
-        $this->methods = array_map( 'strtoupper', (array)$method );
+        $this->methods = array_map('strtoupper', (array)$method);
     }
 
     /**
@@ -103,7 +105,8 @@ class RequestMatcher implements RequestMatcherInterface
      */
     public function matchIps($ips)
     {
-        $this->ips = (array) $ips;
+
+        $this->ips = (array)$ips;
     }
 
     /**
@@ -112,7 +115,7 @@ class RequestMatcher implements RequestMatcherInterface
      * @param string $key    The request attribute name
      * @param string $regexp A Regexp
      */
-    public function matchAttribute( $key, $regexp )
+    public function matchAttribute($key, $regexp)
     {
 
         $this->attributes[$key] = $regexp;
@@ -123,10 +126,10 @@ class RequestMatcher implements RequestMatcherInterface
      *
      * @param string $ip A specific IP address or a range specified using IP/netmask like 192.168.1.0/24
      */
-    public function matchIp( $ip )
+    public function matchIp($ip)
     {
 
-        $this->matchIps( $ip );
+        $this->matchIps($ip);
     }
 
     /**
@@ -136,6 +139,7 @@ class RequestMatcher implements RequestMatcherInterface
      */
     public function matches(Request $request)
     {
+
         if ($this->methods && !in_array($request->getMethod(), $this->methods)) {
             return false;
         }

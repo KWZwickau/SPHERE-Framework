@@ -24,19 +24,19 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
     /**
      * @param FileParameter $FileOption
      */
-    function __construct( FileParameter $FileOption )
+    public function __construct(FileParameter $FileOption)
     {
 
-        AutoLoader::getNamespaceAutoLoader( 'Symfony\Component', __DIR__.'/../../../Vendor/' );
+        AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../../../Vendor/');
 
         $this->FileOption = $FileOption;
 
         try {
             $this->Instance = new Finder();
             $this->Instance->useBestAdapter()->files()
-                ->name( pathinfo( $FileOption->getFile(), PATHINFO_BASENAME ) )
-                ->in( pathinfo( $FileOption->getFile(), PATHINFO_DIRNAME ) );
-        } catch( \Exception $Exception ) {
+                ->name(pathinfo($FileOption->getFile(), PATHINFO_BASENAME))
+                ->in(pathinfo($FileOption->getFile(), PATHINFO_DIRNAME));
+        } catch (\Exception $Exception) {
             // Nothing
         }
     }
@@ -61,7 +61,7 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
             foreach ($this->Instance as $File) {
                 return $File->getRealPath();
             }
-        } catch( \Exception $Exception ) {
+        } catch (\Exception $Exception) {
             return '';
         }
         return '';

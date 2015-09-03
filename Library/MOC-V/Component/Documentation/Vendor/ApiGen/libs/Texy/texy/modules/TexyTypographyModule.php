@@ -23,24 +23,24 @@ final class TexyTypographyModule extends TexyModule
 
     public static $locales = array(
         'cs' => array(
-            'singleQuotes' => array( "\xe2\x80\x9a", "\xe2\x80\x98" ), // U+201A, U+2018
-            'doubleQuotes' => array( "\xe2\x80\x9e", "\xe2\x80\x9c" ), // U+201E, U+201C
+            'singleQuotes' => array("\xe2\x80\x9a", "\xe2\x80\x98"), // U+201A, U+2018
+            'doubleQuotes' => array("\xe2\x80\x9e", "\xe2\x80\x9c"), // U+201E, U+201C
         ),
         'en' => array(
-            'singleQuotes' => array( "\xe2\x80\x98", "\xe2\x80\x99" ), // U+2018, U+2019
-            'doubleQuotes' => array( "\xe2\x80\x9c", "\xe2\x80\x9d" ), // U+201C, U+201D
+            'singleQuotes' => array("\xe2\x80\x98", "\xe2\x80\x99"), // U+2018, U+2019
+            'doubleQuotes' => array("\xe2\x80\x9c", "\xe2\x80\x9d"), // U+201C, U+201D
         ),
         'fr' => array(
-            'singleQuotes' => array( "\xe2\x80\xb9", "\xe2\x80\xba" ), // U+2039, U+203A
-            'doubleQuotes' => array( "\xc2\xab", "\xc2\xbb" ),         // U+00AB, U+00BB
+            'singleQuotes' => array("\xe2\x80\xb9", "\xe2\x80\xba"), // U+2039, U+203A
+            'doubleQuotes' => array("\xc2\xab", "\xc2\xbb"),         // U+00AB, U+00BB
         ),
         'de' => array(
-            'singleQuotes' => array( "\xe2\x80\x9a", "\xe2\x80\x98" ), // U+201A, U+2018
-            'doubleQuotes' => array( "\xe2\x80\x9e", "\xe2\x80\x9c" ), // U+201E, U+201C
+            'singleQuotes' => array("\xe2\x80\x9a", "\xe2\x80\x98"), // U+201A, U+2018
+            'doubleQuotes' => array("\xe2\x80\x9e", "\xe2\x80\x9c"), // U+201E, U+201C
         ),
         'pl' => array(
-            'singleQuotes' => array( "\xe2\x80\x9a", "\xe2\x80\x99" ), // U+201A, U+2019
-            'doubleQuotes' => array( "\xe2\x80\x9e", "\xe2\x80\x9d" ), // U+201E, U+201D
+            'singleQuotes' => array("\xe2\x80\x9a", "\xe2\x80\x99"), // U+201A, U+2019
+            'doubleQuotes' => array("\xe2\x80\x9e", "\xe2\x80\x9d"), // U+201E, U+201D
         ),
     );
 
@@ -51,12 +51,12 @@ final class TexyTypographyModule extends TexyModule
     private $pattern, $replace;
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
-        $texy->registerPostLine( array( $this, 'postLine' ), 'typography' );
-        $texy->addHandler( 'beforeParse', array( $this, 'beforeParse' ) );
+        $texy->registerPostLine(array($this, 'postLine'), 'typography');
+        $texy->addHandler('beforeParse', array($this, 'beforeParse'));
     }
 
 
@@ -68,7 +68,7 @@ final class TexyTypographyModule extends TexyModule
      *
      * @return void
      */
-    public function beforeParse( $texy, & $text )
+    public function beforeParse($texy, & $text)
     {
 
         // CONTENT_MARKUP mark:   \x17-\x1F
@@ -145,18 +145,18 @@ final class TexyTypographyModule extends TexyModule
             // single ''
         );
 
-        $this->pattern = array_keys( $pairs );
-        $this->replace = array_values( $pairs );
+        $this->pattern = array_keys($pairs);
+        $this->replace = array_values($pairs);
     }
 
 
-    public function postLine( $text, $preserveSpaces = false )
+    public function postLine($text, $preserveSpaces = false)
     {
 
         if (!$preserveSpaces) {
-            $text = preg_replace( '# {2,}#', ' ', $text );
+            $text = preg_replace('# {2,}#', ' ', $text);
         }
-        return preg_replace( $this->pattern, $this->replace, $text );
+        return preg_replace($this->pattern, $this->replace, $text);
     }
 
 }

@@ -18,37 +18,42 @@ use DOMNode;
  */
 class DOMNodeComparator extends ObjectComparator
 {
+
     /**
      * Returns whether the comparator can compare two values.
      *
      * @param  mixed $expected The first value to compare
      * @param  mixed $actual   The second value to compare
+     *
      * @return bool
      */
     public function accepts($expected, $actual)
     {
+
         return $expected instanceof DOMNode && $actual instanceof DOMNode;
     }
 
     /**
      * Asserts that two values are equal.
      *
-     * @param  mixed             $expected     The first value to compare
-     * @param  mixed             $actual       The second value to compare
-     * @param  float             $delta        The allowed numerical distance between two values to
+     * @param  mixed $expected                 The first value to compare
+     * @param  mixed $actual                   The second value to compare
+     * @param  float $delta                    The allowed numerical distance between two values to
      *                                         consider them equal
-     * @param  bool              $canonicalize If set to TRUE, arrays are sorted before
+     * @param  bool  $canonicalize             If set to TRUE, arrays are sorted before
      *                                         comparison
-     * @param  bool              $ignoreCase   If set to TRUE, upper- and lowercasing is
+     * @param  bool  $ignoreCase               If set to TRUE, upper- and lowercasing is
      *                                         ignored when comparing string values
+     *
      * @throws ComparisonFailure Thrown when the comparison
      *                                        fails. Contains information about the
      *                                        specific errors that lead to the failure.
      */
     public function assertEquals($expected, $actual, $delta = 0.0, $canonicalize = false, $ignoreCase = false)
     {
+
         $expectedAsString = $this->nodeToText($expected, true, $ignoreCase);
-        $actualAsString   = $this->nodeToText($actual, true, $ignoreCase);
+        $actualAsString = $this->nodeToText($actual, true, $ignoreCase);
 
         if ($expectedAsString !== $actualAsString) {
             if ($expected instanceof DOMDocument) {
@@ -75,10 +80,12 @@ class DOMNodeComparator extends ObjectComparator
      * @param  DOMNode $node
      * @param  bool    $canonicalize
      * @param  bool    $ignoreCase
+     *
      * @return string
      */
     private function nodeToText(DOMNode $node, $canonicalize, $ignoreCase)
     {
+
         if ($canonicalize) {
             $document = new DOMDocument;
             $document->loadXML($node->C14N());

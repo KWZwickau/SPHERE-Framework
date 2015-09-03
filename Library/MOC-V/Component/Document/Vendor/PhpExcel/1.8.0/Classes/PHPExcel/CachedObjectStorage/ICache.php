@@ -53,7 +53,7 @@ interface PHPExcel_CachedObjectStorage_ICache
      * @return    void
      * @throws    PHPExcel_Exception
      */
-    public function addCacheData( $pCoord, PHPExcel_Cell $cell );
+    public function addCacheData($pCoord, PHPExcel_Cell $cell);
 
     /**
      * Add or Update a cell in cache
@@ -63,7 +63,7 @@ interface PHPExcel_CachedObjectStorage_ICache
      * @return    void
      * @throws    PHPExcel_Exception
      */
-    public function updateCacheData( PHPExcel_Cell $cell );
+    public function updateCacheData(PHPExcel_Cell $cell);
 
     /**
      * Fetch a cell from cache identified by coordinate address
@@ -73,7 +73,7 @@ interface PHPExcel_CachedObjectStorage_ICache
      * @return PHPExcel_Cell    Cell that was found, or null if not found
      * @throws    PHPExcel_Exception
      */
-    public function getCacheData( $pCoord );
+    public function getCacheData($pCoord);
 
     /**
      * Delete a cell in cache identified by coordinate address
@@ -82,7 +82,7 @@ interface PHPExcel_CachedObjectStorage_ICache
      *
      * @throws    PHPExcel_Exception
      */
-    public function deleteCacheData( $pCoord );
+    public function deleteCacheData($pCoord);
 
     /**
      * Is a value set in the current PHPExcel_CachedObjectStorage_ICache for an indexed cell?
@@ -91,7 +91,7 @@ interface PHPExcel_CachedObjectStorage_ICache
      *
      * @return    boolean
      */
-    public function isDataSet( $pCoord );
+    public function isDataSet($pCoord);
 
     /**
      * Get a list of all cell addresses currently held in cache
@@ -114,6 +114,6 @@ interface PHPExcel_CachedObjectStorage_ICache
      *
      * @return    void
      */
-    public function copyCellCollection( PHPExcel_Worksheet $parent );
+    public function copyCellCollection(PHPExcel_Worksheet $parent);
 
 }

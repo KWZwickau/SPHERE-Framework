@@ -5,14 +5,16 @@ use Doctrine\DBAL\Sharding\SQLAzure\SQLAzureFederationsSynchronizer;
 
 class SQLAzureFederationsSynchronizerTest extends AbstractTestCase
 {
+
     public function testCreateSchema()
     {
+
         $schema = $this->createShopSchema();
 
         $synchronizer = new SQLAzureFederationsSynchronizer($this->conn, $this->sm);
         $sql = $synchronizer->getCreateSchema($schema);
 
-        $this->assertEquals(array (
+        $this->assertEquals(array(
             "--Create Federation\nCREATE FEDERATION Orders_Federation (CustID INT  RANGE)",
             "USE FEDERATION Orders_Federation (CustID = 0) WITH RESET, FILTERING = OFF;",
             "CREATE TABLE Products (ProductID INT NOT NULL, SupplierID INT NOT NULL, ProductName NVARCHAR(255) NOT NULL, Price NUMERIC(12, 2) NOT NULL, PRIMARY KEY (ProductID))",
@@ -24,6 +26,7 @@ class SQLAzureFederationsSynchronizerTest extends AbstractTestCase
 
     public function testUpdateSchema()
     {
+
         $schema = $this->createShopSchema();
 
         $synchronizer = new SQLAzureFederationsSynchronizer($this->conn, $this->sm);
@@ -36,6 +39,7 @@ class SQLAzureFederationsSynchronizerTest extends AbstractTestCase
 
     public function testDropSchema()
     {
+
         $schema = $this->createShopSchema();
 
         $synchronizer = new SQLAzureFederationsSynchronizer($this->conn, $this->sm);

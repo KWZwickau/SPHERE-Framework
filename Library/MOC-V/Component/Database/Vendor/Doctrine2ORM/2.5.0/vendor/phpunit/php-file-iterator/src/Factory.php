@@ -17,20 +17,23 @@
  */
 class File_Iterator_Factory
 {
+
     /**
-     * @param  array|string   $paths
-     * @param  array|string   $suffixes
-     * @param  array|string   $prefixes
-     * @param  array          $exclude
+     * @param  array|string $paths
+     * @param  array|string $suffixes
+     * @param  array|string $prefixes
+     * @param  array        $exclude
+     *
      * @return AppendIterator
      */
     public function getFileIterator($paths, $suffixes = '', $prefixes = '', array $exclude = array())
     {
+
         if (is_string($paths)) {
             $paths = array($paths);
         }
 
-        $paths   = $this->getPathsAfterResolvingWildcards($paths);
+        $paths = $this->getPathsAfterResolvingWildcards($paths);
         $exclude = $this->getPathsAfterResolvingWildcards($exclude);
 
         if (is_string($prefixes)) {
@@ -54,15 +57,15 @@ class File_Iterator_Factory
         foreach ($paths as $path) {
             if (is_dir($path)) {
                 $iterator->append(
-                  new File_Iterator(
-                    new RecursiveIteratorIterator(
-                      new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::FOLLOW_SYMLINKS)
-                    ),
-                    $suffixes,
-                    $prefixes,
-                    $exclude,
-                    $path
-                  )
+                    new File_Iterator(
+                        new RecursiveIteratorIterator(
+                            new RecursiveDirectoryIterator($path, RecursiveDirectoryIterator::FOLLOW_SYMLINKS)
+                        ),
+                        $suffixes,
+                        $prefixes,
+                        $exclude,
+                        $path
+                    )
                 );
             }
         }
@@ -72,10 +75,12 @@ class File_Iterator_Factory
 
     /**
      * @param  array $paths
+     *
      * @return array
      */
     protected function getPathsAfterResolvingWildcards(array $paths)
     {
+
         $_paths = array();
 
         foreach ($paths as $path) {

@@ -5,7 +5,7 @@ if (!$msg) {
 }
 
 $err = isset( $_GET['err'] ) ? $_GET['err'] : '';
-if (!in_array( $err, array( 'L', 'M', 'Q', 'H' ) )) {
+if (!in_array($err, array('L', 'M', 'Q', 'H'))) {
     $err = 'L';
 }
 
@@ -46,7 +46,7 @@ require_once( 'qrcode.class.php' );
 <body>
 <center>
     <form method="GET" action="">
-        <textarea name="msg" cols="40" rows="7"><?php echo htmlentities( $msg ); ?></textarea><br>
+        <textarea name="msg" cols="40" rows="7"><?php echo htmlentities($msg); ?></textarea><br>
         Correction d'erreur :
         <select name="err">
             <option value="L" <?php echo $err == 'L' ? 'selected' : ''; ?>>L</option>
@@ -59,12 +59,12 @@ require_once( 'qrcode.class.php' );
     <hr>
     G�n�ration d'un tableau HTML :<br>
     <?php
-    $qrcode = new QRcode( utf8_encode( $msg ), $err );
+    $qrcode = new QRcode(utf8_encode($msg), $err);
     $qrcode->displayHTML();
     ?>
     <br>
     G�n�ration d'une image PNG : <br>
-    <img src="./image.php?msg=<?php echo urlencode( $msg ); ?>&amp;err=<?php echo urlencode( $err ); ?>"
+    <img src="./image.php?msg=<?php echo urlencode($msg); ?>&amp;err=<?php echo urlencode($err); ?>"
          alt="generation qr-code" style="border: solid 1px black;">
 </center>
 </body>

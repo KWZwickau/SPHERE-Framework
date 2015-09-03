@@ -18,21 +18,21 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 
         try {
             throw new RouterException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Router\Exception\RouterException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Router\Exception\RouterException', $E);
         }
 
         try {
             throw new ComponentException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Router\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Router\Component\Exception\ComponentException', $E);
         }
 
         try {
             throw new MissingParameterException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Router\Component\Exception\Repository\MissingParameterException',
-                $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Router\Component\Exception\Repository\MissingParameterException',
+                $E);
         }
     }
 

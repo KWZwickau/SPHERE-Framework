@@ -16,6 +16,7 @@ namespace SebastianBergmann\Comparator;
  */
 class Author
 {
+
     // the order of properties is important for testing the cycle!
     public $books = array();
 
@@ -23,6 +24,7 @@ class Author
 
     public function __construct($name)
     {
+
         $this->name = $name;
     }
 }

@@ -40,7 +40,7 @@ class SqlPreprocessor extends Nette\Object
     private $arrayMode;
 
 
-    public function __construct( Connection $connection )
+    public function __construct(Connection $connection)
     {
 
         $this->connection = $connection;
@@ -54,7 +54,7 @@ class SqlPreprocessor extends Nette\Object
      *
      * @return array of [sql, params]
      */
-    public function process( $sql, $params )
+    public function process($sql, $params)
     {
 
         $this->params = $params;
@@ -62,35 +62,35 @@ class SqlPreprocessor extends Nette\Object
         $this->remaining = array();
         $this->arrayMode = 'assoc';
 
-        $sql = Nette\Utils\Strings::replace( $sql, '~\'.*?\'|".*?"|\?|\b(?:INSERT|REPLACE|UPDATE)\b~si',
-            array( $this, 'callback' ) );
+        $sql = Nette\Utils\Strings::replace($sql, '~\'.*?\'|".*?"|\?|\b(?:INSERT|REPLACE|UPDATE)\b~si',
+            array($this, 'callback'));
 
-        while ($this->counter < count( $params )) {
-            $sql .= ' '.$this->formatValue( $params[$this->counter++] );
+        while ($this->counter < count($params)) {
+            $sql .= ' '.$this->formatValue($params[$this->counter++]);
         }
 
-        return array( $sql, $this->remaining );
+        return array($sql, $this->remaining);
     }
 
-    private function formatValue( $value )
+    private function formatValue($value)
     {
 
-        if (is_string( $value )) {
-            if (strlen( $value ) > 20) {
+        if (is_string($value)) {
+            if (strlen($value) > 20) {
                 $this->remaining[] = $value;
                 return '?';
 
             } else {
-                return $this->connection->quote( $value );
+                return $this->connection->quote($value);
             }
 
-        } elseif (is_int( $value )) {
+        } elseif (is_int($value)) {
             return (string)$value;
 
-        } elseif (is_float( $value )) {
-            return rtrim( rtrim( number_format( $value, 10, '.', '' ), '0' ), '.' );
+        } elseif (is_float($value)) {
+            return rtrim(rtrim(number_format($value, 10, '.', ''), '0'), '.');
 
-        } elseif (is_bool( $value )) {
+        } elseif (is_bool($value)) {
             $this->remaining[] = $value;
             return '?';
 
@@ -100,38 +100,38 @@ class SqlPreprocessor extends Nette\Object
         } elseif ($value instanceof Table\ActiveRow) {
             return $value->getPrimary();
 
-        } elseif (is_array( $value ) || $value instanceof \Traversable) {
+        } elseif (is_array($value) || $value instanceof \Traversable) {
             $vx = $kx = array();
 
             if (isset( $value[0] )) { // non-associative; value, value, value
                 foreach ($value as $v) {
-                    $vx[] = $this->formatValue( $v );
+                    $vx[] = $this->formatValue($v);
                 }
-                return implode( ', ', $vx );
+                return implode(', ', $vx);
 
             } elseif ($this->arrayMode === 'values') { // (key, key, ...) VALUES (value, value, ...)
                 $this->arrayMode = 'multi';
                 foreach ($value as $k => $v) {
-                    $kx[] = $this->driver->delimite( $k );
-                    $vx[] = $this->formatValue( $v );
+                    $kx[] = $this->driver->delimite($k);
+                    $vx[] = $this->formatValue($v);
                 }
-                return '('.implode( ', ', $kx ).') VALUES ('.implode( ', ', $vx ).')';
+                return '('.implode(', ', $kx).') VALUES ('.implode(', ', $vx).')';
 
             } elseif ($this->arrayMode === 'assoc') { // key=value, key=value, ...
                 foreach ($value as $k => $v) {
-                    $vx[] = $this->driver->delimite( $k ).'='.$this->formatValue( $v );
+                    $vx[] = $this->driver->delimite($k).'='.$this->formatValue($v);
                 }
-                return implode( ', ', $vx );
+                return implode(', ', $vx);
 
             } elseif ($this->arrayMode === 'multi') { // multiple insert (value, value, ...), ...
                 foreach ($value as $k => $v) {
-                    $vx[] = $this->formatValue( $v );
+                    $vx[] = $this->formatValue($v);
                 }
-                return '('.implode( ', ', $vx ).')';
+                return '('.implode(', ', $vx).')';
             }
 
         } elseif ($value instanceof \DateTime) {
-            return $this->driver->formatDateTime( $value );
+            return $this->driver->formatDateTime($value);
 
         } elseif ($value instanceof SqlLiteral) {
             return $value->__toString();
@@ -143,7 +143,7 @@ class SqlPreprocessor extends Nette\Object
     }
 
     /** @internal */
-    public function callback( $m )
+    public function callback($m)
     {
 
         $m = $m[0];
@@ -151,10 +151,10 @@ class SqlPreprocessor extends Nette\Object
             return $m;
 
         } elseif ($m === '?') { // placeholder
-            return $this->formatValue( $this->params[$this->counter++] );
+            return $this->formatValue($this->params[$this->counter++]);
 
         } else { // INSERT, REPLACE, UPDATE
-            $this->arrayMode = strtoupper( $m ) === 'UPDATE' ? 'assoc' : 'values';
+            $this->arrayMode = strtoupper($m) === 'UPDATE' ? 'assoc' : 'values';
             return $m;
         }
     }

@@ -22,13 +22,13 @@ class DomPdf extends Bridge implements IBridgeInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
         require_once( __DIR__.'/../../../Vendor/DomPdf/0.6.1/dompdf_config.inc.php' );
 
-        $this->setPaperSizeParameter( new PaperSizeParameter() );
-        $this->setPaperOrientationParameter( new PaperOrientationParameter() );
+        $this->setPaperSizeParameter(new PaperSizeParameter());
+        $this->setPaperOrientationParameter(new PaperOrientationParameter());
     }
 
     /**
@@ -36,10 +36,10 @@ class DomPdf extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function setPaperSizeParameter( PaperSizeParameter $PaperSize )
+    public function setPaperSizeParameter(PaperSizeParameter $PaperSize)
     {
 
-        return parent::setPaperSizeParameter( $PaperSize );
+        return parent::setPaperSizeParameter($PaperSize);
     }
 
     /**
@@ -47,10 +47,10 @@ class DomPdf extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function setPaperOrientationParameter( PaperOrientationParameter $PaperOrientation )
+    public function setPaperOrientationParameter(PaperOrientationParameter $PaperOrientation)
     {
 
-        return parent::setPaperOrientationParameter( $PaperOrientation );
+        return parent::setPaperOrientationParameter($PaperOrientation);
     }
 
     /**
@@ -58,10 +58,10 @@ class DomPdf extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function loadFile( FileParameter $Location )
+    public function loadFile(FileParameter $Location)
     {
 
-        $this->setFileParameter( $Location );
+        $this->setFileParameter($Location);
         return $this;
     }
 
@@ -70,7 +70,7 @@ class DomPdf extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function setContent( IBridgeInterface_Template $Template )
+    public function setContent(IBridgeInterface_Template $Template)
     {
 
         $this->Source = $Template->getContent();
@@ -82,14 +82,14 @@ class DomPdf extends Bridge implements IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function saveFile( FileParameter $Location = null )
+    public function saveFile(FileParameter $Location = null)
     {
 
         $Content = $this->getContent();
         if (null === $Location) {
-            file_put_contents( $this->getFileParameter()->getFile(), $Content );
+            file_put_contents($this->getFileParameter()->getFile(), $Content);
         } else {
-            file_put_contents( $Location->getFile(), $Content );
+            file_put_contents($Location->getFile(), $Content);
         }
         return $this;
     }
@@ -101,7 +101,7 @@ class DomPdf extends Bridge implements IBridgeInterface
     {
 
         $Renderer = new \DOMPDF();
-        $Renderer->load_html( $this->Source );
+        $Renderer->load_html($this->Source);
         $Renderer->set_paper(
             $this->getPaperSizeParameter()->getSize(),
             $this->getPaperOrientationParameter()->getOrientation()

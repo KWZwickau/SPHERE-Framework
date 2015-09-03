@@ -25,6 +25,7 @@ use Symfony\Component\HttpFoundation\File\File;
  */
 class BinaryFileResponse extends Response
 {
+
     protected static $trustXSendfileTypeHeader = false;
 
     protected $file;
@@ -42,8 +43,16 @@ class BinaryFileResponse extends Response
      * @param bool                $autoEtag           Whether the ETag header should be automatically set
      * @param bool                $autoLastModified   Whether the Last-Modified header should be automatically set
      */
-    public function __construct($file, $status = 200, $headers = array(), $public = true, $contentDisposition = null, $autoEtag = false, $autoLastModified = true)
-    {
+    public function __construct(
+        $file,
+        $status = 200,
+        $headers = array(),
+        $public = true,
+        $contentDisposition = null,
+        $autoEtag = false,
+        $autoLastModified = true
+    ) {
+
         parent::__construct(null, $status, $headers);
 
         $this->setFile($file, $contentDisposition, $autoEtag, $autoLastModified);
@@ -64,8 +73,16 @@ class BinaryFileResponse extends Response
      *
      * @return BinaryResponse The created response
      */
-    public static function create($file = null, $status = 200, $headers = array(), $public = true, $contentDisposition = null, $autoEtag = false, $autoLastModified = true)
-    {
+    public static function create(
+        $file = null,
+        $status = 200,
+        $headers = array(),
+        $public = true,
+        $contentDisposition = null,
+        $autoEtag = false,
+        $autoLastModified = true
+    ) {
+
         return new static($file, $status, $headers, $public, $contentDisposition, $autoEtag, $autoLastModified);
     }
 
@@ -103,8 +120,9 @@ class BinaryFileResponse extends Response
      */
     public function setFile($file, $contentDisposition = null, $autoEtag = false, $autoLastModified = true)
     {
+
         if (!$file instanceof File) {
-            $file = new File((string) $file);
+            $file = new File((string)$file);
         }
 
         if (!$file->isReadable()) {
@@ -133,6 +151,7 @@ class BinaryFileResponse extends Response
      */
     public function setAutoLastModified()
     {
+
         $this->setLastModified(\DateTime::createFromFormat('U', $this->file->getMTime()));
 
         return $this;
@@ -143,6 +162,7 @@ class BinaryFileResponse extends Response
      */
     public function setAutoEtag()
     {
+
         $this->setEtag(sha1_file($this->file->getPathname()));
 
         return $this;
@@ -159,6 +179,7 @@ class BinaryFileResponse extends Response
      */
     public function setContentDisposition($disposition, $filename = '', $filenameFallback = '')
     {
+
         if ($filename === '') {
             $filename = $this->file->getFilename();
         }
@@ -174,6 +195,7 @@ class BinaryFileResponse extends Response
      */
     public function prepare(Request $request)
     {
+
         $this->headers->set('Content-Length', $this->file->getSize());
         $this->headers->set('Accept-Ranges', 'bytes');
         $this->headers->set('Content-Transfer-Encoding', 'binary');
@@ -219,15 +241,15 @@ class BinaryFileResponse extends Response
                 $range = $request->headers->get('Range');
                 $fileSize = $this->file->getSize();
 
-                list($start, $end) = explode('-', substr($range, 6), 2) + array(0);
+                list( $start, $end ) = explode('-', substr($range, 6), 2) + array(0);
 
-                $end = ('' === $end) ? $fileSize - 1 : (int) $end;
+                $end = ( '' === $end ) ? $fileSize - 1 : (int)$end;
 
                 if ('' === $start) {
                     $start = $fileSize - $end;
                     $end = $fileSize - 1;
                 } else {
-                    $start = (int) $start;
+                    $start = (int)$start;
                 }
 
                 if ($start <= $end) {
@@ -253,6 +275,7 @@ class BinaryFileResponse extends Response
      */
     public function sendContent()
     {
+
         if (!$this->isSuccessful()) {
             parent::sendContent();
 
@@ -279,6 +302,7 @@ class BinaryFileResponse extends Response
      */
     public function setContent($content)
     {
+
         if (null !== $content) {
             throw new \LogicException('The content cannot be set on a BinaryFileResponse instance.');
         }
@@ -291,6 +315,7 @@ class BinaryFileResponse extends Response
      */
     public function getContent()
     {
+
         return false;
     }
 }

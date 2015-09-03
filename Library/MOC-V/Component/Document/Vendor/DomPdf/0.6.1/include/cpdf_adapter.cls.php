@@ -36,62 +36,62 @@ class CPDF_Adapter implements Canvas
      * @var array;
      */
     static $PAPER_SIZES = array(
-        "4a0"                      => array( 0, 0, 4767.87, 6740.79 ),
-        "2a0"                      => array( 0, 0, 3370.39, 4767.87 ),
-        "a0"                       => array( 0, 0, 2383.94, 3370.39 ),
-        "a1"                       => array( 0, 0, 1683.78, 2383.94 ),
-        "a2"                       => array( 0, 0, 1190.55, 1683.78 ),
-        "a3"                       => array( 0, 0, 841.89, 1190.55 ),
-        "a4"                       => array( 0, 0, 595.28, 841.89 ),
-        "a5"                       => array( 0, 0, 419.53, 595.28 ),
-        "a6"                       => array( 0, 0, 297.64, 419.53 ),
-        "a7"                       => array( 0, 0, 209.76, 297.64 ),
-        "a8"                       => array( 0, 0, 147.40, 209.76 ),
-        "a9"                       => array( 0, 0, 104.88, 147.40 ),
-        "a10"                      => array( 0, 0, 73.70, 104.88 ),
-        "b0"                       => array( 0, 0, 2834.65, 4008.19 ),
-        "b1"                       => array( 0, 0, 2004.09, 2834.65 ),
-        "b2"                       => array( 0, 0, 1417.32, 2004.09 ),
-        "b3"                       => array( 0, 0, 1000.63, 1417.32 ),
-        "b4"                       => array( 0, 0, 708.66, 1000.63 ),
-        "b5"                       => array( 0, 0, 498.90, 708.66 ),
-        "b6"                       => array( 0, 0, 354.33, 498.90 ),
-        "b7"                       => array( 0, 0, 249.45, 354.33 ),
-        "b8"                       => array( 0, 0, 175.75, 249.45 ),
-        "b9"                       => array( 0, 0, 124.72, 175.75 ),
-        "b10"                      => array( 0, 0, 87.87, 124.72 ),
-        "c0"                       => array( 0, 0, 2599.37, 3676.54 ),
-        "c1"                       => array( 0, 0, 1836.85, 2599.37 ),
-        "c2"                       => array( 0, 0, 1298.27, 1836.85 ),
-        "c3"                       => array( 0, 0, 918.43, 1298.27 ),
-        "c4"                       => array( 0, 0, 649.13, 918.43 ),
-        "c5"                       => array( 0, 0, 459.21, 649.13 ),
-        "c6"                       => array( 0, 0, 323.15, 459.21 ),
-        "c7"                       => array( 0, 0, 229.61, 323.15 ),
-        "c8"                       => array( 0, 0, 161.57, 229.61 ),
-        "c9"                       => array( 0, 0, 113.39, 161.57 ),
-        "c10"                      => array( 0, 0, 79.37, 113.39 ),
-        "ra0"                      => array( 0, 0, 2437.80, 3458.27 ),
-        "ra1"                      => array( 0, 0, 1729.13, 2437.80 ),
-        "ra2"                      => array( 0, 0, 1218.90, 1729.13 ),
-        "ra3"                      => array( 0, 0, 864.57, 1218.90 ),
-        "ra4"                      => array( 0, 0, 609.45, 864.57 ),
-        "sra0"                     => array( 0, 0, 2551.18, 3628.35 ),
-        "sra1"                     => array( 0, 0, 1814.17, 2551.18 ),
-        "sra2"                     => array( 0, 0, 1275.59, 1814.17 ),
-        "sra3"                     => array( 0, 0, 907.09, 1275.59 ),
-        "sra4"                     => array( 0, 0, 637.80, 907.09 ),
-        "letter"                   => array( 0, 0, 612.00, 792.00 ),
-        "legal"                    => array( 0, 0, 612.00, 1008.00 ),
-        "ledger"                   => array( 0, 0, 1224.00, 792.00 ),
-        "tabloid"                  => array( 0, 0, 792.00, 1224.00 ),
-        "executive"                => array( 0, 0, 521.86, 756.00 ),
-        "folio"                    => array( 0, 0, 612.00, 936.00 ),
-        "commercial #10 envelope"  => array( 0, 0, 684, 297 ),
-        "catalog #10 1/2 envelope" => array( 0, 0, 648, 864 ),
-        "8.5x11"                   => array( 0, 0, 612.00, 792.00 ),
-        "8.5x14"                   => array( 0, 0, 612.00, 1008.0 ),
-        "11x17"                    => array( 0, 0, 792.00, 1224.00 ),
+        "4a0"                      => array(0, 0, 4767.87, 6740.79),
+        "2a0"                      => array(0, 0, 3370.39, 4767.87),
+        "a0"                       => array(0, 0, 2383.94, 3370.39),
+        "a1"                       => array(0, 0, 1683.78, 2383.94),
+        "a2"                       => array(0, 0, 1190.55, 1683.78),
+        "a3"                       => array(0, 0, 841.89, 1190.55),
+        "a4"                       => array(0, 0, 595.28, 841.89),
+        "a5"                       => array(0, 0, 419.53, 595.28),
+        "a6"                       => array(0, 0, 297.64, 419.53),
+        "a7"                       => array(0, 0, 209.76, 297.64),
+        "a8"                       => array(0, 0, 147.40, 209.76),
+        "a9"                       => array(0, 0, 104.88, 147.40),
+        "a10"                      => array(0, 0, 73.70, 104.88),
+        "b0"                       => array(0, 0, 2834.65, 4008.19),
+        "b1"                       => array(0, 0, 2004.09, 2834.65),
+        "b2"                       => array(0, 0, 1417.32, 2004.09),
+        "b3"                       => array(0, 0, 1000.63, 1417.32),
+        "b4"                       => array(0, 0, 708.66, 1000.63),
+        "b5"                       => array(0, 0, 498.90, 708.66),
+        "b6"                       => array(0, 0, 354.33, 498.90),
+        "b7"                       => array(0, 0, 249.45, 354.33),
+        "b8"                       => array(0, 0, 175.75, 249.45),
+        "b9"                       => array(0, 0, 124.72, 175.75),
+        "b10"                      => array(0, 0, 87.87, 124.72),
+        "c0"                       => array(0, 0, 2599.37, 3676.54),
+        "c1"                       => array(0, 0, 1836.85, 2599.37),
+        "c2"                       => array(0, 0, 1298.27, 1836.85),
+        "c3"                       => array(0, 0, 918.43, 1298.27),
+        "c4"                       => array(0, 0, 649.13, 918.43),
+        "c5"                       => array(0, 0, 459.21, 649.13),
+        "c6"                       => array(0, 0, 323.15, 459.21),
+        "c7"                       => array(0, 0, 229.61, 323.15),
+        "c8"                       => array(0, 0, 161.57, 229.61),
+        "c9"                       => array(0, 0, 113.39, 161.57),
+        "c10"                      => array(0, 0, 79.37, 113.39),
+        "ra0"                      => array(0, 0, 2437.80, 3458.27),
+        "ra1"                      => array(0, 0, 1729.13, 2437.80),
+        "ra2"                      => array(0, 0, 1218.90, 1729.13),
+        "ra3"                      => array(0, 0, 864.57, 1218.90),
+        "ra4"                      => array(0, 0, 609.45, 864.57),
+        "sra0"                     => array(0, 0, 2551.18, 3628.35),
+        "sra1"                     => array(0, 0, 1814.17, 2551.18),
+        "sra2"                     => array(0, 0, 1275.59, 1814.17),
+        "sra3"                     => array(0, 0, 907.09, 1275.59),
+        "sra4"                     => array(0, 0, 637.80, 907.09),
+        "letter"                   => array(0, 0, 612.00, 792.00),
+        "legal"                    => array(0, 0, 612.00, 1008.00),
+        "ledger"                   => array(0, 0, 1224.00, 792.00),
+        "tabloid"                  => array(0, 0, 792.00, 1224.00),
+        "executive"                => array(0, 0, 521.86, 756.00),
+        "folio"                    => array(0, 0, 612.00, 936.00),
+        "commercial #10 envelope"  => array(0, 0, 684, 297),
+        "catalog #10 1/2 envelope" => array(0, 0, 648, 864),
+        "8.5x11"                   => array(0, 0, 612.00, 792.00),
+        "8.5x14"                   => array(0, 0, 612.00, 1008.0),
+        "11x17"                    => array(0, 0, 792.00, 1224.00),
     );
 
     /**
@@ -164,36 +164,36 @@ class CPDF_Adapter implements Canvas
      * @param string $orientation The orientation of the document (either 'landscape' or 'portrait')
      * @param DOMPDF $dompdf      The DOMPDF instance
      */
-    function __construct( $paper = "letter", $orientation = "portrait", DOMPDF $dompdf )
+    function __construct($paper = "letter", $orientation = "portrait", DOMPDF $dompdf)
     {
 
-        if (is_array( $paper )) {
+        if (is_array($paper)) {
             $size = $paper;
         } else {
-            if (isset( self::$PAPER_SIZES[mb_strtolower( $paper )] )) {
-                $size = self::$PAPER_SIZES[mb_strtolower( $paper )];
+            if (isset( self::$PAPER_SIZES[mb_strtolower($paper)] )) {
+                $size = self::$PAPER_SIZES[mb_strtolower($paper)];
             } else {
                 $size = self::$PAPER_SIZES["letter"];
             }
         }
 
-        if (mb_strtolower( $orientation ) === "landscape") {
-            list( $size[2], $size[3] ) = array( $size[3], $size[2] );
+        if (mb_strtolower($orientation) === "landscape") {
+            list( $size[2], $size[3] ) = array($size[3], $size[2]);
         }
 
         $this->_dompdf = $dompdf;
 
         $this->_pdf = new Cpdf(
             $size,
-            $dompdf->get_option( "enable_unicode" ),
-            $dompdf->get_option( "font_cache" ),
-            $dompdf->get_option( "temp_dir" )
+            $dompdf->get_option("enable_unicode"),
+            $dompdf->get_option("font_cache"),
+            $dompdf->get_option("temp_dir")
         );
 
-        $this->_pdf->addInfo( "Creator", "DOMPDF" );
-        $time = substr_replace( date( 'YmdHisO' ), '\'', -2, 0 ).'\'';
-        $this->_pdf->addInfo( "CreationDate", "D:$time" );
-        $this->_pdf->addInfo( "ModDate", "D:$time" );
+        $this->_pdf->addInfo("Creator", "DOMPDF");
+        $time = substr_replace(date('YmdHisO'), '\'', -2, 0).'\'';
+        $this->_pdf->addInfo("CreationDate", "D:$time");
+        $this->_pdf->addInfo("ModDate", "D:$time");
 
         $this->_width = $size[2] - $size[0];
         $this->_height = $size[3] - $size[1];
@@ -201,7 +201,7 @@ class CPDF_Adapter implements Canvas
         $this->_page_number = $this->_page_count = 1;
         $this->_page_text = array();
 
-        $this->_pages = array( $this->_pdf->getFirstPageId() );
+        $this->_pages = array($this->_pdf->getFirstPageId());
 
         $this->_image_cache = array();
     }
@@ -225,7 +225,7 @@ class CPDF_Adapter implements Canvas
             // the file might not have been created at all
             // (if image outputting commands failed)
             // or because the destructor was called twice accidentally.
-            if (!file_exists( $img )) {
+            if (!file_exists($img)) {
                 continue;
             }
 
@@ -233,7 +233,7 @@ class CPDF_Adapter implements Canvas
                 print '[__destruct unlink '.$img.']';
             }
             if (!DEBUGKEEPTEMP) {
-                unlink( $img );
+                unlink($img);
             }
         }
     }
@@ -255,10 +255,10 @@ class CPDF_Adapter implements Canvas
      * @param string $label label of the value (Creator, Producer, etc.)
      * @param string $value the text to set
      */
-    function add_info( $label, $value )
+    function add_info($label, $value)
     {
 
-        $this->_pdf->addInfo( $label, $value );
+        $this->_pdf->addInfo($label, $value);
     }
 
     /**
@@ -301,10 +301,10 @@ class CPDF_Adapter implements Canvas
      * @param int    $object
      * @param string $where
      */
-    function add_object( $object, $where = 'all' )
+    function add_object($object, $where = 'all')
     {
 
-        $this->_pdf->addObject( $object, $where );
+        $this->_pdf->addObject($object, $where);
     }
 
     /**
@@ -315,29 +315,29 @@ class CPDF_Adapter implements Canvas
      *
      * @param int $object
      */
-    function stop_object( $object )
+    function stop_object($object)
     {
 
-        $this->_pdf->stopObject( $object );
+        $this->_pdf->stopObject($object);
     }
 
     /**
      * @access private
      */
-    function serialize_object( $id )
+    function serialize_object($id)
     {
 
         // Serialize the pdf object's current state for retrieval later
-        return $this->_pdf->serializeObject( $id );
+        return $this->_pdf->serializeObject($id);
     }
 
     /**
      * @access private
      */
-    function reopen_serialized_object( $obj )
+    function reopen_serialized_object($obj)
     {
 
-        return $this->_pdf->restoreSerializedObject( $obj );
+        return $this->_pdf->restoreSerializedObject($obj);
     }
 
     /**
@@ -380,7 +380,7 @@ class CPDF_Adapter implements Canvas
      *
      * @param int $num
      */
-    function set_page_number( $num )
+    function set_page_number($num)
     {
 
         $this->_page_number = $num;
@@ -402,7 +402,7 @@ class CPDF_Adapter implements Canvas
      *
      * @param int $count
      */
-    function set_page_count( $count )
+    function set_page_count($count)
     {
 
         $this->_page_count = $count;
@@ -414,11 +414,11 @@ class CPDF_Adapter implements Canvas
      * @param $opacity
      * @param $mode
      */
-    function set_opacity( $opacity, $mode = "Normal" )
+    function set_opacity($opacity, $mode = "Normal")
     {
 
-        $this->_set_line_transparency( $mode, $opacity );
-        $this->_set_fill_transparency( $mode, $opacity );
+        $this->_set_line_transparency($mode, $opacity);
+        $this->_set_fill_transparency($mode, $opacity);
     }
 
     /**
@@ -435,10 +435,10 @@ class CPDF_Adapter implements Canvas
      * @param string $mode    the blending mode to use
      * @param float  $opacity 0.0 fully transparent, 1.0 fully opaque
      */
-    protected function _set_line_transparency( $mode, $opacity )
+    protected function _set_line_transparency($mode, $opacity)
     {
 
-        $this->_pdf->setLineTransparency( $mode, $opacity );
+        $this->_pdf->setLineTransparency($mode, $opacity);
     }
 
     /**
@@ -455,27 +455,27 @@ class CPDF_Adapter implements Canvas
      * @param string $mode    the blending mode to use
      * @param float  $opacity 0.0 fully transparent, 1.0 fully opaque
      */
-    protected function _set_fill_transparency( $mode, $opacity )
+    protected function _set_fill_transparency($mode, $opacity)
     {
 
-        $this->_pdf->setFillTransparency( $mode, $opacity );
+        $this->_pdf->setFillTransparency($mode, $opacity);
     }
 
-    function set_default_view( $view, $options = array() )
+    function set_default_view($view, $options = array())
     {
 
-        array_unshift( $options, $view );
-        call_user_func_array( array( $this->_pdf, "openHere" ), $options );
+        array_unshift($options, $view);
+        call_user_func_array(array($this->_pdf, "openHere"), $options);
     }
 
-    function line( $x1, $y1, $x2, $y2, $color, $width, $style = array() )
+    function line($x1, $y1, $x2, $y2, $color, $width, $style = array())
     {
 
-        $this->_set_stroke_color( $color );
-        $this->_set_line_style( $width, "butt", "", $style );
+        $this->_set_stroke_color($color);
+        $this->_set_line_style($width, "butt", "", $style);
 
-        $this->_pdf->line( $x1, $this->y( $y1 ),
-            $x2, $this->y( $y2 ) );
+        $this->_pdf->line($x1, $this->y($y1),
+            $x2, $this->y($y2));
     }
 
     /**
@@ -485,10 +485,10 @@ class CPDF_Adapter implements Canvas
      *
      * @param array $color
      */
-    protected function _set_stroke_color( $color )
+    protected function _set_stroke_color($color)
     {
 
-        $this->_pdf->setStrokeColor( $color );
+        $this->_pdf->setStrokeColor($color);
     }
 
     /**
@@ -501,10 +501,10 @@ class CPDF_Adapter implements Canvas
      * @param string $join
      * @param array  $dash
      */
-    protected function _set_line_style( $width, $cap, $join, $dash )
+    protected function _set_line_style($width, $cap, $join, $dash)
     {
 
-        $this->_pdf->setLineStyle( $width, $cap, $join, $dash );
+        $this->_pdf->setLineStyle($width, $cap, $join, $dash);
     }
 
     /**
@@ -514,36 +514,36 @@ class CPDF_Adapter implements Canvas
      *
      * @return float
      */
-    protected function y( $y )
+    protected function y($y)
     {
 
         return $this->_height - $y;
     }
 
-    function arc( $x, $y, $r1, $r2, $astart, $aend, $color, $width, $style = array() )
+    function arc($x, $y, $r1, $r2, $astart, $aend, $color, $width, $style = array())
     {
 
-        $this->_set_stroke_color( $color );
-        $this->_set_line_style( $width, "butt", "", $style );
+        $this->_set_stroke_color($color);
+        $this->_set_line_style($width, "butt", "", $style);
 
-        $this->_pdf->ellipse( $x, $this->y( $y ), $r1, $r2, 0, 8, $astart, $aend, false, false, true, false );
+        $this->_pdf->ellipse($x, $this->y($y), $r1, $r2, 0, 8, $astart, $aend, false, false, true, false);
     }
 
-    function rectangle( $x1, $y1, $w, $h, $color, $width, $style = array() )
+    function rectangle($x1, $y1, $w, $h, $color, $width, $style = array())
     {
 
-        $this->_set_stroke_color( $color );
-        $this->_set_line_style( $width, "butt", "", $style );
-        $this->_pdf->rectangle( $x1, $this->y( $y1 ) - $h, $w, $h );
+        $this->_set_stroke_color($color);
+        $this->_set_line_style($width, "butt", "", $style);
+        $this->_pdf->rectangle($x1, $this->y($y1) - $h, $w, $h);
     }
 
     // Canvas implementation
 
-    function filled_rectangle( $x1, $y1, $w, $h, $color )
+    function filled_rectangle($x1, $y1, $w, $h, $color)
     {
 
-        $this->_set_fill_color( $color );
-        $this->_pdf->filledRectangle( $x1, $this->y( $y1 ) - $h, $w, $h );
+        $this->_set_fill_color($color);
+        $this->_pdf->filledRectangle($x1, $this->y($y1) - $h, $w, $h);
     }
 
     /**
@@ -553,24 +553,24 @@ class CPDF_Adapter implements Canvas
      *
      * @param array $color
      */
-    protected function _set_fill_color( $color )
+    protected function _set_fill_color($color)
     {
 
-        $this->_pdf->setColor( $color );
+        $this->_pdf->setColor($color);
     }
 
     //........................................................................
 
-    function clipping_rectangle( $x1, $y1, $w, $h )
+    function clipping_rectangle($x1, $y1, $w, $h)
     {
 
-        $this->_pdf->clippingRectangle( $x1, $this->y( $y1 ) - $h, $w, $h );
+        $this->_pdf->clippingRectangle($x1, $this->y($y1) - $h, $w, $h);
     }
 
-    function clipping_roundrectangle( $x1, $y1, $w, $h, $rTL, $rTR, $rBR, $rBL )
+    function clipping_roundrectangle($x1, $y1, $w, $h, $rTL, $rTR, $rBR, $rBL)
     {
 
-        $this->_pdf->clippingRectangleRounded( $x1, $this->y( $y1 ) - $h, $w, $h, $rTL, $rTR, $rBR, $rBL );
+        $this->_pdf->clippingRectangleRounded($x1, $this->y($y1) - $h, $w, $h, $rTL, $rTR, $rBR, $rBL);
     }
 
     function clipping_end()
@@ -591,69 +591,69 @@ class CPDF_Adapter implements Canvas
         $this->_pdf->restoreState();
     }
 
-    function rotate( $angle, $x, $y )
+    function rotate($angle, $x, $y)
     {
 
-        $this->_pdf->rotate( $angle, $x, $y );
+        $this->_pdf->rotate($angle, $x, $y);
     }
 
-    function skew( $angle_x, $angle_y, $x, $y )
+    function skew($angle_x, $angle_y, $x, $y)
     {
 
-        $this->_pdf->skew( $angle_x, $angle_y, $x, $y );
+        $this->_pdf->skew($angle_x, $angle_y, $x, $y);
     }
 
-    function scale( $s_x, $s_y, $x, $y )
+    function scale($s_x, $s_y, $x, $y)
     {
 
-        $this->_pdf->scale( $s_x, $s_y, $x, $y );
+        $this->_pdf->scale($s_x, $s_y, $x, $y);
     }
 
-    function translate( $t_x, $t_y )
+    function translate($t_x, $t_y)
     {
 
-        $this->_pdf->translate( $t_x, $t_y );
+        $this->_pdf->translate($t_x, $t_y);
     }
 
-    function transform( $a, $b, $c, $d, $e, $f )
+    function transform($a, $b, $c, $d, $e, $f)
     {
 
-        $this->_pdf->transform( array( $a, $b, $c, $d, $e, $f ) );
+        $this->_pdf->transform(array($a, $b, $c, $d, $e, $f));
     }
 
-    function polygon( $points, $color, $width = null, $style = array(), $fill = false )
+    function polygon($points, $color, $width = null, $style = array(), $fill = false)
     {
 
-        $this->_set_fill_color( $color );
-        $this->_set_stroke_color( $color );
+        $this->_set_fill_color($color);
+        $this->_set_stroke_color($color);
 
         // Adjust y values
-        for ($i = 1; $i < count( $points ); $i += 2) {
-            $points[$i] = $this->y( $points[$i] );
+        for ($i = 1; $i < count($points); $i += 2) {
+            $points[$i] = $this->y($points[$i]);
         }
 
-        $this->_pdf->polygon( $points, count( $points ) / 2, $fill );
+        $this->_pdf->polygon($points, count($points) / 2, $fill);
     }
 
-    function circle( $x, $y, $r1, $color, $width = null, $style = null, $fill = false )
+    function circle($x, $y, $r1, $color, $width = null, $style = null, $fill = false)
     {
 
-        $this->_set_fill_color( $color );
-        $this->_set_stroke_color( $color );
+        $this->_set_fill_color($color);
+        $this->_set_stroke_color($color);
 
         if (!$fill && isset( $width )) {
-            $this->_set_line_style( $width, "round", "round", $style );
+            $this->_set_line_style($width, "round", "round", $style);
         }
 
-        $this->_pdf->ellipse( $x, $this->y( $y ), $r1, 0, 0, 8, 0, 360, 1, $fill );
+        $this->_pdf->ellipse($x, $this->y($y), $r1, 0, 0, 8, 0, 360, 1, $fill);
     }
 
-    function image( $img, $x, $y, $w, $h, $resolution = "normal" )
+    function image($img, $x, $y, $w, $h, $resolution = "normal")
     {
 
-        list( $width, $height, $type ) = dompdf_getimagesize( $img );
+        list( $width, $height, $type ) = dompdf_getimagesize($img);
 
-        $debug_png = $this->_dompdf->get_option( "debug_png" );
+        $debug_png = $this->_dompdf->get_option("debug_png");
 
         if ($debug_png) {
             print "[image:$img|$width|$height|$type]";
@@ -664,7 +664,7 @@ class CPDF_Adapter implements Canvas
                 if ($debug_png) {
                     print '!!!jpg!!!';
                 }
-                $this->_pdf->addJpegFromFile( $img, $x, $this->y( $y ) - $h, $w, $h );
+                $this->_pdf->addJpegFromFile($img, $x, $this->y($y) - $h, $w, $h);
                 break;
 
             case IMAGETYPE_GIF:
@@ -673,14 +673,14 @@ class CPDF_Adapter implements Canvas
                     print '!!!bmp or gif!!!';
                 }
                 // @todo use cache for BMP and GIF
-                $img = $this->_convert_gif_bmp_to_png( $img, $type );
+            $img = $this->_convert_gif_bmp_to_png($img, $type);
 
             case IMAGETYPE_PNG:
                 if ($debug_png) {
                     print '!!!png!!!';
                 }
 
-                $this->_pdf->addPngFromFile( $img, $x, $this->y( $y ) - $h, $w, $h );
+                $this->_pdf->addPngFromFile($img, $x, $this->y($y) - $h, $w, $h);
                 break;
 
             default:
@@ -699,30 +699,30 @@ class CPDF_Adapter implements Canvas
      * @throws DOMPDF_Exception
      * @return string The url of the newly converted image
      */
-    protected function _convert_gif_bmp_to_png( $image_url, $type )
+    protected function _convert_gif_bmp_to_png($image_url, $type)
     {
 
-        $image_type = Image_Cache::type_to_ext( $type );
+        $image_type = Image_Cache::type_to_ext($type);
         $func_name = "imagecreatefrom$image_type";
 
-        if (!function_exists( $func_name )) {
-            throw new DOMPDF_Exception( "Function $func_name() not found.  Cannot convert $image_type image: $image_url.  Please install the image PHP extension." );
+        if (!function_exists($func_name)) {
+            throw new DOMPDF_Exception("Function $func_name() not found.  Cannot convert $image_type image: $image_url.  Please install the image PHP extension.");
         }
 
-        set_error_handler( "record_warnings" );
-        $im = $func_name( $image_url );
+        set_error_handler("record_warnings");
+        $im = $func_name($image_url);
 
         if ($im) {
-            imageinterlace( $im, false );
+            imageinterlace($im, false);
 
-            $tmp_dir = $this->_dompdf->get_option( "temp_dir" );
-            $tmp_name = tempnam( $tmp_dir, "{$image_type}dompdf_img_" );
-            @unlink( $tmp_name );
+            $tmp_dir = $this->_dompdf->get_option("temp_dir");
+            $tmp_name = tempnam($tmp_dir, "{$image_type}dompdf_img_");
+            @unlink($tmp_name);
             $filename = "$tmp_name.png";
             $this->_image_cache[] = $filename;
 
-            imagepng( $im, $filename );
-            imagedestroy( $im );
+            imagepng($im, $filename);
+            imagedestroy($im);
         } else {
             $filename = Image_Cache::$broken_image;
         }
@@ -732,10 +732,10 @@ class CPDF_Adapter implements Canvas
         return $filename;
     }
 
-    function javascript( $code )
+    function javascript($code)
     {
 
-        $this->_pdf->addJavascript( $code );
+        $this->_pdf->addJavascript($code);
     }
 
     /**
@@ -743,10 +743,10 @@ class CPDF_Adapter implements Canvas
      *
      * @param string $anchorname The name of the named destination
      */
-    function add_named_dest( $anchorname )
+    function add_named_dest($anchorname)
     {
 
-        $this->_pdf->addDestination( $anchorname, "Fit" );
+        $this->_pdf->addDestination($anchorname, "Fit");
     }
 
     /**
@@ -758,62 +758,62 @@ class CPDF_Adapter implements Canvas
      * @param float  $width  The width of the link
      * @param float  $height The height of the link
      */
-    function add_link( $url, $x, $y, $width, $height )
+    function add_link($url, $x, $y, $width, $height)
     {
 
-        $y = $this->y( $y ) - $height;
+        $y = $this->y($y) - $height;
 
-        if (strpos( $url, '#' ) === 0) {
+        if (strpos($url, '#') === 0) {
             // Local link
-            $name = substr( $url, 1 );
+            $name = substr($url, 1);
             if ($name) {
-                $this->_pdf->addInternalLink( $name, $x, $y, $x + $width, $y + $height );
+                $this->_pdf->addInternalLink($name, $x, $y, $x + $width, $y + $height);
             }
 
         } else {
-            $this->_pdf->addLink( rawurldecode( $url ), $x, $y, $x + $width, $y + $height );
+            $this->_pdf->addLink(rawurldecode($url), $x, $y, $x + $width, $y + $height);
         }
     }
 
     //........................................................................
 
-    function get_text_width( $text, $font, $size, $word_spacing = 0, $char_spacing = 0 )
+    function get_text_width($text, $font, $size, $word_spacing = 0, $char_spacing = 0)
     {
 
-        $this->_pdf->selectFont( $font );
+        $this->_pdf->selectFont($font);
 
-        $unicode = $this->_dompdf->get_option( "enable_unicode" );
+        $unicode = $this->_dompdf->get_option("enable_unicode");
         if (!$unicode) {
-            $text = mb_convert_encoding( $text, 'Windows-1252', 'UTF-8' );
+            $text = mb_convert_encoding($text, 'Windows-1252', 'UTF-8');
         }
 
-        return $this->_pdf->getTextWidth( $size, $text, $word_spacing, $char_spacing );
+        return $this->_pdf->getTextWidth($size, $text, $word_spacing, $char_spacing);
     }
 
     //........................................................................
 
-    function register_string_subset( $font, $string )
+    function register_string_subset($font, $string)
     {
 
-        $this->_pdf->registerText( $font, $string );
+        $this->_pdf->registerText($font, $string);
     }
 
     //........................................................................
 
-    function get_font_baseline( $font, $size )
+    function get_font_baseline($font, $size)
     {
 
-        $ratio = $this->_dompdf->get_option( "font_height_ratio" );
-        return $this->get_font_height( $font, $size ) / $ratio;
+        $ratio = $this->_dompdf->get_option("font_height_ratio");
+        return $this->get_font_height($font, $size) / $ratio;
     }
 
-    function get_font_height( $font, $size )
+    function get_font_height($font, $size)
     {
 
-        $this->_pdf->selectFont( $font );
+        $this->_pdf->selectFont($font);
 
-        $ratio = $this->_dompdf->get_option( "font_height_ratio" );
-        return $this->_pdf->getFontHeight( $size ) * $ratio;
+        $ratio = $this->_dompdf->get_option("font_height_ratio");
+        return $this->_pdf->getFontHeight($size) * $ratio;
     }
 
     /**
@@ -840,15 +840,15 @@ class CPDF_Adapter implements Canvas
         $text,
         $font,
         $size,
-        $color = array( 0, 0, 0 ),
+        $color = array(0, 0, 0),
         $word_space = 0.0,
         $char_space = 0.0,
         $angle = 0.0
     ) {
 
         $_t = "text";
-        $this->_page_text[] = compact( "_t", "x", "y", "text", "font", "size", "color", "word_space", "char_space",
-            "angle" );
+        $this->_page_text[] = compact("_t", "x", "y", "text", "font", "size", "color", "word_space", "char_space",
+            "angle");
     }
 
     /**
@@ -862,11 +862,11 @@ class CPDF_Adapter implements Canvas
      * @param string $code the script code
      * @param string $type the language type for script
      */
-    function page_script( $code, $type = "text/php" )
+    function page_script($code, $type = "text/php")
     {
 
         $_t = "script";
-        $this->_page_text[] = compact( "_t", "code", "type" );
+        $this->_page_text[] = compact("_t", "code", "type");
     }
 
     /*function get_font_x_height($font, $size) {
@@ -892,14 +892,14 @@ class CPDF_Adapter implements Canvas
      * @param string $filename the name of the PDF file
      * @param array  $options  associative array, 'Attachment' => 0 or 1, 'compress' => 1 or 0
      */
-    function stream( $filename, $options = null )
+    function stream($filename, $options = null)
     {
 
         // Add page text
         $this->_add_page_text();
 
         $options["Content-Disposition"] = $filename;
-        $this->_pdf->stream( $options );
+        $this->_pdf->stream($options);
     }
 
     /**
@@ -908,7 +908,7 @@ class CPDF_Adapter implements Canvas
     protected function _add_page_text()
     {
 
-        if (!count( $this->_page_text )) {
+        if (!count($this->_page_text)) {
             return;
         }
 
@@ -916,24 +916,24 @@ class CPDF_Adapter implements Canvas
         $eval = null;
 
         foreach ($this->_pages as $pid) {
-            $this->reopen_object( $pid );
+            $this->reopen_object($pid);
 
             foreach ($this->_page_text as $pt) {
-                extract( $pt );
+                extract($pt);
 
                 switch ($_t) {
                     case "text":
-                        $text = str_replace( array( "{PAGE_NUM}", "{PAGE_COUNT}" ),
-                            array( $page_number, $this->_page_count ), $text );
-                        $this->text( $x, $y, $text, $font, $size, $color, $word_space, $char_space, $angle );
+                        $text = str_replace(array("{PAGE_NUM}", "{PAGE_COUNT}"),
+                            array($page_number, $this->_page_count), $text);
+                        $this->text($x, $y, $text, $font, $size, $color, $word_space, $char_space, $angle);
                         break;
 
                     case "script":
                         if (!$eval) {
-                            $eval = new PHP_Evaluator( $this );
+                            $eval = new PHP_Evaluator($this);
                         }
-                        $eval->evaluate( $code,
-                            array( 'PAGE_NUM' => $page_number, 'PAGE_COUNT' => $this->_page_count ) );
+                        $eval->evaluate($code,
+                            array('PAGE_NUM' => $page_number, 'PAGE_COUNT' => $this->_page_count));
                         break;
                 }
             }
@@ -950,10 +950,10 @@ class CPDF_Adapter implements Canvas
      *
      * @param int $object the ID of a previously opened object
      */
-    function reopen_object( $object )
+    function reopen_object($object)
     {
 
-        $this->_pdf->reopenObject( $object );
+        $this->_pdf->reopenObject($object);
         $this->_pdf->saveState();
     }
 
@@ -963,7 +963,7 @@ class CPDF_Adapter implements Canvas
         $text,
         $font,
         $size,
-        $color = array( 0, 0, 0 ),
+        $color = array(0, 0, 0),
         $word_space = 0.0,
         $char_space = 0.0,
         $angle = 0.0
@@ -971,10 +971,10 @@ class CPDF_Adapter implements Canvas
 
         $pdf = $this->_pdf;
 
-        $pdf->setColor( $color );
+        $pdf->setColor($color);
 
         $font .= ".afm";
-        $pdf->selectFont( $font );
+        $pdf->selectFont($font);
 
         //Font_Metrics::get_font_height($font, $size) ==
         //$this->get_font_height($font, $size) ==
@@ -1005,8 +1005,8 @@ class CPDF_Adapter implements Canvas
         //print '<pre>['.$font.','.$size.','.$pdf->getFontHeight($size).','.$pdf->getFontDescender($size).','.$pdf->fonts[$pdf->currentFont]['FontBBox'][3].','.$pdf->fonts[$pdf->currentFont]['FontBBox'][1].','.$pdf->fonts[$pdf->currentFont]['FontHeightOffset'].','.$pdf->fonts[$pdf->currentFont]['Ascender'].','.$pdf->fonts[$pdf->currentFont]['Descender'].']</pre>';
         //
         //$pdf->addText($x, $this->y($y) - ($pdf->fonts[$pdf->currentFont]['FontBBox'][3]*$size)/1000, $size, $text, $angle, $word_space, $char_space);
-        $pdf->addText( $x, $this->y( $y ) - $pdf->getFontHeight( $size ), $size, $text, $angle, $word_space,
-            $char_space );
+        $pdf->addText($x, $this->y($y) - $pdf->getFontHeight($size), $size, $text, $angle, $word_space,
+            $char_space);
     }
 
     /**
@@ -1028,14 +1028,14 @@ class CPDF_Adapter implements Canvas
      *
      * @return string
      */
-    function output( $options = null )
+    function output($options = null)
     {
 
         $this->_add_page_text();
 
         $debug = isset( $options["compress"] ) && $options["compress"] != 1;
 
-        return $this->_pdf->output( $debug );
+        return $this->_pdf->output($debug);
     }
 
     /**

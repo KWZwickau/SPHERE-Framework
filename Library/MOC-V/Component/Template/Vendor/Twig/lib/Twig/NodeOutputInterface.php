@@ -16,4 +16,5 @@
  */
 interface Twig_NodeOutputInterface
 {
+
 }

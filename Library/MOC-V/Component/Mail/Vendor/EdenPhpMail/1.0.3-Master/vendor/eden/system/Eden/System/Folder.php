@@ -30,24 +30,24 @@ class Folder extends Path
      *
      * @return this
      */
-    public function create( $chmod = 0755 )
+    public function create($chmod = 0755)
     {
 
         //argument 1 must be an integer
-        Argument::i()->test( 1, 'int' );
+        Argument::i()->test(1, 'int');
 
         //if chmod is not and integer or not between 0 and 777
-        if (!is_int( $chmod ) || $chmod < 0 || $chmod > 777) {
+        if (!is_int($chmod) || $chmod < 0 || $chmod > 777) {
             //throw an error
-            Exception::i( self::ERROR_CHMOD_IS_INVALID )
-                ->addVariable( $this->data )
+            Exception::i(self::ERROR_CHMOD_IS_INVALID)
+                ->addVariable($this->data)
                 ->trigger();
         }
 
         //if it's not a directory
-        if (!is_dir( $this->data )) {
+        if (!is_dir($this->data)) {
             //then make it
-            mkdir( $this->data, $chmod, true );
+            mkdir($this->data, $chmod, true);
         }
 
         return $this;
@@ -62,7 +62,7 @@ class Folder extends Path
     {
 
         $pathArray = $this->getArray();
-        return array_pop( $pathArray );
+        return array_pop($pathArray);
     }
 
     /**
@@ -73,19 +73,19 @@ class Folder extends Path
      *
      * @return bool
      */
-    public function isFolder( $path = null )
+    public function isFolder($path = null)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string', 'null' );
+        Argument::i()->test(1, 'string', 'null');
 
         //if path is string
-        if (is_string( $path )) {
+        if (is_string($path)) {
             //return path appended
-            return is_dir( $this->data.'/'.$path );
+            return is_dir($this->data.'/'.$path);
         }
 
-        return is_dir( $this->data );
+        return is_dir($this->data);
     }
 
     /**
@@ -100,9 +100,9 @@ class Folder extends Path
         $path = $this->absolute();
 
         //if it's a directory
-        if (is_dir( $path )) {
+        if (is_dir($path)) {
             //remove it
-            rmdir( $path );
+            rmdir($path);
         }
 
         return $this;
@@ -129,15 +129,15 @@ class Folder extends Path
      *
      * @return Eden\System\Folder
      */
-    public function removeFolders( $regex = null )
+    public function removeFolders($regex = null)
     {
 
         //argument 1 must be a string or null
-        Argument::i()->test( 1, 'string', 'null' );
+        Argument::i()->test(1, 'string', 'null');
 
         $this->absolute();
 
-        $folders = $this->getFolders( $regex );
+        $folders = $this->getFolders($regex);
 
         if (empty( $folders )) {
             return $this;
@@ -160,40 +160,40 @@ class Folder extends Path
      *
      * @return array
      */
-    public function getFolders( $regex = null, $recursive = false )
+    public function getFolders($regex = null, $recursive = false)
     {
 
         //argument test
         Argument::i()
             //argument 1 must be a string
-            ->test( 1, 'string', 'null' )
+            ->test(1, 'string', 'null')
             //argument 2 must be a boolean
-            ->test( 2, 'bool' );
+            ->test(2, 'bool');
 
         $this->absolute();
 
         $folders = array();
 
-        if ($handle = opendir( $this->data )) {
+        if ($handle = opendir($this->data)) {
             //walk the directory
-            while (false !== ( $folder = readdir( $handle ) )) {
+            while (false !== ( $folder = readdir($handle) )) {
                 // If this is infact a directory
                 //and if it matches the regex
                 if ($folder != '.' && $folder != '..'
-                    && filetype( $this->data.'/'.$folder ) == 'dir'
-                    && ( !$regex || preg_match( $regex, $folder ) )
+                    && filetype($this->data.'/'.$folder) == 'dir'
+                    && ( !$regex || preg_match($regex, $folder) )
                 ) {
 
                     //add it
-                    $folders[] = self::i( $this->data.'/'.$folder );
+                    $folders[] = self::i($this->data.'/'.$folder);
                     if ($recursive) {
-                        $subfolders = self::i( $this->data.'/'.$folder );
-                        $folders = array_merge( $folders, $subfolders->getFolders( $regex, $recursive ) );
+                        $subfolders = self::i($this->data.'/'.$folder);
+                        $folders = array_merge($folders, $subfolders->getFolders($regex, $recursive));
                     }
 
                 }
             }
-            closedir( $handle );
+            closedir($handle);
         }
 
         return $folders;
@@ -206,14 +206,14 @@ class Folder extends Path
      *
      * @return Eden\System\Folder
      */
-    public function removeFiles( $regex = null )
+    public function removeFiles($regex = null)
     {
 
         //argument 1 must be a string
-        Argument::i()->test( 1, 'string', 'null' );
+        Argument::i()->test(1, 'string', 'null');
 
         //get the files
-        $files = $this->getFiles( $regex );
+        $files = $this->getFiles($regex);
 
         if (empty( $files )) {
             return $this;
@@ -236,41 +236,41 @@ class Folder extends Path
      *
      * @return array
      */
-    public function getFiles( $regex = null, $recursive = false )
+    public function getFiles($regex = null, $recursive = false)
     {
 
         //argument test
         Argument::i()
             //argument 1 must be a string
-            ->test( 1, 'string', 'null' )
+            ->test(1, 'string', 'null')
             //argument 2 must be a boolean
-            ->test( 2, 'bool' );
+            ->test(2, 'bool');
 
         $this->absolute();
 
         $files = array();
 
-        if ($handle = opendir( $this->data )) {
+        if ($handle = opendir($this->data)) {
             //for each file
-            while (false !== ( $file = readdir( $handle ) )) {
+            while (false !== ( $file = readdir($handle) )) {
                 // If this is infact a file
-                if (filetype( $this->data.'/'.$file ) == 'file'
-                    && ( !$regex || preg_match( $regex, $file ) )
+                if (filetype($this->data.'/'.$file) == 'file'
+                    && ( !$regex || preg_match($regex, $file) )
                 ) {
                     //add it
-                    $files[] = File::i( $this->data.'/'.$file );
+                    $files[] = File::i($this->data.'/'.$file);
                     // recursive and this is infact a directory
                 } else {
                     if ($recursive && $file != '.' && $file != '..'
-                        && filetype( $this->data.'/'.$file ) == 'dir'
+                        && filetype($this->data.'/'.$file) == 'dir'
                     ) {
-                        $subfiles = self::i( $this->data.'/'.$file );
-                        $files = array_merge( $files, $subfiles->getFiles( $regex, $recursive ) );
+                        $subfiles = self::i($this->data.'/'.$file);
+                        $files = array_merge($files, $subfiles->getFiles($regex, $recursive));
                     }
                 }
             }
 
-            closedir( $handle );
+            closedir($handle);
         }
 
         return $files;

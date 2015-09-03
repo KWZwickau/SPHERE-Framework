@@ -20,6 +20,7 @@ use Symfony\Component\Config\Resource\ResourceInterface;
  */
 interface ConfigCacheInterface
 {
+
     /**
      * Gets the cache file path.
      *

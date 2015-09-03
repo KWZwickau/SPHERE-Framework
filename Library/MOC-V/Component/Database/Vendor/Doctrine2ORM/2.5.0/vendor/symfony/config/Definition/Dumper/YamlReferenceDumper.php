@@ -11,10 +11,10 @@
 
 namespace Symfony\Component\Config\Definition\Dumper;
 
-use Symfony\Component\Config\Definition\ConfigurationInterface;
-use Symfony\Component\Config\Definition\NodeInterface;
 use Symfony\Component\Config\Definition\ArrayNode;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\EnumNode;
+use Symfony\Component\Config\Definition\NodeInterface;
 use Symfony\Component\Config\Definition\PrototypedArrayNode;
 use Symfony\Component\Yaml\Inline;
 
@@ -25,15 +25,18 @@ use Symfony\Component\Yaml\Inline;
  */
 class YamlReferenceDumper
 {
+
     private $reference;
 
     public function dump(ConfigurationInterface $configuration)
     {
+
         return $this->dumpNode($configuration->getConfigTreeBuilder()->buildTree());
     }
 
     public function dumpNode(NodeInterface $node)
     {
+
         $this->reference = '';
         $this->writeNode($node);
         $ref = $this->reference;
@@ -48,6 +51,7 @@ class YamlReferenceDumper
      */
     private function writeNode(NodeInterface $node, $depth = 0)
     {
+
         $comments = array();
         $default = '';
         $defaultArray = null;
@@ -67,7 +71,7 @@ class YamlReferenceDumper
 
                 // check for attribute as key
                 if ($key = $node->getKeyAttribute()) {
-                    $keyNodeClass = 'Symfony\Component\Config\Definition\\'.($prototype instanceof ArrayNode ? 'ArrayNode' : 'ScalarNode');
+                    $keyNodeClass = 'Symfony\Component\Config\Definition\\'.( $prototype instanceof ArrayNode ? 'ArrayNode' : 'ScalarNode' );
                     $keyNode = new $keyNodeClass($key, $node);
                     $keyNode->setInfo('Prototype');
 
@@ -117,7 +121,7 @@ class YamlReferenceDumper
             $comments[] = 'Example: '.$example;
         }
 
-        $default = (string) $default != '' ? ' '.$default : '';
+        $default = (string)$default != '' ? ' '.$default : '';
         $comments = count($comments) ? '# '.implode(', ', $comments) : '';
 
         $text = rtrim(sprintf('%-20s %s %s', $node->getName().':', $default, $comments), ' ');
@@ -125,7 +129,7 @@ class YamlReferenceDumper
         if ($info = $node->getInfo()) {
             $this->writeLine('');
             // indenting multi-line info
-            $info = str_replace("\n", sprintf("\n%".($depth * 4)."s# ", ' '), $info);
+            $info = str_replace("\n", sprintf("\n%".( $depth * 4 )."s# ", ' '), $info);
             $this->writeLine('# '.$info, $depth * 4);
         }
 
@@ -167,6 +171,7 @@ class YamlReferenceDumper
      */
     private function writeLine($text, $indent = 0)
     {
+
         $indent = strlen($text) + $indent;
         $format = '%'.$indent.'s';
 
@@ -175,6 +180,7 @@ class YamlReferenceDumper
 
     private function writeArray(array $array, $depth)
     {
+
         $isIndexed = array_values($array) === $array;
 
         foreach ($array as $key => $value) {

@@ -20,7 +20,6 @@
 namespace Doctrine\ORM\Persisters\Collection;
 
 use Doctrine\Common\Collections\Criteria;
-use Doctrine\Common\Proxy\Proxy;
 use Doctrine\ORM\PersistentCollection;
 
 /**
@@ -33,11 +32,13 @@ use Doctrine\ORM\PersistentCollection;
  */
 class OneToManyPersister extends AbstractCollectionPersister
 {
+
     /**
      * {@inheritdoc}
      */
     public function delete(PersistentCollection $collection)
     {
+
         // This can never happen. One to many can only be inverse side.
         // For owning side one to many, it is required to have a join table,
         // then classifying it as a ManyToManyPersister.
@@ -49,6 +50,7 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function update(PersistentCollection $collection)
     {
+
         // This can never happen. One to many can only be inverse side.
         // For owning side one to many, it is required to have a join table,
         // then classifying it as a ManyToManyPersister.
@@ -60,9 +62,10 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function get(PersistentCollection $collection, $index)
     {
+
         $mapping = $collection->getMapping();
 
-        if ( ! isset($mapping['indexBy'])) {
+        if (!isset( $mapping['indexBy'] )) {
             throw new \BadMethodCallException("Selecting a collection by index is only supported on indexed collections.");
         }
 
@@ -86,7 +89,8 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function count(PersistentCollection $collection)
     {
-        $mapping   = $collection->getMapping();
+
+        $mapping = $collection->getMapping();
         $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
         // only works with single id identifier entities. Will throw an
@@ -102,7 +106,8 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function slice(PersistentCollection $collection, $offset, $length = null)
     {
-        $mapping   = $collection->getMapping();
+
+        $mapping = $collection->getMapping();
         $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
         return $persister->getOneToManyCollection($mapping, $collection->getOwner(), $offset, $length);
@@ -113,9 +118,10 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function containsKey(PersistentCollection $collection, $key)
     {
+
         $mapping = $collection->getMapping();
 
-        if ( ! isset($mapping['indexBy'])) {
+        if (!isset( $mapping['indexBy'] )) {
             throw new \BadMethodCallException("Selecting a collection by index is only supported on indexed collections.");
         }
 
@@ -129,19 +135,20 @@ class OneToManyPersister extends AbstractCollectionPersister
         $criteria->andWhere(Criteria::expr()->eq($mapping['mappedBy'], $collection->getOwner()));
         $criteria->andWhere(Criteria::expr()->eq($mapping['indexBy'], $key));
 
-        return (bool) $persister->count($criteria);
+        return (bool)$persister->count($criteria);
     }
 
-     /**
+    /**
      * {@inheritdoc}
      */
     public function contains(PersistentCollection $collection, $element)
     {
-        if ( ! $this->isValidEntityState($element)) {
+
+        if (!$this->isValidEntityState($element)) {
             return false;
         }
 
-        $mapping   = $collection->getMapping();
+        $mapping = $collection->getMapping();
         $persister = $this->uow->getEntityPersister($mapping['targetEntity']);
 
         // only works with single id identifier entities. Will throw an
@@ -157,14 +164,15 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function removeElement(PersistentCollection $collection, $element)
     {
+
         $mapping = $collection->getMapping();
 
-        if ( ! $mapping['orphanRemoval']) {
+        if (!$mapping['orphanRemoval']) {
             // no-op: this is not the owning side, therefore no operations should be applied
             return false;
         }
 
-        if ( ! $this->isValidEntityState($element)) {
+        if (!$this->isValidEntityState($element)) {
             return false;
         }
 
@@ -179,6 +187,7 @@ class OneToManyPersister extends AbstractCollectionPersister
      */
     public function loadCriteria(PersistentCollection $collection, Criteria $criteria)
     {
+
         throw new \BadMethodCallException("Filtering a collection by Criteria is not supported by this CollectionPersister.");
     }
 }

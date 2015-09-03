@@ -16,11 +16,13 @@ use Symfony\Component\Config\Definition\ScalarNode;
 
 class ArrayNodeTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @expectedException \Symfony\Component\Config\Definition\Exception\InvalidTypeException
      */
     public function testNormalizeThrowsExceptionWhenFalseIsNotAllowed()
     {
+
         $node = new ArrayNode('root');
         $node->normalize(false);
     }
@@ -31,6 +33,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionThrownOnUnrecognizedChild()
     {
+
         $node = new ArrayNode('root');
         $node->normalize(array('foo' => 'bar'));
     }
@@ -43,6 +46,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testIgnoreExtraKeysNoException()
     {
+
         $node = new ArrayNode('roo');
         $node->setIgnoreExtraKeys(true);
 
@@ -58,6 +62,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testIgnoreExtraKeysNotRemoved()
     {
+
         $node = new ArrayNode('roo');
         $node->setIgnoreExtraKeys(true, false);
 
@@ -70,6 +75,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testPreNormalize($denormalized, $normalized)
     {
+
         $node = new ArrayNode('foo');
 
         $r = new \ReflectionMethod($node, 'preNormalize');
@@ -80,6 +86,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
 
     public function getPreNormalizationTests()
     {
+
         return array(
             array(
                 array('foo-bar' => 'foo'),
@@ -101,6 +108,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testNodeNameCanBeZero($denormalized, $normalized)
     {
+
         $zeroNode = new ArrayNode(0);
         $zeroNode->addChild(new ScalarNode('name'));
         $fiveNode = new ArrayNode(5);
@@ -118,6 +126,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
 
     public function getZeroNamedNodeExamplesData()
     {
+
         return array(
             array(
                 array(
@@ -149,6 +158,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
      */
     public function testChildrenOrderIsMaintainedOnNormalizeValue($prenormalized, $normalized)
     {
+
         $scalar1 = new ScalarNode('1');
         $scalar2 = new ScalarNode('2');
         $scalar3 = new ScalarNode('3');
@@ -165,6 +175,7 @@ class ArrayNodeTest extends \PHPUnit_Framework_TestCase
 
     public function getPreNormalizedNormalizedOrderedData()
     {
+
         return array(
             array(
                 array('2' => 'two', '1' => 'one', '3' => 'three'),

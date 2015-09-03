@@ -8,23 +8,25 @@ use Doctrine\DBAL\Sharding\SQLAzure\SQLAzureShardManager;
 
 abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
 {
+
     protected $conn;
     protected $sm;
 
     public function setUp()
     {
-        if (!isset($GLOBALS['db_type']) || strpos($GLOBALS['db_type'], "sqlsrv") === false) {
+
+        if (!isset( $GLOBALS['db_type'] ) || strpos($GLOBALS['db_type'], "sqlsrv") === false) {
             $this->markTestSkipped('No driver or sqlserver driver specified.');
         }
 
         $params = array(
-            'driver' => $GLOBALS['db_type'],
-            'dbname' => $GLOBALS['db_name'],
-            'user' => $GLOBALS['db_username'],
+            'driver'   => $GLOBALS['db_type'],
+            'dbname'   => $GLOBALS['db_name'],
+            'user'     => $GLOBALS['db_username'],
             'password' => $GLOBALS['db_password'],
-            'host' => $GLOBALS['db_host'],
+            'host'     => $GLOBALS['db_host'],
             'sharding' => array(
-                'federationName' => 'Orders_Federation',
+                'federationName'  => 'Orders_Federation',
                 'distributionKey' => 'CustID',
                 'distributionType' => 'integer',
                 'filteringEnabled' => false,
@@ -41,6 +43,7 @@ abstract class AbstractTestCase extends \PHPUnit_Framework_TestCase
 
     public function createShopSchema()
     {
+
         $schema = new Schema();
 
         $products = $schema->createTable('Products');

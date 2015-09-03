@@ -39,6 +39,7 @@ use Doctrine\Common\Persistence\Mapping\ClassMetadata;
  */
 interface ObjectManagerAware
 {
+
     /**
      * Injects responsible ObjectManager and the ClassMetadata into this persistent object.
      *

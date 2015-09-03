@@ -18,6 +18,7 @@ namespace Prophecy\Argument\Token;
  */
 class AnyValuesToken implements TokenInterface
 {
+
     /**
      * Always scores 2 for any argument.
      *
@@ -27,6 +28,7 @@ class AnyValuesToken implements TokenInterface
      */
     public function scoreArgument($argument)
     {
+
         return 2;
     }
 
@@ -37,6 +39,7 @@ class AnyValuesToken implements TokenInterface
      */
     public function isLast()
     {
+
         return true;
     }
 
@@ -47,6 +50,7 @@ class AnyValuesToken implements TokenInterface
      */
     public function __toString()
     {
+
         return '* [, ...]';
     }
 }

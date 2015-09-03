@@ -19,6 +19,7 @@ namespace Symfony\Component\Routing;
  */
 class RouteCompiler implements RouteCompilerInterface
 {
+
     const REGEX_DELIMITER = '#';
 
     /**
@@ -37,6 +38,7 @@ class RouteCompiler implements RouteCompilerInterface
      */
     public static function compile(Route $route)
     {
+
         $staticPrefix = null;
         $hostVariables = array();
         $pathVariables = array();
@@ -82,6 +84,7 @@ class RouteCompiler implements RouteCompilerInterface
 
     private static function compilePattern(Route $route, $pattern, $isHost)
     {
+
         $tokens = array();
         $variables = array();
         $matches = array();
@@ -100,10 +103,12 @@ class RouteCompiler implements RouteCompilerInterface
             $isSeparator = '' !== $precedingChar && false !== strpos(static::SEPARATORS, $precedingChar);
 
             if (is_numeric($varName)) {
-                throw new \DomainException(sprintf('Variable name "%s" cannot be numeric in route pattern "%s". Please use a different name.', $varName, $pattern));
+                throw new \DomainException(sprintf('Variable name "%s" cannot be numeric in route pattern "%s". Please use a different name.',
+                    $varName, $pattern));
             }
             if (in_array($varName, $variables)) {
-                throw new \LogicException(sprintf('Route pattern "%s" cannot reference variable name "%s" more than once.', $pattern, $varName));
+                throw new \LogicException(sprintf('Route pattern "%s" cannot reference variable name "%s" more than once.',
+                    $pattern, $varName));
             }
 
             if ($isSeparator && strlen($precedingText) > 1) {
@@ -114,7 +119,7 @@ class RouteCompiler implements RouteCompilerInterface
 
             $regexp = $route->getRequirement($varName);
             if (null === $regexp) {
-                $followingPattern = (string) substr($pattern, $pos);
+                $followingPattern = (string)substr($pattern, $pos);
                 // Find the next static character after the variable that functions as a separator. By default, this separator and '/'
                 // are disallowed for the variable. This default requirement makes sure that optional variables can be matched at all
                 // and that the generating-matching-combination of URLs unambiguous, i.e. the params used for generating the URL are
@@ -126,9 +131,12 @@ class RouteCompiler implements RouteCompilerInterface
                 $regexp = sprintf(
                     '[^%s%s]+',
                     preg_quote($defaultSeparator, self::REGEX_DELIMITER),
-                    $defaultSeparator !== $nextSeparator && '' !== $nextSeparator ? preg_quote($nextSeparator, self::REGEX_DELIMITER) : ''
+                    $defaultSeparator !== $nextSeparator && '' !== $nextSeparator ? preg_quote($nextSeparator,
+                        self::REGEX_DELIMITER) : ''
                 );
-                if (('' !== $nextSeparator && !preg_match('#^\{\w+\}#', $followingPattern)) || '' === $followingPattern) {
+                if (( '' !== $nextSeparator && !preg_match('#^\{\w+\}#',
+                            $followingPattern) ) || '' === $followingPattern
+                ) {
                     // When we have a separator, which is disallowed for the variable, we can optimize the regex with a possessive
                     // quantifier. This prevents useless backtracking of PCRE and improves performance by 20% for matching those patterns.
                     // Given the above example, there is no point in backtracking into {page} (that forbids the dot) when a dot must follow
@@ -167,8 +175,8 @@ class RouteCompiler implements RouteCompilerInterface
 
         return array(
             'staticPrefix' => 'text' === $tokens[0][0] ? $tokens[0][1] : '',
-            'regex' => self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'s',
-            'tokens' => array_reverse($tokens),
+            'regex'     => self::REGEX_DELIMITER.'^'.$regexp.'$'.self::REGEX_DELIMITER.'s',
+            'tokens'    => array_reverse($tokens),
             'variables' => $variables,
         );
     }
@@ -182,6 +190,7 @@ class RouteCompiler implements RouteCompilerInterface
      */
     private static function findNextSeparator($pattern)
     {
+
         if ('' == $pattern) {
             // return empty string if pattern is empty or false (false which can be returned by substr)
             return '';
@@ -189,20 +198,21 @@ class RouteCompiler implements RouteCompilerInterface
         // first remove all placeholders from the pattern so we can find the next real static character
         $pattern = preg_replace('#\{\w+\}#', '', $pattern);
 
-        return isset($pattern[0]) && false !== strpos(static::SEPARATORS, $pattern[0]) ? $pattern[0] : '';
+        return isset( $pattern[0] ) && false !== strpos(static::SEPARATORS, $pattern[0]) ? $pattern[0] : '';
     }
 
     /**
      * Computes the regexp used to match a specific token. It can be static text or a subpattern.
      *
-     * @param array   $tokens        The route tokens
-     * @param int     $index         The index of the current token
-     * @param int     $firstOptional The index of the first optional token
+     * @param array $tokens        The route tokens
+     * @param int   $index         The index of the current token
+     * @param int   $firstOptional The index of the first optional token
      *
      * @return string The regexp pattern for a single token
      */
     private static function computeRegexp(array $tokens, $index, $firstOptional)
     {
+
         $token = $tokens[$index];
         if ('text' === $token[0]) {
             // Text tokens
@@ -222,7 +232,7 @@ class RouteCompiler implements RouteCompilerInterface
                     $nbTokens = count($tokens);
                     if ($nbTokens - 1 == $index) {
                         // Close the optional subpatterns
-                        $regexp .= str_repeat(")?", $nbTokens - $firstOptional - (0 === $firstOptional ? 1 : 0));
+                        $regexp .= str_repeat(")?", $nbTokens - $firstOptional - ( 0 === $firstOptional ? 1 : 0 ));
                     }
                 }
 

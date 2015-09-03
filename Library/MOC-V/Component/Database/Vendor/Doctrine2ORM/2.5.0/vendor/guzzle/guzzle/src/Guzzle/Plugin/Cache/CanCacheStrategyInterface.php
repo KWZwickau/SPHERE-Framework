@@ -10,6 +10,7 @@ use Guzzle\Http\Message\Response;
  */
 interface CanCacheStrategyInterface
 {
+
     /**
      * Determine if a request can be cached
      *

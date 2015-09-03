@@ -2,16 +2,18 @@
 
 namespace Guzzle\Tests\Http\Exception;
 
-use Guzzle\Http\Exception\CurlException;
 use Guzzle\Http\Curl\CurlHandle;
+use Guzzle\Http\Exception\CurlException;
 
 /**
  * @covers Guzzle\Http\Exception\CurlException
  */
 class CurlExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testStoresCurlError()
     {
+
         $e = new CurlException();
         $this->assertNull($e->getError());
         $this->assertNull($e->getErrorNo());

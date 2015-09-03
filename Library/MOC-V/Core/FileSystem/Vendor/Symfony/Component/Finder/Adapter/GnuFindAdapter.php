@@ -23,22 +23,25 @@ use Symfony\Component\Finder\Shell\Shell;
  */
 class GnuFindAdapter extends AbstractFindAdapter
 {
+
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return 'gnu_find';
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function buildFormatSorting( Command $command, $sort )
+    protected function buildFormatSorting(Command $command, $sort)
     {
+
         switch ($sort) {
             case SortableIterator::SORT_BY_NAME:
-                $command->ins( 'sort' )->add( '| sort' );
+                $command->ins('sort')->add('| sort');
 
                 return;
             case SortableIterator::SORT_BY_TYPE:
@@ -54,16 +57,16 @@ class GnuFindAdapter extends AbstractFindAdapter
                 $format = '%T@';
                 break;
             default:
-                throw new \InvalidArgumentException( sprintf( 'Unknown sort options: %s.', $sort ) );
+                throw new \InvalidArgumentException(sprintf('Unknown sort options: %s.', $sort));
         }
 
         $command
-            ->get( 'find' )
-            ->add( '-printf' )
-            ->arg( $format.' %h/%f\\n' )
-            ->add( '| sort | cut' )
-            ->arg( '-d ' )
-            ->arg( '-f2-' );
+            ->get('find')
+            ->add('-printf')
+            ->arg($format.' %h/%f\\n')
+            ->add('| sort | cut')
+            ->arg('-d ')
+            ->arg('-f2-');
     }
 
     /**
@@ -71,33 +74,35 @@ class GnuFindAdapter extends AbstractFindAdapter
      */
     protected function canBeUsed()
     {
+
         return $this->shell->getType() === Shell::TYPE_UNIX && parent::canBeUsed();
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function buildFindCommand( Command $command, $dir )
+    protected function buildFindCommand(Command $command, $dir)
     {
 
-        return parent::buildFindCommand( $command, $dir )->add( '-regextype posix-extended' );
+        return parent::buildFindCommand($command, $dir)->add('-regextype posix-extended');
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function buildContentFiltering( Command $command, array $contains, $not = false )
+    protected function buildContentFiltering(Command $command, array $contains, $not = false)
     {
+
         foreach ($contains as $contain) {
-            $expr = Expression::create( $contain );
+            $expr = Expression::create($contain);
 
             // todo: avoid forking process for each $pattern by using multiple -e options
             $command
-                ->add( '| xargs -I{} -r grep -I' )
-                ->add( $expr->isCaseSensitive() ? null : '-i' )
-                ->add( $not ? '-L' : '-l' )
-                ->add( '-Ee' )->arg( $expr->renderPattern() )
-                ->add( '{}' );
+                ->add('| xargs -I{} -r grep -I')
+                ->add($expr->isCaseSensitive() ? null : '-i')
+                ->add($not ? '-L' : '-l')
+                ->add('-Ee')->arg($expr->renderPattern())
+                ->add('{}');
         }
     }
 }

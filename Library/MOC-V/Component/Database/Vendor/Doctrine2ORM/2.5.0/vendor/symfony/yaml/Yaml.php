@@ -22,6 +22,7 @@ use Symfony\Component\Yaml\Exception\ParseException;
  */
 class Yaml
 {
+
     /**
      * Parses YAML into a PHP array.
      *
@@ -53,10 +54,12 @@ class Yaml
      */
     public static function parse($input, $exceptionOnInvalidType = false, $objectSupport = false, $objectForMap = false)
     {
+
         // if input is a file, process it
         $file = '';
         if (strpos($input, "\n") === false && is_file($input)) {
-            @trigger_error('The ability to pass file names to the '.__METHOD__.' method is deprecated since version 2.2 and will be removed in 3.0. Pass the YAML contents of the file instead.', E_USER_DEPRECATED);
+            @trigger_error('The ability to pass file names to the '.__METHOD__.' method is deprecated since version 2.2 and will be removed in 3.0. Pass the YAML contents of the file instead.',
+                E_USER_DEPRECATED);
 
             if (false === is_readable($input)) {
                 throw new ParseException(sprintf('Unable to parse "%s" as the file is not readable.', $input));
@@ -95,8 +98,14 @@ class Yaml
      *
      * @api
      */
-    public static function dump($array, $inline = 2, $indent = 4, $exceptionOnInvalidType = false, $objectSupport = false)
-    {
+    public static function dump(
+        $array,
+        $inline = 2,
+        $indent = 4,
+        $exceptionOnInvalidType = false,
+        $objectSupport = false
+    ) {
+
         $yaml = new Dumper();
         $yaml->setIndentation($indent);
 

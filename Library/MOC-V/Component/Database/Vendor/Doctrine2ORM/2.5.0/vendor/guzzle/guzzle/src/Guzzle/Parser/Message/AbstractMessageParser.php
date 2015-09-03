@@ -7,6 +7,7 @@ namespace Guzzle\Parser\Message;
  */
 abstract class AbstractMessageParser implements MessageParserInterface
 {
+
     /**
      * Create URL parts from HTTP message parts
      *
@@ -17,6 +18,7 @@ abstract class AbstractMessageParser implements MessageParserInterface
      */
     protected function getUrlPartsFromMessage($requestUrl, array $parts)
     {
+
         // Parse the URL information from the message
         $urlParts = array(
             'path'   => $requestUrl,
@@ -24,9 +26,9 @@ abstract class AbstractMessageParser implements MessageParserInterface
         );
 
         // Check for the Host header
-        if (isset($parts['headers']['Host'])) {
+        if (isset( $parts['headers']['Host'] )) {
             $urlParts['host'] = $parts['headers']['Host'];
-        } elseif (isset($parts['headers']['host'])) {
+        } elseif (isset( $parts['headers']['host'] )) {
             $urlParts['host'] = $parts['headers']['host'];
         } else {
             $urlParts['host'] = null;
@@ -37,7 +39,7 @@ abstract class AbstractMessageParser implements MessageParserInterface
         } else {
             $hostParts = explode(':', $urlParts['host']);
             $urlParts['host'] = trim($hostParts[0]);
-            $urlParts['port'] = (int) trim($hostParts[1]);
+            $urlParts['port'] = (int)trim($hostParts[1]);
             if ($urlParts['port'] == 443) {
                 $urlParts['scheme'] = 'https';
             }

@@ -12,8 +12,8 @@
 namespace Symfony\Component\Config\Definition\Builder;
 
 use Symfony\Component\Config\Definition\ArrayNode;
-use Symfony\Component\Config\Definition\PrototypedArrayNode;
 use Symfony\Component\Config\Definition\Exception\InvalidDefinitionException;
+use Symfony\Component\Config\Definition\PrototypedArrayNode;
 
 /**
  * This class provides a fluent interface for defining an array node.
@@ -22,6 +22,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidDefinitionException;
  */
 class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinitionInterface
 {
+
     protected $performDeepMerging = true;
     protected $ignoreExtraKeys = false;
     protected $removeExtraKeys = true;
@@ -41,6 +42,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function __construct($name, NodeParentInterface $parent = null)
     {
+
         parent::__construct($name, $parent);
 
         $this->nullEquivalent = array();
@@ -54,17 +56,8 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function setBuilder(NodeBuilder $builder)
     {
-        $this->nodeBuilder = $builder;
-    }
 
-    /**
-     * Returns a builder to add children nodes.
-     *
-     * @return NodeBuilder
-     */
-    public function children()
-    {
-        return $this->getNodeBuilder();
+        $this->nodeBuilder = $builder;
     }
 
     /**
@@ -76,23 +69,23 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function prototype($type)
     {
+
         return $this->prototype = $this->getNodeBuilder()->node(null, $type)->setParent($this);
     }
 
     /**
-     * Adds the default value if the node is not set in the configuration.
+     * Returns a node builder to be used to add children and prototype.
      *
-     * This method is applicable to concrete nodes only (not to prototype nodes).
-     * If this function has been called and the node is not set during the finalization
-     * phase, it's default value will be derived from its children default values.
-     *
-     * @return ArrayNodeDefinition
+     * @return NodeBuilder The node builder
      */
-    public function addDefaultsIfNotSet()
+    protected function getNodeBuilder()
     {
-        $this->addDefaults = true;
 
-        return $this;
+        if (null === $this->nodeBuilder) {
+            $this->nodeBuilder = new NodeBuilder();
+        }
+
+        return $this->nodeBuilder->setParent($this);
     }
 
     /**
@@ -106,6 +99,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function addDefaultChildrenIfNoneSet($children = null)
     {
+
         $this->addDefaultChildren = $children;
 
         return $this;
@@ -120,6 +114,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function requiresAtLeastOneElement()
     {
+
         $this->atLeastOne = true;
 
         return $this;
@@ -134,6 +129,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function disallowNewKeysInSubsequentConfigs()
     {
+
         $this->allowNewKeys = false;
 
         return $this;
@@ -149,6 +145,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function fixXmlConfig($singular, $plural = null)
     {
+
         $this->normalization()->remap($singular, $plural);
 
         return $this;
@@ -184,6 +181,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function useAttributeAsKey($name, $removeKeyItem = true)
     {
+
         $this->key = $name;
         $this->removeKeyItem = $removeKeyItem;
 
@@ -199,6 +197,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function canBeUnset($allow = true)
     {
+
         $this->merge()->allowUnset($allow);
 
         return $this;
@@ -221,23 +220,41 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function canBeEnabled()
     {
+
         $this
             ->addDefaultsIfNotSet()
             ->treatFalseLike(array('enabled' => false))
             ->treatTrueLike(array('enabled' => true))
             ->treatNullLike(array('enabled' => true))
             ->beforeNormalization()
-                ->ifArray()
-                ->then(function ($v) {
-                    $v['enabled'] = isset($v['enabled']) ? $v['enabled'] : true;
+            ->ifArray()
+            ->then(function ($v) {
 
-                    return $v;
-                })
+                $v['enabled'] = isset( $v['enabled'] ) ? $v['enabled'] : true;
+
+                return $v;
+            })
             ->end()
             ->children()
-                ->booleanNode('enabled')
-                    ->defaultFalse()
-        ;
+            ->booleanNode('enabled')
+            ->defaultFalse();
+
+        return $this;
+    }
+
+    /**
+     * Adds the default value if the node is not set in the configuration.
+     *
+     * This method is applicable to concrete nodes only (not to prototype nodes).
+     * If this function has been called and the node is not set during the finalization
+     * phase, it's default value will be derived from its children default values.
+     *
+     * @return ArrayNodeDefinition
+     */
+    public function addDefaultsIfNotSet()
+    {
+
+        $this->addDefaults = true;
 
         return $this;
     }
@@ -251,17 +268,28 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function canBeDisabled()
     {
+
         $this
             ->addDefaultsIfNotSet()
             ->treatFalseLike(array('enabled' => false))
             ->treatTrueLike(array('enabled' => true))
             ->treatNullLike(array('enabled' => true))
             ->children()
-                ->booleanNode('enabled')
-                    ->defaultTrue()
-        ;
+            ->booleanNode('enabled')
+            ->defaultTrue();
 
         return $this;
+    }
+
+    /**
+     * Returns a builder to add children nodes.
+     *
+     * @return NodeBuilder
+     */
+    public function children()
+    {
+
+        return $this->getNodeBuilder();
     }
 
     /**
@@ -271,6 +299,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function performNoDeepMerging()
     {
+
         $this->performDeepMerging = false;
 
         return $this;
@@ -291,6 +320,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function ignoreExtraKeys($remove = true)
     {
+
         $this->ignoreExtraKeys = true;
         $this->removeExtraKeys = $remove;
 
@@ -306,7 +336,8 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function normalizeKeys($bool)
     {
-        $this->normalizeKeys = (bool) $bool;
+
+        $this->normalizeKeys = (bool)$bool;
 
         return $this;
     }
@@ -328,23 +359,10 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     public function append(NodeDefinition $node)
     {
+
         $this->children[$node->name] = $node->setParent($this);
 
         return $this;
-    }
-
-    /**
-     * Returns a node builder to be used to add children and prototype.
-     *
-     * @return NodeBuilder The node builder
-     */
-    protected function getNodeBuilder()
-    {
-        if (null === $this->nodeBuilder) {
-            $this->nodeBuilder = new NodeBuilder();
-        }
-
-        return $this->nodeBuilder->setParent($this);
     }
 
     /**
@@ -352,6 +370,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     protected function createNode()
     {
+
         if (null === $this->prototype) {
             $node = new ArrayNode($this->name, $this->parent);
 
@@ -426,6 +445,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     protected function validateConcreteNode(ArrayNode $node)
     {
+
         $path = $node->getPath();
 
         if (null !== $this->key) {
@@ -462,6 +482,7 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
      */
     protected function validatePrototypeNode(PrototypedArrayNode $node)
     {
+
         $path = $node->getPath();
 
         if ($this->addDefaults) {
@@ -477,15 +498,17 @@ class ArrayNodeDefinition extends NodeDefinition implements ParentNodeDefinition
                 );
             }
 
-            if (null !== $this->key && (null === $this->addDefaultChildren || is_int($this->addDefaultChildren) && $this->addDefaultChildren > 0)) {
+            if (null !== $this->key && ( null === $this->addDefaultChildren || is_int($this->addDefaultChildren) && $this->addDefaultChildren > 0 )) {
                 throw new InvalidDefinitionException(
-                    sprintf('->addDefaultChildrenIfNoneSet() should set default children names as ->useAttributeAsKey() is used at path "%s"', $path)
+                    sprintf('->addDefaultChildrenIfNoneSet() should set default children names as ->useAttributeAsKey() is used at path "%s"',
+                        $path)
                 );
             }
 
-            if (null === $this->key && (is_string($this->addDefaultChildren) || is_array($this->addDefaultChildren))) {
+            if (null === $this->key && ( is_string($this->addDefaultChildren) || is_array($this->addDefaultChildren) )) {
                 throw new InvalidDefinitionException(
-                    sprintf('->addDefaultChildrenIfNoneSet() might not set default children names as ->useAttributeAsKey() is not used at path "%s"', $path)
+                    sprintf('->addDefaultChildrenIfNoneSet() might not set default children names as ->useAttributeAsKey() is not used at path "%s"',
+                        $path)
                 );
             }
         }

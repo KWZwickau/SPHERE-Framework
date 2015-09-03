@@ -33,11 +33,13 @@ use Doctrine\DBAL\Schema\OracleSchemaManager;
  */
 abstract class AbstractOracleDriver implements Driver, ExceptionConverterDriver
 {
+
     /**
      * {@inheritdoc}
      */
     public function convertException($message, DriverException $exception)
     {
+
         switch ($exception->getErrorCode()) {
             case '1':
             case '2299':
@@ -81,6 +83,7 @@ abstract class AbstractOracleDriver implements Driver, ExceptionConverterDriver
      */
     public function getDatabase(\Doctrine\DBAL\Connection $conn)
     {
+
         $params = $conn->getParams();
 
         return $params['user'];
@@ -91,6 +94,7 @@ abstract class AbstractOracleDriver implements Driver, ExceptionConverterDriver
      */
     public function getDatabasePlatform()
     {
+
         return new OraclePlatform();
     }
 
@@ -99,6 +103,7 @@ abstract class AbstractOracleDriver implements Driver, ExceptionConverterDriver
      */
     public function getSchemaManager(\Doctrine\DBAL\Connection $conn)
     {
+
         return new OracleSchemaManager($conn);
     }
 
@@ -113,39 +118,40 @@ abstract class AbstractOracleDriver implements Driver, ExceptionConverterDriver
      */
     protected function getEasyConnectString(array $params)
     {
-        if ( ! empty($params['host'])) {
-            if ( ! isset($params['port'])) {
+
+        if (!empty( $params['host'] )) {
+            if (!isset( $params['port'] )) {
                 $params['port'] = 1521;
             }
 
             $serviceName = $params['dbname'];
 
-            if ( ! empty($params['servicename'])) {
+            if (!empty( $params['servicename'] )) {
                 $serviceName = $params['servicename'];
             }
 
-            $service = 'SID=' . $serviceName;
-            $pooled  = '';
+            $service = 'SID='.$serviceName;
+            $pooled = '';
             $instance = '';
 
-            if (isset($params['service']) && $params['service'] == true) {
-                $service = 'SERVICE_NAME=' . $serviceName;
+            if (isset( $params['service'] ) && $params['service'] == true) {
+                $service = 'SERVICE_NAME='.$serviceName;
             }
 
-            if (isset($params['instancename']) && ! empty($params['instancename'])) {
-                $instance = '(INSTANCE_NAME = ' . $params['instancename'] . ')';
+            if (isset( $params['instancename'] ) && !empty( $params['instancename'] )) {
+                $instance = '(INSTANCE_NAME = '.$params['instancename'].')';
             }
 
-            if (isset($params['pooled']) && $params['pooled'] == true) {
+            if (isset( $params['pooled'] ) && $params['pooled'] == true) {
                 $pooled = '(SERVER=POOLED)';
             }
 
-            return '(DESCRIPTION=' .
-                     '(ADDRESS=(PROTOCOL=TCP)(HOST=' . $params['host'] . ')(PORT=' . $params['port'] . '))' .
-                     '(CONNECT_DATA=(' . $service . ')' . $instance . $pooled . '))';
+            return '(DESCRIPTION='.
+            '(ADDRESS=(PROTOCOL=TCP)(HOST='.$params['host'].')(PORT='.$params['port'].'))'.
+            '(CONNECT_DATA=('.$service.')'.$instance.$pooled.'))';
 
         }
 
-        return isset($params['dbname']) ? $params['dbname'] : '';
+        return isset( $params['dbname'] ) ? $params['dbname'] : '';
     }
 }

@@ -37,10 +37,10 @@ class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
     /**
      * @param  string  caption
      */
-    public function __construct( $caption = null )
+    public function __construct($caption = null)
     {
 
-        parent::__construct( $caption );
+        parent::__construct($caption);
         $this->control->type = 'submit';
     }
 
@@ -51,7 +51,7 @@ class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
      *
      * @return bool
      */
-    public static function validateSubmitted( Nette\Forms\ISubmitterControl $control )
+    public static function validateSubmitted(Nette\Forms\ISubmitterControl $control)
     {
 
         return $control->isSubmittedBy();
@@ -64,11 +64,11 @@ class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
      *
      * @return SubmitButton  provides a fluent interface
      */
-    public function setValue( $value )
+    public function setValue($value)
     {
 
         if ($this->value = $value !== null) {
-            $this->getForm()->setSubmittedBy( $this );
+            $this->getForm()->setSubmittedBy($this);
         }
         return $this;
     }
@@ -102,7 +102,7 @@ class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
      *
      * @return SubmitButton  provides a fluent interface
      */
-    public function setValidationScope( $scope )
+    public function setValidationScope($scope)
     {
 
         // TODO: implement groups
@@ -119,7 +119,7 @@ class SubmitButton extends Button implements Nette\Forms\ISubmitterControl
     public function click()
     {
 
-        $this->onClick( $this );
+        $this->onClick($this);
     }
 
 }

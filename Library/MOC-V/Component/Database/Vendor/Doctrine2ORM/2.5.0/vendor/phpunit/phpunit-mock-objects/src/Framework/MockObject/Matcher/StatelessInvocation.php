@@ -20,6 +20,7 @@
  */
 abstract class PHPUnit_Framework_MockObject_Matcher_StatelessInvocation implements PHPUnit_Framework_MockObject_Matcher_Invocation
 {
+
     /**
      * Registers the invocation $invocation in the object as being invoked.
      * This will only occur after matches() returns true which means the
@@ -34,6 +35,7 @@ abstract class PHPUnit_Framework_MockObject_Matcher_StatelessInvocation implemen
      * @param  PHPUnit_Framework_MockObject_Invocation $invocation
      *                                                             Object containing information on a mocked or stubbed method which
      *                                                             was invoked.
+     *
      * @return mixed
      */
     public function invoked(PHPUnit_Framework_MockObject_Invocation $invocation)
@@ -48,6 +50,7 @@ abstract class PHPUnit_Framework_MockObject_Matcher_StatelessInvocation implemen
      * @param  PHPUnit_Framework_MockObject_Invocation $invocation
      *                                                             Object containing information on a mocked or stubbed method which
      *                                                             was invoked.
+     *
      * @return bool
      */
     public function verify()

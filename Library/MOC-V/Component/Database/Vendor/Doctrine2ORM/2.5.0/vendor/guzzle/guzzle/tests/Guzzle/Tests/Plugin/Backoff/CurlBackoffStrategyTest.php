@@ -2,9 +2,9 @@
 
 namespace Guzzle\Tests\Plugin\Backoff;
 
+use Guzzle\Http\Exception\CurlException;
 use Guzzle\Http\Message\Response;
 use Guzzle\Plugin\Backoff\CurlBackoffStrategy;
-use Guzzle\Http\Exception\CurlException;
 
 /**
  * @covers Guzzle\Plugin\Backoff\CurlBackoffStrategy
@@ -12,8 +12,10 @@ use Guzzle\Http\Exception\CurlException;
  */
 class CurlBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testRetriesWithExponentialDelay()
     {
+
         $this->assertNotEmpty(CurlBackoffStrategy::getDefaultFailureCodes());
         $strategy = new CurlBackoffStrategy();
         $this->assertTrue($strategy->makesDecision());
@@ -29,6 +31,7 @@ class CurlBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIgnoresNonErrors()
     {
+
         $strategy = new CurlBackoffStrategy();
         $request = $this->getMock('Guzzle\Http\Message\Request', array(), array(), '', false);
         $this->assertEquals(false, $strategy->getBackoffPeriod(0, $request, new Response(200)));

@@ -46,7 +46,7 @@ class Html implements FSHL\Output
      *
      * @return string
      */
-    public function template( $part, $class )
+    public function template($part, $class)
     {
 
         $output = '';
@@ -62,7 +62,7 @@ class Html implements FSHL\Output
             $this->lastClass = $class;
         }
 
-        return $output.htmlspecialchars( $part, ENT_COMPAT, 'UTF-8' );
+        return $output.htmlspecialchars($part, ENT_COMPAT, 'UTF-8');
     }
 
     /**
@@ -73,7 +73,7 @@ class Html implements FSHL\Output
      *
      * @return string
      */
-    public function keyword( $part, $class )
+    public function keyword($part, $class)
     {
 
         $output = '';
@@ -89,6 +89,6 @@ class Html implements FSHL\Output
             $this->lastClass = $class;
         }
 
-        return $output.htmlspecialchars( $part, ENT_COMPAT, 'UTF-8' );
+        return $output.htmlspecialchars($part, ENT_COMPAT, 'UTF-8');
     }
 }

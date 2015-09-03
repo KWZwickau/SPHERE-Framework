@@ -116,41 +116,41 @@ class PHPExcel_Shared_Font
      */
     public static $defaultColumnWidths = array(
         'Arial'   => array(
-            1  => array( 'px' => 24, 'width' => 12.00000000 ),
-            2  => array( 'px' => 24, 'width' => 12.00000000 ),
-            3  => array( 'px' => 32, 'width' => 10.66406250 ),
-            4  => array( 'px' => 32, 'width' => 10.66406250 ),
-            5  => array( 'px' => 40, 'width' => 10.00000000 ),
-            6  => array( 'px' => 48, 'width' => 9.59765625 ),
-            7  => array( 'px' => 48, 'width' => 9.59765625 ),
-            8  => array( 'px' => 56, 'width' => 9.33203125 ),
-            9  => array( 'px' => 64, 'width' => 9.14062500 ),
-            10 => array( 'px' => 64, 'width' => 9.14062500 ),
+            1  => array('px' => 24, 'width' => 12.00000000),
+            2  => array('px' => 24, 'width' => 12.00000000),
+            3  => array('px' => 32, 'width' => 10.66406250),
+            4  => array('px' => 32, 'width' => 10.66406250),
+            5  => array('px' => 40, 'width' => 10.00000000),
+            6  => array('px' => 48, 'width' => 9.59765625),
+            7  => array('px' => 48, 'width' => 9.59765625),
+            8  => array('px' => 56, 'width' => 9.33203125),
+            9  => array('px' => 64, 'width' => 9.14062500),
+            10 => array('px' => 64, 'width' => 9.14062500),
         ),
         'Calibri' => array(
-            1  => array( 'px' => 24, 'width' => 12.00000000 ),
-            2  => array( 'px' => 24, 'width' => 12.00000000 ),
-            3  => array( 'px' => 32, 'width' => 10.66406250 ),
-            4  => array( 'px' => 32, 'width' => 10.66406250 ),
-            5  => array( 'px' => 40, 'width' => 10.00000000 ),
-            6  => array( 'px' => 48, 'width' => 9.59765625 ),
-            7  => array( 'px' => 48, 'width' => 9.59765625 ),
-            8  => array( 'px' => 56, 'width' => 9.33203125 ),
-            9  => array( 'px' => 56, 'width' => 9.33203125 ),
-            10 => array( 'px' => 64, 'width' => 9.14062500 ),
-            11 => array( 'px' => 64, 'width' => 9.14062500 ),
+            1  => array('px' => 24, 'width' => 12.00000000),
+            2  => array('px' => 24, 'width' => 12.00000000),
+            3  => array('px' => 32, 'width' => 10.66406250),
+            4  => array('px' => 32, 'width' => 10.66406250),
+            5  => array('px' => 40, 'width' => 10.00000000),
+            6  => array('px' => 48, 'width' => 9.59765625),
+            7  => array('px' => 48, 'width' => 9.59765625),
+            8  => array('px' => 56, 'width' => 9.33203125),
+            9  => array('px' => 56, 'width' => 9.33203125),
+            10 => array('px' => 64, 'width' => 9.14062500),
+            11 => array('px' => 64, 'width' => 9.14062500),
         ),
         'Verdana' => array(
-            1  => array( 'px' => 24, 'width' => 12.00000000 ),
-            2  => array( 'px' => 24, 'width' => 12.00000000 ),
-            3  => array( 'px' => 32, 'width' => 10.66406250 ),
-            4  => array( 'px' => 32, 'width' => 10.66406250 ),
-            5  => array( 'px' => 40, 'width' => 10.00000000 ),
-            6  => array( 'px' => 48, 'width' => 9.59765625 ),
-            7  => array( 'px' => 48, 'width' => 9.59765625 ),
-            8  => array( 'px' => 64, 'width' => 9.14062500 ),
-            9  => array( 'px' => 72, 'width' => 9.00000000 ),
-            10 => array( 'px' => 72, 'width' => 9.00000000 ),
+            1  => array('px' => 24, 'width' => 12.00000000),
+            2  => array('px' => 24, 'width' => 12.00000000),
+            3  => array('px' => 32, 'width' => 10.66406250),
+            4  => array('px' => 32, 'width' => 10.66406250),
+            5  => array('px' => 40, 'width' => 10.00000000),
+            6  => array('px' => 48, 'width' => 9.59765625),
+            7  => array('px' => 48, 'width' => 9.59765625),
+            8  => array('px' => 64, 'width' => 9.14062500),
+            9  => array('px' => 72, 'width' => 9.00000000),
+            10 => array('px' => 72, 'width' => 9.00000000),
         ),
     );
     private static $_autoSizeMethods = array(
@@ -188,10 +188,10 @@ class PHPExcel_Shared_Font
      *
      * @return     boolean                    Success or failure
      */
-    public static function setAutoSizeMethod( $pValue = self::AUTOSIZE_METHOD_APPROX )
+    public static function setAutoSizeMethod($pValue = self::AUTOSIZE_METHOD_APPROX)
     {
 
-        if (!in_array( $pValue, self::$_autoSizeMethods )) {
+        if (!in_array($pValue, self::$_autoSizeMethods)) {
             return false;
         }
 
@@ -222,7 +222,7 @@ class PHPExcel_Shared_Font
      *
      * @param string $pValue
      */
-    public static function setTrueTypeFontPath( $pValue = '' )
+    public static function setTrueTypeFontPath($pValue = '')
     {
 
         self::$trueTypeFontPath = $pValue;
@@ -251,41 +251,41 @@ class PHPExcel_Shared_Font
         }
 
         // Special case if there are one or more newline characters ("\n")
-        if (strpos( $cellText, "\n" ) !== false) {
-            $lineTexts = explode( "\n", $cellText );
+        if (strpos($cellText, "\n") !== false) {
+            $lineTexts = explode("\n", $cellText);
             $lineWitdhs = array();
             foreach ($lineTexts as $lineText) {
-                $lineWidths[] = self::calculateColumnWidth( $font, $lineText, $rotation = 0, $defaultFont );
+                $lineWidths[] = self::calculateColumnWidth($font, $lineText, $rotation = 0, $defaultFont);
             }
-            return max( $lineWidths ); // width of longest line in cell
+            return max($lineWidths); // width of longest line in cell
         }
 
         // Try to get the exact text width in pixels
         try {
             // If autosize method is set to 'approx', use approximation
             if (self::$autoSizeMethod == self::AUTOSIZE_METHOD_APPROX) {
-                throw new PHPExcel_Exception( 'AutoSize method is set to approx' );
+                throw new PHPExcel_Exception('AutoSize method is set to approx');
             }
 
             // Width of text in pixels excl. padding
-            $columnWidth = self::getTextWidthPixelsExact( $cellText, $font, $rotation );
+            $columnWidth = self::getTextWidthPixelsExact($cellText, $font, $rotation);
 
             // Excel adds some padding, use 1.07 of the width of an 'n' glyph
-            $columnWidth += ceil( self::getTextWidthPixelsExact( '0', $font, 0 ) * 1.07 ); // pixels incl. padding
+            $columnWidth += ceil(self::getTextWidthPixelsExact('0', $font, 0) * 1.07); // pixels incl. padding
 
-        } catch( PHPExcel_Exception $e ) {
+        } catch (PHPExcel_Exception $e) {
             // Width of text in pixels excl. padding, approximation
-            $columnWidth = self::getTextWidthPixelsApprox( $cellText, $font, $rotation );
+            $columnWidth = self::getTextWidthPixelsApprox($cellText, $font, $rotation);
 
             // Excel adds some padding, just use approx width of 'n' glyph
-            $columnWidth += self::getTextWidthPixelsApprox( 'n', $font, 0 );
+            $columnWidth += self::getTextWidthPixelsApprox('n', $font, 0);
         }
 
         // Convert from pixel width to column width
-        $columnWidth = PHPExcel_Shared_Drawing::pixelsToCellDimension( $columnWidth, $defaultFont );
+        $columnWidth = PHPExcel_Shared_Drawing::pixelsToCellDimension($columnWidth, $defaultFont);
 
         // Return
-        return round( $columnWidth, 6 );
+        return round($columnWidth, 6);
     }
 
     /**
@@ -298,17 +298,17 @@ class PHPExcel_Shared_Font
      * @return int
      * @throws PHPExcel_Exception
      */
-    public static function getTextWidthPixelsExact( $text, PHPExcel_Style_Font $font, $rotation = 0 )
+    public static function getTextWidthPixelsExact($text, PHPExcel_Style_Font $font, $rotation = 0)
     {
 
-        if (!function_exists( 'imagettfbbox' )) {
-            throw new PHPExcel_Exception( 'GD library needs to be enabled' );
+        if (!function_exists('imagettfbbox')) {
+            throw new PHPExcel_Exception('GD library needs to be enabled');
         }
 
         // font size should really be supplied in pixels in GD2,
         // but since GD2 seems to assume 72dpi, pixels and points are the same
-        $fontFile = self::getTrueTypeFontFileFromFont( $font );
-        $textBox = imagettfbbox( $font->getSize(), $rotation, $fontFile, $text );
+        $fontFile = self::getTrueTypeFontFileFromFont($font);
+        $textBox = imagettfbbox($font->getSize(), $rotation, $fontFile, $text);
 
         // Get corners positions
         $lowerLeftCornerX = $textBox[0];
@@ -321,7 +321,7 @@ class PHPExcel_Shared_Font
         $upperLeftCornerY = $textBox[7];
 
         // Consider the rotation when calculating the width
-        $textWidth = max( $lowerRightCornerX - $upperLeftCornerX, $upperRightCornerX - $lowerLeftCornerX );
+        $textWidth = max($lowerRightCornerX - $upperLeftCornerX, $upperRightCornerX - $lowerLeftCornerX);
 
         return $textWidth;
     }
@@ -333,11 +333,11 @@ class PHPExcel_Shared_Font
      *
      * @return string Path to TrueType font file
      */
-    public static function getTrueTypeFontFileFromFont( $font )
+    public static function getTrueTypeFontFileFromFont($font)
     {
 
-        if (!file_exists( self::$trueTypeFontPath ) || !is_dir( self::$trueTypeFontPath )) {
-            throw new PHPExcel_Exception( 'Valid directory to TrueType Font files not specified' );
+        if (!file_exists(self::$trueTypeFontPath) || !is_dir(self::$trueTypeFontPath)) {
+            throw new PHPExcel_Exception('Valid directory to TrueType Font files not specified');
         }
 
         $name = $font->getName();
@@ -442,15 +442,15 @@ class PHPExcel_Shared_Font
                 break;
 
             default:
-                throw new PHPExcel_Exception( 'Unknown font name "'.$name.'". Cannot map to TrueType font file' );
+                throw new PHPExcel_Exception('Unknown font name "'.$name.'". Cannot map to TrueType font file');
                 break;
         }
 
         $fontFile = self::$trueTypeFontPath.$fontFile;
 
         // Check if file actually exists
-        if (!file_exists( $fontFile )) {
-            throw New PHPExcel_Exception( 'TrueType Font file not found' );
+        if (!file_exists($fontFile)) {
+            throw New PHPExcel_Exception('TrueType Font file not found');
         }
 
         return $fontFile;
@@ -465,7 +465,7 @@ class PHPExcel_Shared_Font
      *
      * @return int Text width in pixels (no padding added)
      */
-    public static function getTextWidthPixelsApprox( $columnText, PHPExcel_Style_Font $font = null, $rotation = 0 )
+    public static function getTextWidthPixelsApprox($columnText, PHPExcel_Style_Font $font = null, $rotation = 0)
     {
 
         $fontName = $font->getName();
@@ -475,25 +475,25 @@ class PHPExcel_Shared_Font
         switch ($fontName) {
             case 'Calibri':
                 // value 8.26 was found via interpolation by inspecting real Excel files with Calibri 11 font.
-                $columnWidth = (int)( 8.26 * PHPExcel_Shared_String::CountCharacters( $columnText ) );
+                $columnWidth = (int)( 8.26 * PHPExcel_Shared_String::CountCharacters($columnText) );
                 $columnWidth = $columnWidth * $fontSize / 11; // extrapolate from font size
                 break;
 
             case 'Arial':
                 // value 7 was found via interpolation by inspecting real Excel files with Arial 10 font.
-                $columnWidth = (int)( 7 * PHPExcel_Shared_String::CountCharacters( $columnText ) );
+                $columnWidth = (int)( 7 * PHPExcel_Shared_String::CountCharacters($columnText) );
                 $columnWidth = $columnWidth * $fontSize / 10; // extrapolate from font size
                 break;
 
             case 'Verdana':
                 // value 8 was found via interpolation by inspecting real Excel files with Verdana 10 font.
-                $columnWidth = (int)( 8 * PHPExcel_Shared_String::CountCharacters( $columnText ) );
+                $columnWidth = (int)( 8 * PHPExcel_Shared_String::CountCharacters($columnText) );
                 $columnWidth = $columnWidth * $fontSize / 10; // extrapolate from font size
                 break;
 
             default:
                 // just assume Calibri
-                $columnWidth = (int)( 8.26 * PHPExcel_Shared_String::CountCharacters( $columnText ) );
+                $columnWidth = (int)( 8.26 * PHPExcel_Shared_String::CountCharacters($columnText) );
                 $columnWidth = $columnWidth * $fontSize / 11; // extrapolate from font size
                 break;
         }
@@ -505,8 +505,8 @@ class PHPExcel_Shared_Font
                 $columnWidth = 4; // approximation
             } else {
                 // rotated text
-                $columnWidth = $columnWidth * cos( deg2rad( $rotation ) )
-                    + $fontSize * abs( sin( deg2rad( $rotation ) ) ) / 5; // approximation
+                $columnWidth = $columnWidth * cos(deg2rad($rotation))
+                    + $fontSize * abs(sin(deg2rad($rotation))) / 5; // approximation
             }
         }
 
@@ -522,7 +522,7 @@ class PHPExcel_Shared_Font
      *
      * @return    int        Font size (in pixels)
      */
-    public static function fontSizeToPixels( $fontSizeInPoints = 11 )
+    public static function fontSizeToPixels($fontSizeInPoints = 11)
     {
 
         return (int)( ( 4 / 3 ) * $fontSizeInPoints );
@@ -535,7 +535,7 @@ class PHPExcel_Shared_Font
      *
      * @return    int        Size (in pixels)
      */
-    public static function inchSizeToPixels( $sizeInInch = 1 )
+    public static function inchSizeToPixels($sizeInInch = 1)
     {
 
         return ( $sizeInInch * 96 );
@@ -548,7 +548,7 @@ class PHPExcel_Shared_Font
      *
      * @return    int        Size (in pixels)
      */
-    public static function centimeterSizeToPixels( $sizeInCm = 1 )
+    public static function centimeterSizeToPixels($sizeInCm = 1)
     {
 
         return ( $sizeInCm * 37.795275591 );
@@ -561,7 +561,7 @@ class PHPExcel_Shared_Font
      *
      * @return int Character set code
      */
-    public static function getCharsetFromFontName( $name )
+    public static function getCharsetFromFontName($name)
     {
 
         switch ($name) {
@@ -588,7 +588,7 @@ class PHPExcel_Shared_Font
      *
      * @return mixed Column width
      */
-    public static function getDefaultColumnWidthByFont( PHPExcel_Style_Font $font, $pPixels = false )
+    public static function getDefaultColumnWidthByFont(PHPExcel_Style_Font $font, $pPixels = false)
     {
 
         if (isset( self::$defaultColumnWidths[$font->getName()][$font->getSize()] )) {
@@ -607,7 +607,7 @@ class PHPExcel_Shared_Font
 
             // Round pixels to closest integer
             if ($pPixels) {
-                $columnWidth = (int)round( $columnWidth );
+                $columnWidth = (int)round($columnWidth);
             }
         }
 
@@ -622,7 +622,7 @@ class PHPExcel_Shared_Font
      *
      * @return float Row height in points
      */
-    public static function getDefaultRowHeightByFont( PHPExcel_Style_Font $font )
+    public static function getDefaultRowHeightByFont(PHPExcel_Style_Font $font)
     {
 
         switch ($font->getName()) {

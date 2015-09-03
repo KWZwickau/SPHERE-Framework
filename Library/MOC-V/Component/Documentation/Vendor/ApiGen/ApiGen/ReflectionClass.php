@@ -112,18 +112,18 @@ class ReflectionClass extends ReflectionElement
      * @param \TokenReflection\IReflectionClass $reflection Inspected class reflection
      * @param \ApiGen\Generator                 $generator  ApiGen generator
      */
-    public function __construct( IReflectionClass $reflection, Generator $generator )
+    public function __construct(IReflectionClass $reflection, Generator $generator)
     {
 
-        parent::__construct( $reflection, $generator );
+        parent::__construct($reflection, $generator);
 
         if (false === self::$methodAccessLevels) {
-            if (count( self::$config->accessLevels ) < 3) {
+            if (count(self::$config->accessLevels) < 3) {
                 self::$methodAccessLevels = 0;
                 self::$propertyAccessLevels = 0;
 
                 foreach (self::$config->accessLevels as $level) {
-                    switch (strtolower( $level )) {
+                    switch (strtolower($level)) {
                         case 'public':
                             self::$methodAccessLevels |= InternalReflectionMethod::IS_PUBLIC;
                             self::$propertyAccessLevels |= InternalReflectionProperty::IS_PUBLIC;
@@ -209,10 +209,10 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function isSubclassOf( $class )
+    public function isSubclassOf($class)
     {
 
-        return $this->reflection->isSubclassOf( $class );
+        return $this->reflection->isSubclassOf($class);
     }
 
     /**
@@ -223,15 +223,15 @@ class ReflectionClass extends ReflectionElement
      * @return \ApiGen\ReflectionMethod
      * @throws \InvalidArgumentException If required method does not exist.
      */
-    public function getMethod( $name )
+    public function getMethod($name)
     {
 
-        if ($this->hasMethod( $name )) {
+        if ($this->hasMethod($name)) {
             return $this->methods[$name];
         }
 
-        throw new InvalidArgumentException( sprintf( 'Method %s does not exist in class %s', $name,
-                $this->reflection->getName() ) );
+        throw new InvalidArgumentException(sprintf('Method %s does not exist in class %s', $name,
+            $this->reflection->getName()));
     }
 
     /**
@@ -241,7 +241,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasMethod( $methodName )
+    public function hasMethod($methodName)
     {
 
         if (null === $this->methods) {
@@ -261,11 +261,11 @@ class ReflectionClass extends ReflectionElement
 
         if (null === $this->methods) {
             $this->methods = $this->getOwnMethods();
-            foreach ($this->reflection->getMethods( self::$methodAccessLevels ) as $method) {
+            foreach ($this->reflection->getMethods(self::$methodAccessLevels) as $method) {
                 if (isset( $this->methods[$method->getName()] )) {
                     continue;
                 }
-                $apiMethod = new ReflectionMethod( $method, self::$generator );
+                $apiMethod = new ReflectionMethod($method, self::$generator);
                 if (!$this->isDocumented() || $apiMethod->isDocumented()) {
                     $this->methods[$method->getName()] = $apiMethod;
                 }
@@ -284,8 +284,8 @@ class ReflectionClass extends ReflectionElement
 
         if (null === $this->ownMethods) {
             $this->ownMethods = array();
-            foreach ($this->reflection->getOwnMethods( self::$methodAccessLevels ) as $method) {
-                $apiMethod = new ReflectionMethod( $method, self::$generator );
+            foreach ($this->reflection->getOwnMethods(self::$methodAccessLevels) as $method) {
+                $apiMethod = new ReflectionMethod($method, self::$generator);
                 if (!$this->isDocumented() || $apiMethod->isDocumented()) {
                     $this->ownMethods[$method->getName()] = $apiMethod;
                 }
@@ -303,16 +303,16 @@ class ReflectionClass extends ReflectionElement
     {
 
         if (null === $this->isDocumented && parent::isDocumented()) {
-            $fileName = self::$generator->unPharPath( $this->reflection->getFilename() );
+            $fileName = self::$generator->unPharPath($this->reflection->getFilename());
             foreach (self::$config->skipDocPath as $mask) {
-                if (fnmatch( $mask, $fileName, FNM_NOESCAPE )) {
+                if (fnmatch($mask, $fileName, FNM_NOESCAPE)) {
                     $this->isDocumented = false;
                     break;
                 }
             }
             if (true === $this->isDocumented) {
                 foreach (self::$config->skipDocPrefix as $prefix) {
-                    if (0 === strpos( $this->reflection->getName(), $prefix )) {
+                    if (0 === strpos($this->reflection->getName(), $prefix)) {
                         $this->isDocumented = false;
                         break;
                     }
@@ -377,15 +377,15 @@ class ReflectionClass extends ReflectionElement
                 return $this->ownMagicProperties;
             }
 
-            foreach (array( 'property', 'property-read', 'property-write' ) as $annotationName) {
-                $annotations = $this->getAnnotation( $annotationName );
+            foreach (array('property', 'property-read', 'property-write') as $annotationName) {
+                $annotations = $this->getAnnotation($annotationName);
                 if (null === $annotations) {
                     continue;
                 }
 
                 foreach ($annotations as $annotation) {
-                    if (!preg_match( '~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?\\$(\\w+)(?:\\s+(.*))?($)~s',
-                        $annotation, $matches )
+                    if (!preg_match('~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?\\$(\\w+)(?:\\s+(.*))?($)~s',
+                        $annotation, $matches)
                     ) {
                         // Wrong annotation format
                         continue;
@@ -399,24 +399,24 @@ class ReflectionClass extends ReflectionElement
 
                     $doc = $this->getDocComment();
                     $tmp = $annotation;
-                    if ($delimiter = strpos( $annotation, "\n" )) {
-                        $tmp = substr( $annotation, 0, $delimiter );
+                    if ($delimiter = strpos($annotation, "\n")) {
+                        $tmp = substr($annotation, 0, $delimiter);
                     }
 
-                    $startLine = $this->getStartLine() + substr_count( substr( $doc, 0, strpos( $doc, $tmp ) ), "\n" );
-                    $endLine = $startLine + substr_count( $annotation, "\n" );
+                    $startLine = $this->getStartLine() + substr_count(substr($doc, 0, strpos($doc, $tmp)), "\n");
+                    $endLine = $startLine + substr_count($annotation, "\n");
 
-                    $magicProperty = new ReflectionPropertyMagic( null, self::$generator );
+                    $magicProperty = new ReflectionPropertyMagic(null, self::$generator);
                     $magicProperty
-                        ->setName( $name )
-                        ->setTypeHint( $typeHint )
-                        ->setShortDescription( str_replace( "\n", ' ', $shortDescription ) )
-                        ->setStartLine( $startLine )
-                        ->setEndLine( $endLine )
-                        ->setReadOnly( 'property-read' === $annotationName )
-                        ->setWriteOnly( 'property-write' === $annotationName )
-                        ->setDeclaringClass( $this )
-                        ->addAnnotation( 'var', $typeHint );
+                        ->setName($name)
+                        ->setTypeHint($typeHint)
+                        ->setShortDescription(str_replace("\n", ' ', $shortDescription))
+                        ->setStartLine($startLine)
+                        ->setEndLine($endLine)
+                        ->setReadOnly('property-read' === $annotationName)
+                        ->setWriteOnly('property-write' === $annotationName)
+                        ->setDeclaringClass($this)
+                        ->addAnnotation('var', $typeHint);
 
                     $this->ownMagicProperties[$name] = $magicProperty;
                 }
@@ -449,10 +449,10 @@ class ReflectionClass extends ReflectionElement
     {
 
         $classes = self::$parsedClasses;
-        return array_map( function ( IReflectionClass $class ) use ( $classes ) {
+        return array_map(function (IReflectionClass $class) use ($classes) {
 
             return $classes[$class->getName()];
-        }, $this->reflection->getTraits() );
+        }, $this->reflection->getTraits());
     }
 
     /**
@@ -463,15 +463,15 @@ class ReflectionClass extends ReflectionElement
      * @return \ApiGen\ReflectionProperty
      * @throws \InvalidArgumentException If required property does not exist.
      */
-    public function getProperty( $name )
+    public function getProperty($name)
     {
 
-        if ($this->hasProperty( $name )) {
+        if ($this->hasProperty($name)) {
             return $this->properties[$name];
         }
 
-        throw new InvalidArgumentException( sprintf( 'Property %s does not exist in class %s', $name,
-                $this->reflection->getName() ) );
+        throw new InvalidArgumentException(sprintf('Property %s does not exist in class %s', $name,
+            $this->reflection->getName()));
     }
 
     /**
@@ -481,7 +481,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasProperty( $propertyName )
+    public function hasProperty($propertyName)
     {
 
         if (null === $this->properties) {
@@ -501,11 +501,11 @@ class ReflectionClass extends ReflectionElement
 
         if (null === $this->properties) {
             $this->properties = $this->getOwnProperties();
-            foreach ($this->reflection->getProperties( self::$propertyAccessLevels ) as $property) {
+            foreach ($this->reflection->getProperties(self::$propertyAccessLevels) as $property) {
                 if (isset( $this->properties[$property->getName()] )) {
                     continue;
                 }
-                $apiProperty = new ReflectionProperty( $property, self::$generator );
+                $apiProperty = new ReflectionProperty($property, self::$generator);
                 if (!$this->isDocumented() || $apiProperty->isDocumented()) {
                     $this->properties[$property->getName()] = $apiProperty;
                 }
@@ -524,8 +524,8 @@ class ReflectionClass extends ReflectionElement
 
         if (null === $this->ownProperties) {
             $this->ownProperties = array();
-            foreach ($this->reflection->getOwnProperties( self::$propertyAccessLevels ) as $property) {
-                $apiProperty = new ReflectionProperty( $property, self::$generator );
+            foreach ($this->reflection->getOwnProperties(self::$propertyAccessLevels) as $property) {
+                $apiProperty = new ReflectionProperty($property, self::$generator);
                 if (!$this->isDocumented() || $apiProperty->isDocumented()) {
                     $this->ownProperties[$property->getName()] = $apiProperty;
                 }
@@ -541,10 +541,10 @@ class ReflectionClass extends ReflectionElement
      *
      * @return \ApiGen\ReflectionConstant
      */
-    public function getConstant( $name )
+    public function getConstant($name)
     {
 
-        return $this->getConstantReflection( $name );
+        return $this->getConstantReflection($name);
     }
 
     /**
@@ -555,7 +555,7 @@ class ReflectionClass extends ReflectionElement
      * @return \ApiGen\ReflectionConstant
      * @throws \InvalidArgumentException If required constant does not exist.
      */
-    public function getConstantReflection( $name )
+    public function getConstantReflection($name)
     {
 
         if (null === $this->constants) {
@@ -566,8 +566,8 @@ class ReflectionClass extends ReflectionElement
             return $this->constants[$name];
         }
 
-        throw new InvalidArgumentException( sprintf( 'Constant %s does not exist in class %s', $name,
-                $this->reflection->getName() ) );
+        throw new InvalidArgumentException(sprintf('Constant %s does not exist in class %s', $name,
+            $this->reflection->getName()));
     }
 
     /**
@@ -581,7 +581,7 @@ class ReflectionClass extends ReflectionElement
         if (null === $this->constants) {
             $this->constants = array();
             foreach ($this->reflection->getConstantReflections() as $constant) {
-                $apiConstant = new ReflectionConstant( $constant, self::$generator );
+                $apiConstant = new ReflectionConstant($constant, self::$generator);
                 if (!$this->isDocumented() || $apiConstant->isDocumented()) {
                     $this->constants[$constant->getName()] = $apiConstant;
                 }
@@ -598,7 +598,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasConstant( $constantName )
+    public function hasConstant($constantName)
     {
 
         if (null === $this->constants) {
@@ -615,7 +615,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasOwnConstant( $constantName )
+    public function hasOwnConstant($constantName)
     {
 
         if (null === $this->ownConstants) {
@@ -652,10 +652,10 @@ class ReflectionClass extends ReflectionElement
      *
      * @return \ApiGen\ReflectionConstant
      */
-    public function getOwnConstant( $name )
+    public function getOwnConstant($name)
     {
 
-        return $this->getOwnConstantReflection( $name );
+        return $this->getOwnConstantReflection($name);
     }
 
     /**
@@ -666,7 +666,7 @@ class ReflectionClass extends ReflectionElement
      * @return \ApiGen\ReflectionConstant
      * @throws \InvalidArgumentException If required constant does not exist.
      */
-    public function getOwnConstantReflection( $name )
+    public function getOwnConstantReflection($name)
     {
 
         if (null === $this->ownConstants) {
@@ -677,8 +677,8 @@ class ReflectionClass extends ReflectionElement
             return $this->ownConstants[$name];
         }
 
-        throw new InvalidArgumentException( sprintf( 'Constant %s does not exist in class %s', $name,
-                $this->reflection->getName() ) );
+        throw new InvalidArgumentException(sprintf('Constant %s does not exist in class %s', $name,
+            $this->reflection->getName()));
     }
 
     /**
@@ -710,10 +710,10 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function implementsInterface( $interface )
+    public function implementsInterface($interface)
     {
 
-        return $this->reflection->implementsInterface( $interface );
+        return $this->reflection->implementsInterface($interface);
     }
 
     /**
@@ -736,10 +736,10 @@ class ReflectionClass extends ReflectionElement
     {
 
         $classes = self::$parsedClasses;
-        return array_map( function ( IReflectionClass $class ) use ( $classes ) {
+        return array_map(function (IReflectionClass $class) use ($classes) {
 
             return $classes[$class->getName()];
-        }, $this->reflection->getOwnInterfaces() );
+        }, $this->reflection->getOwnInterfaces());
     }
 
     /**
@@ -795,10 +795,10 @@ class ReflectionClass extends ReflectionElement
     {
 
         $classes = self::$parsedClasses;
-        return array_map( function ( IReflectionClass $class ) use ( $classes ) {
+        return array_map(function (IReflectionClass $class) use ($classes) {
 
             return $classes[$class->getName()];
-        }, $this->reflection->getOwnTraits() );
+        }, $this->reflection->getOwnTraits());
     }
 
     /**
@@ -808,10 +808,10 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function usesTrait( $trait )
+    public function usesTrait($trait)
     {
 
-        return $this->reflection->usesTrait( $trait );
+        return $this->reflection->usesTrait($trait);
     }
 
     /**
@@ -849,7 +849,7 @@ class ReflectionClass extends ReflectionElement
             if (!$class->isDocumented()) {
                 continue;
             }
-            if ($name !== $class->getParentClassName() && $class->isSubclassOf( $name )) {
+            if ($name !== $class->getParentClassName() && $class->isSubclassOf($name)) {
                 $subClasses[] = $class;
             }
         }
@@ -874,7 +874,7 @@ class ReflectionClass extends ReflectionElement
             if (!$class->isDocumented()) {
                 continue;
             }
-            if (in_array( $name, $class->getOwnInterfaceNames() )) {
+            if (in_array($name, $class->getOwnInterfaceNames())) {
                 $implementers[] = $class;
             }
         }
@@ -910,7 +910,7 @@ class ReflectionClass extends ReflectionElement
             if (!$class->isDocumented()) {
                 continue;
             }
-            if ($class->implementsInterface( $name ) && !in_array( $name, $class->getOwnInterfaceNames() )) {
+            if ($class->implementsInterface($name) && !in_array($name, $class->getOwnInterfaceNames())) {
                 $implementers[] = $class;
             }
         }
@@ -936,7 +936,7 @@ class ReflectionClass extends ReflectionElement
                 continue;
             }
 
-            if (in_array( $name, $class->getOwnTraitNames() )) {
+            if (in_array($name, $class->getOwnTraitNames())) {
                 $users[] = $class;
             }
         }
@@ -972,7 +972,7 @@ class ReflectionClass extends ReflectionElement
             if (!$class->isDocumented()) {
                 continue;
             }
-            if ($class->usesTrait( $name ) && !in_array( $name, $class->getOwnTraitNames() )) {
+            if ($class->usesTrait($name) && !in_array($name, $class->getOwnTraitNames())) {
                 $users[] = $class;
             }
         }
@@ -988,23 +988,23 @@ class ReflectionClass extends ReflectionElement
     {
 
         $methods = array();
-        $allMethods = array_flip( array_map( function ( $method ) {
+        $allMethods = array_flip(array_map(function ($method) {
 
             return $method->getName();
-        }, $this->getOwnMethods() ) );
+        }, $this->getOwnMethods()));
 
-        foreach (array_merge( $this->getParentClasses(), $this->getInterfaces() ) as $class) {
+        foreach (array_merge($this->getParentClasses(), $this->getInterfaces()) as $class) {
             $inheritedMethods = array();
             foreach ($class->getOwnMethods() as $method) {
-                if (!array_key_exists( $method->getName(), $allMethods ) && !$method->isPrivate()) {
+                if (!array_key_exists($method->getName(), $allMethods) && !$method->isPrivate()) {
                     $inheritedMethods[$method->getName()] = $method;
                     $allMethods[$method->getName()] = null;
                 }
             }
 
             if (!empty( $inheritedMethods )) {
-                ksort( $inheritedMethods );
-                $methods[$class->getName()] = array_values( $inheritedMethods );
+                ksort($inheritedMethods);
+                $methods[$class->getName()] = array_values($inheritedMethods);
             }
         }
 
@@ -1021,10 +1021,10 @@ class ReflectionClass extends ReflectionElement
 
         if (null === $this->parentClasses) {
             $classes = self::$parsedClasses;
-            $this->parentClasses = array_map( function ( IReflectionClass $class ) use ( $classes ) {
+            $this->parentClasses = array_map(function (IReflectionClass $class) use ($classes) {
 
                 return $classes[$class->getName()];
-            }, $this->reflection->getParentClasses() );
+            }, $this->reflection->getParentClasses());
         }
         return $this->parentClasses;
     }
@@ -1038,10 +1038,10 @@ class ReflectionClass extends ReflectionElement
     {
 
         $classes = self::$parsedClasses;
-        return array_map( function ( IReflectionClass $class ) use ( $classes ) {
+        return array_map(function (IReflectionClass $class) use ($classes) {
 
             return $classes[$class->getName()];
-        }, $this->reflection->getInterfaces() );
+        }, $this->reflection->getInterfaces());
     }
 
     /**
@@ -1053,23 +1053,23 @@ class ReflectionClass extends ReflectionElement
     {
 
         $methods = array();
-        $allMethods = array_flip( array_map( function ( $method ) {
+        $allMethods = array_flip(array_map(function ($method) {
 
             return $method->getName();
-        }, $this->getOwnMagicMethods() ) );
+        }, $this->getOwnMagicMethods()));
 
-        foreach (array_merge( $this->getParentClasses(), $this->getInterfaces() ) as $class) {
+        foreach (array_merge($this->getParentClasses(), $this->getInterfaces()) as $class) {
             $inheritedMethods = array();
             foreach ($class->getOwnMagicMethods() as $method) {
-                if (!array_key_exists( $method->getName(), $allMethods )) {
+                if (!array_key_exists($method->getName(), $allMethods)) {
                     $inheritedMethods[$method->getName()] = $method;
                     $allMethods[$method->getName()] = null;
                 }
             }
 
             if (!empty( $inheritedMethods )) {
-                ksort( $inheritedMethods );
-                $methods[$class->getName()] = array_values( $inheritedMethods );
+                ksort($inheritedMethods);
+                $methods[$class->getName()] = array_values($inheritedMethods);
             }
         }
 
@@ -1091,14 +1091,14 @@ class ReflectionClass extends ReflectionElement
                 return $this->ownMagicMethods;
             }
 
-            $annotations = $this->getAnnotation( 'method' );
+            $annotations = $this->getAnnotation('method');
             if (null === $annotations) {
                 return $this->ownMagicMethods;
             }
 
             foreach ($annotations as $annotation) {
-                if (!preg_match( '~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?(&)?\\s*(\\w+)\\s*\\(\\s*(.*)\\s*\\)\\s*(.*|$)~s',
-                    $annotation, $matches )
+                if (!preg_match('~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?(&)?\\s*(\\w+)\\s*\\(\\s*(.*)\\s*\\)\\s*(.*|$)~s',
+                    $annotation, $matches)
                 ) {
                     // Wrong annotation format
                     continue;
@@ -1108,29 +1108,29 @@ class ReflectionClass extends ReflectionElement
 
                 $doc = $this->getDocComment();
                 $tmp = $annotation;
-                if ($delimiter = strpos( $annotation, "\n" )) {
-                    $tmp = substr( $annotation, 0, $delimiter );
+                if ($delimiter = strpos($annotation, "\n")) {
+                    $tmp = substr($annotation, 0, $delimiter);
                 }
 
-                $startLine = $this->getStartLine() + substr_count( substr( $doc, 0, strpos( $doc, $tmp ) ), "\n" );
-                $endLine = $startLine + substr_count( $annotation, "\n" );
+                $startLine = $this->getStartLine() + substr_count(substr($doc, 0, strpos($doc, $tmp)), "\n");
+                $endLine = $startLine + substr_count($annotation, "\n");
 
-                $method = new ReflectionMethodMagic( null, self::$generator );
+                $method = new ReflectionMethodMagic(null, self::$generator);
                 $method
-                    ->setName( $name )
-                    ->setShortDescription( str_replace( "\n", ' ', $shortDescription ) )
-                    ->setStartLine( $startLine )
-                    ->setEndLine( $endLine )
-                    ->setReturnsReference( '&' === $returnsReference )
-                    ->setDeclaringClass( $this )
-                    ->addAnnotation( 'return', $returnTypeHint );
+                    ->setName($name)
+                    ->setShortDescription(str_replace("\n", ' ', $shortDescription))
+                    ->setStartLine($startLine)
+                    ->setEndLine($endLine)
+                    ->setReturnsReference('&' === $returnsReference)
+                    ->setDeclaringClass($this)
+                    ->addAnnotation('return', $returnTypeHint);
 
                 $this->ownMagicMethods[$name] = $method;
 
                 $parameters = array();
-                foreach (array_filter( preg_split( '~\\s*,\\s*~', $args ) ) as $position => $arg) {
-                    if (!preg_match( '~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?(&)?\\s*\\$(\\w+)(?:\\s*=\\s*(.*))?($)~s',
-                        $arg, $matches )
+                foreach (array_filter(preg_split('~\\s*,\\s*~', $args)) as $position => $arg) {
+                    if (!preg_match('~^(?:([\\w\\\\]+(?:\\|[\\w\\\\]+)*)\\s+)?(&)?\\s*\\$(\\w+)(?:\\s*=\\s*(.*))?($)~s',
+                        $arg, $matches)
                     ) {
                         // Wrong annotation format
                         continue;
@@ -1142,21 +1142,21 @@ class ReflectionClass extends ReflectionElement
                         $typeHint = 'mixed';
                     }
 
-                    $parameter = new ReflectionParameterMagic( null, self::$generator );
+                    $parameter = new ReflectionParameterMagic(null, self::$generator);
                     $parameter
-                        ->setName( $name )
-                        ->setPosition( $position )
-                        ->setTypeHint( $typeHint )
-                        ->setDefaultValueDefinition( $defaultValueDefinition )
-                        ->setUnlimited( false )
-                        ->setPassedByReference( '&' === $passedByReference )
-                        ->setDeclaringFunction( $method );
+                        ->setName($name)
+                        ->setPosition($position)
+                        ->setTypeHint($typeHint)
+                        ->setDefaultValueDefinition($defaultValueDefinition)
+                        ->setUnlimited(false)
+                        ->setPassedByReference('&' === $passedByReference)
+                        ->setDeclaringFunction($method);
 
                     $parameters[$name] = $parameter;
 
-                    $method->addAnnotation( 'param', ltrim( sprintf( '%s $%s', $typeHint, $name ) ) );
+                    $method->addAnnotation('param', ltrim(sprintf('%s $%s', $typeHint, $name)));
                 }
-                $method->setParameters( $parameters );
+                $method->setParameters($parameters);
             }
         }
         return $this->ownMagicMethods;
@@ -1183,17 +1183,17 @@ class ReflectionClass extends ReflectionElement
         }
 
         // Sort
-        array_walk( $usedMethods, function ( &$methods ) {
+        array_walk($usedMethods, function (&$methods) {
 
-            ksort( $methods );
-            array_walk( $methods, function ( &$aliasedMethods ) {
+            ksort($methods);
+            array_walk($methods, function (&$aliasedMethods) {
 
                 if (!isset( $aliasedMethods['aliases'] )) {
                     $aliasedMethods['aliases'] = array();
                 }
-                ksort( $aliasedMethods['aliases'] );
-            } );
-        } );
+                ksort($aliasedMethods['aliases']);
+            });
+        });
 
         return $usedMethods;
     }
@@ -1217,17 +1217,17 @@ class ReflectionClass extends ReflectionElement
         }
 
         // Sort
-        array_walk( $usedMethods, function ( &$methods ) {
+        array_walk($usedMethods, function (&$methods) {
 
-            ksort( $methods );
-            array_walk( $methods, function ( &$aliasedMethods ) {
+            ksort($methods);
+            array_walk($methods, function (&$aliasedMethods) {
 
                 if (!isset( $aliasedMethods['aliases'] )) {
                     $aliasedMethods['aliases'] = array();
                 }
-                ksort( $aliasedMethods['aliases'] );
-            } );
-        } );
+                ksort($aliasedMethods['aliases']);
+            });
+        });
 
         return $usedMethods;
     }
@@ -1281,13 +1281,13 @@ class ReflectionClass extends ReflectionElement
 
         return array_filter(
             array_map(
-                function ( ReflectionClass $class ) {
+                function (ReflectionClass $class) {
 
                     $reflections = $class->getOwnConstants();
-                    ksort( $reflections );
+                    ksort($reflections);
                     return $reflections;
                 },
-                array_merge( $this->getParentClasses(), $this->getInterfaces() )
+                array_merge($this->getParentClasses(), $this->getInterfaces())
             )
         );
     }
@@ -1301,23 +1301,23 @@ class ReflectionClass extends ReflectionElement
     {
 
         $properties = array();
-        $allProperties = array_flip( array_map( function ( $property ) {
+        $allProperties = array_flip(array_map(function ($property) {
 
             return $property->getName();
-        }, $this->getOwnProperties() ) );
+        }, $this->getOwnProperties()));
 
         foreach ($this->getParentClasses() as $class) {
             $inheritedProperties = array();
             foreach ($class->getOwnProperties() as $property) {
-                if (!array_key_exists( $property->getName(), $allProperties ) && !$property->isPrivate()) {
+                if (!array_key_exists($property->getName(), $allProperties) && !$property->isPrivate()) {
                     $inheritedProperties[$property->getName()] = $property;
                     $allProperties[$property->getName()] = null;
                 }
             }
 
             if (!empty( $inheritedProperties )) {
-                ksort( $inheritedProperties );
-                $properties[$class->getName()] = array_values( $inheritedProperties );
+                ksort($inheritedProperties);
+                $properties[$class->getName()] = array_values($inheritedProperties);
             }
         }
 
@@ -1333,23 +1333,23 @@ class ReflectionClass extends ReflectionElement
     {
 
         $properties = array();
-        $allProperties = array_flip( array_map( function ( $property ) {
+        $allProperties = array_flip(array_map(function ($property) {
 
             return $property->getName();
-        }, $this->getOwnMagicProperties() ) );
+        }, $this->getOwnMagicProperties()));
 
         foreach ($this->getParentClasses() as $class) {
             $inheritedProperties = array();
             foreach ($class->getOwnMagicProperties() as $property) {
-                if (!array_key_exists( $property->getName(), $allProperties )) {
+                if (!array_key_exists($property->getName(), $allProperties)) {
                     $inheritedProperties[$property->getName()] = $property;
                     $allProperties[$property->getName()] = null;
                 }
             }
 
             if (!empty( $inheritedProperties )) {
-                ksort( $inheritedProperties );
-                $properties[$class->getName()] = array_values( $inheritedProperties );
+                ksort($inheritedProperties);
+                $properties[$class->getName()] = array_values($inheritedProperties);
             }
         }
 
@@ -1365,23 +1365,23 @@ class ReflectionClass extends ReflectionElement
     {
 
         $properties = array();
-        $allProperties = array_flip( array_map( function ( $property ) {
+        $allProperties = array_flip(array_map(function ($property) {
 
             return $property->getName();
-        }, $this->getOwnProperties() ) );
+        }, $this->getOwnProperties()));
 
         foreach ($this->getTraits() as $trait) {
             $usedProperties = array();
             foreach ($trait->getOwnProperties() as $property) {
-                if (!array_key_exists( $property->getName(), $allProperties )) {
+                if (!array_key_exists($property->getName(), $allProperties)) {
                     $usedProperties[$property->getName()] = $property;
                     $allProperties[$property->getName()] = null;
                 }
             }
 
             if (!empty( $usedProperties )) {
-                ksort( $usedProperties );
-                $properties[$trait->getName()] = array_values( $usedProperties );
+                ksort($usedProperties);
+                $properties[$trait->getName()] = array_values($usedProperties);
             }
         }
 
@@ -1397,23 +1397,23 @@ class ReflectionClass extends ReflectionElement
     {
 
         $properties = array();
-        $allProperties = array_flip( array_map( function ( $property ) {
+        $allProperties = array_flip(array_map(function ($property) {
 
             return $property->getName();
-        }, $this->getOwnMagicProperties() ) );
+        }, $this->getOwnMagicProperties()));
 
         foreach ($this->getTraits() as $trait) {
             $usedProperties = array();
             foreach ($trait->getOwnMagicProperties() as $property) {
-                if (!array_key_exists( $property->getName(), $allProperties )) {
+                if (!array_key_exists($property->getName(), $allProperties)) {
                     $usedProperties[$property->getName()] = $property;
                     $allProperties[$property->getName()] = null;
                 }
             }
 
             if (!empty( $usedProperties )) {
-                ksort( $usedProperties );
-                $properties[$trait->getName()] = array_values( $usedProperties );
+                ksort($usedProperties);
+                $properties[$trait->getName()] = array_values($usedProperties);
             }
         }
 
@@ -1427,7 +1427,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasOwnProperty( $propertyName )
+    public function hasOwnProperty($propertyName)
     {
 
         if (null === $this->ownProperties) {
@@ -1444,7 +1444,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasTraitProperty( $propertyName )
+    public function hasTraitProperty($propertyName)
     {
 
         $properties = $this->getTraitProperties();
@@ -1460,8 +1460,8 @@ class ReflectionClass extends ReflectionElement
     {
 
         $properties = array();
-        foreach ($this->reflection->getTraitProperties( self::$propertyAccessLevels ) as $property) {
-            $apiProperty = new ReflectionProperty( $property, self::$generator );
+        foreach ($this->reflection->getTraitProperties(self::$propertyAccessLevels) as $property) {
+            $apiProperty = new ReflectionProperty($property, self::$generator);
             if (!$this->isDocumented() || $apiProperty->isDocumented()) {
                 $properties[$property->getName()] = $apiProperty;
             }
@@ -1476,7 +1476,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasOwnMethod( $methodName )
+    public function hasOwnMethod($methodName)
     {
 
         if (null === $this->ownMethods) {
@@ -1493,7 +1493,7 @@ class ReflectionClass extends ReflectionElement
      *
      * @return boolean
      */
-    public function hasTraitMethod( $methodName )
+    public function hasTraitMethod($methodName)
     {
 
         $methods = $this->getTraitMethods();
@@ -1509,8 +1509,8 @@ class ReflectionClass extends ReflectionElement
     {
 
         $methods = array();
-        foreach ($this->reflection->getTraitMethods( self::$methodAccessLevels ) as $method) {
-            $apiMethod = new ReflectionMethod( $method, self::$generator );
+        foreach ($this->reflection->getTraitMethods(self::$methodAccessLevels) as $method) {
+            $apiMethod = new ReflectionMethod($method, self::$generator);
             if (!$this->isDocumented() || $apiMethod->isDocumented()) {
                 $methods[$method->getName()] = $apiMethod;
             }

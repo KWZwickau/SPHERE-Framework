@@ -120,16 +120,16 @@ class PHPExcel_Best_Fit
      * @param    float[] $xValues The set of X-values for this regression
      * @param    boolean $const
      */
-    function __construct( $yValues, $xValues = array(), $const = true )
+    function __construct($yValues, $xValues = array(), $const = true)
     {
 
         //	Calculate number of points
-        $nY = count( $yValues );
-        $nX = count( $xValues );
+        $nY = count($yValues);
+        $nX = count($xValues);
 
         //	Define X Values if necessary
         if ($nX == 0) {
-            $xValues = range( 1, $nY );
+            $xValues = range(1, $nY);
             $nX = $nY;
         } elseif ($nY != $nX) {
             //	Ensure both arrays of points are the same size
@@ -161,7 +161,7 @@ class PHPExcel_Best_Fit
      *
      * @return     float                        X-Value
      */
-    public function getValueOfXForY( $yValue )
+    public function getValueOfXForY($yValue)
     {
 
         return false;
@@ -187,7 +187,7 @@ class PHPExcel_Best_Fit
      *
      * @return     string
      */
-    public function getEquation( $dp = 0 )
+    public function getEquation($dp = 0)
     {
 
         return false;
@@ -201,11 +201,11 @@ class PHPExcel_Best_Fit
      *
      * @return     string
      */
-    public function getSlope( $dp = 0 )
+    public function getSlope($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_slope, $dp );
+            return round($this->_slope, $dp);
         }
         return $this->_slope;
     }    //	function getSlope()
@@ -218,11 +218,11 @@ class PHPExcel_Best_Fit
      *
      * @return     string
      */
-    public function getSlopeSE( $dp = 0 )
+    public function getSlopeSE($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_slopeSE, $dp );
+            return round($this->_slopeSE, $dp);
         }
         return $this->_slopeSE;
     }    //	function getSlopeSE()
@@ -235,11 +235,11 @@ class PHPExcel_Best_Fit
      *
      * @return     string
      */
-    public function getIntersect( $dp = 0 )
+    public function getIntersect($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_intersect, $dp );
+            return round($this->_intersect, $dp);
         }
         return $this->_intersect;
     }    //	function getIntersect()
@@ -252,11 +252,11 @@ class PHPExcel_Best_Fit
      *
      * @return     string
      */
-    public function getIntersectSE( $dp = 0 )
+    public function getIntersectSE($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_intersectSE, $dp );
+            return round($this->_intersectSE, $dp);
         }
         return $this->_intersectSE;
     }    //	function getIntersectSE()
@@ -269,21 +269,21 @@ class PHPExcel_Best_Fit
      *
      * @return     float
      */
-    public function getGoodnessOfFit( $dp = 0 )
+    public function getGoodnessOfFit($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_goodnessOfFit, $dp );
+            return round($this->_goodnessOfFit, $dp);
         }
         return $this->_goodnessOfFit;
     }    //	function getGoodnessOfFit()
 
 
-    public function getGoodnessOfFitPercent( $dp = 0 )
+    public function getGoodnessOfFitPercent($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_goodnessOfFit * 100, $dp );
+            return round($this->_goodnessOfFit * 100, $dp);
         }
         return $this->_goodnessOfFit * 100;
     }    //	function getGoodnessOfFitPercent()
@@ -296,71 +296,71 @@ class PHPExcel_Best_Fit
      *
      * @return     float
      */
-    public function getStdevOfResiduals( $dp = 0 )
+    public function getStdevOfResiduals($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_stdevOfResiduals, $dp );
+            return round($this->_stdevOfResiduals, $dp);
         }
         return $this->_stdevOfResiduals;
     }    //	function getStdevOfResiduals()
 
 
-    public function getSSRegression( $dp = 0 )
+    public function getSSRegression($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_SSRegression, $dp );
+            return round($this->_SSRegression, $dp);
         }
         return $this->_SSRegression;
     }    //	function getSSRegression()
 
 
-    public function getSSResiduals( $dp = 0 )
+    public function getSSResiduals($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_SSResiduals, $dp );
+            return round($this->_SSResiduals, $dp);
         }
         return $this->_SSResiduals;
     }    //	function getSSResiduals()
 
 
-    public function getDFResiduals( $dp = 0 )
+    public function getDFResiduals($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_DFResiduals, $dp );
+            return round($this->_DFResiduals, $dp);
         }
         return $this->_DFResiduals;
     }    //	function getDFResiduals()
 
 
-    public function getF( $dp = 0 )
+    public function getF($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_F, $dp );
+            return round($this->_F, $dp);
         }
         return $this->_F;
     }    //	function getF()
 
 
-    public function getCovariance( $dp = 0 )
+    public function getCovariance($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_covariance, $dp );
+            return round($this->_covariance, $dp);
         }
         return $this->_covariance;
     }    //	function getCovariance()
 
 
-    public function getCorrelation( $dp = 0 )
+    public function getCorrelation($dp = 0)
     {
 
         if ($dp != 0) {
-            return round( $this->_correlation, $dp );
+            return round($this->_correlation, $dp);
         }
         return $this->_correlation;
     }    //	function getCorrelation()
@@ -372,12 +372,12 @@ class PHPExcel_Best_Fit
         return $this->_yBestFitValues;
     }    //	function getYBestFitValues()
 
-    protected function _leastSquareFit( $yValues, $xValues, $const )
+    protected function _leastSquareFit($yValues, $xValues, $const)
     {
 
         // calculate sums
-        $x_sum = array_sum( $xValues );
-        $y_sum = array_sum( $yValues );
+        $x_sum = array_sum($xValues);
+        $y_sum = array_sum($yValues);
         $meanX = $x_sum / $this->_valueCount;
         $meanY = $y_sum / $this->_valueCount;
         $mBase = $mDivisor = $xx_sum = $xy_sum = $yy_sum = 0.0;
@@ -407,15 +407,15 @@ class PHPExcel_Best_Fit
             $this->_intersect = 0;
         }
 
-        $this->_calculateGoodnessOfFit( $x_sum, $y_sum, $xx_sum, $yy_sum, $xy_sum, $meanX, $meanY, $const );
+        $this->_calculateGoodnessOfFit($x_sum, $y_sum, $xx_sum, $yy_sum, $xy_sum, $meanX, $meanY, $const);
     }    //	function _calculateGoodnessOfFit()
 
-    protected function _calculateGoodnessOfFit( $sumX, $sumY, $sumX2, $sumY2, $sumXY, $meanX, $meanY, $const )
+    protected function _calculateGoodnessOfFit($sumX, $sumY, $sumX2, $sumY2, $sumXY, $meanX, $meanY, $const)
     {
 
         $SSres = $SScov = $SScor = $SStot = $SSsex = 0.0;
         foreach ($this->_xValues as $xKey => $xValue) {
-            $bestFitY = $this->_yBestFitValues[$xKey] = $this->getValueOfYForX( $xValue );
+            $bestFitY = $this->_yBestFitValues[$xKey] = $this->getValueOfYForX($xValue);
 
             $SSres += ( $this->_yValues[$xKey] - $bestFitY ) * ( $this->_yValues[$xKey] - $bestFitY );
             if ($const) {
@@ -437,7 +437,7 @@ class PHPExcel_Best_Fit
         if ($this->_DFResiduals == 0.0) {
             $this->_stdevOfResiduals = 0.0;
         } else {
-            $this->_stdevOfResiduals = sqrt( $SSres / $this->_DFResiduals );
+            $this->_stdevOfResiduals = sqrt($SSres / $this->_DFResiduals);
         }
         if (( $SStot == 0.0 ) || ( $SSres == $SStot )) {
             $this->_goodnessOfFit = 1;
@@ -447,10 +447,10 @@ class PHPExcel_Best_Fit
 
         $this->_SSRegression = $this->_goodnessOfFit * $SStot;
         $this->_covariance = $SScov / $this->_valueCount;
-        $this->_correlation = ( $this->_valueCount * $sumXY - $sumX * $sumY ) / sqrt( ( $this->_valueCount * $sumX2 - pow( $sumX,
-                        2 ) ) * ( $this->_valueCount * $sumY2 - pow( $sumY, 2 ) ) );
-        $this->_slopeSE = $this->_stdevOfResiduals / sqrt( $SSsex );
-        $this->_intersectSE = $this->_stdevOfResiduals * sqrt( 1 / ( $this->_valueCount - ( $sumX * $sumX ) / $sumX2 ) );
+        $this->_correlation = ( $this->_valueCount * $sumXY - $sumX * $sumY ) / sqrt(( $this->_valueCount * $sumX2 - pow($sumX,
+                        2) ) * ( $this->_valueCount * $sumY2 - pow($sumY, 2) ));
+        $this->_slopeSE = $this->_stdevOfResiduals / sqrt($SSsex);
+        $this->_intersectSE = $this->_stdevOfResiduals * sqrt(1 / ( $this->_valueCount - ( $sumX * $sumX ) / $sumX2 ));
         if ($this->_SSResiduals != 0.0) {
             if ($this->_DFResiduals == 0.0) {
                 $this->_F = 0.0;
@@ -473,7 +473,7 @@ class PHPExcel_Best_Fit
      *
      * @return     float                        Y-Value
      */
-    public function getValueOfYForX( $xValue )
+    public function getValueOfYForX($xValue)
     {
 
         return false;

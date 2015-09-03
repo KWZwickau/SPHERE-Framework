@@ -88,7 +88,7 @@ final class Request extends Nette\FreezableObject
      *
      * @return Request  provides a fluent interface
      */
-    public function setPresenterName( $name )
+    public function setPresenterName($name)
     {
 
         $this->updating();
@@ -112,16 +112,16 @@ final class Request extends Nette\FreezableObject
     function getParams()
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use getParameters() instead.', E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use getParameters() instead.', E_USER_WARNING);
         return $this->getParameters();
     }
 
     /** @deprecated */
-    function setParams( array $params )
+    function setParams(array $params)
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use setParameters() instead.', E_USER_WARNING );
-        return $this->setParameters( $params );
+        trigger_error(__METHOD__.'() is deprecated; use setParameters() instead.', E_USER_WARNING);
+        return $this->setParameters($params);
     }
 
     /**
@@ -142,7 +142,7 @@ final class Request extends Nette\FreezableObject
      *
      * @return Request  provides a fluent interface
      */
-    public function setParameters( array $params )
+    public function setParameters(array $params)
     {
 
         $this->updating();
@@ -168,7 +168,7 @@ final class Request extends Nette\FreezableObject
      *
      * @return Request  provides a fluent interface
      */
-    public function setPost( array $params )
+    public function setPost(array $params)
     {
 
         $this->updating();
@@ -194,7 +194,7 @@ final class Request extends Nette\FreezableObject
      *
      * @return Request  provides a fluent interface
      */
-    public function setFiles( array $files )
+    public function setFiles(array $files)
     {
 
         $this->updating();
@@ -220,7 +220,7 @@ final class Request extends Nette\FreezableObject
      *
      * @return Request  provides a fluent interface
      */
-    public function setMethod( $method )
+    public function setMethod($method)
     {
 
         $this->method = $method;
@@ -234,10 +234,10 @@ final class Request extends Nette\FreezableObject
      *
      * @return bool
      */
-    public function isMethod( $method )
+    public function isMethod($method)
     {
 
-        return strcasecmp( $this->method, $method ) === 0;
+        return strcasecmp($this->method, $method) === 0;
     }
 
 
@@ -249,7 +249,7 @@ final class Request extends Nette\FreezableObject
     public function isPost()
     {
 
-        return strcasecmp( $this->method, 'post' ) === 0;
+        return strcasecmp($this->method, 'post') === 0;
     }
 
 
@@ -261,7 +261,7 @@ final class Request extends Nette\FreezableObject
      *
      * @return Request  provides a fluent interface
      */
-    public function setFlag( $flag, $value = true )
+    public function setFlag($flag, $value = true)
     {
 
         $this->updating();
@@ -277,7 +277,7 @@ final class Request extends Nette\FreezableObject
      *
      * @return bool
      */
-    public function hasFlag( $flag )
+    public function hasFlag($flag)
     {
 
         return !empty( $this->flags[$flag] );

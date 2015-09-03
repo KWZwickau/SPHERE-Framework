@@ -92,7 +92,7 @@ class PHPExcel_Worksheet_ColumnDimension
      *
      * @param string $pIndex Character column index
      */
-    public function __construct( $pIndex = 'A' )
+    public function __construct($pIndex = 'A')
     {
 
         // Initialise values
@@ -120,7 +120,7 @@ class PHPExcel_Worksheet_ColumnDimension
      *
      * @return PHPExcel_Worksheet_ColumnDimension
      */
-    public function setColumnIndex( $pValue )
+    public function setColumnIndex($pValue)
     {
 
         $this->_columnIndex = $pValue;
@@ -145,7 +145,7 @@ class PHPExcel_Worksheet_ColumnDimension
      *
      * @return PHPExcel_Worksheet_ColumnDimension
      */
-    public function setWidth( $pValue = -1 )
+    public function setWidth($pValue = -1)
     {
 
         $this->_width = $pValue;
@@ -170,7 +170,7 @@ class PHPExcel_Worksheet_ColumnDimension
      *
      * @return PHPExcel_Worksheet_ColumnDimension
      */
-    public function setAutoSize( $pValue = false )
+    public function setAutoSize($pValue = false)
     {
 
         $this->_autoSize = $pValue;
@@ -195,7 +195,7 @@ class PHPExcel_Worksheet_ColumnDimension
      *
      * @return PHPExcel_Worksheet_ColumnDimension
      */
-    public function setVisible( $pValue = true )
+    public function setVisible($pValue = true)
     {
 
         $this->_visible = $pValue;
@@ -223,11 +223,11 @@ class PHPExcel_Worksheet_ColumnDimension
      * @throws PHPExcel_Exception
      * @return PHPExcel_Worksheet_ColumnDimension
      */
-    public function setOutlineLevel( $pValue )
+    public function setOutlineLevel($pValue)
     {
 
         if ($pValue < 0 || $pValue > 7) {
-            throw new PHPExcel_Exception( "Outline level must range between 0 and 7." );
+            throw new PHPExcel_Exception("Outline level must range between 0 and 7.");
         }
 
         $this->_outlineLevel = $pValue;
@@ -252,7 +252,7 @@ class PHPExcel_Worksheet_ColumnDimension
      *
      * @return PHPExcel_Worksheet_ColumnDimension
      */
-    public function setCollapsed( $pValue = true )
+    public function setCollapsed($pValue = true)
     {
 
         $this->_collapsed = $pValue;
@@ -277,7 +277,7 @@ class PHPExcel_Worksheet_ColumnDimension
      *
      * @return PHPExcel_Worksheet_ColumnDimension
      */
-    public function setXfIndex( $pValue = 0 )
+    public function setXfIndex($pValue = 0)
     {
 
         $this->_xfIndex = $pValue;
@@ -290,9 +290,9 @@ class PHPExcel_Worksheet_ColumnDimension
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

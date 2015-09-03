@@ -22,6 +22,7 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
  */
 interface RequestMatcherInterface
 {
+
     /**
      * Tries to match a request with a set of routes.
      *

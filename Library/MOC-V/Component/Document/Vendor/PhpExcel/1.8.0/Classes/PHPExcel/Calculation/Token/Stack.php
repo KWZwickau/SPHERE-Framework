@@ -69,7 +69,7 @@ class PHPExcel_Calculation_Token_Stack
      * @param  mixed $value
      * @param  mixed $reference
      */
-    public function push( $type, $value, $reference = null )
+    public function push($type, $value, $reference = null)
     {
 
         $this->_stack[$this->_count++] = array(
@@ -78,7 +78,7 @@ class PHPExcel_Calculation_Token_Stack
             'reference' => $reference
         );
         if ($type == 'Function') {
-            $localeFunction = PHPExcel_Calculation::_localeFunc( $value );
+            $localeFunction = PHPExcel_Calculation::_localeFunc($value);
             if ($localeFunction != $value) {
                 $this->_stack[( $this->_count - 1 )]['localeValue'] = $localeFunction;
             }
@@ -106,7 +106,7 @@ class PHPExcel_Calculation_Token_Stack
      *
      * @return  mixed
      */
-    public function last( $n = 1 )
+    public function last($n = 1)
     {
 
         if ($this->_count - $n < 0) {

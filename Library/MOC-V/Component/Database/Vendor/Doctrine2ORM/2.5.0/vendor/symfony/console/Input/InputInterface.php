@@ -18,6 +18,7 @@ namespace Symfony\Component\Console\Input;
  */
 interface InputInterface
 {
+
     /**
      * Returns the first argument from the raw parameters (not parsed).
      *

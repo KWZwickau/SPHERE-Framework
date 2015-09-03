@@ -26,4 +26,5 @@ namespace DoctrineTest\InstantiatorTestAsset;
  */
 trait SimpleTraitAsset
 {
+
 }

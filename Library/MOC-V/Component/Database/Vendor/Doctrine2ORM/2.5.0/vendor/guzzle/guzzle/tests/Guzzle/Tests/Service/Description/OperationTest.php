@@ -11,24 +11,27 @@ use Guzzle\Service\Description\ServiceDescription;
  */
 class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public static function strtoupper($string)
     {
+
         return strtoupper($string);
     }
 
     public function testOperationIsDataObject()
     {
+
         $c = new Operation(array(
-            'name'               => 'test',
-            'summary'            => 'doc',
-            'notes'              => 'notes',
-            'documentationUrl'   => 'http://www.example.com',
-            'httpMethod'         => 'POST',
-            'uri'                => '/api/v1',
-            'responseClass'      => 'array',
-            'responseNotes'      => 'returns the json_decoded response',
-            'deprecated'         => true,
-            'parameters'         => array(
+            'name'             => 'test',
+            'summary'          => 'doc',
+            'notes'            => 'notes',
+            'documentationUrl' => 'http://www.example.com',
+            'httpMethod'       => 'POST',
+            'uri'              => '/api/v1',
+            'responseClass'    => 'array',
+            'responseNotes'    => 'returns the json_decoded response',
+            'deprecated'       => true,
+            'parameters'       => array(
                 'key' => array(
                     'required'  => true,
                     'type'      => 'string',
@@ -82,8 +85,9 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsConcreteCommands()
     {
+
         $c = new Operation(array(
-            'name' => 'test',
+            'name'  => 'test',
             'class' => 'Guzzle\\Service\\Command\ClosureCommand',
             'parameters' => array(
                 'p' => new Parameter(array(
@@ -96,6 +100,7 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testConvertsToArray()
     {
+
         $data = array(
             'name'             => 'test',
             'class'            => 'Guzzle\\Service\\Command\ClosureCommand',
@@ -107,13 +112,13 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
         );
         $c = new Operation($data);
         $toArray = $c->toArray();
-        unset($data['name']);
+        unset( $data['name'] );
         $this->assertArrayHasKey('parameters', $toArray);
         $this->assertInternalType('array', $toArray['parameters']);
 
         // Normalize the array
-        unset($data['parameters']);
-        unset($toArray['parameters']);
+        unset( $data['parameters'] );
+        unset( $toArray['parameters'] );
 
         $data['responseType'] = 'primitive';
         $data['responseClass'] = 'array';
@@ -122,19 +127,15 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDeterminesIfHasParam()
     {
+
         $command = $this->getTestCommand();
         $this->assertTrue($command->hasParam('data'));
         $this->assertFalse($command->hasParam('baz'));
     }
 
-    public function testReturnsParamNames()
-    {
-        $command = $this->getTestCommand();
-        $this->assertEquals(array('data'), $command->getParamNames());
-    }
-
     protected function getTestCommand()
     {
+
         return new Operation(array(
             'parameters' => array(
                 'data' => new Parameter(array(
@@ -144,8 +145,16 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
         ));
     }
 
+    public function testReturnsParamNames()
+    {
+
+        $command = $this->getTestCommand();
+        $this->assertEquals(array('data'), $command->getParamNames());
+    }
+
     public function testCanBuildUpCommands()
     {
+
         $c = new Operation(array());
         $c->setName('foo')
             ->setClass('Baz')
@@ -174,6 +183,7 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanRemoveParams()
     {
+
         $c = new Operation(array());
         $c->addParam(new Parameter(array('name' => 'foo')));
         $this->assertTrue($c->hasParam('foo'));
@@ -183,12 +193,14 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsNameToParametersIfNeeded()
     {
+
         $command = new Operation(array('parameters' => array('foo' => new Parameter(array()))));
         $this->assertEquals('foo', $command->getParam('foo')->getName());
     }
 
     public function testContainsApiErrorInformation()
     {
+
         $command = $this->getOperation();
         $this->assertEquals(1, count($command->getErrorResponses()));
         $arr = $command->toArray();
@@ -199,8 +211,40 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
         $this->assertEquals(0, count($command->getErrorResponses()));
     }
 
+    /**
+     * @return Operation
+     */
+    protected function getOperation()
+    {
+
+        return new Operation(array(
+            'name'           => 'OperationTest',
+            'class'          => get_class($this),
+            'parameters'     => array(
+                'test'          => array('type' => 'object'),
+                'bool_1'        => array('default' => true, 'type' => 'boolean'),
+                'bool_2'        => array('default' => false),
+                'float'         => array('type' => 'numeric'),
+                'int'           => array('type' => 'integer'),
+                'date'          => array('type' => 'string'),
+                'timestamp'     => array('type' => 'string'),
+                'string'        => array('type' => 'string'),
+                'username'      => array('type' => 'string', 'required' => true, 'filters' => 'strtolower'),
+                'test_function' => array('type' => 'string', 'filters' => __CLASS__.'::strtoupper')
+            ),
+            'errorResponses' => array(
+                array(
+                    'code'   => 503,
+                    'reason' => 'InsufficientCapacity',
+                    'class'  => 'Guzzle\\Exception\\RuntimeException'
+                )
+            )
+        ));
+    }
+
     public function testHasNotes()
     {
+
         $o = new Operation(array('notes' => 'foo'));
         $this->assertEquals('foo', $o->getNotes());
         $o->setNotes('bar');
@@ -209,6 +253,7 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasData()
     {
+
         $o = new Operation(array('data' => array('foo' => 'baz', 'bar' => 123)));
         $o->setData('test', false);
         $this->assertEquals('baz', $o->getData('foo'));
@@ -225,6 +270,7 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasServiceDescription()
     {
+
         $s = new ServiceDescription();
         $o = new Operation(array(), $s);
         $this->assertSame($s, $o->getServiceDescription());
@@ -235,11 +281,13 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testValidatesResponseType()
     {
+
         $o = new Operation(array('responseClass' => 'array', 'responseType' => 'foo'));
     }
 
     public function testInfersResponseType()
     {
+
         $o = $this->getOperation();
         $o->setServiceDescription(new ServiceDescription(array('models' => array('Foo' => array()))));
         $this->assertEquals('primitive', $o->getResponseType());
@@ -254,6 +302,7 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasResponseType()
     {
+
         // infers in the constructor
         $o = new Operation(array('responseClass' => 'array'));
         $this->assertEquals('primitive', $o->getResponseType());
@@ -265,11 +314,13 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHasAdditionalParameters()
     {
+
         $o = new Operation(array(
             'additionalParameters' => array(
-                'type' => 'string', 'name' => 'binks'
+                'type' => 'string',
+                'name' => 'binks'
             ),
-            'parameters' => array(
+            'parameters'           => array(
                 'foo' => array('type' => 'integer')
             )
         ));
@@ -278,31 +329,5 @@ class OperationTest extends \Guzzle\Tests\GuzzleTestCase
         $this->assertEquals(array(
             'type' => 'string'
         ), $arr['additionalParameters']);
-    }
-
-    /**
-     * @return Operation
-     */
-    protected function getOperation()
-    {
-        return new Operation(array(
-            'name'       => 'OperationTest',
-            'class'      => get_class($this),
-            'parameters' => array(
-                'test'          => array('type' => 'object'),
-                'bool_1'        => array('default' => true, 'type' => 'boolean'),
-                'bool_2'        => array('default' => false),
-                'float'         => array('type' => 'numeric'),
-                'int'           => array('type' => 'integer'),
-                'date'          => array('type' => 'string'),
-                'timestamp'     => array('type' => 'string'),
-                'string'        => array('type' => 'string'),
-                'username'      => array('type' => 'string', 'required' => true, 'filters' => 'strtolower'),
-                'test_function' => array('type' => 'string', 'filters' => __CLASS__ . '::strtoupper')
-            ),
-            'errorResponses' => array(
-                array('code' => 503, 'reason' => 'InsufficientCapacity', 'class' => 'Guzzle\\Exception\\RuntimeException')
-            )
-        ));
     }
 }

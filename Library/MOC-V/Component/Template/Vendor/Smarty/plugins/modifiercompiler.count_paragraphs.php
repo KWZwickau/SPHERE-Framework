@@ -20,7 +20,7 @@
  *
  * @return string with compiled code
  */
-function smarty_modifiercompiler_count_paragraphs( $params )
+function smarty_modifiercompiler_count_paragraphs($params)
 {
 
     // count \r or \n characters

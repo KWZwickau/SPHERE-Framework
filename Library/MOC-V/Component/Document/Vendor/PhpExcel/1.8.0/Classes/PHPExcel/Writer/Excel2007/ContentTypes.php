@@ -45,24 +45,24 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
      * @return    string                        XML Output
      * @throws    PHPExcel_Writer_Exception
      */
-    public function writeContentTypes( PHPExcel $pPHPExcel = null, $includeCharts = false )
+    public function writeContentTypes(PHPExcel $pPHPExcel = null, $includeCharts = false)
     {
 
         // Create XML writer
         $objWriter = null;
         if ($this->getParentWriter()->getUseDiskCaching()) {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_DISK,
-                $this->getParentWriter()->getDiskCachingDirectory() );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_DISK,
+                $this->getParentWriter()->getDiskCachingDirectory());
         } else {
-            $objWriter = new PHPExcel_Shared_XMLWriter( PHPExcel_Shared_XMLWriter::STORAGE_MEMORY );
+            $objWriter = new PHPExcel_Shared_XMLWriter(PHPExcel_Shared_XMLWriter::STORAGE_MEMORY);
         }
 
         // XML header
-        $objWriter->startDocument( '1.0', 'UTF-8', 'yes' );
+        $objWriter->startDocument('1.0', 'UTF-8', 'yes');
 
         // Types
-        $objWriter->startElement( 'Types' );
-        $objWriter->writeAttribute( 'xmlns', 'http://schemas.openxmlformats.org/package/2006/content-types' );
+        $objWriter->startElement('Types');
+        $objWriter->writeAttribute('xmlns', 'http://schemas.openxmlformats.org/package/2006/content-types');
 
         // Theme
         $this->_writeOverrideContentType(
@@ -147,9 +147,9 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
         // Add worksheet relationship content types
         $chart = 1;
         for ($i = 0; $i < $sheetCount; ++$i) {
-            $drawings = $pPHPExcel->getSheet( $i )->getDrawingCollection();
-            $drawingCount = count( $drawings );
-            $chartCount = ( $includeCharts ) ? $pPHPExcel->getSheet( $i )->getChartCount() : 0;
+            $drawings = $pPHPExcel->getSheet($i)->getDrawingCollection();
+            $drawingCount = count($drawings);
+            $chartCount = ( $includeCharts ) ? $pPHPExcel->getSheet($i)->getChartCount() : 0;
 
             //	We need a drawing relationship for the worksheet if we have either drawings or charts
             if (( $drawingCount > 0 ) || ( $chartCount > 0 )) {
@@ -172,7 +172,7 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
 
         // Comments
         for ($i = 0; $i < $sheetCount; ++$i) {
-            if (count( $pPHPExcel->getSheet( $i )->getComments() ) > 0) {
+            if (count($pPHPExcel->getSheet($i)->getComments()) > 0) {
                 $this->_writeOverrideContentType(
                     $objWriter, '/xl/comments'.( $i + 1 ).'.xml',
                     'application/vnd.openxmlformats-officedocument.spreadsheetml.comments+xml'
@@ -187,16 +187,16 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
             $extension = '';
             $mimeType = '';
 
-            if ($this->getParentWriter()->getDrawingHashTable()->getByIndex( $i ) instanceof PHPExcel_Worksheet_Drawing) {
-                $extension = strtolower( $this->getParentWriter()->getDrawingHashTable()->getByIndex( $i )->getExtension() );
-                $mimeType = $this->_getImageMimeType( $this->getParentWriter()->getDrawingHashTable()->getByIndex( $i )->getPath() );
+            if ($this->getParentWriter()->getDrawingHashTable()->getByIndex($i) instanceof PHPExcel_Worksheet_Drawing) {
+                $extension = strtolower($this->getParentWriter()->getDrawingHashTable()->getByIndex($i)->getExtension());
+                $mimeType = $this->_getImageMimeType($this->getParentWriter()->getDrawingHashTable()->getByIndex($i)->getPath());
             } else {
-                if ($this->getParentWriter()->getDrawingHashTable()->getByIndex( $i ) instanceof PHPExcel_Worksheet_MemoryDrawing) {
-                    $extension = strtolower( $this->getParentWriter()->getDrawingHashTable()->getByIndex( $i )->getMimeType() );
-                    $extension = explode( '/', $extension );
+                if ($this->getParentWriter()->getDrawingHashTable()->getByIndex($i) instanceof PHPExcel_Worksheet_MemoryDrawing) {
+                    $extension = strtolower($this->getParentWriter()->getDrawingHashTable()->getByIndex($i)->getMimeType());
+                    $extension = explode('/', $extension);
                     $extension = $extension[1];
 
-                    $mimeType = $this->getParentWriter()->getDrawingHashTable()->getByIndex( $i )->getMimeType();
+                    $mimeType = $this->getParentWriter()->getDrawingHashTable()->getByIndex($i)->getMimeType();
                 }
             }
 
@@ -210,8 +210,8 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
         }
         if ($pPHPExcel->hasRibbonBinObjects()) {//Some additional objects in the ribbon ?
             //we need to write "Extension" but not already write for media content
-            $tabRibbonTypes = array_diff( $pPHPExcel->getRibbonBinObjects( 'types' ),
-                array_keys( $aMediaContentTypes ) );
+            $tabRibbonTypes = array_diff($pPHPExcel->getRibbonBinObjects('types'),
+                array_keys($aMediaContentTypes));
             foreach ($tabRibbonTypes as $aRibbonType) {
                 $mimeType = 'image/.'.$aRibbonType;//we wrote $mimeType like customUI Editor
                 $this->_writeDefaultContentType(
@@ -221,14 +221,14 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
         }
         $sheetCount = $pPHPExcel->getSheetCount();
         for ($i = 0; $i < $sheetCount; ++$i) {
-            if (count( $pPHPExcel->getSheet()->getHeaderFooter()->getImages() ) > 0) {
+            if (count($pPHPExcel->getSheet()->getHeaderFooter()->getImages()) > 0) {
                 foreach ($pPHPExcel->getSheet()->getHeaderFooter()->getImages() as $image) {
-                    if (!isset( $aMediaContentTypes[strtolower( $image->getExtension() )] )) {
-                        $aMediaContentTypes[strtolower( $image->getExtension() )] = $this->_getImageMimeType( $image->getPath() );
+                    if (!isset( $aMediaContentTypes[strtolower($image->getExtension())] )) {
+                        $aMediaContentTypes[strtolower($image->getExtension())] = $this->_getImageMimeType($image->getPath());
 
                         $this->_writeDefaultContentType(
-                            $objWriter, strtolower( $image->getExtension() ),
-                            $aMediaContentTypes[strtolower( $image->getExtension() )]
+                            $objWriter, strtolower($image->getExtension()),
+                            $aMediaContentTypes[strtolower($image->getExtension())]
                         );
                     }
                 }
@@ -258,12 +258,12 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
 
         if ($pPartname != '' && $pContentType != '') {
             // Write content type
-            $objWriter->startElement( 'Override' );
-            $objWriter->writeAttribute( 'PartName', $pPartname );
-            $objWriter->writeAttribute( 'ContentType', $pContentType );
+            $objWriter->startElement('Override');
+            $objWriter->writeAttribute('PartName', $pPartname);
+            $objWriter->writeAttribute('ContentType', $pContentType);
             $objWriter->endElement();
         } else {
-            throw new PHPExcel_Writer_Exception( "Invalid parameters passed." );
+            throw new PHPExcel_Writer_Exception("Invalid parameters passed.");
         }
     }
 
@@ -284,12 +284,12 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
 
         if ($pPartname != '' && $pContentType != '') {
             // Write content type
-            $objWriter->startElement( 'Default' );
-            $objWriter->writeAttribute( 'Extension', $pPartname );
-            $objWriter->writeAttribute( 'ContentType', $pContentType );
+            $objWriter->startElement('Default');
+            $objWriter->writeAttribute('Extension', $pPartname);
+            $objWriter->writeAttribute('ContentType', $pContentType);
             $objWriter->endElement();
         } else {
-            throw new PHPExcel_Writer_Exception( "Invalid parameters passed." );
+            throw new PHPExcel_Writer_Exception("Invalid parameters passed.");
         }
     }
 
@@ -301,14 +301,14 @@ class PHPExcel_Writer_Excel2007_ContentTypes extends PHPExcel_Writer_Excel2007_W
      * @return    string    Mime Type
      * @throws    PHPExcel_Writer_Exception
      */
-    private function _getImageMimeType( $pFile = '' )
+    private function _getImageMimeType($pFile = '')
     {
 
-        if (PHPExcel_Shared_File::file_exists( $pFile )) {
-            $image = getimagesize( $pFile );
-            return image_type_to_mime_type( $image[2] );
+        if (PHPExcel_Shared_File::file_exists($pFile)) {
+            $image = getimagesize($pFile);
+            return image_type_to_mime_type($image[2]);
         } else {
-            throw new PHPExcel_Writer_Exception( "File $pFile does not exist" );
+            throw new PHPExcel_Writer_Exception("File $pFile does not exist");
         }
     }
 }

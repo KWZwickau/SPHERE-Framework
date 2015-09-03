@@ -25,11 +25,13 @@ use Doctrine\DBAL\Schema\Synchronizer\SingleDatabaseSynchronizer;
 
 class SingleDatabaseSynchronizerTest extends \PHPUnit_Framework_TestCase
 {
+
     private $conn;
     private $synchronizer;
 
     public function setUp()
     {
+
         $this->conn = DriverManager::getConnection(array(
             'driver' => 'pdo_sqlite',
             'memory' => true,
@@ -39,6 +41,7 @@ class SingleDatabaseSynchronizerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetCreateSchema()
     {
+
         $schema = new Schema();
         $table = $schema->createTable('test');
         $table->addColumn('id', 'integer');
@@ -50,6 +53,7 @@ class SingleDatabaseSynchronizerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetUpdateSchema()
     {
+
         $schema = new Schema();
         $table = $schema->createTable('test');
         $table->addColumn('id', 'integer');
@@ -61,6 +65,7 @@ class SingleDatabaseSynchronizerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetDropSchema()
     {
+
         $schema = new Schema();
         $table = $schema->createTable('test');
         $table->addColumn('id', 'integer');
@@ -74,6 +79,7 @@ class SingleDatabaseSynchronizerTest extends \PHPUnit_Framework_TestCase
 
     public function testGetDropAllSchema()
     {
+
         $schema = new Schema();
         $table = $schema->createTable('test');
         $table->addColumn('id', 'integer');

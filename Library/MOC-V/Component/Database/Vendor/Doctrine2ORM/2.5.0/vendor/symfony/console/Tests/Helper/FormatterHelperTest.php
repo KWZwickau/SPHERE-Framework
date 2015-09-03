@@ -15,8 +15,10 @@ use Symfony\Component\Console\Helper\FormatterHelper;
 
 class FormatterHelperTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testFormatSection()
     {
+
         $formatter = new FormatterHelper();
 
         $this->assertEquals(
@@ -28,6 +30,7 @@ class FormatterHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testFormatBlock()
     {
+
         $formatter = new FormatterHelper();
 
         $this->assertEquals(
@@ -54,6 +57,7 @@ class FormatterHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testFormatBlockWithDiacriticLetters()
     {
+
         if (!function_exists('mb_detect_encoding')) {
             $this->markTestSkipped('This test requires mbstring to work.');
         }
@@ -71,6 +75,7 @@ class FormatterHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testFormatBlockWithDoubleWidthDiacriticLetters()
     {
+
         if (!extension_loaded('mbstring')) {
             $this->markTestSkipped('This test requires mbstring to work.');
         }
@@ -86,6 +91,7 @@ class FormatterHelperTest extends \PHPUnit_Framework_TestCase
 
     public function testFormatBlockLGEscaping()
     {
+
         $formatter = new FormatterHelper();
 
         $this->assertEquals(

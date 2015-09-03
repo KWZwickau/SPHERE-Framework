@@ -18,6 +18,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  */
 interface TraceableEventDispatcherInterface extends EventDispatcherInterface
 {
+
     /**
      * Gets the called listeners.
      *

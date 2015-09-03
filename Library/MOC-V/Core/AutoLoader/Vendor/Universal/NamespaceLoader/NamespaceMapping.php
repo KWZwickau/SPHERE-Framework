@@ -18,16 +18,16 @@ abstract class NamespaceMapping
      *
      * @throws \MOC\V\Core\AutoLoader\Component\Exception\Repository\DirectoryNotFoundException
      */
-    final public function addNamespaceMapping( $Namespace, $Directory )
+    final public function addNamespaceMapping($Namespace, $Directory)
     {
 
-        $Directory = realpath( $Directory );
+        $Directory = realpath($Directory);
         if (!isset( $this->NamespaceMapping[$Namespace] )) {
             $this->NamespaceMapping[$Namespace] = array();
         }
-        $Directory = rtrim( str_replace( array( '\\', '/' ), DIRECTORY_SEPARATOR, $Directory ), DIRECTORY_SEPARATOR );
-        if (!in_array( $Directory, $this->NamespaceMapping[$Namespace] )) {
-            array_push( $this->NamespaceMapping[$Namespace], $Directory );
+        $Directory = rtrim(str_replace(array('\\', '/'), DIRECTORY_SEPARATOR, $Directory), DIRECTORY_SEPARATOR);
+        if (!in_array($Directory, $this->NamespaceMapping[$Namespace])) {
+            array_push($this->NamespaceMapping[$Namespace], $Directory);
         }
     }
 
@@ -36,7 +36,7 @@ abstract class NamespaceMapping
      *
      * @return array
      */
-    final public function getNamespaceMapping( $Namespace )
+    final public function getNamespaceMapping($Namespace)
     {
 
         return isset( $this->NamespaceMapping[$Namespace] ) ? $this->NamespaceMapping[$Namespace] : array();
@@ -48,6 +48,6 @@ abstract class NamespaceMapping
     final public function getNamespaceList()
     {
 
-        return array_keys( $this->NamespaceMapping );
+        return array_keys($this->NamespaceMapping);
     }
 }

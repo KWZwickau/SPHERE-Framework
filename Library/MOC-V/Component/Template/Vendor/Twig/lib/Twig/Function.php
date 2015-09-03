@@ -14,16 +14,18 @@
  *
  * Use Twig_SimpleFunction instead.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
  * @deprecated since 1.12 (to be removed in 2.0)
  */
 abstract class Twig_Function implements Twig_FunctionInterface, Twig_FunctionCallableInterface
 {
+
     protected $options;
     protected $arguments = array();
 
     public function __construct(array $options = array())
     {
+
         $this->options = array_merge(array(
             'needs_environment' => false,
             'needs_context'     => false,
@@ -37,7 +39,7 @@ abstract class Twig_Function implements Twig_FunctionInterface, Twig_FunctionCal
         return $this->arguments;
     }
 
-    public function setArguments( $arguments )
+    public function setArguments($arguments)
     {
 
         $this->arguments = $arguments;
@@ -45,21 +47,24 @@ abstract class Twig_Function implements Twig_FunctionInterface, Twig_FunctionCal
 
     public function needsEnvironment()
     {
+
         return $this->options['needs_environment'];
     }
 
     public function needsContext()
     {
+
         return $this->options['needs_context'];
     }
 
     public function getSafe(Twig_Node $functionArgs)
     {
-        if (isset($this->options['is_safe'])) {
+
+        if (isset( $this->options['is_safe'] )) {
             return $this->options['is_safe'];
         }
 
-        if (isset($this->options['is_safe_callback'])) {
+        if (isset( $this->options['is_safe_callback'] )) {
             return call_user_func($this->options['is_safe_callback'], $functionArgs);
         }
 
@@ -68,6 +73,7 @@ abstract class Twig_Function implements Twig_FunctionInterface, Twig_FunctionCal
 
     public function getCallable()
     {
+
         return $this->options['callable'];
     }
 }

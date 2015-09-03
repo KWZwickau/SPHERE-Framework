@@ -15,6 +15,7 @@
  */
 class PHPUnit_Util_Blacklist
 {
+
     /**
      * @var array
      */
@@ -55,34 +56,15 @@ class PHPUnit_Util_Blacklist
      */
     public function getBlacklistedDirectories()
     {
+
         $this->initialize();
 
         return self::$directories;
     }
 
-    /**
-     * @param  string $file
-     * @return bool
-     */
-    public function isBlacklisted($file)
-    {
-        if (defined('PHPUNIT_TESTSUITE')) {
-            return false;
-        }
-
-        $this->initialize();
-
-        foreach (self::$directories as $directory) {
-            if (strpos($file, $directory) === 0) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private function initialize()
     {
+
         if (self::$directories === null) {
             self::$directories = array();
 
@@ -107,8 +89,31 @@ class PHPUnit_Util_Blacklist
             if (DIRECTORY_SEPARATOR === '\\') {
                 // tempnam() prefix is limited to first 3 chars.
                 // @see http://php.net/manual/en/function.tempnam.php
-                self::$directories[] = sys_get_temp_dir() . '\\PHP';
+                self::$directories[] = sys_get_temp_dir().'\\PHP';
             }
         }
+    }
+
+    /**
+     * @param  string $file
+     *
+     * @return bool
+     */
+    public function isBlacklisted($file)
+    {
+
+        if (defined('PHPUNIT_TESTSUITE')) {
+            return false;
+        }
+
+        $this->initialize();
+
+        foreach (self::$directories as $directory) {
+            if (strpos($file, $directory) === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

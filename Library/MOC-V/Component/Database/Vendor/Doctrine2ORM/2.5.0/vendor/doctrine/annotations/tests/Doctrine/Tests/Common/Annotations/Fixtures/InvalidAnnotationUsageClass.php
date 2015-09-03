@@ -7,4 +7,5 @@ namespace Doctrine\Tests\Common\Annotations\Fixtures;
  */
 class InvalidAnnotationUsageClass
 {
+
 }

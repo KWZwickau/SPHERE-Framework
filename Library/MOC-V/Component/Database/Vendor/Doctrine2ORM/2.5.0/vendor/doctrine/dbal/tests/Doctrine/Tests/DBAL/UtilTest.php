@@ -2,12 +2,14 @@
 
 namespace Doctrine\Tests\DBAL;
 
-require_once __DIR__ . '/../TestInit.php';
+require_once __DIR__.'/../TestInit.php';
 
 class UtilTest extends \Doctrine\Tests\DbalTestCase
 {
+
     static public function dataConvertPositionalToNamedParameters()
     {
+
         return array(
             array(
                 'SELECT name FROM users WHERE id = ?',
@@ -64,13 +66,15 @@ class UtilTest extends \Doctrine\Tests\DbalTestCase
 
     /**
      * @dataProvider dataConvertPositionalToNamedParameters
+     *
      * @param string $inputSQL
      * @param string $expectedOutputSQL
-     * @param array $expectedOutputParamsMap
+     * @param array  $expectedOutputParamsMap
      */
     public function testConvertPositionalToNamedParameters($inputSQL, $expectedOutputSQL, $expectedOutputParamsMap)
     {
-        list($statement, $params) = \Doctrine\DBAL\Driver\OCI8\OCI8Statement::convertPositionalToNamedPlaceholders($inputSQL);
+
+        list( $statement, $params ) = \Doctrine\DBAL\Driver\OCI8\OCI8Statement::convertPositionalToNamedPlaceholders($inputSQL);
 
         $this->assertEquals($expectedOutputSQL, $statement);
         $this->assertEquals($expectedOutputParamsMap, $params);

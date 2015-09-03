@@ -9,6 +9,7 @@ use Guzzle\Common\ToArrayInterface;
  */
 interface OperationInterface extends ToArrayInterface
 {
+
     const TYPE_PRIMITIVE = 'primitive';
     const TYPE_CLASS = 'class';
     const TYPE_DOCUMENTATION = 'documentation';

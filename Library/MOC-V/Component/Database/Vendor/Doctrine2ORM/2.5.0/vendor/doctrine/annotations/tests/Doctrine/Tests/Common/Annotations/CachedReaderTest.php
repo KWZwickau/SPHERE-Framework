@@ -2,17 +2,19 @@
 
 namespace Doctrine\Tests\Common\Annotations;
 
-use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Route;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\Common\Annotations\CachedReader;
 use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Route;
 
 class CachedReaderTest extends AbstractReaderTest
 {
+
     private $cache;
 
     public function testIgnoresStaleCache()
     {
+
         $file = __DIR__.'/Fixtures/Controller.php';
         touch($file);
         $name = 'Doctrine\Tests\Common\Annotations\Fixtures\Controller';
@@ -23,24 +25,20 @@ class CachedReaderTest extends AbstractReaderTest
             ->expects($this->at(0))
             ->method('fetch')
             ->with($this->equalTo($cacheKey))
-            ->will($this->returnValue(array()))
-        ;
+            ->will($this->returnValue(array()));
         $cache
             ->expects($this->at(1))
             ->method('fetch')
             ->with($this->equalTo('[C]'.$cacheKey))
-            ->will($this->returnValue(time() - 10))
-        ;
+            ->will($this->returnValue(time() - 10));
         $cache
             ->expects($this->at(2))
             ->method('save')
-            ->with($this->equalTo($cacheKey))
-        ;
+            ->with($this->equalTo($cacheKey));
         $cache
             ->expects($this->at(3))
             ->method('save')
-            ->with($this->equalTo('[C]'.$cacheKey))
-        ;
+            ->with($this->equalTo('[C]'.$cacheKey));
 
         $reader = new CachedReader(new AnnotationReader(), $cache, true);
         $route = new Route();
@@ -50,6 +48,7 @@ class CachedReaderTest extends AbstractReaderTest
 
     protected function getReader()
     {
+
         $this->cache = new ArrayCache();
         return new CachedReader(new AnnotationReader(), $this->cache);
     }

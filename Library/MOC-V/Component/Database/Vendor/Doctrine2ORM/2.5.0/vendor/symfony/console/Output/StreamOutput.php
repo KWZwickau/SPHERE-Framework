@@ -30,6 +30,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
  */
 class StreamOutput extends Output
 {
+
     private $stream;
 
     /**
@@ -44,8 +45,13 @@ class StreamOutput extends Output
      *
      * @api
      */
-    public function __construct($stream, $verbosity = self::VERBOSITY_NORMAL, $decorated = null, OutputFormatterInterface $formatter = null)
-    {
+    public function __construct(
+        $stream,
+        $verbosity = self::VERBOSITY_NORMAL,
+        $decorated = null,
+        OutputFormatterInterface $formatter = null
+    ) {
+
         if (!is_resource($stream) || 'stream' !== get_resource_type($stream)) {
             throw new \InvalidArgumentException('The StreamOutput class needs a stream as its first argument.');
         }
@@ -60,29 +66,6 @@ class StreamOutput extends Output
     }
 
     /**
-     * Gets the stream attached to this StreamOutput instance.
-     *
-     * @return resource A stream resource
-     */
-    public function getStream()
-    {
-        return $this->stream;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doWrite($message, $newline)
-    {
-        if (false === @fwrite($this->stream, $message.($newline ? PHP_EOL : ''))) {
-            // should never happen
-            throw new \RuntimeException('Unable to write output.');
-        }
-
-        fflush($this->stream);
-    }
-
-    /**
      * Returns true if the stream supports colorization.
      *
      * Colorization is disabled if not supported by the stream:
@@ -94,10 +77,36 @@ class StreamOutput extends Output
      */
     protected function hasColorSupport()
     {
+
         if (DIRECTORY_SEPARATOR === '\\') {
             return false !== getenv('ANSICON') || 'ON' === getenv('ConEmuANSI');
         }
 
         return function_exists('posix_isatty') && @posix_isatty($this->stream);
+    }
+
+    /**
+     * Gets the stream attached to this StreamOutput instance.
+     *
+     * @return resource A stream resource
+     */
+    public function getStream()
+    {
+
+        return $this->stream;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function doWrite($message, $newline)
+    {
+
+        if (false === @fwrite($this->stream, $message.( $newline ? PHP_EOL : '' ))) {
+            // should never happen
+            throw new \RuntimeException('Unable to write output.');
+        }
+
+        fflush($this->stream);
     }
 }

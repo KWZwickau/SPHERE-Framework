@@ -13,6 +13,7 @@
  */
 class PHPUnit_Runner_Filter_Test extends RecursiveFilterIterator
 {
+
     /**
      * @var string
      */
@@ -33,6 +34,7 @@ class PHPUnit_Runner_Filter_Test extends RecursiveFilterIterator
      */
     public function __construct(RecursiveIterator $iterator, $filter)
     {
+
         parent::__construct($iterator);
         $this->setFilter($filter);
     }
@@ -42,12 +44,13 @@ class PHPUnit_Runner_Filter_Test extends RecursiveFilterIterator
      */
     protected function setFilter($filter)
     {
+
         if (PHPUnit_Util_Regex::pregMatchSafe($filter, '') === false) {
             // Handles:
             //  * testAssertEqualsSucceeds#4
             //  * testAssertEqualsSucceeds#4-8
             if (preg_match('/^(.*?)#(\d+)(?:-(\d+))?$/', $filter, $matches)) {
-                if (isset($matches[3]) && $matches[2] < $matches[3]) {
+                if (isset( $matches[3] ) && $matches[2] < $matches[3]) {
                     $filter = sprintf(
                         '%s.*with data set #(\d+)$',
                         $matches[1]
@@ -90,6 +93,7 @@ class PHPUnit_Runner_Filter_Test extends RecursiveFilterIterator
      */
     public function accept()
     {
+
         $test = $this->getInnerIterator()->current();
 
         if ($test instanceof PHPUnit_Framework_TestSuite) {
@@ -106,8 +110,8 @@ class PHPUnit_Runner_Filter_Test extends RecursiveFilterIterator
 
         $accepted = preg_match($this->filter, $name, $matches);
 
-        if ($accepted && isset($this->filterMax)) {
-            $set      = end($matches);
+        if ($accepted && isset( $this->filterMax )) {
+            $set = end($matches);
             $accepted = $set >= $this->filterMin && $set <= $this->filterMax;
         }
 

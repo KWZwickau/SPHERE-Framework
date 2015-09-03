@@ -3,16 +3,18 @@
 namespace Guzzle\Tests\Plugin\CurlAuth;
 
 use Guzzle\Common\Version;
-use Guzzle\Plugin\CurlAuth\CurlAuthPlugin;
 use Guzzle\Http\Client;
+use Guzzle\Plugin\CurlAuth\CurlAuthPlugin;
 
 /**
  * @covers Guzzle\Plugin\CurlAuth\CurlAuthPlugin
  */
 class CurlAuthPluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testAddsBasicAuthentication()
     {
+
         Version::$emitWarnings = false;
         $plugin = new CurlAuthPlugin('michael', 'test');
         $client = new Client('http://www.test.com/');
@@ -25,6 +27,7 @@ class CurlAuthPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsDigestAuthentication()
     {
+
         Version::$emitWarnings = false;
         $plugin = new CurlAuthPlugin('julian', 'test', CURLAUTH_DIGEST);
         $client = new Client('http://www.test.com/');

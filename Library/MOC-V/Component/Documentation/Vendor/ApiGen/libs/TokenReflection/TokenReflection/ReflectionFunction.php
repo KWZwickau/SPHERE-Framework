@@ -41,15 +41,15 @@ class ReflectionFunction extends ReflectionFunctionBase implements IReflectionFu
      * @return string|null
      * @throws \TokenReflection\Exception\RuntimeException If requested parameter doesn't exist.
      */
-    public static function export( Broker $broker, $function, $return = false )
+    public static function export(Broker $broker, $function, $return = false)
     {
 
         $functionName = $function;
 
-        $function = $broker->getFunction( $functionName );
+        $function = $broker->getFunction($functionName);
         if (null === $function) {
-            throw new Exception\RuntimeException( sprintf( 'Function %s() does not exist.', $functionName ),
-                Exception\RuntimeException::DOES_NOT_EXIST );
+            throw new Exception\RuntimeException(sprintf('Function %s() does not exist.', $functionName),
+                Exception\RuntimeException::DOES_NOT_EXIST);
         }
 
         if ($return) {
@@ -99,7 +99,7 @@ class ReflectionFunction extends ReflectionFunctionBase implements IReflectionFu
     public function isDisabled()
     {
 
-        return $this->hasAnnotation( 'disabled' );
+        return $this->hasAnnotation('disabled');
     }
 
     /**
@@ -110,7 +110,7 @@ class ReflectionFunction extends ReflectionFunctionBase implements IReflectionFu
     public function invoke()
     {
 
-        return $this->invokeArgs( func_get_args() );
+        return $this->invokeArgs(func_get_args());
     }
 
     /**
@@ -121,15 +121,15 @@ class ReflectionFunction extends ReflectionFunctionBase implements IReflectionFu
      * @return mixed
      * @throws \TokenReflection\Exception\RuntimeException If the required function does not exist.
      */
-    public function invokeArgs( array $args = array() )
+    public function invokeArgs(array $args = array())
     {
 
-        if (!function_exists( $this->getName() )) {
-            throw new Exception\RuntimeException( 'Could not invoke function; function is not defined.',
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        if (!function_exists($this->getName())) {
+            throw new Exception\RuntimeException('Could not invoke function; function is not defined.',
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
-        return call_user_func_array( $this->getName(), $args );
+        return call_user_func_array($this->getName(), $args);
     }
 
     /**
@@ -151,15 +151,15 @@ class ReflectionFunction extends ReflectionFunctionBase implements IReflectionFu
     public function getClosure()
     {
 
-        if (!function_exists( $this->getName() )) {
-            throw new Exception\RuntimeException( 'Could not invoke function; function is not defined.',
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+        if (!function_exists($this->getName())) {
+            throw new Exception\RuntimeException('Could not invoke function; function is not defined.',
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
 
         $that = $this;
-        return function () use ( $that ) {
+        return function () use ($that) {
 
-            return $that->invokeArgs( func_get_args() );
+            return $that->invokeArgs(func_get_args());
         };
     }
 
@@ -194,18 +194,18 @@ class ReflectionFunction extends ReflectionFunctionBase implements IReflectionFu
      * @return \TokenReflection\ReflectionElement
      * @throws \TokenReflection\Exception\ParseException If an invalid parent reflection object was provided.
      */
-    protected function processParent( IReflection $parent, Stream $tokenStream )
+    protected function processParent(IReflection $parent, Stream $tokenStream)
     {
 
         if (!$parent instanceof ReflectionFileNamespace) {
-            throw new Exception\ParseException( $this, $tokenStream,
+            throw new Exception\ParseException($this, $tokenStream,
                 'The parent object has to be an instance of TokenReflection\ReflectionFileNamespace.',
-                Exception\ParseException::INVALID_PARENT );
+                Exception\ParseException::INVALID_PARENT);
         }
 
         $this->namespaceName = $parent->getName();
         $this->aliases = $parent->getNamespaceAliases();
-        return parent::processParent( $parent, $tokenStream );
+        return parent::processParent($parent, $tokenStream);
     }
 
     /**
@@ -216,11 +216,11 @@ class ReflectionFunction extends ReflectionFunctionBase implements IReflectionFu
      *
      * @return \TokenReflection\ReflectionFunction
      */
-    protected function parse( Stream $tokenStream, IReflection $parent )
+    protected function parse(Stream $tokenStream, IReflection $parent)
     {
 
         return $this
-            ->parseReturnsReference( $tokenStream )
-            ->parseName( $tokenStream );
+            ->parseReturnsReference($tokenStream)
+            ->parseName($tokenStream);
     }
 }

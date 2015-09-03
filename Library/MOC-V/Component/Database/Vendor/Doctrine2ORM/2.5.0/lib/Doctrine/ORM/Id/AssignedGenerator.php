@@ -33,6 +33,7 @@ use Doctrine\ORM\ORMException;
  */
 class AssignedGenerator extends AbstractIdGenerator
 {
+
     /**
      * Returns the identifier assigned to the given entity.
      *
@@ -42,18 +43,19 @@ class AssignedGenerator extends AbstractIdGenerator
      */
     public function generate(EntityManager $em, $entity)
     {
-        $class      = $em->getClassMetadata(get_class($entity));
-        $idFields   = $class->getIdentifierFieldNames();
+
+        $class = $em->getClassMetadata(get_class($entity));
+        $idFields = $class->getIdentifierFieldNames();
         $identifier = array();
 
         foreach ($idFields as $idField) {
             $value = $class->getFieldValue($entity, $idField);
 
-            if ( ! isset($value)) {
+            if (!isset( $value )) {
                 throw ORMException::entityMissingAssignedIdForField($entity, $idField);
             }
 
-            if (isset($class->associationMappings[$idField])) {
+            if (isset( $class->associationMappings[$idField] )) {
                 // NOTE: Single Columns as associated identifiers only allowed - this constraint it is enforced.
                 $value = $em->getUnitOfWork()->getSingleIdentifierValue($value);
             }

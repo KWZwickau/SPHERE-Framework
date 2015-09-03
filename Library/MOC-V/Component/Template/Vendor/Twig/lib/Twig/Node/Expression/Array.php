@@ -8,17 +8,20 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 class Twig_Node_Expression_Array extends Twig_Node_Expression
 {
+
     protected $index;
 
     public function __construct(array $elements, $lineno)
     {
+
         parent::__construct($elements, array(), $lineno);
 
         $this->index = -1;
         foreach ($this->getKeyValuePairs() as $pair) {
-            if ($pair['key'] instanceof Twig_Node_Expression_Constant && ctype_digit((string) $pair['key']->getAttribute('value')) && $pair['key']->getAttribute('value') > $this->index) {
+            if ($pair['key'] instanceof Twig_Node_Expression_Constant && ctype_digit((string)$pair['key']->getAttribute('value')) && $pair['key']->getAttribute('value') > $this->index) {
                 $this->index = $pair['key']->getAttribute('value');
             }
         }
@@ -26,6 +29,7 @@ class Twig_Node_Expression_Array extends Twig_Node_Expression
 
     public function getKeyValuePairs()
     {
+
         $pairs = array();
 
         foreach (array_chunk($this->nodes, 2) as $pair) {
@@ -40,10 +44,11 @@ class Twig_Node_Expression_Array extends Twig_Node_Expression
 
     public function hasElement(Twig_Node_Expression $key)
     {
+
         foreach ($this->getKeyValuePairs() as $pair) {
             // we compare the string representation of the keys
             // to avoid comparing the line numbers which are not relevant here.
-            if ((string) $key == (string) $pair['key']) {
+            if ((string)$key == (string)$pair['key']) {
                 return true;
             }
         }
@@ -53,6 +58,7 @@ class Twig_Node_Expression_Array extends Twig_Node_Expression
 
     public function addElement(Twig_Node_Expression $value, Twig_Node_Expression $key = null)
     {
+
         if (null === $key) {
             $key = new Twig_Node_Expression_Constant(++$this->index, $value->getLine());
         }
@@ -67,6 +73,7 @@ class Twig_Node_Expression_Array extends Twig_Node_Expression
      */
     public function compile(Twig_Compiler $compiler)
     {
+
         $compiler->raw('array(');
         $first = true;
         foreach ($this->getKeyValuePairs() as $pair) {
@@ -78,8 +85,7 @@ class Twig_Node_Expression_Array extends Twig_Node_Expression
             $compiler
                 ->subcompile($pair['key'])
                 ->raw(' => ')
-                ->subcompile($pair['value'])
-            ;
+                ->subcompile($pair['value']);
         }
         $compiler->raw(')');
     }

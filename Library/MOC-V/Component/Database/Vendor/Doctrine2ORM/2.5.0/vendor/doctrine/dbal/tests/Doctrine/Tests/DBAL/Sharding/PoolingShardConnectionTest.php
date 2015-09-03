@@ -23,13 +23,15 @@ use Doctrine\DBAL\DriverManager;
 
 class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testConnect()
     {
+
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'global' => array('memory' => true),
-            'shards' => array(
+            'driver'      => 'pdo_sqlite',
+            'global'      => array('memory' => true),
+            'shards'      => array(
                 array('id' => 1, 'memory' => true),
                 array('id' => 2, 'memory' => true),
             ),
@@ -59,12 +61,14 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testNoGlobalServerException()
     {
-        $this->setExpectedException('InvalidArgumentException', "Connection Parameters require 'global' and 'shards' configurations.");
+
+        $this->setExpectedException('InvalidArgumentException',
+            "Connection Parameters require 'global' and 'shards' configurations.");
 
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'shards' => array(
+            'driver'      => 'pdo_sqlite',
+            'shards'      => array(
                 array('id' => 1, 'memory' => true),
                 array('id' => 2, 'memory' => true),
             ),
@@ -74,18 +78,21 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testNoShardsServersExecption()
     {
-        $this->setExpectedException('InvalidArgumentException', "Connection Parameters require 'global' and 'shards' configurations.");
+
+        $this->setExpectedException('InvalidArgumentException',
+            "Connection Parameters require 'global' and 'shards' configurations.");
 
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'global' => array('memory' => true),
+            'driver'      => 'pdo_sqlite',
+            'global'      => array('memory' => true),
             'shardChoser' => 'Doctrine\DBAL\Sharding\ShardChoser\MultiTenantShardChoser',
         ));
     }
 
     public function testNoShardsChoserExecption()
     {
+
         $this->setExpectedException('InvalidArgumentException', "Missing Shard Choser configuration 'shardChoser'");
 
         $conn = DriverManager::getConnection(array(
@@ -101,13 +108,15 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testShardChoserWrongInstance()
     {
-        $this->setExpectedException('InvalidArgumentException', "The 'shardChoser' configuration is not a valid instance of Doctrine\DBAL\Sharding\ShardChoser\ShardChoser");
+
+        $this->setExpectedException('InvalidArgumentException',
+            "The 'shardChoser' configuration is not a valid instance of Doctrine\DBAL\Sharding\ShardChoser\ShardChoser");
 
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'global' => array('memory' => true),
-            'shards' => array(
+            'driver'      => 'pdo_sqlite',
+            'global'      => array('memory' => true),
+            'shards'      => array(
                 array('id' => 1, 'memory' => true),
                 array('id' => 2, 'memory' => true),
             ),
@@ -117,13 +126,14 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testShardNonNumericId()
     {
+
         $this->setExpectedException('InvalidArgumentException', "Shard Id has to be a non-negative number.");
 
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'global' => array('memory' => true),
-            'shards' => array(
+            'driver'      => 'pdo_sqlite',
+            'global'      => array('memory' => true),
+            'shards'      => array(
                 array('id' => 'foo', 'memory' => true),
             ),
             'shardChoser' => 'Doctrine\DBAL\Sharding\ShardChoser\MultiTenantShardChoser',
@@ -132,13 +142,15 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testShardMissingId()
     {
-        $this->setExpectedException('InvalidArgumentException', "Missing 'id' for one configured shard. Please specify a unique shard-id.");
+
+        $this->setExpectedException('InvalidArgumentException',
+            "Missing 'id' for one configured shard. Please specify a unique shard-id.");
 
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'global' => array('memory' => true),
-            'shards' => array(
+            'driver'      => 'pdo_sqlite',
+            'global'      => array('memory' => true),
+            'shards'      => array(
                 array('memory' => true),
             ),
             'shardChoser' => 'Doctrine\DBAL\Sharding\ShardChoser\MultiTenantShardChoser',
@@ -147,13 +159,14 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testDuplicateShardId()
     {
+
         $this->setExpectedException('InvalidArgumentException', "Shard 1 is duplicated in the configuration.");
 
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'global' => array('memory' => true),
-            'shards' => array(
+            'driver'      => 'pdo_sqlite',
+            'global'      => array('memory' => true),
+            'shards'      => array(
                 array('id' => 1, 'memory' => true),
                 array('id' => 1, 'memory' => true),
             ),
@@ -163,11 +176,12 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
     public function testSwitchShardWithOpenTransactionException()
     {
+
         $conn = DriverManager::getConnection(array(
             'wrapperClass' => 'Doctrine\DBAL\Sharding\PoolingShardConnection',
-            'driver' => 'pdo_sqlite',
-            'global' => array('memory' => true),
-            'shards' => array(
+            'driver'      => 'pdo_sqlite',
+            'global'      => array('memory' => true),
+            'shards'      => array(
                 array('id' => 1, 'memory' => true),
             ),
             'shardChoser' => 'Doctrine\DBAL\Sharding\ShardChoser\MultiTenantShardChoser',
@@ -175,7 +189,8 @@ class PoolingShardConnectionTest extends \PHPUnit_Framework_TestCase
 
         $conn->beginTransaction();
 
-        $this->setExpectedException('Doctrine\DBAL\Sharding\ShardingException', 'Cannot switch shard when transaction is active.');
+        $this->setExpectedException('Doctrine\DBAL\Sharding\ShardingException',
+            'Cannot switch shard when transaction is active.');
         $conn->connect(1);
     }
 }

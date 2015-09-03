@@ -3,14 +3,15 @@
 namespace Guzzle\Service\Command\LocationVisitor\Response;
 
 use Guzzle\Http\Message\Response;
-use Guzzle\Service\Description\Parameter;
 use Guzzle\Service\Command\CommandInterface;
+use Guzzle\Service\Description\Parameter;
 
 /**
  * Location visitor used to parse values out of a response into an associative array
  */
 interface ResponseVisitorInterface
 {
+
     /**
      * Called before visiting all parameters. This can be used for seeding the result of a command with default
      * data (e.g. populating with JSON data in the response then adding to the parsed data).
@@ -41,6 +42,6 @@ interface ResponseVisitorInterface
         Response $response,
         Parameter $param,
         &$value,
-        $context =  null
+        $context = null
     );
 }

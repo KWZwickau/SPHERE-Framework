@@ -21,11 +21,13 @@ use Symfony\Component\Routing\Route;
  */
 abstract class RedirectableUrlMatcher extends UrlMatcher implements RedirectableUrlMatcherInterface
 {
+
     /**
      * {@inheritdoc}
      */
     public function match($pathinfo)
     {
+
         try {
             $parameters = parent::match($pathinfo);
         } catch (ResourceNotFoundException $e) {
@@ -50,8 +52,11 @@ abstract class RedirectableUrlMatcher extends UrlMatcher implements Redirectable
      */
     protected function handleRouteRequirements($pathinfo, $name, Route $route)
     {
+
         // expression condition
-        if ($route->getCondition() && !$this->getExpressionLanguage()->evaluate($route->getCondition(), array('context' => $this->context, 'request' => $this->request))) {
+        if ($route->getCondition() && !$this->getExpressionLanguage()->evaluate($route->getCondition(),
+                array('context' => $this->context, 'request' => $this->request))
+        ) {
             return array(self::REQUIREMENT_MISMATCH, null);
         }
 

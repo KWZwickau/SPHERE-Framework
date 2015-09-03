@@ -31,6 +31,7 @@ namespace Doctrine\DBAL\Logging;
  */
 interface SQLLogger
 {
+
     /**
      * Logs a SQL statement somewhere.
      *

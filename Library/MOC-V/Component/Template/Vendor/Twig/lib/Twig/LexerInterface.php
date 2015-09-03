@@ -12,12 +12,13 @@
 /**
  * Interface implemented by lexer classes.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
  *
  * @deprecated since 1.12 (to be removed in 3.0)
  */
 interface Twig_LexerInterface
 {
+
     /**
      * Tokenizes a source code.
      *

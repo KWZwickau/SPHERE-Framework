@@ -16,10 +16,10 @@
 class List_Bullet_Positioner extends Positioner
 {
 
-    function __construct( Frame_Decorator $frame )
+    function __construct(Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     //........................................................................
@@ -43,9 +43,9 @@ class List_Bullet_Positioner extends Positioner
         $n = $this->_frame->get_next_sibling();
         if ($n) {
             $style = $n->get_style();
-            $line_height = $style->length_in_pt( $style->line_height, $style->get_font_size() );
-            $offset = $style->length_in_pt( $line_height,
-                    $n->get_containing_block( "h" ) ) - $this->_frame->get_height();
+            $line_height = $style->length_in_pt($style->line_height, $style->get_font_size());
+            $offset = $style->length_in_pt($line_height,
+                    $n->get_containing_block("h")) - $this->_frame->get_height();
             $y += $offset / 2;
         }
 
@@ -74,7 +74,7 @@ class List_Bullet_Positioner extends Positioner
         $y += ($line_height - $font_size) / 2;    */
 
         //Position is x-end y-top of character position of the bullet.
-        $this->_frame->set_position( $x, $y );
+        $this->_frame->set_position($x, $y);
 
     }
 }

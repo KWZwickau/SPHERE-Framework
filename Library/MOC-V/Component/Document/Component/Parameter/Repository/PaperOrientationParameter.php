@@ -20,16 +20,16 @@ class PaperOrientationParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Orientation
      */
-    function __construct( $Orientation = 'PORTRAIT' )
+    public function __construct($Orientation = 'PORTRAIT')
     {
 
-        $this->setOrientation( $Orientation );
+        $this->setOrientation($Orientation);
     }
 
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         return $this->getOrientation();
@@ -50,17 +50,17 @@ class PaperOrientationParameter extends Parameter implements IParameterInterface
      * @return IBridgeInterface
      * @throws ComponentException
      */
-    public function setOrientation( $Orientation )
+    public function setOrientation($Orientation)
     {
 
-        switch (strtoupper( $Orientation )) {
+        switch (strtoupper($Orientation)) {
             case 'LANDSCAPE':
             case 'PORTRAIT': {
                 $this->Orientation = $Orientation;
                 return $this;
             }
             default:
-                throw new ComponentException( 'Orientation '.$Orientation.' not supported' );
+                throw new ComponentException('Orientation '.$Orientation.' not supported');
         }
 
     }

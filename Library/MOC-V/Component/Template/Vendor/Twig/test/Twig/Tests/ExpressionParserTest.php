@@ -11,12 +11,14 @@
 
 class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @expectedException Twig_Error_Syntax
      * @dataProvider getFailingTestsForAssignment
      */
     public function testCanOnlyAssignToNames($template)
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -25,6 +27,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
 
     public function getFailingTestsForAssignment()
     {
+
         return array(
             array('{% set false = "foo" %}'),
             array('{% set true = "foo" %}'),
@@ -41,6 +44,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testArrayExpression($template, $expected)
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $stream = $env->tokenize($template, 'index');
         $parser = new Twig_Parser($env);
@@ -54,6 +58,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testArraySyntaxError($template)
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -62,6 +67,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
 
     public function getFailingTestsForArray()
     {
+
         return array(
             array('{{ [1, "a": "b"] }}'),
             array('{{ {"a": "b", 2} }}'),
@@ -70,75 +76,76 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
 
     public function getTestsForArray()
     {
+
         return array(
             // simple array
-            array('{{ [1, 2] }}', new Twig_Node_Expression_Array(array(
-                  new Twig_Node_Expression_Constant(0, 1),
-                  new Twig_Node_Expression_Constant(1, 1),
-
-                  new Twig_Node_Expression_Constant(1, 1),
-                  new Twig_Node_Expression_Constant(2, 1),
+            array(
+                '{{ [1, 2] }}',
+                new Twig_Node_Expression_Array(array(
+                    new Twig_Node_Expression_Constant(0, 1),
+                    new Twig_Node_Expression_Constant(1, 1),
+                    new Twig_Node_Expression_Constant(1, 1),
+                    new Twig_Node_Expression_Constant(2, 1),
                 ), 1),
             ),
-
             // array with trailing ,
-            array('{{ [1, 2, ] }}', new Twig_Node_Expression_Array(array(
-                  new Twig_Node_Expression_Constant(0, 1),
-                  new Twig_Node_Expression_Constant(1, 1),
-
-                  new Twig_Node_Expression_Constant(1, 1),
-                  new Twig_Node_Expression_Constant(2, 1),
+            array(
+                '{{ [1, 2, ] }}',
+                new Twig_Node_Expression_Array(array(
+                    new Twig_Node_Expression_Constant(0, 1),
+                    new Twig_Node_Expression_Constant(1, 1),
+                    new Twig_Node_Expression_Constant(1, 1),
+                    new Twig_Node_Expression_Constant(2, 1),
                 ), 1),
             ),
-
             // simple hash
-            array('{{ {"a": "b", "b": "c"} }}', new Twig_Node_Expression_Array(array(
-                  new Twig_Node_Expression_Constant('a', 1),
-                  new Twig_Node_Expression_Constant('b', 1),
-
-                  new Twig_Node_Expression_Constant('b', 1),
-                  new Twig_Node_Expression_Constant('c', 1),
+            array(
+                '{{ {"a": "b", "b": "c"} }}',
+                new Twig_Node_Expression_Array(array(
+                    new Twig_Node_Expression_Constant('a', 1),
+                    new Twig_Node_Expression_Constant('b', 1),
+                    new Twig_Node_Expression_Constant('b', 1),
+                    new Twig_Node_Expression_Constant('c', 1),
                 ), 1),
             ),
-
             // hash with trailing ,
-            array('{{ {"a": "b", "b": "c", } }}', new Twig_Node_Expression_Array(array(
-                  new Twig_Node_Expression_Constant('a', 1),
-                  new Twig_Node_Expression_Constant('b', 1),
-
-                  new Twig_Node_Expression_Constant('b', 1),
-                  new Twig_Node_Expression_Constant('c', 1),
+            array(
+                '{{ {"a": "b", "b": "c", } }}',
+                new Twig_Node_Expression_Array(array(
+                    new Twig_Node_Expression_Constant('a', 1),
+                    new Twig_Node_Expression_Constant('b', 1),
+                    new Twig_Node_Expression_Constant('b', 1),
+                    new Twig_Node_Expression_Constant('c', 1),
                 ), 1),
             ),
-
             // hash in an array
-            array('{{ [1, {"a": "b", "b": "c"}] }}', new Twig_Node_Expression_Array(array(
-                  new Twig_Node_Expression_Constant(0, 1),
-                  new Twig_Node_Expression_Constant(1, 1),
-
-                  new Twig_Node_Expression_Constant(1, 1),
-                  new Twig_Node_Expression_Array(array(
+            array(
+                '{{ [1, {"a": "b", "b": "c"}] }}',
+                new Twig_Node_Expression_Array(array(
+                    new Twig_Node_Expression_Constant(0, 1),
+                    new Twig_Node_Expression_Constant(1, 1),
+                    new Twig_Node_Expression_Constant(1, 1),
+                    new Twig_Node_Expression_Array(array(
                         new Twig_Node_Expression_Constant('a', 1),
                         new Twig_Node_Expression_Constant('b', 1),
-
                         new Twig_Node_Expression_Constant('b', 1),
                         new Twig_Node_Expression_Constant('c', 1),
-                      ), 1),
+                    ), 1),
                 ), 1),
             ),
-
             // array in a hash
-            array('{{ {"a": [1, 2], "b": "c"} }}', new Twig_Node_Expression_Array(array(
-                  new Twig_Node_Expression_Constant('a', 1),
-                  new Twig_Node_Expression_Array(array(
+            array(
+                '{{ {"a": [1, 2], "b": "c"} }}',
+                new Twig_Node_Expression_Array(array(
+                    new Twig_Node_Expression_Constant('a', 1),
+                    new Twig_Node_Expression_Array(array(
                         new Twig_Node_Expression_Constant(0, 1),
                         new Twig_Node_Expression_Constant(1, 1),
-
                         new Twig_Node_Expression_Constant(1, 1),
                         new Twig_Node_Expression_Constant(2, 1),
-                      ), 1),
-                  new Twig_Node_Expression_Constant('b', 1),
-                  new Twig_Node_Expression_Constant('c', 1),
+                    ), 1),
+                    new Twig_Node_Expression_Constant('b', 1),
+                    new Twig_Node_Expression_Constant('c', 1),
                 ), 1),
             ),
         );
@@ -149,7 +156,9 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testStringExpressionDoesNotConcatenateTwoConsecutiveStrings()
     {
-        $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false, 'optimizations' => 0));
+
+        $env = new Twig_Environment(new Twig_Loader_String(),
+            array('cache' => false, 'autoescape' => false, 'optimizations' => 0));
         $stream = $env->tokenize('{{ "a" "b" }}', 'index');
         $parser = new Twig_Parser($env);
 
@@ -161,7 +170,9 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testStringExpression($template, $expected)
     {
-        $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false, 'optimizations' => 0));
+
+        $env = new Twig_Environment(new Twig_Loader_String(),
+            array('cache' => false, 'autoescape' => false, 'optimizations' => 0));
         $stream = $env->tokenize($template, 'index');
         $parser = new Twig_Parser($env);
 
@@ -170,19 +181,23 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
 
     public function getTestsForString()
     {
+
         return array(
             array(
-                '{{ "foo" }}', new Twig_Node_Expression_Constant('foo', 1),
+                '{{ "foo" }}',
+                new Twig_Node_Expression_Constant('foo', 1),
             ),
             array(
-                '{{ "foo #{bar}" }}', new Twig_Node_Expression_Binary_Concat(
+                '{{ "foo #{bar}" }}',
+                new Twig_Node_Expression_Binary_Concat(
                     new Twig_Node_Expression_Constant('foo ', 1),
                     new Twig_Node_Expression_Name('bar', 1),
                     1
                 ),
             ),
             array(
-                '{{ "foo #{bar} baz" }}', new Twig_Node_Expression_Binary_Concat(
+                '{{ "foo #{bar} baz" }}',
+                new Twig_Node_Expression_Binary_Concat(
                     new Twig_Node_Expression_Binary_Concat(
                         new Twig_Node_Expression_Constant('foo ', 1),
                         new Twig_Node_Expression_Name('bar', 1),
@@ -192,9 +207,9 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
                     1
                 )
             ),
-
             array(
-                '{{ "foo #{"foo #{bar} baz"} baz" }}', new Twig_Node_Expression_Binary_Concat(
+                '{{ "foo #{"foo #{bar} baz"} baz" }}',
+                new Twig_Node_Expression_Binary_Concat(
                     new Twig_Node_Expression_Binary_Concat(
                         new Twig_Node_Expression_Constant('foo ', 1),
                         new Twig_Node_Expression_Binary_Concat(
@@ -220,6 +235,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testAttributeCallDoesNotSupportNamedArguments()
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -231,10 +247,12 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testMacroCallDoesNotSupportNamedArguments()
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
-        $parser->parse($env->tokenize('{% from _self import foo %}{% macro foo() %}{% endmacro %}{{ foo(name="Foo") }}', 'index'));
+        $parser->parse($env->tokenize('{% from _self import foo %}{% macro foo() %}{% endmacro %}{{ foo(name="Foo") }}',
+            'index'));
     }
 
     /**
@@ -243,6 +261,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testMacroDefinitionDoesNotSupportNonNameVariableName()
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -256,6 +275,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testMacroDefinitionDoesNotSupportNonConstantDefaultValues($template)
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -264,6 +284,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
 
     public function getMacroDefinitionDoesNotSupportNonConstantDefaultValues()
     {
+
         return array(
             array('{% macro foo(name = "a #{foo} a") %}{% endmacro %}'),
             array('{% macro foo(name = [["b", "a #{foo} a"]]) %}{% endmacro %}'),
@@ -275,6 +296,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testMacroDefinitionSupportsConstantDefaultValues($template)
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -283,6 +305,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
 
     public function getMacroDefinitionSupportsConstantDefaultValues()
     {
+
         return array(
             array('{% macro foo(name = "aa") %}{% endmacro %}'),
             array('{% macro foo(name = 12) %}{% endmacro %}'),
@@ -300,6 +323,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testUnknownFunction()
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -312,6 +336,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testUnknownFilter()
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 
@@ -324,6 +349,7 @@ class Twig_Tests_ExpressionParserTest extends PHPUnit_Framework_TestCase
      */
     public function testUnknownTest()
     {
+
         $env = new Twig_Environment(new Twig_Loader_String(), array('cache' => false, 'autoescape' => false));
         $parser = new Twig_Parser($env);
 

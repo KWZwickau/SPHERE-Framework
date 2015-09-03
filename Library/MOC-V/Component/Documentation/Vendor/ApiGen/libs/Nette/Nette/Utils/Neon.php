@@ -63,17 +63,17 @@ class Neon extends Nette\Object
      *
      * @return string
      */
-    public static function encode( $var, $options = null )
+    public static function encode($var, $options = null)
     {
 
         if ($var instanceof \DateTime) {
-            return $var->format( 'Y-m-d H:i:s O' );
+            return $var->format('Y-m-d H:i:s O');
 
         } elseif ($var instanceof NeonEntity) {
-            return self::encode( $var->value ).'('.substr( self::encode( $var->attributes ), 1, -1 ).')';
+            return self::encode($var->value).'('.substr(self::encode($var->attributes), 1, -1).')';
         }
 
-        if (is_object( $var )) {
+        if (is_object($var)) {
             $obj = $var;
             $var = array();
             foreach ($obj as $k => $v) {
@@ -81,17 +81,17 @@ class Neon extends Nette\Object
             }
         }
 
-        if (is_array( $var )) {
-            $isList = Validators::isList( $var );
+        if (is_array($var)) {
+            $isList = Validators::isList($var);
             $s = '';
             if ($options & self::BLOCK) {
-                if (count( $var ) === 0) {
+                if (count($var) === 0) {
                     return "[]";
                 }
                 foreach ($var as $k => $v) {
-                    $v = self::encode( $v, self::BLOCK );
-                    $s .= ( $isList ? '-' : self::encode( $k ).':' )
-                        .( Strings::contains( $v, "\n" ) ? "\n\t".str_replace( "\n", "\n\t", $v ) : ' '.$v )
+                    $v = self::encode($v, self::BLOCK);
+                    $s .= ( $isList ? '-' : self::encode($k).':' )
+                        .( Strings::contains($v, "\n") ? "\n\t".str_replace("\n", "\n\t", $v) : ' '.$v )
                         ."\n";
                     continue;
                 }
@@ -99,23 +99,23 @@ class Neon extends Nette\Object
 
             } else {
                 foreach ($var as $k => $v) {
-                    $s .= ( $isList ? '' : self::encode( $k ).': ' ).self::encode( $v ).', ';
+                    $s .= ( $isList ? '' : self::encode($k).': ' ).self::encode($v).', ';
                 }
-                return ( $isList ? '[' : '{' ).substr( $s, 0, -2 ).( $isList ? ']' : '}' );
+                return ( $isList ? '[' : '{' ).substr($s, 0, -2).( $isList ? ']' : '}' );
             }
 
-        } elseif (is_string( $var ) && !is_numeric( $var )
-            && !preg_match( '~[\x00-\x1F]|^\d{4}|^(true|false|yes|no|on|off|null)$~i', $var )
-            && preg_match( '~^'.self::$patterns[4].'$~', $var )
+        } elseif (is_string($var) && !is_numeric($var)
+            && !preg_match('~[\x00-\x1F]|^\d{4}|^(true|false|yes|no|on|off|null)$~i', $var)
+            && preg_match('~^'.self::$patterns[4].'$~', $var)
         ) {
             return $var;
 
-        } elseif (is_float( $var )) {
-            $var = var_export( $var, true );
-            return Strings::contains( $var, '.' ) ? $var : $var.'.0';
+        } elseif (is_float($var)) {
+            $var = var_export($var, true);
+            return Strings::contains($var, '.') ? $var : $var.'.0';
 
         } else {
-            return json_encode( $var );
+            return json_encode($var);
         }
     }
 
@@ -127,21 +127,21 @@ class Neon extends Nette\Object
      *
      * @return mixed
      */
-    public static function decode( $input )
+    public static function decode($input)
     {
 
-        if (!is_string( $input )) {
-            throw new Nette\InvalidArgumentException( "Argument must be a string, ".gettype( $input )." given." );
+        if (!is_string($input)) {
+            throw new Nette\InvalidArgumentException("Argument must be a string, ".gettype($input)." given.");
         }
         if (!self::$tokenizer) {
-            self::$tokenizer = new Tokenizer( self::$patterns, 'mi' );
+            self::$tokenizer = new Tokenizer(self::$patterns, 'mi');
         }
 
-        $input = str_replace( "\r", '', $input );
-        self::$tokenizer->tokenize( $input );
+        $input = str_replace("\r", '', $input);
+        self::$tokenizer->tokenize($input);
 
         $parser = new static;
-        $res = $parser->parse( 0 );
+        $res = $parser->parse(0);
 
         while (isset( self::$tokenizer->tokens[$parser->n] )) {
             if (self::$tokenizer->tokens[$parser->n][0] === "\n") {
@@ -160,7 +160,7 @@ class Neon extends Nette\Object
      *
      * @return array
      */
-    private function parse( $indent = null, $result = null )
+    private function parse($indent = null, $result = null)
     {
 
         $inlineParser = $indent === null;
@@ -168,7 +168,7 @@ class Neon extends Nette\Object
         $hasValue = $hasKey = false;
         $tokens = self::$tokenizer->tokens;
         $n = &$this->n;
-        $count = count( $tokens );
+        $count = count($tokens);
 
         for (; $n < $count; $n++) {
             $t = $tokens[$n];
@@ -177,15 +177,15 @@ class Neon extends Nette\Object
                 if (( !$hasKey && !$hasValue ) || !$inlineParser) {
                     $this->error();
                 }
-                $this->addValue( $result, $hasKey, $key, $hasValue ? $value : null );
+                $this->addValue($result, $hasKey, $key, $hasValue ? $value : null);
                 $hasKey = $hasValue = false;
 
             } elseif ($t === ':' || $t === '=') { // KeyValuePair separator
                 if ($hasKey || !$hasValue) {
                     $this->error();
                 }
-                if (is_array( $value ) || is_object( $value )) {
-                    $this->error( 'Unacceptable key' );
+                if (is_array($value) || is_object($value)) {
+                    $this->error('Unacceptable key');
                 }
                 $key = (string)$value;
                 $hasKey = true;
@@ -206,11 +206,11 @@ class Neon extends Nette\Object
                     $n++;
                     $entity = new NeonEntity;
                     $entity->value = $value;
-                    $entity->attributes = $this->parse( null, array() );
+                    $entity->attributes = $this->parse(null, array());
                     $value = $entity;
                 } else {
                     $n++;
-                    $value = $this->parse( null, array() );
+                    $value = $this->parse(null, array());
                 }
                 $hasValue = true;
                 if (!isset( $tokens[$n] ) || $tokens[$n] !== self::$brackets[$t]) { // unexpected type of bracket or block-parser
@@ -226,7 +226,7 @@ class Neon extends Nette\Object
             } elseif ($t[0] === "\n") { // Indent
                 if ($inlineParser) {
                     if ($hasKey || $hasValue) {
-                        $this->addValue( $result, $hasKey, $key, $hasValue ? $value : null );
+                        $this->addValue($result, $hasKey, $key, $hasValue ? $value : null);
                         $hasKey = $hasValue = false;
                     }
 
@@ -238,7 +238,7 @@ class Neon extends Nette\Object
                         break;
                     }
 
-                    $newIndent = strlen( $tokens[$n] ) - 1;
+                    $newIndent = strlen($tokens[$n]) - 1;
                     if ($indent === null) { // first iteration
                         $indent = $newIndent;
                     }
@@ -246,20 +246,20 @@ class Neon extends Nette\Object
                         if ($this->indentTabs === null) {
                             $this->indentTabs = $tokens[$n][1] === "\t";
                         }
-                        if (strpos( $tokens[$n], $this->indentTabs ? ' ' : "\t" )) {
+                        if (strpos($tokens[$n], $this->indentTabs ? ' ' : "\t")) {
                             $n++;
-                            $this->error( 'Either tabs or spaces may be used as indenting chars, but not both.' );
+                            $this->error('Either tabs or spaces may be used as indenting chars, but not both.');
                         }
                     }
 
                     if ($newIndent > $indent) { // open new block-array or hash
                         if ($hasValue || !$hasKey) {
                             $n++;
-                            $this->error( 'Unexpected indentation.' );
+                            $this->error('Unexpected indentation.');
                         } else {
-                            $this->addValue( $result, $key !== null, $key, $this->parse( $newIndent ) );
+                            $this->addValue($result, $key !== null, $key, $this->parse($newIndent));
                         }
-                        $newIndent = isset( $tokens[$n] ) ? strlen( $tokens[$n] ) - 1 : 0;
+                        $newIndent = isset( $tokens[$n] ) ? strlen($tokens[$n]) - 1 : 0;
                         $hasKey = false;
 
                     } else {
@@ -267,7 +267,7 @@ class Neon extends Nette\Object
                             break;
 
                         } elseif ($hasKey) {
-                            $this->addValue( $result, $key !== null, $key, $hasValue ? $value : null );
+                            $this->addValue($result, $key !== null, $key, $hasValue ? $value : null);
                             $hasKey = $hasValue = false;
                         }
                     }
@@ -302,19 +302,19 @@ class Neon extends Nette\Object
                     'OFF'   => false,
                 );
                 if ($t[0] === '"') {
-                    $value = preg_replace_callback( '#\\\\(?:u[0-9a-f]{4}|x[0-9a-f]{2}|.)#i',
-                        array( $this, 'cbString' ), substr( $t, 1, -1 ) );
+                    $value = preg_replace_callback('#\\\\(?:u[0-9a-f]{4}|x[0-9a-f]{2}|.)#i',
+                        array($this, 'cbString'), substr($t, 1, -1));
                 } elseif ($t[0] === "'") {
-                    $value = substr( $t, 1, -1 );
+                    $value = substr($t, 1, -1);
                 } elseif (isset( $consts[$t] )) {
                     $value = $consts[$t];
                 } elseif ($t === 'null' || $t === 'Null' || $t === 'NULL') {
                     $value = null;
-                } elseif (is_numeric( $t )) {
+                } elseif (is_numeric($t)) {
                     $value = $t * 1;
-                } elseif (preg_match( '#\d\d\d\d-\d\d?-\d\d?(?:(?:[Tt]| +)\d\d?:\d\d:\d\d(?:\.\d*)? *(?:Z|[-+]\d\d?(?::\d\d)?)?)?$#A',
-                    $t )) {
-                    $value = new Nette\DateTime( $t );
+                } elseif (preg_match('#\d\d\d\d-\d\d?-\d\d?(?:(?:[Tt]| +)\d\d?:\d\d:\d\d(?:\.\d*)? *(?:Z|[-+]\d\d?(?::\d\d)?)?)?$#A',
+                    $t)) {
+                    $value = new Nette\DateTime($t);
                 } else { // literal
                     $value = $t;
                 }
@@ -324,7 +324,7 @@ class Neon extends Nette\Object
 
         if ($inlineParser) {
             if ($hasKey || $hasValue) {
-                $this->addValue( $result, $hasKey, $key, $hasValue ? $value : null );
+                $this->addValue($result, $hasKey, $key, $hasValue ? $value : null);
             }
         } else {
             if ($hasValue && !$hasKey) { // block items must have "key"
@@ -334,28 +334,28 @@ class Neon extends Nette\Object
                     $this->error();
                 }
             } elseif ($hasKey) {
-                $this->addValue( $result, $key !== null, $key, $hasValue ? $value : null );
+                $this->addValue($result, $key !== null, $key, $hasValue ? $value : null);
             }
         }
         return $result;
     }
 
-    private function error( $message = "Unexpected '%s'" )
+    private function error($message = "Unexpected '%s'")
     {
 
-        list( , $line, $col ) = self::$tokenizer->getOffset( $this->n );
+        list( , $line, $col ) = self::$tokenizer->getOffset($this->n);
         $token = isset( self::$tokenizer->tokens[$this->n] )
-            ? str_replace( "\n", '<new line>', Strings::truncate( self::$tokenizer->tokens[$this->n], 40 ) )
+            ? str_replace("\n", '<new line>', Strings::truncate(self::$tokenizer->tokens[$this->n], 40))
             : 'end';
-        throw new NeonException( str_replace( '%s', $token, $message )." on line $line, column $col." );
+        throw new NeonException(str_replace('%s', $token, $message)." on line $line, column $col.");
     }
 
-    private function addValue( &$result, $hasKey, $key, $value )
+    private function addValue(&$result, $hasKey, $key, $value)
     {
 
         if ($hasKey) {
-            if ($result && array_key_exists( $key, $result )) {
-                $this->error( "Duplicated key '$key'" );
+            if ($result && array_key_exists($key, $result)) {
+                $this->error("Duplicated key '$key'");
             }
             $result[$key] = $value;
         } else {
@@ -363,19 +363,19 @@ class Neon extends Nette\Object
         }
     }
 
-    private function cbString( $m )
+    private function cbString($m)
     {
 
-        static $mapping = array( 't' => "\t", 'n' => "\n", '"' => '"', '\\' => '\\', '/' => '/', '_' => "\xc2\xa0" );
+        static $mapping = array('t' => "\t", 'n' => "\n", '"' => '"', '\\' => '\\', '/' => '/', '_' => "\xc2\xa0");
         $sq = $m[0];
         if (isset( $mapping[$sq[1]] )) {
             return $mapping[$sq[1]];
-        } elseif ($sq[1] === 'u' && strlen( $sq ) === 6) {
-            return Strings::chr( hexdec( substr( $sq, 2 ) ) );
-        } elseif ($sq[1] === 'x' && strlen( $sq ) === 4) {
-            return chr( hexdec( substr( $sq, 2 ) ) );
+        } elseif ($sq[1] === 'u' && strlen($sq) === 6) {
+            return Strings::chr(hexdec(substr($sq, 2)));
+        } elseif ($sq[1] === 'x' && strlen($sq) === 4) {
+            return chr(hexdec(substr($sq, 2)));
         } else {
-            $this->error( "Invalid escaping sequence $sq" );
+            $this->error("Invalid escaping sequence $sq");
         }
     }
 

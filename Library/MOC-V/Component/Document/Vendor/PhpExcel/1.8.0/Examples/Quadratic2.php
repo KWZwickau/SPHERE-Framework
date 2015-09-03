@@ -6,10 +6,10 @@
 <?php
 
 /**    Error reporting        **/
-error_reporting( E_ALL );
+error_reporting(E_ALL);
 
 /**    Include path        **/
-set_include_path( get_include_path().PATH_SEPARATOR.dirname( __FILE__ ).'/../Classes/' );
+set_include_path(get_include_path().PATH_SEPARATOR.dirname(__FILE__).'/../Classes/');
 
 ?>
 <h1>Quadratic Equation Solver</h1>
@@ -20,17 +20,17 @@ set_include_path( get_include_path().PATH_SEPARATOR.dirname( __FILE__ ).'/../Cla
         <tr>
             <td><b>A&nbsp;</b></td>
             <td><input name="A" type="text" size="8"
-                       value="<?php echo ( isset( $_POST['A'] ) ) ? htmlentities( $_POST['A'] ) : ''; ?>"></td>
+                       value="<?php echo ( isset( $_POST['A'] ) ) ? htmlentities($_POST['A']) : ''; ?>"></td>
         </tr>
         <tr>
             <td><b>B&nbsp;</b></td>
             <td><input name="B" type="text" size="8"
-                       value="<?php echo ( isset( $_POST['B'] ) ) ? htmlentities( $_POST['B'] ) : ''; ?>"></td>
+                       value="<?php echo ( isset( $_POST['B'] ) ) ? htmlentities($_POST['B']) : ''; ?>"></td>
         </tr>
         <tr>
             <td><b>C&nbsp;</b></td>
             <td><input name="C" type="text" size="8"
-                       value="<?php echo ( isset( $_POST['C'] ) ) ? htmlentities( $_POST['C'] ) : ''; ?>"></td>
+                       value="<?php echo ( isset( $_POST['C'] ) ) ? htmlentities($_POST['C']) : ''; ?>"></td>
         </tr>
     </table>
     <input name="submit" type="submit" value="calculate"><br/>
@@ -49,20 +49,20 @@ if (isset( $_POST['submit'] )) {
         /**    Calculate and Display the results            **/
         echo '<hr /><b>Roots:</b><br />';
 
-        $callStartTime = microtime( true );
+        $callStartTime = microtime(true);
         $discriminantFormula = '=POWER('.$_POST['B'].',2) - (4 * '.$_POST['A'].' * '.$_POST['C'].')';
-        $discriminant = PHPExcel_Calculation::getInstance()->calculateFormula( $discriminantFormula );
+        $discriminant = PHPExcel_Calculation::getInstance()->calculateFormula($discriminantFormula);
 
         $r1Formula = '=IMDIV(IMSUM(-'.$_POST['B'].',IMSQRT('.$discriminant.')),2 * '.$_POST['A'].')';
         $r2Formula = '=IF('.$discriminant.'=0,"Only one root",IMDIV(IMSUB(-'.$_POST['B'].',IMSQRT('.$discriminant.')),2 * '.$_POST['A'].'))';
 
-        echo PHPExcel_Calculation::getInstance()->calculateFormula( $r1Formula ).'<br />';
-        echo PHPExcel_Calculation::getInstance()->calculateFormula( $r2Formula ).'<br />';
-        $callEndTime = microtime( true );
+        echo PHPExcel_Calculation::getInstance()->calculateFormula($r1Formula).'<br />';
+        echo PHPExcel_Calculation::getInstance()->calculateFormula($r2Formula).'<br />';
+        $callEndTime = microtime(true);
         $callTime = $callEndTime - $callStartTime;
 
-        echo '<hr />Call time for Quadratic Equation Solution was '.sprintf( '%.4f', $callTime ).' seconds<br /><hr />';
-        echo ' Peak memory usage: '.( memory_get_peak_usage( true ) / 1024 / 1024 ).' MB<br />';
+        echo '<hr />Call time for Quadratic Equation Solution was '.sprintf('%.4f', $callTime).' seconds<br /><hr />';
+        echo ' Peak memory usage: '.( memory_get_peak_usage(true) / 1024 / 1024 ).' MB<br />';
     }
 }
 

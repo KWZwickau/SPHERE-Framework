@@ -7,8 +7,10 @@ use Prophecy\Argument;
 
 class CallPredictionSpec extends ObjectBehavior
 {
+
     function it_is_prediction()
     {
+
         $this->shouldHaveType('Prophecy\Prediction\PredictionInterface');
     }
 
@@ -19,6 +21,7 @@ class CallPredictionSpec extends ObjectBehavior
      */
     function it_does_nothing_if_there_is_more_than_one_call_been_made($object, $method, $call)
     {
+
         $this->check(array($call), $object, $method)->shouldReturn(null);
     }
 
@@ -29,6 +32,7 @@ class CallPredictionSpec extends ObjectBehavior
      */
     function it_throws_NoCallsException_if_no_calls_found($object, $method, $arguments)
     {
+
         $method->getObjectProphecy()->willReturn($object);
         $method->getMethodName()->willReturn('getName');
         $method->getArgumentsWildcard()->willReturn($arguments);

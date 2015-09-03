@@ -29,6 +29,7 @@ use Doctrine\DBAL\Schema\Schema;
  */
 interface SchemaSynchronizer
 {
+
     /**
      * Gets the SQL statements that can be executed to create the schema.
      *

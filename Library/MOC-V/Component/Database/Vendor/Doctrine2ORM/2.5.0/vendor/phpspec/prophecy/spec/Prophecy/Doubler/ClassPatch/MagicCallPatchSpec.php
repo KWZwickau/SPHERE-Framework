@@ -8,8 +8,10 @@ use Prophecy\Doubler\Generator\Node\MethodNode;
 
 class MagicCallPatchSpec extends ObjectBehavior
 {
+
     function it_is_a_patch()
     {
+
         $this->shouldBeAnInstanceOf('Prophecy\Doubler\ClassPatch\ClassPatchInterface');
     }
 
@@ -18,6 +20,7 @@ class MagicCallPatchSpec extends ObjectBehavior
      */
     function it_supports_anything($node)
     {
+
         $this->supports($node)->shouldReturn(true);
     }
 
@@ -26,6 +29,7 @@ class MagicCallPatchSpec extends ObjectBehavior
      */
     function it_discovers_api_using_phpdoc($node)
     {
+
         $node->getParentClass()->willReturn('spec\Prophecy\Doubler\ClassPatch\MagicalApi');
 
         $node->addMethod(new MethodNode('undefinedMethod'))->shouldBeCalled();
@@ -38,6 +42,7 @@ class MagicCallPatchSpec extends ObjectBehavior
      */
     function it_ignores_existing_methods($node)
     {
+
         $node->getParentClass()->willReturn('spec\Prophecy\Doubler\ClassPatch\MagicalApiExtended');
 
         $node->addMethod(new MethodNode('undefinedMethod'))->shouldBeCalled();
@@ -48,6 +53,7 @@ class MagicCallPatchSpec extends ObjectBehavior
 
     function it_has_50_priority()
     {
+
         $this->getPriority()->shouldReturn(50);
     }
 }
@@ -57,6 +63,7 @@ class MagicCallPatchSpec extends ObjectBehavior
  */
 class MagicalApi
 {
+
     /**
      * @return void
      */

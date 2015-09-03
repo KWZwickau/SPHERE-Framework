@@ -36,7 +36,7 @@ interface IUserStorage
      *
      * @return void
      */
-    function setAuthenticated( $state );
+    function setAuthenticated($state);
 
     /**
      * Is this user authenticated?
@@ -50,7 +50,7 @@ interface IUserStorage
      *
      * @return void
      */
-    function setIdentity( IIdentity $identity = null );
+    function setIdentity(IIdentity $identity = null);
 
     /**
      * Returns current user identity, if any.
@@ -67,7 +67,7 @@ interface IUserStorage
      *
      * @return void
      */
-    function setExpiration( $time, $flags = 0 );
+    function setExpiration($time, $flags = 0);
 
     /**
      * Why was user logged out?

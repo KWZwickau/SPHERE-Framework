@@ -13,8 +13,8 @@
 
 namespace Doctrine\ORM\Tools\Pagination;
 
-use Doctrine\ORM\Query\SqlWalker;
 use Doctrine\ORM\Query\AST\SelectStatement;
+use Doctrine\ORM\Query\SqlWalker;
 
 /**
  * Wraps the query in order to accurately count the root objects.
@@ -29,6 +29,7 @@ use Doctrine\ORM\Query\AST\SelectStatement;
  */
 class CountOutputWalker extends SqlWalker
 {
+
     /**
      * @var \Doctrine\DBAL\Platforms\AbstractPlatform
      */
@@ -57,6 +58,7 @@ class CountOutputWalker extends SqlWalker
      */
     public function __construct($query, $parserResult, array $queryComponents)
     {
+
         $this->platform = $query->getEntityManager()->getConnection()->getDatabasePlatform();
         $this->rsm = $parserResult->getResultSetMapping();
         $this->queryComponents = $queryComponents;
@@ -79,6 +81,7 @@ class CountOutputWalker extends SqlWalker
      */
     public function walkSelectStatement(SelectStatement $AST)
     {
+
         if ($this->platform->getName() === "mssql") {
             $AST->orderByClause = null;
         }
@@ -96,15 +99,15 @@ class CountOutputWalker extends SqlWalker
             throw new \RuntimeException("Cannot count query which selects two FROM components, cannot make distinction");
         }
 
-        $fromRoot       = reset($from);
-        $rootAlias      = $fromRoot->rangeVariableDeclaration->aliasIdentificationVariable;
-        $rootClass      = $this->queryComponents[$rootAlias]['metadata'];
+        $fromRoot = reset($from);
+        $rootAlias = $fromRoot->rangeVariableDeclaration->aliasIdentificationVariable;
+        $rootClass = $this->queryComponents[$rootAlias]['metadata'];
         $rootIdentifier = $rootClass->identifier;
 
         // For every identifier, find out the SQL alias by combing through the ResultSetMapping
         $sqlIdentifier = array();
         foreach ($rootIdentifier as $property) {
-            if (isset($rootClass->fieldMappings[$property])) {
+            if (isset( $rootClass->fieldMappings[$property] )) {
                 foreach (array_keys($this->rsm->fieldMappings, $property) as $alias) {
                     if ($this->rsm->columnOwnerMap[$alias] == $rootAlias) {
                         $sqlIdentifier[$property] = $alias;
@@ -112,7 +115,7 @@ class CountOutputWalker extends SqlWalker
                 }
             }
 
-            if (isset($rootClass->associationMappings[$property])) {
+            if (isset( $rootClass->associationMappings[$property] )) {
                 $joinColumn = $rootClass->associationMappings[$property]['joinColumns'][0]['name'];
 
                 foreach (array_keys($this->rsm->metaMappings, $joinColumn) as $alias) {

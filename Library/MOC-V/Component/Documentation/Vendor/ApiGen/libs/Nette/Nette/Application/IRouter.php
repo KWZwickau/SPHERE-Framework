@@ -34,7 +34,7 @@ interface IRouter
      *
      * @return Request|NULL
      */
-    function match( Nette\Http\IRequest $httpRequest );
+    function match(Nette\Http\IRequest $httpRequest);
 
     /**
      * Constructs absolute URL from Request object.
@@ -44,6 +44,6 @@ interface IRouter
      *
      * @return string|NULL
      */
-    function constructUrl( Request $appRequest, Nette\Http\Url $refUrl );
+    function constructUrl(Request $appRequest, Nette\Http\Url $refUrl);
 
 }

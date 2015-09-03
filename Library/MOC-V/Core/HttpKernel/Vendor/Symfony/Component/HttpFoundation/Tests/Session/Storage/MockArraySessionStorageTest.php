@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
  */
 class MockArraySessionStorageTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var MockArraySessionStorage
      */
@@ -41,6 +42,7 @@ class MockArraySessionStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testStart()
     {
+
         $this->assertEquals('', $this->storage->getId());
         $this->storage->start();
         $id = $this->storage->getId();
@@ -51,6 +53,7 @@ class MockArraySessionStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testRegenerate()
     {
+
         $this->storage->start();
         $id = $this->storage->getId();
         $this->storage->regenerate();
@@ -67,6 +70,7 @@ class MockArraySessionStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testGetId()
     {
+
         $this->assertEquals('', $this->storage->getId());
         $this->storage->start();
         $this->assertNotEquals('', $this->storage->getId());
@@ -77,6 +81,7 @@ class MockArraySessionStorageTest extends \PHPUnit_Framework_TestCase
      */
     public function testUnstartedSave()
     {
+
         $this->storage->save();
     }
 
@@ -87,14 +92,14 @@ class MockArraySessionStorageTest extends \PHPUnit_Framework_TestCase
         $this->flashes = new FlashBag();
 
         $this->data = array(
-            $this->attributes->getStorageKey() => array( 'foo' => 'bar' ),
-            $this->flashes->getStorageKey()    => array( 'notice' => 'hello' ),
+            $this->attributes->getStorageKey() => array('foo' => 'bar'),
+            $this->flashes->getStorageKey()    => array('notice' => 'hello'),
         );
 
         $this->storage = new MockArraySessionStorage();
-        $this->storage->registerBag( $this->flashes );
-        $this->storage->registerBag( $this->attributes );
-        $this->storage->setSessionData( $this->data );
+        $this->storage->registerBag($this->flashes);
+        $this->storage->registerBag($this->attributes);
+        $this->storage->setSessionData($this->data);
     }
 
     protected function tearDown()

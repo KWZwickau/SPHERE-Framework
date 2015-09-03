@@ -30,7 +30,7 @@ class Font_Glyph_Outline extends Font_Binary_Stream
     protected $offset;
     protected $size;
 
-    function __construct( Font_Table_glyf $table, $offset = null, $size = null )
+    function __construct(Font_Table_glyf $table, $offset = null, $size = null)
     {
 
         $this->table = $table;
@@ -45,18 +45,18 @@ class Font_Glyph_Outline extends Font_Binary_Stream
      *
      * @return Font_Glyph_Outline
      */
-    static function init( Font_Table_glyf $table, $offset, $size )
+    static function init(Font_Table_glyf $table, $offset, $size)
     {
 
         $font = $table->getFont();
-        $font->seek( $offset );
+        $font->seek($offset);
 
         if ($font->readInt16() > -1) {
             /** @var Font_Glyph_Outline_Simple $glyph */
-            $glyph = new Font_Glyph_Outline_Simple( $table, $offset, $size );
+            $glyph = new Font_Glyph_Outline_Simple($table, $offset, $size);
         } else {
             /** @var Font_Glyph_Outline_Composite $glyph */
-            $glyph = new Font_Glyph_Outline_Composite( $table, $offset, $size );
+            $glyph = new Font_Glyph_Outline_Composite($table, $offset, $size);
         }
 
         $glyph->parse();
@@ -67,13 +67,13 @@ class Font_Glyph_Outline extends Font_Binary_Stream
     {
 
         $font = $this->getFont();
-        $font->seek( $this->offset );
+        $font->seek($this->offset);
 
         if (!$this->size) {
             return;
         }
 
-        $this->raw = $font->read( $this->size );
+        $this->raw = $font->read($this->size);
     }
 
     /**
@@ -89,7 +89,7 @@ class Font_Glyph_Outline extends Font_Binary_Stream
     {
 
         $font = $this->getFont();
-        $font->seek( $this->offset );
+        $font->seek($this->offset);
 
         $this->numberOfContours = $font->readInt16();
         $this->xMin = $font->readFWord();
@@ -102,7 +102,7 @@ class Font_Glyph_Outline extends Font_Binary_Stream
     {
 
         $font = $this->getFont();
-        return $font->write( $this->raw, strlen( $this->raw ) );
+        return $font->write($this->raw, strlen($this->raw));
     }
 
     function getSVGContours()
@@ -117,5 +117,5 @@ class Font_Glyph_Outline extends Font_Binary_Stream
     }
 }
 
-require_once dirname( __FILE__ )."/Font_Glyph_Outline_Simple.php";
-require_once dirname( __FILE__ )."/Font_Glyph_Outline_Composite.php";
+require_once dirname(__FILE__)."/Font_Glyph_Outline_Simple.php";
+require_once dirname(__FILE__)."/Font_Glyph_Outline_Composite.php";

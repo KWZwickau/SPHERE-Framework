@@ -23,7 +23,7 @@
  * @return string with compiled code
  */
 
-function smarty_modifiercompiler_strip( $params )
+function smarty_modifiercompiler_strip($params)
 {
 
     if (!isset( $params[1] )) {

@@ -20,10 +20,10 @@ class FileParameter extends Parameter implements IParameterInterface
     /**
      * @param string $File
      */
-    function __construct( $File )
+    public function __construct($File)
     {
 
-        $this->setFile( $File );
+        $this->setFile($File);
     }
 
     /**
@@ -41,16 +41,16 @@ class FileParameter extends Parameter implements IParameterInterface
      * @throws \MOC\V\Component\Template\Component\Exception\Repository\EmptyFileException
      * @throws TypeFileException
      */
-    public function setFile( $File )
+    public function setFile($File)
     {
 
         if (empty( $File )) {
             throw new EmptyFileException();
         } else {
-            if (!is_dir( $File )) {
+            if (!is_dir($File)) {
                 $this->File = $File;
             } else {
-                throw new TypeFileException( $File );
+                throw new TypeFileException($File);
             }
         }
     }

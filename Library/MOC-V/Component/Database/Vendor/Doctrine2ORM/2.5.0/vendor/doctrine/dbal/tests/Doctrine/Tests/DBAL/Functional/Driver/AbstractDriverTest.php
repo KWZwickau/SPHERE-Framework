@@ -7,6 +7,7 @@ use Doctrine\Tests\DbalFunctionalTestCase;
 
 abstract class AbstractDriverTest extends DbalFunctionalTestCase
 {
+
     /**
      * The driver instance under test.
      *
@@ -14,23 +15,17 @@ abstract class AbstractDriverTest extends DbalFunctionalTestCase
      */
     private $driver;
 
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $this->driver = $this->createDriver();
-    }
-
     /**
      * @group DBAL-1215
      */
     public function testConnectsWithoutDatabaseNameParameter()
     {
-        $params = $this->_conn->getParams();
-        unset($params['dbname']);
 
-        $user = isset($params['user']) ? $params['user'] : null;
-        $password = isset($params['password']) ? $params['password'] : null;
+        $params = $this->_conn->getParams();
+        unset( $params['dbname'] );
+
+        $user = isset( $params['user'] ) ? $params['user'] : null;
+        $password = isset( $params['password'] ) ? $params['password'] : null;
 
         $connection = $this->driver->connect($params, $user, $password);
 
@@ -42,8 +37,9 @@ abstract class AbstractDriverTest extends DbalFunctionalTestCase
      */
     public function testReturnsDatabaseNameWithoutDatabaseNameParameter()
     {
+
         $params = $this->_conn->getParams();
-        unset($params['dbname']);
+        unset( $params['dbname'] );
 
         $connection = new Connection(
             $params,
@@ -59,15 +55,24 @@ abstract class AbstractDriverTest extends DbalFunctionalTestCase
     }
 
     /**
-     * @return \Doctrine\DBAL\Driver
-     */
-    abstract protected function createDriver();
-
-    /**
      * @return string|null
      */
     protected function getDatabaseNameForConnectionWithoutDatabaseNameParameter()
     {
+
         return null;
     }
+
+    protected function setUp()
+    {
+
+        parent::setUp();
+
+        $this->driver = $this->createDriver();
+    }
+
+    /**
+     * @return \Doctrine\DBAL\Driver
+     */
+    abstract protected function createDriver();
 }

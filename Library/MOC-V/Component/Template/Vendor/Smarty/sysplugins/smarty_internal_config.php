@@ -74,7 +74,7 @@ class Smarty_Internal_Config
      * @param Smarty $smarty          Smarty instance
      * @param object $data            object for config vars storage
      */
-    public function __construct( $config_resource, $smarty, $data = null )
+    public function __construct($config_resource, $smarty, $data = null)
     {
 
         $this->data = $data;
@@ -96,7 +96,7 @@ class Smarty_Internal_Config
             if ($this->mustCompile()) {
                 $this->compileConfigSource();
             } else {
-                $this->compiled_config = file_get_contents( $this->getCompiledFilepath() );
+                $this->compiled_config = file_get_contents($this->getCompiledFilepath());
             }
         }
 
@@ -126,7 +126,7 @@ class Smarty_Internal_Config
     {
 
         return $this->compiled_timestamp === null
-            ? ( $this->compiled_timestamp = ( file_exists( $this->getCompiledFilepath() ) ) ? filemtime( $this->getCompiledFilepath() ) : false )
+            ? ( $this->compiled_timestamp = ( file_exists($this->getCompiledFilepath()) ) ? filemtime($this->getCompiledFilepath()) : false )
             : $this->compiled_timestamp;
     }
 
@@ -151,16 +151,16 @@ class Smarty_Internal_Config
     public function buildCompiledFilepath()
     {
 
-        $_compile_id = isset( $this->smarty->compile_id ) ? preg_replace( '![^\w\|]+!', '_',
-            $this->smarty->compile_id ) : null;
+        $_compile_id = isset( $this->smarty->compile_id ) ? preg_replace('![^\w\|]+!', '_',
+            $this->smarty->compile_id) : null;
         $_flag = (int)$this->smarty->config_read_hidden + (int)$this->smarty->config_booleanize * 2
             + (int)$this->smarty->config_overwrite * 4;
-        $_filepath = sha1( realpath( $this->source->filepath ).$_flag );
+        $_filepath = sha1(realpath($this->source->filepath).$_flag);
         // if use_sub_dirs, break file into directories
         if ($this->smarty->use_sub_dirs) {
-            $_filepath = substr( $_filepath, 0, 2 ).DS
-                .substr( $_filepath, 2, 2 ).DS
-                .substr( $_filepath, 4, 2 ).DS
+            $_filepath = substr($_filepath, 0, 2).DS
+                .substr($_filepath, 2, 2).DS
+                .substr($_filepath, 4, 2).DS
                 .$_filepath;
         }
         $_compile_dir_sep = $this->smarty->use_sub_dirs ? DS : '^';
@@ -169,7 +169,7 @@ class Smarty_Internal_Config
         }
         $_compile_dir = $this->smarty->getCompileDir();
 
-        return $_compile_dir.$_filepath.'.'.basename( $this->source->name ).'.config'.'.php';
+        return $_compile_dir.$_filepath.'.'.basename($this->source->name).'.config'.'.php';
     }
 
     /**
@@ -181,45 +181,45 @@ class Smarty_Internal_Config
     {
 
         // compile template
-        if (!is_object( $this->compiler_object )) {
+        if (!is_object($this->compiler_object)) {
             // load compiler
-            $this->compiler_object = new Smarty_Internal_Config_File_Compiler( $this->smarty );
+            $this->compiler_object = new Smarty_Internal_Config_File_Compiler($this->smarty);
         }
         // compile locking
         if ($this->smarty->compile_locking) {
             if ($saved_timestamp = $this->getCompiledTimestamp()) {
-                touch( $this->getCompiledFilepath() );
+                touch($this->getCompiledFilepath());
             }
         }
         // call compiler
         try {
-            $this->compiler_object->compileSource( $this );
-        } catch( Exception $e ) {
+            $this->compiler_object->compileSource($this);
+        } catch (Exception $e) {
             // restore old timestamp in case of error
             if ($this->smarty->compile_locking && $saved_timestamp) {
-                touch( $this->getCompiledFilepath(), $saved_timestamp );
+                touch($this->getCompiledFilepath(), $saved_timestamp);
             }
             throw $e;
         }
         // compiling succeeded
         // write compiled template
-        Smarty_Internal_Write_File::writeFile( $this->getCompiledFilepath(), $this->getCompiledConfig(),
-            $this->smarty );
+        Smarty_Internal_Write_File::writeFile($this->getCompiledFilepath(), $this->getCompiledConfig(),
+            $this->smarty);
     }
 
     /**
      * load config variables
      *
-     * @param mixed $sections array of section names, single section or null
-     * @param string $scope   global,parent or local
+     * @param mixed  $sections array of section names, single section or null
+     * @param string $scope    global,parent or local
      *
      * @throws Exception
      */
-    public function loadConfigVars( $sections = null, $scope = 'local' )
+    public function loadConfigVars($sections = null, $scope = 'local')
     {
 
         if ($this->data instanceof Smarty_Internal_Template) {
-            $this->data->properties['file_dependency'][sha1( $this->source->filepath )] = array(
+            $this->data->properties['file_dependency'][sha1($this->source->filepath)] = array(
                 $this->source->filepath,
                 $this->source->timestamp,
                 'file'
@@ -250,8 +250,8 @@ class Smarty_Internal_Config
             if ($this->smarty->config_overwrite || !isset( $scope_ptr->config_vars[$variable] )) {
                 $scope_ptr->config_vars[$variable] = $value;
             } else {
-                $scope_ptr->config_vars[$variable] = array_merge( (array)$scope_ptr->config_vars[$variable],
-                    (array)$value );
+                $scope_ptr->config_vars[$variable] = array_merge((array)$scope_ptr->config_vars[$variable],
+                    (array)$value);
             }
         }
         // scan sections
@@ -262,8 +262,8 @@ class Smarty_Internal_Config
                         if ($this->smarty->config_overwrite || !isset( $scope_ptr->config_vars[$variable] )) {
                             $scope_ptr->config_vars[$variable] = $value;
                         } else {
-                            $scope_ptr->config_vars[$variable] = array_merge( (array)$scope_ptr->config_vars[$variable],
-                                (array)$value );
+                            $scope_ptr->config_vars[$variable] = array_merge((array)$scope_ptr->config_vars[$variable],
+                                (array)$value);
                         }
                     }
                 }
@@ -279,25 +279,25 @@ class Smarty_Internal_Config
      * @return \Smarty_Config_Source|\Smarty_Template_Compiled
      * @throws SmartyException if $property_name is not valid
      */
-    public function __get( $property_name )
+    public function __get($property_name)
     {
 
         switch ($property_name) {
             case 'source':
                 if (empty( $this->config_resource )) {
-                    throw new SmartyException( "Unable to parse resource name \"{$this->config_resource}\"" );
+                    throw new SmartyException("Unable to parse resource name \"{$this->config_resource}\"");
                 }
-                $this->source = Smarty_Resource::config( $this );
+                $this->source = Smarty_Resource::config($this);
 
                 return $this->source;
 
             case 'compiled':
-                $this->compiled = $this->source->getCompiled( $this );
+                $this->compiled = $this->source->getCompiled($this);
 
                 return $this->compiled;
         }
 
-        throw new SmartyException( "config attribute '$property_name' does not exist." );
+        throw new SmartyException("config attribute '$property_name' does not exist.");
     }
 
     /**
@@ -308,7 +308,7 @@ class Smarty_Internal_Config
      *
      * @throws SmartyException if $property_name is not valid
      */
-    public function __set( $property_name, $value )
+    public function __set($property_name, $value)
     {
 
         switch ($property_name) {
@@ -319,6 +319,6 @@ class Smarty_Internal_Config
                 return;
         }
 
-        throw new SmartyException( "invalid config property '$property_name'." );
+        throw new SmartyException("invalid config property '$property_name'.");
     }
 }

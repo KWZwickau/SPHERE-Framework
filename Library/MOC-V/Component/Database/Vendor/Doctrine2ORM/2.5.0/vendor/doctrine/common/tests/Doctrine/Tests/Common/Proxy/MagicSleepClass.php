@@ -7,6 +7,7 @@ namespace Doctrine\Tests\Common\Proxy;
  */
 class MagicSleepClass
 {
+
     /**
      * @var string
      */
@@ -32,6 +33,7 @@ class MagicSleepClass
      */
     public function __sleep()
     {
+
         return array('serializedField');
     }
 }

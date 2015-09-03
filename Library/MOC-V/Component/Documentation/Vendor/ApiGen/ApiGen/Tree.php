@@ -48,17 +48,17 @@ class Tree extends RecursiveTreeIterator
      * @param array        $treePart    Part of the tree
      * @param \ArrayObject $reflections Array of reflections in the tree part
      */
-    public function __construct( array $treePart, \ArrayObject $reflections )
+    public function __construct(array $treePart, \ArrayObject $reflections)
     {
 
         parent::__construct(
-            new \RecursiveArrayIterator( $treePart ),
+            new \RecursiveArrayIterator($treePart),
             RecursiveTreeIterator::BYPASS_KEY,
             null,
             \RecursiveIteratorIterator::SELF_FIRST
         );
-        $this->setPrefixPart( RecursiveTreeIterator::PREFIX_END_HAS_NEXT, self::HAS_NEXT );
-        $this->setPrefixPart( RecursiveTreeIterator::PREFIX_END_LAST, self::LAST );
+        $this->setPrefixPart(RecursiveTreeIterator::PREFIX_END_HAS_NEXT, self::HAS_NEXT);
+        $this->setPrefixPart(RecursiveTreeIterator::PREFIX_END_LAST, self::LAST);
         $this->rewind();
 
         $this->reflections = $reflections;
@@ -73,7 +73,7 @@ class Tree extends RecursiveTreeIterator
     {
 
         $prefix = $this->getPrefix();
-        return !empty( $prefix ) && self::HAS_NEXT === substr( $prefix, -1 );
+        return !empty( $prefix ) && self::HAS_NEXT === substr($prefix, -1);
     }
 
     /**
@@ -87,7 +87,7 @@ class Tree extends RecursiveTreeIterator
 
         $className = $this->key();
         if (!isset( $this->reflections[$className] )) {
-            throw new RuntimeException( sprintf( 'Class "%s" is not in the reflection array', $className ) );
+            throw new RuntimeException(sprintf('Class "%s" is not in the reflection array', $className));
         }
 
         return $this->reflections[$className];

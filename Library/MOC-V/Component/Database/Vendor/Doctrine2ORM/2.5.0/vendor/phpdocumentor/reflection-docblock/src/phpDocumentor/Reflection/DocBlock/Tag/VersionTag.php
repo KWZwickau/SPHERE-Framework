@@ -23,6 +23,7 @@ use phpDocumentor\Reflection\DocBlock\Tag;
  */
 class VersionTag extends Tag
 {
+
     /**
      * PCRE regular expression matching a version vector.
      * Assumes the "x" modifier.
@@ -41,9 +42,10 @@ class VersionTag extends Tag
 
     /** @var string The version vector. */
     protected $version = '';
-    
+
     public function getContent()
     {
+
         if (null === $this->content) {
             $this->content = "{$this->version} {$this->description}";
         }
@@ -56,12 +58,13 @@ class VersionTag extends Tag
      */
     public function setContent($content)
     {
+
         parent::setContent($content);
 
         if (preg_match(
             '/^
                 # The version vector
-                (' . self::REGEX_VECTOR . ')
+                ('.self::REGEX_VECTOR.')
                 \s*
                 # The description
                 (.+)?
@@ -70,7 +73,7 @@ class VersionTag extends Tag
             $matches
         )) {
             $this->version = $matches[1];
-            $this->setDescription(isset($matches[2]) ? $matches[2] : '');
+            $this->setDescription(isset( $matches[2] ) ? $matches[2] : '');
             $this->content = $content;
         }
 
@@ -84,21 +87,23 @@ class VersionTag extends Tag
      */
     public function getVersion()
     {
+
         return $this->version;
     }
-    
+
     /**
      * Sets the version section of the tag.
-     * 
+     *
      * @param string $version The new version section of the tag.
-     *     An invalid value will set an empty string.
-     * 
+     *                        An invalid value will set an empty string.
+     *
      * @return $this
      */
     public function setVersion($version)
     {
+
         $this->version
-            = preg_match('/^' . self::REGEX_VECTOR . '$/ux', $version)
+            = preg_match('/^'.self::REGEX_VECTOR.'$/ux', $version)
             ? $version
             : '';
 

@@ -3,15 +3,16 @@
 namespace Guzzle\Tests\Service\Description;
 
 use Guzzle\Service\Description\ServiceDescription;
-use Guzzle\Service\Description\ServiceDescriptionLoader;
 
 /**
  * @covers Guzzle\Service\Description\ServiceDescriptionLoader
  */
 class ServiceDescriptionLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testAllowsExtraData()
     {
+
         $d = ServiceDescription::factory(array(
             'foo' => true,
             'baz' => array('bar'),
@@ -26,9 +27,10 @@ class ServiceDescriptionLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsDeepNestedInheritance()
     {
+
         $d = ServiceDescription::factory(array(
             'operations' => array(
-                'abstract' => array(
+                'abstract'  => array(
                     'httpMethod' => 'HEAD',
                     'parameters' => array(
                         'test' => array('type' => 'string', 'required' => true)
@@ -37,7 +39,7 @@ class ServiceDescriptionLoaderTest extends \Guzzle\Tests\GuzzleTestCase
                 'abstract2' => array('uri' => '/test', 'extends' => 'abstract'),
                 'concrete'  => array('extends' => 'abstract2'),
                 'override'  => array('extends' => 'abstract', 'httpMethod' => 'PUT'),
-                'override2'  => array('extends' => 'override', 'httpMethod' => 'POST', 'uri' => '/')
+                'override2' => array('extends' => 'override', 'httpMethod' => 'POST', 'uri' => '/')
             )
         ));
 
@@ -60,6 +62,7 @@ class ServiceDescriptionLoaderTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionWhenExtendingMissingCommand()
     {
+
         ServiceDescription::factory(array(
             'operations' => array(
                 'concrete' => array(
@@ -71,6 +74,7 @@ class ServiceDescriptionLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsMultipleInheritance()
     {
+
         $description = ServiceDescription::factory(array(
             'operations' => array(
                 'a' => array(
@@ -123,6 +127,7 @@ class ServiceDescriptionLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAddsOtherFields()
     {
+
         $description = ServiceDescription::factory(array(
             'operations'  => array(),
             'description' => 'Foo',
@@ -134,12 +139,13 @@ class ServiceDescriptionLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCanLoadNestedExtends()
     {
+
         $description = ServiceDescription::factory(array(
-            'operations'  => array(
-                'root' => array(
+            'operations' => array(
+                'root'  => array(
                     'class' => 'foo'
                 ),
-                'foo' => array(
+                'foo'   => array(
                     'extends' => 'root',
                     'parameters' => array(
                         'baz' => array('type' => 'string')

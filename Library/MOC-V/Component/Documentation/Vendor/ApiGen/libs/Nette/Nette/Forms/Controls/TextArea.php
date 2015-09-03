@@ -26,11 +26,11 @@ class TextArea extends TextBase
      * @param  int     width of the control
      * @param  int     height of the control in text lines
      */
-    public function __construct( $label = null, $cols = null, $rows = null )
+    public function __construct($label = null, $cols = null, $rows = null)
     {
 
-        parent::__construct( $label );
-        $this->control->setName( 'textarea' );
+        parent::__construct($label);
+        $this->control->setName('textarea');
         $this->control->cols = $cols;
         $this->control->rows = $rows;
         $this->value = '';
@@ -46,7 +46,7 @@ class TextArea extends TextBase
     {
 
         $control = parent::getControl();
-        $control->setText( $this->getValue() === '' ? $this->translate( $this->emptyValue ) : $this->value );
+        $control->setText($this->getValue() === '' ? $this->translate($this->emptyValue) : $this->value);
         return $control;
     }
 

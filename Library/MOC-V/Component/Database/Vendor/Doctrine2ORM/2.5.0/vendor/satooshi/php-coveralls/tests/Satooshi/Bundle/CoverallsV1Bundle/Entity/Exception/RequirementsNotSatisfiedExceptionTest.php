@@ -8,6 +8,7 @@ namespace Satooshi\Bundle\CoverallsV1Bundle\Entity\Exception;
  */
 class RequirementsNotSatisfiedExceptionTest extends \PHPUnit_Framework_TestCase
 {
+
     // getReadEnv()
 
     /**
@@ -15,6 +16,7 @@ class RequirementsNotSatisfiedExceptionTest extends \PHPUnit_Framework_TestCase
      */
     public function shouldNotHaveReadEnvOnConstruction()
     {
+
         $object = new RequirementsNotSatisfiedException();
 
         $this->assertNull($object->getReadEnv());
@@ -27,6 +29,7 @@ class RequirementsNotSatisfiedExceptionTest extends \PHPUnit_Framework_TestCase
      */
     public function shouldSetReadEnv()
     {
+
         $expected = array(
             'ENV_NAME' => 'value',
         );
@@ -44,6 +47,7 @@ class RequirementsNotSatisfiedExceptionTest extends \PHPUnit_Framework_TestCase
      */
     public function shouldGetHelpMessageWithStringEnvVar()
     {
+
         $expected = array(
             'ENV_NAME' => 'value',
         );
@@ -61,6 +65,7 @@ class RequirementsNotSatisfiedExceptionTest extends \PHPUnit_Framework_TestCase
      */
     public function shouldGetHelpMessageWithIntegerEnvVar()
     {
+
         $expected = array(
             'ENV_NAME' => 123,
         );
@@ -78,6 +83,7 @@ class RequirementsNotSatisfiedExceptionTest extends \PHPUnit_Framework_TestCase
      */
     public function shouldGetHelpMessageWithBooleanEnvVar()
     {
+
         $expected = array(
             'ENV_NAME' => true,
         );

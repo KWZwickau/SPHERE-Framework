@@ -16,7 +16,7 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function openConnection( $Host, $Port = 22, $Timeout = 10 );
+    public function openConnection($Host, $Port = 22, $Timeout = 10);
 
     /**
      * @return IBridgeInterface

@@ -25,7 +25,7 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     private $connection;
 
 
-    public function __construct( Nette\Database\Connection $connection, array $options )
+    public function __construct(Nette\Database\Connection $connection, array $options)
     {
 
         $this->connection = $connection;
@@ -38,31 +38,31 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Delimites identifier for use in a SQL statement.
      */
-    public function delimite( $name )
+    public function delimite($name)
     {
 
         // @see http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS
-        return '"'.str_replace( '"', '""', $name ).'"';
+        return '"'.str_replace('"', '""', $name).'"';
     }
 
 
     /**
      * Formats date-time for use in a SQL statement.
      */
-    public function formatDateTime( \DateTime $value )
+    public function formatDateTime(\DateTime $value)
     {
 
-        return $value->format( "'Y-m-d H:i:s'" );
+        return $value->format("'Y-m-d H:i:s'");
     }
 
 
     /**
      * Encodes string for use in a LIKE statement.
      */
-    public function formatLike( $value, $pos )
+    public function formatLike($value, $pos)
     {
 
-        $value = strtr( $value, array( "'" => "''", '\\' => '\\\\', '%' => '\\\\%', '_' => '\\\\_' ) );
+        $value = strtr($value, array("'" => "''", '\\' => '\\\\', '%' => '\\\\%', '_' => '\\\\_'));
         return ( $pos <= 0 ? "'%" : "'" ).$value.( $pos >= 0 ? "%'" : "'" );
     }
 
@@ -70,7 +70,7 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Injects LIMIT/OFFSET to the SQL query.
      */
-    public function applyLimit( &$sql, $limit, $offset )
+    public function applyLimit(&$sql, $limit, $offset)
     {
 
         if ($limit >= 0) {
@@ -86,7 +86,7 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Normalizes result row.
      */
-    public function normalizeRow( $row, $statement )
+    public function normalizeRow($row, $statement)
     {
 
         return $row;
@@ -103,7 +103,7 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     {
 
         $tables = array();
-        foreach ($this->connection->query( "
+        foreach ($this->connection->query("
 			SELECT
 				table_name AS name,
 				table_type = 'VIEW' AS view
@@ -111,7 +111,7 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 				information_schema.tables
 			WHERE
 				table_schema = current_schema()
-		" ) as $row) {
+		") as $row) {
             $tables[] = (array)$row;
         }
 
@@ -122,11 +122,11 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Returns metadata for all columns in a table.
      */
-    public function getColumns( $table )
+    public function getColumns($table)
     {
 
         $columns = array();
-        foreach ($this->connection->query( "
+        foreach ($this->connection->query("
 			SELECT
 				c.column_name AS name,
 				c.table_name AS table,
@@ -149,7 +149,7 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 				(tc.constraint_type IS NULL OR tc.constraint_type = 'PRIMARY KEY')
 			ORDER BY
 				c.ordinal_position
-		" ) as $row) {
+		") as $row) {
             $row['vendor'] = array();
             $columns[] = (array)$row;
         }
@@ -161,12 +161,12 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
     /**
      * Returns metadata for all indexes in a table.
      */
-    public function getIndexes( $table )
+    public function getIndexes($table)
     {
 
         /* There is no information about all indexes in information_schema, so pg catalog must be used */
         $indexes = array();
-        foreach ($this->connection->query( "
+        foreach ($this->connection->query("
 			SELECT
 				c2.relname AS name,
 				indisunique AS unique,
@@ -184,24 +184,24 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 				c1.relkind = 'r'
 				AND
 				c1.relname = {$this->connection->quote( $table )}
-		" ) as $row) {
+		") as $row) {
             $indexes[$row['name']]['name'] = $row['name'];
             $indexes[$row['name']]['unique'] = $row['unique'];
             $indexes[$row['name']]['primary'] = $row['primary'];
             $indexes[$row['name']]['columns'][] = $row['column'];
         }
 
-        return array_values( $indexes );
+        return array_values($indexes);
     }
 
 
     /**
      * Returns metadata for all foreign keys in a table.
      */
-    public function getForeignKeys( $table )
+    public function getForeignKeys($table)
     {
 
-        return $this->connection->query( "
+        return $this->connection->query("
 			SELECT tc.table_name AS name, kcu.column_name AS local, ccu.table_name AS table, ccu.column_name AS foreign
 			FROM information_schema.table_constraints AS tc
 			JOIN information_schema.key_column_usage AS kcu ON tc.constraint_name = kcu.constraint_name AND tc.constraint_schema = kcu.constraint_schema
@@ -210,14 +210,14 @@ class PgSqlDriver extends Nette\Object implements Nette\Database\ISupplementalDr
 				constraint_type = 'FOREIGN KEY' AND
 				tc.table_name = {$this->connection->quote( $table )} AND
 				tc.constraint_schema = current_schema()
-		" )->fetchAll();
+		")->fetchAll();
     }
 
 
     /**
      * @return bool
      */
-    public function isSupported( $item )
+    public function isSupported($item)
     {
 
         return $item === self::META;

@@ -9,6 +9,7 @@ use Guzzle\Cache\CacheAdapterInterface;
  */
 class CachingConfigLoader implements ConfigLoaderInterface
 {
+
     /** @var ConfigLoaderInterface */
     protected $loader;
 
@@ -21,16 +22,18 @@ class CachingConfigLoader implements ConfigLoaderInterface
      */
     public function __construct(ConfigLoaderInterface $loader, CacheAdapterInterface $cache)
     {
+
         $this->loader = $loader;
         $this->cache = $cache;
     }
 
     public function load($config, array $options = array())
     {
+
         if (!is_string($config)) {
             $key = false;
         } else {
-            $key = 'loader_' . crc32($config);
+            $key = 'loader_'.crc32($config);
             if ($result = $this->cache->fetch($key)) {
                 return $result;
             }

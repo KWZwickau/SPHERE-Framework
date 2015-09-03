@@ -11,8 +11,10 @@ use Guzzle\Tests\Service\Mock\Command\MockCommand as Mc;
  */
 class BatchCommandTransferTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testCreatesBatchesBasedOnClient()
     {
+
         $client1 = new Client('http://www.example.com');
         $client2 = new Client('http://www.example.com');
 
@@ -41,6 +43,7 @@ class BatchCommandTransferTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testEnsuresAllItemsAreCommands()
     {
+
         $queue = new \SplQueue();
         $queue[] = 'foo';
         $batch = new BatchCommandTransfer(2);
@@ -49,6 +52,7 @@ class BatchCommandTransferTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testTransfersBatches()
     {
+
         $client = $this->getMockBuilder('Guzzle\Service\Client')
             ->setMethods(array('send'))
             ->getMock();
@@ -62,6 +66,7 @@ class BatchCommandTransferTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesNotTransfersEmptyBatches()
     {
+
         $batch = new BatchCommandTransfer(2);
         $batch->transfer(array());
     }
@@ -71,6 +76,7 @@ class BatchCommandTransferTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testEnsuresAllCommandsUseTheSameClient()
     {
+
         $batch = new BatchCommandTransfer(2);
         $client1 = new Client('http://www.example.com');
         $client2 = new Client('http://www.example.com');

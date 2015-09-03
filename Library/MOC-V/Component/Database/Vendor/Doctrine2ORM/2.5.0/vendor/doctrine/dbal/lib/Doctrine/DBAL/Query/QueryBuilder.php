@@ -19,8 +19,8 @@
 
 namespace Doctrine\DBAL\Query;
 
-use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Query\Expression\CompositeExpression;
 
 /**
  * QueryBuilder class is responsible to dynamically create SQL queries.
@@ -39,6 +39,7 @@ use Doctrine\DBAL\Connection;
  */
 class QueryBuilder
 {
+
     /*
      * The query types.
      */
@@ -138,6 +139,7 @@ class QueryBuilder
      */
     public function __construct(Connection $connection)
     {
+
         $this->connection = $connection;
     }
 
@@ -159,6 +161,7 @@ class QueryBuilder
      */
     public function expr()
     {
+
         return $this->connection->getExpressionBuilder();
     }
 
@@ -169,6 +172,7 @@ class QueryBuilder
      */
     public function getType()
     {
+
         return $this->type;
     }
 
@@ -179,6 +183,7 @@ class QueryBuilder
      */
     public function getConnection()
     {
+
         return $this->connection;
     }
 
@@ -189,6 +194,7 @@ class QueryBuilder
      */
     public function getState()
     {
+
         return $this->state;
     }
 
@@ -202,6 +208,7 @@ class QueryBuilder
      */
     public function execute()
     {
+
         if ($this->type == self::SELECT) {
             return $this->connection->executeQuery($this->getSQL(), $this->params, $this->paramTypes);
         } else {
@@ -223,6 +230,7 @@ class QueryBuilder
      */
     public function getSQL()
     {
+
         if ($this->sql !== null && $this->state === self::STATE_CLEAN) {
             return $this->sql;
         }
@@ -252,31 +260,156 @@ class QueryBuilder
     }
 
     /**
-     * Sets a query parameter for the query being constructed.
+     * Converts this instance into an INSERT string in SQL.
      *
-     * <code>
-     *     $qb = $conn->createQueryBuilder()
-     *         ->select('u')
-     *         ->from('users', 'u')
-     *         ->where('u.id = :user_id')
-     *         ->setParameter(':user_id', 1);
-     * </code>
-     *
-     * @param string|integer $key   The parameter position or name.
-     * @param mixed          $value The parameter value.
-     * @param string|null    $type  One of the PDO::PARAM_* constants.
-     *
-     * @return \Doctrine\DBAL\Query\QueryBuilder This QueryBuilder instance.
+     * @return string
      */
-    public function setParameter($key, $value, $type = null)
+    private function getSQLForInsert()
     {
-        if ($type !== null) {
-            $this->paramTypes[$key] = $type;
+
+        return 'INSERT INTO '.$this->sqlParts['from']['table'].
+        ' ('.implode(', ', array_keys($this->sqlParts['values'])).')'.
+        ' VALUES('.implode(', ', $this->sqlParts['values']).')';
+    }
+
+    /**
+     * Converts this instance into a DELETE string in SQL.
+     *
+     * @return string
+     */
+    private function getSQLForDelete()
+    {
+
+        $table = $this->sqlParts['from']['table'].( $this->sqlParts['from']['alias'] ? ' '.$this->sqlParts['from']['alias'] : '' );
+        $query = 'DELETE FROM '.$table.( $this->sqlParts['where'] !== null ? ' WHERE '.( (string)$this->sqlParts['where'] ) : '' );
+
+        return $query;
+    }
+
+    /**
+     * Converts this instance into an UPDATE string in SQL.
+     *
+     * @return string
+     */
+    private function getSQLForUpdate()
+    {
+
+        $table = $this->sqlParts['from']['table'].( $this->sqlParts['from']['alias'] ? ' '.$this->sqlParts['from']['alias'] : '' );
+        $query = 'UPDATE '.$table
+            .' SET '.implode(", ", $this->sqlParts['set'])
+            .( $this->sqlParts['where'] !== null ? ' WHERE '.( (string)$this->sqlParts['where'] ) : '' );
+
+        return $query;
+    }
+
+    /**
+     * @return string
+     *
+     * @throws \Doctrine\DBAL\Query\QueryException
+     */
+    private function getSQLForSelect()
+    {
+
+        $query = 'SELECT '.implode(', ', $this->sqlParts['select']).' FROM ';
+
+        $query .= implode(', ', $this->getFromClauses())
+            .( $this->sqlParts['where'] !== null ? ' WHERE '.( (string)$this->sqlParts['where'] ) : '' )
+            .( $this->sqlParts['groupBy'] ? ' GROUP BY '.implode(', ', $this->sqlParts['groupBy']) : '' )
+            .( $this->sqlParts['having'] !== null ? ' HAVING '.( (string)$this->sqlParts['having'] ) : '' )
+            .( $this->sqlParts['orderBy'] ? ' ORDER BY '.implode(', ', $this->sqlParts['orderBy']) : '' );
+
+        if ($this->isLimitQuery()) {
+            return $this->connection->getDatabasePlatform()->modifyLimitQuery(
+                $query,
+                $this->maxResults,
+                $this->firstResult
+            );
         }
 
-        $this->params[$key] = $value;
+        return $query;
+    }
 
-        return $this;
+    /**
+     * @return string[]
+     */
+    private function getFromClauses()
+    {
+
+        $fromClauses = array();
+        $knownAliases = array();
+
+        // Loop through all FROM clauses
+        foreach ($this->sqlParts['from'] as $from) {
+            if ($from['alias'] === null) {
+                $tableSql = $from['table'];
+                $tableReference = $from['table'];
+            } else {
+                $tableSql = $from['table'].' '.$from['alias'];
+                $tableReference = $from['alias'];
+            }
+
+            $knownAliases[$tableReference] = true;
+
+            $fromClauses[$tableReference] = $tableSql.$this->getSQLForJoins($tableReference, $knownAliases);
+        }
+
+        $this->verifyAllAliasesAreKnown($knownAliases);
+
+        return $fromClauses;
+    }
+
+    /**
+     * @param string $fromAlias
+     * @param array  $knownAliases
+     *
+     * @return string
+     */
+    private function getSQLForJoins($fromAlias, array &$knownAliases)
+    {
+
+        $sql = '';
+
+        if (isset( $this->sqlParts['join'][$fromAlias] )) {
+            foreach ($this->sqlParts['join'][$fromAlias] as $join) {
+                if (array_key_exists($join['joinAlias'], $knownAliases)) {
+                    throw QueryException::nonUniqueAlias($join['joinAlias'], array_keys($knownAliases));
+                }
+                $sql .= ' '.strtoupper($join['joinType'])
+                    .' JOIN '.$join['joinTable'].' '.$join['joinAlias']
+                    .' ON '.( (string)$join['joinCondition'] );
+                $knownAliases[$join['joinAlias']] = true;
+            }
+
+            foreach ($this->sqlParts['join'][$fromAlias] as $join) {
+                $sql .= $this->getSQLForJoins($join['joinAlias'], $knownAliases);
+            }
+        }
+
+        return $sql;
+    }
+
+    /**
+     * @param array $knownAliases
+     *
+     * @throws QueryException
+     */
+    private function verifyAllAliasesAreKnown(array $knownAliases)
+    {
+
+        foreach ($this->sqlParts['join'] as $fromAlias => $joins) {
+            if (!isset( $knownAliases[$fromAlias] )) {
+                throw QueryException::unknownAlias($fromAlias, array_keys($knownAliases));
+            }
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    private function isLimitQuery()
+    {
+
+        return $this->maxResults !== null || $this->firstResult !== null;
     }
 
     /**
@@ -300,6 +433,7 @@ class QueryBuilder
      */
     public function setParameters(array $params, array $types = array())
     {
+
         $this->paramTypes = $types;
         $this->params = $params;
 
@@ -313,6 +447,7 @@ class QueryBuilder
      */
     public function getParameters()
     {
+
         return $this->params;
     }
 
@@ -325,7 +460,8 @@ class QueryBuilder
      */
     public function getParameter($key)
     {
-        return isset($this->params[$key]) ? $this->params[$key] : null;
+
+        return isset( $this->params[$key] ) ? $this->params[$key] : null;
     }
 
     /**
@@ -335,6 +471,7 @@ class QueryBuilder
      */
     public function getParameterTypes()
     {
+
         return $this->paramTypes;
     }
 
@@ -347,7 +484,20 @@ class QueryBuilder
      */
     public function getParameterType($key)
     {
-        return isset($this->paramTypes[$key]) ? $this->paramTypes[$key] : null;
+
+        return isset( $this->paramTypes[$key] ) ? $this->paramTypes[$key] : null;
+    }
+
+    /**
+     * Gets the position of the first result the query object was set to retrieve (the "offset").
+     * Returns NULL if {@link setFirstResult} was not applied to this QueryBuilder.
+     *
+     * @return integer The position of the first result.
+     */
+    public function getFirstResult()
+    {
+
+        return $this->firstResult;
     }
 
     /**
@@ -359,34 +509,9 @@ class QueryBuilder
      */
     public function setFirstResult($firstResult)
     {
+
         $this->state = self::STATE_DIRTY;
         $this->firstResult = $firstResult;
-
-        return $this;
-    }
-
-    /**
-     * Gets the position of the first result the query object was set to retrieve (the "offset").
-     * Returns NULL if {@link setFirstResult} was not applied to this QueryBuilder.
-     *
-     * @return integer The position of the first result.
-     */
-    public function getFirstResult()
-    {
-        return $this->firstResult;
-    }
-
-    /**
-     * Sets the maximum number of results to retrieve (the "limit").
-     *
-     * @param integer $maxResults The maximum number of results to retrieve.
-     *
-     * @return \Doctrine\DBAL\Query\QueryBuilder This QueryBuilder instance.
-     */
-    public function setMaxResults($maxResults)
-    {
-        $this->state = self::STATE_DIRTY;
-        $this->maxResults = $maxResults;
 
         return $this;
     }
@@ -399,7 +524,53 @@ class QueryBuilder
      */
     public function getMaxResults()
     {
+
         return $this->maxResults;
+    }
+
+    /**
+     * Sets the maximum number of results to retrieve (the "limit").
+     *
+     * @param integer $maxResults The maximum number of results to retrieve.
+     *
+     * @return \Doctrine\DBAL\Query\QueryBuilder This QueryBuilder instance.
+     */
+    public function setMaxResults($maxResults)
+    {
+
+        $this->state = self::STATE_DIRTY;
+        $this->maxResults = $maxResults;
+
+        return $this;
+    }
+
+    /**
+     * Specifies an item that is to be returned in the query result.
+     * Replaces any previously specified selections, if any.
+     *
+     * <code>
+     *     $qb = $conn->createQueryBuilder()
+     *         ->select('u.id', 'p.id')
+     *         ->from('users', 'u')
+     *         ->leftJoin('u', 'phonenumbers', 'p', 'u.id = p.user_id');
+     * </code>
+     *
+     * @param mixed $select The selection expressions.
+     *
+     * @return \Doctrine\DBAL\Query\QueryBuilder This QueryBuilder instance.
+     */
+    public function select($select = null)
+    {
+
+        $this->type = self::SELECT;
+
+        if (empty( $select )) {
+            return $this;
+        }
+
+        $selects = is_array($select) ? $select : func_get_args();
+
+        return $this->add('select', $selects, false);
     }
 
     /**
@@ -416,6 +587,7 @@ class QueryBuilder
      */
     public function add($sqlPartName, $sqlPart, $append = false)
     {
+
         $isArray = is_array($sqlPart);
         $isMultiple = is_array($this->sqlParts[$sqlPartName]);
 
@@ -448,34 +620,6 @@ class QueryBuilder
     }
 
     /**
-     * Specifies an item that is to be returned in the query result.
-     * Replaces any previously specified selections, if any.
-     *
-     * <code>
-     *     $qb = $conn->createQueryBuilder()
-     *         ->select('u.id', 'p.id')
-     *         ->from('users', 'u')
-     *         ->leftJoin('u', 'phonenumbers', 'p', 'u.id = p.user_id');
-     * </code>
-     *
-     * @param mixed $select The selection expressions.
-     *
-     * @return \Doctrine\DBAL\Query\QueryBuilder This QueryBuilder instance.
-     */
-    public function select($select = null)
-    {
-        $this->type = self::SELECT;
-
-        if (empty($select)) {
-            return $this;
-        }
-
-        $selects = is_array($select) ? $select : func_get_args();
-
-        return $this->add('select', $selects, false);
-    }
-
-    /**
      * Adds an item that is to be returned in the query result.
      *
      * <code>
@@ -492,9 +636,10 @@ class QueryBuilder
      */
     public function addSelect($select = null)
     {
+
         $this->type = self::SELECT;
 
-        if (empty($select)) {
+        if (empty( $select )) {
             return $this;
         }
 
@@ -521,9 +666,10 @@ class QueryBuilder
      */
     public function delete($delete = null, $alias = null)
     {
+
         $this->type = self::DELETE;
 
-        if ( ! $delete) {
+        if (!$delete) {
             return $this;
         }
 
@@ -551,9 +697,10 @@ class QueryBuilder
      */
     public function update($update = null, $alias = null)
     {
+
         $this->type = self::UPDATE;
 
-        if ( ! $update) {
+        if (!$update) {
             return $this;
         }
 
@@ -584,9 +731,10 @@ class QueryBuilder
      */
     public function insert($insert = null)
     {
+
         $this->type = self::INSERT;
 
-        if ( ! $insert) {
+        if (!$insert) {
             return $this;
         }
 
@@ -612,6 +760,7 @@ class QueryBuilder
      */
     public function from($from, $alias = null)
     {
+
         return $this->add('from', array(
             'table' => $from,
             'alias' => $alias
@@ -637,6 +786,7 @@ class QueryBuilder
      */
     public function join($fromAlias, $join, $alias, $condition = null)
     {
+
         return $this->innerJoin($fromAlias, $join, $alias, $condition);
     }
 
@@ -659,6 +809,7 @@ class QueryBuilder
      */
     public function innerJoin($fromAlias, $join, $alias, $condition = null)
     {
+
         return $this->add('join', array(
             $fromAlias => array(
                 'joinType'      => 'inner',
@@ -688,6 +839,7 @@ class QueryBuilder
      */
     public function leftJoin($fromAlias, $join, $alias, $condition = null)
     {
+
         return $this->add('join', array(
             $fromAlias => array(
                 'joinType'      => 'left',
@@ -717,6 +869,7 @@ class QueryBuilder
      */
     public function rightJoin($fromAlias, $join, $alias, $condition = null)
     {
+
         return $this->add('join', array(
             $fromAlias => array(
                 'joinType'      => 'right',
@@ -744,7 +897,8 @@ class QueryBuilder
      */
     public function set($key, $value)
     {
-        return $this->add('set', $key .' = ' . $value, true);
+
+        return $this->add('set', $key.' = '.$value, true);
     }
 
     /**
@@ -775,7 +929,8 @@ class QueryBuilder
      */
     public function where($predicates)
     {
-        if ( ! (func_num_args() == 1 && $predicates instanceof CompositeExpression)) {
+
+        if (!( func_num_args() == 1 && $predicates instanceof CompositeExpression )) {
             $predicates = new CompositeExpression(CompositeExpression::TYPE_AND, func_get_args());
         }
 
@@ -802,6 +957,7 @@ class QueryBuilder
      */
     public function andWhere($where)
     {
+
         $args = func_get_args();
         $where = $this->getQueryPart('where');
 
@@ -813,6 +969,19 @@ class QueryBuilder
         }
 
         return $this->add('where', $where, true);
+    }
+
+    /**
+     * Gets a query part by its name.
+     *
+     * @param string $queryPartName
+     *
+     * @return mixed
+     */
+    public function getQueryPart($queryPartName)
+    {
+
+        return $this->sqlParts[$queryPartName];
     }
 
     /**
@@ -835,6 +1004,7 @@ class QueryBuilder
      */
     public function orWhere($where)
     {
+
         $args = func_get_args();
         $where = $this->getQueryPart('where');
 
@@ -865,7 +1035,8 @@ class QueryBuilder
      */
     public function groupBy($groupBy)
     {
-        if (empty($groupBy)) {
+
+        if (empty( $groupBy )) {
             return $this;
         }
 
@@ -873,7 +1044,6 @@ class QueryBuilder
 
         return $this->add('groupBy', $groupBy, false);
     }
-
 
     /**
      * Adds a grouping expression to the query.
@@ -892,7 +1062,8 @@ class QueryBuilder
      */
     public function addGroupBy($groupBy)
     {
-        if (empty($groupBy)) {
+
+        if (empty( $groupBy )) {
             return $this;
         }
 
@@ -922,6 +1093,7 @@ class QueryBuilder
      */
     public function setValue($column, $value)
     {
+
         $this->sqlParts['values'][$column] = $value;
 
         return $this;
@@ -948,6 +1120,7 @@ class QueryBuilder
      */
     public function values(array $values)
     {
+
         return $this->add('values', $values);
     }
 
@@ -961,7 +1134,8 @@ class QueryBuilder
      */
     public function having($having)
     {
-        if ( ! (func_num_args() == 1 && $having instanceof CompositeExpression)) {
+
+        if (!( func_num_args() == 1 && $having instanceof CompositeExpression )) {
             $having = new CompositeExpression(CompositeExpression::TYPE_AND, func_get_args());
         }
 
@@ -978,6 +1152,7 @@ class QueryBuilder
      */
     public function andHaving($having)
     {
+
         $args = func_get_args();
         $having = $this->getQueryPart('having');
 
@@ -1001,6 +1176,7 @@ class QueryBuilder
      */
     public function orHaving($having)
     {
+
         $args = func_get_args();
         $having = $this->getQueryPart('having');
 
@@ -1025,7 +1201,8 @@ class QueryBuilder
      */
     public function orderBy($sort, $order = null)
     {
-        return $this->add('orderBy', $sort . ' ' . (! $order ? 'ASC' : $order), false);
+
+        return $this->add('orderBy', $sort.' '.( !$order ? 'ASC' : $order ), false);
     }
 
     /**
@@ -1038,19 +1215,8 @@ class QueryBuilder
      */
     public function addOrderBy($sort, $order = null)
     {
-        return $this->add('orderBy', $sort . ' ' . (! $order ? 'ASC' : $order), true);
-    }
 
-    /**
-     * Gets a query part by its name.
-     *
-     * @param string $queryPartName
-     *
-     * @return mixed
-     */
-    public function getQueryPart($queryPartName)
-    {
-        return $this->sqlParts[$queryPartName];
+        return $this->add('orderBy', $sort.' '.( !$order ? 'ASC' : $order ), true);
     }
 
     /**
@@ -1060,6 +1226,7 @@ class QueryBuilder
      */
     public function getQueryParts()
     {
+
         return $this->sqlParts;
     }
 
@@ -1072,6 +1239,7 @@ class QueryBuilder
      */
     public function resetQueryParts($queryPartNames = null)
     {
+
         if (is_null($queryPartNames)) {
             $queryPartNames = array_keys($this->sqlParts);
         }
@@ -1092,128 +1260,13 @@ class QueryBuilder
      */
     public function resetQueryPart($queryPartName)
     {
+
         $this->sqlParts[$queryPartName] = is_array($this->sqlParts[$queryPartName])
             ? array() : null;
 
         $this->state = self::STATE_DIRTY;
 
         return $this;
-    }
-
-    /**
-     * @return string
-     *
-     * @throws \Doctrine\DBAL\Query\QueryException
-     */
-    private function getSQLForSelect()
-    {
-        $query = 'SELECT ' . implode(', ', $this->sqlParts['select']) . ' FROM ';
-
-        $query .= implode(', ', $this->getFromClauses())
-            . ($this->sqlParts['where'] !== null ? ' WHERE ' . ((string) $this->sqlParts['where']) : '')
-            . ($this->sqlParts['groupBy'] ? ' GROUP BY ' . implode(', ', $this->sqlParts['groupBy']) : '')
-            . ($this->sqlParts['having'] !== null ? ' HAVING ' . ((string) $this->sqlParts['having']) : '')
-            . ($this->sqlParts['orderBy'] ? ' ORDER BY ' . implode(', ', $this->sqlParts['orderBy']) : '');
-
-        if ($this->isLimitQuery()) {
-            return $this->connection->getDatabasePlatform()->modifyLimitQuery(
-                $query,
-                $this->maxResults,
-                $this->firstResult
-            );
-        }
-
-        return $query;
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getFromClauses()
-    {
-        $fromClauses = array();
-        $knownAliases = array();
-
-        // Loop through all FROM clauses
-        foreach ($this->sqlParts['from'] as $from) {
-            if ($from['alias'] === null) {
-                $tableSql = $from['table'];
-                $tableReference = $from['table'];
-            } else {
-                $tableSql = $from['table'] . ' ' . $from['alias'];
-                $tableReference = $from['alias'];
-            }
-
-            $knownAliases[$tableReference] = true;
-
-            $fromClauses[$tableReference] = $tableSql . $this->getSQLForJoins($tableReference, $knownAliases);
-        }
-
-        $this->verifyAllAliasesAreKnown($knownAliases);
-
-        return $fromClauses;
-    }
-
-    /**
-     * @param array $knownAliases
-     *
-     * @throws QueryException
-     */
-    private function verifyAllAliasesAreKnown(array $knownAliases)
-    {
-        foreach ($this->sqlParts['join'] as $fromAlias => $joins) {
-            if ( ! isset($knownAliases[$fromAlias])) {
-                throw QueryException::unknownAlias($fromAlias, array_keys($knownAliases));
-            }
-        }
-    }
-
-    /**
-     * @return bool
-     */
-    private function isLimitQuery()
-    {
-        return $this->maxResults !== null || $this->firstResult !== null;
-    }
-
-    /**
-     * Converts this instance into an INSERT string in SQL.
-     *
-     * @return string
-     */
-    private function getSQLForInsert()
-    {
-        return 'INSERT INTO ' . $this->sqlParts['from']['table'] .
-        ' (' . implode(', ', array_keys($this->sqlParts['values'])) . ')' .
-        ' VALUES(' . implode(', ', $this->sqlParts['values']) . ')';
-    }
-
-    /**
-     * Converts this instance into an UPDATE string in SQL.
-     *
-     * @return string
-     */
-    private function getSQLForUpdate()
-    {
-        $table = $this->sqlParts['from']['table'] . ($this->sqlParts['from']['alias'] ? ' ' . $this->sqlParts['from']['alias'] : '');
-        $query = 'UPDATE ' . $table
-            . ' SET ' . implode(", ", $this->sqlParts['set'])
-            . ($this->sqlParts['where'] !== null ? ' WHERE ' . ((string) $this->sqlParts['where']) : '');
-
-        return $query;
-    }
-
-    /**
-     * Converts this instance into a DELETE string in SQL.
-     *
-     * @return string
-     */
-    private function getSQLForDelete()
-    {
-        $table = $this->sqlParts['from']['table'] . ($this->sqlParts['from']['alias'] ? ' ' . $this->sqlParts['from']['alias'] : '');
-        $query = 'DELETE FROM ' . $table . ($this->sqlParts['where'] !== null ? ' WHERE ' . ((string) $this->sqlParts['where']) : '');
-
-        return $query;
     }
 
     /**
@@ -1224,6 +1277,7 @@ class QueryBuilder
      */
     public function __toString()
     {
+
         return $this->getSQL();
     }
 
@@ -1248,7 +1302,7 @@ class QueryBuilder
      * </code>
      *
      * @license New BSD License
-     * @link http://www.zetacomponents.org
+     * @link    http://www.zetacomponents.org
      *
      * @param mixed  $value
      * @param mixed  $type
@@ -1258,13 +1312,43 @@ class QueryBuilder
      */
     public function createNamedParameter($value, $type = \PDO::PARAM_STR, $placeHolder = null)
     {
+
         if ($placeHolder === null) {
             $this->boundCounter++;
-            $placeHolder = ":dcValue" . $this->boundCounter;
+            $placeHolder = ":dcValue".$this->boundCounter;
         }
         $this->setParameter(substr($placeHolder, 1), $value, $type);
 
         return $placeHolder;
+    }
+
+    /**
+     * Sets a query parameter for the query being constructed.
+     *
+     * <code>
+     *     $qb = $conn->createQueryBuilder()
+     *         ->select('u')
+     *         ->from('users', 'u')
+     *         ->where('u.id = :user_id')
+     *         ->setParameter(':user_id', 1);
+     * </code>
+     *
+     * @param string|integer $key   The parameter position or name.
+     * @param mixed          $value The parameter value.
+     * @param string|null    $type  One of the PDO::PARAM_* constants.
+     *
+     * @return \Doctrine\DBAL\Query\QueryBuilder This QueryBuilder instance.
+     */
+    public function setParameter($key, $value, $type = null)
+    {
+
+        if ($type !== null) {
+            $this->paramTypes[$key] = $type;
+        }
+
+        $this->params[$key] = $value;
+
+        return $this;
     }
 
     /**
@@ -1291,39 +1375,11 @@ class QueryBuilder
      */
     public function createPositionalParameter($value, $type = \PDO::PARAM_STR)
     {
+
         $this->boundCounter++;
         $this->setParameter($this->boundCounter, $value, $type);
 
         return "?";
-    }
-
-    /**
-     * @param string $fromAlias
-     * @param array  $knownAliases
-     *
-     * @return string
-     */
-    private function getSQLForJoins($fromAlias, array &$knownAliases)
-    {
-        $sql = '';
-
-        if (isset($this->sqlParts['join'][$fromAlias])) {
-            foreach ($this->sqlParts['join'][$fromAlias] as $join) {
-                if (array_key_exists($join['joinAlias'], $knownAliases)) {
-                    throw QueryException::nonUniqueAlias($join['joinAlias'], array_keys($knownAliases));
-                }
-                $sql .= ' ' . strtoupper($join['joinType'])
-                    . ' JOIN ' . $join['joinTable'] . ' ' . $join['joinAlias']
-                    . ' ON ' . ((string) $join['joinCondition']);
-                $knownAliases[$join['joinAlias']] = true;
-            }
-
-            foreach ($this->sqlParts['join'][$fromAlias] as $join) {
-                $sql .= $this->getSQLForJoins($join['joinAlias'], $knownAliases);
-            }
-        }
-
-        return $sql;
     }
 
     /**
@@ -1333,6 +1389,7 @@ class QueryBuilder
      */
     public function __clone()
     {
+
         foreach ($this->sqlParts as $part => $elements) {
             if (is_array($this->sqlParts[$part])) {
                 foreach ($this->sqlParts[$part] as $idx => $element) {

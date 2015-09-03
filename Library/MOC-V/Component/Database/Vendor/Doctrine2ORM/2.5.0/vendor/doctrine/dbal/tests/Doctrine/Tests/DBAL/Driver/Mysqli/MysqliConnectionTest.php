@@ -6,6 +6,7 @@ use Doctrine\Tests\DbalTestCase;
 
 class MysqliConnectionTest extends DbalTestCase
 {
+
     /**
      * The mysqli driver connection mock under test.
      *
@@ -13,9 +14,16 @@ class MysqliConnectionTest extends DbalTestCase
      */
     private $connectionMock;
 
+    public function testDoesNotRequireQueryForServerVersion()
+    {
+
+        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
+    }
+
     protected function setUp()
     {
-        if ( ! extension_loaded('mysqli')) {
+
+        if (!extension_loaded('mysqli')) {
             $this->markTestSkipped('mysqli is not installed.');
         }
 
@@ -24,10 +32,5 @@ class MysqliConnectionTest extends DbalTestCase
         $this->connectionMock = $this->getMockBuilder('Doctrine\DBAL\Driver\Mysqli\MysqliConnection')
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
-    }
-
-    public function testDoesNotRequireQueryForServerVersion()
-    {
-        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
     }
 }

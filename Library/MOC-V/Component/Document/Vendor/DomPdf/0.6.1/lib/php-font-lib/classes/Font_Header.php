@@ -21,7 +21,7 @@ abstract class Font_Header extends Font_Binary_Stream
     protected $font;
     protected $def = array();
 
-    public function __construct( Font_TrueType $font )
+    public function __construct(Font_TrueType $font)
     {
 
         $this->font = $font;
@@ -30,12 +30,12 @@ abstract class Font_Header extends Font_Binary_Stream
     public function encode()
     {
 
-        return $this->font->pack( $this->def, $this->data );
+        return $this->font->pack($this->def, $this->data);
     }
 
     public function parse()
     {
 
-        $this->data = $this->font->unpack( $this->def );
+        $this->data = $this->font->unpack($this->def);
     }
 }

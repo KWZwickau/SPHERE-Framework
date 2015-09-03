@@ -14,15 +14,17 @@
  *
  * Use Twig_SimpleFunction instead.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
  * @deprecated since 1.12 (to be removed in 2.0)
  */
 class Twig_Function_Node extends Twig_Function
 {
+
     protected $class;
 
     public function __construct($class, array $options = array())
     {
+
         parent::__construct($options);
 
         $this->class = $class;
@@ -30,6 +32,7 @@ class Twig_Function_Node extends Twig_Function
 
     public function getClass()
     {
+
         return $this->class;
     }
 

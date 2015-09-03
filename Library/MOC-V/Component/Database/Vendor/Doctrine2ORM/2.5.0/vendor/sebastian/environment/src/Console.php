@@ -14,7 +14,8 @@ namespace SebastianBergmann\Environment;
  */
 class Console
 {
-    const STDIN  = 0;
+
+    const STDIN = 0;
     const STDOUT = 1;
     const STDERR = 2;
 
@@ -28,6 +29,7 @@ class Console
      */
     public function hasColorSupport()
     {
+
         if (DIRECTORY_SEPARATOR == '\\') {
             return false !== getenv('ANSICON') || 'ON' === getenv('ConEmuANSI');
         }
@@ -40,12 +42,26 @@ class Console
     }
 
     /**
+     * Returns if the file descriptor is an interactive terminal or not.
+     *
+     * @param int|resource $fileDescriptor
+     *
+     * @return bool
+     */
+    public function isInteractive($fileDescriptor = self::STDOUT)
+    {
+
+        return function_exists('posix_isatty') && @posix_isatty($fileDescriptor);
+    }
+
+    /**
      * Returns the number of columns of the terminal.
      *
      * @return int
      */
     public function getNumberOfColumns()
     {
+
         // Windows terminals have a fixed size of 80
         // but one column is used for the cursor.
         if (DIRECTORY_SEPARATOR == '\\') {
@@ -57,25 +73,13 @@ class Console
         }
 
         if (preg_match('#\d+ (\d+)#', shell_exec('stty size'), $match) === 1) {
-            return (int) $match[1];
+            return (int)$match[1];
         }
 
         if (preg_match('#columns = (\d+);#', shell_exec('stty'), $match) === 1) {
-            return (int) $match[1];
+            return (int)$match[1];
         }
 
         return 80;
-    }
-
-    /**
-     * Returns if the file descriptor is an interactive terminal or not.
-     *
-     * @param int|resource $fileDescriptor
-     *
-     * @return bool
-     */
-    public function isInteractive($fileDescriptor = self::STDOUT)
-    {
-        return function_exists('posix_isatty') && @posix_isatty($fileDescriptor);
     }
 }

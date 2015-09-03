@@ -28,6 +28,6 @@ interface IMailer
      *
      * @return void
      */
-    function send( Message $mail );
+    function send(Message $mail);
 
 }

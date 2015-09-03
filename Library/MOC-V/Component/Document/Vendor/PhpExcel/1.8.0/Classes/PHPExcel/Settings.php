@@ -26,11 +26,11 @@
  */
 
 /** PHPExcel root directory */
-if (!defined( 'PHPEXCEL_ROOT' )) {
+if (!defined('PHPEXCEL_ROOT')) {
     /**
      * @ignore
      */
-    define( 'PHPEXCEL_ROOT', dirname( __FILE__ ).'/../' );
+    define('PHPEXCEL_ROOT', dirname(__FILE__).'/../');
     require( PHPEXCEL_ROOT.'PHPExcel/Autoloader.php' );
 }
 
@@ -135,7 +135,7 @@ class PHPExcel_Settings
      *
      * @return    boolean    Success or failure
      */
-    public static function setZipClass( $zipClass )
+    public static function setZipClass($zipClass)
     {
 
         if (( $zipClass === self::PCLZIP ) ||
@@ -184,7 +184,7 @@ class PHPExcel_Settings
         $arguments = array()
     ) {
 
-        return PHPExcel_CachedObjectStorageFactory::initialize( $method, $arguments );
+        return PHPExcel_CachedObjectStorageFactory::initialize($method, $arguments);
     } // function setCacheStorageMethod()
 
 
@@ -195,10 +195,10 @@ class PHPExcel_Settings
      *
      * @return boolean Success or failure
      */
-    public static function setLocale( $locale = 'en_us' )
+    public static function setLocale($locale = 'en_us')
     {
 
-        return PHPExcel_Calculation::getInstance()->setLocale( $locale );
+        return PHPExcel_Calculation::getInstance()->setLocale($locale);
     } // function setLocale()
 
 
@@ -211,13 +211,13 @@ class PHPExcel_Settings
      *
      * @return    boolean    Success or failure
      */
-    public static function setChartRenderer( $libraryName, $libraryBaseDir )
+    public static function setChartRenderer($libraryName, $libraryBaseDir)
     {
 
-        if (!self::setChartRendererName( $libraryName )) {
+        if (!self::setChartRendererName($libraryName)) {
             return false;
         }
-        return self::setChartRendererPath( $libraryBaseDir );
+        return self::setChartRendererPath($libraryBaseDir);
     } // function setChartRenderer()
 
     /**
@@ -241,10 +241,10 @@ class PHPExcel_Settings
      *
      * @return    boolean    Success or failure
      */
-    public static function setChartRendererName( $libraryName )
+    public static function setChartRendererName($libraryName)
     {
 
-        if (!in_array( $libraryName, self::$_chartRenderers )) {
+        if (!in_array($libraryName, self::$_chartRenderers)) {
             return false;
         }
 
@@ -272,10 +272,10 @@ class PHPExcel_Settings
      *
      * @return    boolean    Success or failure
      */
-    public static function setChartRendererPath( $libraryBaseDir )
+    public static function setChartRendererPath($libraryBaseDir)
     {
 
-        if (( file_exists( $libraryBaseDir ) === false ) || ( is_readable( $libraryBaseDir ) === false )) {
+        if (( file_exists($libraryBaseDir) === false ) || ( is_readable($libraryBaseDir) === false )) {
             return false;
         }
         self::$_chartRendererPath = $libraryBaseDir;
@@ -294,13 +294,13 @@ class PHPExcel_Settings
      *
      * @return boolean Success or failure
      */
-    public static function setPdfRenderer( $libraryName, $libraryBaseDir )
+    public static function setPdfRenderer($libraryName, $libraryBaseDir)
     {
 
-        if (!self::setPdfRendererName( $libraryName )) {
+        if (!self::setPdfRendererName($libraryName)) {
             return false;
         }
-        return self::setPdfRendererPath( $libraryBaseDir );
+        return self::setPdfRendererPath($libraryBaseDir);
     } // function setPdfRenderer()
 
     /**
@@ -328,10 +328,10 @@ class PHPExcel_Settings
      *
      * @return boolean Success or failure
      */
-    public static function setPdfRendererName( $libraryName )
+    public static function setPdfRendererName($libraryName)
     {
 
-        if (!in_array( $libraryName, self::$_pdfRenderers )) {
+        if (!in_array($libraryName, self::$_pdfRenderers)) {
             return false;
         }
 
@@ -359,10 +359,10 @@ class PHPExcel_Settings
      *
      * @return boolean Success or failure
      */
-    public static function setPdfRendererPath( $libraryBaseDir )
+    public static function setPdfRendererPath($libraryBaseDir)
     {
 
-        if (( file_exists( $libraryBaseDir ) === false ) || ( is_readable( $libraryBaseDir ) === false )) {
+        if (( file_exists($libraryBaseDir) === false ) || ( is_readable($libraryBaseDir) === false )) {
             return false;
         }
         self::$_pdfRendererPath = $libraryBaseDir;
@@ -379,10 +379,10 @@ class PHPExcel_Settings
     public static function getLibXmlLoaderOptions()
     {
 
-        if (is_null( self::$_libXmlLoaderOptions )) {
-            self::setLibXmlLoaderOptions( LIBXML_DTDLOAD | LIBXML_DTDATTR );
+        if (is_null(self::$_libXmlLoaderOptions)) {
+            self::setLibXmlLoaderOptions(LIBXML_DTDLOAD | LIBXML_DTDATTR);
         }
-        @libxml_disable_entity_loader( $options == ( LIBXML_DTDLOAD | LIBXML_DTDATTR ) );
+        @libxml_disable_entity_loader($options == ( LIBXML_DTDLOAD | LIBXML_DTDATTR ));
         return self::$_libXmlLoaderOptions;
     } // function setLibXmlLoaderOptions
 
@@ -391,13 +391,13 @@ class PHPExcel_Settings
      *
      * @param int $options Default options for libxml loader
      */
-    public static function setLibXmlLoaderOptions( $options = null )
+    public static function setLibXmlLoaderOptions($options = null)
     {
 
-        if (is_null( $options )) {
+        if (is_null($options)) {
             $options = LIBXML_DTDLOAD | LIBXML_DTDATTR;
         }
-        @libxml_disable_entity_loader( $options == ( LIBXML_DTDLOAD | LIBXML_DTDATTR ) );
+        @libxml_disable_entity_loader($options == ( LIBXML_DTDLOAD | LIBXML_DTDATTR ));
         self::$_libXmlLoaderOptions = $options;
     } // function getLibXmlLoaderOptions
 }

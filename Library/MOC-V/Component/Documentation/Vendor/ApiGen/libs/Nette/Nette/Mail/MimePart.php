@@ -53,7 +53,7 @@ class MimePart extends Nette\Object
      *
      * @return MimePart  provides a fluent interface
      */
-    public function clearHeader( $name )
+    public function clearHeader($name)
     {
 
         unset( $this->headers[$name] );
@@ -79,10 +79,10 @@ class MimePart extends Nette\Object
      *
      * @return MimePart  provides a fluent interface
      */
-    public function setContentType( $contentType, $charset = null )
+    public function setContentType($contentType, $charset = null)
     {
 
-        $this->setHeader( 'Content-Type', $contentType.( $charset ? "; charset=$charset" : '' ) );
+        $this->setHeader('Content-Type', $contentType.( $charset ? "; charset=$charset" : '' ));
         return $this;
     }
 
@@ -95,11 +95,11 @@ class MimePart extends Nette\Object
      *
      * @return MimePart  provides a fluent interface
      */
-    public function setHeader( $name, $value, $append = false )
+    public function setHeader($name, $value, $append = false)
     {
 
-        if (!$name || preg_match( '#[^a-z0-9-]#i', $name )) {
-            throw new Nette\InvalidArgumentException( "Header name must be non-empty alphanumeric string, '$name' given." );
+        if (!$name || preg_match('#[^a-z0-9-]#i', $name)) {
+            throw new Nette\InvalidArgumentException("Header name must be non-empty alphanumeric string, '$name' given.");
         }
 
         if ($value == null) { // intentionally ==
@@ -107,29 +107,29 @@ class MimePart extends Nette\Object
                 unset( $this->headers[$name] );
             }
 
-        } elseif (is_array( $value )) { // email
+        } elseif (is_array($value)) { // email
             $tmp = &$this->headers[$name];
-            if (!$append || !is_array( $tmp )) {
+            if (!$append || !is_array($tmp)) {
                 $tmp = array();
             }
 
             foreach ($value as $email => $recipient) {
-                if ($recipient !== null && !Strings::checkEncoding( $recipient )) {
-                    Nette\Utils\Validators::assert( $recipient, 'unicode', "header '$name'" );
+                if ($recipient !== null && !Strings::checkEncoding($recipient)) {
+                    Nette\Utils\Validators::assert($recipient, 'unicode', "header '$name'");
                 }
-                if (preg_match( '#[\r\n]#', $recipient )) {
-                    throw new Nette\InvalidArgumentException( "Name must not contain line separator." );
+                if (preg_match('#[\r\n]#', $recipient)) {
+                    throw new Nette\InvalidArgumentException("Name must not contain line separator.");
                 }
-                Nette\Utils\Validators::assert( $email, 'email', "header '$name'" );
+                Nette\Utils\Validators::assert($email, 'email', "header '$name'");
                 $tmp[$email] = $recipient;
             }
 
         } else {
             $value = (string)$value;
-            if (!Strings::checkEncoding( $value )) {
-                throw new Nette\InvalidArgumentException( "Header is not valid UTF-8 string." );
+            if (!Strings::checkEncoding($value)) {
+                throw new Nette\InvalidArgumentException("Header is not valid UTF-8 string.");
             }
-            $this->headers[$name] = preg_replace( '#[\r\n]+#', ' ', $value );
+            $this->headers[$name] = preg_replace('#[\r\n]+#', ' ', $value);
         }
         return $this;
     }
@@ -141,10 +141,10 @@ class MimePart extends Nette\Object
      *
      * @return MimePart  provides a fluent interface
      */
-    public function setEncoding( $encoding )
+    public function setEncoding($encoding)
     {
 
-        $this->setHeader( 'Content-Transfer-Encoding', $encoding );
+        $this->setHeader('Content-Transfer-Encoding', $encoding);
         return $this;
     }
 
@@ -155,7 +155,7 @@ class MimePart extends Nette\Object
      *
      * @return MimePart
      */
-    public function addPart( MimePart $part = null )
+    public function addPart(MimePart $part = null)
     {
 
         return $this->parts[] = $part === null ? new self : $part;
@@ -179,7 +179,7 @@ class MimePart extends Nette\Object
      *
      * @return MimePart  provides a fluent interface
      */
-    public function setBody( $body )
+    public function setBody($body)
     {
 
         $this->body = $body;
@@ -198,7 +198,7 @@ class MimePart extends Nette\Object
         $boundary = '--------'.Strings::random();
 
         foreach ($this->headers as $name => $value) {
-            $output .= $name.': '.$this->getEncodedHeader( $name );
+            $output .= $name.': '.$this->getEncodedHeader($name);
             if ($this->parts && $name === 'Content-Type') {
                 $output .= ';'.self::EOL."\tboundary=\"$boundary\"";
             }
@@ -210,30 +210,30 @@ class MimePart extends Nette\Object
         if ($body !== '') {
             switch ($this->getEncoding()) {
                 case self::ENCODING_QUOTED_PRINTABLE:
-                    $output .= function_exists( 'quoted_printable_encode' ) ? quoted_printable_encode( $body ) : self::encodeQuotedPrintable( $body );
+                    $output .= function_exists('quoted_printable_encode') ? quoted_printable_encode($body) : self::encodeQuotedPrintable($body);
                     break;
 
                 case self::ENCODING_BASE64:
-                    $output .= rtrim( chunk_split( base64_encode( $body ), self::LINE_LENGTH, self::EOL ) );
+                    $output .= rtrim(chunk_split(base64_encode($body), self::LINE_LENGTH, self::EOL));
                     break;
 
                 case self::ENCODING_7BIT:
-                    $body = preg_replace( '#[\x80-\xFF]+#', '', $body );
+                    $body = preg_replace('#[\x80-\xFF]+#', '', $body);
                 // break intentionally omitted
 
                 case self::ENCODING_8BIT:
-                    $body = str_replace( array( "\x00", "\r" ), '', $body );
-                    $body = str_replace( "\n", self::EOL, $body );
+                    $body = str_replace(array("\x00", "\r"), '', $body);
+                    $body = str_replace("\n", self::EOL, $body);
                     $output .= $body;
                     break;
 
                 default:
-                    throw new Nette\InvalidStateException( 'Unknown encoding.' );
+                    throw new Nette\InvalidStateException('Unknown encoding.');
             }
         }
 
         if ($this->parts) {
-            if (substr( $output, -strlen( self::EOL ) ) !== self::EOL) {
+            if (substr($output, -strlen(self::EOL)) !== self::EOL) {
                 $output .= self::EOL;
             }
             foreach ($this->parts as $part) {
@@ -253,40 +253,40 @@ class MimePart extends Nette\Object
      *
      * @return string
      */
-    public function getEncodedHeader( $name )
+    public function getEncodedHeader($name)
     {
 
-        $offset = strlen( $name ) + 2; // colon + space
+        $offset = strlen($name) + 2; // colon + space
 
         if (!isset( $this->headers[$name] )) {
             return null;
 
-        } elseif (is_array( $this->headers[$name] )) {
+        } elseif (is_array($this->headers[$name])) {
             $s = '';
             foreach ($this->headers[$name] as $email => $name) {
                 if ($name != null) { // intentionally ==
                     $s .= self::encodeHeader(
-                        strpbrk( $name, '.,;<@>()[]"=?' ) ? '"'.addcslashes( $name, '"\\' ).'"' : $name,
+                        strpbrk($name, '.,;<@>()[]"=?') ? '"'.addcslashes($name, '"\\').'"' : $name,
                         $offset
                     );
                     $email = " <$email>";
                 }
                 $email .= ',';
-                if ($s !== '' && $offset + strlen( $email ) > self::LINE_LENGTH) {
+                if ($s !== '' && $offset + strlen($email) > self::LINE_LENGTH) {
                     $s .= self::EOL."\t";
                     $offset = 1;
                 }
                 $s .= $email;
-                $offset += strlen( $email );
+                $offset += strlen($email);
             }
-            return substr( $s, 0, -1 ); // last comma
+            return substr($s, 0, -1); // last comma
 
-        } elseif (preg_match( '#^(\S+; (?:file)?name=)"(.*)"$#', $this->headers[$name], $m )) { // Content-Disposition
-            $offset += strlen( $m[1] );
-            return $m[1].'"'.self::encodeHeader( $m[2], $offset ).'"';
+        } elseif (preg_match('#^(\S+; (?:file)?name=)"(.*)"$#', $this->headers[$name], $m)) { // Content-Disposition
+            $offset += strlen($m[1]);
+            return $m[1].'"'.self::encodeHeader($m[2], $offset).'"';
 
         } else {
-            return self::encodeHeader( $this->headers[$name], $offset );
+            return self::encodeHeader($this->headers[$name], $offset);
         }
     }
 
@@ -299,7 +299,7 @@ class MimePart extends Nette\Object
      *
      * @return string
      */
-    private static function encodeHeader( $s, & $offset = 0 )
+    private static function encodeHeader($s, & $offset = 0)
     {
 
         $o = '';
@@ -308,21 +308,21 @@ class MimePart extends Nette\Object
             $offset = 1;
         }
 
-        if (strspn( $s,
-                "!\"#$%&\'()*+,-./0123456789:;<>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^`abcdefghijklmnopqrstuvwxyz{|}=? _\r\n\t" ) === strlen( $s )
-            && ( $offset + strlen( $s ) <= self::LINE_LENGTH )
+        if (strspn($s,
+                "!\"#$%&\'()*+,-./0123456789:;<>@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^`abcdefghijklmnopqrstuvwxyz{|}=? _\r\n\t") === strlen($s)
+            && ( $offset + strlen($s) <= self::LINE_LENGTH )
         ) {
-            $offset += strlen( $s );
+            $offset += strlen($s);
             return $o.$s;
         }
 
-        $o .= str_replace( "\n ", "\n\t", substr( iconv_mime_encode( str_repeat( ' ', $offset ), $s, array(
+        $o .= str_replace("\n ", "\n\t", substr(iconv_mime_encode(str_repeat(' ', $offset), $s, array(
             'scheme'         => 'B', // Q is broken
             'input-charset'  => 'UTF-8',
             'output-charset' => 'UTF-8',
-        ) ), $offset + 2 ) );
+        )), $offset + 2));
 
-        $offset = strlen( $o ) - strrpos( $o, "\n" );
+        $offset = strlen($o) - strrpos($o, "\n");
         return $o;
     }
 
@@ -338,7 +338,7 @@ class MimePart extends Nette\Object
     public function getEncoding()
     {
 
-        return $this->getHeader( 'Content-Transfer-Encoding' );
+        return $this->getHeader('Content-Transfer-Encoding');
     }
 
 
@@ -352,7 +352,7 @@ class MimePart extends Nette\Object
      *
      * @return mixed
      */
-    public function getHeader( $name )
+    public function getHeader($name)
     {
 
         return isset( $this->headers[$name] ) ? $this->headers[$name] : null;

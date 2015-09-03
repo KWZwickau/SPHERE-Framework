@@ -63,7 +63,7 @@ interface IReflection
      *
      * @return mixed
      */
-    public function __get( $key );
+    public function __get($key);
 
     /**
      * Magic __isset method.
@@ -72,7 +72,7 @@ interface IReflection
      *
      * @return boolean
      */
-    public function __isset( $key );
+    public function __isset($key);
 
     /**
      * Returns an element pretty (docblock compatible) name.

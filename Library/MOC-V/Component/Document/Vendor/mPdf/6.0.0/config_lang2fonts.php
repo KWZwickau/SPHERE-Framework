@@ -15,22 +15,22 @@ und (for undetermined or undefined) is used in situations in which a script must
 e.g. und-Cyrl is an undefined language written in Cyrillic script.
 */
 
-function GetLangOpts( $llcc, $adobeCJK, &$fontdata )
+function GetLangOpts($llcc, $adobeCJK, &$fontdata)
 {
 
-    $tags = preg_split( '/-/', $llcc );
-    $lang = strtolower( $tags[0] );
+    $tags = preg_split('/-/', $llcc);
+    $lang = strtolower($tags[0]);
     $country = '';
     $script = '';
     if (isset( $tags[1] ) && $tags[1]) {
-        if (strlen( $tags[1] ) == 4) {
-            $script = strtolower( $tags[1] );
+        if (strlen($tags[1]) == 4) {
+            $script = strtolower($tags[1]);
         } else {
-            $country = strtolower( $tags[1] );
+            $country = strtolower($tags[1]);
         }
     }
     if (isset( $tags[2] ) && $tags[2]) {
-        $country = strtolower( $tags[2] );
+        $country = strtolower($tags[2]);
     }
 
     $unifont = "";
@@ -602,7 +602,7 @@ function GetLangOpts( $llcc, $adobeCJK, &$fontdata )
 
     } // endswitch
 
-    return array( $coreSuitable, $unifont );
+    return array($coreSuitable, $unifont);
 }
 
 ?>

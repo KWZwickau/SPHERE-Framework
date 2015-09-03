@@ -7,6 +7,7 @@ namespace Guzzle\Iterator;
  */
 class AppendIterator extends \AppendIterator
 {
+
     /**
      * Works around the bug in which PHP calls rewind() and next() when appending
      *
@@ -14,6 +15,7 @@ class AppendIterator extends \AppendIterator
      */
     public function append(\Iterator $iterator)
     {
+
         $this->getArrayIterator()->append($iterator);
     }
 }

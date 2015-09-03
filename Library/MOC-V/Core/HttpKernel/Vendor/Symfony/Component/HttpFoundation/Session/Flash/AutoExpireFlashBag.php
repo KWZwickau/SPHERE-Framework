@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpFoundation\Session\Flash;
  */
 class AutoExpireFlashBag implements FlashBagInterface
 {
+
     private $name = 'flashes';
 
     /**
@@ -41,6 +42,7 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function __construct($storageKey = '_sf2_flashes')
     {
+
         $this->storageKey = $storageKey;
     }
 
@@ -49,11 +51,13 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function getName()
     {
+
         return $this->name;
     }
 
     public function setName($name)
     {
+
         $this->name = $name;
     }
 
@@ -62,6 +66,7 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function initialize(array &$flashes)
     {
+
         $this->flashes = &$flashes;
 
         // The logic: messages from the last request will be stored in new, so we move them to previous
@@ -76,6 +81,7 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function add($type, $message)
     {
+
         $this->flashes['new'][$type][] = $message;
     }
 
@@ -84,16 +90,17 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function peek($type, array $default = array())
     {
+
         return $this->has($type) ? $this->flashes['display'][$type] : $default;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function has( $type )
+    public function has($type)
     {
 
-        return array_key_exists( $type, $this->flashes['display'] ) && $this->flashes['display'][$type];
+        return array_key_exists($type, $this->flashes['display']) && $this->flashes['display'][$type];
     }
 
     /**
@@ -101,7 +108,8 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function peekAll()
     {
-        return array_key_exists('display', $this->flashes) ? (array) $this->flashes['display'] : array();
+
+        return array_key_exists('display', $this->flashes) ? (array)$this->flashes['display'] : array();
     }
 
     /**
@@ -109,15 +117,16 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function get($type, array $default = array())
     {
+
         $return = $default;
 
         if (!$this->has($type)) {
             return $return;
         }
 
-        if (isset($this->flashes['display'][$type])) {
+        if (isset( $this->flashes['display'][$type] )) {
             $return = $this->flashes['display'][$type];
-            unset($this->flashes['display'][$type]);
+            unset( $this->flashes['display'][$type] );
         }
 
         return $return;
@@ -128,6 +137,7 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function setAll(array $messages)
     {
+
         $this->flashes['new'] = $messages;
     }
 
@@ -136,7 +146,8 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function set($type, $messages)
     {
-        $this->flashes['new'][$type] = (array) $messages;
+
+        $this->flashes['new'][$type] = (array)$messages;
     }
 
     /**
@@ -144,6 +155,7 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function keys()
     {
+
         return array_keys($this->flashes['display']);
     }
 
@@ -152,6 +164,7 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function getStorageKey()
     {
+
         return $this->storageKey;
     }
 
@@ -160,6 +173,7 @@ class AutoExpireFlashBag implements FlashBagInterface
      */
     public function clear()
     {
+
         return $this->all();
     }
 
@@ -170,7 +184,7 @@ class AutoExpireFlashBag implements FlashBagInterface
     {
 
         $return = $this->flashes['display'];
-        $this->flashes = array( 'new' => array(), 'display' => array() );
+        $this->flashes = array('new' => array(), 'display' => array());
 
         return $return;
     }

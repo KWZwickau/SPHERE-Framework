@@ -23,6 +23,7 @@ use Doctrine\DBAL\Driver\AbstractDriverException;
 
 class OCI8Exception extends AbstractDriverException
 {
+
     /**
      * @param array $error
      *
@@ -30,6 +31,7 @@ class OCI8Exception extends AbstractDriverException
      */
     public static function fromErrorInfo($error)
     {
+
         return new self($error['message'], null, $error['code']);
     }
 }

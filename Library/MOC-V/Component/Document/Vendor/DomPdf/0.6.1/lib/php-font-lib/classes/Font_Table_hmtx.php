@@ -20,21 +20,21 @@ class Font_Table_hmtx extends Font_Table
         $font = $this->getFont();
         $offset = $font->pos();
 
-        $numOfLongHorMetrics = $font->getData( "hhea", "numOfLongHorMetrics" );
-        $numGlyphs = $font->getData( "maxp", "numGlyphs" );
+        $numOfLongHorMetrics = $font->getData("hhea", "numOfLongHorMetrics");
+        $numGlyphs = $font->getData("maxp", "numGlyphs");
 
-        $font->seek( $offset );
+        $font->seek($offset);
 
         $data = array();
         for ($gid = 0; $gid < $numOfLongHorMetrics; $gid++) {
             $advanceWidth = $font->readUInt16();
             $leftSideBearing = $font->readUInt16();
-            $data[$gid] = array( $advanceWidth, $leftSideBearing );
+            $data[$gid] = array($advanceWidth, $leftSideBearing);
         }
 
         if ($numOfLongHorMetrics < $numGlyphs) {
-            $lastWidth = end( $data );
-            $data = array_pad( $data, $numGlyphs, $lastWidth );
+            $lastWidth = end($data);
+            $data = array_pad($data, $numGlyphs, $lastWidth);
         }
 
         $this->data = $data;
@@ -50,8 +50,8 @@ class Font_Table_hmtx extends Font_Table
         $length = 0;
 
         foreach ($subset as $gid) {
-            $length += $font->writeUInt16( $data[$gid][0] );
-            $length += $font->writeUInt16( $data[$gid][1] );
+            $length += $font->writeUInt16($data[$gid][0]);
+            $length += $font->writeUInt16($data[$gid][1]);
         }
 
         return $length;

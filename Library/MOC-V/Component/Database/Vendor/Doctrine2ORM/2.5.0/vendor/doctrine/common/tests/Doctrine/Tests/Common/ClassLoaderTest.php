@@ -6,8 +6,10 @@ use Doctrine\Common\ClassLoader;
 
 class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 {
+
     public function testClassLoader()
     {
+
         $classLoader = new ClassLoader('ClassLoaderTest');
         $classLoader->setIncludePath(__DIR__);
         $classLoader->setFileExtension('.class.php');
@@ -24,9 +26,11 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testClassExists()
     {
+
         $this->assertFalse(ClassLoader::classExists('ClassLoaderTest\ClassD'));
-        $badLoader = function($className) {
-            require __DIR__ . '/ClassLoaderTest/ClassD.php';
+        $badLoader = function ($className) {
+
+            require __DIR__.'/ClassLoaderTest/ClassD.php';
             return true;
         };
         spl_autoload_register($badLoader);
@@ -36,6 +40,7 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testGetClassLoader()
     {
+
         $cl = new ClassLoader('ClassLoaderTest', __DIR__);
         $cl->register();
         $this->assertTrue(ClassLoader::getClassLoader('ClassLoaderTest\ClassD') instanceof \Doctrine\Common\ClassLoader);
@@ -45,12 +50,15 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testClassExistsWithSilentAutoloader()
     {
+
         $test = $this;
         $silentLoader = function ($className) use ($test) {
+
             $test->assertSame('ClassLoaderTest\ClassE', $className);
-            require __DIR__ . '/ClassLoaderTest/ClassE.php';
+            require __DIR__.'/ClassLoaderTest/ClassE.php';
         };
         $additionalLoader = function () use ($test) {
+
             $test->fail('Should not call this loader, class was already loaded');
         };
 
@@ -64,7 +72,8 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testClassExistsWhenLoaderIsProtected()
     {
-        require_once __DIR__ . '/ClassLoaderTest/ExternalLoader.php';
+
+        require_once __DIR__.'/ClassLoaderTest/ExternalLoader.php';
 
         // Test static call
         \ClassLoaderTest\ExternalLoader::registerStatic();
@@ -80,6 +89,7 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testLoadNonExistingClass()
     {
+
         $classLoader = new ClassLoader('ClassLoaderTest', __DIR__);
 
         $this->assertFalse($classLoader->loadClass('ClassLoaderTest\Non\Existing\ClassName'));
@@ -87,6 +97,7 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testLoadFileNotContainingClassClass()
     {
+
         $classLoader = new ClassLoader('ClassLoaderTest', __DIR__);
 
         $classLoader->setFileExtension('.class.php');
@@ -96,6 +107,7 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testSupportsInterfaceAutoloading()
     {
+
         $classLoader = new ClassLoader();
         $classLoader->setIncludePath(__DIR__);
         $classLoader->setFileExtension('.class.php');
@@ -107,7 +119,8 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testSupportsTraitAutoloading()
     {
-        if (! function_exists('trait_exists')) {
+
+        if (!function_exists('trait_exists')) {
             $this->markTestSkipped('You need a PHP version that supports traits in order to run this test');
         }
 
@@ -122,6 +135,7 @@ class ClassLoaderTest extends \Doctrine\Tests\DoctrineTestCase
 
     public function testMultipleAutoloadRequestsWillProduceSameResult()
     {
+
         $classLoader = new ClassLoader();
         $classLoader->setIncludePath(__DIR__);
         $classLoader->setFileExtension('.class.php');

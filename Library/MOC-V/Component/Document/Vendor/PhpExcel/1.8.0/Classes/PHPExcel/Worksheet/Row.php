@@ -58,7 +58,7 @@ class PHPExcel_Worksheet_Row
      * @param PHPExcel_Worksheet $parent
      * @param int                $rowIndex
      */
-    public function __construct( PHPExcel_Worksheet $parent = null, $rowIndex = 1 )
+    public function __construct(PHPExcel_Worksheet $parent = null, $rowIndex = 1)
     {
 
         // Set parent and row index
@@ -94,6 +94,6 @@ class PHPExcel_Worksheet_Row
     public function getCellIterator()
     {
 
-        return new PHPExcel_Worksheet_CellIterator( $this->_parent, $this->_rowIndex );
+        return new PHPExcel_Worksheet_CellIterator($this->_parent, $this->_rowIndex);
     }
 }

@@ -15,15 +15,18 @@ namespace SebastianBergmann\Comparator;
  */
 class ExceptionComparator extends ObjectComparator
 {
+
     /**
      * Returns whether the comparator can compare two values.
      *
      * @param  mixed $expected The first value to compare
      * @param  mixed $actual   The second value to compare
+     *
      * @return bool
      */
     public function accepts($expected, $actual)
     {
+
         return $expected instanceof \Exception && $actual instanceof \Exception;
     }
 
@@ -32,10 +35,12 @@ class ExceptionComparator extends ObjectComparator
      * and public properties.
      *
      * @param  object $object
+     *
      * @return array
      */
     protected function toArray($object)
     {
+
         $array = parent::toArray($object);
 
         unset(

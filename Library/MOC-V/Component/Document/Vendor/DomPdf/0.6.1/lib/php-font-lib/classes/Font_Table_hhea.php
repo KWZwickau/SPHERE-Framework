@@ -38,7 +38,7 @@ class Font_Table_hhea extends Font_Table
     {
 
         $font = $this->getFont();
-        $this->data["numOfLongHorMetrics"] = count( $font->getSubset() );
+        $this->data["numOfLongHorMetrics"] = count($font->getSubset());
 
         return parent::_encode();
     }

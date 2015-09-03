@@ -22,6 +22,7 @@ use Prophecy\Doubler\Generator\Node\MethodNode;
  */
 class TraversablePatch implements ClassPatchInterface
 {
+
     /**
      * Supports nodetree, that implement Traversable, but not Iterator or IteratorAggregate.
      *
@@ -31,6 +32,7 @@ class TraversablePatch implements ClassPatchInterface
      */
     public function supports(ClassNode $node)
     {
+
         if (in_array('Iterator', $node->getInterfaces())) {
             return false;
         }
@@ -62,6 +64,7 @@ class TraversablePatch implements ClassPatchInterface
      */
     public function apply(ClassNode $node)
     {
+
         $node->addInterface('Iterator');
 
         $node->addMethod(new MethodNode('current'));
@@ -78,6 +81,7 @@ class TraversablePatch implements ClassPatchInterface
      */
     public function getPriority()
     {
+
         return 100;
     }
 }

@@ -2,9 +2,9 @@
 
 namespace Guzzle\Http;
 
-use Guzzle\Common\HasDispatcherInterface;
 use Guzzle\Common\Collection;
 use Guzzle\Common\Exception\InvalidArgumentException;
+use Guzzle\Common\HasDispatcherInterface;
 use Guzzle\Http\Message\EntityEnclosingRequestInterface;
 use Guzzle\Http\Message\RequestInterface;
 
@@ -13,6 +13,7 @@ use Guzzle\Http\Message\RequestInterface;
  */
 interface ClientInterface extends HasDispatcherInterface
 {
+
     const CREATE_REQUEST = 'client.create_request';
 
     /** @var string RFC 1123 HTTP-Date */
@@ -41,6 +42,7 @@ interface ClientInterface extends HasDispatcherInterface
      *
      * @param bool|string $key Configuration value to retrieve. Set to FALSE to retrieve all values of the client.
      *                         The object return can be modified, and modifications will affect the client's config.
+     *
      * @return mixed|Collection
      * @see \Guzzle\Http\Message\RequestFactoryInterface::applyOptions for a full list of request.options options
      */
@@ -79,6 +81,7 @@ interface ClientInterface extends HasDispatcherInterface
      * @param array            $options Options to apply to the request. For BC compatibility, you can also pass a
      *                                  string to tell Guzzle to download the body of the response to a particular
      *                                  location. Use the 'body' option instead for forward compatibility.
+     *
      * @return RequestInterface
      * @see    Guzzle\Http\ClientInterface::createRequest()
      */
@@ -141,10 +144,10 @@ interface ClientInterface extends HasDispatcherInterface
      * @param string|array                                $uri      Resource URI
      * @param array|Collection                            $headers  HTTP headers
      * @param array|Collection|string|EntityBodyInterface $postBody POST body. Can be a string, EntityBody, or
-     *                                                    associative array of POST fields to send in the body of the
-     *                                                    request. Prefix a value in the array with the @ symbol to
-     *                                                    reference a file.
-     * @param array                                       $options Options to apply to the request
+     *                                                              associative array of POST fields to send in the body of the
+     *                                                              request. Prefix a value in the array with the @ symbol to
+     *                                                              reference a file.
+     * @param array $options                                        Options to apply to the request
      *
      * @return EntityEnclosingRequestInterface
      * @see    Guzzle\Http\ClientInterface::createRequest()
@@ -217,6 +220,7 @@ interface ClientInterface extends HasDispatcherInterface
      * @param int         $verifyHost           Set to 1 to check the existence of a common name in the SSL peer
      *                                          certificate. 2 to check the existence of a common name and also verify
      *                                          that it matches the hostname provided.
+     *
      * @return self
      */
     public function setSslVerification($certificateAuthority = true, $verifyPeer = true, $verifyHost = 2);

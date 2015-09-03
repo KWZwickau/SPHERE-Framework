@@ -40,10 +40,10 @@ class GroupedSelection extends Selection
      * @param            string  database table name
      * @param            string  joining column
      */
-    public function __construct( Selection $refTable, $table, $column )
+    public function __construct(Selection $refTable, $table, $column)
     {
 
-        parent::__construct( $table, $refTable->connection );
+        parent::__construct($table, $refTable->connection);
         $this->refTable = $refTable;
         $this->column = $column;
     }
@@ -58,7 +58,7 @@ class GroupedSelection extends Selection
      *
      * @return GroupedSelection
      */
-    public function setActive( $active )
+    public function setActive($active)
     {
 
         $this->active = $active;
@@ -67,56 +67,56 @@ class GroupedSelection extends Selection
 
 
     /** @deprecated */
-    public function through( $column )
+    public function through($column)
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use '.__CLASS__.'::related("'.$this->name.'", "'.$column.'") instead.',
-            E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use '.__CLASS__.'::related("'.$this->name.'", "'.$column.'") instead.',
+            E_USER_WARNING);
         $this->column = $column;
-        $this->delimitedColumn = $this->refTable->connection->getSupplementalDriver()->delimite( $this->column );
+        $this->delimitedColumn = $this->refTable->connection->getSupplementalDriver()->delimite($this->column);
         return $this;
     }
 
 
-    public function select( $columns )
+    public function select($columns)
     {
 
         if (!$this->sqlBuilder->getSelect()) {
-            $this->sqlBuilder->addSelect( "$this->name.$this->column" );
+            $this->sqlBuilder->addSelect("$this->name.$this->column");
         }
 
-        return parent::select( $columns );
+        return parent::select($columns);
     }
 
 
-    public function order( $columns )
+    public function order($columns)
     {
 
         if (!$this->sqlBuilder->getOrder()) {
             // improve index utilization
-            $this->sqlBuilder->addOrder( "$this->name.$this->column".( preg_match( '~\\bDESC$~i',
-                    $columns ) ? ' DESC' : '' ) );
+            $this->sqlBuilder->addOrder("$this->name.$this->column".( preg_match('~\\bDESC$~i',
+                    $columns) ? ' DESC' : '' ));
         }
 
-        return parent::order( $columns );
+        return parent::order($columns);
     }
 
 
     /********************* aggregations ****************d*g**/
 
-    public function aggregation( $function )
+    public function aggregation($function)
     {
 
-        $aggregation = &$this->getRefTable( $refPath )->aggregation[$refPath.$function.$this->sqlBuilder->buildSelectQuery().json_encode( $this->sqlBuilder->getParameters() )];
+        $aggregation = &$this->getRefTable($refPath)->aggregation[$refPath.$function.$this->sqlBuilder->buildSelectQuery().json_encode($this->sqlBuilder->getParameters())];
 
         if ($aggregation === null) {
             $aggregation = array();
 
             $selection = $this->createSelectionInstance();
-            $selection->getSqlBuilder()->importConditions( $this->getSqlBuilder() );
-            $selection->select( $function );
-            $selection->select( "$this->name.$this->column" );
-            $selection->group( "$this->name.$this->column" );
+            $selection->getSqlBuilder()->importConditions($this->getSqlBuilder());
+            $selection->select($function);
+            $selection->select("$this->name.$this->column");
+            $selection->group("$this->name.$this->column");
 
             foreach ($selection as $row) {
                 $aggregation[$row[$this->column]] = $row;
@@ -130,7 +130,7 @@ class GroupedSelection extends Selection
         }
     }
 
-    protected function getRefTable( & $refPath )
+    protected function getRefTable(& $refPath)
     {
 
         $refObj = $this->refTable;
@@ -143,41 +143,41 @@ class GroupedSelection extends Selection
         return $refObj;
     }
 
-    public function count( $column = null )
+    public function count($column = null)
     {
 
-        $return = parent::count( $column );
+        $return = parent::count($column);
         return isset( $return ) ? $return : 0;
     }
 
     /********************* manipulation ****************d*g**/
 
-    public function insert( $data )
+    public function insert($data)
     {
 
         if ($data instanceof \Traversable && !$data instanceof Selection) {
-            $data = iterator_to_array( $data );
+            $data = iterator_to_array($data);
         }
 
-        if (Nette\Utils\Validators::isList( $data )) {
-            foreach (array_keys( $data ) as $key) {
+        if (Nette\Utils\Validators::isList($data)) {
+            foreach (array_keys($data) as $key) {
                 $data[$key][$this->column] = $this->active;
             }
         } else {
             $data[$this->column] = $this->active;
         }
 
-        return parent::insert( $data );
+        return parent::insert($data);
     }
 
-    public function update( $data )
+    public function update($data)
     {
 
         $builder = $this->sqlBuilder;
 
-        $this->sqlBuilder = new SqlBuilder( $this );
-        $this->where( $this->column, $this->active );
-        $return = parent::update( $data );
+        $this->sqlBuilder = new SqlBuilder($this);
+        $this->where($this->column, $this->active);
+        $return = parent::update($data);
 
         $this->sqlBuilder = $builder;
         return $return;
@@ -188,8 +188,8 @@ class GroupedSelection extends Selection
 
         $builder = $this->sqlBuilder;
 
-        $this->sqlBuilder = new SqlBuilder( $this );
-        $this->where( $this->column, $this->active );
+        $this->sqlBuilder = new SqlBuilder($this);
+        $this->where($this->column, $this->active);
         $return = parent::delete();
 
         $this->sqlBuilder = $builder;
@@ -205,9 +205,9 @@ class GroupedSelection extends Selection
             return;
         }
 
-        $hash = md5( $this->sqlBuilder->buildSelectQuery().json_encode( $this->sqlBuilder->getParameters() ) );
+        $hash = md5($this->sqlBuilder->buildSelectQuery().json_encode($this->sqlBuilder->getParameters()));
 
-        $referencing = &$this->getRefTable( $refPath )->referencing[$refPath.$hash];
+        $referencing = &$this->getRefTable($refPath)->referencing[$refPath.$hash];
         $this->rows = &$referencing['rows'];
         $this->referenced = &$referencing['refs'];
         $this->accessed = &$referencing['accessed'];
@@ -215,18 +215,18 @@ class GroupedSelection extends Selection
 
         if ($refData === null) {
             $limit = $this->sqlBuilder->getLimit();
-            $rows = count( $this->refTable->rows );
+            $rows = count($this->refTable->rows);
             if ($limit && $rows > 1) {
-                $this->sqlBuilder->setLimit( null, null );
+                $this->sqlBuilder->setLimit(null, null);
             }
             parent::execute();
-            $this->sqlBuilder->setLimit( $limit, null );
+            $this->sqlBuilder->setLimit($limit, null);
             $refData = array();
             $offset = array();
             foreach ($this->rows as $key => $row) {
                 $ref = &$refData[$row[$this->column]];
                 $skip = &$offset[$row[$this->column]];
-                if ($limit === null || $rows <= 1 || ( count( $ref ) < $limit && $skip >= $this->sqlBuilder->getOffset() )) {
+                if ($limit === null || $rows <= 1 || ( count($ref) < $limit && $skip >= $this->sqlBuilder->getOffset() )) {
                     $ref[$key] = $row;
                 } else {
                     unset( $this->rows[$key] );
@@ -241,9 +241,9 @@ class GroupedSelection extends Selection
             $this->data = array();
         } else {
             foreach ($this->data as $row) {
-                $row->setTable( $this ); // injects correct parent GroupedSelection
+                $row->setTable($this); // injects correct parent GroupedSelection
             }
-            reset( $this->data );
+            reset($this->data);
         }
     }
 

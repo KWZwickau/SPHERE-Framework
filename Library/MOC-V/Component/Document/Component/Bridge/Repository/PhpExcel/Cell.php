@@ -18,7 +18,7 @@ class Cell
      * @param int $Column
      * @param int $Row
      */
-    function __construct( $Column, $Row )
+    public function __construct($Column, $Row)
     {
 
         $this->Column = $Column;

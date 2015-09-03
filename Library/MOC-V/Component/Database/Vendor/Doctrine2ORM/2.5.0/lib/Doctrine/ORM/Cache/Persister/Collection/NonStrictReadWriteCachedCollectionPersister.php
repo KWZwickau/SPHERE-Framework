@@ -25,22 +25,24 @@ use Doctrine\ORM\PersistentCollection;
 
 /**
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since 2.5
+ * @since  2.5
  */
 class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPersister
 {
+
     /**
      * {@inheritdoc}
      */
     public function afterTransactionComplete()
     {
-        if (isset($this->queuedCache['update'])) {
+
+        if (isset( $this->queuedCache['update'] )) {
             foreach ($this->queuedCache['update'] as $item) {
                 $this->storeCollectionCache($item['key'], $item['list']);
             }
         }
 
-        if (isset($this->queuedCache['delete'])) {
+        if (isset( $this->queuedCache['delete'] )) {
             foreach ($this->queuedCache['delete'] as $key) {
                 $this->region->evict($key);
             }
@@ -54,6 +56,7 @@ class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPers
      */
     public function afterTransactionRolledBack()
     {
+
         $this->queuedCache = array();
     }
 
@@ -62,8 +65,9 @@ class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPers
      */
     public function delete(PersistentCollection $collection)
     {
+
         $ownerId = $this->uow->getEntityIdentifier($collection->getOwner());
-        $key     = new CollectionCacheKey($this->sourceEntity->rootEntityName, $this->association['fieldName'], $ownerId);
+        $key = new CollectionCacheKey($this->sourceEntity->rootEntityName, $this->association['fieldName'], $ownerId);
 
         $this->persister->delete($collection);
 
@@ -75,18 +79,19 @@ class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPers
      */
     public function update(PersistentCollection $collection)
     {
-        $isInitialized = $collection->isInitialized();
-        $isDirty       = $collection->isDirty();
 
-        if ( ! $isInitialized && ! $isDirty) {
+        $isInitialized = $collection->isInitialized();
+        $isDirty = $collection->isDirty();
+
+        if (!$isInitialized && !$isDirty) {
             return;
         }
 
         $ownerId = $this->uow->getEntityIdentifier($collection->getOwner());
-        $key     = new CollectionCacheKey($this->sourceEntity->rootEntityName, $this->association['fieldName'], $ownerId);
+        $key = new CollectionCacheKey($this->sourceEntity->rootEntityName, $this->association['fieldName'], $ownerId);
 
-       // Invalidate non initialized collections OR ordered collection
-        if ($isDirty && ! $isInitialized || isset($this->association['orderBy'])) {
+        // Invalidate non initialized collections OR ordered collection
+        if ($isDirty && !$isInitialized || isset( $this->association['orderBy'] )) {
             $this->persister->update($collection);
 
             $this->queuedCache['delete'][spl_object_hash($collection)] = $key;
@@ -97,8 +102,8 @@ class NonStrictReadWriteCachedCollectionPersister extends AbstractCollectionPers
         $this->persister->update($collection);
 
         $this->queuedCache['update'][spl_object_hash($collection)] = array(
-            'key'   => $key,
-            'list'  => $collection
+            'key'  => $key,
+            'list' => $collection
         );
     }
 }

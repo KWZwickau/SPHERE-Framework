@@ -32,7 +32,7 @@ class NestedAccessor extends Nette\Object
     private $namespace;
 
 
-    public function __construct( Container $container, $namespace )
+    public function __construct(Container $container, $namespace)
     {
 
         $this->container = $container;
@@ -44,14 +44,14 @@ class NestedAccessor extends Nette\Object
     /**
      * @return object
      */
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        if (substr( $name, 0, 6 ) === 'create') {
-            return call_user_func_array( array(
+        if (substr($name, 0, 6) === 'create') {
+            return call_user_func_array(array(
                 $this->container,
-                Container::getMethodName( $this->namespace.substr( $name, 6 ), false )
-            ), $args );
+                Container::getMethodName($this->namespace.substr($name, 6), false)
+            ), $args);
         }
         throw new Nette\NotSupportedException;
     }
@@ -60,10 +60,10 @@ class NestedAccessor extends Nette\Object
     /**
      * @return object
      */
-    public function &__get( $name )
+    public function &__get($name)
     {
 
-        $service = $this->container->getService( $this->namespace.$name );
+        $service = $this->container->getService($this->namespace.$name);
         return $service;
     }
 
@@ -71,7 +71,7 @@ class NestedAccessor extends Nette\Object
     /**
      * @return void
      */
-    public function __set( $name, $service )
+    public function __set($name, $service)
     {
 
         throw new Nette\NotSupportedException;
@@ -81,17 +81,17 @@ class NestedAccessor extends Nette\Object
     /**
      * @return bool
      */
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        return $this->container->hasService( $this->namespace.$name );
+        return $this->container->hasService($this->namespace.$name);
     }
 
 
     /**
      * @return void
      */
-    public function __unset( $name )
+    public function __unset($name)
     {
 
         throw new Nette\NotSupportedException;

@@ -2,17 +2,19 @@
 
 namespace Guzzle\Tests\Service;
 
+use Doctrine\Common\Cache\ArrayCache;
 use Guzzle\Cache\DoctrineCacheAdapter;
 use Guzzle\Service\CachingConfigLoader;
-use Doctrine\Common\Cache\ArrayCache;
 
 /**
  * @covers Guzzle\Service\CachingConfigLoader
  */
 class CachingConfigLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testLoadsPhpFileIncludes()
     {
+
         $cache = new DoctrineCacheAdapter(new ArrayCache());
         $loader = $this->getMockBuilder('Guzzle\Service\ConfigLoaderInterface')
             ->setMethods(array('load'))
@@ -28,6 +30,7 @@ class CachingConfigLoaderTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDoesNotCacheArrays()
     {
+
         $cache = new DoctrineCacheAdapter(new ArrayCache());
         $loader = $this->getMockBuilder('Guzzle\Service\ConfigLoaderInterface')
             ->setMethods(array('load'))

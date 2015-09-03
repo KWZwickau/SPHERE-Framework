@@ -53,7 +53,7 @@ class PHPExcel_Chart_PlotArea
     /**
      * Create a new PHPExcel_Chart_PlotArea
      */
-    public function __construct( PHPExcel_Chart_Layout $layout = null, $plotSeries = array() )
+    public function __construct(PHPExcel_Chart_Layout $layout = null, $plotSeries = array())
     {
 
         $this->_layout = $layout;
@@ -79,7 +79,7 @@ class PHPExcel_Chart_PlotArea
     public function getPlotGroupCount()
     {
 
-        return count( $this->_plotSeries );
+        return count($this->_plotSeries);
     }
 
     /**
@@ -113,7 +113,7 @@ class PHPExcel_Chart_PlotArea
      *
      * @return PHPExcel_Chart_DataSeries
      */
-    public function getPlotGroupByIndex( $index )
+    public function getPlotGroupByIndex($index)
     {
 
         return $this->_plotSeries[$index];
@@ -126,7 +126,7 @@ class PHPExcel_Chart_PlotArea
      *
      * @return PHPExcel_Chart_PlotArea
      */
-    public function setPlotSeries( $plotSeries = array() )
+    public function setPlotSeries($plotSeries = array())
     {
 
         $this->_plotSeries = $plotSeries;
@@ -134,11 +134,11 @@ class PHPExcel_Chart_PlotArea
         return $this;
     }
 
-    public function refresh( PHPExcel_Worksheet $worksheet )
+    public function refresh(PHPExcel_Worksheet $worksheet)
     {
 
         foreach ($this->_plotSeries as $plotSeries) {
-            $plotSeries->refresh( $worksheet );
+            $plotSeries->refresh($worksheet);
         }
     }
 

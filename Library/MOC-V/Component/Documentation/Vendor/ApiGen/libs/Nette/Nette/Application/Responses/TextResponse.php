@@ -30,7 +30,7 @@ class TextResponse extends Nette\Object implements Nette\Application\IResponse
     /**
      * @param  mixed  renderable variable
      */
-    public function __construct( $source )
+    public function __construct($source)
     {
 
         $this->source = $source;
@@ -52,7 +52,7 @@ class TextResponse extends Nette\Object implements Nette\Application\IResponse
      *
      * @return void
      */
-    public function send( Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse )
+    public function send(Nette\Http\IRequest $httpRequest, Nette\Http\IResponse $httpResponse)
     {
 
         if ($this->source instanceof Nette\Templating\ITemplate) {

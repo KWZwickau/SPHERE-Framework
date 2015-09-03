@@ -12,10 +12,11 @@
 /**
  * Represents a callable template test.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
  * @deprecated since 1.12 (to be removed in 2.0)
  */
 interface Twig_TestCallableInterface
 {
+
     public function getCallable();
 }

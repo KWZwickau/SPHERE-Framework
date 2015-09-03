@@ -6,6 +6,7 @@ use Doctrine\Tests\DbalTestCase;
 
 class OCI8ConnectionTest extends DbalTestCase
 {
+
     /**
      * The oci8 driver connection mock under test.
      *
@@ -13,9 +14,16 @@ class OCI8ConnectionTest extends DbalTestCase
      */
     private $connectionMock;
 
+    public function testDoesNotRequireQueryForServerVersion()
+    {
+
+        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
+    }
+
     protected function setUp()
     {
-        if ( ! extension_loaded('oci8')) {
+
+        if (!extension_loaded('oci8')) {
             $this->markTestSkipped('oci8 is not installed.');
         }
 
@@ -24,10 +32,5 @@ class OCI8ConnectionTest extends DbalTestCase
         $this->connectionMock = $this->getMockBuilder('Doctrine\DBAL\Driver\OCI8\OCI8Connection')
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
-    }
-
-    public function testDoesNotRequireQueryForServerVersion()
-    {
-        $this->assertFalse($this->connectionMock->requiresQueryForServerVersion());
     }
 }

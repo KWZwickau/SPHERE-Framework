@@ -13,6 +13,7 @@
  */
 class PHP_CodeCoverage_Report_XML_File_Method
 {
+
     /**
      * @var DOMElement
      */
@@ -20,6 +21,7 @@ class PHP_CodeCoverage_Report_XML_File_Method
 
     public function __construct(DOMElement $context, $name)
     {
+
         $this->contextNode = $context;
 
         $this->setName($name);
@@ -27,16 +29,19 @@ class PHP_CodeCoverage_Report_XML_File_Method
 
     private function setName($name)
     {
+
         $this->contextNode->setAttribute('name', $name);
     }
 
     public function setSignature($signature)
     {
+
         $this->contextNode->setAttribute('signature', $signature);
     }
 
     public function setLines($start, $end = null)
     {
+
         $this->contextNode->setAttribute('start', $start);
 
         if ($end !== null) {
@@ -46,6 +51,7 @@ class PHP_CodeCoverage_Report_XML_File_Method
 
     public function setTotals($executable, $executed, $coverage)
     {
+
         $this->contextNode->setAttribute('executable', $executable);
         $this->contextNode->setAttribute('executed', $executed);
         $this->contextNode->setAttribute('coverage', $coverage);
@@ -53,6 +59,7 @@ class PHP_CodeCoverage_Report_XML_File_Method
 
     public function setCrap($crap)
     {
+
         $this->contextNode->setAttribute('crap', $crap);
     }
 }

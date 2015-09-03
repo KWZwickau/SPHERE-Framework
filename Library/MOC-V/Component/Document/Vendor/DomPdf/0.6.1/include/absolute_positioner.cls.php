@@ -12,10 +12,10 @@
 class Absolute_Positioner extends Positioner
 {
 
-    function __construct( Frame_Decorator $frame )
+    function __construct(Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     function position()
@@ -28,17 +28,17 @@ class Absolute_Positioner extends Positioner
 
         list( $x, $y, $w, $h ) = $frame->get_containing_block();
 
-        $top = $style->length_in_pt( $style->top, $h );
-        $right = $style->length_in_pt( $style->right, $w );
-        $bottom = $style->length_in_pt( $style->bottom, $h );
-        $left = $style->length_in_pt( $style->left, $w );
+        $top = $style->length_in_pt($style->top, $h);
+        $right = $style->length_in_pt($style->right, $w);
+        $bottom = $style->length_in_pt($style->bottom, $h);
+        $left = $style->length_in_pt($style->left, $w);
 
         if ($p && !( $left === "auto" && $right === "auto" )) {
             // Get the parent's padding box (see http://www.w3.org/TR/CSS21/visuren.html#propdef-top)
             list( $x, $y, $w, $h ) = $p->get_padding_box();
         }
 
-        list( $width, $height ) = array( $frame->get_margin_width(), $frame->get_margin_height() );
+        list( $width, $height ) = array($frame->get_margin_width(), $frame->get_margin_height());
 
         $orig_style = $this->_frame->get_original_style();
         $orig_width = $orig_style->width;
@@ -114,7 +114,7 @@ class Absolute_Positioner extends Positioner
             }
         }
 
-        $frame->set_position( $x, $y );
+        $frame->set_position($x, $y);
 
     }
 }

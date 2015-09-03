@@ -45,7 +45,7 @@ class PHPExcel_CachedObjectStorage_MemoryGZip extends PHPExcel_CachedObjectStora
      * @return    void
      * @throws    PHPExcel_Exception
      */
-    public function addCacheData( $pCoord, PHPExcel_Cell $cell )
+    public function addCacheData($pCoord, PHPExcel_Cell $cell)
     {
 
         if (( $pCoord !== $this->_currentObjectID ) && ( $this->_currentObjectID !== null )) {
@@ -72,7 +72,7 @@ class PHPExcel_CachedObjectStorage_MemoryGZip extends PHPExcel_CachedObjectStora
         if ($this->_currentCellIsDirty && !empty( $this->_currentObjectID )) {
             $this->_currentObject->detach();
 
-            $this->_cellCache[$this->_currentObjectID] = gzdeflate( serialize( $this->_currentObject ) );
+            $this->_cellCache[$this->_currentObjectID] = gzdeflate(serialize($this->_currentObject));
             $this->_currentCellIsDirty = false;
         }
         $this->_currentObjectID = $this->_currentObject = null;
@@ -86,7 +86,7 @@ class PHPExcel_CachedObjectStorage_MemoryGZip extends PHPExcel_CachedObjectStora
      * @throws    PHPExcel_Exception
      * @return    PHPExcel_Cell    Cell that was found, or null if not found
      */
-    public function getCacheData( $pCoord )
+    public function getCacheData($pCoord)
     {
 
         if ($pCoord === $this->_currentObjectID) {
@@ -102,9 +102,9 @@ class PHPExcel_CachedObjectStorage_MemoryGZip extends PHPExcel_CachedObjectStora
 
         //	Set current entry to the requested entry
         $this->_currentObjectID = $pCoord;
-        $this->_currentObject = unserialize( gzinflate( $this->_cellCache[$pCoord] ) );
+        $this->_currentObject = unserialize(gzinflate($this->_cellCache[$pCoord]));
         //    Re-attach this as the cell's parent
-        $this->_currentObject->attach( $this );
+        $this->_currentObject->attach($this);
 
         //	Return requested entry
         return $this->_currentObject;
@@ -135,7 +135,7 @@ class PHPExcel_CachedObjectStorage_MemoryGZip extends PHPExcel_CachedObjectStora
     public function unsetWorksheetCells()
     {
 
-        if (!is_null( $this->_currentObject )) {
+        if (!is_null($this->_currentObject)) {
             $this->_currentObject->detach();
             $this->_currentObject = $this->_currentObjectID = null;
         }

@@ -11,6 +11,7 @@ use Satooshi\Bundle\CoverallsV1Bundle\Entity\SourceFile;
  */
 class CloverXmlCoverageCollector
 {
+
     /**
      * JsonFile.
      *
@@ -30,9 +31,10 @@ class CloverXmlCoverageCollector
      */
     public function collect(\SimpleXMLElement $xml, $rootDir)
     {
-        $root = rtrim($rootDir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
 
-        if (!isset($this->jsonFile)) {
+        $root = rtrim($rootDir, DIRECTORY_SEPARATOR).DIRECTORY_SEPARATOR;
+
+        if (!isset( $this->jsonFile )) {
             $this->jsonFile = new JsonFile();
         }
 
@@ -70,8 +72,9 @@ class CloverXmlCoverageCollector
      */
     protected function collectRunAt(\SimpleXMLElement $xml, $format = 'Y-m-d H:i:s O')
     {
+
         $timestamp = $xml->project['timestamp'];
-        $runAt     = new \DateTime('@' . $timestamp);
+        $runAt = new \DateTime('@'.$timestamp);
 
         return $runAt->format($format);
     }
@@ -86,7 +89,8 @@ class CloverXmlCoverageCollector
      */
     protected function collectFileCoverage(\SimpleXMLElement $file, $root)
     {
-        $absolutePath = (string) ($file['path'] ?: $file['name']);
+
+        $absolutePath = (string)( $file['path'] ?: $file['name'] );
 
         if (false === strpos($absolutePath, $root)) {
             return null;
@@ -112,6 +116,7 @@ class CloverXmlCoverageCollector
      */
     protected function collectCoverage(\SimpleXMLElement $file, $path, $filename)
     {
+
         if ($this->jsonFile->hasSourceFile($path)) {
             $srcFile = $this->jsonFile->getSourceFile($path);
         } else {
@@ -119,11 +124,11 @@ class CloverXmlCoverageCollector
         }
 
         foreach ($file->line as $line) {
-            if ((string) $line['type'] === 'stmt') {
-                $lineNum = (int) $line['num'];
+            if ((string)$line['type'] === 'stmt') {
+                $lineNum = (int)$line['num'];
 
                 if ($lineNum > 0) {
-                    $srcFile->addCoverage($lineNum - 1, (int) $line['count']);
+                    $srcFile->addCoverage($lineNum - 1, (int)$line['count']);
                 }
             }
         }
@@ -140,6 +145,7 @@ class CloverXmlCoverageCollector
      */
     public function getJsonFile()
     {
+
         return $this->jsonFile;
     }
 }

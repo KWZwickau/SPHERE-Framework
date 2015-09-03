@@ -1,7 +1,7 @@
 <?php
 /**
  * phpDocumentor Deprecated Tag Test
- * 
+ *
  * PHP version 5.3
  *
  * @author    Vasil Rangelov <boen.robot@gmail.com>
@@ -22,6 +22,7 @@ namespace phpDocumentor\Reflection\DocBlock\Tag;
  */
 class DeprecatedTagTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * Test that the \phpDocumentor\Reflection\DocBlock\Tag\LinkTag can create
      * a link for the @deprecated doc block.
@@ -32,7 +33,7 @@ class DeprecatedTagTest extends \PHPUnit_Framework_TestCase
      * @param string $exDescription
      * @param string $exVersion
      *
-     * @covers \phpDocumentor\Reflection\DocBlock\Tag\DeprecatedTag
+     * @covers       \phpDocumentor\Reflection\DocBlock\Tag\DeprecatedTag
      * @dataProvider provideDataForConstuctor
      *
      * @return void
@@ -44,6 +45,7 @@ class DeprecatedTagTest extends \PHPUnit_Framework_TestCase
         $exDescription,
         $exVersion
     ) {
+
         $tag = new DeprecatedTag($type, $content);
 
         $this->assertEquals($type, $tag->getName());
@@ -59,6 +61,7 @@ class DeprecatedTagTest extends \PHPUnit_Framework_TestCase
      */
     public function provideDataForConstuctor()
     {
+
         // $type, $content, $exContent, $exDescription, $exVersion
         return array(
             array(

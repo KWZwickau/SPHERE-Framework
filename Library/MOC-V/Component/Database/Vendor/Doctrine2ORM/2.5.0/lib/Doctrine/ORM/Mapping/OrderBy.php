@@ -25,6 +25,7 @@ namespace Doctrine\ORM\Mapping;
  */
 final class OrderBy implements Annotation
 {
+
     /**
      * @var array<string>
      */

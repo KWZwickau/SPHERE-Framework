@@ -31,7 +31,7 @@ class Logger extends Nette\Object
     public static $emailSnooze = 172800;
 
     /** @var callable handler for sending emails */
-    public $mailer = array( __CLASS__, 'defaultMailer' );
+    public $mailer = array(__CLASS__, 'defaultMailer');
 
     /** @var string name of the directory where errors should be logged; FALSE means that logging is disabled */
     public $directory;
@@ -47,11 +47,11 @@ class Logger extends Nette\Object
      *
      * @return void
      */
-    public static function defaultMailer( $message, $email )
+    public static function defaultMailer($message, $email)
     {
 
-        $host = php_uname( 'n' );
-        foreach (array( 'HTTP_HOST', 'SERVER_NAME', 'HOSTNAME' ) as $item) {
+        $host = php_uname('n');
+        foreach (array('HTTP_HOST', 'SERVER_NAME', 'HOSTNAME') as $item) {
             if (isset( $_SERVER[$item] )) {
                 $host = $_SERVER[$item];
                 break;
@@ -59,21 +59,21 @@ class Logger extends Nette\Object
         }
 
         $parts = str_replace(
-            array( "\r\n", "\n" ),
-            array( "\n", PHP_EOL ),
+            array("\r\n", "\n"),
+            array("\n", PHP_EOL),
             array(
-                'headers' => implode( "\n", array(
+                'headers' => implode("\n", array(
                         "From: noreply@$host",
                         'X-Mailer: Nette Framework',
                         'Content-Type: text/plain; charset=UTF-8',
                         'Content-Transfer-Encoding: 8bit',
-                    ) )."\n",
+                    ))."\n",
                 'subject' => "PHP: An error occurred on the server $host",
-                'body'    => "[".@date( 'Y-m-d H:i:s' )."] $message", // @ - timezone may not be set
+                'body'    => "[".@date('Y-m-d H:i:s')."] $message", // @ - timezone may not be set
             )
         );
 
-        mail( $email, $parts['subject'], $parts['body'], $parts['headers'] );
+        mail($email, $parts['subject'], $parts['body'], $parts['headers']);
     }
 
     /**
@@ -84,23 +84,23 @@ class Logger extends Nette\Object
      *
      * @return bool    was successful?
      */
-    public function log( $message, $priority = self::INFO )
+    public function log($message, $priority = self::INFO)
     {
 
-        if (!is_dir( $this->directory )) {
-            throw new Nette\DirectoryNotFoundException( "Directory '$this->directory' is not found or is not directory." );
+        if (!is_dir($this->directory)) {
+            throw new Nette\DirectoryNotFoundException("Directory '$this->directory' is not found or is not directory.");
         }
 
-        if (is_array( $message )) {
-            $message = implode( ' ', $message );
+        if (is_array($message)) {
+            $message = implode(' ', $message);
         }
-        $res = error_log( trim( $message ).PHP_EOL, 3, $this->directory.'/'.strtolower( $priority ).'.log' );
+        $res = error_log(trim($message).PHP_EOL, 3, $this->directory.'/'.strtolower($priority).'.log');
 
         if (( $priority === self::ERROR || $priority === self::CRITICAL ) && $this->email && $this->mailer
-            && @filemtime( $this->directory.'/email-sent' ) + self::$emailSnooze < time() // @ - file may not exist
-                && @file_put_contents( $this->directory.'/email-sent', 'sent' ) // @ - file may not be writable
+            && @filemtime($this->directory.'/email-sent') + self::$emailSnooze < time() // @ - file may not exist
+            && @file_put_contents($this->directory.'/email-sent', 'sent') // @ - file may not be writable
         ) {
-            Nette\Callback::create( $this->mailer )->invoke( $message, $this->email );
+            Nette\Callback::create($this->mailer)->invoke($message, $this->email);
         }
         return $res;
     }

@@ -11,43 +11,18 @@ use Satooshi\ProjectTestCase;
  */
 class CiEnvVarsCollectorTest extends ProjectTestCase
 {
-    protected function setUp()
-    {
-        $this->projectDir = realpath(__DIR__ . '/../../../..');
-
-        $this->setUpDir($this->projectDir);
-    }
-
-    protected function createConfiguration()
-    {
-        $config = new Configuration();
-
-        return $config
-        ->setSrcDir($this->srcDir)
-        ->addCloverXmlPath($this->cloverXmlPath);
-    }
-
-    protected function createCiEnvVarsCollector($config = null)
-    {
-        if ($config === null) {
-            $config = $this->createConfiguration();
-        }
-
-        return new CiEnvVarsCollector($config);
-    }
-
-    // collect()
 
     /**
      * @test
      */
     public function shouldCollectTravisCiEnvVars()
     {
-        $serviceName  = 'travis-ci';
+
+        $serviceName = 'travis-ci';
         $serviceJobId = '1.1';
 
         $env = array();
-        $env['TRAVIS']        = true;
+        $env['TRAVIS'] = true;
         $env['TRAVIS_JOB_ID'] = $serviceJobId;
 
         $object = $this->createCiEnvVarsCollector();
@@ -63,18 +38,41 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
         return $object;
     }
 
+    protected function createCiEnvVarsCollector($config = null)
+    {
+
+        if ($config === null) {
+            $config = $this->createConfiguration();
+        }
+
+        return new CiEnvVarsCollector($config);
+    }
+
+    protected function createConfiguration()
+    {
+
+        $config = new Configuration();
+
+        return $config
+            ->setSrcDir($this->srcDir)
+            ->addCloverXmlPath($this->cloverXmlPath);
+    }
+
+    // collect()
+
     /**
      * @test
      */
     public function shouldCollectTravisProEnvVars()
     {
-        $serviceName  = 'travis-pro';
+
+        $serviceName = 'travis-pro';
         $serviceJobId = '1.2';
-        $repoToken    = 'your_token';
+        $repoToken = 'your_token';
 
         $env = array();
-        $env['TRAVIS']               = true;
-        $env['TRAVIS_JOB_ID']        = $serviceJobId;
+        $env['TRAVIS'] = true;
+        $env['TRAVIS_JOB_ID'] = $serviceJobId;
         $env['COVERALLS_REPO_TOKEN'] = $repoToken;
 
         $config = $this->createConfiguration();
@@ -101,13 +99,14 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldCollectCircleCiEnvVars()
     {
-        $serviceName   = 'circleci';
+
+        $serviceName = 'circleci';
         $serviceNumber = '123';
 
         $env = array();
         $env['COVERALLS_REPO_TOKEN'] = 'token';
-        $env['CIRCLECI']             = 'true';
-        $env['CIRCLE_BUILD_NUM']     = $serviceNumber;
+        $env['CIRCLECI'] = 'true';
+        $env['CIRCLE_BUILD_NUM'] = $serviceNumber;
 
         $object = $this->createCiEnvVarsCollector();
 
@@ -127,14 +126,15 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldCollectJenkinsEnvVars()
     {
-        $serviceName   = 'jenkins';
+
+        $serviceName = 'jenkins';
         $serviceNumber = '123';
-        $buildUrl      = 'http://localhost:8080';
+        $buildUrl = 'http://localhost:8080';
 
         $env = array();
         $env['COVERALLS_REPO_TOKEN'] = 'token';
-        $env['JENKINS_URL']          = $buildUrl;
-        $env['BUILD_NUMBER']         = $serviceNumber;
+        $env['JENKINS_URL'] = $buildUrl;
+        $env['BUILD_NUMBER'] = $serviceNumber;
 
         $object = $this->createCiEnvVarsCollector();
 
@@ -157,11 +157,12 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldCollectLocalEnvVars()
     {
-        $serviceName      = 'php-coveralls';
+
+        $serviceName = 'php-coveralls';
         $serviceEventType = 'manual';
 
         $env = array();
-        $env['COVERALLS_REPO_TOKEN']  = 'token';
+        $env['COVERALLS_REPO_TOKEN'] = 'token';
         $env['COVERALLS_RUN_LOCALLY'] = '1';
 
         $object = $this->createCiEnvVarsCollector();
@@ -185,6 +186,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldCollectUnsupportedConfig()
     {
+
         $repoToken = 'token';
 
         $env = array();
@@ -207,6 +209,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldCollectUnsupportedEnvVars()
     {
+
         $repoToken = 'token';
 
         $env = array();
@@ -222,17 +225,18 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
         return $object;
     }
 
-    // getReadEnv()
-
     /**
      * @test
      */
     public function shouldNotHaveReadEnvOnConstruction()
     {
+
         $object = $this->createCiEnvVarsCollector();
 
         $this->assertNull($object->getReadEnv());
     }
+
+    // getReadEnv()
 
     /**
      * @test
@@ -240,6 +244,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldHaveReadEnvAfterCollectTravisCiEnvVars(CiEnvVarsCollector $object)
     {
+
         $readEnv = $object->getReadEnv();
 
         $this->assertCount(3, $readEnv);
@@ -254,6 +259,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldHaveReadEnvAfterCollectTravisProEnvVars(CiEnvVarsCollector $object)
     {
+
         $readEnv = $object->getReadEnv();
 
         $this->assertCount(4, $readEnv);
@@ -269,6 +275,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldHaveReadEnvAfterCollectCircleCiEnvVars(CiEnvVarsCollector $object)
     {
+
         $readEnv = $object->getReadEnv();
 
         $this->assertCount(4, $readEnv);
@@ -284,6 +291,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldHaveReadEnvAfterCollectJenkinsEnvVars(CiEnvVarsCollector $object)
     {
+
         $readEnv = $object->getReadEnv();
 
         $this->assertCount(4, $readEnv);
@@ -299,6 +307,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldHaveReadEnvAfterCollectLocalEnvVars(CiEnvVarsCollector $object)
     {
+
         $readEnv = $object->getReadEnv();
 
         $this->assertCount(4, $readEnv);
@@ -314,6 +323,7 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldHaveReadEnvAfterCollectUnsupportedConfig(CiEnvVarsCollector $object)
     {
+
         $readEnv = $object->getReadEnv();
 
         $this->assertCount(1, $readEnv);
@@ -326,9 +336,18 @@ class CiEnvVarsCollectorTest extends ProjectTestCase
      */
     public function shouldHaveReadEnvAfterCollectUnsupportedEnvVars(CiEnvVarsCollector $object)
     {
+
         $readEnv = $object->getReadEnv();
 
         $this->assertCount(1, $readEnv);
         $this->assertArrayHasKey('COVERALLS_REPO_TOKEN', $readEnv);
+    }
+
+    protected function setUp()
+    {
+
+        $this->projectDir = realpath(__DIR__.'/../../../..');
+
+        $this->setUpDir($this->projectDir);
     }
 }

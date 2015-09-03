@@ -23,10 +23,12 @@ use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
  */
 class LoggerDataCollector extends DataCollector implements LateDataCollectorInterface
 {
+
     private $logger;
 
     public function __construct($logger = null)
     {
+
         if (null !== $logger && $logger instanceof DebugLoggerInterface) {
             $this->logger = $logger;
         }
@@ -45,6 +47,7 @@ class LoggerDataCollector extends DataCollector implements LateDataCollectorInte
      */
     public function lateCollect()
     {
+
         if (null !== $this->logger) {
             $this->data = $this->computeErrorsCount();
             $this->data['logs'] = $this->sanitizeLogs($this->logger->getLogs());
@@ -80,38 +83,38 @@ class LoggerDataCollector extends DataCollector implements LateDataCollectorInte
             }
         }
 
-        ksort( $count['priorities'] );
+        ksort($count['priorities']);
 
         return $count;
     }
 
-    private function sanitizeLogs( $logs )
+    private function sanitizeLogs($logs)
     {
 
         foreach ($logs as $i => $log) {
-            $logs[$i]['context'] = $this->sanitizeContext( $log['context'] );
+            $logs[$i]['context'] = $this->sanitizeContext($log['context']);
         }
 
         return $logs;
     }
 
-    private function sanitizeContext( $context )
+    private function sanitizeContext($context)
     {
 
-        if (is_array( $context )) {
+        if (is_array($context)) {
             foreach ($context as $key => $value) {
-                $context[$key] = $this->sanitizeContext( $value );
+                $context[$key] = $this->sanitizeContext($value);
             }
 
             return $context;
         }
 
-        if (is_resource( $context )) {
-            return sprintf( 'Resource(%s)', get_resource_type( $context ) );
+        if (is_resource($context)) {
+            return sprintf('Resource(%s)', get_resource_type($context));
         }
 
-        if (is_object( $context )) {
-            return sprintf( 'Object(%s)', get_class( $context ) );
+        if (is_object($context)) {
+            return sprintf('Object(%s)', get_class($context));
         }
 
         return $context;
@@ -126,7 +129,8 @@ class LoggerDataCollector extends DataCollector implements LateDataCollectorInte
      */
     public function countErrors()
     {
-        return isset($this->data['error_count']) ? $this->data['error_count'] : 0;
+
+        return isset( $this->data['error_count'] ) ? $this->data['error_count'] : 0;
     }
 
     /**
@@ -136,22 +140,26 @@ class LoggerDataCollector extends DataCollector implements LateDataCollectorInte
      */
     public function getLogs()
     {
-        return isset($this->data['logs']) ? $this->data['logs'] : array();
+
+        return isset( $this->data['logs'] ) ? $this->data['logs'] : array();
     }
 
     public function getPriorities()
     {
-        return isset($this->data['priorities']) ? $this->data['priorities'] : array();
+
+        return isset( $this->data['priorities'] ) ? $this->data['priorities'] : array();
     }
 
     public function countDeprecations()
     {
-        return isset($this->data['deprecation_count']) ? $this->data['deprecation_count'] : 0;
+
+        return isset( $this->data['deprecation_count'] ) ? $this->data['deprecation_count'] : 0;
     }
 
     public function countScreams()
     {
-        return isset($this->data['scream_count']) ? $this->data['scream_count'] : 0;
+
+        return isset( $this->data['scream_count'] ) ? $this->data['scream_count'] : 0;
     }
 
     /**
@@ -159,6 +167,7 @@ class LoggerDataCollector extends DataCollector implements LateDataCollectorInte
      */
     public function getName()
     {
+
         return 'logger';
     }
 }

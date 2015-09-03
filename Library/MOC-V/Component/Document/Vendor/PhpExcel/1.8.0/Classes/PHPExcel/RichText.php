@@ -50,7 +50,7 @@ class PHPExcel_RichText implements PHPExcel_IComparable
      *
      * @throws PHPExcel_Exception
      */
-    public function __construct( PHPExcel_Cell $pCell = null )
+    public function __construct(PHPExcel_Cell $pCell = null)
     {
 
         // Initialise variables
@@ -60,13 +60,13 @@ class PHPExcel_RichText implements PHPExcel_IComparable
         if ($pCell !== null) {
             // Add cell text and style
             if ($pCell->getValue() != "") {
-                $objRun = new PHPExcel_RichText_Run( $pCell->getValue() );
-                $objRun->setFont( clone $pCell->getParent()->getStyle( $pCell->getCoordinate() )->getFont() );
-                $this->addText( $objRun );
+                $objRun = new PHPExcel_RichText_Run($pCell->getValue());
+                $objRun->setFont(clone $pCell->getParent()->getStyle($pCell->getCoordinate())->getFont());
+                $this->addText($objRun);
             }
 
             // Set parent value
-            $pCell->setValueExplicit( $this, PHPExcel_Cell_DataType::TYPE_STRING );
+            $pCell->setValueExplicit($this, PHPExcel_Cell_DataType::TYPE_STRING);
         }
     }
 
@@ -78,7 +78,7 @@ class PHPExcel_RichText implements PHPExcel_IComparable
      * @throws PHPExcel_Exception
      * @return PHPExcel_RichText
      */
-    public function addText( PHPExcel_RichText_ITextElement $pText = null )
+    public function addText(PHPExcel_RichText_ITextElement $pText = null)
     {
 
         $this->_richTextElements[] = $pText;
@@ -93,11 +93,11 @@ class PHPExcel_RichText implements PHPExcel_IComparable
      * @return PHPExcel_RichText_TextElement
      * @throws PHPExcel_Exception
      */
-    public function createText( $pText = '' )
+    public function createText($pText = '')
     {
 
-        $objText = new PHPExcel_RichText_TextElement( $pText );
-        $this->addText( $objText );
+        $objText = new PHPExcel_RichText_TextElement($pText);
+        $this->addText($objText);
         return $objText;
     }
 
@@ -109,11 +109,11 @@ class PHPExcel_RichText implements PHPExcel_IComparable
      * @return PHPExcel_RichText_Run
      * @throws PHPExcel_Exception
      */
-    public function createTextRun( $pText = '' )
+    public function createTextRun($pText = '')
     {
 
-        $objText = new PHPExcel_RichText_Run( $pText );
-        $this->addText( $objText );
+        $objText = new PHPExcel_RichText_Run($pText);
+        $this->addText($objText);
         return $objText;
     }
 
@@ -167,13 +167,13 @@ class PHPExcel_RichText implements PHPExcel_IComparable
      * @throws PHPExcel_Exception
      * @return PHPExcel_RichText
      */
-    public function setRichTextElements( $pElements = null )
+    public function setRichTextElements($pElements = null)
     {
 
-        if (is_array( $pElements )) {
+        if (is_array($pElements)) {
             $this->_richTextElements = $pElements;
         } else {
-            throw new PHPExcel_Exception( "Invalid PHPExcel_RichText_ITextElement[] array passed." );
+            throw new PHPExcel_Exception("Invalid PHPExcel_RichText_ITextElement[] array passed.");
         }
         return $this;
     }
@@ -203,9 +203,9 @@ class PHPExcel_RichText implements PHPExcel_IComparable
     public function __clone()
     {
 
-        $vars = get_object_vars( $this );
+        $vars = get_object_vars($this);
         foreach ($vars as $key => $value) {
-            if (is_object( $value )) {
+            if (is_object($value)) {
                 $this->$key = clone $value;
             } else {
                 $this->$key = $value;

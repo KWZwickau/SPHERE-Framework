@@ -23,8 +23,10 @@ use Doctrine\DBAL\Sharding\ShardChoser\MultiTenantShardChoser;
 
 class MultiTenantShardChoserTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testPickShard()
     {
+
         $choser = new MultiTenantShardChoser();
         $conn = $this->createConnectionMock();
 
@@ -34,7 +36,9 @@ class MultiTenantShardChoserTest extends \PHPUnit_Framework_TestCase
 
     private function createConnectionMock()
     {
-        return $this->getMock('Doctrine\DBAL\Sharding\PoolingShardConnection', array('connect', 'getParams', 'fetchAll'), array(), '', false);
+
+        return $this->getMock('Doctrine\DBAL\Sharding\PoolingShardConnection',
+            array('connect', 'getParams', 'fetchAll'), array(), '', false);
     }
 }
 

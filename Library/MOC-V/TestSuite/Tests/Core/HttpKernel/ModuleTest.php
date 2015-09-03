@@ -16,17 +16,17 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         /** @var \MOC\V\Core\HttpKernel\Component\Bridge\Bridge $MockBridge */
-        $MockBridge = $this->getMockBuilder( 'MOC\V\Core\HttpKernel\Component\Bridge\Bridge' )->getMock();
-        $Vendor = new Vendor( new $MockBridge );
-        $Module = new HttpKernel( $Vendor );
+        $MockBridge = $this->getMockBuilder('MOC\V\Core\HttpKernel\Component\Bridge\Bridge')->getMock();
+        $Vendor = new Vendor(new $MockBridge);
+        $Module = new HttpKernel($Vendor);
 
-        $this->assertInstanceOf( 'MOC\V\Core\HttpKernel\Component\IVendorInterface',
+        $this->assertInstanceOf('MOC\V\Core\HttpKernel\Component\IVendorInterface',
             $Module->getVendorInterface()
         );
-        $this->assertInstanceOf( 'MOC\V\Core\HttpKernel\Component\IVendorInterface',
-            $Module->setBridgeInterface( $MockBridge )
+        $this->assertInstanceOf('MOC\V\Core\HttpKernel\Component\IVendorInterface',
+            $Module->setBridgeInterface($MockBridge)
         );
-        $this->assertInstanceOf( 'MOC\V\Core\HttpKernel\Component\IBridgeInterface',
+        $this->assertInstanceOf('MOC\V\Core\HttpKernel\Component\IBridgeInterface',
             $Module->getBridgeInterface()
         );
     }
@@ -35,14 +35,14 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     {
 
         $Request = HttpKernel::getUniversalRequest();
-        $this->assertInstanceOf( 'MOC\V\Core\HttpKernel\Component\IBridgeInterface', $Request );
+        $this->assertInstanceOf('MOC\V\Core\HttpKernel\Component\IBridgeInterface', $Request);
     }
 
     public function testStaticRequest()
     {
 
         $Request = HttpKernel::getRequest();
-        $this->assertInstanceOf( 'MOC\V\Core\HttpKernel\Component\IBridgeInterface', $Request );
+        $this->assertInstanceOf('MOC\V\Core\HttpKernel\Component\IBridgeInterface', $Request);
     }
 
 }

@@ -20,14 +20,17 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 
 class ContainerAwareHttpKernelTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @dataProvider getProviderTypes
      */
     public function testHandle($type)
     {
+
         $request = new Request();
         $expected = new Response();
         $controller = function () use ($expected) {
+
             return $expected;
         };
 
@@ -36,8 +39,7 @@ class ContainerAwareHttpKernelTest extends \PHPUnit_Framework_TestCase
             ->expectsEnterScopeOnce($container)
             ->expectsLeaveScopeOnce($container)
             ->expectsSetRequestWithAt($container, $request, 3)
-            ->expectsSetRequestWithAt($container, null, 4)
-        ;
+            ->expectsSetRequestWithAt($container, null, 4);
 
         $dispatcher = new EventDispatcher();
         $resolver = $this->getResolverMockFor($controller, $request);
@@ -49,51 +51,40 @@ class ContainerAwareHttpKernelTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expected, $actual, '->handle() returns the response');
     }
 
-    private function expectsSetRequestWithAt( $container, $with, $at )
+    private function expectsLeaveScopeOnce($container)
     {
 
         $container
-            ->expects( $this->at( $at ) )
-            ->method( 'set' )
-            ->with( $this->equalTo( 'request' ), $this->equalTo( $with ), $this->equalTo( 'request' ) );
+            ->expects($this->once())
+            ->method('leaveScope')
+            ->with($this->equalTo('request'));
 
         return $this;
     }
 
-    private function expectsLeaveScopeOnce( $container )
+    private function expectsEnterScopeOnce($container)
     {
 
         $container
-            ->expects( $this->once() )
-            ->method( 'leaveScope' )
-            ->with( $this->equalTo( 'request' ) );
+            ->expects($this->once())
+            ->method('enterScope')
+            ->with($this->equalTo('request'));
 
         return $this;
     }
 
-    private function expectsEnterScopeOnce( $container )
+    private function getResolverMockFor($controller, $request)
     {
 
-        $container
-            ->expects( $this->once() )
-            ->method( 'enterScope' )
-            ->with( $this->equalTo( 'request' ) );
-
-        return $this;
-    }
-
-    private function getResolverMockFor( $controller, $request )
-    {
-
-        $resolver = $this->getMock( 'Symfony\\Component\\HttpKernel\\Controller\\ControllerResolverInterface' );
-        $resolver->expects( $this->once() )
-            ->method( 'getController' )
-            ->with( $request )
-            ->will( $this->returnValue( $controller ) );
-        $resolver->expects( $this->once() )
-            ->method( 'getArguments' )
-            ->with( $request, $controller )
-            ->will( $this->returnValue( array() ) );
+        $resolver = $this->getMock('Symfony\\Component\\HttpKernel\\Controller\\ControllerResolverInterface');
+        $resolver->expects($this->once())
+            ->method('getController')
+            ->with($request)
+            ->will($this->returnValue($controller));
+        $resolver->expects($this->once())
+            ->method('getArguments')
+            ->with($request, $controller)
+            ->will($this->returnValue(array()));
 
         return $resolver;
     }
@@ -103,9 +94,11 @@ class ContainerAwareHttpKernelTest extends \PHPUnit_Framework_TestCase
      */
     public function testVerifyRequestStackPushPopDuringHandle($type)
     {
+
         $request = new Request();
         $expected = new Response();
         $controller = function () use ($expected) {
+
             return $expected;
         };
 
@@ -126,9 +119,11 @@ class ContainerAwareHttpKernelTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandleRestoresThePreviousRequestOnException($type)
     {
+
         $request = new Request();
         $expected = new \Exception();
         $controller = function () use ($expected) {
+
             throw $expected;
         };
 
@@ -137,8 +132,7 @@ class ContainerAwareHttpKernelTest extends \PHPUnit_Framework_TestCase
             ->expectsEnterScopeOnce($container)
             ->expectsLeaveScopeOnce($container)
             ->expectsSetRequestWithAt($container, $request, 3)
-            ->expectsSetRequestWithAt($container, null, 4)
-        ;
+            ->expectsSetRequestWithAt($container, null, 4);
 
         $dispatcher = new EventDispatcher();
         $resolver = $this->getMock('Symfony\\Component\\HttpKernel\\Controller\\ControllerResolverInterface');
@@ -158,9 +152,21 @@ class ContainerAwareHttpKernelTest extends \PHPUnit_Framework_TestCase
 
     public function getProviderTypes()
     {
+
         return array(
             array(HttpKernelInterface::MASTER_REQUEST),
             array(HttpKernelInterface::SUB_REQUEST),
         );
+    }
+
+    private function expectsSetRequestWithAt($container, $with, $at)
+    {
+
+        $container
+            ->expects($this->at($at))
+            ->method('set')
+            ->with($this->equalTo('request'), $this->equalTo($with), $this->equalTo('request'));
+
+        return $this;
     }
 }

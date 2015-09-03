@@ -5,15 +5,17 @@ namespace Doctrine\Tests\DBAL\Functional\Schema;
 use Doctrine\DBAL\Schema;
 use Doctrine\Tests\TestUtil;
 
-require_once __DIR__ . '/../../../TestInit.php';
+require_once __DIR__.'/../../../TestInit.php';
 
 class OracleSchemaManagerTest extends SchemaManagerFunctionalTestCase
 {
+
     public function setUp()
     {
+
         parent::setUp();
 
-        if(!isset($GLOBALS['db_username'])) {
+        if (!isset( $GLOBALS['db_username'] )) {
             $this->markTestSkipped('Foo');
         }
 
@@ -27,6 +29,7 @@ class OracleSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testRenameTable()
     {
+
         $this->_sm->tryMethod('DropTable', 'list_tables_test');
         $this->_sm->tryMethod('DropTable', 'list_tables_test_new_name');
 
@@ -40,6 +43,7 @@ class OracleSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testListTableWithBinary()
     {
+
         $tableName = 'test_binary_table';
 
         $table = new \Doctrine\DBAL\Schema\Table($tableName);
@@ -65,9 +69,10 @@ class OracleSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testAlterTableColumnNotNull()
     {
+
         $comparator = new Schema\Comparator();
-        $tableName  = 'list_table_column_notnull';
-        $table      = new Schema\Table($tableName);
+        $tableName = 'list_table_column_notnull';
+        $table = new Schema\Table($tableName);
 
         $table->addColumn('id', 'integer');
         $table->addColumn('foo', 'integer');
@@ -97,6 +102,7 @@ class OracleSchemaManagerTest extends SchemaManagerFunctionalTestCase
 
     public function testListDatabases()
     {
+
         // We need the temp connection that has privileges to create a database.
         $sm = TestUtil::getTempConnection()->getSchemaManager();
 
@@ -113,6 +119,7 @@ class OracleSchemaManagerTest extends SchemaManagerFunctionalTestCase
      */
     public function testListTableDetailsWithDifferentIdentifierQuotingRequirements()
     {
+
         $primaryTableName = '"Primary_Table"';
         $offlinePrimaryTable = new Schema\Table($primaryTableName);
         $offlinePrimaryTable->addColumn(

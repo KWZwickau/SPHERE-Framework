@@ -19,18 +19,19 @@
 
 namespace Doctrine\ORM\Persisters\Entity;
 
-use Doctrine\ORM\PersistentCollection;
 use Doctrine\Common\Collections\Criteria;
+use Doctrine\ORM\PersistentCollection;
 
 /**
  * Entity persister interface
  * Define the behavior that should be implemented by all entity persisters.
  *
  * @author Fabio B. Silva <fabio.bat.silva@gmail.com>
- * @since 2.5
+ * @since  2.5
  */
 interface EntityPersister
 {
+
     /**
      * @return \Doctrine\ORM\Mapping\ClassMetadata
      */
@@ -47,10 +48,10 @@ interface EntityPersister
      * Get all queued inserts.
      *
      * @return array
-    */
+     */
     public function getInserts();
 
-     /**
+    /**
      * @TODO - It should not be here.
      * But its necessary since JoinedSubclassPersister#executeInserts invoke the root persister.
      *
@@ -72,12 +73,20 @@ interface EntityPersister
      *
      * @return string
      */
-    public function getSelectSQL($criteria, $assoc = null, $lockMode = null, $limit = null, $offset = null, array $orderBy = null);
+    public function getSelectSQL(
+        $criteria,
+        $assoc = null,
+        $lockMode = null,
+        $limit = null,
+        $offset = null,
+        array $orderBy = null
+    );
 
     /**
      * Get the COUNT SQL to count entities (optionally based on a criteria)
      *
      * @param  array|\Doctrine\Common\Collections\Criteria $criteria
+     *
      * @return string
      */
     public function getCountSQL($criteria = array());
@@ -196,13 +205,21 @@ interface EntityPersister
      *
      * @todo Check identity map? loadById method? Try to guess whether $criteria is the id?
      */
-    public function load(array $criteria, $entity = null, $assoc = null, array $hints = array(), $lockMode = null, $limit = null, array $orderBy = null);
+    public function load(
+        array $criteria,
+        $entity = null,
+        $assoc = null,
+        array $hints = array(),
+        $lockMode = null,
+        $limit = null,
+        array $orderBy = null
+    );
 
     /**
      * Loads an entity by identifier.
      *
-     * @param array       $identifier   The entity identifier.
-     * @param object|null $entity       The entity to load the data into. If not specified, a new entity is created.
+     * @param array       $identifier The entity identifier.
+     * @param object|null $entity     The entity to load the data into. If not specified, a new entity is created.
      *
      * @return object The loaded and managed entity instance or NULL if the entity can not be found.
      *
@@ -278,7 +295,7 @@ interface EntityPersister
      *
      * @param array                $assoc        The association mapping of the association being loaded.
      * @param object               $sourceEntity The entity that owns the collection.
-     * @param PersistentCollection $collection         The collection to fill.
+     * @param PersistentCollection $collection The collection to fill.
      *
      * @return array
      */
@@ -289,7 +306,7 @@ interface EntityPersister
      *
      * @param array                $assoc
      * @param object               $sourceEntity
-     * @param PersistentCollection $collection         The collection to load/fill.
+     * @param PersistentCollection $collection The collection to load/fill.
      *
      * @return array
      */

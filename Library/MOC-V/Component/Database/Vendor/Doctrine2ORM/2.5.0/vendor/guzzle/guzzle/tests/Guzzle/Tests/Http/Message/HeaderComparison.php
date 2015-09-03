@@ -10,6 +10,7 @@ use Guzzle\Http\Message\Header\HeaderCollection;
  */
 class HeaderComparison
 {
+
     /**
      * Compare HTTP headers and use special markup to filter values
      * A header prefixed with '!' means it must not exist
@@ -23,6 +24,7 @@ class HeaderComparison
      */
     public function compare($filteredHeaders, $actualHeaders)
     {
+
         $expected = array();
         $ignore = array();
         $absent = array();
@@ -58,13 +60,14 @@ class HeaderComparison
      */
     public function compareArray(array $expected, $actual, array $ignore = array(), array $absent = array())
     {
+
         $differences = array();
 
         // Add information about headers that were present but weren't supposed to be
         foreach ($absent as $header) {
             if ($this->hasKey($header, $actual)) {
                 $differences["++ {$header}"] = $actual[$header];
-                unset($actual[$header]);
+                unset( $actual[$header] );
             }
         }
 
@@ -98,14 +101,16 @@ class HeaderComparison
             $lkey = strtolower($key);
             $pos = is_string($expected[$lkey]) ? strpos($expected[$lkey], '*') : false;
 
-            foreach ((array) $actual[$key] as $v) {
-                if (($pos === false && $v != $expected[$lkey]) || $pos > 0 && substr($v, 0, $pos) != substr($expected[$lkey], 0, $pos)) {
+            foreach ((array)$actual[$key] as $v) {
+                if (( $pos === false && $v != $expected[$lkey] ) || $pos > 0 && substr($v, 0,
+                        $pos) != substr($expected[$lkey], 0, $pos)
+                ) {
                     $differences[$key] = "{$value} != {$expected[$lkey]}";
                 }
             }
         }
 
-        return empty($differences) ? false : $differences;
+        return empty( $differences ) ? false : $differences;
     }
 
     /**
@@ -118,6 +123,7 @@ class HeaderComparison
      */
     protected function hasKey($key, $array)
     {
+
         if ($array instanceof Collection) {
             $keys = $array->getKeys();
         } else {

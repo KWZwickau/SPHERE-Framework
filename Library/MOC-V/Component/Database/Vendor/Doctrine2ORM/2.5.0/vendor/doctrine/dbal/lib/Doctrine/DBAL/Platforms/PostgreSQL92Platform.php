@@ -28,11 +28,13 @@ namespace Doctrine\DBAL\Platforms;
  */
 class PostgreSQL92Platform extends PostgreSQL91Platform
 {
+
     /**
      * {@inheritdoc}
      */
     public function getJsonTypeDeclarationSQL(array $field)
     {
+
         return 'JSON';
     }
 
@@ -41,7 +43,8 @@ class PostgreSQL92Platform extends PostgreSQL91Platform
      */
     public function getSmallIntTypeDeclarationSQL(array $field)
     {
-        if ( ! empty($field['autoincrement'])) {
+
+        if (!empty( $field['autoincrement'] )) {
             return 'SMALLSERIAL';
         }
 
@@ -53,6 +56,7 @@ class PostgreSQL92Platform extends PostgreSQL91Platform
      */
     public function hasNativeJsonType()
     {
+
         return true;
     }
 
@@ -61,6 +65,7 @@ class PostgreSQL92Platform extends PostgreSQL91Platform
      */
     protected function getReservedKeywordsClass()
     {
+
         return 'Doctrine\DBAL\Platforms\Keywords\PostgreSQL92Keywords';
     }
 
@@ -69,6 +74,7 @@ class PostgreSQL92Platform extends PostgreSQL91Platform
      */
     protected function initializeDoctrineTypeMappings()
     {
+
         parent::initializeDoctrineTypeMappings();
         $this->doctrineTypeMapping['json'] = 'json_array';
     }

@@ -7,6 +7,7 @@ namespace Guzzle\Common\Exception;
  */
 class ExceptionCollection extends \Exception implements GuzzleException, \IteratorAggregate, \Countable
 {
+
     /** @var array Array of Exceptions */
     protected $exceptions = array();
 
@@ -15,6 +16,7 @@ class ExceptionCollection extends \Exception implements GuzzleException, \Iterat
 
     public function __construct($message = '', $code = 0, \Exception $previous = null)
     {
+
         parent::__construct($message, $code, $previous);
         $this->shortMessage = $message;
     }
@@ -28,6 +30,7 @@ class ExceptionCollection extends \Exception implements GuzzleException, \Iterat
      */
     public function setExceptions(array $exceptions)
     {
+
         $this->exceptions = array();
         foreach ($exceptions as $exception) {
             $this->add($exception);
@@ -45,6 +48,7 @@ class ExceptionCollection extends \Exception implements GuzzleException, \Iterat
      */
     public function add($e)
     {
+
         $this->exceptions[] = $e;
         if ($this->message) {
             $this->message .= "\n";
@@ -55,6 +59,28 @@ class ExceptionCollection extends \Exception implements GuzzleException, \Iterat
         return $this;
     }
 
+    private function getExceptionMessage(\Exception $e, $depth = 0)
+    {
+
+        static $sp = '    ';
+        $prefix = $depth ? str_repeat($sp, $depth) : '';
+        $message = "{$prefix}(".get_class($e).') '.$e->getFile().' line '.$e->getLine()."\n";
+
+        if ($e instanceof self) {
+            if ($e->shortMessage) {
+                $message .= "\n{$prefix}{$sp}".str_replace("\n", "\n{$prefix}{$sp}", $e->shortMessage)."\n";
+            }
+            foreach ($e as $ee) {
+                $message .= "\n".$this->getExceptionMessage($ee, $depth + 1);
+            }
+        } else {
+            $message .= "\n{$prefix}{$sp}".str_replace("\n", "\n{$prefix}{$sp}", $e->getMessage())."\n";
+            $message .= "\n{$prefix}{$sp}".str_replace("\n", "\n{$prefix}{$sp}", $e->getTraceAsString())."\n";
+        }
+
+        return str_replace(getcwd(), '.', $message);
+    }
+
     /**
      * Get the total number of request exceptions
      *
@@ -62,6 +88,7 @@ class ExceptionCollection extends \Exception implements GuzzleException, \Iterat
      */
     public function count()
     {
+
         return count($this->exceptions);
     }
 
@@ -72,6 +99,7 @@ class ExceptionCollection extends \Exception implements GuzzleException, \Iterat
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->exceptions);
     }
 
@@ -82,27 +110,7 @@ class ExceptionCollection extends \Exception implements GuzzleException, \Iterat
      */
     public function getFirst()
     {
+
         return $this->exceptions ? $this->exceptions[0] : null;
-    }
-
-    private function getExceptionMessage(\Exception $e, $depth = 0)
-    {
-        static $sp = '    ';
-        $prefix = $depth ? str_repeat($sp, $depth) : '';
-        $message = "{$prefix}(" . get_class($e) . ') ' . $e->getFile() . ' line ' . $e->getLine() . "\n";
-
-        if ($e instanceof self) {
-            if ($e->shortMessage) {
-                $message .= "\n{$prefix}{$sp}" . str_replace("\n", "\n{$prefix}{$sp}", $e->shortMessage) . "\n";
-            }
-            foreach ($e as $ee) {
-                $message .= "\n" . $this->getExceptionMessage($ee, $depth + 1);
-            }
-        }  else {
-            $message .= "\n{$prefix}{$sp}" . str_replace("\n", "\n{$prefix}{$sp}", $e->getMessage()) . "\n";
-            $message .= "\n{$prefix}{$sp}" . str_replace("\n", "\n{$prefix}{$sp}", $e->getTraceAsString()) . "\n";
-        }
-
-        return str_replace(getcwd(), '.', $message);
     }
 }

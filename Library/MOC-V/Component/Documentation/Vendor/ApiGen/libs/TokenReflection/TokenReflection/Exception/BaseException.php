@@ -87,7 +87,7 @@ abstract class BaseException extends RuntimeException
 
         return sprintf(
             "exception '%s'%s in %s on line %d\n%s\nStack trace:\n%s",
-            get_class( $this ),
+            get_class($this),
             $this->getMessage() ? " with message '".$this->getMessage()."'" : '',
             $this->getFile(),
             $this->getLine(),

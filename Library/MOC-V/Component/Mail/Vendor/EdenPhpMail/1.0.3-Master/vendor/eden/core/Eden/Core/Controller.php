@@ -7,8 +7,8 @@
  * distributed with this package.
  */
 
-namespace
-{
+namespace {
+
     /**
      * The starting point of every framework call.
      *
@@ -23,11 +23,12 @@ namespace
         }
 
         $args = func_get_args();
-        return $class->__invoke( $args );
+        return $class->__invoke($args);
     }
 }
 
 namespace Eden\Core {
+
     /**
      * Defines the starting point of every framework call.
      * Starts laying out how classes and methods are handled.
@@ -74,12 +75,12 @@ namespace Eden\Core {
          *
          * @return Eden\Core\Controller
          */
-        public function setTimezone( $zone = 'GMT' )
+        public function setTimezone($zone = 'GMT')
         {
 
-            Argument::i()->test( 1, 'string' );
+            Argument::i()->test(1, 'string');
 
-            date_default_timezone_set( $zone );
+            date_default_timezone_set($zone);
 
             return $this;
         }

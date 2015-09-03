@@ -44,6 +44,6 @@ interface IComponent
      *
      * @return void
      */
-    function setParent( IContainer $parent = null, $name = null );
+    function setParent(IContainer $parent = null, $name = null);
 
 }

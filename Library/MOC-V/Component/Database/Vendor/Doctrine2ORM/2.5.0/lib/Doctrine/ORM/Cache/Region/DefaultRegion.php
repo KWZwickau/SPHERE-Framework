@@ -36,6 +36,7 @@ use Doctrine\ORM\Cache\Region;
  */
 class DefaultRegion implements Region
 {
+
     /**
      * @var CacheAdapter
      */
@@ -58,9 +59,10 @@ class DefaultRegion implements Region
      */
     public function __construct($name, CacheAdapter $cache, $lifetime = 0)
     {
-        $this->cache    = $cache;
-        $this->name     = (string) $name;
-        $this->lifetime = (integer) $lifetime;
+
+        $this->cache = $cache;
+        $this->name = (string)$name;
+        $this->lifetime = (integer)$lifetime;
     }
 
     /**
@@ -68,6 +70,7 @@ class DefaultRegion implements Region
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -76,6 +79,7 @@ class DefaultRegion implements Region
      */
     public function getCache()
     {
+
         return $this->cache;
     }
 
@@ -84,7 +88,8 @@ class DefaultRegion implements Region
      */
     public function contains(CacheKey $key)
     {
-        return $this->cache->contains($this->name . '_' . $key->hash);
+
+        return $this->cache->contains($this->name.'_'.$key->hash);
     }
 
     /**
@@ -92,7 +97,8 @@ class DefaultRegion implements Region
      */
     public function get(CacheKey $key)
     {
-        return $this->cache->fetch($this->name . '_' . $key->hash) ?: null;
+
+        return $this->cache->fetch($this->name.'_'.$key->hash) ?: null;
     }
 
     /**
@@ -100,15 +106,17 @@ class DefaultRegion implements Region
      */
     public function getMultiple(CollectionCacheEntry $collection)
     {
+
         $keysToRetrieve = array();
 
         foreach ($collection->identifiers as $index => $key) {
-            $keysToRetrieve[$index] = $this->name . '_' . $key->hash;
+            $keysToRetrieve[$index] = $this->name.'_'.$key->hash;
         }
 
         $items = array_filter(
             array_map([$this->cache, 'fetch'], $keysToRetrieve),
             function ($retrieved) {
+
                 return false !== $retrieved;
             }
         );
@@ -131,7 +139,8 @@ class DefaultRegion implements Region
      */
     public function put(CacheKey $key, CacheEntry $entry, Lock $lock = null)
     {
-        return $this->cache->save($this->name . '_' . $key->hash, $entry, $this->lifetime);
+
+        return $this->cache->save($this->name.'_'.$key->hash, $entry, $this->lifetime);
     }
 
     /**
@@ -139,7 +148,8 @@ class DefaultRegion implements Region
      */
     public function evict(CacheKey $key)
     {
-        return $this->cache->delete($this->name . '_' . $key->hash);
+
+        return $this->cache->delete($this->name.'_'.$key->hash);
     }
 
     /**
@@ -147,7 +157,8 @@ class DefaultRegion implements Region
      */
     public function evictAll()
     {
-        if (! $this->cache instanceof ClearableCache) {
+
+        if (!$this->cache instanceof ClearableCache) {
             throw new \BadMethodCallException(sprintf(
                 'Clearing all cache entries is not supported by the supplied cache adapter of type %s',
                 get_class($this->cache)

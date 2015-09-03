@@ -54,11 +54,11 @@ class Configurator extends Nette\Object
     {
 
         $trace = /*5.2*PHP_VERSION_ID < 50205 ? debug_backtrace() : */
-            debug_backtrace( false );
+            debug_backtrace(false);
         $debugMode = static::detectDebugMode();
         return array(
-            'appDir'         => isset( $trace[1]['file'] ) ? dirname( $trace[1]['file'] ) : null,
-            'wwwDir'         => isset( $_SERVER['SCRIPT_FILENAME'] ) ? dirname( $_SERVER['SCRIPT_FILENAME'] ) : null,
+            'appDir' => isset( $trace[1]['file'] ) ? dirname($trace[1]['file']) : null,
+            'wwwDir' => isset( $_SERVER['SCRIPT_FILENAME'] ) ? dirname($_SERVER['SCRIPT_FILENAME']) : null,
             'debugMode'      => $debugMode,
             'productionMode' => !$debugMode,
             'environment'    => $debugMode ? self::DEVELOPMENT : self::PRODUCTION,
@@ -77,22 +77,22 @@ class Configurator extends Nette\Object
      *
      * @return bool
      */
-    public static function detectDebugMode( $list = null )
+    public static function detectDebugMode($list = null)
     {
 
-        $list = is_string( $list ) ? preg_split( '#[,\s]+#', $list ) : (array)$list;
+        $list = is_string($list) ? preg_split('#[,\s]+#', $list) : (array)$list;
         if (!isset( $_SERVER['HTTP_X_FORWARDED_FOR'] )) {
             $list[] = '127.0.0.1';
             $list[] = '::1';
         }
-        return in_array( isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : php_uname( 'n' ), $list, true );
+        return in_array(isset( $_SERVER['REMOTE_ADDR'] ) ? $_SERVER['REMOTE_ADDR'] : php_uname('n'), $list, true);
     }
 
     /** @deprecated */
-    public static function detectProductionMode( $list = null )
+    public static function detectProductionMode($list = null)
     {
 
-        return !static::detectDebugMode( $list );
+        return !static::detectDebugMode($list);
     }
 
     /**
@@ -100,12 +100,12 @@ class Configurator extends Nette\Object
      *
      * @return Configurator  provides a fluent interface
      */
-    public function setTempDirectory( $path )
+    public function setTempDirectory($path)
     {
 
         $this->parameters['tempDir'] = $path;
-        if (( $cacheDir = $this->getCacheDirectory() ) && !is_dir( $cacheDir )) {
-            mkdir( $cacheDir, 0777 );
+        if (( $cacheDir = $this->getCacheDirectory() ) && !is_dir($cacheDir)) {
+            mkdir($cacheDir, 0777);
         }
         return $this;
     }
@@ -121,10 +121,10 @@ class Configurator extends Nette\Object
      *
      * @return Configurator  provides a fluent interface
      */
-    public function addParameters( array $params )
+    public function addParameters(array $params)
     {
 
-        $this->parameters = Helpers::merge( $params, $this->parameters );
+        $this->parameters = Helpers::merge($params, $this->parameters);
         return $this;
     }
 
@@ -134,11 +134,11 @@ class Configurator extends Nette\Object
      *
      * @return void
      */
-    public function enableDebugger( $logDirectory = null, $email = null )
+    public function enableDebugger($logDirectory = null, $email = null)
     {
 
         Nette\Diagnostics\Debugger::$strictMode = true;
-        Nette\Diagnostics\Debugger::enable( $this->parameters['productionMode'], $logDirectory, $email );
+        Nette\Diagnostics\Debugger::enable($this->parameters['productionMode'], $logDirectory, $email);
     }
 
     /**
@@ -148,21 +148,21 @@ class Configurator extends Nette\Object
     {
 
         if (!( $cacheDir = $this->getCacheDirectory() )) {
-            throw new Nette\InvalidStateException( "Set path to temporary directory using setTempDirectory()." );
+            throw new Nette\InvalidStateException("Set path to temporary directory using setTempDirectory().");
         }
         $loader = new Nette\Loaders\RobotLoader;
-        $loader->setCacheStorage( new Nette\Caching\Storages\FileStorage( $cacheDir ) );
+        $loader->setCacheStorage(new Nette\Caching\Storages\FileStorage($cacheDir));
         $loader->autoRebuild = !$this->parameters['productionMode'];
         return $loader;
     }
 
     /** @deprecated */
-    public function loadConfig( $file, $section = null )
+    public function loadConfig($file, $section = null)
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use addConfig(file, [section])->createContainer() instead.',
-            E_USER_WARNING );
-        return $this->addConfig( $file, $section )->createContainer();
+        trigger_error(__METHOD__.'() is deprecated; use addConfig(file, [section])->createContainer() instead.',
+            E_USER_WARNING);
+        return $this->addConfig($file, $section)->createContainer();
     }
 
 
@@ -175,28 +175,28 @@ class Configurator extends Nette\Object
     {
 
         if ($cacheDir = $this->getCacheDirectory()) {
-            $cache = new Cache( new Nette\Caching\Storages\PhpFileStorage( $cacheDir ), 'Nette.Configurator' );
-            $cacheKey = array( $this->parameters, $this->files );
-            $cached = $cache->load( $cacheKey );
+            $cache = new Cache(new Nette\Caching\Storages\PhpFileStorage($cacheDir), 'Nette.Configurator');
+            $cacheKey = array($this->parameters, $this->files);
+            $cached = $cache->load($cacheKey);
             if (!$cached) {
-                $code = $this->buildContainer( $dependencies );
-                $cache->save( $cacheKey, $code, array(
+                $code = $this->buildContainer($dependencies);
+                $cache->save($cacheKey, $code, array(
                     Cache::FILES => $dependencies,
-                ) );
-                $cached = $cache->load( $cacheKey );
+                ));
+                $cached = $cache->load($cacheKey);
             }
-            Nette\Utils\LimitedScope::load( $cached['file'], true );
+            Nette\Utils\LimitedScope::load($cached['file'], true);
 
         } elseif ($this->files) {
-            throw new Nette\InvalidStateException( "Set path to temporary directory using setTempDirectory()." );
+            throw new Nette\InvalidStateException("Set path to temporary directory using setTempDirectory().");
 
         } else {
-            Nette\Utils\LimitedScope::evaluate( $this->buildContainer() ); // back compatibility with Environment
+            Nette\Utils\LimitedScope::evaluate($this->buildContainer()); // back compatibility with Environment
         }
 
-        $container = new $this->parameters['container'][ 'class' ];
+        $container = new $this->parameters['container']['class'];
 		$container->initialize();
-		Nette\Environment::setContext( $container ); // back compatibility
+		Nette\Environment::setContext($container); // back compatibility
 		return $container;
 	}
 
@@ -206,7 +206,7 @@ class Configurator extends Nette\Object
      *
      * @return string
      */
-    protected function buildContainer( & $dependencies = null )
+    protected function buildContainer(& $dependencies = null)
     {
 
         $loader = $this->createLoader();
@@ -214,28 +214,28 @@ class Configurator extends Nette\Object
         $code = "<?php\n";
         foreach ($this->files as $tmp) {
             list( $file, $section ) = $tmp;
-            $config = Helpers::merge( $loader->load( $file, $section ), $config );
+            $config = Helpers::merge($loader->load($file, $section), $config);
             $code .= "// source: $file $section\n";
         }
         $code .= "\n";
 
-        $this->checkCompatibility( $config );
+        $this->checkCompatibility($config);
 
         if (!isset( $config['parameters'] )) {
             $config['parameters'] = array();
         }
-        $config['parameters'] = Helpers::merge( $config['parameters'], $this->parameters );
+        $config['parameters'] = Helpers::merge($config['parameters'], $this->parameters);
 
         $compiler = $this->createCompiler();
-        $this->onCompile( $this, $compiler );
+        $this->onCompile($this, $compiler);
 
         $code .= $compiler->compile(
             $config,
             $this->parameters['container']['class'],
             $config['parameters']['container']['parent']
         );
-        $dependencies = array_merge( $loader->getDependencies(),
-            $this->isDebugMode() ? $compiler->getContainerBuilder()->getDependencies() : array() );
+        $dependencies = array_merge($loader->getDependencies(),
+            $this->isDebugMode() ? $compiler->getContainerBuilder()->getDependencies() : array());
         return $code;
     }
 
@@ -248,24 +248,25 @@ class Configurator extends Nette\Object
         return new Loader;
     }
 
-    protected function checkCompatibility( array $config )
+    protected function checkCompatibility(array $config)
     {
 
-        foreach (array( 'service'   => 'services',
-                        'variable'  => 'parameters',
-                        'variables' => 'parameters',
-                        'mode'      => 'parameters',
-                        'const'     => 'constants'
+        foreach (array(
+                     'service'   => 'services',
+                     'variable'  => 'parameters',
+                     'variables' => 'parameters',
+                     'mode'      => 'parameters',
+                     'const'     => 'constants'
                  ) as $old => $new) {
             if (isset( $config[$old] )) {
-                throw new Nette\DeprecatedException( "Section '$old' in configuration file is deprecated; use '$new' instead." );
+                throw new Nette\DeprecatedException("Section '$old' in configuration file is deprecated; use '$new' instead.");
             }
         }
         if (isset( $config['services'] )) {
             foreach ($config['services'] as $key => $def) {
-                foreach (array( 'option' => 'arguments', 'methods' => 'setup' ) as $old => $new) {
-                    if (is_array( $def ) && isset( $def[$old] )) {
-                        throw new Nette\DeprecatedException( "Section '$old' in service definition is deprecated; refactor it into '$new'." );
+                foreach (array('option' => 'arguments', 'methods' => 'setup') as $old => $new) {
+                    if (is_array($def) && isset( $def[$old] )) {
+                        throw new Nette\DeprecatedException("Section '$old' in service definition is deprecated; refactor it into '$new'.");
                     }
                 }
             }
@@ -279,9 +280,9 @@ class Configurator extends Nette\Object
     {
 
         $compiler = new Compiler;
-        $compiler->addExtension( 'php', new Extensions\PhpExtension )
-            ->addExtension( 'constants', new Extensions\ConstantsExtension )
-            ->addExtension( 'nette', new Extensions\NetteExtension );
+        $compiler->addExtension('php', new Extensions\PhpExtension)
+            ->addExtension('constants', new Extensions\ConstantsExtension)
+            ->addExtension('nette', new Extensions\NetteExtension);
         return $compiler;
     }
 
@@ -303,18 +304,18 @@ class Configurator extends Nette\Object
      *
      * @return Configurator  provides a fluent interface
      */
-    public function addConfig( $file, $section = self::AUTO )
+    public function addConfig($file, $section = self::AUTO)
     {
 
-        $this->files[] = array( $file, $section === self::AUTO ? $this->parameters['environment'] : $section );
+        $this->files[] = array($file, $section === self::AUTO ? $this->parameters['environment'] : $section);
         return $this;
     }
 
     /** @deprecated */
-    public function setProductionMode( $value = true )
+    public function setProductionMode($value = true)
     {
 
-        return $this->setDebugMode( is_bool( $value ) ? !$value : $value );
+        return $this->setDebugMode(is_bool($value) ? !$value : $value);
     }
 
     /**
@@ -324,10 +325,10 @@ class Configurator extends Nette\Object
      *
      * @return Configurator  provides a fluent interface
      */
-    public function setDebugMode( $value = true )
+    public function setDebugMode($value = true)
     {
 
-        $this->parameters['debugMode'] = is_bool( $value ) ? $value : self::detectDebugMode( $value );
+        $this->parameters['debugMode'] = is_bool($value) ? $value : self::detectDebugMode($value);
         $this->parameters['productionMode'] = !$this->parameters['debugMode']; // compatibility
         return $this;
     }

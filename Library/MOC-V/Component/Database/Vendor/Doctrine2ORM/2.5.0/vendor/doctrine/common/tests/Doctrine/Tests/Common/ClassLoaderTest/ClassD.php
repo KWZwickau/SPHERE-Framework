@@ -2,4 +2,7 @@
 
 namespace ClassLoaderTest;
 
-class ClassD {}
+class ClassD
+{
+
+}

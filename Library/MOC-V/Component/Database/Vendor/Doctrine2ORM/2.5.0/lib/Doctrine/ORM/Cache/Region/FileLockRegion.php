@@ -20,12 +20,12 @@
 
 namespace Doctrine\ORM\Cache\Region;
 
+use Doctrine\ORM\Cache\CacheEntry;
+use Doctrine\ORM\Cache\CacheKey;
 use Doctrine\ORM\Cache\CollectionCacheEntry;
+use Doctrine\ORM\Cache\ConcurrentRegion;
 use Doctrine\ORM\Cache\Lock;
 use Doctrine\ORM\Cache\Region;
-use Doctrine\ORM\Cache\CacheKey;
-use Doctrine\ORM\Cache\CacheEntry;
-use Doctrine\ORM\Cache\ConcurrentRegion;
 
 /**
  * Very naive concurrent region, based on file locks.
@@ -35,6 +35,7 @@ use Doctrine\ORM\Cache\ConcurrentRegion;
  */
 class FileLockRegion implements ConcurrentRegion
 {
+
     const LOCK_EXTENSION = 'lock';
 
     /**
@@ -61,17 +62,41 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function __construct(Region $region, $directory, $lockLifetime)
     {
-        if ( ! is_dir($directory) && ! @mkdir($directory, 0777, true)) {
-            throw new \InvalidArgumentException(sprintf('The directory "%s" does not exist and could not be created.', $directory));
+
+        if (!is_dir($directory) && !@mkdir($directory, 0777, true)) {
+            throw new \InvalidArgumentException(sprintf('The directory "%s" does not exist and could not be created.',
+                $directory));
         }
 
-        if ( ! is_writable($directory)) {
+        if (!is_writable($directory)) {
             throw new \InvalidArgumentException(sprintf('The directory "%s" is not writable.', $directory));
         }
 
-        $this->region       = $region;
-        $this->directory    = $directory;
+        $this->region = $region;
+        $this->directory = $directory;
         $this->lockLifetime = $lockLifetime;
+    }
+
+    /**
+     * {inheritdoc}
+     */
+    public function getName()
+    {
+
+        return $this->region->getName();
+    }
+
+    /**
+     * {inheritdoc}
+     */
+    public function contains(CacheKey $key)
+    {
+
+        if ($this->isLocked($key)) {
+            return false;
+        }
+
+        return $this->region->contains($key);
     }
 
     /**
@@ -82,16 +107,17 @@ class FileLockRegion implements ConcurrentRegion
      */
     private function isLocked(CacheKey $key, Lock $lock = null)
     {
+
         $filename = $this->getLockFileName($key);
 
-        if ( ! is_file($filename)) {
+        if (!is_file($filename)) {
             return false;
         }
 
-        $time     = $this->getLockTime($filename);
-        $content  = $this->getLockContent($filename);
+        $time = $this->getLockTime($filename);
+        $content = $this->getLockContent($filename);
 
-        if ( ! $content || ! $time) {
+        if (!$content || !$time) {
             @unlink($filename);
 
             return false;
@@ -102,7 +128,7 @@ class FileLockRegion implements ConcurrentRegion
         }
 
         // outdated lock
-        if (($time + $this->lockLifetime) <= time()) {
+        if (( $time + $this->lockLifetime ) <= time()) {
             @unlink($filename);
 
             return false;
@@ -118,17 +144,8 @@ class FileLockRegion implements ConcurrentRegion
      */
     private function getLockFileName(CacheKey $key)
     {
-        return $this->directory . DIRECTORY_SEPARATOR . $key->hash . '.' . self::LOCK_EXTENSION;
-    }
 
-    /**
-     * @param string $filename
-     *
-     * return string
-     */
-    private function getLockContent($filename)
-    {
-        return @file_get_contents($filename);
+        return $this->directory.DIRECTORY_SEPARATOR.$key->hash.'.'.self::LOCK_EXTENSION;
     }
 
     /**
@@ -138,27 +155,19 @@ class FileLockRegion implements ConcurrentRegion
      */
     private function getLockTime($filename)
     {
+
         return @fileatime($filename);
     }
 
     /**
-     * {inheritdoc}
+     * @param string $filename
+     *
+     * return string
      */
-    public function getName()
+    private function getLockContent($filename)
     {
-        return $this->region->getName();
-    }
 
-    /**
-     * {inheritdoc}
-     */
-    public function contains(CacheKey $key)
-    {
-        if ($this->isLocked($key)) {
-            return false;
-        }
-
-        return $this->region->contains($key);
+        return @file_get_contents($filename);
     }
 
     /**
@@ -166,6 +175,7 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function get(CacheKey $key)
     {
+
         if ($this->isLocked($key)) {
             return null;
         }
@@ -178,6 +188,7 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function getMultiple(CollectionCacheEntry $collection)
     {
+
         if (array_filter(array_map([$this, 'isLocked'], $collection->identifiers))) {
             return null;
         }
@@ -190,6 +201,7 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function put(CacheKey $key, CacheEntry $entry, Lock $lock = null)
     {
+
         if ($this->isLocked($key, $lock)) {
             return false;
         }
@@ -202,6 +214,7 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function evict(CacheKey $key)
     {
+
         if ($this->isLocked($key)) {
             @unlink($this->getLockFileName($key));
         }
@@ -214,9 +227,10 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function evictAll()
     {
+
         // The check below is necessary because on some platforms glob returns false
         // when nothing matched (even though no errors occurred)
-        $filenames = glob(sprintf("%s/*.%s" , $this->directory, self::LOCK_EXTENSION));
+        $filenames = glob(sprintf("%s/*.%s", $this->directory, self::LOCK_EXTENSION));
 
         if ($filenames) {
             foreach ($filenames as $filename) {
@@ -232,14 +246,15 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function lock(CacheKey $key)
     {
+
         if ($this->isLocked($key)) {
             return null;
         }
 
-        $lock     = Lock::createLockRead();
+        $lock = Lock::createLockRead();
         $filename = $this->getLockFileName($key);
 
-        if ( ! @file_put_contents($filename, $lock->value, LOCK_EX)) {
+        if (!@file_put_contents($filename, $lock->value, LOCK_EX)) {
             return null;
         }
 
@@ -251,11 +266,12 @@ class FileLockRegion implements ConcurrentRegion
      */
     public function unlock(CacheKey $key, Lock $lock)
     {
+
         if ($this->isLocked($key, $lock)) {
             return false;
         }
 
-        if ( ! @unlink($this->getLockFileName($key))) {
+        if (!@unlink($this->getLockFileName($key))) {
             return false;
         }
 

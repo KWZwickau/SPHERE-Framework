@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockFileSessionStorage;
  */
 class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var FileMockSessionStorage
      */
@@ -33,6 +34,7 @@ class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testStart()
     {
+
         $this->assertEquals('', $this->storage->getId());
         $this->assertTrue($this->storage->start());
         $id = $this->storage->getId();
@@ -43,6 +45,7 @@ class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testRegenerate()
     {
+
         $this->storage->start();
         $this->storage->getBag('attributes')->set('regenerate', 1234);
         $this->storage->regenerate();
@@ -53,6 +56,7 @@ class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testGetId()
     {
+
         $this->assertEquals('', $this->storage->getId());
         $this->storage->start();
         $this->assertNotEquals('', $this->storage->getId());
@@ -60,6 +64,7 @@ class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
 
     public function testSave()
     {
+
         $this->storage->start();
         $id = $this->storage->getId();
         $this->assertNotEquals('108', $this->storage->getBag('attributes')->get('new'));
@@ -79,15 +84,16 @@ class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
     private function getStorage()
     {
 
-        $storage = new MockFileSessionStorage( $this->sessionDir );
-        $storage->registerBag( new FlashBag() );
-        $storage->registerBag( new AttributeBag() );
+        $storage = new MockFileSessionStorage($this->sessionDir);
+        $storage->registerBag(new FlashBag());
+        $storage->registerBag(new AttributeBag());
 
         return $storage;
     }
 
     public function testMultipleInstances()
     {
+
         $storage1 = $this->getStorage();
         $storage1->start();
         $storage1->getBag('attributes')->set('foo', 'bar');
@@ -104,6 +110,7 @@ class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
      */
     public function testSaveWithoutStart()
     {
+
         $storage1 = $this->getStorage();
         $storage1->save();
     }
@@ -120,9 +127,9 @@ class MockFileSessionStorageTest extends \PHPUnit_Framework_TestCase
 
         $this->sessionDir = null;
         $this->storage = null;
-        array_map( 'unlink', glob( $this->sessionDir.'/*.session' ) );
-        if (is_dir( $this->sessionDir )) {
-            rmdir( $this->sessionDir );
+        array_map('unlink', glob($this->sessionDir.'/*.session'));
+        if (is_dir($this->sessionDir)) {
+            rmdir($this->sessionDir);
         }
     }
 }

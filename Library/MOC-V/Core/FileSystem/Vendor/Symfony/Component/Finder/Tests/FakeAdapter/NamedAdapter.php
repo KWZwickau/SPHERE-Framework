@@ -18,6 +18,7 @@ use Symfony\Component\Finder\Adapter\AbstractAdapter;
  */
 class NamedAdapter extends AbstractAdapter
 {
+
     /**
      * @var string
      */
@@ -26,18 +27,19 @@ class NamedAdapter extends AbstractAdapter
     /**
      * @param string $name
      */
-    public function __construct( $name )
+    public function __construct($name)
     {
+
         $this->name = $name;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function searchInDirectory( $dir )
+    public function searchInDirectory($dir)
     {
 
-        return new \ArrayIterator( array() );
+        return new \ArrayIterator(array());
     }
 
     /**
@@ -45,6 +47,7 @@ class NamedAdapter extends AbstractAdapter
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -53,6 +56,7 @@ class NamedAdapter extends AbstractAdapter
      */
     protected function canBeUsed()
     {
+
         return true;
     }
 }

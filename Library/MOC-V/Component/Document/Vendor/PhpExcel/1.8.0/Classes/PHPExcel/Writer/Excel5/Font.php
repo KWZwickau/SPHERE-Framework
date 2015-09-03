@@ -67,7 +67,7 @@ class PHPExcel_Writer_Excel5_Font
      *
      * @param PHPExcel_Style_Font $font
      */
-    public function __construct( PHPExcel_Style_Font $font = null )
+    public function __construct(PHPExcel_Style_Font $font = null)
     {
 
         $this->_colorIndex = 0x7FFF;
@@ -79,7 +79,7 @@ class PHPExcel_Writer_Excel5_Font
      *
      * @param int $colorIndex
      */
-    public function setColorIndex( $colorIndex )
+    public function setColorIndex($colorIndex)
     {
 
         $this->_colorIndex = $colorIndex;
@@ -107,7 +107,7 @@ class PHPExcel_Writer_Excel5_Font
             }
         }
         $bFamily = 0; // Font family
-        $bCharSet = PHPExcel_Shared_Font::getCharsetFromFontName( $this->_font->getName() ); // Character set
+        $bCharSet = PHPExcel_Shared_Font::getCharsetFromFontName($this->_font->getName()); // Character set
 
         $record = 0x31;        // Record identifier
         $reserved = 0x00;    // Reserved
@@ -125,21 +125,21 @@ class PHPExcel_Writer_Excel5_Font
             $grbit |= 0x20;
         }
 
-        $data = pack( "vvvvvCCCC",
+        $data = pack("vvvvvCCCC",
             $this->_font->getSize() * 20,                        //	Fontsize (in twips)
             $grbit,
             $icv,                                                //	Colour
-            self::_mapBold( $this->_font->getBold() ),            //	Font weight
+            self::_mapBold($this->_font->getBold()),            //	Font weight
             $sss,                                                //	Superscript/Subscript
-            self::_mapUnderline( $this->_font->getUnderline() ),
+            self::_mapUnderline($this->_font->getUnderline()),
             $bFamily,
             $bCharSet,
             $reserved
         );
-        $data .= PHPExcel_Shared_String::UTF8toBIFF8UnicodeShort( $this->_font->getName() );
+        $data .= PHPExcel_Shared_String::UTF8toBIFF8UnicodeShort($this->_font->getName());
 
-        $length = strlen( $data );
-        $header = pack( "vv", $record, $length );
+        $length = strlen($data);
+        $header = pack("vv", $record, $length);
 
         return ( $header.$data );
     }
@@ -151,7 +151,7 @@ class PHPExcel_Writer_Excel5_Font
      *
      * @return int
      */
-    private static function _mapBold( $bold )
+    private static function _mapBold($bold)
     {
 
         if ($bold) {
@@ -167,7 +167,7 @@ class PHPExcel_Writer_Excel5_Font
      *
      * @return int
      */
-    private static function _mapUnderline( $underline )
+    private static function _mapUnderline($underline)
     {
 
         if (isset( self::$_mapUnderline[$underline] )) {

@@ -2,17 +2,19 @@
 
 namespace Guzzle\Tests\Service\Command\LocationVisitor\Response;
 
-use Guzzle\Service\Description\Parameter;
 use Guzzle\Http\Message\Response;
 use Guzzle\Service\Command\LocationVisitor\Response\JsonVisitor as Visitor;
+use Guzzle\Service\Description\Parameter;
 
 /**
  * @covers Guzzle\Service\Command\LocationVisitor\Response\JsonVisitor
  */
 class JsonVisitorTest extends AbstractResponseVisitorTest
 {
+
     public function testBeforeMethodParsesXml()
     {
+
         $visitor = new Visitor();
         $command = $this->getMockBuilder('Guzzle\Service\Command\AbstractCommand')
             ->setMethods(array('getResponse'))
@@ -27,6 +29,7 @@ class JsonVisitorTest extends AbstractResponseVisitorTest
 
     public function testVisitsLocation()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name' => 'foo',
@@ -43,6 +46,7 @@ class JsonVisitorTest extends AbstractResponseVisitorTest
 
     public function testRenamesTopLevelValues()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'   => 'foo',
@@ -56,14 +60,15 @@ class JsonVisitorTest extends AbstractResponseVisitorTest
 
     public function testRenamesDoesNotFailForNonExistentKey()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
-            'name'          => 'foo',
-            'type'          => 'object',
-            'properties'    => array(
+            'name'       => 'foo',
+            'type'       => 'object',
+            'properties' => array(
                 'bar' => array(
-                    'name'      => 'bar',
-                    'sentAs'    => 'baz',
+                    'name'   => 'bar',
+                    'sentAs' => 'baz',
                 ),
             ),
         ));
@@ -74,6 +79,7 @@ class JsonVisitorTest extends AbstractResponseVisitorTest
 
     public function testTraversesObjectsAndAppliesFilters()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name' => 'foo',
@@ -94,6 +100,7 @@ class JsonVisitorTest extends AbstractResponseVisitorTest
      */
     public function testDiscardingUnknownProperties()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'                 => 'foo',
@@ -117,6 +124,7 @@ class JsonVisitorTest extends AbstractResponseVisitorTest
      */
     public function testDiscardingUnknownPropertiesWithAliasing()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'                 => 'foo',
@@ -136,12 +144,13 @@ class JsonVisitorTest extends AbstractResponseVisitorTest
 
     public function testWalksAdditionalProperties()
     {
+
         $visitor = new Visitor();
         $param = new Parameter(array(
             'name'                 => 'foo',
             'type'                 => 'object',
             'additionalProperties' => array(
-                'type' => 'object',
+                'type'       => 'object',
                 'properties' => array(
                     'bar' => array(
                         'type' => 'string',

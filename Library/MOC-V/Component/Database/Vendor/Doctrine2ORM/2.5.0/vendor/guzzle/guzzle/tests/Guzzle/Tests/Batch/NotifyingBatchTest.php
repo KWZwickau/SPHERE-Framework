@@ -2,16 +2,18 @@
 
 namespace Guzzle\Tests\Batch;
 
-use Guzzle\Batch\NotifyingBatch;
 use Guzzle\Batch\Batch;
+use Guzzle\Batch\NotifyingBatch;
 
 /**
  * @covers Guzzle\Batch\NotifyingBatch
  */
 class NotifyingBatchTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testNotifiesAfterFlush()
     {
+
         $batch = $this->getMock('Guzzle\Batch\Batch', array('flush'), array(
             $this->getMock('Guzzle\Batch\BatchTransferInterface'),
             $this->getMock('Guzzle\Batch\BatchDivisorInterface')
@@ -23,6 +25,7 @@ class NotifyingBatchTest extends \Guzzle\Tests\GuzzleTestCase
 
         $data = array();
         $decorator = new NotifyingBatch($batch, function ($batch) use (&$data) {
+
             $data[] = $batch;
         });
 
@@ -36,6 +39,7 @@ class NotifyingBatchTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testEnsuresCallableIsValid()
     {
+
         $batch = new Batch(
             $this->getMock('Guzzle\Batch\BatchTransferInterface'),
             $this->getMock('Guzzle\Batch\BatchDivisorInterface')

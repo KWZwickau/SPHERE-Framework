@@ -12,8 +12,10 @@ use Guzzle\Plugin\Md5\Md5ValidatorPlugin;
  */
 class Md5ValidatorPluginTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testValidatesMd5()
     {
+
         $plugin = new Md5ValidatorPlugin();
         $request = RequestFactory::getInstance()->create('GET', 'http://www.test.com/');
         $request->getEventDispatcher()->addSubscriber($plugin);
@@ -41,6 +43,7 @@ class Md5ValidatorPluginTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testThrowsExceptionOnInvalidMd5()
     {
+
         $plugin = new Md5ValidatorPlugin();
         $request = RequestFactory::getInstance()->create('GET', 'http://www.test.com/');
         $request->getEventDispatcher()->addSubscriber($plugin);
@@ -55,6 +58,7 @@ class Md5ValidatorPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testSkipsWhenContentLengthIsTooLarge()
     {
+
         $plugin = new Md5ValidatorPlugin(false, 1);
         $request = RequestFactory::getInstance()->create('GET', 'http://www.test.com/');
         $request->getEventDispatcher()->addSubscriber($plugin);
@@ -69,6 +73,7 @@ class Md5ValidatorPluginTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testProperlyValidatesWhenUsingContentEncoding()
     {
+
         $plugin = new Md5ValidatorPlugin(true);
         $request = RequestFactory::getInstance()->create('GET', 'http://www.test.com/');
         $request->getEventDispatcher()->addSubscriber($plugin);

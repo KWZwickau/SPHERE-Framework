@@ -50,7 +50,7 @@ $_SESSION['captcha'] = simple_php_captcha();
 
 <pre>
 <?php
-print_r( $_SESSION['captcha'] );
+print_r($_SESSION['captcha']);
 ?>
 </pre>
 

@@ -36,7 +36,7 @@ use Nette\Diagnostics\Debugger;
         <?php if (empty( $this->request )): ?>
             no route
         <?php else: ?>
-            <?php echo htmlSpecialChars( $this->request->getPresenterName().':'.( isset( $this->request->parameters[Presenter::ACTION_KEY] ) ? $this->request->parameters[Presenter::ACTION_KEY] : Presenter::DEFAULT_ACTION ).( isset( $this->request->parameters[Presenter::SIGNAL_KEY] ) ? " {$this->request->parameters[Presenter::SIGNAL_KEY]}!" : '' ) ) ?>
+            <?php echo htmlSpecialChars($this->request->getPresenterName().':'.( isset( $this->request->parameters[Presenter::ACTION_KEY] ) ? $this->request->parameters[Presenter::ACTION_KEY] : Presenter::DEFAULT_ACTION ).( isset( $this->request->parameters[Presenter::SIGNAL_KEY] ) ? " {$this->request->parameters[Presenter::SIGNAL_KEY]}!" : '' )) ?>
         <?php endif ?>
     </h1>
 
@@ -57,11 +57,11 @@ use Nette\Diagnostics\Debugger;
                 <?php unset( $params[Presenter::ACTION_KEY], $params[Presenter::SIGNAL_KEY] ) ?>
                 <?php foreach ($params as $key => $value): ?>
                     <tr>
-                        <td><code><?php echo htmlSpecialChars( $key ) ?></code></td>
-                        <td><?php if (is_string( $value )): ?>
-                                <code><?php echo htmlSpecialChars( $value ) ?></code><?php
-                            else: echo Debugger::dump( $value,
-                                true ); endif ?></td>
+                        <td><code><?php echo htmlSpecialChars($key) ?></code></td>
+                        <td><?php if (is_string($value)): ?>
+                                <code><?php echo htmlSpecialChars($value) ?></code><?php
+                            else: echo Debugger::dump($value,
+                                true); endif ?></td>
                     </tr>
                 <?php endforeach ?>
                 </tbody>
@@ -94,28 +94,28 @@ use Nette\Diagnostics\Debugger;
                         <td><?php echo $router['matched'] ?></td>
 
                         <td><code
-                                title="<?php echo htmlSpecialChars( $router['class'] ) ?>"><?php echo preg_replace( '#.+\\\\#',
-                                    '', htmlSpecialChars( $router['class'] ) ) ?></code></td>
+                                title="<?php echo htmlSpecialChars($router['class']) ?>"><?php echo preg_replace('#.+\\\\#',
+                                    '', htmlSpecialChars($router['class'])) ?></code></td>
 
-                        <td><code><strong><?php echo htmlSpecialChars( $router['mask'] ) ?></strong></code></td>
+                        <td><code><strong><?php echo htmlSpecialChars($router['mask']) ?></strong></code></td>
 
                         <td><code>
                                 <?php foreach ($router['defaults'] as $key => $value): ?>
-                                    <?php echo htmlSpecialChars( $key ), "&nbsp;=&nbsp;", is_string( $value ) ? htmlSpecialChars( $value ) : str_replace( "\n</pre",
-                                        '</pre', Nette\Diagnostics\Helpers::clickableDump( $value, true ) ) ?><br/>
+                                    <?php echo htmlSpecialChars($key), "&nbsp;=&nbsp;", is_string($value) ? htmlSpecialChars($value) : str_replace("\n</pre",
+                                        '</pre', Nette\Diagnostics\Helpers::clickableDump($value, true)) ?><br/>
                                 <?php endforeach ?>
                             </code></td>
 
-                        <td><code><?php echo htmlSpecialChars( $router['module'] ) ?></code></td>
+                        <td><code><?php echo htmlSpecialChars($router['module']) ?></code></td>
 
                         <td><?php if ($router['request']): ?><code>
                                 <?php $params = $router['request']->getParameters(); ?>
-                                <strong><?php echo htmlSpecialChars( $router['request']->getPresenterName().':'.( isset( $params[Presenter::ACTION_KEY] ) ? $params[Presenter::ACTION_KEY] : Presenter::DEFAULT_ACTION ) ) ?></strong>
+                                <strong><?php echo htmlSpecialChars($router['request']->getPresenterName().':'.( isset( $params[Presenter::ACTION_KEY] ) ? $params[Presenter::ACTION_KEY] : Presenter::DEFAULT_ACTION )) ?></strong>
                                 <br/>
                                 <?php unset( $params[Presenter::ACTION_KEY] ) ?>
                                 <?php foreach ($params as $key => $value): ?>
-                                    <?php echo htmlSpecialChars( $key ), "&nbsp;=&nbsp;", is_string( $value ) ? htmlSpecialChars( $value ) : str_replace( "\n</pre",
-                                        '</pre', Nette\Diagnostics\Helpers::clickableDump( $value, true ) ) ?><br/>
+                                    <?php echo htmlSpecialChars($key), "&nbsp;=&nbsp;", is_string($value) ? htmlSpecialChars($value) : str_replace("\n</pre",
+                                        '</pre', Nette\Diagnostics\Helpers::clickableDump($value, true)) ?><br/>
                                 <?php endforeach ?>
                                 </code><?php endif ?></td>
                     </tr>

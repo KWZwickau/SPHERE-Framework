@@ -10,6 +10,7 @@ use Guzzle\Http\ReadLimitEntityBody;
  */
 class ReadLimitEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     /** @var ReadLimitEntityBody */
     protected $body;
 
@@ -18,31 +19,36 @@ class ReadLimitEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function setUp()
     {
+
         $this->decorated = EntityBody::factory(fopen(__FILE__, 'r'));
         $this->body = new ReadLimitEntityBody($this->decorated, 10, 3);
     }
 
     public function testReturnsSubsetWhenCastToString()
     {
+
         $body = EntityBody::factory('foo_baz_bar');
         $limited = new ReadLimitEntityBody($body, 3, 4);
-        $this->assertEquals('baz', (string) $limited);
+        $this->assertEquals('baz', (string)$limited);
     }
 
     public function testReturnsSubsetOfEmptyBodyWhenCastToString()
     {
+
         $body = EntityBody::factory('');
         $limited = new ReadLimitEntityBody($body, 0, 10);
-        $this->assertEquals('', (string) $limited);
+        $this->assertEquals('', (string)$limited);
     }
 
     public function testSeeksWhenConstructed()
     {
+
         $this->assertEquals(3, $this->body->ftell());
     }
 
     public function testAllowsBoundedSeek()
     {
+
         $this->body->seek(100);
         $this->assertEquals(13, $this->body->ftell());
         $this->body->seek(0);
@@ -52,6 +58,7 @@ class ReadLimitEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testReadsOnlySubsetOfData()
     {
+
         $data = $this->body->read(100);
         $this->assertEquals(10, strlen($data));
         $this->assertFalse($this->body->read(1000));
@@ -64,6 +71,7 @@ class ReadLimitEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testClaimsConsumedWhenReadLimitIsReached()
     {
+
         $this->assertFalse($this->body->isConsumed());
         $this->body->read(1000);
         $this->assertTrue($this->body->isConsumed());
@@ -71,11 +79,13 @@ class ReadLimitEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testContentLengthIsBounded()
     {
+
         $this->assertEquals(10, $this->body->getContentLength());
     }
 
     public function testContentMd5IsBasedOnSubsection()
     {
+
         $this->assertNotSame($this->body->getContentMd5(), $this->decorated->getContentMd5());
     }
 }

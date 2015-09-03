@@ -30,6 +30,7 @@ namespace Doctrine\Common\Annotations\Annotation;
  */
 final class Attribute
 {
+
     /**
      * @var string
      */

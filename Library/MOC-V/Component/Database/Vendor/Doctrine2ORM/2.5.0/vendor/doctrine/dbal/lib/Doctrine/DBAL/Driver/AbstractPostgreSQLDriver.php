@@ -37,6 +37,7 @@ use Doctrine\DBAL\VersionAwarePlatformDriver;
  */
 abstract class AbstractPostgreSQLDriver implements Driver, ExceptionConverterDriver, VersionAwarePlatformDriver
 {
+
     /**
      * {@inheritdoc}
      *
@@ -44,6 +45,7 @@ abstract class AbstractPostgreSQLDriver implements Driver, ExceptionConverterDri
      */
     public function convertException($message, DriverException $exception)
     {
+
         switch ($exception->getSQLState()) {
             case '0A000':
                 // Foreign key constraint violations during a TRUNCATE operation
@@ -96,7 +98,8 @@ abstract class AbstractPostgreSQLDriver implements Driver, ExceptionConverterDri
      */
     public function createDatabasePlatformForVersion($version)
     {
-        if ( ! preg_match('/^(?P<major>\d+)(?:\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?)?/', $version, $versionParts)) {
+
+        if (!preg_match('/^(?P<major>\d+)(?:\.(?P<minor>\d+)(?:\.(?P<patch>\d+))?)?/', $version, $versionParts)) {
             throw DBALException::invalidPlatformVersionSpecified(
                 $version,
                 '<major_version>.<minor_version>.<patch_version>'
@@ -104,11 +107,11 @@ abstract class AbstractPostgreSQLDriver implements Driver, ExceptionConverterDri
         }
 
         $majorVersion = $versionParts['major'];
-        $minorVersion = isset($versionParts['minor']) ? $versionParts['minor'] : 0;
-        $patchVersion = isset($versionParts['patch']) ? $versionParts['patch'] : 0;
-        $version      = $majorVersion . '.' . $minorVersion . '.' . $patchVersion;
+        $minorVersion = isset( $versionParts['minor'] ) ? $versionParts['minor'] : 0;
+        $patchVersion = isset( $versionParts['patch'] ) ? $versionParts['patch'] : 0;
+        $version = $majorVersion.'.'.$minorVersion.'.'.$patchVersion;
 
-        switch(true) {
+        switch (true) {
             case version_compare($version, '9.2', '>='):
                 return new PostgreSQL92Platform();
             case version_compare($version, '9.1', '>='):
@@ -123,9 +126,10 @@ abstract class AbstractPostgreSQLDriver implements Driver, ExceptionConverterDri
      */
     public function getDatabase(\Doctrine\DBAL\Connection $conn)
     {
+
         $params = $conn->getParams();
 
-        return (isset($params['dbname']))
+        return ( isset( $params['dbname'] ) )
             ? $params['dbname']
             : $conn->query('SELECT CURRENT_DATABASE()')->fetchColumn();
     }
@@ -135,6 +139,7 @@ abstract class AbstractPostgreSQLDriver implements Driver, ExceptionConverterDri
      */
     public function getDatabasePlatform()
     {
+
         return new PostgreSqlPlatform();
     }
 
@@ -143,6 +148,7 @@ abstract class AbstractPostgreSQLDriver implements Driver, ExceptionConverterDri
      */
     public function getSchemaManager(\Doctrine\DBAL\Connection $conn)
     {
+
         return new PostgreSqlSchemaManager($conn);
     }
 }

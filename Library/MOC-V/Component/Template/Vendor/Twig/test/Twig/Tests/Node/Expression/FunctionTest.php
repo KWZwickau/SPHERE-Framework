@@ -11,11 +11,13 @@
 
 class Twig_Tests_Node_Expression_FunctionTest extends Twig_Test_NodeTestCase
 {
+
     /**
      * @covers Twig_Node_Expression_Function::__construct
      */
     public function testConstructor()
     {
+
         $name = 'function';
         $args = new Twig_Node();
         $node = new Twig_Node_Expression_Function($name, $args, 1);
@@ -25,28 +27,32 @@ class Twig_Tests_Node_Expression_FunctionTest extends Twig_Test_NodeTestCase
     }
 
     /**
-     * @covers Twig_Node_Expression_Function::compile
+     * @covers       Twig_Node_Expression_Function::compile
      * @dataProvider getTests
      */
     public function testCompile($node, $source, $environment = null)
     {
+
         parent::testCompile($node, $source, $environment);
     }
 
     public function getTests()
     {
+
         $environment = new Twig_Environment();
         $environment->addFunction(new Twig_SimpleFunction('foo', 'foo', array()));
         $environment->addFunction(new Twig_SimpleFunction('bar', 'bar', array('needs_environment' => true)));
         $environment->addFunction(new Twig_SimpleFunction('foofoo', 'foofoo', array('needs_context' => true)));
-        $environment->addFunction(new Twig_SimpleFunction('foobar', 'foobar', array('needs_environment' => true, 'needs_context' => true)));
+        $environment->addFunction(new Twig_SimpleFunction('foobar', 'foobar',
+            array('needs_environment' => true, 'needs_context' => true)));
 
         $tests = array();
 
         $node = $this->createFunction('foo');
         $tests[] = array($node, 'foo()', $environment);
 
-        $node = $this->createFunction('foo', array(new Twig_Node_Expression_Constant('bar', 1), new Twig_Node_Expression_Constant('foobar', 1)));
+        $node = $this->createFunction('foo',
+            array(new Twig_Node_Expression_Constant('bar', 1), new Twig_Node_Expression_Constant('foobar', 1)));
         $tests[] = array($node, 'foo("bar", "foobar")', $environment);
 
         $node = $this->createFunction('bar');
@@ -77,7 +83,10 @@ class Twig_Tests_Node_Expression_FunctionTest extends Twig_Test_NodeTestCase
         // function as an anonymous function
         if (version_compare(phpversion(), '5.3.0', '>=')) {
             $node = $this->createFunction('anonymous', array(new Twig_Node_Expression_Constant('foo', 1)));
-            $tests[] = array($node, 'call_user_func_array($this->env->getFunction(\'anonymous\')->getCallable(), array("foo"))');
+            $tests[] = array(
+                $node,
+                'call_user_func_array($this->env->getFunction(\'anonymous\')->getCallable(), array("foo"))'
+            );
         }
 
         return $tests;
@@ -85,11 +94,13 @@ class Twig_Tests_Node_Expression_FunctionTest extends Twig_Test_NodeTestCase
 
     protected function createFunction($name, array $arguments = array())
     {
+
         return new Twig_Node_Expression_Function($name, new Twig_Node($arguments), 1);
     }
 
     protected function getEnvironment()
     {
+
         if (version_compare(phpversion(), '5.3.0', '>=')) {
             return include 'PHP53/FunctionInclude.php';
         }

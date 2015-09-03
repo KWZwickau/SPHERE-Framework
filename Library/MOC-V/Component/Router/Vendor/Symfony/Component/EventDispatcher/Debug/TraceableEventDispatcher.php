@@ -26,6 +26,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  */
 class TraceableEventDispatcher implements TraceableEventDispatcherInterface
 {
+
     protected $logger;
     protected $stopwatch;
 
@@ -39,8 +40,12 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      * @param Stopwatch                $stopwatch  A Stopwatch instance
      * @param LoggerInterface          $logger     A LoggerInterface instance
      */
-    public function __construct(EventDispatcherInterface $dispatcher, Stopwatch $stopwatch, LoggerInterface $logger = null)
-    {
+    public function __construct(
+        EventDispatcherInterface $dispatcher,
+        Stopwatch $stopwatch,
+        LoggerInterface $logger = null
+    ) {
+
         $this->dispatcher = $dispatcher;
         $this->stopwatch = $stopwatch;
         $this->logger = $logger;
@@ -52,6 +57,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      */
     public function addListener($eventName, $listener, $priority = 0)
     {
+
         $this->dispatcher->addListener($eventName, $listener, $priority);
     }
 
@@ -60,6 +66,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      */
     public function addSubscriber(EventSubscriberInterface $subscriber)
     {
+
         $this->dispatcher->addSubscriber($subscriber);
     }
 
@@ -68,6 +75,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      */
     public function removeListener($eventName, $listener)
     {
+
         return $this->dispatcher->removeListener($eventName, $listener);
     }
 
@@ -76,6 +84,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      */
     public function removeSubscriber(EventSubscriberInterface $subscriber)
     {
+
         return $this->dispatcher->removeSubscriber($subscriber);
     }
 
@@ -84,6 +93,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      */
     public function hasListeners($eventName = null)
     {
+
         return $this->dispatcher->hasListeners($eventName);
     }
 
@@ -92,6 +102,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      */
     public function dispatch($eventName, Event $event = null)
     {
+
         if (null === $event) {
             $event = new Event();
         }
@@ -113,14 +124,14 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
         return $event;
     }
 
-    private function preProcess( $eventName )
+    private function preProcess($eventName)
     {
 
-        foreach ($this->dispatcher->getListeners( $eventName ) as $listener) {
-            $this->dispatcher->removeListener( $eventName, $listener );
-            $info = $this->getListenerInfo( $listener, $eventName );
+        foreach ($this->dispatcher->getListeners($eventName) as $listener) {
+            $this->dispatcher->removeListener($eventName, $listener);
+            $info = $this->getListenerInfo($listener, $eventName);
             $name = isset( $info['class'] ) ? $info['class'] : $info['type'];
-            $this->dispatcher->addListener( $eventName, new WrappedListener( $listener, $name, $this->stopwatch ) );
+            $this->dispatcher->addListener($eventName, new WrappedListener($listener, $name, $this->stopwatch));
         }
     }
 
@@ -132,7 +143,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      *
      * @return array Information about the listener
      */
-    private function getListenerInfo( $listener, $eventName )
+    private function getListenerInfo($listener, $eventName)
     {
 
         $info = array(
@@ -143,12 +154,12 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
                 'type'   => 'Closure',
                 'pretty' => 'closure'
             );
-        } elseif (is_string( $listener )) {
+        } elseif (is_string($listener)) {
             try {
-                $r = new \ReflectionFunction( $listener );
+                $r = new \ReflectionFunction($listener);
                 $file = $r->getFileName();
                 $line = $r->getStartLine();
-            } catch( \ReflectionException $e ) {
+            } catch (\ReflectionException $e) {
                 $file = null;
                 $line = null;
             }
@@ -159,16 +170,16 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
                 'line'     => $line,
                 'pretty'   => $listener,
             );
-        } elseif (is_array( $listener ) || ( is_object( $listener ) && is_callable( $listener ) )) {
-            if (!is_array( $listener )) {
-                $listener = array( $listener, '__invoke' );
+        } elseif (is_array($listener) || ( is_object($listener) && is_callable($listener) )) {
+            if (!is_array($listener)) {
+                $listener = array($listener, '__invoke');
             }
-            $class = is_object( $listener[0] ) ? get_class( $listener[0] ) : $listener[0];
+            $class = is_object($listener[0]) ? get_class($listener[0]) : $listener[0];
             try {
-                $r = new \ReflectionMethod( $class, $listener[1] );
+                $r = new \ReflectionMethod($class, $listener[1]);
                 $file = $r->getFileName();
                 $line = $r->getStartLine();
-            } catch( \ReflectionException $e ) {
+            } catch (\ReflectionException $e) {
                 $file = null;
                 $line = null;
             }
@@ -207,6 +218,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
 
     private function postProcess($eventName)
     {
+
         $skipped = false;
         foreach ($this->dispatcher->getListeners($eventName) as $listener) {
             // Unwrap listener
@@ -219,7 +231,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
                     $this->logger->debug(sprintf('Notified event "%s" to listener "%s".', $eventName, $info['pretty']));
                 }
 
-                if (!isset($this->called[$eventName])) {
+                if (!isset( $this->called[$eventName] )) {
                     $this->called[$eventName] = new \SplObjectStorage();
                 }
 
@@ -227,12 +239,14 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
             }
 
             if (null !== $this->logger && $skipped) {
-                $this->logger->debug(sprintf('Listener "%s" was not called for event "%s".', $info['pretty'], $eventName));
+                $this->logger->debug(sprintf('Listener "%s" was not called for event "%s".', $info['pretty'],
+                    $eventName));
             }
 
             if ($listener->stoppedPropagation()) {
                 if (null !== $this->logger) {
-                    $this->logger->debug(sprintf('Listener "%s" stopped propagation of the event "%s".', $info['pretty'], $eventName));
+                    $this->logger->debug(sprintf('Listener "%s" stopped propagation of the event "%s".',
+                        $info['pretty'], $eventName));
                 }
 
                 $skipped = true;
@@ -249,7 +263,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
         $called = array();
         foreach ($this->called as $eventName => $listeners) {
             foreach ($listeners as $listener) {
-                $info = $this->getListenerInfo( $listener->getWrappedListener(), $eventName );
+                $info = $this->getListenerInfo($listener->getWrappedListener(), $eventName);
                 $called[$eventName.'.'.$info['pretty']] = $info;
             }
         }
@@ -265,10 +279,10 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
 
         try {
             $allListeners = $this->getListeners();
-        } catch( \Exception $e ) {
+        } catch (\Exception $e) {
             if (null !== $this->logger) {
-                $this->logger->info( sprintf( 'An exception was thrown while getting the uncalled listeners (%s)',
-                    $e->getMessage() ), array( 'exception' => $e ) );
+                $this->logger->info(sprintf('An exception was thrown while getting the uncalled listeners (%s)',
+                    $e->getMessage()), array('exception' => $e));
             }
 
             // unable to retrieve the uncalled listeners
@@ -290,7 +304,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
                 }
 
                 if (!$called) {
-                    $info = $this->getListenerInfo( $listener, $eventName );
+                    $info = $this->getListenerInfo($listener, $eventName);
                     $notCalled[$eventName.'.'.$info['pretty']] = $info;
                 }
             }
@@ -302,10 +316,10 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
     /**
      * {@inheritdoc}
      */
-    public function getListeners( $eventName = null )
+    public function getListeners($eventName = null)
     {
 
-        return $this->dispatcher->getListeners( $eventName );
+        return $this->dispatcher->getListeners($eventName);
     }
 
     /**
@@ -316,9 +330,9 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
      *
      * @return mixed
      */
-    public function __call( $method, $arguments )
+    public function __call($method, $arguments)
     {
 
-        return call_user_func_array( array( $this->dispatcher, $method ), $arguments );
+        return call_user_func_array(array($this->dispatcher, $method), $arguments);
     }
 }

@@ -65,19 +65,19 @@ class Css implements FSHL\Lexer
         return array(
             'OUT'                 => array(
                 array(
-                    'FUNC'   => array( 'FUNC', Generator::NEXT ),
-                    'ALNUM'  => array( 'TAG', Generator::NEXT ),
-                    '*'      => array( 'TAG', Generator::NEXT ),
-                    '#'      => array( 'ID', Generator::NEXT ),
-                    '.'      => array( 'CLASS', Generator::NEXT ),
-                    '{'      => array( 'DEF', Generator::NEXT ),
-                    '/*'     => array( 'COMMENT', Generator::NEXT ),
-                    '@media' => array( 'MEDIA', Generator::NEXT ),
-                    '@'      => array( 'AT_RULE', Generator::NEXT ),
-                    'LINE'   => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'    => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '</'     => array( Generator::STATE_QUIT, Generator::NEXT ),
-                    'PHP'    => array( 'PHP', Generator::NEXT )
+                    'FUNC'   => array('FUNC', Generator::NEXT),
+                    'ALNUM'  => array('TAG', Generator::NEXT),
+                    '*'      => array('TAG', Generator::NEXT),
+                    '#'      => array('ID', Generator::NEXT),
+                    '.'      => array('CLASS', Generator::NEXT),
+                    '{'      => array('DEF', Generator::NEXT),
+                    '/*'     => array('COMMENT', Generator::NEXT),
+                    '@media' => array('MEDIA', Generator::NEXT),
+                    '@'      => array('AT_RULE', Generator::NEXT),
+                    'LINE'   => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'    => array(Generator::STATE_SELF, Generator::NEXT),
+                    '</'     => array(Generator::STATE_QUIT, Generator::NEXT),
+                    'PHP'    => array('PHP', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_NONE,
                 null,
@@ -85,13 +85,13 @@ class Css implements FSHL\Lexer
             ),
             'MEDIA'               => array(
                 array(
-                    'PROPERTY' => array( 'PROPERTY', Generator::NEXT ),
-                    ':'        => array( 'VALUE', Generator::CURRENT ),
-                    ';'        => array( Generator::STATE_SELF, Generator::CURRENT ),
-                    'LINE'     => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'      => array( Generator::STATE_SELF, Generator::NEXT ),
-                    ')'        => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '/*'       => array( 'COMMENT', Generator::NEXT )
+                    'PROPERTY' => array('PROPERTY', Generator::NEXT),
+                    ':'        => array('VALUE', Generator::CURRENT),
+                    ';'        => array(Generator::STATE_SELF, Generator::CURRENT),
+                    'LINE'     => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'      => array(Generator::STATE_SELF, Generator::NEXT),
+                    ')'        => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '/*'       => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-at-rule',
@@ -99,8 +99,8 @@ class Css implements FSHL\Lexer
             ),
             'AT_RULE'             => array(
                 array(
-                    'SPACE' => array( Generator::STATE_RETURN, Generator::BACK ),
-                    '/*'    => array( 'COMMENT', Generator::NEXT )
+                    'SPACE' => array(Generator::STATE_RETURN, Generator::BACK),
+                    '/*'    => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-at-rule',
@@ -108,11 +108,11 @@ class Css implements FSHL\Lexer
             ),
             'TAG'                 => array(
                 array(
-                    '{'     => array( Generator::STATE_RETURN, Generator::NEXT ),
-                    ','     => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'SPACE' => array( Generator::STATE_RETURN, Generator::BACK ),
-                    ':'     => array( 'PSEUDO', Generator::NEXT ),
-                    '/*'    => array( 'COMMENT', Generator::NEXT )
+                    '{'     => array(Generator::STATE_RETURN, Generator::NEXT),
+                    ','     => array(Generator::STATE_RETURN, Generator::BACK),
+                    'SPACE' => array(Generator::STATE_RETURN, Generator::BACK),
+                    ':'     => array('PSEUDO', Generator::NEXT),
+                    '/*'    => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-tag',
@@ -120,11 +120,11 @@ class Css implements FSHL\Lexer
             ),
             'ID'                  => array(
                 array(
-                    '{'     => array( Generator::STATE_RETURN, Generator::BACK ),
-                    ','     => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'SPACE' => array( Generator::STATE_RETURN, Generator::BACK ),
-                    ':'     => array( 'PSEUDO', Generator::NEXT ),
-                    '/*'    => array( 'COMMENT', Generator::NEXT )
+                    '{'     => array(Generator::STATE_RETURN, Generator::BACK),
+                    ','     => array(Generator::STATE_RETURN, Generator::BACK),
+                    'SPACE' => array(Generator::STATE_RETURN, Generator::BACK),
+                    ':'     => array('PSEUDO', Generator::NEXT),
+                    '/*'    => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-id',
@@ -132,11 +132,11 @@ class Css implements FSHL\Lexer
             ),
             'CLASS'               => array(
                 array(
-                    '{'     => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'SPACE' => array( Generator::STATE_RETURN, Generator::BACK ),
-                    ','     => array( Generator::STATE_RETURN, Generator::BACK ),
-                    ':'     => array( 'PSEUDO', Generator::NEXT ),
-                    '/*'    => array( 'COMMENT', Generator::NEXT )
+                    '{'     => array(Generator::STATE_RETURN, Generator::BACK),
+                    'SPACE' => array(Generator::STATE_RETURN, Generator::BACK),
+                    ','     => array(Generator::STATE_RETURN, Generator::BACK),
+                    ':'     => array('PSEUDO', Generator::NEXT),
+                    '/*'    => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-class',
@@ -144,8 +144,8 @@ class Css implements FSHL\Lexer
             ),
             'PSEUDO'              => array(
                 array(
-                    'SPACE' => array( Generator::STATE_RETURN, Generator::BACK ),
-                    ','     => array( Generator::STATE_RETURN, Generator::BACK )
+                    'SPACE' => array(Generator::STATE_RETURN, Generator::BACK),
+                    ','     => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-pseudo',
@@ -153,13 +153,13 @@ class Css implements FSHL\Lexer
             ),
             'DEF'                 => array(
                 array(
-                    'PROPERTY' => array( 'PROPERTY', Generator::NEXT ),
-                    ':'        => array( 'VALUE', Generator::CURRENT ),
-                    ';'        => array( Generator::STATE_SELF, Generator::CURRENT ),
-                    'LINE'     => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'      => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '}'        => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '/*'       => array( 'COMMENT', Generator::NEXT )
+                    'PROPERTY' => array('PROPERTY', Generator::NEXT),
+                    ':'        => array('VALUE', Generator::CURRENT),
+                    ';'        => array(Generator::STATE_SELF, Generator::CURRENT),
+                    'LINE'     => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'      => array(Generator::STATE_SELF, Generator::NEXT),
+                    '}'        => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '/*'       => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 null,
@@ -167,11 +167,11 @@ class Css implements FSHL\Lexer
             ),
             'PROPERTY'            => array(
                 array(
-                    ':'    => array( Generator::STATE_RETURN, Generator::BACK ),
-                    '}'    => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '/*'   => array( 'COMMENT', Generator::NEXT )
+                    ':'    => array(Generator::STATE_RETURN, Generator::BACK),
+                    '}'    => array(Generator::STATE_RETURN, Generator::BACK),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    '/*'   => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-property',
@@ -179,14 +179,14 @@ class Css implements FSHL\Lexer
             ),
             'VALUE'               => array(
                 array(
-                    '#'    => array( 'COLOR', Generator::NEXT ),
-                    ';'    => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'FUNC' => array( 'FUNC', Generator::NEXT ),
-                    ')'    => array( Generator::STATE_RETURN, Generator::BACK ),
-                    '}'    => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '/*'   => array( 'COMMENT', Generator::NEXT )
+                    '#'    => array('COLOR', Generator::NEXT),
+                    ';'    => array(Generator::STATE_RETURN, Generator::BACK),
+                    'FUNC' => array('FUNC', Generator::NEXT),
+                    ')'    => array(Generator::STATE_RETURN, Generator::BACK),
+                    '}'    => array(Generator::STATE_RETURN, Generator::BACK),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    '/*'   => array('COMMENT', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-value',
@@ -194,8 +194,8 @@ class Css implements FSHL\Lexer
             ),
             'FUNC'                => array(
                 array(
-                    ')'   => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    'ALL' => array( 'VALUE', Generator::NEXT )
+                    ')'   => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    'ALL' => array('VALUE', Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-func',
@@ -203,7 +203,7 @@ class Css implements FSHL\Lexer
             ),
             'COLOR'               => array(
                 array(
-                    '!HEXNUM' => array( Generator::STATE_RETURN, Generator::BACK )
+                    '!HEXNUM' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-color',
@@ -211,9 +211,9 @@ class Css implements FSHL\Lexer
             ),
             'COMMENT'             => array(
                 array(
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '*/'   => array( Generator::STATE_RETURN, Generator::CURRENT )
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    '*/'   => array(Generator::STATE_RETURN, Generator::CURRENT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'css-comment',

@@ -18,6 +18,7 @@ namespace Symfony\Component\Config\Loader;
  */
 interface LoaderResolverInterface
 {
+
     /**
      * Returns a loader able to load the resource.
      *

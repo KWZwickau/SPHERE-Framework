@@ -6,6 +6,7 @@ use Doctrine\Tests\DbalTestCase;
 
 class SQLAnywhereConnectionTest extends DbalTestCase
 {
+
     /**
      * The sqlanywhere driver connection mock under test.
      *
@@ -13,9 +14,16 @@ class SQLAnywhereConnectionTest extends DbalTestCase
      */
     private $connectionMock;
 
+    public function testRequiresQueryForServerVersion()
+    {
+
+        $this->assertTrue($this->connectionMock->requiresQueryForServerVersion());
+    }
+
     protected function setUp()
     {
-        if ( ! extension_loaded('sqlanywhere')) {
+
+        if (!extension_loaded('sqlanywhere')) {
             $this->markTestSkipped('sqlanywhere is not installed.');
         }
 
@@ -24,10 +32,5 @@ class SQLAnywhereConnectionTest extends DbalTestCase
         $this->connectionMock = $this->getMockBuilder('Doctrine\DBAL\Driver\SQLAnywhere\SQLAnywhereConnection')
             ->disableOriginalConstructor()
             ->getMockForAbstractClass();
-    }
-
-    public function testRequiresQueryForServerVersion()
-    {
-        $this->assertTrue($this->connectionMock->requiresQueryForServerVersion());
     }
 }

@@ -22,6 +22,7 @@ use Psr\Log\NullLogger as PsrNullLogger;
  */
 class NullLogger extends PsrNullLogger implements LoggerInterface
 {
+
     /**
      * @api
      * @deprecated since 2.2, to be removed in 3.0. Use emergency() which is PSR-3 compatible.

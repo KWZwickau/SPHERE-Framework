@@ -9,8 +9,10 @@ use Guzzle\Batch\BatchSizeDivisor;
  */
 class BatchSizeDivisorTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testDividesBatch()
     {
+
         $queue = new \SplQueue();
         $queue[] = 'foo';
         $queue[] = 'baz';

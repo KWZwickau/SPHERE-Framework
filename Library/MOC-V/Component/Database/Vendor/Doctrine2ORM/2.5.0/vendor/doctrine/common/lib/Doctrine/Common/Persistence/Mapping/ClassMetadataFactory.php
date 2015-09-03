@@ -29,6 +29,7 @@ namespace Doctrine\Common\Persistence\Mapping;
  */
 interface ClassMetadataFactory
 {
+
     /**
      * Forces the factory to load the metadata of all classes known to the underlying
      * mapping driver.

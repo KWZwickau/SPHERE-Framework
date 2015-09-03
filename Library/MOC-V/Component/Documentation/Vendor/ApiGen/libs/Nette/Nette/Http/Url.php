@@ -91,13 +91,13 @@ class Url extends Nette\FreezableObject
      *
      * @throws Nette\InvalidArgumentException
      */
-    public function __construct( $url = null )
+    public function __construct($url = null)
     {
 
-        if (is_string( $url )) {
-            $parts = @parse_url( $url ); // @ - is escalated to exception
+        if (is_string($url)) {
+            $parts = @parse_url($url); // @ - is escalated to exception
             if ($parts === false) {
-                throw new Nette\InvalidArgumentException( "Malformed or unsupported URI '$url'." );
+                throw new Nette\InvalidArgumentException("Malformed or unsupported URI '$url'.");
             }
 
             foreach ($parts as $key => $val) {
@@ -137,7 +137,7 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setScheme( $value )
+    public function setScheme($value)
     {
 
         $this->updating();
@@ -163,7 +163,7 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setUser( $value )
+    public function setUser($value)
     {
 
         $this->updating();
@@ -178,7 +178,7 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setPassword( $value )
+    public function setPassword($value)
     {
 
         $this->updating();
@@ -216,7 +216,7 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setHost( $value )
+    public function setHost($value)
     {
 
         $this->updating();
@@ -242,7 +242,7 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setPort( $value )
+    public function setPort($value)
     {
 
         $this->updating();
@@ -268,7 +268,7 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setPath( $value )
+    public function setPath($value)
     {
 
         $this->updating();
@@ -283,11 +283,11 @@ class Url extends Nette\FreezableObject
      *
      * @return void
      */
-    public function appendQuery( $value )
+    public function appendQuery($value)
     {
 
         $this->updating();
-        $value = (string)( is_array( $value ) ? http_build_query( $value, '', '&' ) : $value );
+        $value = (string)( is_array($value) ? http_build_query($value, '', '&') : $value );
         $this->query .= ( $this->query === '' || $value === '' ) ? $value : '&'.$value;
     }
 
@@ -309,11 +309,11 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setQuery( $value )
+    public function setQuery($value)
     {
 
         $this->updating();
-        $this->query = (string)( is_array( $value ) ? http_build_query( $value, '', '&' ) : $value );
+        $this->query = (string)( is_array($value) ? http_build_query($value, '', '&') : $value );
         return $this;
     }
 
@@ -335,7 +335,7 @@ class Url extends Nette\FreezableObject
      *
      * @return Url  provides a fluent interface
      */
-    public function setFragment( $value )
+    public function setFragment($value)
     {
 
         $this->updating();
@@ -350,17 +350,17 @@ class Url extends Nette\FreezableObject
      *
      * @return bool
      */
-    public function isEqual( $url )
+    public function isEqual($url)
     {
 
         // compare host + path
-        $part = self::unescape( strtok( $url, '?#' ), '%/' );
-        if (strncmp( $part, '//', 2 ) === 0) { // absolute URI without scheme
+        $part = self::unescape(strtok($url, '?#'), '%/');
+        if (strncmp($part, '//', 2) === 0) { // absolute URI without scheme
             if ($part !== '//'.$this->getAuthority().$this->path) {
                 return false;
             }
 
-        } elseif (strncmp( $part, '/', 1 ) === 0) { // absolute path
+        } elseif (strncmp($part, '/', 1) === 0) { // absolute path
             if ($part !== $this->path) {
                 return false;
             }
@@ -372,10 +372,10 @@ class Url extends Nette\FreezableObject
         }
 
         // compare query strings
-        $part = preg_split( '#[&;]#', self::unescape( strtr( (string)strtok( '?#' ), '+', ' ' ), '%&;=+' ) );
-        sort( $part );
-        $query = preg_split( '#[&;]#', $this->query );
-        sort( $query );
+        $part = preg_split('#[&;]#', self::unescape(strtr((string)strtok('?#'), '+', ' '), '%&;=+'));
+        sort($part);
+        $query = preg_split('#[&;]#', $this->query);
+        sort($query);
         return $part === $query;
     }
 
@@ -387,17 +387,17 @@ class Url extends Nette\FreezableObject
      *
      * @return string
      */
-    public static function unescape( $s, $reserved = '%;/?:@&=+$,' )
+    public static function unescape($s, $reserved = '%;/?:@&=+$,')
     {
 
         // reserved (@see RFC 2396) = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" | "$" | ","
         // within a path segment, the characters "/", ";", "=", "?" are reserved
         // within a query component, the characters ";", "/", "?", ":", "@", "&", "=", "+", ",", "$" are reserved.
-        preg_match_all( '#(?<=%)[a-f0-9][a-f0-9]#i', $s, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER );
-        foreach (array_reverse( $matches ) as $match) {
-            $ch = chr( hexdec( $match[0][0] ) );
-            if (strpos( $reserved, $ch ) === false) {
-                $s = substr_replace( $s, $ch, $match[0][1] - 1, 3 );
+        preg_match_all('#(?<=%)[a-f0-9][a-f0-9]#i', $s, $matches, PREG_OFFSET_CAPTURE | PREG_SET_ORDER);
+        foreach (array_reverse($matches) as $match) {
+            $ch = chr(hexdec($match[0][0]));
+            if (strpos($reserved, $ch) === false) {
+                $s = substr_replace($s, $ch, $match[0][1] - 1, 3);
             }
         }
         return $s;
@@ -432,9 +432,9 @@ class Url extends Nette\FreezableObject
     {
 
         $this->updating();
-        $this->path = $this->path === '' ? '/' : self::unescape( $this->path, '%/' );
-        $this->host = strtolower( rawurldecode( $this->host ) );
-        $this->query = self::unescape( strtr( $this->query, '+', ' ' ), '%&;=+' );
+        $this->path = $this->path === '' ? '/' : self::unescape($this->path, '%/');
+        $this->host = strtolower(rawurldecode($this->host));
+        $this->query = self::unescape(strtr($this->query, '+', ' '), '%&;=+');
     }
 
     /**
@@ -463,7 +463,7 @@ class Url extends Nette\FreezableObject
     function getRelativeUri()
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use '.__CLASS__.'::getRelativeUrl() instead.', E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use '.__CLASS__.'::getRelativeUrl() instead.', E_USER_WARNING);
         return $this->getRelativeUrl();
     }
 
@@ -475,7 +475,7 @@ class Url extends Nette\FreezableObject
     public function getRelativeUrl()
     {
 
-        return (string)substr( $this->getAbsoluteUrl(), strlen( $this->getBaseUrl() ) );
+        return (string)substr($this->getAbsoluteUrl(), strlen($this->getBaseUrl()));
     }
 
     /**
@@ -497,15 +497,15 @@ class Url extends Nette\FreezableObject
     public function getBasePath()
     {
 
-        $pos = strrpos( $this->path, '/' );
-        return $pos === false ? '' : substr( $this->path, 0, $pos + 1 );
+        $pos = strrpos($this->path, '/');
+        return $pos === false ? '' : substr($this->path, 0, $pos + 1);
     }
 
     /** @deprecated */
     function getAbsoluteUri()
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use '.__CLASS__.'::getAbsoluteUrl() instead.', E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use '.__CLASS__.'::getAbsoluteUrl() instead.', E_USER_WARNING);
         return $this->getAbsoluteUrl();
     }
 
@@ -513,7 +513,7 @@ class Url extends Nette\FreezableObject
     function getHostUri()
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use '.__CLASS__.'::getHostUrl() instead.', E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use '.__CLASS__.'::getHostUrl() instead.', E_USER_WARNING);
         return $this->getHostUrl();
     }
 
@@ -532,7 +532,7 @@ class Url extends Nette\FreezableObject
     function getBaseUri()
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use '.__CLASS__.'::getBaseUrl() instead.', E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use '.__CLASS__.'::getBaseUrl() instead.', E_USER_WARNING);
         return $this->getBaseUrl();
     }
 

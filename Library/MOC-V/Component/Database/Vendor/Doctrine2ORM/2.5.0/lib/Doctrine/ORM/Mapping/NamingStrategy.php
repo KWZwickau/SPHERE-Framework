@@ -23,13 +23,14 @@ namespace Doctrine\ORM\Mapping;
 /**
  * A set of rules for determining the physical column and table names
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.3
  * @author  Fabio B. Silva <fabio.bat.silva@gmail.com>
  */
 interface NamingStrategy
 {
+
     /**
      * Returns a table name for an entity class.
      *
@@ -57,7 +58,12 @@ interface NamingStrategy
      *
      * @return string
      */
-    function embeddedFieldToColumnName($propertyName, $embeddedColumnName, $className = null, $embeddedClassName = null);
+    function embeddedFieldToColumnName(
+        $propertyName,
+        $embeddedColumnName,
+        $className = null,
+        $embeddedClassName = null
+    );
 
     /**
      * Returns the default reference column name.
@@ -69,7 +75,7 @@ interface NamingStrategy
     /**
      * Returns a join column name for a property.
      *
-     * @param string $propertyName A property name.
+     * @param string $propertyName      A property name.
      * @param string|null $className    The fully-qualified class name.
      *                                  This parameter is omitted from the signature due to BC
      *

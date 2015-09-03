@@ -2,8 +2,8 @@
 
 namespace Guzzle\Tests\Plugin\Backoff;
 
-use Guzzle\Plugin\Backoff\HttpBackoffStrategy;
 use Guzzle\Http\Message\Response;
+use Guzzle\Plugin\Backoff\HttpBackoffStrategy;
 
 /**
  * @covers Guzzle\Plugin\Backoff\HttpBackoffStrategy
@@ -11,8 +11,10 @@ use Guzzle\Http\Message\Response;
  */
 class HttpBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testRetriesWhenCodeMatches()
     {
+
         $this->assertNotEmpty(HttpBackoffStrategy::getDefaultFailureCodes());
         $strategy = new HttpBackoffStrategy();
         $this->assertTrue($strategy->makesDecision());
@@ -30,6 +32,7 @@ class HttpBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsCustomCodes()
     {
+
         $strategy = new HttpBackoffStrategy(array(204));
         $request = $this->getMock('Guzzle\Http\Message\Request', array(), array(), '', false);
         $response = new Response(204);
@@ -40,6 +43,7 @@ class HttpBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIgnoresNonErrors()
     {
+
         $strategy = new HttpBackoffStrategy();
         $request = $this->getMock('Guzzle\Http\Message\Request', array(), array(), '', false);
         $this->assertEquals(false, $strategy->getBackoffPeriod(0, $request));

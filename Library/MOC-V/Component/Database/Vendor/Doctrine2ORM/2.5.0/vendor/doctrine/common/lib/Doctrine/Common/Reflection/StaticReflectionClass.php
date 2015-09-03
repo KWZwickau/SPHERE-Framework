@@ -24,6 +24,7 @@ use ReflectionException;
 
 class StaticReflectionClass extends ReflectionClass
 {
+
     /**
      * The static reflection parser object.
      *
@@ -36,7 +37,17 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function __construct(StaticReflectionParser $staticReflectionParser)
     {
+
         $this->staticReflectionParser = $staticReflectionParser;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public static function export($argument, $return = false)
+    {
+
+        throw new ReflectionException('Method not implemented');
     }
 
     /**
@@ -44,6 +55,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getName()
     {
+
         return $this->staticReflectionParser->getClassName();
     }
 
@@ -52,6 +64,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getDocComment()
     {
+
         return $this->staticReflectionParser->getDocComment();
     }
 
@@ -60,6 +73,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getNamespaceName()
     {
+
         return $this->staticReflectionParser->getNamespaceName();
     }
 
@@ -68,6 +82,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getUseStatements()
     {
+
         return $this->staticReflectionParser->getUseStatements();
     }
 
@@ -76,6 +91,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getMethod($name)
     {
+
         return $this->staticReflectionParser->getReflectionMethod($name);
     }
 
@@ -84,15 +100,8 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getProperty($name)
     {
-        return $this->staticReflectionParser->getReflectionProperty($name);
-    }
 
-    /**
-     * {@inheritDoc}
-     */
-    public static function export($argument, $return = false)
-    {
-        throw new ReflectionException('Method not implemented');
+        return $this->staticReflectionParser->getReflectionProperty($name);
     }
 
     /**
@@ -100,6 +109,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getConstant($name)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -108,6 +118,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getConstants()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -116,6 +127,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getConstructor()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -124,6 +136,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getDefaultProperties()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -132,6 +145,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getEndLine()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -140,6 +154,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getExtension()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -148,6 +163,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getExtensionName()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -156,6 +172,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getFileName()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -164,6 +181,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getInterfaceNames()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -172,6 +190,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getInterfaces()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -180,6 +199,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getMethods($filter = null)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -188,6 +208,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getModifiers()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -196,6 +217,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getParentClass()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -204,6 +226,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getProperties($filter = null)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -212,6 +235,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getShortName()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -220,6 +244,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getStartLine()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -228,6 +253,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getStaticProperties()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -236,6 +262,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getStaticPropertyValue($name, $default = '')
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -244,6 +271,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getTraitAliases()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -252,6 +280,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getTraitNames()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -260,6 +289,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function getTraits()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -268,6 +298,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function hasConstant($name)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -276,6 +307,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function hasMethod($name)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -284,6 +316,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function hasProperty($name)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -292,6 +325,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function implementsInterface($interface)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -300,6 +334,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function inNamespace()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -308,6 +343,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isAbstract()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -316,6 +352,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isCloneable()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -324,6 +361,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isFinal()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -332,6 +370,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isInstance($object)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -340,6 +379,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isInstantiable()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -348,6 +388,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isInterface()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -356,6 +397,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isInternal()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -364,6 +406,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isIterateable()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -372,6 +415,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isSubclassOf($class)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -380,6 +424,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isTrait()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -388,6 +433,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function isUserDefined()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -396,6 +442,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function newInstance($args)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -404,6 +451,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function newInstanceArgs(array $args = array())
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -412,6 +460,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function newInstanceWithoutConstructor()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -420,6 +469,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function setStaticPropertyValue($name, $value)
     {
+
         throw new ReflectionException('Method not implemented');
     }
 
@@ -428,6 +478,7 @@ class StaticReflectionClass extends ReflectionClass
      */
     public function __toString()
     {
+
         throw new ReflectionException('Method not implemented');
     }
 }

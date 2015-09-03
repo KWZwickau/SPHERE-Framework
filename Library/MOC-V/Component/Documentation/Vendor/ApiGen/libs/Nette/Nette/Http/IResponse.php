@@ -55,7 +55,7 @@ interface IResponse
      *
      * @return void
      */
-    function setCode( $code );
+    function setCode($code);
 
     /**
      * Returns HTTP response code.
@@ -72,7 +72,7 @@ interface IResponse
      *
      * @return void
      */
-    function setHeader( $name, $value );
+    function setHeader($name, $value);
 
     /**
      * Adds HTTP header.
@@ -82,7 +82,7 @@ interface IResponse
      *
      * @return void
      */
-    function addHeader( $name, $value );
+    function addHeader($name, $value);
 
     /**
      * Sends a Content-type HTTP header.
@@ -92,7 +92,7 @@ interface IResponse
      *
      * @return void
      */
-    function setContentType( $type, $charset = null );
+    function setContentType($type, $charset = null);
 
     /**
      * Redirects to a new URL.
@@ -102,7 +102,7 @@ interface IResponse
      *
      * @return void
      */
-    function redirect( $url, $code = self::S302_FOUND );
+    function redirect($url, $code = self::S302_FOUND);
 
     /**
      * Sets the number of seconds before a page cached on a browser expires.
@@ -111,7 +111,7 @@ interface IResponse
      *
      * @return void
      */
-    function setExpiration( $seconds );
+    function setExpiration($seconds);
 
     /**
      * Checks if headers have been sent.
@@ -140,7 +140,7 @@ interface IResponse
      *
      * @return void
      */
-    function setCookie( $name, $value, $expire, $path = null, $domain = null, $secure = null, $httpOnly = null );
+    function setCookie($name, $value, $expire, $path = null, $domain = null, $secure = null, $httpOnly = null);
 
     /**
      * Deletes a cookie.
@@ -152,6 +152,6 @@ interface IResponse
      *
      * @return void
      */
-    function deleteCookie( $name, $path = null, $domain = null, $secure = null );
+    function deleteCookie($name, $path = null, $domain = null, $secure = null);
 
 }

@@ -46,11 +46,11 @@ final class TexyHtmlOutputModule extends TexyModule
     private $xml;
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
-        $texy->addHandler( 'postProcess', array( $this, 'postProcess' ) );
+        $texy->addHandler('postProcess', array($this, 'postProcess'));
     }
 
 
@@ -58,7 +58,7 @@ final class TexyHtmlOutputModule extends TexyModule
      * Converts <strong><em> ... </strong> ... </em>.
      * into <strong><em> ... </em></strong><em> ... </em>
      */
-    public function postProcess( $texy, & $s )
+    public function postProcess($texy, & $s)
     {
 
         $this->space = $this->baseIndent;
@@ -67,12 +67,12 @@ final class TexyHtmlOutputModule extends TexyModule
         $this->xml = $texy->getOutputMode() & Texy::XML;
 
         // special "base content"
-        $this->baseDTD = $texy->dtd['div'][1] + $texy->dtd['html'][1] /*+ $texy->dtd['head'][1]*/ + $texy->dtd['body'][1] + array( 'html' => 1 );
+        $this->baseDTD = $texy->dtd['div'][1] + $texy->dtd['html'][1] /*+ $texy->dtd['head'][1]*/ + $texy->dtd['body'][1] + array('html' => 1);
 
         // wellform and reformat
         $s = preg_replace_callback(
             '#(.*)<(?:(!--.*--)|(/?)([a-z][a-z0-9._:-]*)(|[ \n].*)\s*(/?))>()#Uis',
-            array( $this, 'cb' ),
+            array($this, 'cb'),
             $s.'</end/>'
         );
 
@@ -82,29 +82,29 @@ final class TexyHtmlOutputModule extends TexyModule
         }
 
         // right trim
-        $s = preg_replace( "#[\t ]+(\n|\r|$)#", '$1', $s ); // right trim
+        $s = preg_replace("#[\t ]+(\n|\r|$)#", '$1', $s); // right trim
 
         // join double \r to single \n
-        $s = str_replace( "\r\r", "\n", $s );
-        $s = strtr( $s, "\r", "\n" );
+        $s = str_replace("\r\r", "\n", $s);
+        $s = strtr($s, "\r", "\n");
 
         // greedy chars
-        $s = preg_replace( "#\\x07 *#", '', $s );
+        $s = preg_replace("#\\x07 *#", '', $s);
         // back-tabs
-        $s = preg_replace( "#\\t? *\\x08#", '', $s );
+        $s = preg_replace("#\\t? *\\x08#", '', $s);
 
         // line wrap
         if ($this->lineWrap > 0) {
             $s = preg_replace_callback(
                 '#^(\t*)(.*)$#m',
-                array( $this, 'wrap' ),
+                array($this, 'wrap'),
                 $s
             );
         }
 
         // remove HTML 4.01 optional end tags
         if (!$this->xml && $this->removeOptional) {
-            $s = preg_replace( '#\\s*</(colgroup|dd|dt|li|option|p|td|tfoot|th|thead|tr)>#u', '', $s );
+            $s = preg_replace('#\\s*</(colgroup|dd|dt|li|option|p|td|tfoot|th|thead|tr)>#u', '', $s);
         }
     }
 
@@ -114,7 +114,7 @@ final class TexyHtmlOutputModule extends TexyModule
      *
      * @return string
      */
-    private function cb( $matches )
+    private function cb($matches)
     {
 
         // html tag
@@ -130,21 +130,21 @@ final class TexyHtmlOutputModule extends TexyModule
 
         // phase #1 - stuff between tags
         if ($mText !== '') {
-            $item = reset( $this->tagStack );
+            $item = reset($this->tagStack);
             // text not allowed?
             if ($item && !isset( $item['dtdContent']['%DATA'] )) {
             } // inside pre & textarea preserve spaces
             elseif (!empty( $this->tagUsed['pre'] ) || !empty( $this->tagUsed['textarea'] ) || !empty( $this->tagUsed['script'] )) {
-                $s = Texy::freezeSpaces( $mText );
+                $s = Texy::freezeSpaces($mText);
             } // otherwise shrink multiple spaces
             else {
-                $s = preg_replace( '#[ \n]+#', ' ', $mText );
+                $s = preg_replace('#[ \n]+#', ' ', $mText);
             }
         }
 
         // phase #2 - HTML comment
         if ($mComment) {
-            return $s.'<'.Texy::freezeSpaces( $mComment ).'>';
+            return $s.'<'.Texy::freezeSpaces($mComment).'>';
         }
 
         // phase #3 - HTML tag
@@ -173,7 +173,7 @@ final class TexyHtmlOutputModule extends TexyModule
                 if ($tag === $mTag) {
                     break;
                 }
-                array_unshift( $tmp, $item );
+                array_unshift($tmp, $item);
             }
 
             if (!$back || !$tmp) {
@@ -181,7 +181,7 @@ final class TexyHtmlOutputModule extends TexyModule
             }
 
             // allowed-check (nejspis neni ani potreba)
-            $item = reset( $this->tagStack );
+            $item = reset($this->tagStack);
             if ($item) {
                 $dtdContent = $item['dtdContent'];
             } else {
@@ -196,7 +196,7 @@ final class TexyHtmlOutputModule extends TexyModule
                 $s .= $item['open'];
                 $this->space += $item['indent'];
                 $this->tagUsed[$item['tag']]++;
-                array_unshift( $this->tagStack, $item );
+                array_unshift($this->tagStack, $item);
             }
 
         } else { // start tag
@@ -206,7 +206,7 @@ final class TexyHtmlOutputModule extends TexyModule
             if (!isset( $this->texy->dtd[$mTag] )) {
                 // unknown (non-html) tag
                 $allowed = true;
-                $item = reset( $this->tagStack );
+                $item = reset($this->tagStack);
                 if ($item) {
                     $dtdContent = $item['dtdContent'];
                 }
@@ -263,11 +263,11 @@ final class TexyHtmlOutputModule extends TexyModule
 
                 if ($indent && $mTag === 'br') // formatting exception
                 {
-                    return rtrim( $s ).'<'.$mTag.$mAttr.">\n".str_repeat( "\t", max( 0, $this->space - 1 ) )."\x07";
+                    return rtrim($s).'<'.$mTag.$mAttr.">\n".str_repeat("\t", max(0, $this->space - 1))."\x07";
                 }
 
                 if ($indent && !isset( TexyHtml::$inlineElements[$mTag] )) {
-                    $space = "\r".str_repeat( "\t", $this->space );
+                    $space = "\r".str_repeat("\t", $this->space);
                     return $s.$space.'<'.$mTag.$mAttr.'>'.$space;
                 }
 
@@ -296,8 +296,8 @@ final class TexyHtmlOutputModule extends TexyModule
 
                 // format output
                 if ($this->indent && !isset( TexyHtml::$inlineElements[$mTag] )) {
-                    $close = "\x08".'</'.$mTag.'>'."\n".str_repeat( "\t", $this->space );
-                    $s .= "\n".str_repeat( "\t", $this->space++ ).$open."\x07";
+                    $close = "\x08".'</'.$mTag.'>'."\n".str_repeat("\t", $this->space);
+                    $s .= "\n".str_repeat("\t", $this->space++).$open."\x07";
                     $indent = 1;
                 } else {
                     $close = '</'.$mTag.'>';
@@ -315,7 +315,7 @@ final class TexyHtmlOutputModule extends TexyModule
                 'dtdContent' => $dtdContent,
                 'indent'     => $indent,
             );
-            array_unshift( $this->tagStack, $item );
+            array_unshift($this->tagStack, $item);
             $tmp = &$this->tagUsed[$mTag];
             $tmp++;
         }
@@ -329,11 +329,11 @@ final class TexyHtmlOutputModule extends TexyModule
      *
      * @return string
      */
-    private function wrap( $m )
+    private function wrap($m)
     {
 
         list( , $space, $s ) = $m;
-        return $space.wordwrap( $s, $this->lineWrap, "\n".$space );
+        return $space.wordwrap($s, $this->lineWrap, "\n".$space);
     }
 
 }

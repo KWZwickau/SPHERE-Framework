@@ -26,6 +26,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
  */
 class InlineFragmentRenderer extends RoutableFragmentRenderer
 {
+
     private $kernel;
     private $dispatcher;
 
@@ -37,6 +38,7 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
      */
     public function __construct(HttpKernelInterface $kernel, EventDispatcherInterface $dispatcher = null)
     {
+
         $this->kernel = $kernel;
         $this->dispatcher = $dispatcher;
     }
@@ -50,6 +52,7 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
      */
     public function render($uri, Request $request, array $options = array())
     {
+
         $reference = null;
         if ($uri instanceof ControllerReference) {
             $reference = $uri;
@@ -63,7 +66,7 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
 
             // The request format and locale might have been overridden by the user
             foreach (array('_format', '_locale') as $key) {
-                if (isset($attributes[$key])) {
+                if (isset( $attributes[$key] )) {
                     $reference->attributes[$key] = $attributes[$key];
                 }
             }
@@ -86,8 +89,9 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
         } catch (\Exception $e) {
             // we dispatch the exception event to trigger the logging
             // the response that comes back is simply ignored
-            if (isset($options['ignore_errors']) && $options['ignore_errors'] && $this->dispatcher) {
-                $event = new GetResponseForExceptionEvent($this->kernel, $request, HttpKernelInterface::SUB_REQUEST, $e);
+            if (isset( $options['ignore_errors'] ) && $options['ignore_errors'] && $this->dispatcher) {
+                $event = new GetResponseForExceptionEvent($this->kernel, $request, HttpKernelInterface::SUB_REQUEST,
+                    $e);
 
                 $this->dispatcher->dispatch(KernelEvents::EXCEPTION, $event);
             }
@@ -95,14 +99,14 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
             // let's clean up the output buffers that were created by the sub-request
             Response::closeOutputBuffers($level, false);
 
-            if (isset($options['alt'])) {
+            if (isset( $options['alt'] )) {
                 $alt = $options['alt'];
-                unset($options['alt']);
+                unset( $options['alt'] );
 
                 return $this->render($alt, $request, $options);
             }
 
-            if (!isset($options['ignore_errors']) || !$options['ignore_errors']) {
+            if (!isset( $options['ignore_errors'] ) || !$options['ignore_errors']) {
                 throw $e;
             }
 
@@ -112,6 +116,7 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
 
     protected function createSubRequest($uri, Request $request)
     {
+
         $cookies = $request->cookies->all();
         $server = $request->server->all();
 
@@ -122,7 +127,7 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
             if ($trustedHeaderName = Request::getTrustedHeaderName(Request::HEADER_CLIENT_IP)) {
                 $currentXForwardedFor = $request->headers->get($trustedHeaderName, '');
 
-                $server['HTTP_'.$trustedHeaderName] = ($currentXForwardedFor ? $currentXForwardedFor.', ' : '').$request->getClientIp();
+                $server['HTTP_'.$trustedHeaderName] = ( $currentXForwardedFor ? $currentXForwardedFor.', ' : '' ).$request->getClientIp();
             }
         } catch (\InvalidArgumentException $e) {
             // Do nothing
@@ -147,6 +152,7 @@ class InlineFragmentRenderer extends RoutableFragmentRenderer
      */
     public function getName()
     {
+
         return 'inline';
     }
 }

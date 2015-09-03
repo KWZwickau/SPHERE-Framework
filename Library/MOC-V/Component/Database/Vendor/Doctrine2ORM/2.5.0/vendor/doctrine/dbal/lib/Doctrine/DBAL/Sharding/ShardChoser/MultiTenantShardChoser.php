@@ -29,11 +29,13 @@ use Doctrine\DBAL\Sharding\PoolingShardConnection;
  */
 class MultiTenantShardChoser implements ShardChoser
 {
+
     /**
      * {@inheritdoc}
      */
     public function pickShard($distributionValue, PoolingShardConnection $conn)
     {
+
         return $distributionValue;
     }
 }

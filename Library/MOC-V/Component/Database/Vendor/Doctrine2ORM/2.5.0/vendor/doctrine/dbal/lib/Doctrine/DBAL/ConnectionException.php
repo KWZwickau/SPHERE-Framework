@@ -26,11 +26,13 @@ namespace Doctrine\DBAL;
  */
 class ConnectionException extends DBALException
 {
+
     /**
      * @return \Doctrine\DBAL\ConnectionException
      */
     public static function commitFailedRollbackOnly()
     {
+
         return new self("Transaction commit failed because the transaction has been marked for rollback only.");
     }
 
@@ -39,6 +41,7 @@ class ConnectionException extends DBALException
      */
     public static function noActiveTransaction()
     {
+
         return new self("There is no active transaction.");
     }
 
@@ -47,6 +50,7 @@ class ConnectionException extends DBALException
      */
     public static function savepointsNotSupported()
     {
+
         return new self("Savepoints are not supported by this driver.");
     }
 
@@ -55,6 +59,7 @@ class ConnectionException extends DBALException
      */
     public static function mayNotAlterNestedTransactionWithSavepointsInTransaction()
     {
+
         return new self("May not alter the nested transaction with savepoints behavior while a transaction is open.");
     }
 }

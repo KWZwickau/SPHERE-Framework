@@ -29,7 +29,7 @@ class pdf_context
 
     // Constructor
 
-    function pdf_context( $f )
+    function pdf_context($f)
     {
 
         $this->file = $f;
@@ -40,16 +40,16 @@ class pdf_context
     // pointer to a new location
     // and reset the buffered data
 
-    function reset( $pos = null, $l = 100 )
+    function reset($pos = null, $l = 100)
     {
 
-        if (!is_null( $pos )) {
-            fseek( $this->file, $pos );
+        if (!is_null($pos)) {
+            fseek($this->file, $pos);
         }
 
-        $this->buffer = $l > 0 ? fread( $this->file, $l ) : '';
+        $this->buffer = $l > 0 ? fread($this->file, $l) : '';
         $this->offset = 0;
-        $this->length = strlen( $this->buffer );
+        $this->length = strlen($this->buffer);
         $this->stack = array();
     }
 
@@ -71,14 +71,14 @@ class pdf_context
 
     // Forcefully read more data into the buffer
 
-    function increase_length( $l = 100 )
+    function increase_length($l = 100)
     {
 
-        if (feof( $this->file )) {
+        if (feof($this->file)) {
             return false;
         } else {
-            $this->buffer .= fread( $this->file, $l );
-            $this->length = strlen( $this->buffer );
+            $this->buffer .= fread($this->file, $l);
+            $this->length = strlen($this->buffer);
             return true;
         }
     }

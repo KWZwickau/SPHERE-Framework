@@ -16,35 +16,16 @@ use Symfony\Component\Config\Resource\FileResource;
 
 class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 {
+
     private $resourceFile = null;
 
     private $cacheFile = null;
 
     private $metaFile = null;
 
-    protected function setUp()
-    {
-        $this->resourceFile = tempnam(sys_get_temp_dir(), '_resource');
-        $this->cacheFile = tempnam(sys_get_temp_dir(), 'config_');
-        $this->metaFile = $this->cacheFile.'.meta';
-
-        $this->makeCacheFresh();
-        $this->generateMetaFile();
-    }
-
-    protected function tearDown()
-    {
-        $files = array($this->cacheFile, $this->metaFile, $this->resourceFile);
-
-        foreach ($files as $file) {
-            if (file_exists($file)) {
-                unlink($file);
-            }
-        }
-    }
-
     public function testGetPath()
     {
+
         $cache = new ConfigCache($this->cacheFile, true);
 
         $this->assertSame($this->cacheFile, $cache->getPath());
@@ -52,6 +33,7 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testCacheIsNotFreshIfFileDoesNotExist()
     {
+
         unlink($this->cacheFile);
 
         $cache = new ConfigCache($this->cacheFile, false);
@@ -61,6 +43,7 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testCacheIsAlwaysFreshIfFileExistsWithDebugDisabled()
     {
+
         $this->makeCacheStale();
 
         $cache = new ConfigCache($this->cacheFile, false);
@@ -68,8 +51,15 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($cache->isFresh());
     }
 
+    private function makeCacheStale()
+    {
+
+        touch($this->cacheFile, filemtime($this->resourceFile) - 3600);
+    }
+
     public function testCacheIsNotFreshWithoutMetaFile()
     {
+
         unlink($this->metaFile);
 
         $cache = new ConfigCache($this->cacheFile, true);
@@ -79,6 +69,7 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testCacheIsFreshIfResourceIsFresh()
     {
+
         $cache = new ConfigCache($this->cacheFile, true);
 
         $this->assertTrue($cache->isFresh());
@@ -86,6 +77,7 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testCacheIsNotFreshIfOneOfTheResourcesIsNotFresh()
     {
+
         $this->makeCacheStale();
 
         $cache = new ConfigCache($this->cacheFile, true);
@@ -95,6 +87,7 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testWriteDumpsFile()
     {
+
         unlink($this->cacheFile);
         unlink($this->metaFile);
 
@@ -108,6 +101,7 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
 
     public function testWriteDumpsMetaFileWithDebugEnabled()
     {
+
         unlink($this->cacheFile);
         unlink($this->metaFile);
 
@@ -121,18 +115,38 @@ class ConfigCacheTest extends \PHPUnit_Framework_TestCase
         $this->assertSame(serialize($metadata), file_get_contents($this->metaFile));
     }
 
-    private function makeCacheFresh()
+    protected function setUp()
     {
-        touch($this->resourceFile, filemtime($this->cacheFile) - 3600);
+
+        $this->resourceFile = tempnam(sys_get_temp_dir(), '_resource');
+        $this->cacheFile = tempnam(sys_get_temp_dir(), 'config_');
+        $this->metaFile = $this->cacheFile.'.meta';
+
+        $this->makeCacheFresh();
+        $this->generateMetaFile();
     }
 
-    private function makeCacheStale()
+    private function makeCacheFresh()
     {
-        touch($this->cacheFile, filemtime($this->resourceFile) - 3600);
+
+        touch($this->resourceFile, filemtime($this->cacheFile) - 3600);
     }
 
     private function generateMetaFile()
     {
+
         file_put_contents($this->metaFile, serialize(array(new FileResource($this->resourceFile))));
+    }
+
+    protected function tearDown()
+    {
+
+        $files = array($this->cacheFile, $this->metaFile, $this->resourceFile);
+
+        foreach ($files as $file) {
+            if (file_exists($file)) {
+                unlink($file);
+            }
+        }
     }
 }

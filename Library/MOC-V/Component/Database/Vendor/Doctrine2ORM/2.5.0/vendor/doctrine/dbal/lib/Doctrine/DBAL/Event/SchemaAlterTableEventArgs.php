@@ -31,6 +31,7 @@ use Doctrine\DBAL\Schema\TableDiff;
  */
 class SchemaAlterTableEventArgs extends SchemaEventArgs
 {
+
     /**
      * @var \Doctrine\DBAL\Schema\TableDiff
      */
@@ -52,8 +53,9 @@ class SchemaAlterTableEventArgs extends SchemaEventArgs
      */
     public function __construct(TableDiff $tableDiff, AbstractPlatform $platform)
     {
+
         $this->_tableDiff = $tableDiff;
-        $this->_platform  = $platform;
+        $this->_platform = $platform;
     }
 
     /**
@@ -61,6 +63,7 @@ class SchemaAlterTableEventArgs extends SchemaEventArgs
      */
     public function getTableDiff()
     {
+
         return $this->_tableDiff;
     }
 
@@ -69,6 +72,7 @@ class SchemaAlterTableEventArgs extends SchemaEventArgs
      */
     public function getPlatform()
     {
+
         return $this->_platform;
     }
 
@@ -79,6 +83,7 @@ class SchemaAlterTableEventArgs extends SchemaEventArgs
      */
     public function addSql($sql)
     {
+
         if (is_array($sql)) {
             $this->_sql = array_merge($this->_sql, $sql);
         } else {
@@ -93,6 +98,7 @@ class SchemaAlterTableEventArgs extends SchemaEventArgs
      */
     public function getSql()
     {
+
         return $this->_sql;
     }
 }

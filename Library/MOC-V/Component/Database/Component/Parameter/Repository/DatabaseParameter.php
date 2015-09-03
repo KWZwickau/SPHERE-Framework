@@ -18,10 +18,10 @@ class DatabaseParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Database
      */
-    function __construct( $Database )
+    public function __construct($Database)
     {
 
-        $this->setDatabase( $Database );
+        $this->setDatabase($Database);
     }
 
     /**
@@ -36,7 +36,7 @@ class DatabaseParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Database
      */
-    public function setDatabase( $Database )
+    public function setDatabase($Database)
     {
 
         $this->Database = $Database;

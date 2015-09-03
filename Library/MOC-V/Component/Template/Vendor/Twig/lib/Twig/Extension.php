@@ -8,8 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
+
 abstract class Twig_Extension implements Twig_ExtensionInterface
 {
+
     /**
      * Initializes the runtime environment.
      *
@@ -28,6 +30,7 @@ abstract class Twig_Extension implements Twig_ExtensionInterface
      */
     public function getTokenParsers()
     {
+
         return array();
     }
 
@@ -38,6 +41,7 @@ abstract class Twig_Extension implements Twig_ExtensionInterface
      */
     public function getNodeVisitors()
     {
+
         return array();
     }
 
@@ -48,6 +52,7 @@ abstract class Twig_Extension implements Twig_ExtensionInterface
      */
     public function getFilters()
     {
+
         return array();
     }
 
@@ -58,6 +63,7 @@ abstract class Twig_Extension implements Twig_ExtensionInterface
      */
     public function getTests()
     {
+
         return array();
     }
 
@@ -68,6 +74,7 @@ abstract class Twig_Extension implements Twig_ExtensionInterface
      */
     public function getFunctions()
     {
+
         return array();
     }
 
@@ -78,6 +85,7 @@ abstract class Twig_Extension implements Twig_ExtensionInterface
      */
     public function getOperators()
     {
+
         return array();
     }
 
@@ -88,6 +96,7 @@ abstract class Twig_Extension implements Twig_ExtensionInterface
      */
     public function getGlobals()
     {
+
         return array();
     }
 }

@@ -6,8 +6,10 @@ use Guzzle\Service\Description\Operation;
 
 class OtherCommand extends MockCommand
 {
+
     protected function createOperation()
     {
+
         return new Operation(array(
             'name'       => 'other_command',
             'parameters' => array(
@@ -25,6 +27,7 @@ class OtherCommand extends MockCommand
 
     protected function build()
     {
+
         $this->request = $this->client->getRequest('HEAD');
     }
 }

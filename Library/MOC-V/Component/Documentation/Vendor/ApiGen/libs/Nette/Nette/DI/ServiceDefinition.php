@@ -45,47 +45,47 @@ class ServiceDefinition extends Nette\Object
     /** @var bool */
     public $internal = false;
 
-    public function setArguments( array $args = array() )
+    public function setArguments(array $args = array())
     {
 
         if ($this->factory) {
             $this->factory->arguments = $args;
         } else {
-            $this->setClass( $this->class, $args );
+            $this->setClass($this->class, $args);
         }
         return $this;
     }
 
-    public function setClass( $class, array $args = array() )
+    public function setClass($class, array $args = array())
     {
 
         $this->class = $class;
         if ($args) {
-            $this->setFactory( $class, $args );
+            $this->setFactory($class, $args);
         }
         return $this;
     }
 
-    public function setFactory( $factory, array $args = array() )
+    public function setFactory($factory, array $args = array())
     {
 
-        $this->factory = new Statement( $factory, $args );
+        $this->factory = new Statement($factory, $args);
         return $this;
     }
 
-    public function addSetup( $target, $args = null )
+    public function addSetup($target, $args = null)
     {
 
-        if (!is_array( $args )) {
+        if (!is_array($args)) {
             $args = func_get_args();
-            array_shift( $args );
+            array_shift($args);
         }
-        $this->setup[] = new Statement( $target, $args );
+        $this->setup[] = new Statement($target, $args);
         return $this;
     }
 
 
-    public function setParameters( array $params )
+    public function setParameters(array $params)
     {
 
         $this->shared = $this->autowired = false;
@@ -94,7 +94,7 @@ class ServiceDefinition extends Nette\Object
     }
 
 
-    public function addTag( $tag, $attrs = true )
+    public function addTag($tag, $attrs = true)
     {
 
         $this->tags[$tag] = $attrs;
@@ -102,7 +102,7 @@ class ServiceDefinition extends Nette\Object
     }
 
 
-    public function setAutowired( $on )
+    public function setAutowired($on)
     {
 
         $this->autowired = $on;
@@ -110,7 +110,7 @@ class ServiceDefinition extends Nette\Object
     }
 
 
-    public function setShared( $on )
+    public function setShared($on)
     {
 
         $this->shared = (bool)$on;
@@ -119,7 +119,7 @@ class ServiceDefinition extends Nette\Object
     }
 
 
-    public function setInternal( $on )
+    public function setInternal($on)
     {
 
         $this->internal = (bool)$on;

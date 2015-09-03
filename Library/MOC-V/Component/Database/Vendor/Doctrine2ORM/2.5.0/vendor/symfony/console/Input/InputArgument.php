@@ -20,6 +20,7 @@ namespace Symfony\Component\Console\Input;
  */
 class InputArgument
 {
+
     const REQUIRED = 1;
     const OPTIONAL = 2;
     const IS_ARRAY = 4;
@@ -43,6 +44,7 @@ class InputArgument
      */
     public function __construct($name, $mode = null, $description = '', $default = null)
     {
+
         if (null === $mode) {
             $mode = self::OPTIONAL;
         } elseif (!is_int($mode) || $mode > 7 || $mode < 1) {
@@ -63,6 +65,7 @@ class InputArgument
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -73,7 +76,8 @@ class InputArgument
      */
     public function isRequired()
     {
-        return self::REQUIRED === (self::REQUIRED & $this->mode);
+
+        return self::REQUIRED === ( self::REQUIRED & $this->mode );
     }
 
     /**
@@ -83,7 +87,19 @@ class InputArgument
      */
     public function isArray()
     {
-        return self::IS_ARRAY === (self::IS_ARRAY & $this->mode);
+
+        return self::IS_ARRAY === ( self::IS_ARRAY & $this->mode );
+    }
+
+    /**
+     * Returns the default value.
+     *
+     * @return mixed The default value
+     */
+    public function getDefault()
+    {
+
+        return $this->default;
     }
 
     /**
@@ -95,6 +111,7 @@ class InputArgument
      */
     public function setDefault($default = null)
     {
+
         if (self::REQUIRED === $this->mode && null !== $default) {
             throw new \LogicException('Cannot set a default value except for InputArgument::OPTIONAL mode.');
         }
@@ -111,22 +128,13 @@ class InputArgument
     }
 
     /**
-     * Returns the default value.
-     *
-     * @return mixed The default value
-     */
-    public function getDefault()
-    {
-        return $this->default;
-    }
-
-    /**
      * Returns the description text.
      *
      * @return string The description text
      */
     public function getDescription()
     {
+
         return $this->description;
     }
 }

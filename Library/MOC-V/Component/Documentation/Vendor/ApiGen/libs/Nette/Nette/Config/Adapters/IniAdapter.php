@@ -37,31 +37,31 @@ class IniAdapter extends Nette\Object implements Nette\Config\IAdapter
      * @return array
      * @throws Nette\InvalidStateException
      */
-    public function load( $file )
+    public function load($file)
     {
 
         Nette\Diagnostics\Debugger::tryError();
-        $ini = parse_ini_file( $file, true );
-        if (Nette\Diagnostics\Debugger::catchError( $e )) {
-            throw new Nette\InvalidStateException( 'parse_ini_file(): '.$e->getMessage(), 0, $e );
+        $ini = parse_ini_file($file, true);
+        if (Nette\Diagnostics\Debugger::catchError($e)) {
+            throw new Nette\InvalidStateException('parse_ini_file(): '.$e->getMessage(), 0, $e);
         }
 
         $data = array();
         foreach ($ini as $secName => $secData) {
-            if (is_array( $secData )) { // is section?
-                if (substr( $secName, -1 ) === self::RAW_SECTION) {
-                    $secName = substr( $secName, 0, -1 );
+            if (is_array($secData)) { // is section?
+                if (substr($secName, -1) === self::RAW_SECTION) {
+                    $secName = substr($secName, 0, -1);
                 } else { // process key nesting separator (key1.key2.key3)
                     $tmp = array();
                     foreach ($secData as $key => $val) {
                         $cursor = &$tmp;
-                        $key = str_replace( self::ESCAPED_KEY_SEPARATOR, "\xFF", $key );
-                        foreach (explode( self::KEY_SEPARATOR, $key ) as $part) {
-                            $part = str_replace( "\xFF", self::KEY_SEPARATOR, $part );
-                            if (!isset( $cursor[$part] ) || is_array( $cursor[$part] )) {
+                        $key = str_replace(self::ESCAPED_KEY_SEPARATOR, "\xFF", $key);
+                        foreach (explode(self::KEY_SEPARATOR, $key) as $part) {
+                            $part = str_replace("\xFF", self::KEY_SEPARATOR, $part);
+                            if (!isset( $cursor[$part] ) || is_array($cursor[$part])) {
                                 $cursor = &$cursor[$part];
                             } else {
-                                throw new Nette\InvalidStateException( "Invalid key '$key' in section [$secName] in file '$file'." );
+                                throw new Nette\InvalidStateException("Invalid key '$key' in section [$secName] in file '$file'.");
                             }
                         }
                         $cursor = $val;
@@ -69,24 +69,24 @@ class IniAdapter extends Nette\Object implements Nette\Config\IAdapter
                     $secData = $tmp;
                 }
 
-                $parts = explode( self::INHERITING_SEPARATOR, $secName );
-                if (count( $parts ) > 1) {
-                    $secName = trim( $parts[0] );
-                    $secData[Helpers::EXTENDS_KEY] = trim( $parts[1] );
+                $parts = explode(self::INHERITING_SEPARATOR, $secName);
+                if (count($parts) > 1) {
+                    $secName = trim($parts[0]);
+                    $secData[Helpers::EXTENDS_KEY] = trim($parts[1]);
                 }
             }
 
             $cursor = &$data; // nesting separator in section name
-            foreach (explode( self::KEY_SEPARATOR, $secName ) as $part) {
-                if (!isset( $cursor[$part] ) || is_array( $cursor[$part] )) {
+            foreach (explode(self::KEY_SEPARATOR, $secName) as $part) {
+                if (!isset( $cursor[$part] ) || is_array($cursor[$part])) {
                     $cursor = &$cursor[$part];
                 } else {
-                    throw new Nette\InvalidStateException( "Invalid section [$secName] in file '$file'." );
+                    throw new Nette\InvalidStateException("Invalid section [$secName] in file '$file'.");
                 }
             }
 
-            if (is_array( $secData ) && is_array( $cursor )) {
-                $secData = Helpers::merge( $secData, $cursor );
+            if (is_array($secData) && is_array($cursor)) {
+                $secData = Helpers::merge($secData, $cursor);
             }
 
             $cursor = $secData;
@@ -103,25 +103,25 @@ class IniAdapter extends Nette\Object implements Nette\Config\IAdapter
      *
      * @return string
      */
-    public function dump( array $data )
+    public function dump(array $data)
     {
 
         $output = array();
         foreach ($data as $name => $secData) {
-            if (!is_array( $secData )) {
+            if (!is_array($secData)) {
                 $output = array();
-                self::build( $data, $output, '' );
+                self::build($data, $output, '');
                 break;
             }
-            if ($parent = Helpers::takeParent( $secData )) {
+            if ($parent = Helpers::takeParent($secData)) {
                 $output[] = "[$name ".self::INHERITING_SEPARATOR." $parent]";
             } else {
                 $output[] = "[$name]";
             }
-            self::build( $secData, $output, '' );
+            self::build($secData, $output, '');
             $output[] = '';
         }
-        return "; generated by Nette\n\n".implode( PHP_EOL, $output );
+        return "; generated by Nette\n\n".implode(PHP_EOL, $output);
     }
 
 
@@ -130,25 +130,25 @@ class IniAdapter extends Nette\Object implements Nette\Config\IAdapter
      *
      * @return void
      */
-    private static function build( $input, & $output, $prefix )
+    private static function build($input, & $output, $prefix)
     {
 
         foreach ($input as $key => $val) {
-            $key = str_replace( self::KEY_SEPARATOR, self::ESCAPED_KEY_SEPARATOR, $key );
-            if (is_array( $val )) {
-                self::build( $val, $output, $prefix.$key.self::KEY_SEPARATOR );
+            $key = str_replace(self::KEY_SEPARATOR, self::ESCAPED_KEY_SEPARATOR, $key);
+            if (is_array($val)) {
+                self::build($val, $output, $prefix.$key.self::KEY_SEPARATOR);
 
-            } elseif (is_bool( $val )) {
+            } elseif (is_bool($val)) {
                 $output[] = "$prefix$key = ".( $val ? 'true' : 'false' );
 
-            } elseif (is_numeric( $val )) {
+            } elseif (is_numeric($val)) {
                 $output[] = "$prefix$key = $val";
 
-            } elseif (is_string( $val )) {
+            } elseif (is_string($val)) {
                 $output[] = "$prefix$key = \"$val\"";
 
             } else {
-                throw new Nette\InvalidArgumentException( "The '$prefix$key' item must be scalar or array, ".gettype( $val )." given." );
+                throw new Nette\InvalidArgumentException("The '$prefix$key' item must be scalar or array, ".gettype($val)." given.");
             }
         }
     }

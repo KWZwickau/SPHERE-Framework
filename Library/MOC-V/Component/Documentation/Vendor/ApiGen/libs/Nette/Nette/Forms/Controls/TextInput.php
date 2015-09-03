@@ -28,14 +28,14 @@ class TextInput extends TextBase
      * @param  int     width of the control
      * @param  int     maximum number of characters the user may enter
      */
-    public function __construct( $label = null, $cols = null, $maxLength = null )
+    public function __construct($label = null, $cols = null, $maxLength = null)
     {
 
-        parent::__construct( $label );
+        parent::__construct($label);
         $this->control->type = 'text';
         $this->control->size = $cols;
         $this->control->maxlength = $maxLength;
-        $this->addFilter( $this->sanitize );
+        $this->addFilter($this->sanitize);
         $this->value = '';
     }
 
@@ -45,13 +45,13 @@ class TextInput extends TextBase
      *
      * @return string
      */
-    public function sanitize( $value )
+    public function sanitize($value)
     {
 
-        if ($this->control->maxlength && Nette\Utils\Strings::length( $value ) > $this->control->maxlength) {
-            $value = Nette\Utils\Strings::substring( $value, 0, $this->control->maxlength );
+        if ($this->control->maxlength && Nette\Utils\Strings::length($value) > $this->control->maxlength) {
+            $value = Nette\Utils\Strings::substring($value, 0, $this->control->maxlength);
         }
-        return Nette\Utils\Strings::trim( strtr( $value, "\r\n", '  ' ) );
+        return Nette\Utils\Strings::trim(strtr($value, "\r\n", '  '));
     }
 
 
@@ -62,7 +62,7 @@ class TextInput extends TextBase
      *
      * @return BaseControl  provides a fluent interface
      */
-    public function setType( $type )
+    public function setType($type)
     {
 
         $this->control->type = $type;
@@ -71,7 +71,7 @@ class TextInput extends TextBase
 
 
     /** @deprecated */
-    public function setPasswordMode( $mode = true )
+    public function setPasswordMode($mode = true)
     {
 
         $this->control->type = $mode ? 'password' : 'text';
@@ -99,7 +99,7 @@ class TextInput extends TextBase
             }
         }
         if ($control->type !== 'password') {
-            $control->value = $this->getValue() === '' ? $this->translate( $this->emptyValue ) : $this->value;
+            $control->value = $this->getValue() === '' ? $this->translate($this->emptyValue) : $this->value;
         }
         return $control;
     }

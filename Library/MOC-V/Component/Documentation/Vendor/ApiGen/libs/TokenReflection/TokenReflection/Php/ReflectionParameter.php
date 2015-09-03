@@ -52,10 +52,10 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
      * @param \TokenReflection\Broker     $broker    Reflection broker
      * @param \ReflectionFunctionAbstract $parent    Parent reflection object
      */
-    public function __construct( $function, $paramName, Broker $broker, InternalReflectionFunctionAbstract $parent )
+    public function __construct($function, $paramName, Broker $broker, InternalReflectionFunctionAbstract $parent)
     {
 
-        parent::__construct( $function, $paramName );
+        parent::__construct($function, $paramName);
         $this->broker = $broker;
         $this->userDefined = $parent->isUserDefined();
     }
@@ -69,14 +69,14 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
      * @return \TokenReflection\Php\ReflectionParameter
      * @throws \TokenReflection\Exception\RuntimeException If an invalid internal reflection object was provided.
      */
-    public static function create( Reflector $internalReflection, Broker $broker )
+    public static function create(Reflector $internalReflection, Broker $broker)
     {
 
         static $cache = array();
 
         if (!$internalReflection instanceof InternalReflectionParameter) {
-            throw new Exception\RuntimeException( 'Invalid reflection instance provided, ReflectionParameter expected.',
-                Exception\RuntimeException::INVALID_ARGUMENT );
+            throw new Exception\RuntimeException('Invalid reflection instance provided, ReflectionParameter expected.',
+                Exception\RuntimeException::INVALID_ARGUMENT);
         }
 
         $class = $internalReflection->getDeclaringClass();
@@ -86,8 +86,8 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
         $key .= $function->getName().'('.$internalReflection->getName().')';
 
         if (!isset( $cache[$key] )) {
-            $cache[$key] = new self( $class ? array( $class->getName(), $function->getName() ) : $function->getName(),
-                $internalReflection->getName(), $broker, $function );
+            $cache[$key] = new self($class ? array($class->getName(), $function->getName()) : $function->getName(),
+                $internalReflection->getName(), $broker, $function);
         }
 
         return $cache[$key];
@@ -127,8 +127,8 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
         $class = $this->getDeclaringClass();
         $function = parent::getDeclaringFunction();
 
-        return $class ? $class->getMethod( $function->getName() ) : ReflectionFunction::create( $function,
-            $this->broker );
+        return $class ? $class->getMethod($function->getName()) : ReflectionFunction::create($function,
+            $this->broker);
     }
 
     /**
@@ -140,7 +140,7 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
     {
 
         $class = parent::getDeclaringClass();
-        return $class ? ReflectionClass::create( $class, $this->broker ) : null;
+        return $class ? ReflectionClass::create($class, $this->broker) : null;
     }
 
     /**
@@ -184,7 +184,7 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -197,7 +197,7 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -268,7 +268,7 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
     {
 
         $value = $this->getDefaultValue();
-        return null === $value ? null : var_export( $value, true );
+        return null === $value ? null : var_export($value, true);
     }
 
     /**
@@ -367,8 +367,8 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
     public function canBePassedByValue()
     {
 
-        return method_exists( $this,
-            'canBePassedByValue' ) ? parent::canBePassedByValue() : !$this->isPassedByReference();
+        return method_exists($this,
+            'canBePassedByValue') ? parent::canBePassedByValue() : !$this->isPassedByReference();
     }
 
     /**
@@ -379,7 +379,7 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
     public function getPrettyName()
     {
 
-        return str_replace( '()', '($'.$this->getName().')', $this->getDeclaringFunction()->getPrettyName() );
+        return str_replace('()', '($'.$this->getName().')', $this->getDeclaringFunction()->getPrettyName());
     }
 
     /**
@@ -389,10 +389,10 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return TokenReflection\ReflectionElement::get( $this, $key );
+        return TokenReflection\ReflectionElement::get($this, $key);
     }
 
     /**
@@ -402,9 +402,9 @@ class ReflectionParameter extends InternalReflectionParameter implements IReflec
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return TokenReflection\ReflectionElement::exists( $this, $key );
+        return TokenReflection\ReflectionElement::exists($this, $key);
     }
 }

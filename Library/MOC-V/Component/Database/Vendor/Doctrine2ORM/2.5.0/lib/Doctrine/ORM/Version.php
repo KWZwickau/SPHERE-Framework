@@ -22,7 +22,7 @@ namespace Doctrine\ORM;
 /**
  * Class to store and retrieve the version of Doctrine
  *
- * 
+ *
  * @link    www.doctrine-project.org
  * @since   2.0
  * @version $Revision$
@@ -33,6 +33,7 @@ namespace Doctrine\ORM;
  */
 class Version
 {
+
     /**
      * Current Doctrine Version
      */
@@ -48,8 +49,9 @@ class Version
      */
     public static function compare($version)
     {
+
         $currentVersion = str_replace(' ', '', strtolower(self::VERSION));
-        $version        = str_replace(' ', '', $version);
+        $version = str_replace(' ', '', $version);
 
         return version_compare($version, $currentVersion);
     }

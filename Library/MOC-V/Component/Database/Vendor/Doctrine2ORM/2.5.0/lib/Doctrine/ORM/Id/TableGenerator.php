@@ -32,6 +32,7 @@ use Doctrine\ORM\EntityManager;
  */
 class TableGenerator extends AbstractIdGenerator
 {
+
     /**
      * @var string
      */
@@ -64,6 +65,7 @@ class TableGenerator extends AbstractIdGenerator
      */
     public function __construct($tableName, $sequenceName = 'default', $allocationSize = 10)
     {
+
         $this->_tableName = $tableName;
         $this->_sequenceName = $sequenceName;
         $this->_allocationSize = $allocationSize;
@@ -73,15 +75,17 @@ class TableGenerator extends AbstractIdGenerator
      * {@inheritDoc}
      */
     public function generate(
-        EntityManager $em, $entity)
-    {
+        EntityManager $em,
+        $entity
+    ) {
+
         if ($this->_maxValue === null || $this->_nextValue == $this->_maxValue) {
             // Allocate new values
             $conn = $em->getConnection();
 
             if ($conn->getTransactionNestingLevel() === 0) {
                 // use select for update
-                $sql          = $conn->getDatabasePlatform()->getTableHiLoCurrentValSql($this->_tableName, $this->_sequenceName);
+                $sql = $conn->getDatabasePlatform()->getTableHiLoCurrentValSql($this->_tableName, $this->_sequenceName);
                 $currentLevel = $conn->fetchColumn($sql);
 
                 if ($currentLevel != null) {
@@ -92,7 +96,7 @@ class TableGenerator extends AbstractIdGenerator
                         $this->_tableName, $this->_sequenceName, $this->_allocationSize
                     );
 
-                    if ($conn->executeUpdate($updateSql, array(1 => $currentLevel, 2 => $currentLevel+1)) !== 1) {
+                    if ($conn->executeUpdate($updateSql, array(1 => $currentLevel, 2 => $currentLevel + 1)) !== 1) {
                         // no affected rows, concurrency issue, throw exception
                     }
                 } else {

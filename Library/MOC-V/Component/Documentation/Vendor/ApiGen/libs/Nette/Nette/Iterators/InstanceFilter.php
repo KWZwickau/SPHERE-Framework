@@ -31,11 +31,11 @@ class InstanceFilter extends \FilterIterator implements \Countable
      * @param  \Iterator
      * @param  string  class/interface name
      */
-    public function __construct( \Iterator $iterator, $type )
+    public function __construct(\Iterator $iterator, $type)
     {
 
         $this->type = $type;
-        parent::__construct( $iterator );
+        parent::__construct($iterator);
     }
 
 
@@ -59,7 +59,7 @@ class InstanceFilter extends \FilterIterator implements \Countable
     public function count()
     {
 
-        return iterator_count( $this );
+        return iterator_count($this);
     }
 
 }

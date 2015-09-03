@@ -23,13 +23,14 @@ use phpDocumentor\Reflection\DocBlock\Tag;
  */
 class SourceTag extends Tag
 {
+
     /**
      * @var int The starting line, relative to the structural element's
      *     location.
      */
     protected $startingLine = 1;
 
-    /** 
+    /**
      * @var int|null The number of lines, relative to the starting line. NULL
      *     means "to the end".
      */
@@ -40,6 +41,7 @@ class SourceTag extends Tag
      */
     public function getContent()
     {
+
         if (null === $this->content) {
             $this->content
                 = "{$this->startingLine} {$this->lineCount} {$this->description}";
@@ -53,6 +55,7 @@ class SourceTag extends Tag
      */
     public function setContent($content)
     {
+
         parent::setContent($content);
         if (preg_match(
             '/^
@@ -71,7 +74,7 @@ class SourceTag extends Tag
             $matches
         )) {
             $this->startingLine = (int)$matches[1];
-            if (isset($matches[2]) && '' !== $matches[2]) {
+            if (isset( $matches[2] ) && '' !== $matches[2]) {
                 $this->lineCount = (int)$matches[2];
             }
             $this->setDescription($matches[3]);
@@ -89,19 +92,21 @@ class SourceTag extends Tag
      */
     public function getStartingLine()
     {
+
         return $this->startingLine;
     }
 
     /**
      * Sets the starting line.
-     * 
+     *
      * @param int $startingLine The new starting line, relative to the
-     *     structural element's location.
-     * 
+     *                          structural element's location.
+     *
      * @return $this
      */
     public function setStartingLine($startingLine)
     {
+
         $this->startingLine = $startingLine;
 
         $this->content = null;
@@ -116,19 +121,21 @@ class SourceTag extends Tag
      */
     public function getLineCount()
     {
+
         return $this->lineCount;
     }
 
     /**
      * Sets the number of lines.
-     * 
+     *
      * @param int|null $lineCount The new number of lines, relative to the
-     *     starting line. NULL means "to the end".
-     * 
+     *                            starting line. NULL means "to the end".
+     *
      * @return $this
      */
     public function setLineCount($lineCount)
     {
+
         $this->lineCount = $lineCount;
 
         $this->content = null;

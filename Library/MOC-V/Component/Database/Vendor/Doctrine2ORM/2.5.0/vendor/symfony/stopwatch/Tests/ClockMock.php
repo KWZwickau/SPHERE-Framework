@@ -13,6 +13,7 @@ namespace Symfony\Component\Stopwatch;
 
 function microtime($asFloat = false)
 {
+
     return Tests\microtime($asFloat);
 }
 
@@ -20,6 +21,7 @@ namespace Symfony\Component\Stopwatch\Tests;
 
 function usleep($us)
 {
+
     static $now;
 
     if (null === $now) {
@@ -31,6 +33,7 @@ function usleep($us)
 
 function microtime($asFloat = false)
 {
+
     if (!$asFloat) {
         return \microtime(false);
     }

@@ -2,8 +2,8 @@
 
 namespace Guzzle\Http\Message;
 
-use Guzzle\Common\Version;
 use Guzzle\Common\Exception\InvalidArgumentException;
+use Guzzle\Common\Version;
 use Guzzle\Http\Mimetypes;
 
 /**
@@ -11,6 +11,7 @@ use Guzzle\Http\Mimetypes;
  */
 class PostFile implements PostFileInterface
 {
+
     protected $fieldName;
     protected $contentType;
     protected $filename;
@@ -24,26 +25,45 @@ class PostFile implements PostFileInterface
      */
     public function __construct($fieldName, $filename, $contentType = null, $postname = null)
     {
+
         $this->fieldName = $fieldName;
         $this->setFilename($filename);
         $this->postname = $postname ? $postname : basename($filename);
         $this->contentType = $contentType ?: $this->guessContentType();
     }
 
+    /**
+     * Determine the Content-Type of the file
+     */
+    protected function guessContentType()
+    {
+
+        return Mimetypes::getInstance()->fromFilename($this->filename) ?: 'application/octet-stream';
+    }
+
+    public function getFieldName()
+    {
+
+        return $this->fieldName;
+    }
+
     public function setFieldName($name)
     {
+
         $this->fieldName = $name;
 
         return $this;
     }
 
-    public function getFieldName()
+    public function getFilename()
     {
-        return $this->fieldName;
+
+        return $this->filename;
     }
 
     public function setFilename($filename)
     {
+
         // Remove leading @ symbol
         if (strpos($filename, '@') === 0) {
             $filename = substr($filename, 1);
@@ -58,50 +78,32 @@ class PostFile implements PostFileInterface
         return $this;
     }
 
-    public function setPostname($postname)
-    {
-        $this->postname = $postname;
-
-        return $this;
-    }
-
-    public function getFilename()
-    {
-        return $this->filename;
-    }
-
     public function getPostname()
     {
+
         return $this->postname;
     }
 
-    public function setContentType($type)
+    public function setPostname($postname)
     {
-        $this->contentType = $type;
+
+        $this->postname = $postname;
 
         return $this;
     }
 
     public function getContentType()
     {
+
         return $this->contentType;
     }
 
-    public function getCurlValue()
+    public function setContentType($type)
     {
-        // PHP 5.5 introduced a CurlFile object that deprecates the old @filename syntax
-        // See: https://wiki.php.net/rfc/curl-file-upload
-        if (function_exists('curl_file_create')) {
-            return curl_file_create($this->filename, $this->contentType, $this->postname);
-        }
 
-        // Use the old style if using an older version of PHP
-        $value = "@{$this->filename};filename=" . $this->postname;
-        if ($this->contentType) {
-            $value .= ';type=' . $this->contentType;
-        }
+        $this->contentType = $type;
 
-        return $value;
+        return $this;
     }
 
     /**
@@ -110,15 +112,26 @@ class PostFile implements PostFileInterface
      */
     public function getCurlString()
     {
-        Version::warn(__METHOD__ . ' is deprecated. Use getCurlValue()');
+
+        Version::warn(__METHOD__.' is deprecated. Use getCurlValue()');
         return $this->getCurlValue();
     }
 
-    /**
-     * Determine the Content-Type of the file
-     */
-    protected function guessContentType()
+    public function getCurlValue()
     {
-        return Mimetypes::getInstance()->fromFilename($this->filename) ?: 'application/octet-stream';
+
+        // PHP 5.5 introduced a CurlFile object that deprecates the old @filename syntax
+        // See: https://wiki.php.net/rfc/curl-file-upload
+        if (function_exists('curl_file_create')) {
+            return curl_file_create($this->filename, $this->contentType, $this->postname);
+        }
+
+        // Use the old style if using an older version of PHP
+        $value = "@{$this->filename};filename=".$this->postname;
+        if ($this->contentType) {
+            $value .= ';type='.$this->contentType;
+        }
+
+        return $value;
     }
 }

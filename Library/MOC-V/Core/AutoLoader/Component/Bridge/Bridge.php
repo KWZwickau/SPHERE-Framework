@@ -21,21 +21,21 @@ abstract class Bridge implements IBridgeInterface
          * Prevent multiple Loader-Instance
          */
         $Loader = spl_autoload_functions();
-        if (is_array( $Loader )) {
-            array_walk( $Loader, function ( &$L ) {
+        if (is_array($Loader)) {
+            array_walk($Loader, function (&$Loader) {
 
-                if (is_array( $L )) {
-                    $Stack = $L[0];
+                if (is_array($Loader)) {
+                    $Stack = $Loader[0];
                 } else {
-                    $Stack = $L;
+                    $Stack = $Loader;
                 }
                 if ($Stack instanceof Bridge) {
                     if ($Stack->getLoaderHash() == $this->getLoaderHash()) {
-                        $L = false;
+                        $Loader = false;
                     }
                 }
-            }, $this );
-            $Loader = in_array( false, $Loader );
+            }, $this);
+            $Loader = in_array(false, $Loader);
         } else {
             // @codeCoverageIgnoreStart
             $Loader = false;
@@ -45,7 +45,7 @@ abstract class Bridge implements IBridgeInterface
          * Register Loader-Instance
          */
         if (!$Loader) {
-            spl_autoload_register( array( $this, 'loadSourceFile' ), true, false );
+            spl_autoload_register(array($this, 'loadSourceFile'), true, false);
         }
         return $this;
     }
@@ -56,7 +56,7 @@ abstract class Bridge implements IBridgeInterface
     public function unregisterLoader()
     {
 
-        spl_autoload_unregister( array( $this, 'loadSourceFile' ) );
+        spl_autoload_unregister(array($this, 'loadSourceFile'));
         return $this;
     }
 

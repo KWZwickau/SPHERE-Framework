@@ -13,42 +13,12 @@ require_once 'PEAR/Packager.php';
 
 class GuzzlePearPharPackageTask extends Task
 {
+
     private $version;
     private $deploy = true;
     private $makephar = true;
 
     private $subpackages = array();
-
-    public function setVersion($str)
-    {
-        $this->version = $str;
-    }
-
-    public function getVersion()
-    {
-        return $this->version;
-    }
-
-    public function setDeploy($deploy)
-    {
-        $this->deploy = (bool) $deploy;
-    }
-
-    public function getDeploy()
-    {
-        return $this->deploy;
-    }
-
-    public function setMakephar($makephar)
-    {
-        $this->makephar = (bool) $makephar;
-    }
-
-    public function getMakephar()
-    {
-        return $this->makephar;
-    }
-
     private $basedir;
     private $guzzleinfo;
     private $changelog_release_date;
@@ -56,22 +26,23 @@ class GuzzlePearPharPackageTask extends Task
 
     public function main()
     {
+
         $this->basedir = $this->getProject()->getBasedir();
 
-        if (!is_dir((string) $this->basedir.'/.subsplit')) {
+        if (!is_dir((string)$this->basedir.'/.subsplit')) {
             throw new BuildException('PEAR packaging requires .subsplit directory');
         }
 
         // main composer file
-        $composer_file = file_get_contents((string) $this->basedir.'/.subsplit/composer.json');
+        $composer_file = file_get_contents((string)$this->basedir.'/.subsplit/composer.json');
         $this->guzzleinfo = json_decode($composer_file, true);
 
         // make sure we have a target
-        $pearwork = (string) $this->basedir . '/build/pearwork';
+        $pearwork = (string)$this->basedir.'/build/pearwork';
         if (!is_dir($pearwork)) {
             mkdir($pearwork, 0777, true);
         }
-        $pearlogs = (string) $this->basedir . '/build/artifacts/logs';
+        $pearlogs = (string)$this->basedir.'/build/artifacts/logs';
         if (!is_dir($pearlogs)) {
             mkdir($pearlogs, 0777, true);
         }
@@ -98,47 +69,62 @@ class GuzzlePearPharPackageTask extends Task
         }
     }
 
-    public function doDeployment()
+    public function getVersion()
     {
-        $basedir = (string) $this->basedir;
-        $this->log('beginning PEAR/PHAR deployment');
 
-        chdir($basedir . '/build/pearwork');
-        if (!is_dir('./channel')) {
-            mkdir('./channel');
-        }
+        return $this->version;
+    }
 
-        // Pull the PEAR channel down locally
-        passthru('aws s3 sync s3://pear.guzzlephp.org ./channel');
+    public function setVersion($str)
+    {
 
-        // add PEAR packages
-        foreach (scandir('./') as $file) {
-            if (substr($file, -4) == '.tgz') {
-                passthru('pirum add ./channel ' . $file);
+        $this->version = $str;
+    }
+
+    public function grabChangelog()
+    {
+
+        $cl = file((string)$this->basedir.'/.subsplit/CHANGELOG.md');
+        $notes = '';
+        $in_version = false;
+        $release_date = null;
+
+        foreach ($cl as $line) {
+            $line = trim($line);
+            if (preg_match('/^\* '.$this->getVersion().' \(([0-9\-]+)\)$/', $line, $matches)) {
+                $release_date = $matches[1];
+                $in_version = true;
+                continue;
+            }
+            if ($in_version && empty( $line ) && empty( $notes )) {
+                continue;
+            }
+            if ($in_version && !empty( $line )) {
+                $notes .= $line."\n";
+            }
+            if ($in_version && empty( $line ) && !empty( $notes )) {
+                $in_version = false;
             }
         }
+        $this->changelog_release_date = $release_date;
 
-        // if we have a new phar, add it
-        if ($this->getMakephar() && file_exists($basedir . '/build/artifacts/guzzle.phar')) {
-            rename($basedir . '/build/artifacts/guzzle.phar', './channel/guzzle.phar');
+        if (!empty( $notes )) {
+            $this->changelog_notes = $notes;
         }
-
-        // Sync up with the S3 bucket
-        chdir($basedir . '/build/pearwork/channel');
-        passthru('aws s3 sync . s3://pear.guzzlephp.org');
     }
 
     public function buildSinglePackage()
     {
+
         $v = $this->getVersion();
-        $apiversion = $v[0] . '.0.0';
+        $apiversion = $v[0].'.0.0';
 
         $opts = array(
-            'packagedirectory' => (string) $this->basedir . '/.subsplit/src/',
+            'packagedirectory' => (string)$this->basedir.'/.subsplit/src/',
             'filelistgenerator' => 'file',
-            'ignore' => array('*composer.json'),
-            'baseinstalldir' => '/',
-            'packagefile' => 'package.xml'
+            'ignore'           => array('*composer.json'),
+            'baseinstalldir'   => '/',
+            'packagefile'      => 'package.xml'
             //'outputdirectory' => (string) $this->basedir . '/build/pearwork/'
         );
         $pfm = new PEAR_PackageFileManager2();
@@ -167,7 +153,7 @@ class GuzzlePearPharPackageTask extends Task
         $pfm->addExtensionDep('required', 'curl');
         $pfm->setPearinstallerDep('1.4.6');
         $pfm->addPackageDepWithChannel('required', 'EventDispatcher', 'pear.symfony.com', '2.1.0');
-        if (!empty($this->subpackages)) {
+        if (!empty( $this->subpackages )) {
             foreach ($this->subpackages as $package) {
                 $pkg = dirname($package);
                 $pkg = str_replace('/', '_', $pkg);
@@ -177,7 +163,7 @@ class GuzzlePearPharPackageTask extends Task
 
         ob_start();
         $startdir = getcwd();
-        chdir((string) $this->basedir . '/build/pearwork');
+        chdir((string)$this->basedir.'/build/pearwork');
 
         echo "DEBUGGING GENERATED PACKAGE FILE\n";
         $result = $pfm->debugPackageFile();
@@ -197,33 +183,101 @@ class GuzzlePearPharPackageTask extends Task
         echo "removing package.xml";
         unlink($opts['packagedirectory'].'package.xml');
         $log = ob_get_clean();
-        file_put_contents((string) $this->basedir . '/build/artifacts/logs/pear_package.log', $log);
+        file_put_contents((string)$this->basedir.'/build/artifacts/logs/pear_package.log', $log);
         chdir($startdir);
+    }
+
+    public function getMakephar()
+    {
+
+        return $this->makephar;
+    }
+
+    public function setMakephar($makephar)
+    {
+
+        $this->makephar = (bool)$makephar;
+    }
+
+    public function getDeploy()
+    {
+
+        return $this->deploy;
+    }
+
+    public function setDeploy($deploy)
+    {
+
+        $this->deploy = (bool)$deploy;
+    }
+
+    public function doDeployment()
+    {
+
+        $basedir = (string)$this->basedir;
+        $this->log('beginning PEAR/PHAR deployment');
+
+        chdir($basedir.'/build/pearwork');
+        if (!is_dir('./channel')) {
+            mkdir('./channel');
+        }
+
+        // Pull the PEAR channel down locally
+        passthru('aws s3 sync s3://pear.guzzlephp.org ./channel');
+
+        // add PEAR packages
+        foreach (scandir('./') as $file) {
+            if (substr($file, -4) == '.tgz') {
+                passthru('pirum add ./channel '.$file);
+            }
+        }
+
+        // if we have a new phar, add it
+        if ($this->getMakephar() && file_exists($basedir.'/build/artifacts/guzzle.phar')) {
+            rename($basedir.'/build/artifacts/guzzle.phar', './channel/guzzle.phar');
+        }
+
+        // Sync up with the S3 bucket
+        chdir($basedir.'/build/pearwork/channel');
+        passthru('aws s3 sync . s3://pear.guzzlephp.org');
     }
 
     public function createSubPackages()
     {
+
         $this->findComponents();
 
         foreach ($this->subpackages as $package) {
             $baseinstalldir = dirname($package);
-            $dir = (string) $this->basedir.'/.subsplit/src/' . $baseinstalldir;
-            $composer_file = file_get_contents((string) $this->basedir.'/.subsplit/src/'. $package);
+            $dir = (string)$this->basedir.'/.subsplit/src/'.$baseinstalldir;
+            $composer_file = file_get_contents((string)$this->basedir.'/.subsplit/src/'.$package);
             $package_info = json_decode($composer_file, true);
-            $this->log('building ' . $package_info['target-dir'] . ' subpackage');
+            $this->log('building '.$package_info['target-dir'].' subpackage');
             $this->buildSubPackage($dir, $baseinstalldir, $package_info);
         }
     }
 
+    public function findComponents()
+    {
+
+        $ds = new DirectoryScanner();
+        $ds->setBasedir((string)$this->basedir.'/.subsplit/src');
+        $ds->setIncludes(array('**/composer.json'));
+        $ds->scan();
+        $files = $ds->getIncludedFiles();
+        $this->subpackages = $files;
+    }
+
     public function buildSubPackage($dir, $baseinstalldir, $info)
     {
+
         $package = str_replace('/', '_', $baseinstalldir);
         $opts = array(
             'packagedirectory' => $dir,
             'filelistgenerator' => 'file',
-            'ignore' => array('*composer.json', '*package.xml'),
-            'baseinstalldir' => '/' . $info['target-dir'],
-            'packagefile' => 'package.xml'
+            'ignore'           => array('*composer.json', '*package.xml'),
+            'baseinstalldir'   => '/'.$info['target-dir'],
+            'packagefile'      => 'package.xml'
         );
         $pfm = new PEAR_PackageFileManager2();
         $pfm->setOptions($opts);
@@ -271,7 +325,7 @@ class GuzzlePearPharPackageTask extends Task
 
         ob_start();
         $startdir = getcwd();
-        chdir((string) $this->basedir . '/build/pearwork');
+        chdir((string)$this->basedir.'/build/pearwork');
 
         echo "DEBUGGING GENERATED PACKAGE FILE\n";
         $result = $pfm->debugPackageFile();
@@ -291,48 +345,7 @@ class GuzzlePearPharPackageTask extends Task
         echo "removing package.xml";
         unlink($opts['packagedirectory'].'/package.xml');
         $log = ob_get_clean();
-        file_put_contents((string) $this->basedir . '/build/artifacts/logs/pear_package_'.$package.'.log', $log);
+        file_put_contents((string)$this->basedir.'/build/artifacts/logs/pear_package_'.$package.'.log', $log);
         chdir($startdir);
-    }
-
-    public function findComponents()
-    {
-        $ds = new DirectoryScanner();
-        $ds->setBasedir((string) $this->basedir.'/.subsplit/src');
-        $ds->setIncludes(array('**/composer.json'));
-        $ds->scan();
-        $files = $ds->getIncludedFiles();
-        $this->subpackages = $files;
-    }
-
-    public function grabChangelog()
-    {
-        $cl = file((string) $this->basedir.'/.subsplit/CHANGELOG.md');
-        $notes = '';
-        $in_version = false;
-        $release_date = null;
-
-        foreach ($cl as $line) {
-            $line = trim($line);
-            if (preg_match('/^\* '.$this->getVersion().' \(([0-9\-]+)\)$/', $line, $matches)) {
-                $release_date = $matches[1];
-                $in_version = true;
-                continue;
-            }
-            if ($in_version && empty($line) && empty($notes)) {
-                continue;
-            }
-            if ($in_version && ! empty($line)) {
-                $notes .= $line."\n";
-            }
-            if ($in_version && empty($line) && !empty($notes)) {
-                $in_version = false;
-            }
-        }
-        $this->changelog_release_date = $release_date;
-
-        if (! empty($notes)) {
-            $this->changelog_notes = $notes;
-        }
     }
 }

@@ -1,7 +1,5 @@
 <?php
 
-
-
 // PAGING
 $this->mirrorMargins = 0;
 $this->forcePortraitMargins = false;
@@ -225,7 +223,7 @@ $this->splitTableBorderWidth = 0;        // Use table border (using this width i
 // Allowed characters for text alignment on decimal marks. Additional codes must start with D
 // DM - middot U+00B7
 // DA - arabic decimal mark U+066B
-$this->decimal_align = array( 'DP' => '.', 'DC' => ',', 'DM' => "\xc2\xb7", 'DA' => "\xd9\xab", 'DD' => '-' );
+$this->decimal_align = array('DP' => '.', 'DC' => ',', 'DM' => "\xc2\xb7", 'DA' => "\xd9\xab", 'DD' => '-');
 
 // IMAGES
 $this->interpolateImages = false;    // if image-rendering=='auto', this defines value for image-rendering
@@ -647,8 +645,5 @@ $this->innerblocktags = array(
     'DD',
     'CAPTION'
 );
-
-
-
 
 ?>

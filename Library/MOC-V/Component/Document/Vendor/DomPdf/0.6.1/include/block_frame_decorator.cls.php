@@ -29,12 +29,12 @@ class Block_Frame_Decorator extends Frame_Decorator
      */
     protected $_line_boxes;
 
-    function __construct( Frame $frame, DOMPDF $dompdf )
+    function __construct(Frame $frame, DOMPDF $dompdf)
     {
 
-        parent::__construct( $frame, $dompdf );
+        parent::__construct($frame, $dompdf);
 
-        $this->_line_boxes = array( new Line_Box( $this ) );
+        $this->_line_boxes = array(new Line_Box($this));
         $this->_cl = 0;
     }
 
@@ -43,7 +43,7 @@ class Block_Frame_Decorator extends Frame_Decorator
 
         parent::reset();
 
-        $this->_line_boxes = array( new Line_Box( $this ) );
+        $this->_line_boxes = array(new Line_Box($this));
         $this->_cl = 0;
     }
 
@@ -68,7 +68,7 @@ class Block_Frame_Decorator extends Frame_Decorator
     /**
      * @param integer $i
      */
-    function clear_line( $i )
+    function clear_line($i)
     {
 
         if (isset( $this->_line_boxes[$i] )) {
@@ -79,7 +79,7 @@ class Block_Frame_Decorator extends Frame_Decorator
     /**
      * @param Frame $frame
      */
-    function add_frame_to_line( Frame $frame )
+    function add_frame_to_line(Frame $frame)
     {
 
         if (!$frame->is_in_flow()) {
@@ -88,7 +88,7 @@ class Block_Frame_Decorator extends Frame_Decorator
 
         $style = $frame->get_style();
 
-        $frame->set_containing_line( $this->_line_boxes[$this->_cl] );
+        $frame->set_containing_line($this->_line_boxes[$this->_cl]);
 
         /*
         // Adds a new line after a block, only if certain conditions are met
@@ -111,8 +111,8 @@ class Block_Frame_Decorator extends Frame_Decorator
 
             // Handle line breaks
             if ($frame->get_node()->nodeName === "br") {
-                $this->maximize_line_height( $style->length_in_pt( $style->line_height ), $frame );
-                $this->add_line( true );
+                $this->maximize_line_height($style->length_in_pt($style->line_height), $frame);
+                $this->add_line(true);
             }
 
             return;
@@ -125,7 +125,7 @@ class Block_Frame_Decorator extends Frame_Decorator
             !$frame->is_pre()
         ) {
 
-            $frame->set_text( ltrim( $frame->get_text() ) );
+            $frame->set_text(ltrim($frame->get_text()));
             $frame->recalculate_width();
         }
 
@@ -153,25 +153,25 @@ class Block_Frame_Decorator extends Frame_Decorator
         // End debugging
 
         $line = $this->_line_boxes[$this->_cl];
-        if ($line->left + $line->w + $line->right + $w > $this->get_containing_block( "w" )) {
+        if ($line->left + $line->w + $line->right + $w > $this->get_containing_block("w")) {
             $this->add_line();
         }
 
         $frame->position();
 
         $current_line = $this->_line_boxes[$this->_cl];
-        $current_line->add_frame( $frame );
+        $current_line->add_frame($frame);
 
         if ($frame->is_text_node()) {
-            $current_line->wc += count( preg_split( "/\s+/", trim( $frame->get_text() ) ) );
+            $current_line->wc += count(preg_split("/\s+/", trim($frame->get_text())));
         }
 
-        $this->increase_line_width( $w );
+        $this->increase_line_width($w);
 
-        $this->maximize_line_height( $frame->get_margin_height(), $frame );
+        $this->maximize_line_height($frame->get_margin_height(), $frame);
     }
 
-    function maximize_line_height( $val, Frame $frame )
+    function maximize_line_height($val, Frame $frame)
     {
 
         if ($val > $this->_line_boxes[$this->_cl]->h) {
@@ -180,7 +180,7 @@ class Block_Frame_Decorator extends Frame_Decorator
         }
     }
 
-    function add_line( $br = false )
+    function add_line($br = false)
     {
 
 //     if ( $this->_line_boxes[$this->_cl]["h"] == 0 ) //count($this->_line_boxes[$i]["frames"]) == 0 ||
@@ -189,7 +189,7 @@ class Block_Frame_Decorator extends Frame_Decorator
         $this->_line_boxes[$this->_cl]->br = $br;
         $y = $this->_line_boxes[$this->_cl]->y + $this->_line_boxes[$this->_cl]->h;
 
-        $new_line = new Line_Box( $this, $y );
+        $new_line = new Line_Box($this, $y);
 
         $this->_line_boxes[++$this->_cl] = $new_line;
     }
@@ -203,13 +203,13 @@ class Block_Frame_Decorator extends Frame_Decorator
         return $this->_line_boxes[$this->_cl];
     }
 
-    function increase_line_width( $w )
+    function increase_line_width($w)
     {
 
         $this->_line_boxes[$this->_cl]->w += $w;
     }
 
-    function remove_frames_from_line( Frame $frame )
+    function remove_frames_from_line(Frame $frame)
     {
 
         // Search backwards through the lines for $frame
@@ -217,7 +217,7 @@ class Block_Frame_Decorator extends Frame_Decorator
         $j = null;
 
         while ($i >= 0) {
-            if (( $j = in_array( $frame, $this->_line_boxes[$i]->get_frames(), true ) ) !== false) {
+            if (( $j = in_array($frame, $this->_line_boxes[$i]->get_frames(), true) ) !== false) {
                 break;
             }
 
@@ -229,7 +229,7 @@ class Block_Frame_Decorator extends Frame_Decorator
         }
 
         // Remove $frame and all frames that follow
-        while ($j < count( $this->_line_boxes[$i]->get_frames() )) {
+        while ($j < count($this->_line_boxes[$i]->get_frames())) {
             $frames = $this->_line_boxes[$i]->get_frames();
             $f = $frames[$j];
             $frames[$j] = null;
@@ -241,7 +241,7 @@ class Block_Frame_Decorator extends Frame_Decorator
         // Recalculate the height of the line
         $h = 0;
         foreach ($this->_line_boxes[$i]->get_frames() as $f) {
-            $h = max( $h, $f->get_margin_height() );
+            $h = max($h, $f->get_margin_height());
         }
 
         $this->_line_boxes[$i]->h = $h;

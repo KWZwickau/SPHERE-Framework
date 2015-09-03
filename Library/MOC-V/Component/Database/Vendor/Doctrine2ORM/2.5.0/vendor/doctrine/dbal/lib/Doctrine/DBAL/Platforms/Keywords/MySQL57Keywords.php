@@ -28,11 +28,13 @@ namespace Doctrine\DBAL\Platforms\Keywords;
  */
 class MySQL57Keywords extends MySQLKeywords
 {
+
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return 'MySQL57';
     }
 
@@ -43,6 +45,7 @@ class MySQL57Keywords extends MySQLKeywords
      */
     protected function getKeywords()
     {
+
         return array(
             'ACCESSIBLE',
             'ADD',

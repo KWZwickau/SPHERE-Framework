@@ -44,7 +44,7 @@ abstract class ReflectionElement extends ReflectionBase
     {
 
         $extension = $this->reflection->getExtension();
-        return null === $extension ? null : new ReflectionExtension( $extension, self::$generator );
+        return null === $extension ? null : new ReflectionExtension($extension, self::$generator);
     }
 
     /**
@@ -88,7 +88,7 @@ abstract class ReflectionElement extends ReflectionBase
     public function isMain()
     {
 
-        return empty( self::$config->main ) || 0 === strpos( $this->getName(), self::$config->main );
+        return empty( self::$config->main ) || 0 === strpos($this->getName(), self::$config->main);
     }
 
     /**
@@ -107,9 +107,9 @@ abstract class ReflectionElement extends ReflectionBase
                     $this->isDocumented = false;
                 } elseif (!self::$config->deprecated && $this->reflection->isDeprecated()) {
                     $this->isDocumented = false;
-                } elseif (!self::$config->internal && ( $internal = $this->reflection->getAnnotation( 'internal' ) ) && empty( $internal[0] )) {
+                } elseif (!self::$config->internal && ( $internal = $this->reflection->getAnnotation('internal') ) && empty( $internal[0] )) {
                     $this->isDocumented = false;
-                } elseif (count( $this->reflection->getAnnotation( 'ignore' ) ) > 0) {
+                } elseif (count($this->reflection->getAnnotation('ignore')) > 0) {
                     $this->isDocumented = false;
                 }
             }
@@ -160,25 +160,25 @@ abstract class ReflectionElement extends ReflectionBase
 
         static $packages = array();
 
-        if ($package = $this->getAnnotation( 'package' )) {
-            $packageName = preg_replace( '~\s+.*~s', '', $package[0] );
+        if ($package = $this->getAnnotation('package')) {
+            $packageName = preg_replace('~\s+.*~s', '', $package[0]);
             if (empty( $packageName )) {
                 return '';
             }
 
-            if ($subpackage = $this->getAnnotation( 'subpackage' )) {
-                $subpackageName = preg_replace( '~\s+.*~s', '', $subpackage[0] );
+            if ($subpackage = $this->getAnnotation('subpackage')) {
+                $subpackageName = preg_replace('~\s+.*~s', '', $subpackage[0]);
                 if (empty( $subpackageName )) {
                     // Do nothing
-                } elseif (0 === strpos( $subpackageName, $packageName )) {
+                } elseif (0 === strpos($subpackageName, $packageName)) {
                     $packageName = $subpackageName;
                 } else {
                     $packageName .= '\\'.$subpackageName;
                 }
             }
-            $packageName = strtr( $packageName, '._/', '\\\\\\' );
+            $packageName = strtr($packageName, '._/', '\\\\\\');
 
-            $lowerPackageName = strtolower( $packageName );
+            $lowerPackageName = strtolower($packageName);
             if (!isset( $packages[$lowerPackageName] )) {
                 $packages[$lowerPackageName] = $packageName;
             }
@@ -196,7 +196,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return array
      */
-    public function getAnnotation( $annotation )
+    public function getAnnotation($annotation)
     {
 
         $annotations = $this->getAnnotations();
@@ -217,11 +217,12 @@ abstract class ReflectionElement extends ReflectionBase
     {
 
         if (null === $this->annotations) {
-            static $fileLevel = array( 'package'    => true,
-                                       'subpackage' => true,
-                                       'author'     => true,
-                                       'license'    => true,
-                                       'copyright'  => true
+            static $fileLevel = array(
+                'package'    => true,
+                'subpackage' => true,
+                'author'     => true,
+                'license'    => true,
+                'copyright'  => true
             );
 
             $annotations = $this->reflection->getAnnotations();
@@ -286,7 +287,7 @@ abstract class ReflectionElement extends ReflectionBase
             return $namespaceName;
         }
 
-        $lowerNamespaceName = strtolower( $namespaceName );
+        $lowerNamespaceName = strtolower($namespaceName);
         if (!isset( $namespaces[$lowerNamespaceName] )) {
             $namespaces[$lowerNamespaceName] = $namespaceName;
         }
@@ -327,7 +328,7 @@ abstract class ReflectionElement extends ReflectionBase
     {
 
         $short = $this->getShortDescription();
-        $long = $this->reflection->getAnnotation( \TokenReflection\ReflectionAnnotation::LONG_DESCRIPTION );
+        $long = $this->reflection->getAnnotation(\TokenReflection\ReflectionAnnotation::LONG_DESCRIPTION);
 
         if (!empty( $long )) {
             $short .= "\n\n".$long;
@@ -344,14 +345,14 @@ abstract class ReflectionElement extends ReflectionBase
     public function getShortDescription()
     {
 
-        $short = $this->reflection->getAnnotation( \TokenReflection\ReflectionAnnotation::SHORT_DESCRIPTION );
+        $short = $this->reflection->getAnnotation(\TokenReflection\ReflectionAnnotation::SHORT_DESCRIPTION);
         if (!empty( $short )) {
             return $short;
         }
 
         if ($this instanceof ReflectionProperty || $this instanceof ReflectionConstant) {
-            $var = $this->getAnnotation( 'var' );
-            list( , $short ) = preg_split( '~\s+|$~', $var[0], 2 );
+            $var = $this->getAnnotation('var');
+            list( , $short ) = preg_split('~\s+|$~', $var[0], 2);
         }
 
         return $short;
@@ -375,7 +376,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return boolean
      */
-    public function hasAnnotation( $annotation )
+    public function hasAnnotation($annotation)
     {
 
         $annotations = $this->getAnnotations();
@@ -390,7 +391,7 @@ abstract class ReflectionElement extends ReflectionBase
      *
      * @return \ApiGen\ReflectionElement
      */
-    public function addAnnotation( $annotation, $value )
+    public function addAnnotation($annotation, $value)
     {
 
         if (null === $this->annotations) {

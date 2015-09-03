@@ -8,4 +8,4 @@
  */
 
 require_once __DIR__.'/../Loader.php';
-Eden\Core\Loader::i()->addRoot( true, 'Eden\\Core' )->register()->load( 'Controller' );
+Eden\Core\Loader::i()->addRoot(true, 'Eden\\Core')->register()->load('Controller');

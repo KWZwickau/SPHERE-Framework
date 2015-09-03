@@ -30,6 +30,7 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 class EntityCacheEntry implements CacheEntry
 {
+
     /**
      * READ-ONLY: Public only for performance reasons, it should be considered immutable.
      *
@@ -50,8 +51,9 @@ class EntityCacheEntry implements CacheEntry
      */
     public function __construct($class, array $data)
     {
+
         $this->class = $class;
-        $this->data  = $data;
+        $this->data = $data;
     }
 
     /**
@@ -63,6 +65,7 @@ class EntityCacheEntry implements CacheEntry
      */
     public static function __set_state(array $values)
     {
+
         return new self($values['class'], $values['data']);
     }
 
@@ -75,8 +78,10 @@ class EntityCacheEntry implements CacheEntry
      */
     public function resolveAssociationEntries(EntityManagerInterface $em)
     {
-        return array_map(function($value) use ($em) {
-            if ( ! ($value instanceof AssociationCacheEntry)) {
+
+        return array_map(function ($value) use ($em) {
+
+            if (!( $value instanceof AssociationCacheEntry )) {
                 return $value;
             }
 

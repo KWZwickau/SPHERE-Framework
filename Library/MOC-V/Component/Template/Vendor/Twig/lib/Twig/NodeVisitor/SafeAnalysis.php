@@ -2,21 +2,25 @@
 
 class Twig_NodeVisitor_SafeAnalysis implements Twig_NodeVisitorInterface
 {
+
     protected $data = array();
     protected $safeVars = array();
 
     public function setSafeVars($safeVars)
     {
+
         $this->safeVars = $safeVars;
     }
 
     public function enterNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         return $node;
     }
 
     public function leaveNode(Twig_NodeInterface $node, Twig_Environment $env)
     {
+
         if ($node instanceof Twig_Node_Expression_Constant) {
             // constants are marked safe for all
             $this->setSafe($node, array('all'));
@@ -28,7 +32,8 @@ class Twig_NodeVisitor_SafeAnalysis implements Twig_NodeVisitorInterface
             $this->setSafe($node, array('all'));
         } elseif ($node instanceof Twig_Node_Expression_Conditional) {
             // intersect safeness of both operands
-            $safe = $this->intersectSafe($this->getSafe($node->getNode('expr2')), $this->getSafe($node->getNode('expr3')));
+            $safe = $this->intersectSafe($this->getSafe($node->getNode('expr2')),
+                $this->getSafe($node->getNode('expr3')));
             $this->setSafe($node, $safe);
         } elseif ($node instanceof Twig_Node_Expression_Filter) {
             // filter expression is safe when the filter is safe
@@ -74,10 +79,10 @@ class Twig_NodeVisitor_SafeAnalysis implements Twig_NodeVisitorInterface
         return $node;
     }
 
-    protected function setSafe( Twig_NodeInterface $node, array $safe )
+    protected function setSafe(Twig_NodeInterface $node, array $safe)
     {
 
-        $hash = spl_object_hash( $node );
+        $hash = spl_object_hash($node);
         if (isset( $this->data[$hash] )) {
             foreach ($this->data[$hash] as &$bucket) {
                 if ($bucket['key'] === $node) {
@@ -95,6 +100,7 @@ class Twig_NodeVisitor_SafeAnalysis implements Twig_NodeVisitorInterface
 
     protected function intersectSafe(array $a = null, array $b = null)
     {
+
         if (null === $a || null === $b) {
             return array();
         }
@@ -110,10 +116,10 @@ class Twig_NodeVisitor_SafeAnalysis implements Twig_NodeVisitorInterface
         return array_intersect($a, $b);
     }
 
-    public function getSafe( Twig_NodeInterface $node )
+    public function getSafe(Twig_NodeInterface $node)
     {
 
-        $hash = spl_object_hash( $node );
+        $hash = spl_object_hash($node);
         if (!isset( $this->data[$hash] )) {
             return;
         }
@@ -123,7 +129,7 @@ class Twig_NodeVisitor_SafeAnalysis implements Twig_NodeVisitorInterface
                 continue;
             }
 
-            if (in_array( 'html_attr', $bucket['value'] )) {
+            if (in_array('html_attr', $bucket['value'])) {
                 $bucket['value'][] = 'html';
             }
 
@@ -136,6 +142,7 @@ class Twig_NodeVisitor_SafeAnalysis implements Twig_NodeVisitorInterface
      */
     public function getPriority()
     {
+
         return 0;
     }
 }

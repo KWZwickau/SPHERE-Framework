@@ -46,15 +46,15 @@ class ControlGroup extends Nette\Object
 
         foreach (func_get_args() as $num => $item) {
             if ($item instanceof IControl) {
-                $this->controls->attach( $item );
+                $this->controls->attach($item);
 
-            } elseif ($item instanceof \Traversable || is_array( $item )) {
+            } elseif ($item instanceof \Traversable || is_array($item)) {
                 foreach ($item as $control) {
-                    $this->controls->attach( $control );
+                    $this->controls->attach($control);
                 }
 
             } else {
-                throw new Nette\InvalidArgumentException( "Only IFormControl items are allowed, the #$num parameter is invalid." );
+                throw new Nette\InvalidArgumentException("Only IFormControl items are allowed, the #$num parameter is invalid.");
             }
         }
         return $this;
@@ -67,7 +67,7 @@ class ControlGroup extends Nette\Object
     public function getControls()
     {
 
-        return iterator_to_array( $this->controls );
+        return iterator_to_array($this->controls);
     }
 
 
@@ -85,7 +85,7 @@ class ControlGroup extends Nette\Object
      *
      * @return ControlGroup  provides a fluent interface
      */
-    public function setOption( $key, $value )
+    public function setOption($key, $value)
     {
 
         if ($value === null) {
@@ -106,7 +106,7 @@ class ControlGroup extends Nette\Object
      *
      * @return mixed
      */
-    final public function getOption( $key, $default = null )
+    final public function getOption($key, $default = null)
     {
 
         return isset( $this->options[$key] ) ? $this->options[$key] : $default;

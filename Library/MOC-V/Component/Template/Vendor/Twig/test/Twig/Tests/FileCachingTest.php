@@ -2,12 +2,14 @@
 
 class Twig_Tests_FileCachingTest extends PHPUnit_Framework_TestCase
 {
+
     protected $fileName;
     protected $env;
     protected $tmpDir;
 
     public function setUp()
     {
+
         $this->tmpDir = sys_get_temp_dir().'/TwigTests';
         if (!file_exists($this->tmpDir)) {
             @mkdir($this->tmpDir, 0777, true);
@@ -22,6 +24,7 @@ class Twig_Tests_FileCachingTest extends PHPUnit_Framework_TestCase
 
     public function tearDown()
     {
+
         if ($this->fileName) {
             unlink($this->fileName);
         }
@@ -29,27 +32,28 @@ class Twig_Tests_FileCachingTest extends PHPUnit_Framework_TestCase
         $this->removeDir($this->tmpDir);
     }
 
-    private function removeDir( $target )
+    private function removeDir($target)
     {
 
-        $fp = opendir( $target );
-        while (false !== $file = readdir( $fp )) {
-            if (in_array( $file, array( '.', '..' ) )) {
+        $fp = opendir($target);
+        while (false !== $file = readdir($fp)) {
+            if (in_array($file, array('.', '..'))) {
                 continue;
             }
 
-            if (is_dir( $target.'/'.$file )) {
-                self::removeDir( $target.'/'.$file );
+            if (is_dir($target.'/'.$file)) {
+                self::removeDir($target.'/'.$file);
             } else {
-                unlink( $target.'/'.$file );
+                unlink($target.'/'.$file);
             }
         }
-        closedir( $fp );
-        rmdir( $target );
+        closedir($fp);
+        rmdir($target);
     }
 
     public function testWritingCacheFiles()
     {
+
         $name = 'This is just text.';
         $template = $this->env->loadTemplate($name);
         $cacheFileName = $this->env->getCacheFilename($name);
@@ -60,6 +64,7 @@ class Twig_Tests_FileCachingTest extends PHPUnit_Framework_TestCase
 
     public function testClearingCacheFiles()
     {
+
         $name = 'I will be deleted.';
         $template = $this->env->loadTemplate($name);
         $cacheFileName = $this->env->getCacheFilename($name);

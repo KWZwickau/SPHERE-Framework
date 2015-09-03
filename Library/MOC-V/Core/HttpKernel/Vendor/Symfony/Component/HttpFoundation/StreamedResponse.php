@@ -20,7 +20,7 @@ namespace Symfony\Component\HttpFoundation;
  * to stream the response back to the client. The flush() method
  * can also be used if needed.
  *
- * @see flush()
+ * @see    flush()
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
@@ -28,6 +28,7 @@ namespace Symfony\Component\HttpFoundation;
  */
 class StreamedResponse extends Response
 {
+
     protected $callback;
     protected $streamed;
 
@@ -42,6 +43,7 @@ class StreamedResponse extends Response
      */
     public function __construct($callback = null, $status = 200, $headers = array())
     {
+
         parent::__construct(null, $status, $headers);
 
         if (null !== $callback) {
@@ -59,6 +61,7 @@ class StreamedResponse extends Response
      */
     public function setCallback($callback)
     {
+
         if (!is_callable($callback)) {
             throw new \LogicException('The Response callback must be a valid PHP callable.');
         }
@@ -74,10 +77,10 @@ class StreamedResponse extends Response
      *
      * @return StreamedResponse
      */
-    public static function create( $callback = null, $status = 200, $headers = array() )
+    public static function create($callback = null, $status = 200, $headers = array())
     {
 
-        return new static( $callback, $status, $headers );
+        return new static($callback, $status, $headers);
     }
 
     /**
@@ -85,6 +88,7 @@ class StreamedResponse extends Response
      */
     public function prepare(Request $request)
     {
+
         $this->headers->set('Cache-Control', 'no-cache');
 
         return parent::prepare($request);
@@ -97,6 +101,7 @@ class StreamedResponse extends Response
      */
     public function sendContent()
     {
+
         if ($this->streamed) {
             return;
         }
@@ -117,6 +122,7 @@ class StreamedResponse extends Response
      */
     public function setContent($content)
     {
+
         if (null !== $content) {
             throw new \LogicException('The content cannot be set on a StreamedResponse instance.');
         }
@@ -129,6 +135,7 @@ class StreamedResponse extends Response
      */
     public function getContent()
     {
+
         return false;
     }
 }

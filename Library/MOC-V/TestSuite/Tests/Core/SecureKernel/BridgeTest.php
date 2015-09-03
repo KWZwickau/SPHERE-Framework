@@ -12,7 +12,6 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     * @
      * @throws \MOC\V\Core\SecureKernel\Component\Exception\ComponentException
      */
     public function testSFTP()
@@ -21,17 +20,16 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
         $Bridge = new SFTP();
 
         $Bridge->openConnection('host', 22);
-        $Bridge->loginCredentialKey('user', __DIR__.'/sftp-ssh2-rsa-4096-private.ppk', 'password');
-        $Bridge->changeDirectory('.');
+        try {
+            $Bridge->loginCredentialKey('user', __FILE__, 'password');
+        } catch (\Exception $Exception) {
+            $this->assertInstanceOf('\MOC\V\Core\SecureKernel\Component\Exception\ComponentException', $Exception);
+        }
+        try {
+            $Bridge->changeDirectory('.');
+        } catch (\Exception $Exception) {
+            $this->assertInstanceOf('\MOC\V\Core\SecureKernel\Component\Exception\ComponentException', $Exception);
+        }
         $Bridge->closeConnection();
     }
-
-    protected function setUp()
-    {
-
-        $this->markTestSkipped(
-            'SFTP Server required'
-        );
-    }
-
 }

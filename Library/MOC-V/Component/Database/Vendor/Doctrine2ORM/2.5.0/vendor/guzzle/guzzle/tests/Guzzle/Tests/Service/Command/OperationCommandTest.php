@@ -5,20 +5,22 @@ namespace Guzzle\Tests\Service\Command;
 use Guzzle\Http\Message\EntityEnclosingRequest;
 use Guzzle\Http\Message\Response;
 use Guzzle\Service\Client;
+use Guzzle\Service\Command\DefaultRequestSerializer;
+use Guzzle\Service\Command\LocationVisitor\VisitorFlyweight;
 use Guzzle\Service\Command\OperationCommand;
 use Guzzle\Service\Description\Operation;
 use Guzzle\Service\Description\ServiceDescription;
-use Guzzle\Service\Command\DefaultRequestSerializer;
 use Guzzle\Service\Resource\Model;
-use Guzzle\Service\Command\LocationVisitor\VisitorFlyweight;
 
 /**
  * @covers Guzzle\Service\Command\OperationCommand
  */
 class OperationCommandTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testHasRequestSerializer()
     {
+
         $operation = new OperationCommand();
         $a = $operation->getRequestSerializer();
         $b = new DefaultRequestSerializer(VisitorFlyweight::getInstance());
@@ -28,6 +30,7 @@ class OperationCommandTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testPreparesRequestUsingSerializer()
     {
+
         $op = new OperationCommand(array(), new Operation());
         $op->setClient(new Client());
         $s = $this->getMockBuilder('Guzzle\Service\Command\RequestSerializerInterface')
@@ -42,6 +45,7 @@ class OperationCommandTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testParsesResponsesWithResponseParser()
     {
+
         $op = new OperationCommand(array(), new Operation());
         $p = $this->getMockBuilder('Guzzle\Service\Command\ResponseParserInterface')
             ->setMethods(array('parse'))
@@ -58,6 +62,7 @@ class OperationCommandTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testParsesResponsesUsingModelParserWhenMatchingModelIsFound()
     {
+
         $description = ServiceDescription::factory(array(
             'operations' => array(
                 'foo' => array('responseClass' => 'bar', 'responseType' => 'model')
@@ -84,6 +89,7 @@ class OperationCommandTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testAllowsRawResponses()
     {
+
         $description = new ServiceDescription(array(
             'operations' => array('foo' => array('responseClass' => 'bar', 'responseType' => 'model')),
             'models'     => array('bar' => array())

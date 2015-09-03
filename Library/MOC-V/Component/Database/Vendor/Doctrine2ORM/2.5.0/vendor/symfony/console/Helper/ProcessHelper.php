@@ -23,51 +23,6 @@ use Symfony\Component\Process\ProcessBuilder;
  */
 class ProcessHelper extends Helper
 {
-    /**
-     * Runs an external process.
-     *
-     * @param OutputInterface      $output    An OutputInterface instance
-     * @param string|array|Process $cmd       An instance of Process or an array of arguments to escape and run or a command to run
-     * @param string|null          $error     An error message that must be displayed if something went wrong
-     * @param callable|null        $callback  A PHP callback to run whenever there is some
-     *                                        output available on STDOUT or STDERR
-     * @param int                  $verbosity The threshold for verbosity
-     *
-     * @return Process The process that ran
-     */
-    public function run(OutputInterface $output, $cmd, $error = null, $callback = null, $verbosity = OutputInterface::VERBOSITY_VERY_VERBOSE)
-    {
-        $formatter = $this->getHelperSet()->get('debug_formatter');
-
-        if (is_array($cmd)) {
-            $process = ProcessBuilder::create($cmd)->getProcess();
-        } elseif ($cmd instanceof Process) {
-            $process = $cmd;
-        } else {
-            $process = new Process($cmd);
-        }
-
-        if ($verbosity <= $output->getVerbosity()) {
-            $output->write($formatter->start(spl_object_hash($process), $this->escapeString($process->getCommandLine())));
-        }
-
-        if ($output->isDebug()) {
-            $callback = $this->wrapCallback($output, $process, $callback);
-        }
-
-        $process->run($callback);
-
-        if ($verbosity <= $output->getVerbosity()) {
-            $message = $process->isSuccessful() ? 'Command ran successfully' : sprintf('%s Command did not run successfully', $process->getExitCode());
-            $output->write($formatter->stop(spl_object_hash($process), $message, $process->isSuccessful()));
-        }
-
-        if (!$process->isSuccessful() && null !== $error) {
-            $output->writeln(sprintf('<error>%s</error>', $this->escapeString($error)));
-        }
-
-        return $process;
-    }
 
     /**
      * Runs the process.
@@ -89,6 +44,7 @@ class ProcessHelper extends Helper
      */
     public function mustRun(OutputInterface $output, $cmd, $error = null, $callback = null)
     {
+
         $process = $this->run($output, $cmd, $error, $callback);
 
         if (!$process->isSuccessful()) {
@@ -96,6 +52,71 @@ class ProcessHelper extends Helper
         }
 
         return $process;
+    }
+
+    /**
+     * Runs an external process.
+     *
+     * @param OutputInterface      $output    An OutputInterface instance
+     * @param string|array|Process $cmd       An instance of Process or an array of arguments to escape and run or a command to run
+     * @param string|null          $error     An error message that must be displayed if something went wrong
+     * @param callable|null        $callback  A PHP callback to run whenever there is some
+     *                                        output available on STDOUT or STDERR
+     * @param int                  $verbosity The threshold for verbosity
+     *
+     * @return Process The process that ran
+     */
+    public function run(
+        OutputInterface $output,
+        $cmd,
+        $error = null,
+        $callback = null,
+        $verbosity = OutputInterface::VERBOSITY_VERY_VERBOSE
+    ) {
+
+        $formatter = $this->getHelperSet()->get('debug_formatter');
+
+        if (is_array($cmd)) {
+            $process = ProcessBuilder::create($cmd)->getProcess();
+        } elseif ($cmd instanceof Process) {
+            $process = $cmd;
+        } else {
+            $process = new Process($cmd);
+        }
+
+        if ($verbosity <= $output->getVerbosity()) {
+            $output->write($formatter->start(spl_object_hash($process),
+                $this->escapeString($process->getCommandLine())));
+        }
+
+        if ($output->isDebug()) {
+            $callback = $this->wrapCallback($output, $process, $callback);
+        }
+
+        $process->run($callback);
+
+        if ($verbosity <= $output->getVerbosity()) {
+            $message = $process->isSuccessful() ? 'Command ran successfully' : sprintf('%s Command did not run successfully',
+                $process->getExitCode());
+            $output->write($formatter->stop(spl_object_hash($process), $message, $process->isSuccessful()));
+        }
+
+        if (!$process->isSuccessful() && null !== $error) {
+            $output->writeln(sprintf('<error>%s</error>', $this->escapeString($error)));
+        }
+
+        return $process;
+    }
+
+    /**
+     * This method is public for PHP 5.3 compatibility, it should be private.
+     *
+     * @internal
+     */
+    public function escapeString($str)
+    {
+
+        return str_replace('<', '\\<', $str);
     }
 
     /**
@@ -109,12 +130,15 @@ class ProcessHelper extends Helper
      */
     public function wrapCallback(OutputInterface $output, Process $process, $callback = null)
     {
+
         $formatter = $this->getHelperSet()->get('debug_formatter');
 
         $that = $this;
 
         return function ($type, $buffer) use ($output, $process, $callback, $formatter, $that) {
-            $output->write($formatter->progress(spl_object_hash($process), $that->escapeString($buffer), Process::ERR === $type));
+
+            $output->write($formatter->progress(spl_object_hash($process), $that->escapeString($buffer),
+                Process::ERR === $type));
 
             if (null !== $callback) {
                 call_user_func($callback, $type, $buffer);
@@ -123,20 +147,11 @@ class ProcessHelper extends Helper
     }
 
     /**
-     * This method is public for PHP 5.3 compatibility, it should be private.
-     *
-     * @internal
-     */
-    public function escapeString($str)
-    {
-        return str_replace('<', '\\<', $str);
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return 'process';
     }
 }

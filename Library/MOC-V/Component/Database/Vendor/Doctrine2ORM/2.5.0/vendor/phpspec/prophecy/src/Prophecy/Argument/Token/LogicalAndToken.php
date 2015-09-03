@@ -18,6 +18,7 @@ namespace Prophecy\Argument\Token;
  */
 class LogicalAndToken implements TokenInterface
 {
+
     private $tokens = array();
 
     /**
@@ -25,6 +26,7 @@ class LogicalAndToken implements TokenInterface
      */
     public function __construct(array $arguments)
     {
+
         foreach ($arguments as $argument) {
             if (!$argument instanceof TokenInterface) {
                 $argument = new ExactValueToken($argument);
@@ -42,6 +44,7 @@ class LogicalAndToken implements TokenInterface
      */
     public function scoreArgument($argument)
     {
+
         if (0 === count($this->tokens)) {
             return false;
         }
@@ -65,6 +68,7 @@ class LogicalAndToken implements TokenInterface
      */
     public function isLast()
     {
+
         return false;
     }
 
@@ -75,6 +79,7 @@ class LogicalAndToken implements TokenInterface
      */
     public function __toString()
     {
+
         return sprintf('bool(%s)', implode(' AND ', $this->tokens));
     }
 }

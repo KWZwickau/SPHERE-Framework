@@ -41,15 +41,15 @@ final class Arrays
      *
      * @return mixed
      */
-    public static function get( array $arr, $key, $default = null )
+    public static function get(array $arr, $key, $default = null)
     {
 
-        foreach (is_array( $key ) ? $key : array( $key ) as $k) {
-            if (is_array( $arr ) && array_key_exists( $k, $arr )) {
+        foreach (is_array($key) ? $key : array($key) as $k) {
+            if (is_array($arr) && array_key_exists($k, $arr)) {
                 $arr = $arr[$k];
             } else {
                 if (func_num_args() < 3) {
-                    throw new Nette\InvalidArgumentException( "Missing item '$k'." );
+                    throw new Nette\InvalidArgumentException("Missing item '$k'.");
                 }
                 return $default;
             }
@@ -66,14 +66,14 @@ final class Arrays
      *
      * @return mixed
      */
-    public static function & getRef( & $arr, $key )
+    public static function & getRef(& $arr, $key)
     {
 
-        foreach (is_array( $key ) ? $key : array( $key ) as $k) {
-            if (is_array( $arr ) || $arr === null) {
+        foreach (is_array($key) ? $key : array($key) as $k) {
+            if (is_array($arr) || $arr === null) {
                 $arr = &$arr[$k];
             } else {
-                throw new Nette\InvalidArgumentException( 'Traversed item is not an array.' );
+                throw new Nette\InvalidArgumentException('Traversed item is not an array.');
             }
         }
         return $arr;
@@ -88,13 +88,13 @@ final class Arrays
      *
      * @return array
      */
-    public static function mergeTree( $arr1, $arr2 )
+    public static function mergeTree($arr1, $arr2)
     {
 
         $res = $arr1 + $arr2;
-        foreach (array_intersect_key( $arr1, $arr2 ) as $k => $v) {
-            if (is_array( $v ) && is_array( $arr2[$k] )) {
-                $res[$k] = self::mergeTree( $v, $arr2[$k] );
+        foreach (array_intersect_key($arr1, $arr2) as $k => $v) {
+            if (is_array($v) && is_array($arr2[$k])) {
+                $res[$k] = self::mergeTree($v, $arr2[$k]);
             }
         }
         return $res;
@@ -109,11 +109,11 @@ final class Arrays
      *
      * @return void
      */
-    public static function insertBefore( array &$arr, $key, array $inserted )
+    public static function insertBefore(array &$arr, $key, array $inserted)
     {
 
-        $offset = self::searchKey( $arr, $key );
-        $arr = array_slice( $arr, 0, $offset, true ) + $inserted + array_slice( $arr, $offset, count( $arr ), true );
+        $offset = self::searchKey($arr, $key);
+        $arr = array_slice($arr, 0, $offset, true) + $inserted + array_slice($arr, $offset, count($arr), true);
     }
 
     /**
@@ -124,11 +124,11 @@ final class Arrays
      *
      * @return int    offset if it is found, FALSE otherwise
      */
-    public static function searchKey( $arr, $key )
+    public static function searchKey($arr, $key)
     {
 
-        $foo = array( $key => null );
-        return array_search( key( $foo ), array_keys( $arr ), true );
+        $foo = array($key => null);
+        return array_search(key($foo), array_keys($arr), true);
     }
 
     /**
@@ -140,12 +140,12 @@ final class Arrays
      *
      * @return void
      */
-    public static function insertAfter( array &$arr, $key, array $inserted )
+    public static function insertAfter(array &$arr, $key, array $inserted)
     {
 
-        $offset = self::searchKey( $arr, $key );
-        $offset = $offset === false ? count( $arr ) : $offset + 1;
-        $arr = array_slice( $arr, 0, $offset, true ) + $inserted + array_slice( $arr, $offset, count( $arr ), true );
+        $offset = self::searchKey($arr, $key);
+        $offset = $offset === false ? count($arr) : $offset + 1;
+        $arr = array_slice($arr, 0, $offset, true) + $inserted + array_slice($arr, $offset, count($arr), true);
     }
 
 
@@ -158,14 +158,14 @@ final class Arrays
      *
      * @return void
      */
-    public static function renameKey( array &$arr, $oldKey, $newKey )
+    public static function renameKey(array &$arr, $oldKey, $newKey)
     {
 
-        $offset = self::searchKey( $arr, $oldKey );
+        $offset = self::searchKey($arr, $oldKey);
         if ($offset !== false) {
-            $keys = array_keys( $arr );
+            $keys = array_keys($arr);
             $keys[$offset] = $newKey;
-            $arr = array_combine( $keys, $arr );
+            $arr = array_combine($keys, $arr);
         }
     }
 
@@ -179,13 +179,13 @@ final class Arrays
      *
      * @return array
      */
-    public static function grep( array $arr, $pattern, $flags = 0 )
+    public static function grep(array $arr, $pattern, $flags = 0)
     {
 
         Nette\Diagnostics\Debugger::tryError();
-        $res = preg_grep( $pattern, $arr, $flags );
-        if (Nette\Diagnostics\Debugger::catchError( $e ) || preg_last_error()) { // compile error XOR run-time error
-            throw new RegexpException( $e ? $e->getMessage() : null, $e ? null : preg_last_error(), $pattern );
+        $res = preg_grep($pattern, $arr, $flags);
+        if (Nette\Diagnostics\Debugger::catchError($e) || preg_last_error()) { // compile error XOR run-time error
+            throw new RegexpException($e ? $e->getMessage() : null, $e ? null : preg_last_error(), $pattern);
         }
         return $res;
     }
@@ -198,14 +198,14 @@ final class Arrays
      *
      * @return array
      */
-    public static function flatten( array $arr )
+    public static function flatten(array $arr)
     {
 
         $res = array();
-        array_walk_recursive( $arr, function ( $a ) use ( & $res ) {
+        array_walk_recursive($arr, function ($a) use (& $res) {
 
-                $res[] = $a;
-            } );
+            $res[] = $a;
+        });
         return $res;
     }
 

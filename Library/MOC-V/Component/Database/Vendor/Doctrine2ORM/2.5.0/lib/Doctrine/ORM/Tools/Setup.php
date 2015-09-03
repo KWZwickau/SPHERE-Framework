@@ -19,10 +19,10 @@
 
 namespace Doctrine\ORM\Tools;
 
-use Doctrine\Common\ClassLoader;
+use Doctrine\Common\Cache\ArrayCache;
 use Doctrine\Common\Cache\Cache;
 use Doctrine\Common\Cache\CacheProvider;
-use Doctrine\Common\Cache\ArrayCache;
+use Doctrine\Common\ClassLoader;
 use Doctrine\ORM\Configuration;
 use Doctrine\ORM\Mapping\Driver\XmlDriver;
 use Doctrine\ORM\Mapping\Driver\YamlDriver;
@@ -34,6 +34,7 @@ use Doctrine\ORM\Mapping\Driver\YamlDriver;
  */
 class Setup
 {
+
     /**
      * Use this method to register all autoloads for a downloaded Doctrine library.
      * Pick the directory the library was uncompressed into.
@@ -44,14 +45,15 @@ class Setup
      */
     public static function registerAutoloadDirectory($directory)
     {
+
         if (!class_exists('Doctrine\Common\ClassLoader', false)) {
-            require_once $directory . "/Doctrine/Common/ClassLoader.php";
+            require_once $directory."/Doctrine/Common/ClassLoader.php";
         }
 
         $loader = new ClassLoader("Doctrine", $directory);
         $loader->register();
 
-        $loader = new ClassLoader("Symfony\Component", $directory . "/Doctrine");
+        $loader = new ClassLoader("Symfony\Component", $directory."/Doctrine");
         $loader->register();
     }
 
@@ -66,46 +68,16 @@ class Setup
      *
      * @return Configuration
      */
-    public static function createAnnotationMetadataConfiguration(array $paths, $isDevMode = false, $proxyDir = null, Cache $cache = null, $useSimpleAnnotationReader = true)
-    {
+    public static function createAnnotationMetadataConfiguration(
+        array $paths,
+        $isDevMode = false,
+        $proxyDir = null,
+        Cache $cache = null,
+        $useSimpleAnnotationReader = true
+    ) {
+
         $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
         $config->setMetadataDriverImpl($config->newDefaultAnnotationDriver($paths, $useSimpleAnnotationReader));
-
-        return $config;
-    }
-
-    /**
-     * Creates a configuration with a xml metadata driver.
-     *
-     * @param array   $paths
-     * @param boolean $isDevMode
-     * @param string  $proxyDir
-     * @param Cache   $cache
-     *
-     * @return Configuration
-     */
-    public static function createXMLMetadataConfiguration(array $paths, $isDevMode = false, $proxyDir = null, Cache $cache = null)
-    {
-        $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
-        $config->setMetadataDriverImpl(new XmlDriver($paths));
-
-        return $config;
-    }
-
-    /**
-     * Creates a configuration with a yaml metadata driver.
-     *
-     * @param array   $paths
-     * @param boolean $isDevMode
-     * @param string  $proxyDir
-     * @param Cache   $cache
-     *
-     * @return Configuration
-     */
-    public static function createYAMLMetadataConfiguration(array $paths, $isDevMode = false, $proxyDir = null, Cache $cache = null)
-    {
-        $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
-        $config->setMetadataDriverImpl(new YamlDriver($paths));
 
         return $config;
     }
@@ -121,6 +93,7 @@ class Setup
      */
     public static function createConfiguration($isDevMode = false, $proxyDir = null, Cache $cache = null)
     {
+
         $proxyDir = $proxyDir ?: sys_get_temp_dir();
 
         if ($isDevMode === false && $cache === null) {
@@ -146,7 +119,7 @@ class Setup
         }
 
         if ($cache instanceof CacheProvider) {
-            $cache->setNamespace("dc2_" . md5($proxyDir) . "_"); // to avoid collisions
+            $cache->setNamespace("dc2_".md5($proxyDir)."_"); // to avoid collisions
         }
 
         $config = new Configuration();
@@ -156,6 +129,52 @@ class Setup
         $config->setProxyDir($proxyDir);
         $config->setProxyNamespace('DoctrineProxies');
         $config->setAutoGenerateProxyClasses($isDevMode);
+
+        return $config;
+    }
+
+    /**
+     * Creates a configuration with a xml metadata driver.
+     *
+     * @param array   $paths
+     * @param boolean $isDevMode
+     * @param string  $proxyDir
+     * @param Cache   $cache
+     *
+     * @return Configuration
+     */
+    public static function createXMLMetadataConfiguration(
+        array $paths,
+        $isDevMode = false,
+        $proxyDir = null,
+        Cache $cache = null
+    ) {
+
+        $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
+        $config->setMetadataDriverImpl(new XmlDriver($paths));
+
+        return $config;
+    }
+
+    /**
+     * Creates a configuration with a yaml metadata driver.
+     *
+     * @param array   $paths
+     * @param boolean $isDevMode
+     * @param string  $proxyDir
+     * @param Cache   $cache
+     *
+     * @return Configuration
+     */
+    public static function createYAMLMetadataConfiguration(
+        array $paths,
+        $isDevMode = false,
+        $proxyDir = null,
+        Cache $cache = null
+    ) {
+
+        $config = self::createConfiguration($isDevMode, $proxyDir, $cache);
+        $config->setMetadataDriverImpl(new YamlDriver($paths));
 
         return $config;
     }

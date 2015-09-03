@@ -16,13 +16,14 @@ use Psr\Log\LoggerInterface as PsrLogger;
 /**
  * LoggerInterface.
  *
- * @author Fabien Potencier <fabien@symfony.com>
+ * @author     Fabien Potencier <fabien@symfony.com>
  *
  * @deprecated since 2.2, to be removed in 3.0. Type-hint \Psr\Log\LoggerInterface instead.
  * @api
  */
 interface LoggerInterface extends PsrLogger
 {
+
     /**
      * @api
      * @deprecated since 2.2, to be removed in 3.0. Use emergency() which is PSR-3 compatible.

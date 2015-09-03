@@ -2,17 +2,19 @@
 
 namespace Guzzle\Tests\Service\Command;
 
-use Guzzle\Service\Description\ServiceDescription;
-use Guzzle\Service\Command\Factory\ServiceDescriptionFactory;
 use Guzzle\Inflection\Inflector;
+use Guzzle\Service\Command\Factory\ServiceDescriptionFactory;
+use Guzzle\Service\Description\ServiceDescription;
 
 /**
  * @covers Guzzle\Service\Command\Factory\ServiceDescriptionFactory
  */
 class ServiceDescriptionFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testProvider()
     {
+
         return array(
             array('foo', null),
             array('jar_jar', 'Guzzle\Tests\Service\Mock\Command\MockCommand'),
@@ -25,6 +27,7 @@ class ServiceDescriptionFactoryTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testCreatesCommandsUsingServiceDescriptions($key, $result)
     {
+
         $d = $this->getDescription();
 
         $factory = new ServiceDescriptionFactory($d);
@@ -37,8 +40,21 @@ class ServiceDescriptionFactoryTest extends \Guzzle\Tests\GuzzleTestCase
         }
     }
 
+    protected function getDescription()
+    {
+
+        return ServiceDescription::factory(array(
+            'operations' => array(
+                'jar_jar' => array('class' => 'Guzzle\Tests\Service\Mock\Command\MockCommand'),
+                'binks'   => array('class' => 'Guzzle\Tests\Service\Mock\Command\OtherCommand'),
+                'Test'    => array('class' => 'Guzzle\Tests\Service\Mock\Command\OtherCommand')
+            )
+        ));
+    }
+
     public function testUsesUcFirstIfNoExactMatch()
     {
+
         $d = $this->getDescription();
         $factory = new ServiceDescriptionFactory($d, new Inflector());
         $this->assertInstanceof('Guzzle\Tests\Service\Mock\Command\OtherCommand', $factory->factory('Test'));
@@ -47,22 +63,12 @@ class ServiceDescriptionFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testUsesInflectionIfNoExactMatch()
     {
+
         $d = $this->getDescription();
         $factory = new ServiceDescriptionFactory($d, new Inflector());
         $this->assertInstanceof('Guzzle\Tests\Service\Mock\Command\OtherCommand', $factory->factory('Binks'));
         $this->assertInstanceof('Guzzle\Tests\Service\Mock\Command\OtherCommand', $factory->factory('binks'));
         $this->assertInstanceof('Guzzle\Tests\Service\Mock\Command\MockCommand', $factory->factory('JarJar'));
         $this->assertInstanceof('Guzzle\Tests\Service\Mock\Command\MockCommand', $factory->factory('jar_jar'));
-    }
-
-    protected function getDescription()
-    {
-        return ServiceDescription::factory(array(
-            'operations' => array(
-                'jar_jar' => array('class' => 'Guzzle\Tests\Service\Mock\Command\MockCommand'),
-                'binks' => array('class' => 'Guzzle\Tests\Service\Mock\Command\OtherCommand'),
-                'Test' => array('class' => 'Guzzle\Tests\Service\Mock\Command\OtherCommand')
-            )
-        ));
     }
 }

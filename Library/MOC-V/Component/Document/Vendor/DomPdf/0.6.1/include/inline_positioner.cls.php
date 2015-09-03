@@ -15,10 +15,10 @@
 class Inline_Positioner extends Positioner
 {
 
-    function __construct( Frame_Decorator $frame )
+    function __construct(Frame_Decorator $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     //........................................................................
@@ -42,7 +42,7 @@ class Inline_Positioner extends Positioner
         // End debugging
 
         if (!$p) {
-            throw new DOMPDF_Exception( "No block-level parent found.  Not good." );
+            throw new DOMPDF_Exception("No block-level parent found.  Not good.");
         }
 
         $f = $this->_frame;
@@ -74,7 +74,7 @@ class Inline_Positioner extends Positioner
             }
         }
 
-        $f->set_position( $cb["x"] + $line->w, $line->y );
+        $f->set_position($cb["x"] + $line->w, $line->y);
 
     }
 }

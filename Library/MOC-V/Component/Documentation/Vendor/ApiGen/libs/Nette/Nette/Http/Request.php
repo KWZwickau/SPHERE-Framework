@@ -77,7 +77,7 @@ class Request extends Nette\Object implements IRequest
         $this->url = $url;
         $this->url->freeze();
         if ($query === null) {
-            parse_str( $url->query, $this->query );
+            parse_str($url->query, $this->query);
         } else {
             $this->query = (array)$query;
         }
@@ -94,7 +94,7 @@ class Request extends Nette\Object implements IRequest
     function getUri()
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use '.__CLASS__.'::getUrl() instead.', E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use '.__CLASS__.'::getUrl() instead.', E_USER_WARNING);
         return $this->getUrl();
     }
 
@@ -122,7 +122,7 @@ class Request extends Nette\Object implements IRequest
      *
      * @return mixed
      */
-    final public function getQuery( $key = null, $default = null )
+    final public function getQuery($key = null, $default = null)
     {
 
         if (func_num_args() === 0) {
@@ -146,7 +146,7 @@ class Request extends Nette\Object implements IRequest
      *
      * @return mixed
      */
-    final public function getPost( $key = null, $default = null )
+    final public function getPost($key = null, $default = null)
     {
 
         if (func_num_args() === 0) {
@@ -168,11 +168,11 @@ class Request extends Nette\Object implements IRequest
      *
      * @return FileUpload
      */
-    final public function getFile( $key )
+    final public function getFile($key)
     {
 
         $args = func_get_args();
-        return Nette\Utils\Arrays::get( $this->files, $args, null );
+        return Nette\Utils\Arrays::get($this->files, $args, null);
     }
 
 
@@ -196,7 +196,7 @@ class Request extends Nette\Object implements IRequest
      *
      * @return mixed
      */
-    final public function getCookie( $key, $default = null )
+    final public function getCookie($key, $default = null)
     {
 
         if (func_num_args() === 0) {
@@ -245,7 +245,7 @@ class Request extends Nette\Object implements IRequest
     public function isPost()
     {
 
-        return $this->isMethod( 'POST' );
+        return $this->isMethod('POST');
     }
 
     /**
@@ -255,10 +255,10 @@ class Request extends Nette\Object implements IRequest
      *
      * @return bool
      */
-    public function isMethod( $method )
+    public function isMethod($method)
     {
 
-        return strcasecmp( $this->method, $method ) === 0;
+        return strcasecmp($this->method, $method) === 0;
     }
 
     /**
@@ -280,7 +280,7 @@ class Request extends Nette\Object implements IRequest
     final public function getReferer()
     {
 
-        return isset( $this->headers['referer'] ) ? new Url( $this->headers['referer'] ) : null;
+        return isset( $this->headers['referer'] ) ? new Url($this->headers['referer']) : null;
     }
 
     /**
@@ -302,7 +302,7 @@ class Request extends Nette\Object implements IRequest
     public function isAjax()
     {
 
-        return $this->getHeader( 'X-Requested-With' ) === 'XMLHttpRequest';
+        return $this->getHeader('X-Requested-With') === 'XMLHttpRequest';
     }
 
     /**
@@ -314,10 +314,10 @@ class Request extends Nette\Object implements IRequest
      *
      * @return mixed
      */
-    final public function getHeader( $header, $default = null )
+    final public function getHeader($header, $default = null)
     {
 
-        $header = strtolower( $header );
+        $header = strtolower($header);
         if (isset( $this->headers[$header] )) {
             return $this->headers[$header];
         } else {
@@ -346,7 +346,7 @@ class Request extends Nette\Object implements IRequest
     {
 
         if (!$this->remoteHost) {
-            $this->remoteHost = $this->remoteAddress ? getHostByAddr( $this->remoteAddress ) : null;
+            $this->remoteHost = $this->remoteAddress ? getHostByAddr($this->remoteAddress) : null;
         }
         return $this->remoteHost;
     }
@@ -359,18 +359,18 @@ class Request extends Nette\Object implements IRequest
      *
      * @return string
      */
-    public function detectLanguage( array $langs )
+    public function detectLanguage(array $langs)
     {
 
-        $header = $this->getHeader( 'Accept-Language' );
+        $header = $this->getHeader('Accept-Language');
         if (!$header) {
             return null;
         }
 
-        $s = strtolower( $header );  // case insensitive
-        $s = strtr( $s, '_', '-' );  // cs_CZ means cs-CZ
-        rsort( $langs );             // first more specific
-        preg_match_all( '#('.implode( '|', $langs ).')(?:-[^\s,;=]+)?\s*(?:;\s*q=([0-9.]+))?#', $s, $matches );
+        $s = strtolower($header);  // case insensitive
+        $s = strtr($s, '_', '-');  // cs_CZ means cs-CZ
+        rsort($langs);             // first more specific
+        preg_match_all('#('.implode('|', $langs).')(?:-[^\s,;=]+)?\s*(?:;\s*q=([0-9.]+))?#', $s, $matches);
 
         if (!$matches[0]) {
             return null;

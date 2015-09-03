@@ -45,16 +45,16 @@ class ReflectionFunction extends ReflectionFunctionBase
     {
 
         if (null === $this->isDocumented && parent::isDocumented()) {
-            $fileName = self::$generator->unPharPath( $this->reflection->getFilename() );
+            $fileName = self::$generator->unPharPath($this->reflection->getFilename());
             foreach (self::$config->skipDocPath as $mask) {
-                if (fnmatch( $mask, $fileName, FNM_NOESCAPE )) {
+                if (fnmatch($mask, $fileName, FNM_NOESCAPE)) {
                     $this->isDocumented = false;
                     break;
                 }
             }
             if (true === $this->isDocumented) {
                 foreach (self::$config->skipDocPrefix as $prefix) {
-                    if (0 === strpos( $this->reflection->getName(), $prefix )) {
+                    if (0 === strpos($this->reflection->getName(), $prefix)) {
                         $this->isDocumented = false;
                         break;
                     }

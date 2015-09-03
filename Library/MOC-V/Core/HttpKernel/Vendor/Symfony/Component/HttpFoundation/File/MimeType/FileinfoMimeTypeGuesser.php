@@ -21,6 +21,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileNotFoundException;
  */
 class FileinfoMimeTypeGuesser implements MimeTypeGuesserInterface
 {
+
     private $magicFile;
 
     /**
@@ -32,6 +33,7 @@ class FileinfoMimeTypeGuesser implements MimeTypeGuesserInterface
      */
     public function __construct($magicFile = null)
     {
+
         $this->magicFile = $magicFile;
     }
 
@@ -40,6 +42,7 @@ class FileinfoMimeTypeGuesser implements MimeTypeGuesserInterface
      */
     public function guess($path)
     {
+
         if (!is_file($path)) {
             throw new FileNotFoundException($path);
         }
@@ -67,6 +70,6 @@ class FileinfoMimeTypeGuesser implements MimeTypeGuesserInterface
     public static function isSupported()
     {
 
-        return function_exists( 'finfo_open' );
+        return function_exists('finfo_open');
     }
 }

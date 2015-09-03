@@ -6,8 +6,10 @@ use Guzzle\Batch\Exception\BatchTransferException;
 
 class BatchTransferExceptionTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testContainsBatch()
     {
+
         $e = new \Exception('Baz!');
         $t = $this->getMock('Guzzle\Batch\BatchTransferInterface');
         $d = $this->getMock('Guzzle\Batch\BatchDivisorInterface');

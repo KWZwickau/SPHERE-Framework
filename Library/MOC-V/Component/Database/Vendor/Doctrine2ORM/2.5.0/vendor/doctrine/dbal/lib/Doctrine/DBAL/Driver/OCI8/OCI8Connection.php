@@ -30,6 +30,7 @@ use Doctrine\DBAL\Platforms\OraclePlatform;
  */
 class OCI8Connection implements Connection, ServerInfoAwareConnection
 {
+
     /**
      * @var resource
      */
@@ -52,8 +53,15 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      *
      * @throws OCI8Exception
      */
-    public function __construct($username, $password, $db, $charset = null, $sessionMode = OCI_DEFAULT, $persistent = false)
-    {
+    public function __construct(
+        $username,
+        $password,
+        $db,
+        $charset = null,
+        $sessionMode = OCI_DEFAULT,
+        $persistent = false
+    ) {
+
         if (!defined('OCI_NO_AUTO_COMMIT')) {
             define('OCI_NO_AUTO_COMMIT', 0);
         }
@@ -62,7 +70,7 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
             ? @oci_pconnect($username, $password, $db, $charset, $sessionMode)
             : @oci_connect($username, $password, $db, $charset, $sessionMode);
 
-        if ( ! $this->dbh) {
+        if (!$this->dbh) {
             throw OCI8Exception::fromErrorInfo(oci_error());
         }
     }
@@ -75,10 +83,11 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      */
     public function getServerVersion()
     {
-        if ( ! preg_match('/\s+(\d+\.\d+\.\d+\.\d+\.\d+)\s+/', oci_server_version($this->dbh), $version)) {
+
+        if (!preg_match('/\s+(\d+\.\d+\.\d+\.\d+\.\d+)\s+/', oci_server_version($this->dbh), $version)) {
             throw new \UnexpectedValueException(
                 sprintf(
-                    'Unexpected database version string "%s". Cannot parse an appropriate version number from it. ' .
+                    'Unexpected database version string "%s". Cannot parse an appropriate version number from it. '.
                     'Please report this database version string to the Doctrine team.',
                     oci_server_version($this->dbh)
                 )
@@ -93,7 +102,34 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      */
     public function requiresQueryForServerVersion()
     {
+
         return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function quote($value, $type = \PDO::PARAM_STR)
+    {
+
+        if (is_int($value) || is_float($value)) {
+            return $value;
+        }
+        $value = str_replace("'", "''", $value);
+
+        return "'".addcslashes($value, "\000\n\r\\\032")."'";
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function exec($statement)
+    {
+
+        $stmt = $this->prepare($statement);
+        $stmt->execute();
+
+        return $stmt->rowCount();
     }
 
     /**
@@ -101,7 +137,31 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      */
     public function prepare($prepareString)
     {
+
         return new OCI8Statement($this->dbh, $prepareString, $this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function lastInsertId($name = null)
+    {
+
+        if ($name === null) {
+            return false;
+        }
+
+        OraclePlatform::assertValidIdentifier($name);
+
+        $sql = 'SELECT '.$name.'.CURRVAL FROM DUAL';
+        $stmt = $this->query($sql);
+        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
+
+        if ($result === false || !isset( $result['CURRVAL'] )) {
+            throw new OCI8Exception("lastInsertId failed: Query was executed but no result was returned.");
+        }
+
+        return (int)$result['CURRVAL'];
     }
 
     /**
@@ -109,6 +169,7 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      */
     public function query()
     {
+
         $args = func_get_args();
         $sql = $args[0];
         //$fetchMode = $args[1];
@@ -119,58 +180,13 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function quote($value, $type=\PDO::PARAM_STR)
-    {
-        if (is_int($value) || is_float($value)) {
-            return $value;
-        }
-        $value = str_replace("'", "''", $value);
-
-        return "'" . addcslashes($value, "\000\n\r\\\032") . "'";
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function exec($statement)
-    {
-        $stmt = $this->prepare($statement);
-        $stmt->execute();
-
-        return $stmt->rowCount();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function lastInsertId($name = null)
-    {
-        if ($name === null) {
-            return false;
-        }
-
-        OraclePlatform::assertValidIdentifier($name);
-
-        $sql    = 'SELECT ' . $name . '.CURRVAL FROM DUAL';
-        $stmt   = $this->query($sql);
-        $result = $stmt->fetch(\PDO::FETCH_ASSOC);
-
-        if ($result === false || !isset($result['CURRVAL'])) {
-            throw new OCI8Exception("lastInsertId failed: Query was executed but no result was returned.");
-        }
-
-        return (int) $result['CURRVAL'];
-    }
-
-    /**
      * Returns the current execution mode.
      *
      * @return integer
      */
     public function getExecuteMode()
     {
+
         return $this->executeMode;
     }
 
@@ -179,6 +195,7 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      */
     public function beginTransaction()
     {
+
         $this->executeMode = OCI_NO_AUTO_COMMIT;
 
         return true;
@@ -189,6 +206,7 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      */
     public function commit()
     {
+
         if (!oci_commit($this->dbh)) {
             throw OCI8Exception::fromErrorInfo($this->errorInfo());
         }
@@ -200,8 +218,18 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
     /**
      * {@inheritdoc}
      */
+    public function errorInfo()
+    {
+
+        return oci_error($this->dbh);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function rollBack()
     {
+
         if (!oci_rollback($this->dbh)) {
             throw OCI8Exception::fromErrorInfo($this->errorInfo());
         }
@@ -215,19 +243,12 @@ class OCI8Connection implements Connection, ServerInfoAwareConnection
      */
     public function errorCode()
     {
+
         $error = oci_error($this->dbh);
         if ($error !== false) {
             $error = $error['code'];
         }
 
         return $error;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function errorInfo()
-    {
-        return oci_error($this->dbh);
     }
 }

@@ -10,19 +10,23 @@ use Guzzle\Http\IoEmittingEntityBody;
  */
 class IoEmittingEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     protected $body;
     protected $decorated;
 
     public function setUp()
     {
+
         $this->decorated = EntityBody::factory('hello');
         $this->body = new IoEmittingEntityBody($this->decorated);
     }
 
     public function testEmitsReadEvents()
     {
+
         $e = null;
         $this->body->getEventDispatcher()->addListener('body.read', function ($event) use (&$e) {
+
             $e = $event;
         });
         $this->assertEquals('hel', $this->body->read(3));
@@ -33,8 +37,10 @@ class IoEmittingEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testEmitsWriteEvents()
     {
+
         $e = null;
         $this->body->getEventDispatcher()->addListener('body.write', function ($event) use (&$e) {
+
             $e = $event;
         });
         $this->body->seek(0, SEEK_END);
@@ -42,6 +48,6 @@ class IoEmittingEntityBodyTest extends \Guzzle\Tests\GuzzleTestCase
         $this->assertEquals('there', $e['write']);
         $this->assertEquals(5, $e['result']);
         $this->assertSame($this->body, $e['body']);
-        $this->assertEquals('hellothere', (string) $this->body);
+        $this->assertEquals('hellothere', (string)$this->body);
     }
 }

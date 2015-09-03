@@ -44,10 +44,10 @@ class RuntimeException extends BaseException
      * @param integer                      $code    Exception code
      * @param \TokenReflection\IReflection $sender  Reflection element
      */
-    public function __construct( $message, $code, IReflection $sender = null )
+    public function __construct($message, $code, IReflection $sender = null)
     {
 
-        parent::__construct( $message, $code );
+        parent::__construct($message, $code);
 
         $this->sender = $sender;
     }
@@ -71,7 +71,7 @@ class RuntimeException extends BaseException
     public function getDetail()
     {
 
-        return null === $this->sender ? '' : sprintf( 'Thrown when working with "%s".',
-            $this->sender->getPrettyName() );
+        return null === $this->sender ? '' : sprintf('Thrown when working with "%s".',
+            $this->sender->getPrettyName());
     }
 }

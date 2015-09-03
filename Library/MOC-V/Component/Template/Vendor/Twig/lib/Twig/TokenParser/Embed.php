@@ -14,6 +14,7 @@
  */
 class Twig_TokenParser_Embed extends Twig_TokenParser_Include
 {
+
     /**
      * Parses a token and returns a node.
      *
@@ -23,11 +24,12 @@ class Twig_TokenParser_Embed extends Twig_TokenParser_Include
      */
     public function parse(Twig_Token $token)
     {
+
         $stream = $this->parser->getStream();
 
         $parent = $this->parser->getExpressionParser()->parseExpression();
 
-        list($variables, $only, $ignoreMissing) = $this->parseArguments();
+        list( $variables, $only, $ignoreMissing ) = $this->parseArguments();
 
         // inject a fake parent to make the parent() function work
         $stream->injectTokens(array(
@@ -46,7 +48,8 @@ class Twig_TokenParser_Embed extends Twig_TokenParser_Include
 
         $stream->expect(Twig_Token::BLOCK_END_TYPE);
 
-        return new Twig_Node_Embed($module->getAttribute('filename'), $module->getAttribute('index'), $variables, $only, $ignoreMissing, $token->getLine(), $this->getTag());
+        return new Twig_Node_Embed($module->getAttribute('filename'), $module->getAttribute('index'), $variables, $only,
+            $ignoreMissing, $token->getLine(), $this->getTag());
     }
 
     /**
@@ -56,12 +59,13 @@ class Twig_TokenParser_Embed extends Twig_TokenParser_Include
      */
     public function getTag()
     {
+
         return 'embed';
     }
 
-    public function decideBlockEnd( Twig_Token $token )
+    public function decideBlockEnd(Twig_Token $token)
     {
 
-        return $token->test( 'endembed' );
+        return $token->test('endembed');
     }
 }

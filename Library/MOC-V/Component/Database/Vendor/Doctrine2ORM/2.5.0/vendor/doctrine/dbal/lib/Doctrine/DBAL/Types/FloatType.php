@@ -23,11 +23,13 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 
 class FloatType extends Type
 {
+
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return Type::FLOAT;
     }
 
@@ -36,6 +38,7 @@ class FloatType extends Type
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
+
         return $platform->getFloatDeclarationSQL($fieldDeclaration);
     }
 
@@ -44,6 +47,7 @@ class FloatType extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        return (null === $value) ? null : (double) $value;
+
+        return ( null === $value ) ? null : (double)$value;
     }
 }

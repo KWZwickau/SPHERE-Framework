@@ -20,9 +20,9 @@
 namespace Doctrine\ORM\Tools\Console\Command;
 
 use Doctrine\ORM\Mapping\MappingException;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Command\Command;
 
 /**
  * Show information about mapped entities.
@@ -33,11 +33,13 @@ use Symfony\Component\Console\Command\Command;
  */
 class InfoCommand extends Command
 {
+
     /**
      * {@inheritdoc}
      */
     protected function configure()
     {
+
         $this
             ->setName('orm:info')
             ->setDescription('Show basic information about all mapped entities')
@@ -46,7 +48,7 @@ The <info>%command.name%</info> shows basic information about which
 entities exist and possibly if their mapping information contains errors or
 not.
 EOT
-        );
+            );
     }
 
     /**
@@ -54,12 +56,13 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+
         /* @var $entityManager \Doctrine\ORM\EntityManager */
         $entityManager = $this->getHelper('em')->getEntityManager();
 
         $entityClassNames = $entityManager->getConfiguration()
-                                          ->getMetadataDriverImpl()
-                                          ->getAllClassNames();
+            ->getMetadataDriverImpl()
+            ->getAllClassNames();
 
         if (!$entityClassNames) {
             throw new \Exception(

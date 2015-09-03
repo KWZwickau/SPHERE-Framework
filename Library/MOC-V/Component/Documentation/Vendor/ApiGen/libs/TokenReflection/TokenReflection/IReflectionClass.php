@@ -152,7 +152,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function isSubclassOf( $class );
+    public function isSubclassOf($class);
 
     /**
      * Returns the parent class reflection.
@@ -190,7 +190,7 @@ interface IReflectionClass extends IReflection
      * @return boolean
      * @throws \TokenReflection\Exception\RuntimeException If an invalid object was provided as interface.
      */
-    public function implementsInterface( $interface );
+    public function implementsInterface($interface);
 
     /**
      * Returns interface reflections.
@@ -241,7 +241,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasMethod( $name );
+    public function hasMethod($name);
 
     /**
      * Returns a method reflection.
@@ -251,7 +251,7 @@ interface IReflectionClass extends IReflection
      * @return \TokenReflection\IReflectionMethod
      * @throws \TokenReflection\Exception\RuntimeException If the requested method does not exist.
      */
-    public function getMethod( $name );
+    public function getMethod($name);
 
     /**
      * Returns method reflections.
@@ -260,7 +260,7 @@ interface IReflectionClass extends IReflection
      *
      * @return array
      */
-    public function getMethods( $filter = null );
+    public function getMethods($filter = null);
 
     /**
      * Returns if the class implements (and not its parents) the given method.
@@ -269,7 +269,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasOwnMethod( $name );
+    public function hasOwnMethod($name);
 
     /**
      * Returns method reflections declared by this class, not its parents.
@@ -278,7 +278,7 @@ interface IReflectionClass extends IReflection
      *
      * @return array
      */
-    public function getOwnMethods( $filter = null );
+    public function getOwnMethods($filter = null);
 
     /**
      * Returns if the class imports the given method from traits.
@@ -287,7 +287,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasTraitMethod( $name );
+    public function hasTraitMethod($name);
 
     /**
      * Returns method reflections imported from traits.
@@ -296,7 +296,7 @@ interface IReflectionClass extends IReflection
      *
      * @return array
      */
-    public function getTraitMethods( $filter = null );
+    public function getTraitMethods($filter = null);
 
     /**
      * Returns if the class defines the given constant.
@@ -305,7 +305,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasConstant( $name );
+    public function hasConstant($name);
 
     /**
      * Returns a constant value.
@@ -315,7 +315,7 @@ interface IReflectionClass extends IReflection
      * @return mixed
      * @throws \TokenReflection\Exception\RuntimeException If the requested constant does not exist.
      */
-    public function getConstant( $name );
+    public function getConstant($name);
 
     /**
      * Returns a constant reflection.
@@ -325,7 +325,7 @@ interface IReflectionClass extends IReflection
      * @return \TokenReflection\IReflectionConstant
      * @throws \TokenReflection\Exception\RuntimeException If the requested constant does not exist.
      */
-    public function getConstantReflection( $name );
+    public function getConstantReflection($name);
 
     /**
      * Returns an array of constant values.
@@ -348,7 +348,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasOwnConstant( $name );
+    public function hasOwnConstant($name);
 
     /**
      * Returns values of constants declared by this class, not by its parents.
@@ -371,7 +371,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasProperty( $name );
+    public function hasProperty($name);
 
     /**
      * Return a property reflection.
@@ -381,7 +381,7 @@ interface IReflectionClass extends IReflection
      * @return \TokenReflection\ReflectionProperty
      * @throws \TokenReflection\Exception\RuntimeException If the requested property does not exist.
      */
-    public function getProperty( $name );
+    public function getProperty($name);
 
     /**
      * Returns property reflections.
@@ -390,7 +390,7 @@ interface IReflectionClass extends IReflection
      *
      * @return array
      */
-    public function getProperties( $filter = null );
+    public function getProperties($filter = null);
 
     /**
      * Returns if the class (and not its parents) defines the given property.
@@ -399,7 +399,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasOwnProperty( $name );
+    public function hasOwnProperty($name);
 
     /**
      * Returns property reflections declared by this class, not its parents.
@@ -408,7 +408,7 @@ interface IReflectionClass extends IReflection
      *
      * @return array
      */
-    public function getOwnProperties( $filter = null );
+    public function getOwnProperties($filter = null);
 
     /**
      * Returns if the class imports the given property from traits.
@@ -417,7 +417,7 @@ interface IReflectionClass extends IReflection
      *
      * @return boolean
      */
-    public function hasTraitProperty( $name );
+    public function hasTraitProperty($name);
 
     /**
      * Returns property reflections imported from traits.
@@ -426,7 +426,7 @@ interface IReflectionClass extends IReflection
      *
      * @return array
      */
-    public function getTraitProperties( $filter = null );
+    public function getTraitProperties($filter = null);
 
     /**
      * Returns default properties.
@@ -452,7 +452,7 @@ interface IReflectionClass extends IReflection
      * @throws \TokenReflection\Exception\RuntimeException If the requested static property does not exist.
      * @throws \TokenReflection\Exception\RuntimeException If the requested static property is not accessible.
      */
-    public function getStaticPropertyValue( $name, $default = null );
+    public function getStaticPropertyValue($name, $default = null);
 
     /**
      * Returns reflections of direct subclasses.
@@ -559,7 +559,7 @@ interface IReflectionClass extends IReflection
      *
      * @return bool
      */
-    public function usesTrait( $trait );
+    public function usesTrait($trait);
 
     /**
      * Returns if the class is a trait.
@@ -576,7 +576,7 @@ interface IReflectionClass extends IReflection
      * @return boolean
      * @throws \TokenReflection\Exception\RuntimeException If the provided argument is not an object.
      */
-    public function isInstance( $object );
+    public function isInstance($object);
 
     /**
      * Creates a new class instance without using a constructor.
@@ -595,7 +595,7 @@ interface IReflectionClass extends IReflection
      *
      * @return object
      */
-    public function newInstance( $args );
+    public function newInstance($args);
 
     /**
      * Creates a new instance using an array of parameters.
@@ -605,7 +605,7 @@ interface IReflectionClass extends IReflection
      * @return object
      * @throws \TokenReflection\Exception\RuntimeException If the required class does not exist.
      */
-    public function newInstanceArgs( array $args = array() );
+    public function newInstanceArgs(array $args = array());
 
     /**
      * Sets a static property value.
@@ -616,7 +616,7 @@ interface IReflectionClass extends IReflection
      * @throws \TokenReflection\Exception\RuntimeException If the requested static property does not exist.
      * @throws \TokenReflection\Exception\RuntimeException If the requested static property is not accessible.
      */
-    public function setStaticPropertyValue( $name, $value );
+    public function setStaticPropertyValue($name, $value);
 
     /**
      * Returns the string representation of the reflection object.

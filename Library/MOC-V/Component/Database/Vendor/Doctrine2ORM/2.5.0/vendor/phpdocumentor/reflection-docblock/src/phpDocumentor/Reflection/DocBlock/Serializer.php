@@ -40,11 +40,11 @@ class Serializer
      * Create a Serializer instance.
      *
      * @param int      $indent          The number of times the indent string is
-     *     repeated.
+     *                                  repeated.
      * @param string   $indentString    The string to indent the comment with.
      * @param bool     $indentFirstLine Whether to indent the first line.
      * @param int|null $lineLength      The max length of a line or NULL to
-     *     disable line wrapping.
+     *                                  disable line wrapping.
      */
     public function __construct(
         $indent = 0,
@@ -52,6 +52,7 @@ class Serializer
         $indentFirstLine = true,
         $lineLength = null
     ) {
+
         $this->setIndentationString($indentString);
         $this->setIndent($indent);
         $this->setIsFirstLineIndented($indentFirstLine);
@@ -60,113 +61,122 @@ class Serializer
 
     /**
      * Sets the string to indent comments with.
-     * 
+     *
      * @param string $indentationString The string to indent comments with.
-     * 
+     *
      * @return $this This serializer object.
      */
     public function setIndentationString($indentString)
     {
+
         $this->indentString = (string)$indentString;
         return $this;
     }
 
     /**
-     * Gets the string to indent comments with.
-     * 
-     * @return string The indent string.
-     */
-    public function getIndentationString()
-    {
-        return $this->indentString;
-    }
-
-    /**
-     * Sets the number of indents.
-     * 
-     * @param int $indent The number of times the indent string is repeated.
-     * 
-     * @return $this This serializer object.
-     */
-    public function setIndent($indent)
-    {
-        $this->indent = (int)$indent;
-        return $this;
-    }
-
-    /**
-     * Gets the number of indents.
-     * 
-     * @return int The number of times the indent string is repeated.
-     */
-    public function getIndent()
-    {
-        return $this->indent;
-    }
-
-    /**
      * Sets whether or not the first line should be indented.
-     * 
+     *
      * Sets whether or not the first line (the one with the "/**") should be
      * indented.
-     * 
+     *
      * @param bool $indentFirstLine The new value for this setting.
-     * 
+     *
      * @return $this This serializer object.
      */
     public function setIsFirstLineIndented($indentFirstLine)
     {
+
         $this->isFirstLineIndented = (bool)$indentFirstLine;
         return $this;
     }
 
     /**
-     * Gets whether or not the first line should be indented.
-     * 
-     * @return bool Whether or not the first line should be indented.
+     * Gets the string to indent comments with.
+     *
+     * @return string The indent string.
      */
-    public function isFirstLineIndented()
+    public function getIndentationString()
     {
-        return $this->isFirstLineIndented;
+
+        return $this->indentString;
     }
 
     /**
-     * Sets the line length.
-     * 
-     * Sets the length of each line in the serialization. Content will be
-     * wrapped within this limit.
-     * 
-     * @param int|null $lineLength The length of each line. NULL to disable line
-     *     wrapping altogether.
-     * 
+     * Gets the number of indents.
+     *
+     * @return int The number of times the indent string is repeated.
+     */
+    public function getIndent()
+    {
+
+        return $this->indent;
+    }
+
+    /**
+     * Sets the number of indents.
+     *
+     * @param int $indent The number of times the indent string is repeated.
+     *
      * @return $this This serializer object.
      */
-    public function setLineLength($lineLength)
+    public function setIndent($indent)
     {
-        $this->lineLength = null === $lineLength ? null : (int)$lineLength;
+
+        $this->indent = (int)$indent;
         return $this;
     }
 
     /**
+     * Gets whether or not the first line should be indented.
+     *
+     * @return bool Whether or not the first line should be indented.
+     */
+    public function isFirstLineIndented()
+    {
+
+        return $this->isFirstLineIndented;
+    }
+
+    /**
      * Gets the line length.
-     * 
+     *
      * @return int|null The length of each line or NULL if line wrapping is
      *     disabled.
      */
     public function getLineLength()
     {
+
         return $this->lineLength;
+    }
+
+    /**
+     * Sets the line length.
+     *
+     * Sets the length of each line in the serialization. Content will be
+     * wrapped within this limit.
+     *
+     * @param int|null $lineLength The length of each line. NULL to disable line
+     *                             wrapping altogether.
+     *
+     * @return $this This serializer object.
+     */
+    public function setLineLength($lineLength)
+    {
+
+        $this->lineLength = null === $lineLength ? null : (int)$lineLength;
+        return $this;
     }
 
     /**
      * Generate a DocBlock comment.
      *
      * @param DocBlock The DocBlock to serialize.
-     * 
+     *
      * @return string The serialized doc block.
      */
     public function getDocComment(DocBlock $docblock)
     {
+
         $indent = str_repeat($this->indentString, $this->indent);
         $firstIndent = $this->isFirstLineIndented ? $indent : '';
 
@@ -182,7 +192,7 @@ class Serializer
 
         /** @var Tag $tag */
         foreach ($docblock->getTags() as $tag) {
-            $tagText = (string) $tag;
+            $tagText = (string)$tag;
             if ($this->lineLength) {
                 $tagText = wordwrap($tagText, $wrapLength);
             }
@@ -191,7 +201,7 @@ class Serializer
             $comment .= "{$indent} * {$tagText}\n";
         }
 
-        $comment .= $indent . ' */';
+        $comment .= $indent.' */';
 
         return $comment;
     }

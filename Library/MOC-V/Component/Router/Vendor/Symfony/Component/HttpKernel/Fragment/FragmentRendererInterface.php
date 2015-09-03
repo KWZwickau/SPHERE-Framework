@@ -20,10 +20,11 @@ use Symfony\Component\HttpKernel\Controller\ControllerReference;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @see Symfony\Component\HttpKernel\FragmentRenderer
+ * @see    Symfony\Component\HttpKernel\FragmentRenderer
  */
 interface FragmentRendererInterface
 {
+
     /**
      * Renders a URI and returns the Response content.
      *

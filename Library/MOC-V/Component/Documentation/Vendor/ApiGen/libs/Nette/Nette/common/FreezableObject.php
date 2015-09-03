@@ -70,8 +70,8 @@ abstract class FreezableObject extends Object implements IFreezable
     {
 
         if ($this->frozen) {
-            $class = get_class( $this );
-            throw new InvalidStateException( "Cannot modify a frozen object $class." );
+            $class = get_class($this);
+            throw new InvalidStateException("Cannot modify a frozen object $class.");
         }
     }
 

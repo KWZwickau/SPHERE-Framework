@@ -28,6 +28,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface;
  */
 class Session implements SessionInterface, \IteratorAggregate, \Countable
 {
+
     /**
      * Storage driver.
      *
@@ -48,12 +49,16 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
     /**
      * Constructor.
      *
-     * @param SessionStorageInterface $storage    A SessionStorageInterface instance.
+     * @param SessionStorageInterface $storage A SessionStorageInterface instance.
      * @param AttributeBagInterface   $attributes An AttributeBagInterface instance, (defaults null for default AttributeBag)
-     * @param FlashBagInterface       $flashes    A FlashBagInterface instance (defaults null for default FlashBag)
+     * @param FlashBagInterface       $flashes A FlashBagInterface instance (defaults null for default FlashBag)
      */
-    public function __construct(SessionStorageInterface $storage = null, AttributeBagInterface $attributes = null, FlashBagInterface $flashes = null)
-    {
+    public function __construct(
+        SessionStorageInterface $storage = null,
+        AttributeBagInterface $attributes = null,
+        FlashBagInterface $flashes = null
+    ) {
+
         $this->storage = $storage ?: new NativeSessionStorage();
 
         $attributes = $attributes ?: new AttributeBag();
@@ -68,10 +73,10 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
     /**
      * {@inheritdoc}
      */
-    public function registerBag( SessionBagInterface $bag )
+    public function registerBag(SessionBagInterface $bag)
     {
 
-        $this->storage->registerBag( $bag );
+        $this->storage->registerBag($bag);
     }
 
     /**
@@ -79,6 +84,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function start()
     {
+
         return $this->storage->start();
     }
 
@@ -87,6 +93,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function has($name)
     {
+
         return $this->storage->getBag($this->attributeName)->has($name);
     }
 
@@ -95,6 +102,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function get($name, $default = null)
     {
+
         return $this->storage->getBag($this->attributeName)->get($name, $default);
     }
 
@@ -103,6 +111,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function set($name, $value)
     {
+
         $this->storage->getBag($this->attributeName)->set($name, $value);
     }
 
@@ -111,6 +120,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function all()
     {
+
         return $this->storage->getBag($this->attributeName)->all();
     }
 
@@ -119,6 +129,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function replace(array $attributes)
     {
+
         $this->storage->getBag($this->attributeName)->replace($attributes);
     }
 
@@ -127,6 +138,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function remove($name)
     {
+
         return $this->storage->getBag($this->attributeName)->remove($name);
     }
 
@@ -135,6 +147,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function clear()
     {
+
         $this->storage->getBag($this->attributeName)->clear();
     }
 
@@ -143,6 +156,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function isStarted()
     {
+
         return $this->storage->isStarted();
     }
 
@@ -153,6 +167,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function getIterator()
     {
+
         return new \ArrayIterator($this->storage->getBag($this->attributeName)->all());
     }
 
@@ -163,6 +178,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function count()
     {
+
         return count($this->storage->getBag($this->attributeName)->all());
     }
 
@@ -171,6 +187,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function invalidate($lifetime = null)
     {
+
         $this->storage->clear();
 
         return $this->migrate(true, $lifetime);
@@ -181,6 +198,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function migrate($destroy = false, $lifetime = null)
     {
+
         return $this->storage->regenerate($destroy, $lifetime);
     }
 
@@ -189,6 +207,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function save()
     {
+
         $this->storage->save();
     }
 
@@ -197,6 +216,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function getId()
     {
+
         return $this->storage->getId();
     }
 
@@ -205,6 +225,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function setId($id)
     {
+
         $this->storage->setId($id);
     }
 
@@ -213,6 +234,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function getName()
     {
+
         return $this->storage->getName();
     }
 
@@ -221,6 +243,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function setName($name)
     {
+
         $this->storage->setName($name);
     }
 
@@ -229,6 +252,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function getMetadataBag()
     {
+
         return $this->storage->getMetadataBag();
     }
 
@@ -240,7 +264,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
     public function getFlashBag()
     {
 
-        return $this->getBag( $this->flashName );
+        return $this->getBag($this->flashName);
     }
 
     /**
@@ -248,6 +272,7 @@ class Session implements SessionInterface, \IteratorAggregate, \Countable
      */
     public function getBag($name)
     {
+
         return $this->storage->getBag($name);
     }
 }

@@ -45,10 +45,10 @@ class GlobalFunction extends \ReflectionFunction
     private $value;
 
 
-    public function __construct( $name )
+    public function __construct($name)
     {
 
-        parent::__construct( $this->value = $name );
+        parent::__construct($this->value = $name);
     }
 
     /**
@@ -60,7 +60,7 @@ class GlobalFunction extends \ReflectionFunction
     {
 
         return new ClassType(/*5.2*$this*//**/
-            get_called_class()/**/ );
+            get_called_class()/**/);
     }
 
     /**
@@ -69,7 +69,7 @@ class GlobalFunction extends \ReflectionFunction
     public function toCallback()
     {
 
-        return new Nette\Callback( $this->value );
+        return new Nette\Callback($this->value);
     }
 
     public function __toString()
@@ -93,7 +93,7 @@ class GlobalFunction extends \ReflectionFunction
     public function getExtension()
     {
 
-        return ( $name = $this->getExtensionName() ) ? new Extension( $name ) : null;
+        return ( $name = $this->getExtensionName() ) ? new Extension($name) : null;
     }
 
 
@@ -107,43 +107,43 @@ class GlobalFunction extends \ReflectionFunction
     {
 
         foreach ($res = parent::getParameters() as $key => $val) {
-            $res[$key] = new Parameter( $this->value, $val->getName() );
+            $res[$key] = new Parameter($this->value, $val->getName());
         }
         return $res;
     }
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return ObjectMixin::call( $this, $name, $args );
+        return ObjectMixin::call($this, $name, $args);
     }
 
 
-    public function &__get( $name )
+    public function &__get($name)
     {
 
-        return ObjectMixin::get( $this, $name );
+        return ObjectMixin::get($this, $name);
     }
 
 
-    public function __set( $name, $value )
+    public function __set($name, $value)
     {
 
-        return ObjectMixin::set( $this, $name, $value );
+        return ObjectMixin::set($this, $name, $value);
     }
 
 
-    public function __isset( $name )
+    public function __isset($name)
     {
 
-        return ObjectMixin::has( $this, $name );
+        return ObjectMixin::has($this, $name);
     }
 
 
-    public function __unset( $name )
+    public function __unset($name)
     {
 
-        ObjectMixin::remove( $this, $name );
+        ObjectMixin::remove($this, $name);
     }
 
 }

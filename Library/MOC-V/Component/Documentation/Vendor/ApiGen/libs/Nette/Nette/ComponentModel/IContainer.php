@@ -29,7 +29,7 @@ interface IContainer extends IComponent
      *
      * @return void
      */
-    function addComponent( IComponent $component, $name );
+    function addComponent(IComponent $component, $name);
 
     /**
      * Removes a component from the IContainer.
@@ -38,7 +38,7 @@ interface IContainer extends IComponent
      *
      * @return void
      */
-    function removeComponent( IComponent $component );
+    function removeComponent(IComponent $component);
 
     /**
      * Returns single component.
@@ -47,7 +47,7 @@ interface IContainer extends IComponent
      *
      * @return IComponent|NULL
      */
-    function getComponent( $name );
+    function getComponent($name);
 
     /**
      * Iterates over a components.
@@ -57,6 +57,6 @@ interface IContainer extends IComponent
      *
      * @return \Iterator
      */
-    function getComponents( $deep = false, $filterType = null );
+    function getComponents($deep = false, $filterType = null);
 
 }

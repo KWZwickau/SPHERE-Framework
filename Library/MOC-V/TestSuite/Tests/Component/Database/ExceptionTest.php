@@ -18,21 +18,21 @@ class ExceptionTest extends \PHPUnit_Framework_TestCase
 
         try {
             throw new DatabaseException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Database\Exception\DatabaseException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Database\Exception\DatabaseException', $E);
         }
 
         try {
             throw new ComponentException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Database\Component\Exception\ComponentException', $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Database\Component\Exception\ComponentException', $E);
         }
 
         try {
             throw new NoConnectionException();
-        } catch( \Exception $E ) {
-            $this->assertInstanceOf( '\MOC\V\Component\Database\Component\Exception\Repository\NoConnectionException',
-                $E );
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('\MOC\V\Component\Database\Component\Exception\Repository\NoConnectionException',
+                $E);
         }
 
     }

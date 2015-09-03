@@ -25,7 +25,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     private $connection;
 
 
-    public function __construct( Nette\Database\Connection $connection, array $options )
+    public function __construct(Nette\Database\Connection $connection, array $options)
     {
 
         $this->connection = $connection;
@@ -38,30 +38,30 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     /**
      * Delimites identifier for use in a SQL statement.
      */
-    public function delimite( $name )
+    public function delimite($name)
     {
 
-        return '['.str_replace( array( '[', ']' ), array( '[[', ']]' ), $name ).']';
+        return '['.str_replace(array('[', ']'), array('[[', ']]'), $name).']';
     }
 
 
     /**
      * Formats date-time for use in a SQL statement.
      */
-    public function formatDateTime( \DateTime $value )
+    public function formatDateTime(\DateTime $value)
     {
 
-        return $value->format( "#m/d/Y H:i:s#" );
+        return $value->format("#m/d/Y H:i:s#");
     }
 
 
     /**
      * Encodes string for use in a LIKE statement.
      */
-    public function formatLike( $value, $pos )
+    public function formatLike($value, $pos)
     {
 
-        $value = strtr( $value, array( "'" => "''", '%' => '[%]', '_' => '[_]', '[' => '[[]' ) );
+        $value = strtr($value, array("'" => "''", '%' => '[%]', '_' => '[_]', '[' => '[[]'));
         return ( $pos <= 0 ? "'%" : "'" ).$value.( $pos >= 0 ? "%'" : "'" );
     }
 
@@ -69,7 +69,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     /**
      * Injects LIMIT/OFFSET to the SQL query.
      */
-    public function applyLimit( &$sql, $limit, $offset )
+    public function applyLimit(&$sql, $limit, $offset)
     {
 
         // offset support is missing
@@ -78,7 +78,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
         }
 
         if ($offset) {
-            throw new Nette\InvalidArgumentException( 'Offset is not implemented in driver odbc.' );
+            throw new Nette\InvalidArgumentException('Offset is not implemented in driver odbc.');
         }
     }
 
@@ -86,7 +86,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     /**
      * Normalizes result row.
      */
-    public function normalizeRow( $row, $statement )
+    public function normalizeRow($row, $statement)
     {
 
         return $row;
@@ -109,7 +109,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     /**
      * Returns metadata for all columns in a table.
      */
-    public function getColumns( $table )
+    public function getColumns($table)
     {
 
         throw new NotImplementedException;
@@ -119,7 +119,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     /**
      * Returns metadata for all indexes in a table.
      */
-    public function getIndexes( $table )
+    public function getIndexes($table)
     {
 
         throw new NotImplementedException;
@@ -129,7 +129,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     /**
      * Returns metadata for all foreign keys in a table.
      */
-    public function getForeignKeys( $table )
+    public function getForeignKeys($table)
     {
 
         throw new NotImplementedException;
@@ -139,7 +139,7 @@ class OdbcDriver extends Nette\Object implements Nette\Database\ISupplementalDri
     /**
      * @return bool
      */
-    public function isSupported( $item )
+    public function isSupported($item)
     {
 
         return $item === self::META;

@@ -10,20 +10,24 @@ use Doctrine\DBAL\Types\Type;
 
 class TableTest extends \Doctrine\Tests\DbalTestCase
 {
+
     public function testCreateWithInvalidTableName()
     {
+
         $this->setExpectedException('Doctrine\DBAL\DBALException');
         $table = new \Doctrine\DBAL\Schema\Table('');
     }
 
     public function testGetName()
     {
-        $table =  new Table("foo", array(), array(), array());
+
+        $table = new Table("foo", array(), array(), array());
         $this->assertEquals("foo", $table->getName());
     }
 
     public function testColumns()
     {
+
         $type = Type::getType('integer');
         $columns = array();
         $columns[] = new Column("foo", $type);
@@ -42,6 +46,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testColumnsCaseInsensitive()
     {
+
         $table = new Table("foo");
         $column = $table->addColumn('Foo', 'integer');
 
@@ -56,6 +61,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testCreateColumn()
     {
+
         $type = Type::getType('integer');
 
         $table = new Table("foo");
@@ -68,6 +74,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testDropColumn()
     {
+
         $type = Type::getType('integer');
         $columns = array();
         $columns[] = new Column("foo", $type);
@@ -85,6 +92,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testGetUnknownColumnThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $table = new Table("foo", array(), array(), array());
@@ -93,6 +101,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddColumnTwiceThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $type = \Doctrine\DBAL\Types\Type::getType('integer');
@@ -104,6 +113,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testCreateIndex()
     {
+
         $type = \Doctrine\DBAL\Types\Type::getType('integer');
         $columns = array(new Column("foo", $type), new Column("bar", $type), new Column("baz", $type));
         $table = new Table("foo", $columns);
@@ -117,6 +127,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testIndexCaseInsensitive()
     {
+
         $type = \Doctrine\DBAL\Types\Type::getType('integer');
         $columns = array(
             new Column("foo", $type),
@@ -134,6 +145,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddIndexes()
     {
+
         $type = \Doctrine\DBAL\Types\Type::getType('integer');
         $columns = array(
             new Column("foo", $type),
@@ -156,6 +168,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testGetUnknownIndexThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $table = new Table("foo", array(), array(), array());
@@ -164,6 +177,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddTwoPrimaryThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $type = \Doctrine\DBAL\Types\Type::getType('integer');
@@ -177,6 +191,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddTwoIndexesWithSameNameThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $type = \Doctrine\DBAL\Types\Type::getType('integer');
@@ -190,6 +205,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testConstraints()
     {
+
         $constraint = new ForeignKeyConstraint(array(), "foo", array());
 
         $tableA = new Table("foo", array(), array(), array($constraint));
@@ -201,6 +217,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testOptions()
     {
+
         $table = new Table("foo", array(), array(), array(), false, array("foo" => "bar"));
 
         $this->assertTrue($table->hasOption("foo"));
@@ -209,6 +226,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testBuilderSetPrimaryKey()
     {
+
         $table = new Table("foo");
 
         $table->addColumn("bar", 'integer');
@@ -222,6 +240,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testBuilderAddUniqueIndex()
     {
+
         $table = new Table("foo");
 
         $table->addColumn("bar", 'integer');
@@ -234,6 +253,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testBuilderAddIndex()
     {
+
         $table = new Table("foo");
 
         $table->addColumn("bar", 'integer');
@@ -246,15 +266,17 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testBuilderAddIndexWithInvalidNameThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $table = new Table("foo");
-        $table->addColumn("bar",'integer');
+        $table->addColumn("bar", 'integer');
         $table->addIndex(array("bar"), "invalid name %&/");
     }
 
     public function testBuilderAddIndexWithUnknownColumnThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $table = new Table("foo");
@@ -263,6 +285,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testBuilderOptions()
     {
+
         $table = new Table("foo");
         $table->addOption("foo", "bar");
         $this->assertTrue($table->hasOption("foo"));
@@ -271,6 +294,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddForeignKeyConstraint_UnknownLocalColumn_ThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $table = new Table("foo");
@@ -284,6 +308,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddForeignKeyConstraint_UnknownForeignColumn_ThrowsException()
     {
+
         $this->setExpectedException("Doctrine\DBAL\Schema\SchemaException");
 
         $table = new Table("foo");
@@ -297,6 +322,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddForeignKeyConstraint()
     {
+
         $table = new Table("foo");
         $table->addColumn("id", 'integer');
 
@@ -317,6 +343,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddIndexWithCaseSensitiveColumnProblem()
     {
+
         $table = new Table("foo");
         $table->addColumn("id", 'integer');
 
@@ -329,6 +356,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddPrimaryKey_ColumnsAreExplicitlySetToNotNull()
     {
+
         $table = new Table("foo");
         $column = $table->addColumn("id", 'integer', array('notnull' => false));
 
@@ -344,6 +372,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAllowImplicitSchemaTableInAutogeneratedIndexNames()
     {
+
         $table = new Table("foo.bar");
         $table->addColumn('baz', 'integer', array());
         $table->addIndex(array('baz'));
@@ -356,6 +385,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAddForeignKeyIndexImplicitly()
     {
+
         $table = new Table("foo");
         $table->addColumn("id", 'integer');
 
@@ -377,6 +407,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAddForeignKeyDoesNotCreateDuplicateIndex()
     {
+
         $table = new Table('foo');
         $table->addColumn('bar', 'integer');
         $table->addIndex(array('bar'), 'bar_idx');
@@ -396,6 +427,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAddForeignKeyAddsImplicitIndexIfIndexColumnsDoNotSpan()
     {
+
         $table = new Table('foo');
         $table->addColumn('bar', 'integer');
         $table->addColumn('baz', 'string');
@@ -424,6 +456,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testOverrulingIndexDoesNotDropOverruledIndex()
     {
+
         $table = new Table("bar");
         $table->addColumn('baz', 'integer', array());
         $table->addIndex(array('baz'));
@@ -442,6 +475,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAllowsAddingDuplicateIndexesBasedOnColumns()
     {
+
         $table = new Table('foo');
         $table->addColumn('bar', 'integer');
         $table->addIndex(array('bar'), 'bar_idx');
@@ -459,6 +493,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAllowsAddingFulfillingIndexesBasedOnColumns()
     {
+
         $table = new Table('foo');
         $table->addColumn('bar', 'integer');
         $table->addColumn('baz', 'string');
@@ -478,6 +513,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testPrimaryKeyOverrulingUniqueIndexDoesNotDropUniqueIndex()
     {
+
         $table = new Table("bar");
         $table->addColumn('baz', 'integer', array());
         $table->addUniqueIndex(array('baz'), 'idx_unique');
@@ -485,7 +521,8 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
         $table->setPrimaryKey(array('baz'));
 
         $indexes = $table->getIndexes();
-        $this->assertEquals(2, count($indexes), "Table should only contain both the primary key table index and the unique one, even though it was overruled.");
+        $this->assertEquals(2, count($indexes),
+            "Table should only contain both the primary key table index and the unique one, even though it was overruled.");
 
         $this->assertTrue($table->hasPrimaryKey());
         $this->assertTrue($table->hasIndex('idx_unique'));
@@ -493,6 +530,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddingFulfillingRegularIndexOverridesImplicitForeignKeyConstraintIndex()
     {
+
         $foreignTable = new Table('foreign');
         $foreignTable->addColumn('id', 'integer');
 
@@ -510,6 +548,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddingFulfillingUniqueIndexOverridesImplicitForeignKeyConstraintIndex()
     {
+
         $foreignTable = new Table('foreign');
         $foreignTable->addColumn('id', 'integer');
 
@@ -527,6 +566,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function testAddingFulfillingPrimaryKeyOverridesImplicitForeignKeyConstraintIndex()
     {
+
         $foreignTable = new Table('foreign');
         $foreignTable->addColumn('id', 'integer');
 
@@ -542,8 +582,10 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
         $this->assertTrue($localTable->hasIndex('explicit_idx'));
     }
 
-    public function testAddingFulfillingExplicitIndexOverridingImplicitForeignKeyConstraintIndexWithSameNameDoesNotThrowException()
+    public function testAddingFulfillingExplicitIndexOverridingImplicitForeignKeyConstraintIndexWithSameNameDoesNotThrowException(
+    )
     {
+
         $foreignTable = new Table('foreign');
         $foreignTable->addColumn('id', 'integer');
 
@@ -568,6 +610,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuotedTableName()
     {
+
         $table = new Table("`bar`");
 
         $mysqlPlatform = new \Doctrine\DBAL\Platforms\MySqlPlatform();
@@ -583,6 +626,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testTableHasPrimaryKey()
     {
+
         $table = new Table("test");
 
         $this->assertFalse($table->hasPrimaryKey());
@@ -598,6 +642,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAddIndexWithQuotedColumns()
     {
+
         $table = new Table("test");
         $table->addColumn('"foo"', 'integer');
         $table->addColumn('bar', 'integer');
@@ -609,6 +654,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testAddForeignKeyWithQuotedColumnsAndTable()
     {
+
         $table = new Table("test");
         $table->addColumn('"foo"', 'integer');
         $table->addColumn('bar', 'integer');
@@ -620,6 +666,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testQuoteSchemaPrefixed()
     {
+
         $table = new Table("`test`.`test`");
         $this->assertEquals("test.test", $table->getName());
         $this->assertEquals("`test`.`test`", $table->getQuotedName(new \Doctrine\DBAL\Platforms\MySqlPlatform));
@@ -630,6 +677,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testFullQualifiedTableName()
     {
+
         $table = new Table("`test`.`test`");
         $this->assertEquals('test.test', $table->getFullQualifiedName("test"));
         $this->assertEquals('test.test', $table->getFullQualifiedName("other"));
@@ -644,6 +692,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testDropIndex()
     {
+
         $table = new Table("test");
         $table->addColumn('id', 'integer');
         $table->addIndex(array('id'), 'idx');
@@ -659,6 +708,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testDropPrimaryKey()
     {
+
         $table = new Table("test");
         $table->addColumn('id', 'integer');
         $table->setPrimaryKey(array('id'));
@@ -674,6 +724,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testRenameIndex()
     {
+
         $table = new Table("test");
         $table->addColumn('id', 'integer');
         $table->addColumn('foo', 'integer');
@@ -733,7 +784,8 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
         // Rename to same name (changed case).
         $this->assertSame($table, $table->renameIndex('primary', 'PRIMARY'));
         $this->assertSame($table, $table->renameIndex('IDX_D87F7E0C8C736521', 'idx_D87F7E0C8C736521'));
-        $this->assertSame($table, $table->renameIndex('UNIQ_D87F7E0C76FF8CAA78240498', 'uniq_D87F7E0C76FF8CAA78240498'));
+        $this->assertSame($table,
+            $table->renameIndex('UNIQ_D87F7E0C76FF8CAA78240498', 'uniq_D87F7E0C76FF8CAA78240498'));
 
         $this->assertTrue($table->hasPrimaryKey());
         $this->assertTrue($table->hasIndex('primary'));
@@ -747,6 +799,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testThrowsExceptionOnRenamingNonExistingIndex()
     {
+
         $table = new Table("test");
         $table->addColumn('id', 'integer');
         $table->addIndex(array('id'), 'idx');
@@ -760,6 +813,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
      */
     public function testThrowsExceptionOnRenamingToAlreadyExistingIndex()
     {
+
         $table = new Table("test");
         $table->addColumn('id', 'integer');
         $table->addColumn('foo', 'integer');
@@ -771,10 +825,11 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     /**
      * @dataProvider getNormalizesAssetNames
-     * @group DBAL-831
+     * @group        DBAL-831
      */
     public function testNormalizesColumnNames($assetName)
     {
+
         $table = new Table('test');
 
         $table->addColumn($assetName, 'integer');
@@ -829,6 +884,7 @@ class TableTest extends \Doctrine\Tests\DbalTestCase
 
     public function getNormalizesAssetNames()
     {
+
         return array(
             array('foo'),
             array('FOO'),

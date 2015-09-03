@@ -2,17 +2,19 @@
 
 namespace Guzzle\Tests\Batch;
 
-use Guzzle\Batch\ExceptionBufferingBatch;
 use Guzzle\Batch\Batch;
 use Guzzle\Batch\BatchSizeDivisor;
+use Guzzle\Batch\ExceptionBufferingBatch;
 
 /**
  * @covers Guzzle\Batch\ExceptionBufferingBatch
  */
 class ExceptionBufferingBatchTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testFlushesEntireBatchWhileBufferingErroredBatches()
     {
+
         $t = $this->getMockBuilder('Guzzle\Batch\BatchTransferInterface')
             ->setMethods(array('transfer'))
             ->getMock();
@@ -24,6 +26,7 @@ class ExceptionBufferingBatchTest extends \Guzzle\Tests\GuzzleTestCase
         $t->expects($this->exactly(3))
             ->method('transfer')
             ->will($this->returnCallback(function ($batch) use (&$called) {
+
                 if (++$called === 2) {
                     throw new \Exception('Foo');
                 }

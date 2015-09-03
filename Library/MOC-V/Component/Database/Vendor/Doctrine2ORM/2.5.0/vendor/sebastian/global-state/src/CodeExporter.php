@@ -15,17 +15,20 @@ namespace SebastianBergmann\GlobalState;
  */
 class CodeExporter
 {
+
     /**
      * @param  Snapshot $snapshot
+     *
      * @return string
      */
     public function constants(Snapshot $snapshot)
     {
+
         $result = '';
 
         foreach ($snapshot->constants() as $name => $value) {
             $result .= sprintf(
-                'if (!defined(\'%s\')) define(\'%s\', %s);' . "\n",
+                'if (!defined(\'%s\')) define(\'%s\', %s);'."\n",
                 $name,
                 $name,
                 $this->exportVariable($value)
@@ -36,44 +39,30 @@ class CodeExporter
     }
 
     /**
-     * @param  Snapshot $snapshot
-     * @return string
-     */
-    public function iniSettings(Snapshot $snapshot)
-    {
-        $result = '';
-
-        foreach ($snapshot->iniSettings() as $key => $value) {
-            $result .= sprintf(
-                '@ini_set(%s, %s);' . "\n",
-                $this->exportVariable($key),
-                $this->exportVariable($value)
-            );
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param  mixed  $variable
+     * @param  mixed $variable
+     *
      * @return string
      */
     private function exportVariable($variable)
     {
+
         if (is_scalar($variable) || is_null($variable) ||
-            (is_array($variable) && $this->arrayOnlyContainsScalars($variable))) {
+            ( is_array($variable) && $this->arrayOnlyContainsScalars($variable) )
+        ) {
             return var_export($variable, true);
         }
 
-        return 'unserialize(' . var_export(serialize($variable), true) . ')';
+        return 'unserialize('.var_export(serialize($variable), true).')';
     }
 
     /**
      * @param  array $array
+     *
      * @return bool
      */
     private function arrayOnlyContainsScalars(array $array)
     {
+
         $result = true;
 
         foreach ($array as $element) {
@@ -86,6 +75,27 @@ class CodeExporter
             if ($result === false) {
                 break;
             }
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  Snapshot $snapshot
+     *
+     * @return string
+     */
+    public function iniSettings(Snapshot $snapshot)
+    {
+
+        $result = '';
+
+        foreach ($snapshot->iniSettings() as $key => $value) {
+            $result .= sprintf(
+                '@ini_set(%s, %s);'."\n",
+                $this->exportVariable($key),
+                $this->exportVariable($value)
+            );
         }
 
         return $result;

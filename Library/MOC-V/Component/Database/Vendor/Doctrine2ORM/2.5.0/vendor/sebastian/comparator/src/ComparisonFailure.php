@@ -17,26 +17,31 @@ use SebastianBergmann\Diff\Differ;
  */
 class ComparisonFailure extends \RuntimeException
 {
+
     /**
      * Expected value of the retrieval which does not match $actual.
+     *
      * @var mixed
      */
     protected $expected;
 
     /**
      * Actually retrieved value which does not match $expected.
+     *
      * @var mixed
      */
     protected $actual;
 
     /**
      * The string representation of the expected value
+     *
      * @var string
      */
     protected $expectedAsString;
 
     /**
      * The string representation of the actual value
+     *
      * @var string
      */
     protected $actualAsString;
@@ -49,6 +54,7 @@ class ComparisonFailure extends \RuntimeException
     /**
      * Optional message which is placed in front of the first line
      * returned by toString().
+     *
      * @var string
      */
     protected $message;
@@ -64,13 +70,20 @@ class ComparisonFailure extends \RuntimeException
      * @param string $message          A string which is prefixed on all returned lines
      *                                 in the difference output.
      */
-    public function __construct($expected, $actual, $expectedAsString, $actualAsString, $identical = false, $message = '')
-    {
-        $this->expected         = $expected;
-        $this->actual           = $actual;
+    public function __construct(
+        $expected,
+        $actual,
+        $expectedAsString,
+        $actualAsString,
+        $identical = false,
+        $message = ''
+    ) {
+
+        $this->expected = $expected;
+        $this->actual = $actual;
         $this->expectedAsString = $expectedAsString;
-        $this->actualAsString   = $actualAsString;
-        $this->message          = $message;
+        $this->actualAsString = $actualAsString;
+        $this->message = $message;
     }
 
     /**
@@ -78,6 +91,7 @@ class ComparisonFailure extends \RuntimeException
      */
     public function getActual()
     {
+
         return $this->actual;
     }
 
@@ -86,6 +100,7 @@ class ComparisonFailure extends \RuntimeException
      */
     public function getExpected()
     {
+
         return $this->expected;
     }
 
@@ -94,6 +109,7 @@ class ComparisonFailure extends \RuntimeException
      */
     public function getActualAsString()
     {
+
         return $this->actualAsString;
     }
 
@@ -102,21 +118,8 @@ class ComparisonFailure extends \RuntimeException
      */
     public function getExpectedAsString()
     {
+
         return $this->expectedAsString;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDiff()
-    {
-        if (!$this->actualAsString && !$this->expectedAsString) {
-            return '';
-        }
-
-        $differ = new Differ("\n--- Expected\n+++ Actual\n");
-
-        return $differ->diff($this->expectedAsString, $this->actualAsString);
     }
 
     /**
@@ -124,6 +127,22 @@ class ComparisonFailure extends \RuntimeException
      */
     public function toString()
     {
-        return $this->message . $this->getDiff();
+
+        return $this->message.$this->getDiff();
+    }
+
+    /**
+     * @return string
+     */
+    public function getDiff()
+    {
+
+        if (!$this->actualAsString && !$this->expectedAsString) {
+            return '';
+        }
+
+        $differ = new Differ("\n--- Expected\n+++ Actual\n");
+
+        return $differ->diff($this->expectedAsString, $this->actualAsString);
     }
 }

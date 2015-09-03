@@ -20,10 +20,10 @@
 namespace Doctrine\DBAL\Schema\Visitor;
 
 use Doctrine\DBAL\Platforms\AbstractPlatform;
-use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\SchemaException;
+use Doctrine\DBAL\Schema\Sequence;
+use Doctrine\DBAL\Schema\Table;
 
 /**
  * Gathers SQL statements that allow to completely drop the current schema.
@@ -34,6 +34,7 @@ use Doctrine\DBAL\Schema\SchemaException;
  */
 class DropSchemaSqlCollector extends AbstractVisitor
 {
+
     /**
      * @var \SplObjectStorage
      */
@@ -59,8 +60,20 @@ class DropSchemaSqlCollector extends AbstractVisitor
      */
     public function __construct(AbstractPlatform $platform)
     {
+
         $this->platform = $platform;
         $this->clearQueries();
+    }
+
+    /**
+     * @return void
+     */
+    public function clearQueries()
+    {
+
+        $this->constraints = new \SplObjectStorage();
+        $this->sequences = new \SplObjectStorage();
+        $this->tables = new \SplObjectStorage();
     }
 
     /**
@@ -68,6 +81,7 @@ class DropSchemaSqlCollector extends AbstractVisitor
      */
     public function acceptTable(Table $table)
     {
+
         $this->tables->attach($table);
     }
 
@@ -76,6 +90,7 @@ class DropSchemaSqlCollector extends AbstractVisitor
      */
     public function acceptForeignKey(Table $localTable, ForeignKeyConstraint $fkConstraint)
     {
+
         if (strlen($fkConstraint->getName()) == 0) {
             throw SchemaException::namedForeignKeyRequired($localTable, $fkConstraint);
         }
@@ -88,17 +103,8 @@ class DropSchemaSqlCollector extends AbstractVisitor
      */
     public function acceptSequence(Sequence $sequence)
     {
-        $this->sequences->attach($sequence);
-    }
 
-    /**
-     * @return void
-     */
-    public function clearQueries()
-    {
-        $this->constraints = new \SplObjectStorage();
-        $this->sequences = new \SplObjectStorage();
-        $this->tables = new \SplObjectStorage();
+        $this->sequences->attach($sequence);
     }
 
     /**
@@ -106,6 +112,7 @@ class DropSchemaSqlCollector extends AbstractVisitor
      */
     public function getQueries()
     {
+
         $sql = array();
 
         foreach ($this->constraints as $fkConstraint) {

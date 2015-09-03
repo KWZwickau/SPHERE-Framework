@@ -23,10 +23,12 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EventDataCollector extends DataCollector implements LateDataCollectorInterface
 {
+
     protected $dispatcher;
 
     public function __construct(EventDispatcherInterface $dispatcher = null)
     {
+
         $this->dispatcher = $dispatcher;
     }
 
@@ -35,6 +37,7 @@ class EventDataCollector extends DataCollector implements LateDataCollectorInter
      */
     public function collect(Request $request, Response $response, \Exception $exception = null)
     {
+
         $this->data = array(
             'called_listeners'     => array(),
             'not_called_listeners' => array(),
@@ -43,6 +46,7 @@ class EventDataCollector extends DataCollector implements LateDataCollectorInter
 
     public function lateCollect()
     {
+
         if ($this->dispatcher instanceof TraceableEventDispatcherInterface) {
             $this->setCalledListeners($this->dispatcher->getCalledListeners());
             $this->setNotCalledListeners($this->dispatcher->getNotCalledListeners());
@@ -58,6 +62,7 @@ class EventDataCollector extends DataCollector implements LateDataCollectorInter
      */
     public function setCalledListeners(array $listeners)
     {
+
         $this->data['called_listeners'] = $listeners;
     }
 
@@ -68,7 +73,7 @@ class EventDataCollector extends DataCollector implements LateDataCollectorInter
      *
      * @see TraceableEventDispatcherInterface
      */
-    public function setNotCalledListeners( array $listeners )
+    public function setNotCalledListeners(array $listeners)
     {
 
         $this->data['not_called_listeners'] = $listeners;
@@ -96,6 +101,7 @@ class EventDataCollector extends DataCollector implements LateDataCollectorInter
      */
     public function getNotCalledListeners()
     {
+
         return $this->data['not_called_listeners'];
     }
 
@@ -104,6 +110,7 @@ class EventDataCollector extends DataCollector implements LateDataCollectorInter
      */
     public function getName()
     {
+
         return 'events';
     }
 }

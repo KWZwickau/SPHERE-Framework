@@ -29,6 +29,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class InExpression extends Node
 {
+
     /**
      * @var bool
      */
@@ -54,6 +55,7 @@ class InExpression extends Node
      */
     public function __construct($expression)
     {
+
         $this->expression = $expression;
     }
 
@@ -62,6 +64,7 @@ class InExpression extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkInExpression($this);
     }
 }

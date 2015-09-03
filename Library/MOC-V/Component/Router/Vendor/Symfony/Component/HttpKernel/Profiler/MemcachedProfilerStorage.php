@@ -18,6 +18,7 @@ namespace Symfony\Component\HttpKernel\Profiler;
  */
 class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
 {
+
     /**
      * @var \Memcached
      */
@@ -26,10 +27,10 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
     /**
      * {@inheritdoc}
      */
-    protected function getValue( $key )
+    protected function getValue($key)
     {
 
-        return $this->getMemcached()->get( $key );
+        return $this->getMemcached()->get($key);
     }
 
     /**
@@ -41,9 +42,11 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
      */
     protected function getMemcached()
     {
+
         if (null === $this->memcached) {
             if (!preg_match('#^memcached://(?(?=\[.*\])\[(.*)\]|(.*)):(.*)$#', $this->dsn, $matches)) {
-                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Memcached with an invalid dsn "%s". The expected format is "memcached://[host]:port".', $this->dsn));
+                throw new \RuntimeException(sprintf('Please check your configuration. You are trying to use Memcached with an invalid dsn "%s". The expected format is "memcached://[host]:port".',
+                    $this->dsn));
             }
 
             $host = $matches[1] ?: $matches[2];
@@ -69,6 +72,7 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
      */
     public function setMemcached($memcached)
     {
+
         $this->memcached = $memcached;
     }
 
@@ -77,6 +81,7 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
      */
     protected function setValue($key, $value, $expiration = 0)
     {
+
         return $this->getMemcached()->set($key, $value, time() + $expiration);
     }
 
@@ -85,6 +90,7 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
      */
     protected function delete($key)
     {
+
         return $this->getMemcached()->delete($key);
     }
 
@@ -93,6 +99,7 @@ class MemcachedProfilerStorage extends BaseMemcacheProfilerStorage
      */
     protected function appendValue($key, $value, $expiration = 0)
     {
+
         $memcached = $this->getMemcached();
 
         if (!$result = $memcached->append($key, $value)) {

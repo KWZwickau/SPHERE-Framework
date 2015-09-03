@@ -9,8 +9,10 @@ use Guzzle\Service\Command\Factory\MapFactory;
  */
 class MapFactoryTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function mapProvider()
     {
+
         return array(
             array('foo', null),
             array('test', 'Guzzle\Tests\Service\Mock\Command\MockCommand'),
@@ -23,6 +25,7 @@ class MapFactoryTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testCreatesCommandsUsingMappings($key, $result)
     {
+
         $factory = new MapFactory(array(
             'test'  => 'Guzzle\Tests\Service\Mock\Command\MockCommand',
             'test1' => 'Guzzle\Tests\Service\Mock\Command\OtherCommand'

@@ -10,41 +10,12 @@ use PDO;
  */
 class DBAL630Test extends \Doctrine\Tests\DbalFunctionalTestCase
 {
+
     private $running = false;
-
-    protected function setUp()
-    {
-        parent::setUp();
-
-        $platform = $this->_conn->getDatabasePlatform()->getName();
-
-        if (!in_array($platform, array('postgresql'))) {
-            $this->markTestSkipped('Currently restricted to PostgreSQL');
-        }
-
-        try {
-            $this->_conn->exec('CREATE TABLE dbal630 (id SERIAL, bool_col BOOLEAN NOT NULL);');
-            $this->_conn->exec('CREATE TABLE dbal630_allow_nulls (id SERIAL, bool_col BOOLEAN);');
-        } catch (DBALException $e) {
-        }
-        $this->running = true;
-    }
-
-    protected function tearDown()
-    {
-        if ($this->running) {
-            $this->_conn->getWrappedConnection()->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-
-            // PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT is deprecated in php 5.6. PDO::ATTR_EMULATE_PREPARES should
-            // be used instead. so should only it be set when it is supported.
-            if (PHP_VERSION_ID < 50600) {
-                $this->_conn->getWrappedConnection()->setAttribute(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT, false);
-            }
-        }
-    }
 
     public function testBooleanConversionSqlLiteral()
     {
+
         $this->_conn->executeUpdate('INSERT INTO dbal630 (bool_col) VALUES(false)');
         $id = $this->_conn->lastInsertId('dbal630_id_seq');
         $this->assertNotEmpty($id);
@@ -56,6 +27,7 @@ class DBAL630Test extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testBooleanConversionBoolParamRealPrepares()
     {
+
         $this->_conn->executeUpdate('INSERT INTO dbal630 (bool_col) VALUES(?)', array('false'), array(PDO::PARAM_BOOL));
         $id = $this->_conn->lastInsertId('dbal630_id_seq');
         $this->assertNotEmpty($id);
@@ -67,6 +39,7 @@ class DBAL630Test extends \Doctrine\Tests\DbalFunctionalTestCase
 
     public function testBooleanConversionBoolParamEmulatedPrepares()
     {
+
         $this->_conn->getWrappedConnection()->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
 
         // PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT is deprecated in php 5.6. PDO::ATTR_EMULATE_PREPARES should
@@ -97,6 +70,7 @@ class DBAL630Test extends \Doctrine\Tests\DbalFunctionalTestCase
         $statementValue,
         $databaseConvertedValue
     ) {
+
         $this->_conn->getWrappedConnection()->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
 
         // PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT is deprecated in php 5.6. PDO::ATTR_EMULATE_PREPARES should
@@ -127,6 +101,7 @@ class DBAL630Test extends \Doctrine\Tests\DbalFunctionalTestCase
         $statementValue,
         $databaseConvertedValue
     ) {
+
         $this->_conn->getWrappedConnection()->setAttribute(PDO::ATTR_EMULATE_PREPARES, true);
 
         // PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT is deprecated in php 5.6. PDO::ATTR_EMULATE_PREPARES should
@@ -152,10 +127,12 @@ class DBAL630Test extends \Doctrine\Tests\DbalFunctionalTestCase
 
     /**
      * Boolean conversion mapping provider
+     *
      * @return array
      */
     public function booleanTypeConversionUsingBooleanTypeProvider()
     {
+
         return array(
             // statement value, database converted value result
             array(true, true),
@@ -166,15 +143,51 @@ class DBAL630Test extends \Doctrine\Tests\DbalFunctionalTestCase
 
     /**
      * Boolean conversion mapping provider
+     *
      * @return array
      */
     public function booleanTypeConversionWithoutPdoTypeProvider()
     {
+
         return array(
             // statement value, database converted value result
             array(true, true),
             array(false, false),
             array(null, null)
         );
+    }
+
+    protected function setUp()
+    {
+
+        parent::setUp();
+
+        $platform = $this->_conn->getDatabasePlatform()->getName();
+
+        if (!in_array($platform, array('postgresql'))) {
+            $this->markTestSkipped('Currently restricted to PostgreSQL');
+        }
+
+        try {
+            $this->_conn->exec('CREATE TABLE dbal630 (id SERIAL, bool_col BOOLEAN NOT NULL);');
+            $this->_conn->exec('CREATE TABLE dbal630_allow_nulls (id SERIAL, bool_col BOOLEAN);');
+        } catch (DBALException $e) {
+        }
+        $this->running = true;
+    }
+
+    protected function tearDown()
+    {
+
+        if ($this->running) {
+            $this->_conn->getWrappedConnection()->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+
+            // PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT is deprecated in php 5.6. PDO::ATTR_EMULATE_PREPARES should
+            // be used instead. so should only it be set when it is supported.
+            if (PHP_VERSION_ID < 50600) {
+                $this->_conn->getWrappedConnection()->setAttribute(PDO::PGSQL_ATTR_DISABLE_NATIVE_PREPARED_STATEMENT,
+                    false);
+            }
+        }
     }
 }

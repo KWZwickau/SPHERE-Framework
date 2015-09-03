@@ -26,11 +26,13 @@ namespace Doctrine\DBAL\Platforms\Keywords;
  */
 class SQLAnywhereKeywords extends KeywordList
 {
+
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return 'SQLAnywhere';
     }
 
@@ -41,6 +43,7 @@ class SQLAnywhereKeywords extends KeywordList
      */
     protected function getKeywords()
     {
+
         return array(
             'ADD',
             'ALL',

@@ -28,6 +28,7 @@ namespace Doctrine\DBAL\Schema;
  */
 class SchemaConfig
 {
+
     /**
      * @var boolean
      */
@@ -53,6 +54,7 @@ class SchemaConfig
      */
     public function hasExplicitForeignKeyIndexes()
     {
+
         return $this->hasExplicitForeignKeyIndexes;
     }
 
@@ -63,7 +65,17 @@ class SchemaConfig
      */
     public function setExplicitForeignKeyIndexes($flag)
     {
-        $this->hasExplicitForeignKeyIndexes = (bool) $flag;
+
+        $this->hasExplicitForeignKeyIndexes = (bool)$flag;
+    }
+
+    /**
+     * @return integer
+     */
+    public function getMaxIdentifierLength()
+    {
+
+        return $this->maxIdentifierLength;
     }
 
     /**
@@ -73,15 +85,8 @@ class SchemaConfig
      */
     public function setMaxIdentifierLength($length)
     {
-        $this->maxIdentifierLength = (int) $length;
-    }
 
-    /**
-     * @return integer
-     */
-    public function getMaxIdentifierLength()
-    {
-        return $this->maxIdentifierLength;
+        $this->maxIdentifierLength = (int)$length;
     }
 
     /**
@@ -91,6 +96,7 @@ class SchemaConfig
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -103,6 +109,7 @@ class SchemaConfig
      */
     public function setName($name)
     {
+
         $this->name = $name;
     }
 
@@ -114,6 +121,7 @@ class SchemaConfig
      */
     public function getDefaultTableOptions()
     {
+
         return $this->defaultTableOptions;
     }
 
@@ -124,6 +132,7 @@ class SchemaConfig
      */
     public function setDefaultTableOptions(array $defaultTableOptions)
     {
+
         $this->defaultTableOptions = $defaultTableOptions;
     }
 }

@@ -23,6 +23,7 @@ use Symfony\Component\Routing\Matcher\UrlMatcherInterface;
  */
 interface RouterInterface extends UrlMatcherInterface, UrlGeneratorInterface
 {
+
     /**
      * Gets the RouteCollection instance associated with this Router.
      *

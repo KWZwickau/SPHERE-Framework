@@ -33,6 +33,7 @@ use Doctrine\Common\Persistence\ObjectManager;
  */
 class LifecycleEventArgs extends EventArgs
 {
+
     /**
      * @var ObjectManager
      */
@@ -51,6 +52,7 @@ class LifecycleEventArgs extends EventArgs
      */
     public function __construct($object, ObjectManager $objectManager)
     {
+
         $this->object = $object;
         $this->objectManager = $objectManager;
     }
@@ -64,6 +66,7 @@ class LifecycleEventArgs extends EventArgs
      */
     public function getEntity()
     {
+
         return $this->object;
     }
 
@@ -74,6 +77,7 @@ class LifecycleEventArgs extends EventArgs
      */
     public function getObject()
     {
+
         return $this->object;
     }
 
@@ -84,6 +88,7 @@ class LifecycleEventArgs extends EventArgs
      */
     public function getObjectManager()
     {
+
         return $this->objectManager;
     }
 }

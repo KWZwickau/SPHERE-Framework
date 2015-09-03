@@ -2,33 +2,18 @@
 
 namespace Guzzle\Plugin\Backoff;
 
+use Guzzle\Http\Exception\HttpException;
 use Guzzle\Http\Message\RequestInterface;
 use Guzzle\Http\Message\Response;
-use Guzzle\Http\Exception\HttpException;
 
 /**
  * Abstract backoff strategy that allows for a chain of responsibility
  */
 abstract class AbstractBackoffStrategy implements BackoffStrategyInterface
 {
+
     /** @var AbstractBackoffStrategy Next strategy in the chain */
     protected $next;
-
-    /** @param AbstractBackoffStrategy $next Next strategy in the chain */
-    public function setNext(AbstractBackoffStrategy $next)
-    {
-        $this->next = $next;
-    }
-
-    /**
-     * Get the next backoff strategy in the chain
-     *
-     * @return AbstractBackoffStrategy|null
-     */
-    public function getNext()
-    {
-        return $this->next;
-    }
 
     public function getBackoffPeriod(
         $retries,
@@ -36,6 +21,7 @@ abstract class AbstractBackoffStrategy implements BackoffStrategyInterface
         Response $response = null,
         HttpException $e = null
     ) {
+
         $delay = $this->getDelay($retries, $request, $response, $e);
         if ($delay === false) {
             // The strategy knows that this must not be retried
@@ -62,16 +48,6 @@ abstract class AbstractBackoffStrategy implements BackoffStrategyInterface
     }
 
     /**
-     * Check if the strategy does filtering and makes decisions on whether or not to retry.
-     *
-     * Strategies that return false will never retry if all of the previous strategies in a chain defer on a backoff
-     * decision.
-     *
-     * @return bool
-     */
-    abstract public function makesDecision();
-
-    /**
      * Implement the concrete strategy
      *
      * @param int              $retries  Number of retries of the request
@@ -88,4 +64,32 @@ abstract class AbstractBackoffStrategy implements BackoffStrategyInterface
         Response $response = null,
         HttpException $e = null
     );
+
+    /**
+     * Check if the strategy does filtering and makes decisions on whether or not to retry.
+     *
+     * Strategies that return false will never retry if all of the previous strategies in a chain defer on a backoff
+     * decision.
+     *
+     * @return bool
+     */
+    abstract public function makesDecision();
+
+    /**
+     * Get the next backoff strategy in the chain
+     *
+     * @return AbstractBackoffStrategy|null
+     */
+    public function getNext()
+    {
+
+        return $this->next;
+    }
+
+    /** @param AbstractBackoffStrategy $next Next strategy in the chain */
+    public function setNext(AbstractBackoffStrategy $next)
+    {
+
+        $this->next = $next;
+    }
 }

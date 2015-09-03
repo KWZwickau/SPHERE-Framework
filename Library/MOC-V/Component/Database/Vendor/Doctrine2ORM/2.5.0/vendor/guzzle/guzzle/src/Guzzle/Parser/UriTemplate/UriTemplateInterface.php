@@ -9,6 +9,7 @@ namespace Guzzle\Parser\UriTemplate;
  */
 interface UriTemplateInterface
 {
+
     /**
      * Expand the URI template using the supplied variables
      *

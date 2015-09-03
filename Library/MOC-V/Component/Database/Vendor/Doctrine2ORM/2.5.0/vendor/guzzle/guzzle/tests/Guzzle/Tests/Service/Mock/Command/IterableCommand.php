@@ -6,8 +6,10 @@ use Guzzle\Service\Description\Operation;
 
 class IterableCommand extends MockCommand
 {
+
     protected function createOperation()
     {
+
         return new Operation(array(
             'name'       => 'iterable_command',
             'parameters' => array(
@@ -19,6 +21,7 @@ class IterableCommand extends MockCommand
 
     protected function build()
     {
+
         $this->request = $this->client->createRequest('GET');
 
         // Add the next token and page size query string values

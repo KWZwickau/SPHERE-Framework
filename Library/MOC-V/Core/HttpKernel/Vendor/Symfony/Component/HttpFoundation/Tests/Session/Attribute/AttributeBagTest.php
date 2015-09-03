@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
  */
 class AttributeBagTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var array
      */
@@ -32,6 +33,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testInitialize()
     {
+
         $bag = new AttributeBag();
         $bag->initialize($this->array);
         $this->assertEquals($this->array, $bag->all());
@@ -42,6 +44,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testGetStorageKey()
     {
+
         $this->assertEquals('_sf2', $this->bag->getStorageKey());
         $attributeBag = new AttributeBag('test');
         $this->assertEquals('test', $attributeBag->getStorageKey());
@@ -49,6 +52,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testGetSetName()
     {
+
         $this->assertEquals('attributes', $this->bag->getName());
         $this->bag->setName('foo');
         $this->assertEquals('foo', $this->bag->getName());
@@ -59,6 +63,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testHas($key, $value, $exists)
     {
+
         $this->assertEquals($exists, $this->bag->has($key));
     }
 
@@ -67,11 +72,13 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testGet($key, $value, $expected)
     {
+
         $this->assertEquals($value, $this->bag->get($key));
     }
 
     public function testGetDefaults()
     {
+
         $this->assertNull($this->bag->get('user2.login'));
         $this->assertEquals('default', $this->bag->get('user2.login', 'default'));
     }
@@ -81,12 +88,14 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testSet($key, $value, $expected)
     {
+
         $this->bag->set($key, $value);
         $this->assertEquals($value, $this->bag->get($key));
     }
 
     public function testAll()
     {
+
         $this->assertEquals($this->array, $this->bag->all());
 
         $this->bag->set('hello', 'fabien');
@@ -97,6 +106,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testReplace()
     {
+
         $array = array();
         $array['name'] = 'jack';
         $array['foo.bar'] = 'beep';
@@ -109,6 +119,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testRemove()
     {
+
         $this->assertEquals('world', $this->bag->get('hello'));
         $this->bag->remove('hello');
         $this->assertNull($this->bag->get('hello'));
@@ -124,12 +135,14 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
 
     public function testClear()
     {
+
         $this->bag->clear();
         $this->assertEquals(array(), $this->bag->all());
     }
 
     public function attributesProvider()
     {
+
         return array(
             array('hello', 'world', true),
             array('always', 'be happy', true),
@@ -148,6 +161,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetIterator()
     {
+
         $i = 0;
         foreach ($this->bag as $key => $val) {
             $this->assertEquals($this->array[$key], $val);
@@ -162,6 +176,7 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
      */
     public function testCount()
     {
+
         $this->assertEquals(count($this->array), count($this->bag));
     }
 
@@ -183,8 +198,8 @@ class AttributeBagTest extends \PHPUnit_Framework_TestCase
                 )
             ),
         );
-        $this->bag = new AttributeBag( '_sf2' );
-        $this->bag->initialize( $this->array );
+        $this->bag = new AttributeBag('_sf2');
+        $this->bag->initialize($this->array);
     }
 
     protected function tearDown()

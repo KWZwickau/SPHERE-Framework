@@ -16,6 +16,7 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class KernelForOverrideName extends Kernel
 {
+
     protected $name = 'overridden';
 
     public function registerBundles()

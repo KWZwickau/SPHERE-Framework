@@ -20,10 +20,10 @@ class DirectoryParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Directory
      */
-    function __construct( $Directory )
+    public function __construct($Directory)
     {
 
-        $this->setDirectory( $Directory );
+        $this->setDirectory($Directory);
     }
 
     /**
@@ -41,17 +41,17 @@ class DirectoryParameter extends Parameter implements IParameterInterface
      * @throws EmptyDirectoryException
      * @throws DirectoryNotFoundException
      */
-    public function setDirectory( $Directory )
+    public function setDirectory($Directory)
     {
 
         if (empty( $Directory )) {
             throw new EmptyDirectoryException();
         }
-        $Directory = str_replace( array( '/', '\\' ), DIRECTORY_SEPARATOR, $Directory );
-        if (is_dir( $Directory )) {
+        $Directory = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $Directory);
+        if (is_dir($Directory)) {
             $this->Directory = $Directory;
         } else {
-            throw new DirectoryNotFoundException( $Directory );
+            throw new DirectoryNotFoundException($Directory);
         }
     }
 

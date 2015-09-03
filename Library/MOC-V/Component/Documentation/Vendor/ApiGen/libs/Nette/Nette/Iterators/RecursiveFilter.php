@@ -34,19 +34,19 @@ class RecursiveFilter extends \FilterIterator implements \RecursiveIterator
      * @param
      * @param  callable
      */
-    public function __construct( \RecursiveIterator $iterator, $callback, $childrenCallback = null )
+    public function __construct(\RecursiveIterator $iterator, $callback, $childrenCallback = null)
     {
 
-        parent::__construct( $iterator );
-        $this->callback = $callback === null ? null : new Nette\Callback( $callback );
-        $this->childrenCallback = $childrenCallback === null ? null : new Nette\Callback( $childrenCallback );
+        parent::__construct($iterator);
+        $this->callback = $callback === null ? null : new Nette\Callback($callback);
+        $this->childrenCallback = $childrenCallback === null ? null : new Nette\Callback($childrenCallback);
     }
 
 
     public function accept()
     {
 
-        return $this->callback === null || $this->callback->invoke( $this );
+        return $this->callback === null || $this->callback->invoke($this);
     }
 
 
@@ -54,14 +54,14 @@ class RecursiveFilter extends \FilterIterator implements \RecursiveIterator
     {
 
         return $this->getInnerIterator()->hasChildren()
-        && ( $this->childrenCallback === null || $this->childrenCallback->invoke( $this ) );
+        && ( $this->childrenCallback === null || $this->childrenCallback->invoke($this) );
     }
 
 
     public function getChildren()
     {
 
-        return new static( $this->getInnerIterator()->getChildren(), $this->callback, $this->childrenCallback );
+        return new static($this->getInnerIterator()->getChildren(), $this->callback, $this->childrenCallback);
     }
 
 }

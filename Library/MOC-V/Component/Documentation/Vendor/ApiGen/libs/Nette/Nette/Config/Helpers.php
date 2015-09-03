@@ -30,27 +30,27 @@ class Helpers
      *
      * @return array
      */
-    public static function merge( $left, $right )
+    public static function merge($left, $right)
     {
 
-        if (is_array( $left ) && is_array( $right )) {
+        if (is_array($left) && is_array($right)) {
             foreach ($left as $key => $val) {
-                if (is_int( $key )) {
+                if (is_int($key)) {
                     $right[] = $val;
                 } else {
-                    if (is_array( $val ) && isset( $val[self::EXTENDS_KEY] )) {
+                    if (is_array($val) && isset( $val[self::EXTENDS_KEY] )) {
                         if ($val[self::EXTENDS_KEY] === self::OVERWRITE) {
                             unset( $val[self::EXTENDS_KEY] );
                         }
                     } elseif (isset( $right[$key] )) {
-                        $val = static::merge( $val, $right[$key] );
+                        $val = static::merge($val, $right[$key]);
                     }
                     $right[$key] = $val;
                 }
             }
             return $right;
 
-        } elseif ($left === null && is_array( $right )) {
+        } elseif ($left === null && is_array($right)) {
             return $right;
 
         } else {
@@ -64,10 +64,10 @@ class Helpers
      *
      * @return mixed
      */
-    public static function takeParent( & $data )
+    public static function takeParent(& $data)
     {
 
-        if (is_array( $data ) && isset( $data[self::EXTENDS_KEY] )) {
+        if (is_array($data) && isset( $data[self::EXTENDS_KEY] )) {
             $parent = $data[self::EXTENDS_KEY];
             unset( $data[self::EXTENDS_KEY] );
             return $parent;
@@ -78,20 +78,20 @@ class Helpers
     /**
      * @return bool
      */
-    public static function isOverwriting( & $data )
+    public static function isOverwriting(& $data)
     {
 
-        return is_array( $data ) && isset( $data[self::EXTENDS_KEY] ) && $data[self::EXTENDS_KEY] === self::OVERWRITE;
+        return is_array($data) && isset( $data[self::EXTENDS_KEY] ) && $data[self::EXTENDS_KEY] === self::OVERWRITE;
     }
 
 
     /**
      * @return bool
      */
-    public static function isInheriting( & $data )
+    public static function isInheriting(& $data)
     {
 
-        return is_array( $data ) && isset( $data[self::EXTENDS_KEY] ) && $data[self::EXTENDS_KEY] !== self::OVERWRITE;
+        return is_array($data) && isset( $data[self::EXTENDS_KEY] ) && $data[self::EXTENDS_KEY] !== self::OVERWRITE;
     }
 
 }

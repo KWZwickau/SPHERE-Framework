@@ -7,6 +7,7 @@ use Doctrine\Tests\DbalFunctionalTestCase;
 
 class PDOConnectionTest extends DbalFunctionalTestCase
 {
+
     /**
      * The PDO driver connection under test.
      *
@@ -14,23 +15,9 @@ class PDOConnectionTest extends DbalFunctionalTestCase
      */
     protected $driverConnection;
 
-    protected function setUp()
-    {
-        if ( ! extension_loaded('PDO')) {
-            $this->markTestSkipped('PDO is not installed.');
-        }
-
-        parent::setUp();
-
-        $this->driverConnection = $this->_conn->getWrappedConnection();
-
-        if ( ! $this->driverConnection instanceof PDOConnection) {
-            $this->markTestSkipped('PDO connection only test.');
-        }
-    }
-
     public function testDoesNotRequireQueryForServerVersion()
     {
+
         $this->assertFalse($this->driverConnection->requiresQueryForServerVersion());
     }
 
@@ -39,6 +26,7 @@ class PDOConnectionTest extends DbalFunctionalTestCase
      */
     public function testThrowsWrappedExceptionOnConstruct()
     {
+
         new PDOConnection('foo');
     }
 
@@ -49,6 +37,7 @@ class PDOConnectionTest extends DbalFunctionalTestCase
      */
     public function testThrowsWrappedExceptionOnExec()
     {
+
         $this->driverConnection->exec('foo');
     }
 
@@ -57,6 +46,7 @@ class PDOConnectionTest extends DbalFunctionalTestCase
      */
     public function testThrowsWrappedExceptionOnPrepare()
     {
+
         // Emulated prepared statements have to be disabled for this test
         // so that PDO actually communicates with the database server to check the query.
         $this->driverConnection->setAttribute(\PDO::ATTR_EMULATE_PREPARES, false);
@@ -69,7 +59,7 @@ class PDOConnectionTest extends DbalFunctionalTestCase
         // Skip the test otherwise.
         $this->markTestSkipped(
             sprintf(
-                'The PDO adapter %s does not check the query to be prepared server-side, ' .
+                'The PDO adapter %s does not check the query to be prepared server-side, '.
                 'so no assertions can be made.',
                 $this->_conn->getDriver()->getName()
             )
@@ -81,6 +71,23 @@ class PDOConnectionTest extends DbalFunctionalTestCase
      */
     public function testThrowsWrappedExceptionOnQuery()
     {
+
         $this->driverConnection->query('foo');
+    }
+
+    protected function setUp()
+    {
+
+        if (!extension_loaded('PDO')) {
+            $this->markTestSkipped('PDO is not installed.');
+        }
+
+        parent::setUp();
+
+        $this->driverConnection = $this->_conn->getWrappedConnection();
+
+        if (!$this->driverConnection instanceof PDOConnection) {
+            $this->markTestSkipped('PDO connection only test.');
+        }
     }
 }

@@ -11,4 +11,5 @@ use Doctrine\Tests\Common\Annotations\Fixtures\Annotation\Route;
  */
 class InvalidAnnotationUsageButIgnoredClass
 {
+
 }

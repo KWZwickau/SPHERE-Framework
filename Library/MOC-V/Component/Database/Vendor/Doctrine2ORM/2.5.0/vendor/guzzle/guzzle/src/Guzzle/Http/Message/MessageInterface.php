@@ -7,6 +7,7 @@ namespace Guzzle\Http\Message;
  */
 interface MessageInterface
 {
+
     /**
      * Get application and plugin specific parameters set on the message.
      *

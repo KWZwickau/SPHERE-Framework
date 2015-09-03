@@ -2,4 +2,5 @@
 
 interface ClassLoaderTest_InterfaceA
 {
+
 }

@@ -66,7 +66,7 @@ class HtmlManual implements FSHL\Output
      *
      * @return string
      */
-    public function template( $part, $class )
+    public function template($part, $class)
     {
 
         $output = '';
@@ -86,7 +86,7 @@ class HtmlManual implements FSHL\Output
             $this->lastClass = $class;
         }
 
-        return $output.htmlspecialchars( $part, ENT_COMPAT, 'UTF-8' );
+        return $output.htmlspecialchars($part, ENT_COMPAT, 'UTF-8');
     }
 
     /**
@@ -97,7 +97,7 @@ class HtmlManual implements FSHL\Output
      *
      * @return string
      */
-    public function keyword( $part, $class )
+    public function keyword($part, $class)
     {
 
         $output = '';
@@ -112,7 +112,7 @@ class HtmlManual implements FSHL\Output
 
             if (null !== $class) {
                 if (isset( $this->manualUrl[$class] )) {
-                    $output .= '<a href="'.sprintf( $this->manualUrl[$class], $part ).'">';
+                    $output .= '<a href="'.sprintf($this->manualUrl[$class], $part).'">';
                     $this->closeTag = '</a>';
                 }
 
@@ -122,6 +122,6 @@ class HtmlManual implements FSHL\Output
             $this->lastClass = $class;
         }
 
-        return $output.htmlspecialchars( $part, ENT_COMPAT, 'UTF-8' );
+        return $output.htmlspecialchars($part, ENT_COMPAT, 'UTF-8');
     }
 }

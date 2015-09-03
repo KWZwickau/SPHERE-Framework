@@ -20,6 +20,7 @@ use Symfony\Component\HttpFoundation\Session\SessionBagInterface;
  */
 interface FlashBagInterface extends SessionBagInterface
 {
+
     /**
      * Adds a flash message for type.
      *

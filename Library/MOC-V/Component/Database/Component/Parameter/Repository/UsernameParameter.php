@@ -18,10 +18,10 @@ class UsernameParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Username
      */
-    function __construct( $Username )
+    public function __construct($Username)
     {
 
-        $this->setUsername( $Username );
+        $this->setUsername($Username);
     }
 
     /**
@@ -36,7 +36,7 @@ class UsernameParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Username
      */
-    public function setUsername( $Username )
+    public function setUsername($Username)
     {
 
         $this->Username = $Username;

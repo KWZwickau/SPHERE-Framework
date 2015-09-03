@@ -11,15 +11,18 @@ namespace Psr\Log;
  */
 abstract class AbstractLogger implements LoggerInterface
 {
+
     /**
      * System is unusable.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function emergency($message, array $context = array())
     {
+
         $this->log(LogLevel::EMERGENCY, $message, $context);
     }
 
@@ -30,11 +33,13 @@ abstract class AbstractLogger implements LoggerInterface
      * trigger the SMS alerts and wake you up.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function alert($message, array $context = array())
     {
+
         $this->log(LogLevel::ALERT, $message, $context);
     }
 
@@ -44,11 +49,13 @@ abstract class AbstractLogger implements LoggerInterface
      * Example: Application component unavailable, unexpected exception.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function critical($message, array $context = array())
     {
+
         $this->log(LogLevel::CRITICAL, $message, $context);
     }
 
@@ -57,11 +64,13 @@ abstract class AbstractLogger implements LoggerInterface
      * be logged and monitored.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function error($message, array $context = array())
     {
+
         $this->log(LogLevel::ERROR, $message, $context);
     }
 
@@ -72,11 +81,13 @@ abstract class AbstractLogger implements LoggerInterface
      * that are not necessarily wrong.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function warning($message, array $context = array())
     {
+
         $this->log(LogLevel::WARNING, $message, $context);
     }
 
@@ -84,11 +95,13 @@ abstract class AbstractLogger implements LoggerInterface
      * Normal but significant events.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function notice($message, array $context = array())
     {
+
         $this->log(LogLevel::NOTICE, $message, $context);
     }
 
@@ -98,11 +111,13 @@ abstract class AbstractLogger implements LoggerInterface
      * Example: User logs in, SQL logs.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function info($message, array $context = array())
     {
+
         $this->log(LogLevel::INFO, $message, $context);
     }
 
@@ -110,11 +125,13 @@ abstract class AbstractLogger implements LoggerInterface
      * Detailed debug information.
      *
      * @param string $message
-     * @param array $context
+     * @param array  $context
+     *
      * @return null
      */
     public function debug($message, array $context = array())
     {
+
         $this->log(LogLevel::DEBUG, $message, $context);
     }
 }

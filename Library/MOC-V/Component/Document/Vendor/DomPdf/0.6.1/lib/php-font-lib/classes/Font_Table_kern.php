@@ -19,14 +19,14 @@ class Font_Table_kern extends Font_Table
 
         $font = $this->getFont();
 
-        $data = $font->unpack( array(
+        $data = $font->unpack(array(
             "version"         => self::uint16,
             "nTables"         => self::uint16,
             // only the first subtable will be parsed
             "subtableVersion" => self::uint16,
             "length"          => self::uint16,
             "coverage"        => self::uint16,
-        ) );
+        ));
 
         $data["format"] = ( $data["coverage"] >> 8 );
 
@@ -34,12 +34,12 @@ class Font_Table_kern extends Font_Table
 
         switch ($data["format"]) {
             case 0:
-                $subtable = $font->unpack( array(
+                $subtable = $font->unpack(array(
                     "nPairs"        => self::uint16,
                     "searchRange"   => self::uint16,
                     "entrySelector" => self::uint16,
                     "rangeShift"    => self::uint16,
-                ) );
+                ));
 
                 $pairs = array();
                 $tree = array();

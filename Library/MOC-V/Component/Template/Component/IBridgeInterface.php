@@ -17,7 +17,7 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function loadFile( FileParameter $Location, $Reload = false );
+    public function loadFile(FileParameter $Location, $Reload = false);
 
     /**
      * @param string $Identifier
@@ -25,7 +25,7 @@ interface IBridgeInterface
      *
      * @return IBridgeInterface
      */
-    public function setVariable( $Identifier, $Value );
+    public function setVariable($Identifier, $Value);
 
     /**
      * @return string

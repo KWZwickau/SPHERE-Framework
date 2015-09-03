@@ -28,10 +28,10 @@ class DriverParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Driver
      */
-    function __construct( $Driver )
+    public function __construct($Driver)
     {
 
-        $this->setDriver( $Driver );
+        $this->setDriver($Driver);
     }
 
     /**
@@ -46,7 +46,7 @@ class DriverParameter extends Parameter implements IParameterInterface
     /**
      * @param string $Driver
      */
-    public function setDriver( $Driver )
+    public function setDriver($Driver)
     {
 
         $this->Driver = $Driver;

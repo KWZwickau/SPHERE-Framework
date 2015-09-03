@@ -28,6 +28,7 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EsiResponseCacheStrategy implements EsiResponseCacheStrategyInterface
 {
+
     private $cacheable = true;
     private $embeddedResponses = 0;
     private $ttls = array();
@@ -38,6 +39,7 @@ class EsiResponseCacheStrategy implements EsiResponseCacheStrategyInterface
      */
     public function add(Response $response)
     {
+
         if ($response->isValidateable()) {
             $this->cacheable = false;
         } else {
@@ -53,6 +55,7 @@ class EsiResponseCacheStrategy implements EsiResponseCacheStrategyInterface
      */
     public function update(Response $response)
     {
+
         // if we have no embedded Response, do nothing
         if (0 === $this->embeddedResponses) {
             return;

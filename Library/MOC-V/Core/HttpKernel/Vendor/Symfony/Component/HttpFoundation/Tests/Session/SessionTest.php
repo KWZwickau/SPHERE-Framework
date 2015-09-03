@@ -25,6 +25,7 @@ use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
  */
 class SessionTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var \Symfony\Component\HttpFoundation\Session\Storage\SessionStorageInterface
      */
@@ -37,6 +38,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testStart()
     {
+
         $this->assertEquals('', $this->session->getId());
         $this->assertTrue($this->session->start());
         $this->assertNotEquals('', $this->session->getId());
@@ -44,6 +46,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testIsStarted()
     {
+
         $this->assertFalse($this->session->isStarted());
         $this->session->start();
         $this->assertTrue($this->session->isStarted());
@@ -51,6 +54,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testSetId()
     {
+
         $this->assertEquals('', $this->session->getId());
         $this->session->setId('0123456789abcdef');
         $this->session->start();
@@ -59,6 +63,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testSetName()
     {
+
         $this->assertEquals('MOCKSESSID', $this->session->getName());
         $this->session->setName('session.test.com');
         $this->session->start();
@@ -67,6 +72,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testGet()
     {
+
         // tests defaults
         $this->assertNull($this->session->get('foo'));
         $this->assertEquals(1, $this->session->get('foo', 1));
@@ -77,6 +83,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
      */
     public function testSet($key, $value)
     {
+
         $this->session->set($key, $value);
         $this->assertEquals($value, $this->session->get($key));
     }
@@ -86,6 +93,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
      */
     public function testHas($key, $value)
     {
+
         $this->session->set($key, $value);
         $this->assertTrue($this->session->has($key));
         $this->assertFalse($this->session->has($key.'non_value'));
@@ -93,6 +101,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testReplace()
     {
+
         $this->session->replace(array('happiness' => 'be good', 'symfony' => 'awesome'));
         $this->assertEquals(array('happiness' => 'be good', 'symfony' => 'awesome'), $this->session->all());
         $this->session->replace(array());
@@ -104,6 +113,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
      */
     public function testAll($key, $value, $result)
     {
+
         $this->session->set($key, $value);
         $this->assertEquals($result, $this->session->all());
     }
@@ -113,6 +123,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
      */
     public function testClear($key, $value)
     {
+
         $this->session->set('hi', 'fabien');
         $this->session->set($key, $value);
         $this->session->clear();
@@ -121,6 +132,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function setProvider()
     {
+
         return array(
             array('foo', 'bar', array('foo' => 'bar')),
             array('foo.bar', 'too much beer', array('foo.bar' => 'too much beer')),
@@ -133,6 +145,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemove($key, $value)
     {
+
         $this->session->set('hi.world', 'have a nice day');
         $this->session->set($key, $value);
         $this->session->remove($key);
@@ -141,6 +154,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testInvalidate()
     {
+
         $this->session->set('invalidate', 123);
         $this->session->invalidate();
         $this->assertEquals(array(), $this->session->all());
@@ -148,6 +162,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testMigrate()
     {
+
         $this->session->set('migrate', 321);
         $this->session->migrate();
         $this->assertEquals(321, $this->session->get('migrate'));
@@ -155,6 +170,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testMigrateDestroy()
     {
+
         $this->session->set('migrate', 333);
         $this->session->migrate(true);
         $this->assertEquals(333, $this->session->get('migrate'));
@@ -162,12 +178,14 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testSave()
     {
+
         $this->session->start();
         $this->session->save();
     }
 
     public function testGetId()
     {
+
         $this->assertEquals('', $this->session->getId());
         $this->session->start();
         $this->assertNotEquals('', $this->session->getId());
@@ -175,7 +193,9 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testGetFlashBag()
     {
-        $this->assertInstanceOf('Symfony\\Component\\HttpFoundation\\Session\\Flash\\FlashBagInterface', $this->session->getFlashBag());
+
+        $this->assertInstanceOf('Symfony\\Component\\HttpFoundation\\Session\\Flash\\FlashBagInterface',
+            $this->session->getFlashBag());
     }
 
     /**
@@ -183,6 +203,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetIterator()
     {
+
         $attributes = array('hello' => 'world', 'symfony2' => 'rocks');
         foreach ($attributes as $key => $val) {
             $this->session->set($key, $val);
@@ -202,6 +223,7 @@ class SessionTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetCount()
     {
+
         $this->session->set('hello', 'world');
         $this->session->set('symfony2', 'rocks');
 
@@ -210,14 +232,16 @@ class SessionTest extends \PHPUnit_Framework_TestCase
 
     public function testGetMeta()
     {
-        $this->assertInstanceOf('Symfony\Component\HttpFoundation\Session\Storage\MetadataBag', $this->session->getMetadataBag());
+
+        $this->assertInstanceOf('Symfony\Component\HttpFoundation\Session\Storage\MetadataBag',
+            $this->session->getMetadataBag());
     }
 
     protected function setUp()
     {
 
         $this->storage = new MockArraySessionStorage();
-        $this->session = new Session( $this->storage, new AttributeBag(), new FlashBag() );
+        $this->session = new Session($this->storage, new AttributeBag(), new FlashBag());
     }
 
     protected function tearDown()

@@ -28,11 +28,13 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
  */
 class SmallIntType extends Type
 {
+
     /**
      * {@inheritdoc}
      */
     public function getName()
     {
+
         return Type::SMALLINT;
     }
 
@@ -41,6 +43,7 @@ class SmallIntType extends Type
      */
     public function getSQLDeclaration(array $fieldDeclaration, AbstractPlatform $platform)
     {
+
         return $platform->getSmallIntTypeDeclarationSQL($fieldDeclaration);
     }
 
@@ -49,7 +52,8 @@ class SmallIntType extends Type
      */
     public function convertToPHPValue($value, AbstractPlatform $platform)
     {
-        return (null === $value) ? null : (int) $value;
+
+        return ( null === $value ) ? null : (int)$value;
     }
 
     /**
@@ -57,6 +61,7 @@ class SmallIntType extends Type
      */
     public function getBindingType()
     {
+
         return \PDO::PARAM_INT;
     }
 }

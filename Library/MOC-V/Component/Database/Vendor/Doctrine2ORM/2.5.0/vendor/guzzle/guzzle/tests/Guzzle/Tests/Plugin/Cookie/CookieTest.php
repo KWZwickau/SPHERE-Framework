@@ -9,8 +9,10 @@ use Guzzle\Plugin\Cookie\Cookie;
  */
 class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testInitializesDefaultValues()
     {
+
         $cookie = new Cookie();
         $this->assertEquals('/', $cookie->getPath());
         $this->assertEquals(array(), $cookie->getPorts());
@@ -18,14 +20,16 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testConvertsDateTimeMaxAgeToUnixTimestamp()
     {
+
         $cookie = new Cookie(array(
-           'expires' => 'November 20, 1984'
+            'expires' => 'November 20, 1984'
         ));
         $this->assertTrue(is_numeric($cookie->getExpires()));
     }
 
     public function testAddsExpiresBasedOnMaxAge()
     {
+
         $t = time();
         $cookie = new Cookie(array(
             'max_age' => 100
@@ -35,6 +39,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testHoldsValues()
     {
+
         $t = time();
         $data = array(
             'name'        => 'foo',
@@ -112,6 +117,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testDeterminesIfExpired()
     {
+
         $c = new Cookie();
         $c->setExpires(10);
         $this->assertTrue($c->isExpired());
@@ -121,6 +127,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testMatchesPorts()
     {
+
         $cookie = new Cookie();
         // Always matches when nothing is set
         $this->assertTrue($cookie->matchesPort(2));
@@ -132,6 +139,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testMatchesDomain()
     {
+
         $cookie = new Cookie();
         $this->assertTrue($cookie->matchesDomain('baz.com'));
 
@@ -160,6 +168,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testMatchesPath()
     {
+
         $cookie = new Cookie();
         $this->assertTrue($cookie->matchesPath('/foo'));
 
@@ -186,6 +195,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function cookieValidateProvider()
     {
+
         return array(
             array('foo', 'baz', 'bar', true),
             array('0', '0', '0', true),
@@ -201,6 +211,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
      */
     public function testValidatesCookies($name, $value, $domain, $result)
     {
+
         $cookie = new Cookie(array(
             'name'   => $name,
             'value'  => $value,
@@ -211,6 +222,7 @@ class CookieTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testCreatesInvalidCharacterString()
     {
+
         $m = new \ReflectionMethod('Guzzle\Plugin\Cookie\Cookie', 'getInvalidCharacters');
         $m->setAccessible(true);
         $p = new \ReflectionProperty('Guzzle\Plugin\Cookie\Cookie', 'invalidCharString');

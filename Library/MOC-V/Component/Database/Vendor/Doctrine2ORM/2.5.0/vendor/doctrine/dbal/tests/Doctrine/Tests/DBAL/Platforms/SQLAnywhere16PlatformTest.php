@@ -7,13 +7,16 @@ use Doctrine\DBAL\Schema\Index;
 
 class SQLAnywhere16PlatformTest extends SQLAnywhere12PlatformTest
 {
+
     public function createPlatform()
     {
+
         return new SQLAnywhere16Platform;
     }
 
     public function testGeneratesCreateIndexWithAdvancedPlatformOptionsSQL()
     {
+
         $this->assertEquals(
             'CREATE UNIQUE INDEX fooindex ON footable (a, b) WITH NULLS DISTINCT',
             $this->_platform->getCreateIndexSQL(
@@ -63,6 +66,7 @@ class SQLAnywhere16PlatformTest extends SQLAnywhere12PlatformTest
 
     public function testThrowsExceptionOnInvalidWithNullsNotDistinctIndexOptions()
     {
+
         $this->setExpectedException('UnexpectedValueException');
 
         $this->_platform->getCreateIndexSQL(

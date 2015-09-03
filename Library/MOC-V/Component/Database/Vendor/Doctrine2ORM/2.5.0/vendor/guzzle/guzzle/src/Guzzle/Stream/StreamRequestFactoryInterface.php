@@ -9,6 +9,7 @@ use Guzzle\Http\Message\RequestInterface;
  */
 interface StreamRequestFactoryInterface
 {
+
     /**
      * Create a stream based on a request object
      *

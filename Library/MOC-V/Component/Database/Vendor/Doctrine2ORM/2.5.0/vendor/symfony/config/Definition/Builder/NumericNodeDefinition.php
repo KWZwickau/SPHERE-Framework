@@ -18,6 +18,7 @@ namespace Symfony\Component\Config\Definition\Builder;
  */
 abstract class NumericNodeDefinition extends ScalarNodeDefinition
 {
+
     protected $min;
     protected $max;
 
@@ -32,8 +33,10 @@ abstract class NumericNodeDefinition extends ScalarNodeDefinition
      */
     public function max($max)
     {
-        if (isset($this->min) && $this->min > $max) {
-            throw new \InvalidArgumentException(sprintf('You cannot define a max(%s) as you already have a min(%s)', $max, $this->min));
+
+        if (isset( $this->min ) && $this->min > $max) {
+            throw new \InvalidArgumentException(sprintf('You cannot define a max(%s) as you already have a min(%s)',
+                $max, $this->min));
         }
         $this->max = $max;
 
@@ -51,8 +54,10 @@ abstract class NumericNodeDefinition extends ScalarNodeDefinition
      */
     public function min($min)
     {
-        if (isset($this->max) && $this->max < $min) {
-            throw new \InvalidArgumentException(sprintf('You cannot define a min(%s) as you already have a max(%s)', $min, $this->max));
+
+        if (isset( $this->max ) && $this->max < $min) {
+            throw new \InvalidArgumentException(sprintf('You cannot define a min(%s) as you already have a max(%s)',
+                $min, $this->max));
         }
         $this->min = $min;
 
@@ -66,7 +71,9 @@ abstract class NumericNodeDefinition extends ScalarNodeDefinition
      */
     public function cannotBeEmpty()
     {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0.', E_USER_DEPRECATED);
+
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0.',
+            E_USER_DEPRECATED);
 
         return parent::cannotBeEmpty();
     }

@@ -8,6 +8,7 @@ use Doctrine\DBAL\Schema\Sequence;
 
 class PostgreSQLSchemaManagerTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @var \Doctrine\DBAL\Schema\PostgreSQLSchemaManager
      */
@@ -18,23 +19,12 @@ class PostgreSQLSchemaManagerTest extends \PHPUnit_Framework_TestCase
      */
     private $connection;
 
-    protected function setUp()
-    {
-        $driverMock = $this->getMock('Doctrine\DBAL\Driver');
-        $platform = $this->getMock('Doctrine\DBAL\Platforms\PostgreSqlPlatform');
-        $this->connection = $this->getMock(
-            'Doctrine\DBAL\Connection',
-            array(),
-            array(array('platform' => $platform), $driverMock)
-        );
-        $this->schemaManager = new PostgreSqlSchemaManager($this->connection, $platform);
-    }
-
     /**
      * @group DBAL-474
      */
     public function testFiltersSequences()
     {
+
         $configuration = new Configuration();
         $configuration->setFilterSchemaAssetsExpression('/^schema/');
 
@@ -71,5 +61,18 @@ class PostgreSQLSchemaManagerTest extends \PHPUnit_Framework_TestCase
             ),
             $this->schemaManager->listSequences('database')
         );
+    }
+
+    protected function setUp()
+    {
+
+        $driverMock = $this->getMock('Doctrine\DBAL\Driver');
+        $platform = $this->getMock('Doctrine\DBAL\Platforms\PostgreSqlPlatform');
+        $this->connection = $this->getMock(
+            'Doctrine\DBAL\Connection',
+            array(),
+            array(array('platform' => $platform), $driverMock)
+        );
+        $this->schemaManager = new PostgreSqlSchemaManager($this->connection, $platform);
     }
 }

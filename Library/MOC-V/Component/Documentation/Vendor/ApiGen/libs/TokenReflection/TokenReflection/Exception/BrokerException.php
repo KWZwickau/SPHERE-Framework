@@ -38,10 +38,10 @@ class BrokerException extends BaseException
      * @param integer                                    $code    Exception code
      * @param \TokenReflection\Exception\StreamException $parent  Parent exception
      */
-    public function __construct( Broker $broker, $message, $code, StreamException $parent = null )
+    public function __construct(Broker $broker, $message, $code, StreamException $parent = null)
     {
 
-        parent::__construct( $message, $code, $parent );
+        parent::__construct($message, $code, $parent);
 
         $this->broker = $broker;
     }

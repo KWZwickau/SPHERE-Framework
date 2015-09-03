@@ -25,12 +25,12 @@
  * @version    ##VERSION##, ##DATE##
  */
 
-if (!defined( 'DATE_W3C' )) {
-    define( 'DATE_W3C', 'Y-m-d\TH:i:sP' );
+if (!defined('DATE_W3C')) {
+    define('DATE_W3C', 'Y-m-d\TH:i:sP');
 }
 
-if (!defined( 'DEBUGMODE_ENABLED' )) {
-    define( 'DEBUGMODE_ENABLED', false );
+if (!defined('DEBUGMODE_ENABLED')) {
+    define('DEBUGMODE_ENABLED', false);
 }
 
 
@@ -61,7 +61,7 @@ class PHPExcel_Shared_XMLWriter extends XMLWriter
      * @param int    $pTemporaryStorage       Temporary storage location
      * @param string $pTemporaryStorageFolder Temporary storage folder
      */
-    public function __construct( $pTemporaryStorage = self::STORAGE_MEMORY, $pTemporaryStorageFolder = null )
+    public function __construct($pTemporaryStorage = self::STORAGE_MEMORY, $pTemporaryStorageFolder = null)
     {
 
         // Open temporary storage
@@ -72,10 +72,10 @@ class PHPExcel_Shared_XMLWriter extends XMLWriter
             if ($pTemporaryStorageFolder === null) {
                 $pTemporaryStorageFolder = PHPExcel_Shared_File::sys_get_temp_dir();
             }
-            $this->_tempFileName = @tempnam( $pTemporaryStorageFolder, 'xml' );
+            $this->_tempFileName = @tempnam($pTemporaryStorageFolder, 'xml');
 
             // Open storage
-            if ($this->openUri( $this->_tempFileName ) === false) {
+            if ($this->openUri($this->_tempFileName) === false) {
                 // Fallback to memory...
                 $this->openMemory();
             }
@@ -83,7 +83,7 @@ class PHPExcel_Shared_XMLWriter extends XMLWriter
 
         // Set default values
         if (DEBUGMODE_ENABLED) {
-            $this->setIndent( true );
+            $this->setIndent(true);
         }
     }
 
@@ -95,7 +95,7 @@ class PHPExcel_Shared_XMLWriter extends XMLWriter
 
         // Unlink temporary files
         if ($this->_tempFileName != '') {
-            @unlink( $this->_tempFileName );
+            @unlink($this->_tempFileName);
         }
     }
 
@@ -108,10 +108,10 @@ class PHPExcel_Shared_XMLWriter extends XMLWriter
     {
 
         if ($this->_tempFileName == '') {
-            return $this->outputMemory( true );
+            return $this->outputMemory(true);
         } else {
             $this->flush();
-            return file_get_contents( $this->_tempFileName );
+            return file_get_contents($this->_tempFileName);
         }
     }
 
@@ -122,17 +122,17 @@ class PHPExcel_Shared_XMLWriter extends XMLWriter
      *
      * @return string
      */
-    public function writeRawData( $text )
+    public function writeRawData($text)
     {
 
-        if (is_array( $text )) {
-            $text = implode( "\n", $text );
+        if (is_array($text)) {
+            $text = implode("\n", $text);
         }
 
-        if (method_exists( $this, 'writeRaw' )) {
-            return $this->writeRaw( htmlspecialchars( $text ) );
+        if (method_exists($this, 'writeRaw')) {
+            return $this->writeRaw(htmlspecialchars($text));
         }
 
-        return $this->text( $text );
+        return $this->text($text);
     }
 }

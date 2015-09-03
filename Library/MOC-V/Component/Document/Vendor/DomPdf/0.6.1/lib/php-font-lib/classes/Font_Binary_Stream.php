@@ -38,7 +38,7 @@ class Font_Binary_Stream
     static function backtrace()
     {
 
-        var_dump( debug_backtrace( DEBUG_BACKTRACE_IGNORE_ARGS ) );
+        var_dump(debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS));
     }
 
     /**
@@ -48,18 +48,18 @@ class Font_Binary_Stream
      *
      * @return resource the temporary file pointer resource
      */
-    public static function getTempFile( $allow_memory = true )
+    public static function getTempFile($allow_memory = true)
     {
 
         $f = null;
 
         if ($allow_memory) {
             // PHP 5.1+
-            @fopen( "php://temp", "rb+" );
+            @fopen("php://temp", "rb+");
         }
 
         if (!$f) {
-            $f = fopen( tempnam( sys_get_temp_dir(), "fnt" ), "rb+" );
+            $f = fopen(tempnam(sys_get_temp_dir(), "fnt"), "rb+");
         }
 
         return $f;
@@ -72,10 +72,10 @@ class Font_Binary_Stream
      *
      * @return bool
      */
-    public function load( $filename )
+    public function load($filename)
     {
 
-        return $this->open( $filename, self::modeRead );
+        return $this->open($filename, self::modeRead);
     }
 
     /**
@@ -87,14 +87,14 @@ class Font_Binary_Stream
      * @throws Exception
      * @return bool
      */
-    public function open( $filename, $mode = self::modeRead )
+    public function open($filename, $mode = self::modeRead)
     {
 
-        if (!in_array( $mode, array( self::modeRead, self::modeWrite, self::modeReadWrite ) )) {
-            throw new Exception( "Unkown file open mode" );
+        if (!in_array($mode, array(self::modeRead, self::modeWrite, self::modeReadWrite))) {
+            throw new Exception("Unkown file open mode");
         }
 
-        $this->f = fopen( $filename, $mode );
+        $this->f = fopen($filename, $mode);
         return $this->f != false;
     }
 
@@ -104,7 +104,7 @@ class Font_Binary_Stream
     public function close()
     {
 
-        return fclose( $this->f ) != false;
+        return fclose($this->f) != false;
     }
 
     /**
@@ -114,11 +114,11 @@ class Font_Binary_Stream
      *
      * @throws Exception
      */
-    public function setFile( $fp )
+    public function setFile($fp)
     {
 
-        if (!is_resource( $fp )) {
-            throw new Exception( '$fp is not a valid resource' );
+        if (!is_resource($fp)) {
+            throw new Exception('$fp is not a valid resource');
         }
 
         $this->f = $fp;
@@ -131,10 +131,10 @@ class Font_Binary_Stream
      *
      * @return bool True if the $offset position exists in the file
      */
-    public function seek( $offset )
+    public function seek($offset)
     {
 
-        return fseek( $this->f, $offset, SEEK_SET ) == 0;
+        return fseek($this->f, $offset, SEEK_SET) == 0;
     }
 
     /**
@@ -145,13 +145,13 @@ class Font_Binary_Stream
     public function pos()
     {
 
-        return ftell( $this->f );
+        return ftell($this->f);
     }
 
-    public function skip( $n )
+    public function skip($n)
     {
 
-        fseek( $this->f, $n, SEEK_CUR );
+        fseek($this->f, $n, SEEK_CUR);
     }
 
     public function readUFWord()
@@ -163,40 +163,40 @@ class Font_Binary_Stream
     public function readUInt16()
     {
 
-        $a = unpack( "nn", $this->read( 2 ) );
+        $a = unpack("nn", $this->read(2));
         return $a["n"];
     }
 
-    public function read( $n )
+    public function read($n)
     {
 
         if ($n < 1) {
             return "";
         }
 
-        return fread( $this->f, $n );
+        return fread($this->f, $n);
     }
 
-    public function writeUFWord( $data )
+    public function writeUFWord($data)
     {
 
-        return $this->writeUInt16( $data );
+        return $this->writeUInt16($data);
     }
 
-    public function writeUInt16( $data )
+    public function writeUInt16($data)
     {
 
-        return $this->write( pack( "n", $data ), 2 );
+        return $this->write(pack("n", $data), 2);
     }
 
-    public function write( $data, $length = null )
+    public function write($data, $length = null)
     {
 
         if ($data === null || $data === "") {
             return 0;
         }
 
-        return fwrite( $this->f, $data, $length );
+        return fwrite($this->f, $data, $length);
     }
 
     public function readFWord()
@@ -217,28 +217,28 @@ class Font_Binary_Stream
         return $v;
     }
 
-    public function writeFWord( $data )
+    public function writeFWord($data)
     {
 
-        return $this->writeInt16( $data );
+        return $this->writeInt16($data);
     }
 
-    public function writeInt16( $data )
+    public function writeInt16($data)
     {
 
         if ($data < 0) {
             $data += 0x10000;
         }
 
-        return $this->writeUInt16( $data );
+        return $this->writeUInt16($data);
     }
 
-    public function unpack( $def )
+    public function unpack($def)
     {
 
         $d = array();
         foreach ($def as $name => $type) {
-            $d[$name] = $this->r( $type );
+            $d[$name] = $this->r($type);
         }
         return $d;
     }
@@ -250,7 +250,7 @@ class Font_Binary_Stream
      *
      * @return mixed The data that was read
      */
-    public function r( $type )
+    public function r($type)
     {
 
         switch ($type) {
@@ -279,16 +279,16 @@ class Font_Binary_Stream
             case self::longDateTime:
                 return $this->readLongDateTime();
             case self::char:
-                return $this->read( 1 );
+                return $this->read(1);
             default:
-                if (is_array( $type )) {
+                if (is_array($type)) {
                     if ($type[0] == self::char) {
-                        return $this->read( $type[1] );
+                        return $this->read($type[1]);
                     }
 
                     $ret = array();
                     for ($i = 0; $i < $type[1]; $i++) {
-                        $ret[] = $this->r( $type[0] );
+                        $ret[] = $this->r($type[0]);
                     }
                     return $ret;
                 }
@@ -300,7 +300,7 @@ class Font_Binary_Stream
     public function readUInt8()
     {
 
-        return ord( $this->read( 1 ) );
+        return ord($this->read(1));
     }
 
     public function readInt8()
@@ -318,7 +318,7 @@ class Font_Binary_Stream
     public function readUInt32()
     {
 
-        $a = unpack( "NN", $this->read( 4 ) );
+        $a = unpack("NN", $this->read(4));
         return $a["N"];
     }
 
@@ -327,7 +327,7 @@ class Font_Binary_Stream
 
         $d = $this->readInt16();
         $d2 = $this->readUInt16();
-        return round( $d + $d2 / 0x10000, 4 );
+        return round($d + $d2 / 0x10000, 4);
     }
 
     public function readLongDateTime()
@@ -336,15 +336,15 @@ class Font_Binary_Stream
         $this->readUInt32(); // ignored
         $date = $this->readUInt32() - 2082844800;
 
-        return strftime( "%Y-%m-%d %H:%M:%S", $date );
+        return strftime("%Y-%m-%d %H:%M:%S", $date);
     }
 
-    public function pack( $def, $data )
+    public function pack($def, $data)
     {
 
         $bytes = 0;
         foreach ($def as $name => $type) {
-            $bytes += $this->w( $type, $data[$name] );
+            $bytes += $this->w($type, $data[$name]);
         }
         return $bytes;
     }
@@ -357,45 +357,45 @@ class Font_Binary_Stream
      *
      * @return int The number of bytes read
      */
-    public function w( $type, $data )
+    public function w($type, $data)
     {
 
         switch ($type) {
             case self::uint8:
-                return $this->writeUInt8( $data );
+                return $this->writeUInt8($data);
             case self::int8:
-                return $this->writeInt8( $data );
+                return $this->writeInt8($data);
             case self::uint16:
-                return $this->writeUInt16( $data );
+                return $this->writeUInt16($data);
             case self::int16:
-                return $this->writeInt16( $data );
+                return $this->writeInt16($data);
             case self::uint32:
-                return $this->writeUInt32( $data );
+                return $this->writeUInt32($data);
             case self::int32:
-                return $this->writeUInt32( $data );
+                return $this->writeUInt32($data);
             case self::shortFrac:
-                return $this->writeFixed( $data );
+                return $this->writeFixed($data);
             case self::Fixed:
-                return $this->writeFixed( $data );
+                return $this->writeFixed($data);
             case self::FWord:
-                return $this->writeInt16( $data );
+                return $this->writeInt16($data);
             case self::uFWord:
-                return $this->writeUInt16( $data );
+                return $this->writeUInt16($data);
             case self::F2Dot14:
-                return $this->writeInt16( $data );
+                return $this->writeInt16($data);
             case self::longDateTime:
-                return $this->writeLongDateTime( $data );
+                return $this->writeLongDateTime($data);
             case self::char:
-                return $this->write( $data, 1 );
+                return $this->write($data, 1);
             default:
-                if (is_array( $type )) {
+                if (is_array($type)) {
                     if ($type[0] == self::char) {
-                        return $this->write( $data, $type[1] );
+                        return $this->write($data, $type[1]);
                     }
 
                     $ret = 0;
                     for ($i = 0; $i < $type[1]; $i++) {
-                        $ret += $this->w( $type[0], $data[$i] );
+                        $ret += $this->w($type[0], $data[$i]);
                     }
                     return $ret;
                 }
@@ -404,43 +404,43 @@ class Font_Binary_Stream
         }
     }
 
-    public function writeUInt8( $data )
+    public function writeUInt8($data)
     {
 
-        return $this->write( chr( $data ), 1 );
+        return $this->write(chr($data), 1);
     }
 
-    public function writeInt8( $data )
+    public function writeInt8($data)
     {
 
         if ($data < 0) {
             $data += 0x100;
         }
 
-        return $this->writeUInt8( $data );
+        return $this->writeUInt8($data);
     }
 
-    public function writeUInt32( $data )
+    public function writeUInt32($data)
     {
 
-        return $this->write( pack( "N", $data ), 4 );
+        return $this->write(pack("N", $data), 4);
     }
 
-    public function writeFixed( $data )
+    public function writeFixed($data)
     {
 
-        $left = floor( $data );
+        $left = floor($data);
         $right = ( $data - $left ) * 0x10000;
-        return $this->writeInt16( $left ) + $this->writeUInt16( $right );
+        return $this->writeInt16($left) + $this->writeUInt16($right);
     }
 
-    public function writeLongDateTime( $data )
+    public function writeLongDateTime($data)
     {
 
-        $date = strtotime( $data );
+        $date = strtotime($data);
         $date += 2082844800;
 
-        return $this->writeUInt32( 0 ) + $this->writeUInt32( $date );
+        return $this->writeUInt32(0) + $this->writeUInt32($date);
     }
 
     /**
@@ -450,9 +450,9 @@ class Font_Binary_Stream
      *
      * @return string The string
      */
-    public function convertUInt32ToStr( $uint32 )
+    public function convertUInt32ToStr($uint32)
     {
 
-        return chr( ( $uint32 >> 24 ) & 0xFF ).chr( ( $uint32 >> 16 ) & 0xFF ).chr( ( $uint32 >> 8 ) & 0xFF ).chr( $uint32 & 0xFF );
+        return chr(( $uint32 >> 24 ) & 0xFF).chr(( $uint32 >> 16 ) & 0xFF).chr(( $uint32 >> 8 ) & 0xFF).chr($uint32 & 0xFF);
     }
 }

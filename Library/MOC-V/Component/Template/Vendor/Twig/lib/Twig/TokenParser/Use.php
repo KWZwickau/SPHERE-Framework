@@ -25,6 +25,7 @@
  */
 class Twig_TokenParser_Use extends Twig_TokenParser
 {
+
     /**
      * Parses a token and returns a node.
      *
@@ -34,11 +35,13 @@ class Twig_TokenParser_Use extends Twig_TokenParser
      */
     public function parse(Twig_Token $token)
     {
+
         $template = $this->parser->getExpressionParser()->parseExpression();
         $stream = $this->parser->getStream();
 
         if (!$template instanceof Twig_Node_Expression_Constant) {
-            throw new Twig_Error_Syntax('The template references in a "use" statement must be a string.', $stream->getCurrent()->getLine(), $stream->getFilename());
+            throw new Twig_Error_Syntax('The template references in a "use" statement must be a string.',
+                $stream->getCurrent()->getLine(), $stream->getFilename());
         }
 
         $targets = array();
@@ -71,6 +74,7 @@ class Twig_TokenParser_Use extends Twig_TokenParser
      */
     public function getTag()
     {
+
         return 'use';
     }
 }

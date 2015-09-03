@@ -28,20 +28,20 @@ class Validators extends Nette\Object
         'integer'    => 'is_int',
         'float'      => 'is_float',
         'number'     => null, // is_int || is_float,
-        'numeric'    => array( __CLASS__, 'isNumeric' ),
-        'numericint' => array( __CLASS__, 'isNumericInt' ),
+        'numeric'    => array(__CLASS__, 'isNumeric'),
+        'numericint' => array(__CLASS__, 'isNumericInt'),
         'string'     => 'is_string',
-        'unicode'    => array( __CLASS__, 'isUnicode' ),
+        'unicode'    => array(__CLASS__, 'isUnicode'),
         'array'      => 'is_array',
-        'list'       => array( __CLASS__, 'isList' ),
+        'list'       => array(__CLASS__, 'isList'),
         'object'     => 'is_object',
         'resource'   => 'is_resource',
         'scalar'     => 'is_scalar',
-        'callable'   => array( __CLASS__, 'isCallable' ),
+        'callable'   => array(__CLASS__, 'isCallable'),
         'null'       => 'is_null',
-        'email'      => array( __CLASS__, 'isEmail' ),
-        'url'        => array( __CLASS__, 'isUrl' ),
-        'none'       => array( __CLASS__, 'isNone' ),
+        'email'      => array(__CLASS__, 'isEmail'),
+        'url'        => array(__CLASS__, 'isUrl'),
+        'none'       => array(__CLASS__, 'isNone'),
         'pattern'    => null,
         'alnum'      => 'ctype_alnum',
         'alpha'      => 'ctype_alpha',
@@ -54,7 +54,7 @@ class Validators extends Nette\Object
 
     protected static $counters = array(
         'string'  => 'strlen',
-        'unicode' => array( 'Nette\Utils\Strings', 'length' ),
+        'unicode' => array('Nette\Utils\Strings', 'length'),
         'array'   => 'count',
         'list'    => 'count',
         'alnum'   => 'strlen',
@@ -75,15 +75,15 @@ class Validators extends Nette\Object
      *
      * @return void
      */
-    public static function assertField( $arr, $field, $expected = null, $label = "item '%' in array" )
+    public static function assertField($arr, $field, $expected = null, $label = "item '%' in array")
     {
 
-        self::assert( $arr, 'array', 'first argument' );
-        if (!array_key_exists( $field, $arr )) {
-            throw new AssertionException( 'Missing '.str_replace( '%', $field, $label ).'.' );
+        self::assert($arr, 'array', 'first argument');
+        if (!array_key_exists($field, $arr)) {
+            throw new AssertionException('Missing '.str_replace('%', $field, $label).'.');
 
         } elseif ($expected) {
-            static::assert( $arr[$field], $expected, str_replace( '%', $field, $label ) );
+            static::assert($arr[$field], $expected, str_replace('%', $field, $label));
         }
     }
 
@@ -96,21 +96,21 @@ class Validators extends Nette\Object
      *
      * @return void
      */
-    public static function assert( $value, $expected, $label = 'variable' )
+    public static function assert($value, $expected, $label = 'variable')
     {
 
-        if (!static::is( $value, $expected )) {
-            $expected = str_replace( array( '|', ':' ), array( ' or ', ' in range ' ), $expected );
-            if (is_array( $value )) {
-                $type = 'array('.count( $value ).')';
-            } elseif (is_object( $value )) {
-                $type = 'object '.get_class( $value );
-            } elseif (is_string( $value ) && strlen( $value ) < 40) {
+        if (!static::is($value, $expected)) {
+            $expected = str_replace(array('|', ':'), array(' or ', ' in range '), $expected);
+            if (is_array($value)) {
+                $type = 'array('.count($value).')';
+            } elseif (is_object($value)) {
+                $type = 'object '.get_class($value);
+            } elseif (is_string($value) && strlen($value) < 40) {
                 $type = "string '$value'";
             } else {
-                $type = gettype( $value );
+                $type = gettype($value);
             }
-            throw new AssertionException( "The $label expects to be $expected, $type given." );
+            throw new AssertionException("The $label expects to be $expected, $type given.");
         }
     }
 
@@ -122,21 +122,21 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function is( $value, $expected )
+    public static function is($value, $expected)
     {
 
-        foreach (explode( '|', $expected ) as $item) {
-            list( $type ) = $item = explode( ':', $item, 2 );
+        foreach (explode('|', $expected) as $item) {
+            list( $type ) = $item = explode(':', $item, 2);
             if (isset( static::$validators[$type] )) {
-                if (!call_user_func( static::$validators[$type], $value )) {
+                if (!call_user_func(static::$validators[$type], $value)) {
                     continue;
                 }
             } elseif ($type === 'number') {
-                if (!is_int( $value ) && !is_float( $value )) {
+                if (!is_int($value) && !is_float($value)) {
                     continue;
                 }
             } elseif ($type === 'pattern') {
-                if (preg_match( '|^'.( isset( $item[1] ) ? $item[1] : '' ).'$|', $value )) {
+                if (preg_match('|^'.( isset( $item[1] ) ? $item[1] : '' ).'$|', $value)) {
                     return true;
                 }
                 continue;
@@ -146,9 +146,9 @@ class Validators extends Nette\Object
 
             if (isset( $item[1] )) {
                 if (isset( static::$counters[$type] )) {
-                    $value = call_user_func( static::$counters[$type], $value );
+                    $value = call_user_func(static::$counters[$type], $value);
                 }
-                $range = explode( '..', $item[1] );
+                $range = explode('..', $item[1]);
                 if (!isset( $range[1] )) {
                     $range[1] = $range[0];
                 }
@@ -169,10 +169,10 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isNumericInt( $value )
+    public static function isNumericInt($value)
     {
 
-        return is_int( $value ) || is_string( $value ) && preg_match( '#^-?[0-9]+$#', $value );
+        return is_int($value) || is_string($value) && preg_match('#^-?[0-9]+$#', $value);
     }
 
 
@@ -183,11 +183,11 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isNumeric( $value )
+    public static function isNumeric($value)
     {
 
-        return is_float( $value ) || is_int( $value ) || is_string( $value ) && preg_match( '#^-?[0-9]*[.]?[0-9]+$#',
-            $value );
+        return is_float($value) || is_int($value) || is_string($value) && preg_match('#^-?[0-9]*[.]?[0-9]+$#',
+            $value);
     }
 
 
@@ -198,10 +198,10 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isCallable( $value )
+    public static function isCallable($value)
     {
 
-        return $value && is_callable( $value, true );
+        return $value && is_callable($value, true);
     }
 
 
@@ -212,10 +212,10 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isUnicode( $value )
+    public static function isUnicode($value)
     {
 
-        return is_string( $value ) && preg_match( '##u', $value );
+        return is_string($value) && preg_match('##u', $value);
     }
 
 
@@ -226,7 +226,7 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isNone( $value )
+    public static function isNone($value)
     {
 
         return $value == null; // intentionally ==
@@ -240,10 +240,10 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isList( $value )
+    public static function isList($value)
     {
 
-        return is_array( $value ) && ( !$value || array_keys( $value ) === range( 0, count( $value ) - 1 ) );
+        return is_array($value) && ( !$value || array_keys($value) === range(0, count($value) - 1) );
     }
 
 
@@ -255,7 +255,7 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isInRange( $value, $range )
+    public static function isInRange($value, $range)
     {
 
         return ( !isset( $range[0] ) || $value >= $range[0] ) && ( !isset( $range[1] ) || $value <= $range[1] );
@@ -269,7 +269,7 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isEmail( $value )
+    public static function isEmail($value)
     {
 
         $atom = "[-a-z0-9!#$%&'*+/=?^_`{|}~]"; // RFC 5322 unquoted characters in local-part
@@ -277,7 +277,7 @@ class Validators extends Nette\Object
         $alpha = "a-z\x80-\xFF"; // superset of IDN
         $domain = "[0-9$alpha](?:[-0-9$alpha]{0,61}[0-9$alpha])?"; // RFC 1034 one domain component
         $topDomain = "[$alpha][-0-9$alpha]{0,17}[$alpha]";
-        return (bool)preg_match( "(^$localPart@(?:$domain\\.)+$topDomain\\z)i", $value );
+        return (bool)preg_match("(^$localPart@(?:$domain\\.)+$topDomain\\z)i", $value);
     }
 
 
@@ -288,14 +288,14 @@ class Validators extends Nette\Object
      *
      * @return bool
      */
-    public static function isUrl( $value )
+    public static function isUrl($value)
     {
 
         $alpha = "a-z\x80-\xFF";
         $domain = "[0-9$alpha](?:[-0-9$alpha]{0,61}[0-9$alpha])?";
         $topDomain = "[$alpha][-0-9$alpha]{0,17}[$alpha]";
-        return (bool)preg_match( "(^https?://(?:(?:$domain\\.)*$topDomain|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d{1,5})?(/\S*)?\\z)i",
-            $value );
+        return (bool)preg_match("(^https?://(?:(?:$domain\\.)*$topDomain|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(:\d{1,5})?(/\S*)?\\z)i",
+            $value);
     }
 
 }

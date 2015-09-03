@@ -209,7 +209,7 @@ class File extends Path
     public function isFile()
     {
 
-        return file_exists( $this->data );
+        return file_exists($this->data);
     }
 
     /**
@@ -220,7 +220,7 @@ class File extends Path
     public function getBase()
     {
 
-        $pathInfo = pathinfo( $this->data );
+        $pathInfo = pathinfo($this->data);
         return $pathInfo['filename'];
     }
 
@@ -235,15 +235,15 @@ class File extends Path
         $this->absolute();
 
         //if the pat is not a real file
-        if (!is_file( $this->data )) {
+        if (!is_file($this->data)) {
             //throw an exception
             Exception::i()
-                ->setMessage( self::ERROR_PATH_IS_NOT_FILE )
-                ->addVariable( $this->data )
+                ->setMessage(self::ERROR_PATH_IS_NOT_FILE)
+                ->addVariable($this->data)
                 ->trigger();
         }
 
-        return file_get_contents( $this->data );
+        return file_get_contents($this->data);
     }
 
     /**
@@ -267,7 +267,7 @@ class File extends Path
     public function getFolder()
     {
 
-        return dirname( $this->data );
+        return dirname($this->data);
     }
 
     /**
@@ -282,23 +282,23 @@ class File extends Path
 
         //mime_content_type seems to be deprecated in some versions of PHP
         //if it does exist then lets use it
-        if (function_exists( 'mime_content_type' )) {
-            return mime_content_type( $this->data );
+        if (function_exists('mime_content_type')) {
+            return mime_content_type($this->data);
         }
 
         //if not then use the replacement funciton fileinfo
         //see: http://www.php.net/manual/en/function.finfo-file.php
-        if (function_exists( 'finfo_open' )) {
-            $resource = finfo_open( FILEINFO_MIME_TYPE );
-            $mime = finfo_file( $resource, $this->data );
-            finfo_close( $finfo );
+        if (function_exists('finfo_open')) {
+            $resource = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($resource, $this->data);
+            finfo_close($finfo);
 
             return $mime;
         }
 
         //ok we have to do this manually
         //get this file extension
-        $extension = strtolower( $this->getExtension() );
+        $extension = strtolower($this->getExtension());
 
         //get the list of mimetypes stored locally
         $types = self::$mimeTypes;
@@ -320,7 +320,7 @@ class File extends Path
     public function getExtension()
     {
 
-        $pathInfo = pathinfo( $this->data );
+        $pathInfo = pathinfo($this->data);
 
         if (!isset( $pathInfo['extension'] )) {
             return null;
@@ -337,7 +337,7 @@ class File extends Path
     public function getName()
     {
 
-        return basename( $this->data );
+        return basename($this->data);
     }
 
     /**
@@ -350,7 +350,7 @@ class File extends Path
 
         $this->absolute();
 
-        return filesize( $this->data );
+        return filesize($this->data);
     }
 
     /**
@@ -363,7 +363,7 @@ class File extends Path
 
         $this->absolute();
 
-        return filemtime( $this->data );
+        return filemtime($this->data);
     }
 
     /**
@@ -373,10 +373,10 @@ class File extends Path
      *
      * @return Eden\System\File
      */
-    public function setData( $variable )
+    public function setData($variable)
     {
 
-        return $this->setContent( "<?php //-->\nreturn ".var_export( $variable, true ).";" );
+        return $this->setContent("<?php //-->\nreturn ".var_export($variable, true).";");
     }
 
     /**
@@ -386,19 +386,19 @@ class File extends Path
      *
      * @return Eden\System\File
      */
-    public function setContent( $content )
+    public function setContent($content)
     {
 
         //argument 1 must be string
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
 
         try {
             $this->absolute();
-        } catch( Exception $e ) {
+        } catch (Exception $e) {
             $this->touch();
         }
 
-        file_put_contents( $this->data, $content );
+        file_put_contents($this->data, $content);
 
         return $this;
     }
@@ -412,7 +412,7 @@ class File extends Path
     public function touch()
     {
 
-        touch( $this->data );
+        touch($this->data);
 
         return $this;
     }
@@ -428,9 +428,9 @@ class File extends Path
         $this->absolute();
 
         //if it's a file
-        if (is_file( $this->data )) {
+        if (is_file($this->data)) {
             //remove it
-            unlink( $this->data );
+            unlink($this->data);
 
             return $this;
         }

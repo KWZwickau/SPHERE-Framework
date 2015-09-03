@@ -22,22 +22,22 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
-        AutoLoader::getNamespaceAutoLoader( 'Eden\Mail',
+        AutoLoader::getNamespaceAutoLoader('Eden\Mail',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master',
             'Eden\Mail'
         );
-        AutoLoader::getNamespaceAutoLoader( 'Eden\Core',
+        AutoLoader::getNamespaceAutoLoader('Eden\Core',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master/vendor/eden/core/Eden/Core',
             'Eden\Core'
         );
-        AutoLoader::getNamespaceAutoLoader( 'Eden\System',
+        AutoLoader::getNamespaceAutoLoader('Eden\System',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master/vendor/eden/system/Eden/System',
             'Eden\System'
         );
-        AutoLoader::getNamespaceAutoLoader( 'Eden\Type',
+        AutoLoader::getNamespaceAutoLoader('Eden\Type',
             __DIR__.'/../../../Vendor/EdenPhpMail/1.0.3-Master/vendor/eden/type/Eden/Type',
             'Eden\Type'
         );
@@ -54,14 +54,14 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
      * @return EdenPhpSmtp
      * @throws MailException
      */
-    public function connectServer( $Host, $Username, $Password, $Port = null, $useSSL = false, $useTLS = false )
+    public function connectServer($Host, $Username, $Password, $Port = null, $useSSL = false, $useTLS = false)
     {
 
         try {
-            $this->Instance = new Smtp( $Host, $Username, $Password, $Port, $useSSL, $useTLS );
+            $this->Instance = new Smtp($Host, $Username, $Password, $Port, $useSSL, $useTLS);
             $this->Instance->connect();
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -76,8 +76,8 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
         try {
             $this->Instance->disconnect();
             $this->Instance->reset();
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -91,8 +91,8 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
 
         try {
             $this->Instance->send();
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -103,13 +103,13 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
      * @return EdenPhpSmtp
      * @throws MailException
      */
-    public function setMailSubject( $Content )
+    public function setMailSubject($Content)
     {
 
         try {
-            $this->Instance->setSubject( $Content );
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+            $this->Instance->setSubject($Content);
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -121,13 +121,13 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
      * @return EdenPhpSmtp
      * @throws MailException
      */
-    public function setMailBody( $Content, $useHtml = true )
+    public function setMailBody($Content, $useHtml = true)
     {
 
         try {
-            $this->Instance->setBody( $Content, $useHtml );
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+            $this->Instance->setBody($Content, $useHtml);
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -139,13 +139,13 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
      * @return EdenPhpSmtp
      * @throws MailException
      */
-    public function addRecipientTO( $Address, $Name = null )
+    public function addRecipientTO($Address, $Name = null)
     {
 
         try {
-            $this->Instance->addTo( $Address, $Name );
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+            $this->Instance->addTo($Address, $Name);
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -157,13 +157,13 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
      * @return EdenPhpSmtp
      * @throws MailException
      */
-    public function addRecipientCC( $Address, $Name = null )
+    public function addRecipientCC($Address, $Name = null)
     {
 
         try {
-            $this->Instance->addCC( $Address, $Name );
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+            $this->Instance->addCC($Address, $Name);
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -175,13 +175,13 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
      * @return EdenPhpSmtp
      * @throws MailException
      */
-    public function addRecipientBCC( $Address, $Name = null )
+    public function addRecipientBCC($Address, $Name = null)
     {
 
         try {
-            $this->Instance->addBCC( $Address, $Name );
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+            $this->Instance->addBCC($Address, $Name);
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }
@@ -192,14 +192,14 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
      * @return EdenPhpSmtp
      * @throws MailException
      */
-    public function addAttachment( FileParameter $File )
+    public function addAttachment(FileParameter $File)
     {
 
         try {
-            $this->Instance->addAttachment( $File->getFileInfo()->getFilename(),
-                file_get_contents( $File->getFileInfo()->getRealPath() ) );
-        } catch( \Exception $Exception ) {
-            throw new MailException( $Exception->getMessage(), $Exception->getCode(), $Exception );
+            $this->Instance->addAttachment($File->getFileInfo()->getFilename(),
+                file_get_contents($File->getFileInfo()->getRealPath()));
+        } catch (\Exception $Exception) {
+            throw new MailException($Exception->getMessage(), $Exception->getCode(), $Exception);
         }
         return $this;
     }

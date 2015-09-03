@@ -19,6 +19,7 @@ namespace Symfony\Component\Console\Input;
  */
 interface InputAwareInterface
 {
+
     /**
      * Sets the Console Input.
      *

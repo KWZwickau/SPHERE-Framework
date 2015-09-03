@@ -19,15 +19,16 @@
 
 namespace Doctrine\DBAL\Id;
 
-use Doctrine\DBAL\Schema\Table;
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\DBAL\Schema\ForeignKeyConstraint;
-use Doctrine\DBAL\Schema\Sequence;
 use Doctrine\DBAL\Schema\Index;
+use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\Sequence;
+use Doctrine\DBAL\Schema\Table;
 
 class TableGeneratorSchemaVisitor implements \Doctrine\DBAL\Schema\Visitor\Visitor
 {
+
     /**
      * @var string
      */
@@ -38,6 +39,7 @@ class TableGeneratorSchemaVisitor implements \Doctrine\DBAL\Schema\Visitor\Visit
      */
     public function __construct($generatorTableName = 'sequences')
     {
+
         $this->generatorTableName = $generatorTableName;
     }
 
@@ -46,6 +48,7 @@ class TableGeneratorSchemaVisitor implements \Doctrine\DBAL\Schema\Visitor\Visit
      */
     public function acceptSchema(Schema $schema)
     {
+
         $table = $schema->createTable($this->generatorTableName);
         $table->addColumn('sequence_name', 'string');
         $table->addColumn('sequence_value', 'integer', array('default' => 1));

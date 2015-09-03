@@ -28,6 +28,7 @@ namespace Doctrine\ORM\Query;
  */
 class Parameter
 {
+
     /**
      * The parameter name.
      *
@@ -58,6 +59,7 @@ class Parameter
      */
     public function __construct($name, $value, $type = null)
     {
+
         $this->name = trim($name, ':');
 
         $this->setValue($value, $type);
@@ -70,6 +72,7 @@ class Parameter
      */
     public function getName()
     {
+
         return $this->name;
     }
 
@@ -80,17 +83,8 @@ class Parameter
      */
     public function getValue()
     {
-        return $this->value;
-    }
 
-    /**
-     * Retrieves the Parameter type.
-     *
-     * @return mixed
-     */
-    public function getType()
-    {
-        return $this->type;
+        return $this->value;
     }
 
     /**
@@ -101,7 +95,19 @@ class Parameter
      */
     public function setValue($value, $type = null)
     {
+
         $this->value = $value;
-        $this->type  = $type ?: ParameterTypeInferer::inferType($value);
+        $this->type = $type ?: ParameterTypeInferer::inferType($value);
+    }
+
+    /**
+     * Retrieves the Parameter type.
+     *
+     * @return mixed
+     */
+    public function getType()
+    {
+
+        return $this->type;
     }
 }

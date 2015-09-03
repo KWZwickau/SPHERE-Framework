@@ -60,7 +60,7 @@ class User extends Nette\Object
     private $context;
 
 
-    public function __construct( IUserStorage $storage, Nette\DI\Container $context )
+    public function __construct(IUserStorage $storage, Nette\DI\Container $context)
     {
 
         $this->storage = $storage;
@@ -90,17 +90,17 @@ class User extends Nette\Object
      * @return void
      * @throws AuthenticationException if authentication was not successful
      */
-    public function login( $id = null, $password = null )
+    public function login($id = null, $password = null)
     {
 
-        $this->logout( true );
+        $this->logout(true);
         if (!$id instanceof IIdentity) {
             $credentials = func_get_args();
-            $id = $this->getAuthenticator()->authenticate( $credentials );
+            $id = $this->getAuthenticator()->authenticate($credentials);
         }
-        $this->storage->setIdentity( $id );
-        $this->storage->setAuthenticated( true );
-        $this->onLoggedIn( $this );
+        $this->storage->setIdentity($id);
+        $this->storage->setAuthenticated(true);
+        $this->onLoggedIn($this);
     }
 
 
@@ -111,15 +111,15 @@ class User extends Nette\Object
      *
      * @return void
      */
-    final public function logout( $clearIdentity = false )
+    final public function logout($clearIdentity = false)
     {
 
         if ($this->isLoggedIn()) {
-            $this->onLoggedOut( $this );
-            $this->storage->setAuthenticated( false );
+            $this->onLoggedOut($this);
+            $this->storage->setAuthenticated(false);
         }
         if ($clearIdentity) {
-            $this->storage->setIdentity( null );
+            $this->storage->setIdentity(null);
         }
     }
 
@@ -143,7 +143,7 @@ class User extends Nette\Object
     final public function getAuthenticator()
     {
 
-        return $this->authenticator ?: $this->context->getByType( 'Nette\Security\IAuthenticator' );
+        return $this->authenticator ?: $this->context->getByType('Nette\Security\IAuthenticator');
     }
 
     /**
@@ -153,7 +153,7 @@ class User extends Nette\Object
      *
      * @return User  provides a fluent interface
      */
-    public function setAuthenticator( IAuthenticator $handler )
+    public function setAuthenticator(IAuthenticator $handler)
     {
 
         $this->authenticator = $handler;
@@ -192,11 +192,11 @@ class User extends Nette\Object
      *
      * @return User  provides a fluent interface
      */
-    public function setExpiration( $time, $whenBrowserIsClosed = true, $clearIdentity = false )
+    public function setExpiration($time, $whenBrowserIsClosed = true, $clearIdentity = false)
     {
 
         $flags = ( $whenBrowserIsClosed ? IUserStorage::BROWSER_CLOSED : 0 ) | ( $clearIdentity ? IUserStorage::CLEAR_IDENTITY : 0 );
-        $this->storage->setExpiration( $time, $flags );
+        $this->storage->setExpiration($time, $flags);
         return $this;
     }
 
@@ -223,10 +223,10 @@ class User extends Nette\Object
      *
      * @return bool
      */
-    final public function isInRole( $role )
+    final public function isInRole($role)
     {
 
-        return in_array( $role, $this->getRoles(), true );
+        return in_array($role, $this->getRoles(), true);
     }
 
     /**
@@ -238,11 +238,11 @@ class User extends Nette\Object
     {
 
         if (!$this->isLoggedIn()) {
-            return array( $this->guestRole );
+            return array($this->guestRole);
         }
 
         $identity = $this->getIdentity();
-        return $identity && $identity->getRoles() ? $identity->getRoles() : array( $this->authenticatedRole );
+        return $identity && $identity->getRoles() ? $identity->getRoles() : array($this->authenticatedRole);
     }
 
     /**
@@ -254,12 +254,12 @@ class User extends Nette\Object
      *
      * @return bool
      */
-    public function isAllowed( $resource = IAuthorizator::ALL, $privilege = IAuthorizator::ALL )
+    public function isAllowed($resource = IAuthorizator::ALL, $privilege = IAuthorizator::ALL)
     {
 
         $authorizator = $this->getAuthorizator();
         foreach ($this->getRoles() as $role) {
-            if ($authorizator->isAllowed( $role, $resource, $privilege )) {
+            if ($authorizator->isAllowed($role, $resource, $privilege)) {
                 return true;
             }
         }
@@ -275,7 +275,7 @@ class User extends Nette\Object
     final public function getAuthorizator()
     {
 
-        return $this->authorizator ?: $this->context->getByType( 'Nette\Security\IAuthorizator' );
+        return $this->authorizator ?: $this->context->getByType('Nette\Security\IAuthorizator');
     }
 
     /**
@@ -285,7 +285,7 @@ class User extends Nette\Object
      *
      * @return User  provides a fluent interface
      */
-    public function setAuthorizator( IAuthorizator $handler )
+    public function setAuthorizator(IAuthorizator $handler)
     {
 
         $this->authorizator = $handler;
@@ -297,11 +297,11 @@ class User extends Nette\Object
     /********************* deprecated ****************d*g**/
 
     /** @deprecated */
-    function setNamespace( $namespace )
+    function setNamespace($namespace)
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use getStorage()->setNamespace() instead.', E_USER_WARNING );
-        $this->storage->setNamespace( $namespace );
+        trigger_error(__METHOD__.'() is deprecated; use getStorage()->setNamespace() instead.', E_USER_WARNING);
+        $this->storage->setNamespace($namespace);
         return $this;
     }
 
@@ -309,24 +309,24 @@ class User extends Nette\Object
     function getNamespace()
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use getStorage()->getNamespace() instead.', E_USER_WARNING );
+        trigger_error(__METHOD__.'() is deprecated; use getStorage()->getNamespace() instead.', E_USER_WARNING);
         return $this->storage->getNamespace();
     }
 
     /** @deprecated */
-    function setAuthenticationHandler( $v )
+    function setAuthenticationHandler($v)
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use setAuthenticator() instead.', E_USER_WARNING );
-        return $this->setAuthenticator( $v );
+        trigger_error(__METHOD__.'() is deprecated; use setAuthenticator() instead.', E_USER_WARNING);
+        return $this->setAuthenticator($v);
     }
 
     /** @deprecated */
-    function setAuthorizationHandler( $v )
+    function setAuthorizationHandler($v)
     {
 
-        trigger_error( __METHOD__.'() is deprecated; use setAuthorizator() instead.', E_USER_WARNING );
-        return $this->setAuthorizator( $v );
+        trigger_error(__METHOD__.'() is deprecated; use setAuthorizator() instead.', E_USER_WARNING);
+        return $this->setAuthorizator($v);
     }
 
 }

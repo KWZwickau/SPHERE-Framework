@@ -28,11 +28,13 @@ use Symfony\Component\HttpKernel\Log\DebugLoggerInterface;
  */
 class ExceptionListener implements EventSubscriberInterface
 {
+
     protected $controller;
     protected $logger;
 
     public function __construct($controller, LoggerInterface $logger = null)
     {
+
         $this->controller = $controller;
         $this->logger = $logger;
     }
@@ -41,12 +43,13 @@ class ExceptionListener implements EventSubscriberInterface
     {
 
         return array(
-            KernelEvents::EXCEPTION => array( 'onKernelException', -128 ),
+            KernelEvents::EXCEPTION => array('onKernelException', -128),
         );
     }
 
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
+
         static $handling;
 
         if (true === $handling) {
@@ -58,14 +61,18 @@ class ExceptionListener implements EventSubscriberInterface
         $exception = $event->getException();
         $request = $event->getRequest();
 
-        $this->logException($exception, sprintf('Uncaught PHP Exception %s: "%s" at %s line %s', get_class($exception), $exception->getMessage(), $exception->getFile(), $exception->getLine()));
+        $this->logException($exception,
+            sprintf('Uncaught PHP Exception %s: "%s" at %s line %s', get_class($exception), $exception->getMessage(),
+                $exception->getFile(), $exception->getLine()));
 
         $request = $this->duplicateRequest($exception, $request);
 
         try {
             $response = $event->getKernel()->handle($request, HttpKernelInterface::SUB_REQUEST, true);
         } catch (\Exception $e) {
-            $this->logException($exception, sprintf('Exception thrown when handling an exception (%s: %s)', get_class($e), $e->getMessage()), false);
+            $this->logException($exception,
+                sprintf('Exception thrown when handling an exception (%s: %s)', get_class($e), $e->getMessage()),
+                false);
 
             // set handling to false otherwise it wont be able to handle further more
             $handling = false;
@@ -88,6 +95,7 @@ class ExceptionListener implements EventSubscriberInterface
      */
     protected function logException(\Exception $exception, $message, $original = true)
     {
+
         $isCritical = !$exception instanceof HttpExceptionInterface || $exception->getStatusCode() >= 500;
         $context = array('exception' => $exception);
         if (null !== $this->logger) {
@@ -111,14 +119,15 @@ class ExceptionListener implements EventSubscriberInterface
      */
     protected function duplicateRequest(\Exception $exception, Request $request)
     {
+
         $attributes = array(
             '_controller' => $this->controller,
             'exception' => FlattenException::create($exception),
-            'logger' => $this->logger instanceof DebugLoggerInterface ? $this->logger : null,
+            'logger'    => $this->logger instanceof DebugLoggerInterface ? $this->logger : null,
             // keep for BC -- as $format can be an argument of the controller callable
             // see src/Symfony/Bundle/TwigBundle/Controller/ExceptionController.php
             // @deprecated in 2.4, to be removed in 3.0
-            'format' => $request->getRequestFormat(),
+            'format'    => $request->getRequestFormat(),
         );
         $request = $request->duplicate(null, null, $attributes);
         $request->setMethod('GET');

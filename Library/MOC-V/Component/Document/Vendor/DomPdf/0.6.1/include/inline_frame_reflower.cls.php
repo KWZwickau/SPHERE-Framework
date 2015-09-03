@@ -15,22 +15,22 @@
 class Inline_Frame_Reflower extends Frame_Reflower
 {
 
-    function __construct( Frame $frame )
+    function __construct(Frame $frame)
     {
 
-        parent::__construct( $frame );
+        parent::__construct($frame);
     }
 
     //........................................................................
 
-    function reflow( Block_Frame_Decorator $block = null )
+    function reflow(Block_Frame_Decorator $block = null)
     {
 
         $frame = $this->_frame;
 
         // Check if a page break is forced
         $page = $frame->get_root();
-        $page->check_forced_page_break( $frame );
+        $page->check_forced_page_break($frame);
 
         if ($page->is_full()) {
             return;
@@ -61,14 +61,14 @@ class Inline_Frame_Reflower extends Frame_Reflower
         }
 
         if ($block) {
-            $block->add_frame_to_line( $this->_frame );
+            $block->add_frame_to_line($this->_frame);
         }
 
         // Set the containing blocks and reflow each child.  The containing
         // block is not changed by line boxes.
         foreach ($frame->get_children() as $child) {
-            $child->set_containing_block( $cb );
-            $child->reflow( $block );
+            $child->set_containing_block($cb);
+            $child->reflow($block);
         }
     }
 }

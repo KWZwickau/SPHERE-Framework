@@ -2,4 +2,5 @@
 
 trait ClassLoaderTest_TraitA
 {
+
 }

@@ -30,6 +30,7 @@ namespace Doctrine\ORM\Query\AST;
  */
 class DeleteStatement extends Node
 {
+
     /**
      * @var DeleteClause
      */
@@ -45,6 +46,7 @@ class DeleteStatement extends Node
      */
     public function __construct($deleteClause)
     {
+
         $this->deleteClause = $deleteClause;
     }
 
@@ -53,6 +55,7 @@ class DeleteStatement extends Node
      */
     public function dispatch($sqlWalker)
     {
+
         return $sqlWalker->walkDeleteStatement($this);
     }
 }

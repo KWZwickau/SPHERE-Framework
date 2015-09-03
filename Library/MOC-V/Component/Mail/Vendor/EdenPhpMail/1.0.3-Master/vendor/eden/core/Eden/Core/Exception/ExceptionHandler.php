@@ -32,14 +32,14 @@ class ExceptionHandler extends Event
      *
      * @return void
      */
-    public function handler( \Exception $e )
+    public function handler(\Exception $e)
     {
 
         //by default set LOGIC ERROR
         $type = Exception::LOGIC;
         $level = Exception::ERROR;
         $offset = 1;
-        $reporter = get_class( $e );
+        $reporter = get_class($e);
 
         $trace = $e->getTrace();
         $message = $e->getMessage();
@@ -58,7 +58,7 @@ class ExceptionHandler extends Event
         $this->trigger(
             'exception', $type, $level,
             $reporter, $e->getFile(), $e->getLine(),
-            $message, $trace, $offset );
+            $message, $trace, $offset);
     }
 
     /**
@@ -81,7 +81,7 @@ class ExceptionHandler extends Event
     public function register()
     {
 
-        set_exception_handler( array( $this, 'handler' ) );
+        set_exception_handler(array($this, 'handler'));
         return $this;
     }
 }

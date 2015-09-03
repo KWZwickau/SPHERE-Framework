@@ -16,4 +16,5 @@ use DomDocument;
  */
 class SnapshotDomDocument extends DomDocument
 {
+
 }

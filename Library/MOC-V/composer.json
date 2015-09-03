@@ -1,15 +1,53 @@
 {
-  "name": "derdu/moc-framework-mark-v",
-  "description": "Mind the task - forget the obstacles...",
-  "minimum-stability": "stable",
-  "license": "proprietary",
-  "authors": [
-    {
-      "name": "DerDu",
-      "email": "gerdchristian.kunze@googlemail.com"
+    "name": "moc-framework/mark-v",
+    "description": "Mind the task - forget the obstacles...",
+    "keywords": [
+        "captcha",
+        "database",
+        "dbal",
+        "orm",
+        "mysql",
+        "mssql",
+        "oracle",
+        "pgsql",
+        "document",
+        "pdf",
+        "excel",
+        "mail",
+        "smtp",
+        "imap",
+        "pop3",
+        "router",
+        "symfony",
+        "template",
+        "smarty",
+        "twig",
+        "autoloader",
+        "namespace",
+        "psr",
+        "filesystem",
+        "http",
+        "request",
+        "secure",
+        "sftp"
+    ],
+    "license": "BSD-3-Clause",
+    "minimum-stability": "stable",
+    "authors": [
+        {
+            "name": "DerDu",
+            "email": "gerdchristian.kunze@googlemail.com",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/DerDu/MOC-Framework-Mark-V/issues",
+        "docs": "http://derdu.github.io/MOC-Framework-Mark-V/"
+    },
+    "require": {
+        "php": ">=5.4.3"
+    },
+    "require-dev": {
+        "codeclimate/php-test-reporter": "dev-master"
     }
-  ],
-  "require-dev": {
-    "codeclimate/php-test-reporter": "dev-master"
-  }
 }

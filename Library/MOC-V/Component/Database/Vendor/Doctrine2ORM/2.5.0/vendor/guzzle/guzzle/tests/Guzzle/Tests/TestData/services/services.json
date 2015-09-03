@@ -30,12 +30,12 @@
     },
 
     "test.simple_db": {
-        "class":   "Guzzle\\Service\\Aws\\SimpleDb\\SimpleDbClient",
+        "class": "Guzzle\\Service\\Aws\\SimpleDb\\SimpleDbClient",
         "extends": "test.abstract.aws"
     },
 
     "test.sqs": {
-        "class":   "Guzzle\\Service\\Aws\\Sqs\\SqsClient",
+        "class": "Guzzle\\Service\\Aws\\Sqs\\SqsClient",
         "extends": "test.abstract.aws"
     },
 

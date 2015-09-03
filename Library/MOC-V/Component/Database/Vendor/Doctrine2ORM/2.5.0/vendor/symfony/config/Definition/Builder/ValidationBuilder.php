@@ -18,8 +18,9 @@ namespace Symfony\Component\Config\Definition\Builder;
  */
 class ValidationBuilder
 {
-    protected $node;
+
     public $rules = array();
+    protected $node;
 
     /**
      * Constructor.
@@ -28,6 +29,7 @@ class ValidationBuilder
      */
     public function __construct(NodeDefinition $node)
     {
+
         $this->node = $node;
     }
 
@@ -40,6 +42,7 @@ class ValidationBuilder
      */
     public function rule(\Closure $closure = null)
     {
+
         if (null !== $closure) {
             $this->rules[] = $closure;
 

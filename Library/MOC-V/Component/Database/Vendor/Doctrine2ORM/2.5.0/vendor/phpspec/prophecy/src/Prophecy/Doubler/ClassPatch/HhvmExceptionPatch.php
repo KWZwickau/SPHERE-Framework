@@ -20,6 +20,7 @@ use Prophecy\Doubler\Generator\Node\ClassNode;
  */
 class HhvmExceptionPatch implements ClassPatchInterface
 {
+
     /**
      * Supports exceptions on HHVM.
      *
@@ -29,6 +30,7 @@ class HhvmExceptionPatch implements ClassPatchInterface
      */
     public function supports(ClassNode $node)
     {
+
         if (!defined('HHVM_VERSION')) {
             return false;
         }
@@ -45,6 +47,7 @@ class HhvmExceptionPatch implements ClassPatchInterface
      */
     public function apply(ClassNode $node)
     {
+
         if ($node->hasMethod('setTraceOptions')) {
             $node->getMethod('setTraceOptions')->useParentCode();
         }
@@ -58,6 +61,7 @@ class HhvmExceptionPatch implements ClassPatchInterface
      */
     public function getPriority()
     {
+
         return -50;
     }
 }

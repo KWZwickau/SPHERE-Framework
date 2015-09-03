@@ -39,6 +39,7 @@ use Symfony\Component\Routing\RequestContextAwareInterface;
  */
 class RouterListener implements EventSubscriberInterface
 {
+
     private $matcher;
     private $context;
     private $logger;
@@ -57,8 +58,13 @@ class RouterListener implements EventSubscriberInterface
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct($matcher, RequestContext $context = null, LoggerInterface $logger = null, RequestStack $requestStack = null)
-    {
+    public function __construct(
+        $matcher,
+        RequestContext $context = null,
+        LoggerInterface $logger = null,
+        RequestStack $requestStack = null
+    ) {
+
         if (!$matcher instanceof UrlMatcherInterface && !$matcher instanceof RequestMatcherInterface) {
             throw new \InvalidArgumentException('Matcher must either implement UrlMatcherInterface or RequestMatcherInterface.');
         }
@@ -77,19 +83,19 @@ class RouterListener implements EventSubscriberInterface
     {
 
         return array(
-            KernelEvents::REQUEST        => array( array( 'onKernelRequest', 32 ) ),
-            KernelEvents::FINISH_REQUEST => array( array( 'onKernelFinishRequest', 0 ) ),
+            KernelEvents::REQUEST        => array(array('onKernelRequest', 32)),
+            KernelEvents::FINISH_REQUEST => array(array('onKernelFinishRequest', 0)),
         );
     }
 
-    public function onKernelFinishRequest( FinishRequestEvent $event )
+    public function onKernelFinishRequest(FinishRequestEvent $event)
     {
 
         if (null === $this->requestStack) {
             return; // removed when requestStack is required
         }
 
-        $this->setRequest( $this->requestStack->getParentRequest() );
+        $this->setRequest($this->requestStack->getParentRequest());
     }
 
     /**
@@ -105,6 +111,7 @@ class RouterListener implements EventSubscriberInterface
      */
     public function setRequest(Request $request = null)
     {
+
         if (null !== $request && $this->request !== $request) {
             $this->context->fromRequest($request);
         }
@@ -113,6 +120,7 @@ class RouterListener implements EventSubscriberInterface
 
     public function onKernelRequest(GetResponseEvent $event)
     {
+
         $request = $event->getRequest();
 
         // initialize the context that is also used by the generator (assuming matcher and generator share the same context instance)
@@ -138,12 +146,13 @@ class RouterListener implements EventSubscriberInterface
             }
 
             if (null !== $this->logger) {
-                $this->logger->info(sprintf('Matched route "%s" (parameters: %s)', $parameters['_route'], $this->parametersToString($parameters)));
+                $this->logger->info(sprintf('Matched route "%s" (parameters: %s)', $parameters['_route'],
+                    $this->parametersToString($parameters)));
             }
 
             $request->attributes->add($parameters);
-            unset($parameters['_route']);
-            unset($parameters['_controller']);
+            unset( $parameters['_route'] );
+            unset( $parameters['_controller'] );
             $request->attributes->set('_route_params', $parameters);
         } catch (ResourceNotFoundException $e) {
             $message = sprintf('No route found for "%s %s"', $request->getMethod(), $request->getPathInfo());
@@ -154,7 +163,8 @@ class RouterListener implements EventSubscriberInterface
 
             throw new NotFoundHttpException($message, $e);
         } catch (MethodNotAllowedException $e) {
-            $message = sprintf('No route found for "%s %s": Method Not Allowed (Allow: %s)', $request->getMethod(), $request->getPathInfo(), implode(', ', $e->getAllowedMethods()));
+            $message = sprintf('No route found for "%s %s": Method Not Allowed (Allow: %s)', $request->getMethod(),
+                $request->getPathInfo(), implode(', ', $e->getAllowedMethods()));
 
             throw new MethodNotAllowedHttpException($e->getAllowedMethods(), $message, $e);
         }
@@ -162,9 +172,10 @@ class RouterListener implements EventSubscriberInterface
 
     private function parametersToString(array $parameters)
     {
+
         $pieces = array();
         foreach ($parameters as $key => $val) {
-            $pieces[] = sprintf('"%s": "%s"', $key, (is_string($val) ? $val : json_encode($val)));
+            $pieces[] = sprintf('"%s": "%s"', $key, ( is_string($val) ? $val : json_encode($val) ));
         }
 
         return implode(', ', $pieces);

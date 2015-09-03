@@ -28,6 +28,7 @@ namespace Doctrine\DBAL\Schema;
  */
 class ColumnDiff
 {
+
     /**
      * @var string
      */
@@ -54,8 +55,13 @@ class ColumnDiff
      * @param string[] $changedProperties
      * @param Column   $fromColumn
      */
-    public function __construct($oldColumnName, Column $column, array $changedProperties = array(), Column $fromColumn = null)
-    {
+    public function __construct(
+        $oldColumnName,
+        Column $column,
+        array $changedProperties = array(),
+        Column $fromColumn = null
+    ) {
+
         $this->oldColumnName = $oldColumnName;
         $this->column = $column;
         $this->changedProperties = $changedProperties;
@@ -69,6 +75,7 @@ class ColumnDiff
      */
     public function hasChanged($propertyName)
     {
+
         return in_array($propertyName, $this->changedProperties);
     }
 
@@ -77,6 +84,7 @@ class ColumnDiff
      */
     public function getOldColumnName()
     {
+
         return new Identifier($this->oldColumnName);
     }
 }

@@ -20,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 interface DescriptorInterface
 {
+
     /**
      * Describes an InputArgument instance.
      *

@@ -2,8 +2,8 @@
 
 namespace Guzzle\Tests\Plugin\Backoff;
 
-use Guzzle\Plugin\Backoff\ReasonPhraseBackoffStrategy;
 use Guzzle\Http\Message\Response;
+use Guzzle\Plugin\Backoff\ReasonPhraseBackoffStrategy;
 
 /**
  * @covers Guzzle\Plugin\Backoff\ReasonPhraseBackoffStrategy
@@ -11,8 +11,10 @@ use Guzzle\Http\Message\Response;
  */
 class ReasonPhraseBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testRetriesWhenCodeMatches()
     {
+
         $this->assertEmpty(ReasonPhraseBackoffStrategy::getDefaultFailureCodes());
         $strategy = new ReasonPhraseBackoffStrategy(array('Foo', 'Internal Server Error'));
         $this->assertTrue($strategy->makesDecision());
@@ -25,6 +27,7 @@ class ReasonPhraseBackoffStrategyTest extends \Guzzle\Tests\GuzzleTestCase
 
     public function testIgnoresNonErrors()
     {
+
         $strategy = new ReasonPhraseBackoffStrategy();
         $request = $this->getMock('Guzzle\Http\Message\Request', array(), array(), '', false);
         $this->assertEquals(false, $strategy->getBackoffPeriod(0, $request));

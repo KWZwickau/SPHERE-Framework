@@ -15,6 +15,7 @@
  */
 class PHPUnit_Extensions_RepeatedTest extends PHPUnit_Extensions_TestDecorator
 {
+
     /**
      * @var bool
      */
@@ -26,17 +27,20 @@ class PHPUnit_Extensions_RepeatedTest extends PHPUnit_Extensions_TestDecorator
     protected $timesRepeat = 1;
 
     /**
-     * @param  PHPUnit_Framework_Test      $test
-     * @param  int                         $timesRepeat
-     * @param  bool                        $processIsolation
+     * @param  PHPUnit_Framework_Test $test
+     * @param  int                    $timesRepeat
+     * @param  bool                   $processIsolation
+     *
      * @throws PHPUnit_Framework_Exception
      */
     public function __construct(PHPUnit_Framework_Test $test, $timesRepeat = 1, $processIsolation = false)
     {
+
         parent::__construct($test);
 
         if (is_integer($timesRepeat) &&
-            $timesRepeat >= 0) {
+            $timesRepeat >= 0
+        ) {
             $this->timesRepeat = $timesRepeat;
         } else {
             throw PHPUnit_Util_InvalidArgumentHelper::factory(
@@ -56,6 +60,7 @@ class PHPUnit_Extensions_RepeatedTest extends PHPUnit_Extensions_TestDecorator
      */
     public function count()
     {
+
         return $this->timesRepeat * count($this->test);
     }
 
@@ -64,11 +69,13 @@ class PHPUnit_Extensions_RepeatedTest extends PHPUnit_Extensions_TestDecorator
      * result in a TestResult.
      *
      * @param  PHPUnit_Framework_TestResult $result
+     *
      * @return PHPUnit_Framework_TestResult
      * @throws PHPUnit_Framework_Exception
      */
     public function run(PHPUnit_Framework_TestResult $result = null)
     {
+
         if ($result === null) {
             $result = $this->createResult();
         }

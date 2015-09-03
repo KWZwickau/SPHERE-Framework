@@ -35,6 +35,7 @@ use Doctrine\Common\Persistence\Mapping\MappingException;
  */
 class StaticPHPDriver implements MappingDriver
 {
+
     /**
      * Paths of entity directories.
      *
@@ -56,7 +57,8 @@ class StaticPHPDriver implements MappingDriver
      */
     public function __construct($paths)
     {
-        $this->addPaths((array) $paths);
+
+        $this->addPaths((array)$paths);
     }
 
     /**
@@ -68,6 +70,7 @@ class StaticPHPDriver implements MappingDriver
      */
     public function addPaths(array $paths)
     {
+
         $this->paths = array_unique(array_merge($this->paths, $paths));
     }
 
@@ -76,6 +79,7 @@ class StaticPHPDriver implements MappingDriver
      */
     public function loadMetadataForClass($className, ClassMetadata $metadata)
     {
+
         $className::loadMetadata($metadata);
     }
 
@@ -85,6 +89,7 @@ class StaticPHPDriver implements MappingDriver
      */
     public function getAllClassNames()
     {
+
         if ($this->classNames !== null) {
             return $this->classNames;
         }
@@ -137,6 +142,7 @@ class StaticPHPDriver implements MappingDriver
      */
     public function isTransient($className)
     {
-        return ! method_exists($className, 'loadMetadata');
+
+        return !method_exists($className, 'loadMetadata');
     }
 }

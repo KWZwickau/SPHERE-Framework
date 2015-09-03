@@ -30,15 +30,15 @@ final class TexyScriptModule extends TexyModule
     public $separator = ',';
 
 
-    public function __construct( $texy )
+    public function __construct($texy)
     {
 
         $this->texy = $texy;
 
-        $texy->addHandler( 'script', array( $this, 'solve' ) );
+        $texy->addHandler('script', array($this, 'solve'));
 
         $texy->registerLinePattern(
-            array( $this, 'pattern' ),
+            array($this, 'pattern'),
             '#\{\{([^'.TEXY_MARK.']+)\}\}()#U',
             'script'
         );
@@ -54,43 +54,43 @@ final class TexyScriptModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function pattern( $parser, $matches )
+    public function pattern($parser, $matches)
     {
 
         list( , $mContent ) = $matches;
         //    [1] => ...
 
-        $cmd = trim( $mContent );
+        $cmd = trim($mContent);
         if ($cmd === '') {
             return false;
         }
 
         $args = $raw = null;
         // function(arg, arg, ...)  or  function: arg, arg
-        if (preg_match( '#^([a-z_][a-z0-9_-]*)\s*(?:\(([^()]*)\)|:(.*))$#iu', $cmd, $matches )) {
+        if (preg_match('#^([a-z_][a-z0-9_-]*)\s*(?:\(([^()]*)\)|:(.*))$#iu', $cmd, $matches)) {
             $cmd = $matches[1];
-            $raw = isset( $matches[3] ) ? trim( $matches[3] ) : trim( $matches[2] );
+            $raw = isset( $matches[3] ) ? trim($matches[3]) : trim($matches[2]);
             if ($raw === '') {
                 $args = array();
             } else {
-                $args = preg_split( '#\s*'.preg_quote( $this->separator, '#' ).'\s*#u', $raw );
+                $args = preg_split('#\s*'.preg_quote($this->separator, '#').'\s*#u', $raw);
             }
         }
 
         // Texy 1.x way
         if ($this->handler) {
-            if (is_callable( array( $this->handler, $cmd ) )) {
-                array_unshift( $args, $parser );
-                return call_user_func_array( array( $this->handler, $cmd ), $args );
+            if (is_callable(array($this->handler, $cmd))) {
+                array_unshift($args, $parser);
+                return call_user_func_array(array($this->handler, $cmd), $args);
             }
 
-            if (is_callable( $this->handler )) {
-                return call_user_func_array( $this->handler, array( $parser, $cmd, $args, $raw ) );
+            if (is_callable($this->handler)) {
+                return call_user_func_array($this->handler, array($parser, $cmd, $args, $raw));
             }
         }
 
         // Texy 2 way
-        return $this->texy->invokeAroundHandlers( 'script', $parser, array( $cmd, $args, $raw ) );
+        return $this->texy->invokeAroundHandlers('script', $parser, array($cmd, $args, $raw));
     }
 
 
@@ -104,7 +104,7 @@ final class TexyScriptModule extends TexyModule
      *
      * @return TexyHtml|string|FALSE
      */
-    public function solve( $invocation, $cmd, $args, $raw )
+    public function solve($invocation, $cmd, $args, $raw)
     {
 
         if ($cmd === 'texy') {

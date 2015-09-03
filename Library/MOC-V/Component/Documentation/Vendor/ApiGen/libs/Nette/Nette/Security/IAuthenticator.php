@@ -40,6 +40,6 @@ interface IAuthenticator
      * @return IIdentity
      * @throws AuthenticationException
      */
-    function authenticate( array $credentials );
+    function authenticate(array $credentials);
 
 }

@@ -11,8 +11,10 @@ use Guzzle\Plugin\Cache\DenyRevalidation;
  */
 class DenyRevalidationTest extends \Guzzle\Tests\GuzzleTestCase
 {
+
     public function testDeniesRequestRevalidation()
     {
+
         $deny = new DenyRevalidation();
         $this->assertFalse($deny->revalidate(new Request('GET', 'http://foo.com'), new Response(200)));
     }

@@ -2,8 +2,6 @@
 
 namespace Guzzle\Batch;
 
-use Guzzle\Batch\BatchTransferInterface;
-use Guzzle\Batch\BatchDivisorInterface;
 use Guzzle\Common\Exception\InvalidArgumentException;
 use Guzzle\Http\Message\RequestInterface;
 
@@ -13,6 +11,7 @@ use Guzzle\Http\Message\RequestInterface;
  */
 class BatchRequestTransfer implements BatchTransferInterface, BatchDivisorInterface
 {
+
     /** @var int Size of each command batch */
     protected $batchSize;
 
@@ -23,6 +22,7 @@ class BatchRequestTransfer implements BatchTransferInterface, BatchDivisorInterf
      */
     public function __construct($batchSize = 50)
     {
+
         $this->batchSize = $batchSize;
     }
 
@@ -32,6 +32,7 @@ class BatchRequestTransfer implements BatchTransferInterface, BatchDivisorInterf
      */
     public function createBatches(\SplQueue $queue)
     {
+
         // Create batches by client objects
         $groups = new \SplObjectStorage();
         foreach ($queue as $item) {
@@ -58,6 +59,7 @@ class BatchRequestTransfer implements BatchTransferInterface, BatchDivisorInterf
 
     public function transfer(array $batch)
     {
+
         if ($batch) {
             reset($batch)->getClient()->send($batch);
         }

@@ -11,8 +11,8 @@
 
 namespace Symfony\Component\Config\Tests\Definition\Builder;
 
-use Symfony\Component\Config\Tests\Definition\Builder\NodeBuilder as CustomNodeBuilder;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Tests\Definition\Builder\NodeBuilder as CustomNodeBuilder;
 
 require __DIR__.'/../../Fixtures/Builder/NodeBuilder.php';
 require __DIR__.'/../../Fixtures/Builder/BarNodeDefinition.php';
@@ -20,8 +20,10 @@ require __DIR__.'/../../Fixtures/Builder/VariableNodeDefinition.php';
 
 class TreeBuilderTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testUsingACustomNodeBuilder()
     {
+
         $builder = new TreeBuilder();
         $root = $builder->root('custom', 'array', new CustomNodeBuilder());
 
@@ -36,16 +38,19 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testOverrideABuiltInNodeType()
     {
+
         $builder = new TreeBuilder();
         $root = $builder->root('override', 'array', new CustomNodeBuilder());
 
         $definition = $root->children()->variableNode('variable');
 
-        $this->assertInstanceOf('Symfony\Component\Config\Tests\Definition\Builder\VariableNodeDefinition', $definition);
+        $this->assertInstanceOf('Symfony\Component\Config\Tests\Definition\Builder\VariableNodeDefinition',
+            $definition);
     }
 
     public function testAddANodeType()
     {
+
         $builder = new TreeBuilder();
         $root = $builder->root('override', 'array', new CustomNodeBuilder());
 
@@ -56,6 +61,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testCreateABuiltInNodeTypeWithACustomNodeBuilder()
     {
+
         $builder = new TreeBuilder();
         $root = $builder->root('builtin', 'array', new CustomNodeBuilder());
 
@@ -66,6 +72,7 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testPrototypedArrayNodeUseTheCustomNodeBuilder()
     {
+
         $builder = new TreeBuilder();
         $root = $builder->root('override', 'array', new CustomNodeBuilder());
 
@@ -74,30 +81,32 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testAnExtendedNodeBuilderGetsPropagatedToTheChildren()
     {
+
         $builder = new TreeBuilder();
 
         $builder->root('propagation')
             ->children()
-                ->setNodeClass('extended', 'Symfony\Component\Config\Tests\Definition\Builder\VariableNodeDefinition')
-                ->node('foo', 'extended')->end()
-                ->arrayNode('child')
-                    ->children()
-                        ->node('foo', 'extended')
-                    ->end()
-                ->end()
+            ->setNodeClass('extended', 'Symfony\Component\Config\Tests\Definition\Builder\VariableNodeDefinition')
+            ->node('foo', 'extended')->end()
+            ->arrayNode('child')
+            ->children()
+            ->node('foo', 'extended')
             ->end()
-        ->end();
+            ->end()
+            ->end()
+            ->end();
     }
 
     public function testDefinitionInfoGetsTransferredToNode()
     {
+
         $builder = new TreeBuilder();
 
         $builder->root('test')->info('root info')
             ->children()
-                ->node('child', 'variable')->info('child info')->defaultValue('default')
+            ->node('child', 'variable')->info('child info')->defaultValue('default')
             ->end()
-        ->end();
+            ->end();
 
         $tree = $builder->buildTree();
         $children = $tree->getChildren();
@@ -108,14 +117,15 @@ class TreeBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testDefinitionExampleGetsTransferredToNode()
     {
+
         $builder = new TreeBuilder();
 
         $builder->root('test')
             ->example(array('key' => 'value'))
             ->children()
-                ->node('child', 'variable')->info('child info')->defaultValue('default')->example('example')
+            ->node('child', 'variable')->info('child info')->defaultValue('default')->example('example')
             ->end()
-        ->end();
+            ->end();
 
         $tree = $builder->buildTree();
         $children = $tree->getChildren();

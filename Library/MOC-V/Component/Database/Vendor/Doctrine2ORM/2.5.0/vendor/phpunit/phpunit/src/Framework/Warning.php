@@ -15,6 +15,7 @@
  */
 class PHPUnit_Framework_Warning extends PHPUnit_Framework_TestCase
 {
+
     /**
      * @var string
      */
@@ -45,16 +46,9 @@ class PHPUnit_Framework_Warning extends PHPUnit_Framework_TestCase
      */
     public function __construct($message = '')
     {
+
         $this->message = $message;
         parent::__construct('Warning');
-    }
-
-    /**
-     * @throws PHPUnit_Framework_Exception
-     */
-    protected function runTest()
-    {
-        $this->fail($this->message);
     }
 
     /**
@@ -63,6 +57,7 @@ class PHPUnit_Framework_Warning extends PHPUnit_Framework_TestCase
      */
     public function getMessage()
     {
+
         return $this->message;
     }
 
@@ -74,6 +69,16 @@ class PHPUnit_Framework_Warning extends PHPUnit_Framework_TestCase
      */
     public function toString()
     {
+
         return 'Warning';
+    }
+
+    /**
+     * @throws PHPUnit_Framework_Exception
+     */
+    protected function runTest()
+    {
+
+        $this->fail($this->message);
     }
 }

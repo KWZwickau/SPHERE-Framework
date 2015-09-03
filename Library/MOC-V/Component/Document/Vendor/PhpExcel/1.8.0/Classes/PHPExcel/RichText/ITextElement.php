@@ -48,7 +48,7 @@ interface PHPExcel_RichText_ITextElement
      *
      * @return PHPExcel_RichText_ITextElement
      */
-    public function setText( $pText = '' );
+    public function setText($pText = '');
 
     /**
      * Get font

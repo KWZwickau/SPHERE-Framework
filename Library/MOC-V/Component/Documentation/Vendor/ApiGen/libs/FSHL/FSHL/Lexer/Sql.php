@@ -66,18 +66,18 @@ class Sql implements FSHL\Lexer
         return array(
             'OUT'                   => array(
                 array(
-                    'ALPHA'  => array( 'FUNCTION', Generator::BACK ),
-                    'NUM'    => array( 'NUMBER', Generator::NEXT ),
-                    'DOTNUM' => array( 'NUMBER', Generator::NEXT ),
-                    '/*'     => array( 'COMMENT_BLOCK', Generator::NEXT ),
-                    '//'     => array( 'COMMENT_LINE', Generator::NEXT ),
-                    '#'      => array( 'COMMENT_LINE', Generator::NEXT ),
-                    '--'     => array( 'COMMENT_LINE', Generator::NEXT ),
-                    '"'      => array( 'QUOTE_DOUBLE', Generator::NEXT ),
-                    '\''     => array( 'QUOTE_SINGLE', Generator::NEXT ),
-                    '`'      => array( 'QUOTE_BACK_APOSTROPHE', Generator::NEXT ),
-                    'LINE'   => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'    => array( Generator::STATE_SELF, Generator::NEXT )
+                    'ALPHA'  => array('FUNCTION', Generator::BACK),
+                    'NUM'    => array('NUMBER', Generator::NEXT),
+                    'DOTNUM' => array('NUMBER', Generator::NEXT),
+                    '/*'     => array('COMMENT_BLOCK', Generator::NEXT),
+                    '//'     => array('COMMENT_LINE', Generator::NEXT),
+                    '#'      => array('COMMENT_LINE', Generator::NEXT),
+                    '--'     => array('COMMENT_LINE', Generator::NEXT),
+                    '"'      => array('QUOTE_DOUBLE', Generator::NEXT),
+                    '\''     => array('QUOTE_SINGLE', Generator::NEXT),
+                    '`'      => array('QUOTE_BACK_APOSTROPHE', Generator::NEXT),
+                    'LINE'   => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'    => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_KEYWORD,
                 null,
@@ -85,7 +85,7 @@ class Sql implements FSHL\Lexer
             ),
             'FUNCTION'              => array(
                 array(
-                    '!ALNUM_' => array( Generator::STATE_RETURN, Generator::BACK )
+                    '!ALNUM_' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_KEYWORD | Generator::STATE_FLAG_RECURSION,
                 null,
@@ -93,9 +93,9 @@ class Sql implements FSHL\Lexer
             ),
             'COMMENT_BLOCK'         => array(
                 array(
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    '*/'   => array( Generator::STATE_RETURN, Generator::CURRENT ),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    '*/'   => array(Generator::STATE_RETURN, Generator::CURRENT),
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'sql-comment',
@@ -103,8 +103,8 @@ class Sql implements FSHL\Lexer
             ),
             'COMMENT_LINE'          => array(
                 array(
-                    'LINE' => array( Generator::STATE_RETURN, Generator::BACK ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    'LINE' => array(Generator::STATE_RETURN, Generator::BACK),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'sql-comment',
@@ -112,10 +112,10 @@ class Sql implements FSHL\Lexer
             ),
             'QUOTE_DOUBLE'          => array(
                 array(
-                    '"'    => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '\\"'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '"'    => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '\\"'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'sql-value',
@@ -123,10 +123,10 @@ class Sql implements FSHL\Lexer
             ),
             'QUOTE_SINGLE'          => array(
                 array(
-                    '\''   => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '\\\'' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '\''   => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '\\\'' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'sql-value',
@@ -134,10 +134,10 @@ class Sql implements FSHL\Lexer
             ),
             'QUOTE_BACK_APOSTROPHE' => array(
                 array(
-                    '`'    => array( Generator::STATE_RETURN, Generator::CURRENT ),
-                    '\\`'  => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'LINE' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TAB'  => array( Generator::STATE_SELF, Generator::NEXT )
+                    '`'    => array(Generator::STATE_RETURN, Generator::CURRENT),
+                    '\\`'  => array(Generator::STATE_SELF, Generator::NEXT),
+                    'LINE' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TAB'  => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'sql-value',
@@ -145,9 +145,9 @@ class Sql implements FSHL\Lexer
             ),
             'NUMBER'                => array(
                 array(
-                    'x'      => array( 'HEXA', Generator::NEXT ),
-                    'DOTNUM' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'ALL'    => array( Generator::STATE_RETURN, Generator::BACK )
+                    'x'      => array('HEXA', Generator::NEXT),
+                    'DOTNUM' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'ALL'    => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'sql-num',
@@ -155,7 +155,7 @@ class Sql implements FSHL\Lexer
             ),
             'HEXA'                  => array(
                 array(
-                    '!HEXNUM' => array( Generator::STATE_RETURN, Generator::BACK )
+                    '!HEXNUM' => array(Generator::STATE_RETURN, Generator::BACK)
                 ),
                 Generator::STATE_FLAG_NONE,
                 'sql-num',
@@ -163,12 +163,12 @@ class Sql implements FSHL\Lexer
             ),
             'OPTION'                => array(
                 array(
-                    'BLOB'    => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TEXT'    => array( Generator::STATE_SELF, Generator::CURRENT ),
-                    'INTEGER' => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'CHAR'    => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'TEXT'    => array( Generator::STATE_SELF, Generator::NEXT ),
-                    'DATE'    => array( Generator::STATE_SELF, Generator::NEXT )
+                    'BLOB'    => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TEXT'    => array(Generator::STATE_SELF, Generator::CURRENT),
+                    'INTEGER' => array(Generator::STATE_SELF, Generator::NEXT),
+                    'CHAR'    => array(Generator::STATE_SELF, Generator::NEXT),
+                    'TEXT'    => array(Generator::STATE_SELF, Generator::NEXT),
+                    'DATE'    => array(Generator::STATE_SELF, Generator::NEXT)
                 ),
                 Generator::STATE_FLAG_RECURSION,
                 'sql-option',

@@ -29,6 +29,7 @@ namespace Doctrine\ORM\Mapping\Builder;
  */
 class EmbeddedBuilder
 {
+
     /**
      * @var ClassMetadataBuilder
      */
@@ -45,6 +46,7 @@ class EmbeddedBuilder
      */
     public function __construct(ClassMetadataBuilder $builder, array $mapping)
     {
+
         $this->builder = $builder;
         $this->mapping = $mapping;
     }
@@ -53,10 +55,12 @@ class EmbeddedBuilder
      * Sets the column prefix for all of the embedded columns.
      *
      * @param string $columnPrefix
+     *
      * @return $this
      */
     public function setColumnPrefix($columnPrefix)
     {
+
         $this->mapping['columnPrefix'] = $columnPrefix;
 
         return $this;
@@ -71,6 +75,7 @@ class EmbeddedBuilder
      */
     public function build()
     {
+
         $cm = $this->builder->getClassMetadata();
 
         $cm->mapEmbedded($this->mapping);

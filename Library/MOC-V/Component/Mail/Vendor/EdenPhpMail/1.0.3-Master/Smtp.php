@@ -65,14 +65,14 @@ class Smtp extends Base
     ) {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string' )
-            ->test( 3, 'string' )
-            ->test( 4, 'int', 'null' )
-            ->test( 5, 'bool' )
-            ->test( 6, 'bool' );
+            ->test(1, 'string')
+            ->test(2, 'string')
+            ->test(3, 'string')
+            ->test(4, 'int', 'null')
+            ->test(5, 'bool')
+            ->test(6, 'bool');
 
-        if (is_null( $port )) {
+        if (is_null($port)) {
             $port = $ssl ? 465 : 25;
         }
 
@@ -83,8 +83,8 @@ class Smtp extends Base
         $this->ssl = $ssl;
         $this->tls = $tls;
 
-        $this->boundary[] = md5( time().'1' );
-        $this->boundary[] = md5( time().'2' );
+        $this->boundary[] = md5(time().'1');
+        $this->boundary[] = md5(time().'2');
     }
 
     /**
@@ -96,15 +96,15 @@ class Smtp extends Base
      *
      * @return this
      */
-    public function addAttachment( $filename, $data, $mime = null )
+    public function addAttachment($filename, $data, $mime = null)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string' )
-            ->test( 3, 'string', 'null' );
+            ->test(1, 'string')
+            ->test(2, 'string')
+            ->test(3, 'string', 'null');
 
-        $this->attachments[] = array( $filename, $data, $mime );
+        $this->attachments[] = array($filename, $data, $mime);
         return $this;
     }
 
@@ -116,12 +116,12 @@ class Smtp extends Base
      *
      * @return this
      */
-    public function addBCC( $email, $name = null )
+    public function addBCC($email, $name = null)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string', 'null' );
+            ->test(1, 'string')
+            ->test(2, 'string', 'null');
 
         $this->bcc[$email] = $name;
         return $this;
@@ -135,12 +135,12 @@ class Smtp extends Base
      *
      * @return this
      */
-    public function addCC( $email, $name = null )
+    public function addCC($email, $name = null)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string', 'null' );
+            ->test(1, 'string')
+            ->test(2, 'string', 'null');
 
         $this->cc[$email] = $name;
         return $this;
@@ -154,12 +154,12 @@ class Smtp extends Base
      *
      * @return this
      */
-    public function addTo( $email, $name = null )
+    public function addTo($email, $name = null)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string', 'null' );
+            ->test(1, 'string')
+            ->test(2, 'string', 'null');
 
         $this->to[$email] = $name;
         return $this;
@@ -173,12 +173,12 @@ class Smtp extends Base
      *
      * @return array headers
      */
-    public function reply( $messageId, $topic = null, array $headers = array() )
+    public function reply($messageId, $topic = null, array $headers = array())
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string', 'null' );
+            ->test(1, 'string')
+            ->test(2, 'string', 'null');
 
         //if no socket
         if (!$this->socket) {
@@ -187,59 +187,59 @@ class Smtp extends Base
         }
 
         //add from
-        if (!$this->call( 'MAIL FROM:<'.$this->username.'>', 250, 251 )) {
+        if (!$this->call('MAIL FROM:<'.$this->username.'>', 250, 251)) {
             $this->disconnect();
             //throw exception
             Exception::i()
-                ->setMessage( Exception::SMTP_ADD_EMAIL )
-                ->addVariable( $this->username )
+                ->setMessage(Exception::SMTP_ADD_EMAIL)
+                ->addVariable($this->username)
                 ->trigger();
         }
 
         //add to
         foreach ($this->to as $email => $name) {
-            if (!$this->call( 'RCPT TO:<'.$email.'>', 250, 251 )) {
+            if (!$this->call('RCPT TO:<'.$email.'>', 250, 251)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::SMTP_ADD_EMAIL )
-                    ->addVariable( $email )
+                    ->setMessage(Exception::SMTP_ADD_EMAIL)
+                    ->addVariable($email)
                     ->trigger();
             }
         }
 
         //add cc
         foreach ($this->cc as $email => $name) {
-            if (!$this->call( 'RCPT TO:<'.$email.'>', 250, 251 )) {
+            if (!$this->call('RCPT TO:<'.$email.'>', 250, 251)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::SMTP_ADD_EMAIL )
-                    ->addVariable( $email )
+                    ->setMessage(Exception::SMTP_ADD_EMAIL)
+                    ->addVariable($email)
                     ->trigger();
             }
         }
 
         //add bcc
         foreach ($this->bcc as $email => $name) {
-            if (!$this->call( 'RCPT TO:<'.$email.'>', 250, 251 )) {
+            if (!$this->call('RCPT TO:<'.$email.'>', 250, 251)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::SMTP_ADD_EMAIL )
-                    ->addVariable( $email )
+                    ->setMessage(Exception::SMTP_ADD_EMAIL)
+                    ->addVariable($email)
                     ->trigger();
             }
         }
 
         //start compose
-        if (!$this->call( 'DATA', 354 )) {
+        if (!$this->call('DATA', 354)) {
             $this->disconnect();
             //throw exception
-            Exception::i( Exception::SMTP_DATA )->trigger();
+            Exception::i(Exception::SMTP_DATA)->trigger();
         }
 
-        $headers = $this->getHeaders( $headers );
+        $headers = $this->getHeaders($headers);
         $body = $this->getBody();
 
         $headers['In-Reply-To'] = $messageId;
@@ -250,29 +250,29 @@ class Smtp extends Base
 
         //send header data
         foreach ($headers as $name => $value) {
-            var_dump( $name.': '.$value );
-            $this->push( $name.': '.$value );
+            var_dump($name.': '.$value);
+            $this->push($name.': '.$value);
         }
 
         //send body data
         foreach ($body as $line) {
-            if (strpos( $line, '.' ) === 0) {
+            if (strpos($line, '.') === 0) {
                 // Escape lines prefixed with a '.'
                 $line = '.'.$line;
             }
 
-            $this->push( $line );
+            $this->push($line);
         }
 
         //tell server this is the end
-        if (!$this->call( "\r\n.\r\n", 250 )) {
+        if (!$this->call("\r\n.\r\n", 250)) {
             $this->disconnect();
             //throw exception
-            Exception::i( Exception::SMTP_DATA )->trigger();
+            Exception::i(Exception::SMTP_DATA)->trigger();
         }
 
         //reset (some reason without this, this class spazzes out)
-        $this->push( 'RSET' );
+        $this->push('RSET');
 
         return $headers;
     }
@@ -282,12 +282,12 @@ class Smtp extends Base
      *
      * @return Eden\Mail\Smtp
      */
-    public function connect( $timeout = self::TIMEOUT, $test = false )
+    public function connect($timeout = self::TIMEOUT, $test = false)
     {
 
         Argument::i()
-            ->test( 1, 'int' )
-            ->test( 2, 'bool' );
+            ->test(1, 'int')
+            ->test(2, 'bool');
 
         $host = $this->host;
 
@@ -299,47 +299,47 @@ class Smtp extends Base
 
         $errno = 0;
         $errstr = '';
-        $this->socket = @stream_socket_client( $host.':'.$this->port, $errno, $errstr, $timeout );
+        $this->socket = @stream_socket_client($host.':'.$this->port, $errno, $errstr, $timeout);
 
-        if (!$this->socket || strlen( $errstr ) > 0 || $errno > 0) {
+        if (!$this->socket || strlen($errstr) > 0 || $errno > 0) {
             //throw exception
             Argument::i()
-                ->setMessage( Argument::SERVER_ERROR )
-                ->addVariable( $host.':'.$this->port )
+                ->setMessage(Argument::SERVER_ERROR)
+                ->addVariable($host.':'.$this->port)
                 ->trigger();
         }
 
         $this->receive();
 
-        if (!$this->call( 'EHLO '.$_SERVER['HTTP_HOST'], 250 )
-            && !$this->call( 'HELO '.$_SERVER['HTTP_HOST'], 250 )
+        if (!$this->call('EHLO '.$_SERVER['HTTP_HOST'], 250)
+            && !$this->call('HELO '.$_SERVER['HTTP_HOST'], 250)
         ) {
             $this->disconnect();
             //throw exception
             Argument::i()
-                ->setMessage( Argument::SERVER_ERROR )
-                ->addVariable( $host.':'.$this->port )
+                ->setMessage(Argument::SERVER_ERROR)
+                ->addVariable($host.':'.$this->port)
                 ->trigger();
         }
 
-        if ($this->tls && !$this->call( 'STARTTLS', 220, 250 )) {
-            if (!stream_socket_enable_crypto( $this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT )) {
+        if ($this->tls && !$this->call('STARTTLS', 220, 250)) {
+            if (!stream_socket_enable_crypto($this->socket, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::TLS_ERROR )
-                    ->addVariable( $host.':'.$this->port )
+                    ->setMessage(Exception::TLS_ERROR)
+                    ->addVariable($host.':'.$this->port)
                     ->trigger();
             }
 
-            if (!$this->call( 'EHLO '.$_SERVER['HTTP_HOST'], 250 )
-                && !$this->call( 'HELO '.$_SERVER['HTTP_HOST'], 250 )
+            if (!$this->call('EHLO '.$_SERVER['HTTP_HOST'], 250)
+                && !$this->call('HELO '.$_SERVER['HTTP_HOST'], 250)
             ) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::SERVER_ERROR )
-                    ->addVariable( $host.':'.$this->port )
+                    ->setMessage(Exception::SERVER_ERROR)
+                    ->addVariable($host.':'.$this->port)
                     ->trigger();
             }
         }
@@ -350,22 +350,22 @@ class Smtp extends Base
         }
 
         //login
-        if (!$this->call( 'AUTH LOGIN', 250, 334 )) {
+        if (!$this->call('AUTH LOGIN', 250, 334)) {
             $this->disconnect();
             //throw exception
-            Exception::i( Exception::LOGIN_ERROR )->trigger();
+            Exception::i(Exception::LOGIN_ERROR)->trigger();
         }
 
-        if (!$this->call( base64_encode( $this->username ), 334 )) {
+        if (!$this->call(base64_encode($this->username), 334)) {
             $this->disconnect();
             //throw exception
-            Exception::i()->setMessage( Exception::LOGIN_ERROR );
+            Exception::i()->setMessage(Exception::LOGIN_ERROR);
         }
 
-        if (!$this->call( base64_encode( $this->password ), 235, 334 )) {
+        if (!$this->call(base64_encode($this->password), 235, 334)) {
             $this->disconnect();
             //throw exception
-            Exception::i()->setMessage( Exception::LOGIN_ERROR );
+            Exception::i()->setMessage(Exception::LOGIN_ERROR);
         }
 
         return $this;
@@ -382,16 +382,16 @@ class Smtp extends Base
         $data = '';
         $now = time();
 
-        while ($str = fgets( $this->socket, 1024 )) {
+        while ($str = fgets($this->socket, 1024)) {
 
             $data .= $str;
 
-            if (substr( $str, 3, 1 ) == ' ' || time() > ( $now + self::TIMEOUT )) {
+            if (substr($str, 3, 1) == ' ' || time() > ( $now + self::TIMEOUT )) {
                 break;
             }
         }
 
-        $this->debug( 'Receiving: '.$data );
+        $this->debug('Receiving: '.$data);
 
         return $data;
     }
@@ -403,11 +403,11 @@ class Smtp extends Base
      *
      * @return Eden\Mail\Smtp
      */
-    private function debug( $string )
+    private function debug($string)
     {
 
         if ($this->debugging) {
-            $string = htmlspecialchars( $string );
+            $string = htmlspecialchars($string);
 
             echo '<pre>'.$string.'</pre>'."\n";
         }
@@ -423,19 +423,19 @@ class Smtp extends Base
      *
      * @return string|false
      */
-    protected function call( $command, $code = null )
+    protected function call($command, $code = null)
     {
 
-        if (!$this->push( $command )) {
+        if (!$this->push($command)) {
             return false;
         }
 
         $receive = $this->receive();
 
         $args = func_get_args();
-        if (count( $args ) > 1) {
-            for ($i = 1; $i < count( $args ); $i++) {
-                if (strpos( $receive, (string)$args[$i] ) === 0) {
+        if (count($args) > 1) {
+            for ($i = 1; $i < count($args); $i++) {
+                if (strpos($receive, (string)$args[$i]) === 0) {
                     return true;
                 }
             }
@@ -453,12 +453,12 @@ class Smtp extends Base
      *
      * @return bool
      */
-    protected function push( $command )
+    protected function push($command)
     {
 
-        $this->debug( 'Sending: '.$command );
+        $this->debug('Sending: '.$command);
 
-        return fwrite( $this->socket, $command."\r\n" );
+        return fwrite($this->socket, $command."\r\n");
     }
 
     /**
@@ -470,9 +470,9 @@ class Smtp extends Base
     {
 
         if ($this->socket) {
-            $this->push( 'QUIT' );
+            $this->push('QUIT');
 
-            fclose( $this->socket );
+            fclose($this->socket);
 
             $this->socket = null;
         }
@@ -487,45 +487,45 @@ class Smtp extends Base
      *
      * @return array
      */
-    protected function getHeaders( array $customHeaders = array() )
+    protected function getHeaders(array $customHeaders = array())
     {
 
         $timestamp = $this->getTimestamp();
 
-        $subject = trim( $this->subject );
-        $subject = str_replace( array( "\n", "\r" ), '', $subject );
+        $subject = trim($this->subject);
+        $subject = str_replace(array("\n", "\r"), '', $subject);
 
         $to = $cc = $bcc = array();
         foreach ($this->to as $email => $name) {
-            $to[] = trim( $name.' <'.$email.'>' );
+            $to[] = trim($name.' <'.$email.'>');
         }
 
         foreach ($this->cc as $email => $name) {
-            $cc[] = trim( $name.' <'.$email.'>' );
+            $cc[] = trim($name.' <'.$email.'>');
         }
 
         foreach ($this->bcc as $email => $name) {
-            $bcc[] = trim( $name.' <'.$email.'>' );
+            $bcc[] = trim($name.' <'.$email.'>');
         }
 
-        list( $account, $suffix ) = explode( '@', $this->username );
+        list( $account, $suffix ) = explode('@', $this->username);
 
         $headers = array(
             'Date'    => $timestamp,
             'Subject' => $subject,
             'From'    => '<'.$this->username.'>',
-            'To'      => implode( ', ', $to )
+            'To' => implode(', ', $to)
         );
 
         if (!empty( $cc )) {
-            $headers['Cc'] = implode( ', ', $cc );
+            $headers['Cc'] = implode(', ', $cc);
         }
 
         if (!empty( $bcc )) {
-            $headers['Bcc'] = implode( ', ', $bcc );
+            $headers['Bcc'] = implode(', ', $bcc);
         }
 
-        $headers['Message-ID'] = '<'.md5( uniqid( time() ) ).'.eden@'.$suffix.'>';
+        $headers['Message-ID'] = '<'.md5(uniqid(time())).'.eden@'.$suffix.'>';
 
         $headers['Thread-Topic'] = $this->subject;
 
@@ -546,11 +546,11 @@ class Smtp extends Base
     private function getTimestamp()
     {
 
-        $zone = date( 'Z' );
+        $zone = date('Z');
         $sign = ( $zone < 0 ) ? '-' : '+';
-        $zone = abs( $zone );
+        $zone = abs($zone);
         $zone = (int)( $zone / 3600 ) * 100 + ( $zone % 3600 ) / 60;
-        return sprintf( "%s %s%04d", date( 'D, j M Y H:i:s' ), $sign, $zone );
+        return sprintf("%s %s%04d", date('D, j M Y H:i:s'), $sign, $zone);
     }
 
     /**
@@ -562,7 +562,7 @@ class Smtp extends Base
     {
 
         $type = 'Plain';
-        if (count( $this->body ) > 1) {
+        if (count($this->body) > 1) {
             $type = 'Alternative';
         } else {
             if (isset( $this->body['text/html'] )) {
@@ -575,7 +575,7 @@ class Smtp extends Base
             $method = 'get%sAttachmentBody';
         }
 
-        $method = sprintf( $method, $type );
+        $method = sprintf($method, $type);
 
         return $this->$method();
     }
@@ -588,16 +588,16 @@ class Smtp extends Base
      *
      * @return Eden\Mail\Smtp
      */
-    public function setBody( $body, $html = false )
+    public function setBody($body, $html = false)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'bool' );
+            ->test(1, 'string')
+            ->test(2, 'bool');
 
         if ($html) {
             $this->body['text/html'] = $body;
-            $body = strip_tags( $body );
+            $body = strip_tags($body);
         }
 
         $this->body['text/plain'] = $body;
@@ -632,7 +632,7 @@ class Smtp extends Base
      *
      * @return array headers
      */
-    public function send( array $headers = array() )
+    public function send(array $headers = array())
     {
 
         //if no socket
@@ -641,86 +641,86 @@ class Smtp extends Base
             $this->connect();
         }
 
-        $headers = $this->getHeaders( $headers );
+        $headers = $this->getHeaders($headers);
         $body = $this->getBody();
 
         //add from
-        if (!$this->call( 'MAIL FROM:<'.$this->username.'>', 250, 251 )) {
+        if (!$this->call('MAIL FROM:<'.$this->username.'>', 250, 251)) {
             $this->disconnect();
             //throw exception
             Exception::i()
-                ->setMessage( Exception::SMTP_ADD_EMAIL )
-                ->addVariable( $this->username )
+                ->setMessage(Exception::SMTP_ADD_EMAIL)
+                ->addVariable($this->username)
                 ->trigger();
         }
 
         //add to
         foreach ($this->to as $email => $name) {
-            if (!$this->call( 'RCPT TO:<'.$email.'>', 250, 251 )) {
+            if (!$this->call('RCPT TO:<'.$email.'>', 250, 251)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::SMTP_ADD_EMAIL )
-                    ->addVariable( $email )
+                    ->setMessage(Exception::SMTP_ADD_EMAIL)
+                    ->addVariable($email)
                     ->trigger();
             }
         }
 
         //add cc
         foreach ($this->cc as $email => $name) {
-            if (!$this->call( 'RCPT TO:<'.$email.'>', 250, 251 )) {
+            if (!$this->call('RCPT TO:<'.$email.'>', 250, 251)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::SMTP_ADD_EMAIL )
-                    ->addVariable( $email )
+                    ->setMessage(Exception::SMTP_ADD_EMAIL)
+                    ->addVariable($email)
                     ->trigger();
             }
         }
 
         //add bcc
         foreach ($this->bcc as $email => $name) {
-            if (!$this->call( 'RCPT TO:<'.$email.'>', 250, 251 )) {
+            if (!$this->call('RCPT TO:<'.$email.'>', 250, 251)) {
                 $this->disconnect();
                 //throw exception
                 Exception::i()
-                    ->setMessage( Exception::SMTP_ADD_EMAIL )
-                    ->addVariable( $email )
+                    ->setMessage(Exception::SMTP_ADD_EMAIL)
+                    ->addVariable($email)
                     ->trigger();
             }
         }
 
         //start compose
-        if (!$this->call( 'DATA', 354 )) {
+        if (!$this->call('DATA', 354)) {
             $this->disconnect();
             //throw exception
-            Exception::i( Exception::SMTP_DATA )->trigger();
+            Exception::i(Exception::SMTP_DATA)->trigger();
         }
 
         //send header data
         foreach ($headers as $name => $value) {
-            $this->push( $name.': '.$value );
+            $this->push($name.': '.$value);
         }
 
         //send body data
         foreach ($body as $line) {
-            if (strpos( $line, '.' ) === 0) {
+            if (strpos($line, '.') === 0) {
                 // Escape lines prefixed with a '.'
                 $line = '.'.$line;
             }
 
-            $this->push( $line );
+            $this->push($line);
         }
 
         //tell server this is the end
-        if (!$this->call( ".", 250 )) {
+        if (!$this->call(".", 250)) {
             $this->disconnect();
             //throw exception
-            Exception::i( Exception::SMTP_DATA )->trigger();
+            Exception::i(Exception::SMTP_DATA)->trigger();
         }
 
         //reset (some reason without this, this class spazzes out)
-        $this->push( 'RSET' );
+        $this->push('RSET');
 
         return $headers;
     }
@@ -732,10 +732,10 @@ class Smtp extends Base
      *
      * @return Eden\Mail\Smtp
      */
-    public function setSubject( $subject )
+    public function setSubject($subject)
     {
 
-        Argument::i()->test( 1, 'string' );
+        Argument::i()->test(1, 'string');
         $this->subject = $subject;
         return $this;
     }
@@ -760,7 +760,7 @@ class Smtp extends Base
             $body[] = $line;
         }
 
-        return $this->addAttachmentBody( $body );
+        return $this->addAttachmentBody($body);
     }
 
     /**
@@ -805,9 +805,9 @@ class Smtp extends Base
     protected function getPlainBody()
     {
 
-        $charset = $this->isUtf8( $this->body['text/plain'] ) ? 'utf-8' : 'US-ASCII';
-        $plane = str_replace( "\r", '', trim( $this->body['text/plain'] ) );
-        $count = ceil( strlen( $plane ) / 998 );
+        $charset = $this->isUtf8($this->body['text/plain']) ? 'utf-8' : 'US-ASCII';
+        $plane = str_replace("\r", '', trim($this->body['text/plain']));
+        $count = ceil(strlen($plane) / 998);
 
         $body = array();
         $body[] = 'Content-Type: text/plain; charset='.$charset;
@@ -815,7 +815,7 @@ class Smtp extends Base
         $body[] = null;
 
         for ($i = 0; $i < $count; $i++) {
-            $body[] = substr( $plane, ( $i * 998 ), 998 );
+            $body[] = substr($plane, ( $i * 998 ), 998);
         }
 
         $body[] = null;
@@ -829,7 +829,7 @@ class Smtp extends Base
      *
      * @return bool
      */
-    private function isUtf8( $string )
+    private function isUtf8($string)
     {
 
         $regex = array(
@@ -842,9 +842,9 @@ class Smtp extends Base
             '\xF4[\x80-\x8F][\x80-\xBF]{2}'
         );
 
-        $count = ceil( strlen( $string ) / 5000 );
+        $count = ceil(strlen($string) / 5000);
         for ($i = 0; $i < $count; $i++) {
-            if (preg_match( '%(?:'.implode( '|', $regex ).')+%xs', substr( $string, ( $i * 5000 ), 5000 ) )) {
+            if (preg_match('%(?:'.implode('|', $regex).')+%xs', substr($string, ( $i * 5000 ), 5000))) {
                 return false;
             }
         }
@@ -860,10 +860,10 @@ class Smtp extends Base
     protected function getHtmlBody()
     {
 
-        $charset = $this->isUtf8( $this->body['text/html'] ) ? 'utf-8' : 'US-ASCII';
-        $html = str_replace( "\r", '', trim( $this->body['text/html'] ) );
+        $charset = $this->isUtf8($this->body['text/html']) ? 'utf-8' : 'US-ASCII';
+        $html = str_replace("\r", '', trim($this->body['text/html']));
 
-        $encoded = explode( "\n", $this->quotedPrintableEncode( $html ) );
+        $encoded = explode("\n", $this->quotedPrintableEncode($html));
         $body = array();
         $body[] = 'Content-Type: text/html; charset='.$charset;
         $body[] = 'Content-Transfer-Encoding: quoted-printable'."\n";
@@ -886,7 +886,7 @@ class Smtp extends Base
      *
      * @return string
      */
-    private function quotedPrintableEncode( $input, $line_max = 250 )
+    private function quotedPrintableEncode($input, $line_max = 250)
     {
 
         $hex = array(
@@ -907,11 +907,11 @@ class Smtp extends Base
             'E',
             'F'
         );
-        $lines = preg_split( "/(?:\r\n|\r|\n)/", $input );
+        $lines = preg_split("/(?:\r\n|\r|\n)/", $input);
         $linebreak = "=0D=0A=\r\n";
         /* the linebreak also counts as characters in the mime_qp_long_line
         * rule of spam-assassin */
-        $line_max = $line_max - strlen( $linebreak );
+        $line_max = $line_max - strlen($linebreak);
         $escape = "=";
         $output = "";
         $cur_conv_line = "";
@@ -920,14 +920,14 @@ class Smtp extends Base
         $addtl_chars = 0;
 
         // iterate lines
-        for ($j = 0; $j < count( $lines ); $j++) {
+        for ($j = 0; $j < count($lines); $j++) {
             $line = $lines[$j];
-            $linlen = strlen( $line );
+            $linlen = strlen($line);
 
             // iterate chars
             for ($i = 0; $i < $linlen; $i++) {
-                $c = substr( $line, $i, 1 );
-                $dec = ord( $c );
+                $c = substr($line, $i, 1);
+                $dec = ord($c);
 
                 $length++;
 
@@ -942,8 +942,8 @@ class Smtp extends Base
                     $whitespace_pos = $i;
                 } else {
                     if (( $dec == 61 ) || ( $dec < 32 ) || ( $dec > 126 )) {
-                        $h2 = floor( $dec / 16 );
-                        $h1 = floor( $dec % 16 );
+                        $h2 = floor($dec / 16);
+                        $h1 = floor($dec % 16);
                         $c = $escape.$hex["$h2"].$hex["$h1"];
                         $length += 2;
                         $addtl_chars += 2;
@@ -964,8 +964,8 @@ class Smtp extends Base
                     // Also, do not start at 0, if there was *no* whitespace in
                     // the whole line
                     if (( $i + $addtl_chars ) > $whitesp_diff) {
-                        $output .= substr( $cur_conv_line, 0, ( strlen( $cur_conv_line ) -
-                                $whitesp_diff ) ).$linebreak;
+                        $output .= substr($cur_conv_line, 0, ( strlen($cur_conv_line) -
+                                $whitesp_diff )).$linebreak;
                         $i = $i - $whitesp_diff + $addtl_chars;
                     } else {
                         $output .= $cur_conv_line.$linebreak;
@@ -985,12 +985,12 @@ class Smtp extends Base
             $output .= $cur_conv_line;
             $cur_conv_line = "";
 
-            if ($j <= count( $lines ) - 1) {
+            if ($j <= count($lines) - 1) {
                 $output .= $linebreak;
             }
         } // end for
 
-        return trim( $output );
+        return trim($output);
     }
 
     /**
@@ -1001,14 +1001,14 @@ class Smtp extends Base
      *
      * @return array
      */
-    protected function addAttachmentBody( array $body )
+    protected function addAttachmentBody(array $body)
     {
 
         foreach ($this->attachments as $attachment) {
             list( $name, $data, $mime ) = $attachment;
-            $mime = $mime ? $mime : File::i( $name )->getMime();
-            $data = base64_encode( $data );
-            $count = ceil( strlen( $data ) / 998 );
+            $mime = $mime ? $mime : File::i($name)->getMime();
+            $data = base64_encode($data);
+            $count = ceil(strlen($data) / 998);
 
             $body[] = '--'.$this->boundary[1];
             $body[] = 'Content-type: '.$mime.'; name="'.$name.'"';
@@ -1017,7 +1017,7 @@ class Smtp extends Base
             $body[] = null;
 
             for ($i = 0; $i < $count; $i++) {
-                $body[] = substr( $data, ( $i * 998 ), 998 );
+                $body[] = substr($data, ( $i * 998 ), 998);
             }
 
             $body[] = null;
@@ -1048,7 +1048,7 @@ class Smtp extends Base
             $body[] = $line;
         }
 
-        return $this->addAttachmentBody( $body );
+        return $this->addAttachmentBody($body);
     }
 
     /**
@@ -1070,6 +1070,6 @@ class Smtp extends Base
             $body[] = $line;
         }
 
-        return $this->addAttachmentBody( $body );
+        return $this->addAttachmentBody($body);
     }
 }

@@ -40,19 +40,19 @@ class ReflectionConstant extends ReflectionElement
     public function getTypeHint()
     {
 
-        if ($annotations = $this->getAnnotation( 'var' )) {
-            list( $types ) = preg_split( '~\s+|$~', $annotations[0], 2 );
+        if ($annotations = $this->getAnnotation('var')) {
+            list( $types ) = preg_split('~\s+|$~', $annotations[0], 2);
             if (!empty( $types )) {
                 return $types;
             }
         }
 
         try {
-            $type = gettype( $this->getValue() );
-            if ('null' !== strtolower( $type )) {
+            $type = gettype($this->getValue());
+            if ('null' !== strtolower($type)) {
                 return $type;
             }
-        } catch( \Exception $e ) {
+        } catch (\Exception $e) {
             // Nothing
         }
 
@@ -132,16 +132,16 @@ class ReflectionConstant extends ReflectionElement
     {
 
         if (null === $this->isDocumented && parent::isDocumented() && null === $this->reflection->getDeclaringClassName()) {
-            $fileName = self::$generator->unPharPath( $this->reflection->getFilename() );
+            $fileName = self::$generator->unPharPath($this->reflection->getFilename());
             foreach (self::$config->skipDocPath as $mask) {
-                if (fnmatch( $mask, $fileName, FNM_NOESCAPE )) {
+                if (fnmatch($mask, $fileName, FNM_NOESCAPE)) {
                     $this->isDocumented = false;
                     break;
                 }
             }
             if (true === $this->isDocumented) {
                 foreach (self::$config->skipDocPrefix as $prefix) {
-                    if (0 === strpos( $this->reflection->getName(), $prefix )) {
+                    if (0 === strpos($this->reflection->getName(), $prefix)) {
                         $this->isDocumented = false;
                         break;
                     }

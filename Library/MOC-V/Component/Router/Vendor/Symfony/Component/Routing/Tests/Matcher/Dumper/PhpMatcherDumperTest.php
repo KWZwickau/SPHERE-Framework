@@ -17,11 +17,13 @@ use Symfony\Component\Routing\RouteCollection;
 
 class PhpMatcherDumperTest extends \PHPUnit_Framework_TestCase
 {
+
     /**
      * @expectedException \LogicException
      */
     public function testDumpWhenSchemeIsUsedWithoutAProperDumper()
     {
+
         $collection = new RouteCollection();
         $collection->add('secure', new Route(
             '/secure',
@@ -37,14 +39,17 @@ class PhpMatcherDumperTest extends \PHPUnit_Framework_TestCase
      */
     public function testDump(RouteCollection $collection, $fixture, $options = array())
     {
+
         $basePath = __DIR__.'/../../Fixtures/dumper/';
 
         $dumper = new PhpMatcherDumper($collection);
-        $this->assertStringEqualsFile($basePath.$fixture, $dumper->dump($options), '->dump() correctly dumps routes as optimized PHP code.');
+        $this->assertStringEqualsFile($basePath.$fixture, $dumper->dump($options),
+            '->dump() correctly dumps routes as optimized PHP code.');
     }
 
     public function getRouteCollections()
     {
+
         /* test case 1 */
 
         $collection = new RouteCollection();
@@ -256,9 +261,13 @@ class PhpMatcherDumperTest extends \PHPUnit_Framework_TestCase
         $rootprefixCollection->add('with-condition', $route);
 
         return array(
-           array($collection, 'url_matcher1.php', array()),
-           array($redirectCollection, 'url_matcher2.php', array('base_class' => 'Symfony\Component\Routing\Tests\Fixtures\RedirectableUrlMatcher')),
-           array($rootprefixCollection, 'url_matcher3.php', array())
+            array($collection, 'url_matcher1.php', array()),
+            array(
+                $redirectCollection,
+                'url_matcher2.php',
+                array('base_class' => 'Symfony\Component\Routing\Tests\Fixtures\RedirectableUrlMatcher')
+            ),
+            array($rootprefixCollection, 'url_matcher3.php', array())
         );
     }
 }

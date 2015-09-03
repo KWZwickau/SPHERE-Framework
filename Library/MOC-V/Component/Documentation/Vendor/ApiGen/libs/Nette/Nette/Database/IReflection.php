@@ -36,7 +36,7 @@ interface IReflection
      *
      * @return string
      */
-    function getPrimary( $table );
+    function getPrimary($table);
 
     /**
      * Gets referenced table & referenced column
@@ -48,7 +48,7 @@ interface IReflection
      *
      * @return array   array(referenced table, referenced column)
      */
-    function getHasManyReference( $table, $key );
+    function getHasManyReference($table, $key);
 
     /**
      * Gets referenced table & referencing column
@@ -61,13 +61,13 @@ interface IReflection
      *
      * @return array   array(referenced table, referencing column)
      */
-    function getBelongsToReference( $table, $key );
+    function getBelongsToReference($table, $key);
 
     /**
      * Injects database connection.
      *
      * @param  Connection
      */
-    function setConnection( Connection $connection );
+    function setConnection(Connection $connection);
 
 }

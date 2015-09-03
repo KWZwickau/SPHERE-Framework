@@ -26,6 +26,7 @@ use Symfony\Component\Console\Formatter\OutputFormatterInterface;
  */
 class NullOutput implements OutputInterface
 {
+
     /**
      * {@inheritdoc}
      */
@@ -39,6 +40,7 @@ class NullOutput implements OutputInterface
      */
     public function getFormatter()
     {
+
         // to comply with the interface we must return a OutputFormatterInterface
         return new OutputFormatter();
     }
@@ -56,6 +58,7 @@ class NullOutput implements OutputInterface
      */
     public function isDecorated()
     {
+
         return false;
     }
 
@@ -72,26 +75,31 @@ class NullOutput implements OutputInterface
      */
     public function getVerbosity()
     {
+
         return self::VERBOSITY_QUIET;
     }
 
     public function isQuiet()
     {
+
         return true;
     }
 
     public function isVerbose()
     {
+
         return false;
     }
 
     public function isVeryVerbose()
     {
+
         return false;
     }
 
     public function isDebug()
     {
+
         return false;
     }
 

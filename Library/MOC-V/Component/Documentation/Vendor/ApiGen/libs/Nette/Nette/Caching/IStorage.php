@@ -28,7 +28,7 @@ interface IStorage
      *
      * @return mixed|NULL
      */
-    function read( $key );
+    function read($key);
 
     /**
      * Prevents item reading and writing. Lock is released by write() or remove().
@@ -37,7 +37,7 @@ interface IStorage
      *
      * @return void
      */
-    function lock( $key );
+    function lock($key);
 
     /**
      * Writes item into the cache.
@@ -48,7 +48,7 @@ interface IStorage
      *
      * @return void
      */
-    function write( $key, $data, array $dependencies );
+    function write($key, $data, array $dependencies);
 
     /**
      * Removes item from the cache.
@@ -57,7 +57,7 @@ interface IStorage
      *
      * @return void
      */
-    function remove( $key );
+    function remove($key);
 
     /**
      * Removes items from the cache by conditions.
@@ -66,6 +66,6 @@ interface IStorage
      *
      * @return void
      */
-    function clean( array $conds );
+    function clean(array $conds);
 
 }

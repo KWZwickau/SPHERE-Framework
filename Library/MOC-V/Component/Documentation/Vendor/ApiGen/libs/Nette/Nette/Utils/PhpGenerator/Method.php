@@ -62,48 +62,48 @@ class Method extends Nette\Object
 
 
     /** @return Parameter */
-    public function addParameter( $name, $defaultValue = null )
+    public function addParameter($name, $defaultValue = null)
     {
 
         $param = new Parameter;
         if (func_num_args() > 1) {
-            $param->setOptional( true )->setDefaultValue( $defaultValue );
+            $param->setOptional(true)->setDefaultValue($defaultValue);
         }
-        return $this->parameters[] = $param->setName( $name );
+        return $this->parameters[] = $param->setName($name);
     }
 
 
     /** @return Parameter */
-    public function addUse( $name )
+    public function addUse($name)
     {
 
         $param = new Parameter;
-        return $this->uses[] = $param->setName( $name );
+        return $this->uses[] = $param->setName($name);
     }
 
 
     /** @return Method */
-    public function setBody( $statement, array $args = null )
+    public function setBody($statement, array $args = null)
     {
 
-        $this->body = func_num_args() > 1 ? Helpers::formatArgs( $statement, $args ) : $statement;
+        $this->body = func_num_args() > 1 ? Helpers::formatArgs($statement, $args) : $statement;
         return $this;
     }
 
 
     /** @return Method */
-    public function addBody( $statement, array $args = null )
+    public function addBody($statement, array $args = null)
     {
 
-        $this->body .= ( func_num_args() > 1 ? Helpers::formatArgs( $statement, $args ) : $statement )."\n";
+        $this->body .= ( func_num_args() > 1 ? Helpers::formatArgs($statement, $args) : $statement )."\n";
         return $this;
     }
 
 
-    public function __call( $name, $args )
+    public function __call($name, $args)
     {
 
-        return Nette\ObjectMixin::callProperty( $this, $name, $args );
+        return Nette\ObjectMixin::callProperty($this, $name, $args);
     }
 
 
@@ -116,14 +116,14 @@ class Method extends Nette\Object
             $parameters[] = ( $param->typeHint ? $param->typeHint.' ' : '' )
                 .( $param->reference ? '&' : '' )
                 .'$'.$param->name
-                .( $param->optional ? ' = '.Helpers::dump( $param->defaultValue ) : '' );
+                .( $param->optional ? ' = '.Helpers::dump($param->defaultValue) : '' );
         }
         $uses = array();
         foreach ($this->uses as $param) {
             $uses[] = ( $param->reference ? '&' : '' ).'$'.$param->name;
         }
-        return ( $this->documents ? str_replace( "\n", "\n * ",
-                "/**\n".implode( "\n", (array)$this->documents ) )."\n */\n" : '' )
+        return ( $this->documents ? str_replace("\n", "\n * ",
+                "/**\n".implode("\n", (array)$this->documents))."\n */\n" : '' )
         .( $this->abstract ? 'abstract ' : '' )
         .( $this->final ? 'final ' : '' )
         .( $this->visibility ? $this->visibility.' ' : '' )
@@ -131,10 +131,10 @@ class Method extends Nette\Object
         .'function'
         .( $this->returnReference ? ' &' : '' )
         .( $this->name ? ' '.$this->name : '' )
-        .'('.implode( ', ', $parameters ).')'
-        .( $this->uses ? ' use ('.implode( ', ', $uses ).')' : '' )
+        .'('.implode(', ', $parameters).')'
+        .( $this->uses ? ' use ('.implode(', ', $uses).')' : '' )
         .( $this->abstract || $this->body === false ? ';'
-            : ( $this->name ? "\n" : ' ' )."{\n".Nette\Utils\Strings::indent( trim( $this->body ), 1 )."\n}" );
+            : ( $this->name ? "\n" : ' ' )."{\n".Nette\Utils\Strings::indent(trim($this->body), 1)."\n}" );
     }
 
 }

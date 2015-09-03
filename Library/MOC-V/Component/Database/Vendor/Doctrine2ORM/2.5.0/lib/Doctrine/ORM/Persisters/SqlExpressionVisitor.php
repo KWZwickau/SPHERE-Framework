@@ -19,22 +19,22 @@
 
 namespace Doctrine\ORM\Persisters;
 
-use Doctrine\ORM\Mapping\ClassMetadata;
-
-use Doctrine\Common\Collections\Expr\ExpressionVisitor;
 use Doctrine\Common\Collections\Expr\Comparison;
-use Doctrine\Common\Collections\Expr\Value;
 use Doctrine\Common\Collections\Expr\CompositeExpression;
+use Doctrine\Common\Collections\Expr\ExpressionVisitor;
+use Doctrine\Common\Collections\Expr\Value;
+use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\Persisters\Entity\BasicEntityPersister;
 
 /**
  * Visit Expressions and generate SQL WHERE conditions from them.
  *
  * @author Benjamin Eberlei <kontakt@beberlei.de>
- * @since 2.3
+ * @since  2.3
  */
 class SqlExpressionVisitor extends ExpressionVisitor
 {
+
     /**
      * @var \Doctrine\ORM\Persisters\Entity\BasicEntityPersister
      */
@@ -51,6 +51,7 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function __construct(BasicEntityPersister $persister, ClassMetadata $classMetadata)
     {
+
         $this->persister = $persister;
         $this->classMetadata = $classMetadata;
     }
@@ -64,13 +65,15 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function walkComparison(Comparison $comparison)
     {
+
         $field = $comparison->getField();
         $value = $comparison->getValue()->getValue(); // shortcut for walkValue()
 
-        if (isset($this->classMetadata->associationMappings[$field]) &&
+        if (isset( $this->classMetadata->associationMappings[$field] ) &&
             $value !== null &&
-            ! is_object($value) &&
-            ! in_array($comparison->getOperator(), array(Comparison::IN, Comparison::NIN))) {
+            !is_object($value) &&
+            !in_array($comparison->getOperator(), array(Comparison::IN, Comparison::NIN))
+        ) {
 
             throw PersisterException::matchingAssocationFieldRequiresObject($this->classMetadata->name, $field);
         }
@@ -89,21 +92,22 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function walkCompositeExpression(CompositeExpression $expr)
     {
+
         $expressionList = array();
 
         foreach ($expr->getExpressionList() as $child) {
             $expressionList[] = $this->dispatch($child);
         }
 
-        switch($expr->getType()) {
+        switch ($expr->getType()) {
             case CompositeExpression::TYPE_AND:
-                return '(' . implode(' AND ', $expressionList) . ')';
+                return '('.implode(' AND ', $expressionList).')';
 
             case CompositeExpression::TYPE_OR:
-                return '(' . implode(' OR ', $expressionList) . ')';
+                return '('.implode(' OR ', $expressionList).')';
 
             default:
-                throw new \RuntimeException("Unknown composite " . $expr->getType());
+                throw new \RuntimeException("Unknown composite ".$expr->getType());
         }
     }
 
@@ -116,6 +120,7 @@ class SqlExpressionVisitor extends ExpressionVisitor
      */
     public function walkValue(Value $value)
     {
+
         return '?';
     }
 }

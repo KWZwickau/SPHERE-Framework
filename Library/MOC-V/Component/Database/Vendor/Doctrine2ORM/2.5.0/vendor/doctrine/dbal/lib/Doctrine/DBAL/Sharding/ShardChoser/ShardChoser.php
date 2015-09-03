@@ -29,6 +29,7 @@ use Doctrine\DBAL\Sharding\PoolingShardConnection;
  */
 interface ShardChoser
 {
+
     /**
      * Picks a shard for the given distribution value.
      *

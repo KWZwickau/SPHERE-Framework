@@ -25,10 +25,10 @@ class UploadControl extends BaseControl
     /**
      * @param  string  label
      */
-    public function __construct( $label = null )
+    public function __construct($label = null)
     {
 
-        parent::__construct( $label );
+        parent::__construct($label);
         $this->control->type = 'file';
     }
 
@@ -40,7 +40,7 @@ class UploadControl extends BaseControl
      *
      * @return bool
      */
-    public static function validateFileSize( UploadControl $control, $limit )
+    public static function validateFileSize(UploadControl $control, $limit)
     {
 
         $file = $control->getValue();
@@ -55,17 +55,17 @@ class UploadControl extends BaseControl
      *
      * @return bool
      */
-    public static function validateMimeType( UploadControl $control, $mimeType )
+    public static function validateMimeType(UploadControl $control, $mimeType)
     {
 
         $file = $control->getValue();
         if ($file instanceof Http\FileUpload) {
-            $type = strtolower( $file->getContentType() );
-            $mimeTypes = is_array( $mimeType ) ? $mimeType : explode( ',', $mimeType );
-            if (in_array( $type, $mimeTypes, true )) {
+            $type = strtolower($file->getContentType());
+            $mimeTypes = is_array($mimeType) ? $mimeType : explode(',', $mimeType);
+            if (in_array($type, $mimeTypes, true)) {
                 return true;
             }
-            if (in_array( preg_replace( '#/.*#', '/*', $type ), $mimeTypes, true )) {
+            if (in_array(preg_replace('#/.*#', '/*', $type), $mimeTypes, true)) {
                 return true;
             }
         }
@@ -79,7 +79,7 @@ class UploadControl extends BaseControl
      *
      * @return bool
      */
-    public static function validateImage( UploadControl $control )
+    public static function validateImage(UploadControl $control)
     {
 
         $file = $control->getValue();
@@ -93,17 +93,17 @@ class UploadControl extends BaseControl
      *
      * @return Nette\Http\FileUpload  provides a fluent interface
      */
-    public function setValue( $value )
+    public function setValue($value)
     {
 
-        if (is_array( $value )) {
-            $this->value = new Http\FileUpload( $value );
+        if (is_array($value)) {
+            $this->value = new Http\FileUpload($value);
 
         } elseif ($value instanceof Http\FileUpload) {
             $this->value = $value;
 
         } else {
-            $this->value = new Http\FileUpload( null );
+            $this->value = new Http\FileUpload(null);
         }
         return $this;
     }
@@ -127,16 +127,16 @@ class UploadControl extends BaseControl
      *
      * @return void
      */
-    protected function attached( $form )
+    protected function attached($form)
     {
 
         if ($form instanceof Nette\Forms\Form) {
             if ($form->getMethod() !== Nette\Forms\Form::POST) {
-                throw new Nette\InvalidStateException( 'File upload requires method POST.' );
+                throw new Nette\InvalidStateException('File upload requires method POST.');
             }
             $form->getElementPrototype()->enctype = 'multipart/form-data';
         }
-        parent::attached( $form );
+        parent::attached($form);
     }
 
 }

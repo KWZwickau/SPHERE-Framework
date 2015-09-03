@@ -58,10 +58,10 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      * @param string                                                       $methodName Method name
      * @param \TokenReflection\Broker                                      $broker     Reflection broker
      */
-    public function __construct( $class, $methodName, Broker $broker )
+    public function __construct($class, $methodName, Broker $broker)
     {
 
-        parent::__construct( $class, $methodName );
+        parent::__construct($class, $methodName);
         $this->broker = $broker;
     }
 
@@ -84,7 +84,7 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
     public function getDeclaringClass()
     {
 
-        return ReflectionClass::create( parent::getDeclaringClass(), $this->broker );
+        return ReflectionClass::create(parent::getDeclaringClass(), $this->broker);
     }
 
     /**
@@ -94,7 +94,7 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      *
      * @return boolean
      */
-    public function hasAnnotation( $name )
+    public function hasAnnotation($name)
     {
 
         return false;
@@ -107,7 +107,7 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      *
      * @return null
      */
-    public function getAnnotation( $name )
+    public function getAnnotation($name)
     {
 
         return null;
@@ -143,7 +143,7 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
     public function getPrototype()
     {
 
-        return self::create( parent::getPrototype(), $this->broker );
+        return self::create(parent::getPrototype(), $this->broker);
     }
 
     /**
@@ -155,20 +155,20 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      * @return \TokenReflection\Php\IReflection
      * @throws \TokenReflection\Exception\RuntimeException If an invalid internal reflection object was provided.
      */
-    public static function create( Reflector $internalReflection, Broker $broker )
+    public static function create(Reflector $internalReflection, Broker $broker)
     {
 
         static $cache = array();
 
         if (!$internalReflection instanceof InternalReflectionMethod) {
-            throw new Exception\RuntimeException( 'Invalid reflection instance provided, ReflectionMethod expected.',
-                Exception\RuntimeException::INVALID_ARGUMENT );
+            throw new Exception\RuntimeException('Invalid reflection instance provided, ReflectionMethod expected.',
+                Exception\RuntimeException::INVALID_ARGUMENT);
         }
 
         $key = $internalReflection->getDeclaringClass()->getName().'::'.$internalReflection->getName();
         if (!isset( $cache[$key] )) {
-            $cache[$key] = new self( $internalReflection->getDeclaringClass()->getName(),
-                $internalReflection->getName(), $broker );
+            $cache[$key] = new self($internalReflection->getDeclaringClass()->getName(),
+                $internalReflection->getName(), $broker);
         }
 
         return $cache[$key];
@@ -183,15 +183,15 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      * @throws \TokenReflection\Exception\RuntimeException If there is no parameter of the given name.
      * @throws \TokenReflection\Exception\RuntimeException If there is no parameter at the given position.
      */
-    public function getParameter( $parameter )
+    public function getParameter($parameter)
     {
 
         $parameters = $this->getParameters();
 
-        if (is_numeric( $parameter )) {
+        if (is_numeric($parameter)) {
             if (!isset( $parameters[$parameter] )) {
-                throw new Exception\RuntimeException( sprintf( 'There is no parameter at position "%d".', $parameter ),
-                    Exception\RuntimeException::DOES_NOT_EXIST, $this );
+                throw new Exception\RuntimeException(sprintf('There is no parameter at position "%d".', $parameter),
+                    Exception\RuntimeException::DOES_NOT_EXIST, $this);
             }
 
             return $parameters[$parameter];
@@ -202,8 +202,8 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
                 }
             }
 
-            throw new Exception\RuntimeException( sprintf( 'There is no parameter "%s".', $parameter ),
-                Exception\RuntimeException::DOES_NOT_EXIST, $this );
+            throw new Exception\RuntimeException(sprintf('There is no parameter "%s".', $parameter),
+                Exception\RuntimeException::DOES_NOT_EXIST, $this);
         }
     }
 
@@ -218,13 +218,13 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
         if (null === $this->parameters) {
             $broker = $this->broker;
             $parent = $this;
-            $this->parameters = array_map( function ( InternalReflectionParameter $parameter ) use (
+            $this->parameters = array_map(function (InternalReflectionParameter $parameter) use (
                 $broker,
                 $parent
             ) {
 
-                return ReflectionParameter::create( $parameter, $broker, $parent );
-            }, parent::getParameters() );
+                return ReflectionParameter::create($parameter, $broker, $parent);
+            }, parent::getParameters());
         }
 
         return $this->parameters;
@@ -250,17 +250,17 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      *
      * @throws \TokenReflection\Exception\RuntimeException If run on PHP version < 5.3.2.
      */
-    public function setAccessible( $accessible )
+    public function setAccessible($accessible)
     {
 
         if (PHP_VERSION_ID < 50302) {
-            throw new Exception\RuntimeException( sprintf( 'Method setAccessible was introduced the internal reflection in PHP 5.3.2, you are using %s.',
-                PHP_VERSION ), Exception\RuntimeException::UNSUPPORTED, $this );
+            throw new Exception\RuntimeException(sprintf('Method setAccessible was introduced the internal reflection in PHP 5.3.2, you are using %s.',
+                PHP_VERSION), Exception\RuntimeException::UNSUPPORTED, $this);
         }
 
         $this->accessible = $accessible;
 
-        parent::setAccessible( $accessible );
+        parent::setAccessible($accessible);
     }
 
     /**
@@ -270,7 +270,7 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      *
      * @return boolean
      */
-    public function is( $filter = null )
+    public function is($filter = null)
     {
 
         return null === $filter || ( $this->getModifiers() & $filter );
@@ -294,10 +294,10 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      *
      * @return mixed
      */
-    final public function __get( $key )
+    final public function __get($key)
     {
 
-        return TokenReflection\ReflectionElement::get( $this, $key );
+        return TokenReflection\ReflectionElement::get($this, $key);
     }
 
     /**
@@ -307,10 +307,10 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      *
      * @return boolean
      */
-    final public function __isset( $key )
+    final public function __isset($key)
     {
 
-        return TokenReflection\ReflectionElement::exists( $this, $key );
+        return TokenReflection\ReflectionElement::exists($this, $key);
     }
 
     /**
@@ -320,16 +320,16 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
      *
      * @return \Closure
      */
-    public function getClosure( $object )
+    public function getClosure($object)
     {
 
         if (PHP_VERSION >= 50400) {
             return parent::getClosure();
         } else {
             $that = $this;
-            return function () use ( $object, $that ) {
+            return function () use ($object, $that) {
 
-                return $that->invokeArgs( $object, func_get_args() );
+                return $that->invokeArgs($object, func_get_args());
             };
         }
     }
@@ -419,7 +419,7 @@ class ReflectionMethod extends InternalReflectionMethod implements IReflection, 
     public function getPrettyName()
     {
 
-        return sprintf( '%s::%s()', $this->getDeclaringClassName(), $this->getName() );
+        return sprintf('%s::%s()', $this->getDeclaringClassName(), $this->getName());
     }
 
     /**

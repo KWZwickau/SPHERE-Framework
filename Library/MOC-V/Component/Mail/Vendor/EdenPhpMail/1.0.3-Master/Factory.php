@@ -33,18 +33,18 @@ class Factory extends Base
      *
      * @return Eden\Mail\Imap
      */
-    public function imap( $host, $user, $pass, $port = null, $ssl = false, $tls = false )
+    public function imap($host, $user, $pass, $port = null, $ssl = false, $tls = false)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string' )
-            ->test( 3, 'string' )
-            ->test( 4, 'int', 'null' )
-            ->test( 5, 'bool' )
-            ->test( 6, 'bool' );
+            ->test(1, 'string')
+            ->test(2, 'string')
+            ->test(3, 'string')
+            ->test(4, 'int', 'null')
+            ->test(5, 'bool')
+            ->test(6, 'bool');
 
-        return Imap::i( $host, $user, $pass, $port, $ssl, $tls );
+        return Imap::i($host, $user, $pass, $port, $ssl, $tls);
     }
 
     /**
@@ -59,18 +59,18 @@ class Factory extends Base
      *
      * @return Eden\Mail\Pop3
      */
-    public function pop3( $host, $user, $pass, $port = null, $ssl = false, $tls = false )
+    public function pop3($host, $user, $pass, $port = null, $ssl = false, $tls = false)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string' )
-            ->test( 3, 'string' )
-            ->test( 4, 'int', 'null' )
-            ->test( 5, 'bool' )
-            ->test( 6, 'bool' );
+            ->test(1, 'string')
+            ->test(2, 'string')
+            ->test(3, 'string')
+            ->test(4, 'int', 'null')
+            ->test(5, 'bool')
+            ->test(6, 'bool');
 
-        return Pop3::i( $host, $user, $pass, $port, $ssl, $tls );
+        return Pop3::i($host, $user, $pass, $port, $ssl, $tls);
     }
 
     /**
@@ -85,17 +85,17 @@ class Factory extends Base
      *
      * @return Eden_Mail_Smtp
      */
-    public function smtp( $host, $user, $pass, $port = null, $ssl = false, $tls = false )
+    public function smtp($host, $user, $pass, $port = null, $ssl = false, $tls = false)
     {
 
         Argument::i()
-            ->test( 1, 'string' )
-            ->test( 2, 'string' )
-            ->test( 3, 'string' )
-            ->test( 4, 'int', 'null' )
-            ->test( 5, 'bool' )
-            ->test( 6, 'bool' );
+            ->test(1, 'string')
+            ->test(2, 'string')
+            ->test(3, 'string')
+            ->test(4, 'int', 'null')
+            ->test(5, 'bool')
+            ->test(6, 'bool');
 
-        return Smtp::i( $host, $user, $pass, $port, $ssl, $tls );
+        return Smtp::i($host, $user, $pass, $port, $ssl, $tls);
     }
 }

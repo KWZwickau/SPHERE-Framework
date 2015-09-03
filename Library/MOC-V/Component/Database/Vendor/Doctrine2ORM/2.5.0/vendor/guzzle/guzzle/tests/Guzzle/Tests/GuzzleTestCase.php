@@ -2,17 +2,17 @@
 
 namespace Guzzle\Tests;
 
-use Guzzle\Common\HasDispatcherInterface;
 use Guzzle\Common\Event;
-use Guzzle\Http\Message\Response;
-use Guzzle\Http\Message\RequestInterface;
-use Guzzle\Tests\Http\Message\HeaderComparison;
-use Guzzle\Plugin\Mock\MockPlugin;
+use Guzzle\Common\HasDispatcherInterface;
 use Guzzle\Http\Client;
-use Guzzle\Service\Builder\ServiceBuilderInterface;
+use Guzzle\Http\Message\RequestInterface;
+use Guzzle\Http\Message\Response;
+use Guzzle\Plugin\Mock\MockPlugin;
 use Guzzle\Service\Builder\ServiceBuilder;
-use Guzzle\Tests\Mock\MockObserver;
+use Guzzle\Service\Builder\ServiceBuilderInterface;
+use Guzzle\Tests\Http\Message\HeaderComparison;
 use Guzzle\Tests\Http\Server;
+use Guzzle\Tests\Mock\MockObserver;
 use RuntimeException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -21,12 +21,12 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
  */
 abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
 {
-    protected static $mockBasePath;
+
     public static $serviceBuilder;
     public static $server;
-
-    private $requests = array();
+    protected static $mockBasePath;
     public $mockObserver;
+    private $requests = array();
 
     /**
      * Get the global server object used throughout the unit tests of Guzzle
@@ -35,6 +35,7 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
      */
     public static function getServer()
     {
+
         if (!self::$server) {
             self::$server = new Server();
             if (self::$server->isRunning()) {
@@ -48,22 +49,13 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Set the service builder to use for tests
-     *
-     * @param ServiceBuilderInterface $builder Service builder
-     */
-    public static function setServiceBuilder(ServiceBuilderInterface $builder)
-    {
-        self::$serviceBuilder = $builder;
-    }
-
-    /**
      * Get a service builder object that can be used throughout the service tests
      *
      * @return ServiceBuilder
      */
     public static function getServiceBuilder()
     {
+
         if (!self::$serviceBuilder) {
             throw new RuntimeException('No service builder has been set via setServiceBuilder()');
         }
@@ -72,47 +64,14 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Check if an event dispatcher has a subscriber
+     * Set the service builder to use for tests
      *
-     * @param HasDispatcherInterface $dispatcher
-     * @param EventSubscriberInterface $subscriber
-     *
-     * @return bool
+     * @param ServiceBuilderInterface $builder Service builder
      */
-    protected function hasSubscriber(HasDispatcherInterface $dispatcher, EventSubscriberInterface $subscriber)
+    public static function setServiceBuilder(ServiceBuilderInterface $builder)
     {
-        $class = get_class($subscriber);
-        $all = array_keys(call_user_func(array($class, 'getSubscribedEvents')));
 
-        foreach ($all as $i => $event) {
-            foreach ($dispatcher->getEventDispatcher()->getListeners($event) as $e) {
-                if ($e[0] === $subscriber) {
-                    unset($all[$i]);
-                    break;
-                }
-            }
-        }
-
-        return count($all) == 0;
-    }
-
-    /**
-     * Get a wildcard observer for an event dispatcher
-     *
-     * @param HasDispatcherInterface $hasDispatcher
-     *
-     * @return MockObserver
-     */
-    public function getWildcardObserver(HasDispatcherInterface $hasDispatcher)
-    {
-        $class = get_class($hasDispatcher);
-        $o = new MockObserver();
-        $events = call_user_func(array($class, 'getAllEvents'));
-        foreach ($events as $event) {
-            $hasDispatcher->getEventDispatcher()->addListener($event, array($o, 'update'));
-        }
-
-        return $o;
+        self::$serviceBuilder = $builder;
     }
 
     /**
@@ -124,21 +83,28 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
      */
     public static function setMockBasePath($path)
     {
+
         self::$mockBasePath = $path;
     }
 
     /**
-     * Mark a request as being mocked
+     * Get a wildcard observer for an event dispatcher
      *
-     * @param RequestInterface $request
+     * @param HasDispatcherInterface $hasDispatcher
      *
-     * @return self
+     * @return MockObserver
      */
-    public function addMockedRequest(RequestInterface $request)
+    public function getWildcardObserver(HasDispatcherInterface $hasDispatcher)
     {
-        $this->requests[] = $request;
 
-        return $this;
+        $class = get_class($hasDispatcher);
+        $o = new MockObserver();
+        $events = call_user_func(array($class, 'getAllEvents'));
+        foreach ($events as $event) {
+            $hasDispatcher->getEventDispatcher()->addListener($event, array($o, 'update'));
+        }
+
+        return $o;
     }
 
     /**
@@ -148,21 +114,8 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
      */
     public function getMockedRequests()
     {
-        return $this->requests;
-    }
 
-    /**
-     * Get a mock response for a client by mock file name
-     *
-     * @param string $path Relative path to the mock response file
-     *
-     * @return Response
-     */
-    public function getMockResponse($path)
-    {
-        return $path instanceof Response
-            ? $path
-            : MockPlugin::getMockFile(self::$mockBasePath . DIRECTORY_SEPARATOR . $path);
+        return $this->requests;
     }
 
     /**
@@ -180,11 +133,13 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
      */
     public function setMockResponse(Client $client, $paths)
     {
+
         $this->requests = array();
         $that = $this;
         $mock = new MockPlugin(null, true);
         $client->getEventDispatcher()->removeSubscriber($mock);
-        $mock->getEventDispatcher()->addListener('mock.request', function(Event $event) use ($that) {
+        $mock->getEventDispatcher()->addListener('mock.request', function (Event $event) use ($that) {
+
             $that->addMockedRequest($event['request']);
         });
 
@@ -194,13 +149,43 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
             $paths = array($paths);
         }
 
-        foreach ((array) $paths as $path) {
+        foreach ((array)$paths as $path) {
             $mock->addResponse($this->getMockResponse($path));
         }
 
         $client->getEventDispatcher()->addSubscriber($mock);
 
         return $mock;
+    }
+
+    /**
+     * Mark a request as being mocked
+     *
+     * @param RequestInterface $request
+     *
+     * @return self
+     */
+    public function addMockedRequest(RequestInterface $request)
+    {
+
+        $this->requests[] = $request;
+
+        return $this;
+    }
+
+    /**
+     * Get a mock response for a client by mock file name
+     *
+     * @param string $path Relative path to the mock response file
+     *
+     * @return Response
+     */
+    public function getMockResponse($path)
+    {
+
+        return $path instanceof Response
+            ? $path
+            : MockPlugin::getMockFile(self::$mockBasePath.DIRECTORY_SEPARATOR.$path);
     }
 
     /**
@@ -216,6 +201,7 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
      */
     public function compareHeaders($filteredHeaders, $actualHeaders)
     {
+
         $comparison = new HeaderComparison();
 
         return $comparison->compare($filteredHeaders, $actualHeaders);
@@ -224,12 +210,39 @@ abstract class GuzzleTestCase extends \PHPUnit_Framework_TestCase
     /**
      * Case insensitive assertContains
      *
-     * @param string $needle Search string
+     * @param string $needle  Search string
      * @param string $haystack Search this
      * @param string $message Optional failure message
      */
     public function assertContainsIns($needle, $haystack, $message = null)
     {
+
         $this->assertContains(strtolower($needle), strtolower($haystack), $message);
+    }
+
+    /**
+     * Check if an event dispatcher has a subscriber
+     *
+     * @param HasDispatcherInterface   $dispatcher
+     * @param EventSubscriberInterface $subscriber
+     *
+     * @return bool
+     */
+    protected function hasSubscriber(HasDispatcherInterface $dispatcher, EventSubscriberInterface $subscriber)
+    {
+
+        $class = get_class($subscriber);
+        $all = array_keys(call_user_func(array($class, 'getSubscribedEvents')));
+
+        foreach ($all as $i => $event) {
+            foreach ($dispatcher->getEventDispatcher()->getListeners($event) as $e) {
+                if ($e[0] === $subscriber) {
+                    unset( $all[$i] );
+                    break;
+                }
+            }
+        }
+
+        return count($all) == 0;
     }
 }

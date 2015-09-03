@@ -26,30 +26,30 @@ class Smarty_Internal_Compile_Assign extends Smarty_Internal_CompileBase
      *
      * @return string compiled code
      */
-    public function compile( $args, $compiler, $parameter )
+    public function compile($args, $compiler, $parameter)
     {
 
         // the following must be assigned at runtime because it will be overwritten in Smarty_Internal_Compile_Append
-        $this->required_attributes = array( 'var', 'value' );
-        $this->shorttag_order = array( 'var', 'value' );
-        $this->optional_attributes = array( 'scope' );
+        $this->required_attributes = array('var', 'value');
+        $this->shorttag_order = array('var', 'value');
+        $this->optional_attributes = array('scope');
         $_nocache = 'null';
         $_scope = Smarty::SCOPE_LOCAL;
         // check and get attributes
-        $_attr = $this->getAttributes( $compiler, $args );
+        $_attr = $this->getAttributes($compiler, $args);
         // nocache ?
         if ($compiler->tag_nocache || $compiler->nocache) {
             $_nocache = 'true';
             // create nocache var to make it know for further compiling
-            if (isset( $compiler->template->tpl_vars[trim( $_attr['var'], "'" )] )) {
-                $compiler->template->tpl_vars[trim( $_attr['var'], "'" )]->nocache = true;
+            if (isset( $compiler->template->tpl_vars[trim($_attr['var'], "'")] )) {
+                $compiler->template->tpl_vars[trim($_attr['var'], "'")]->nocache = true;
             } else {
-                $compiler->template->tpl_vars[trim( $_attr['var'], "'" )] = new Smarty_variable( null, true );
+                $compiler->template->tpl_vars[trim($_attr['var'], "'")] = new Smarty_variable(null, true);
             }
         }
         // scope setup
         if (isset( $_attr['scope'] )) {
-            $_attr['scope'] = trim( $_attr['scope'], "'\"" );
+            $_attr['scope'] = trim($_attr['scope'], "'\"");
             if ($_attr['scope'] == 'parent') {
                 $_scope = Smarty::SCOPE_PARENT;
             } elseif ($_attr['scope'] == 'root') {
@@ -57,7 +57,7 @@ class Smarty_Internal_Compile_Assign extends Smarty_Internal_CompileBase
             } elseif ($_attr['scope'] == 'global') {
                 $_scope = Smarty::SCOPE_GLOBAL;
             } else {
-                $compiler->trigger_template_error( 'illegal value for "scope" attribute', $compiler->lex->taglineno );
+                $compiler->trigger_template_error('illegal value for "scope" attribute', $compiler->lex->taglineno);
             }
         }
         // compiled output

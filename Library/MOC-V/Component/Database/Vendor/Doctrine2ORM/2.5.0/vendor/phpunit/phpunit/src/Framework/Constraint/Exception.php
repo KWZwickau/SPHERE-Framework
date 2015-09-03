@@ -13,6 +13,7 @@
  */
 class PHPUnit_Framework_Constraint_Exception extends PHPUnit_Framework_Constraint
 {
+
     /**
      * @var string
      */
@@ -23,8 +24,23 @@ class PHPUnit_Framework_Constraint_Exception extends PHPUnit_Framework_Constrain
      */
     public function __construct($className)
     {
+
         parent::__construct();
         $this->className = $className;
+    }
+
+    /**
+     * Returns a string representation of the constraint.
+     *
+     * @return string
+     */
+    public function toString()
+    {
+
+        return sprintf(
+            'exception of type "%s"',
+            $this->className
+        );
     }
 
     /**
@@ -32,10 +48,12 @@ class PHPUnit_Framework_Constraint_Exception extends PHPUnit_Framework_Constrain
      * constraint is met, false otherwise.
      *
      * @param  mixed $other Value or object to evaluate.
+     *
      * @return bool
      */
     protected function matches($other)
     {
+
         return $other instanceof $this->className;
     }
 
@@ -45,16 +63,18 @@ class PHPUnit_Framework_Constraint_Exception extends PHPUnit_Framework_Constrain
      * The beginning of failure messages is "Failed asserting that" in most
      * cases. This method should return the second part of that sentence.
      *
-     * @param  mixed  $other Evaluated value or object.
+     * @param  mixed $other Evaluated value or object.
+     *
      * @return string
      */
     protected function failureDescription($other)
     {
+
         if ($other !== null) {
             $message = '';
             if ($other instanceof Exception) {
-                $message = '. Message was: "' . $other->getMessage() . '" at'
-                        . "\n" . $other->getTraceAsString();
+                $message = '. Message was: "'.$other->getMessage().'" at'
+                    ."\n".$other->getTraceAsString();
             }
 
             return sprintf(
@@ -67,19 +87,6 @@ class PHPUnit_Framework_Constraint_Exception extends PHPUnit_Framework_Constrain
 
         return sprintf(
             'exception of type "%s" is thrown',
-            $this->className
-        );
-    }
-
-    /**
-     * Returns a string representation of the constraint.
-     *
-     * @return string
-     */
-    public function toString()
-    {
-        return sprintf(
-            'exception of type "%s"',
             $this->className
         );
     }

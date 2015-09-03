@@ -20,6 +20,7 @@
  */
 class PHPUnit_Framework_Constraint_ArrayHasKey extends PHPUnit_Framework_Constraint
 {
+
     /**
      * @var int|string
      */
@@ -30,6 +31,7 @@ class PHPUnit_Framework_Constraint_ArrayHasKey extends PHPUnit_Framework_Constra
      */
     public function __construct($key)
     {
+
         parent::__construct();
         $this->key = $key;
     }
@@ -39,10 +41,12 @@ class PHPUnit_Framework_Constraint_ArrayHasKey extends PHPUnit_Framework_Constra
      * constraint is met, false otherwise.
      *
      * @param  mixed $other Value or object to evaluate.
+     *
      * @return bool
      */
     protected function matches($other)
     {
+
         if (is_array($other)) {
             return array_key_exists($this->key, $other);
         }
@@ -55,26 +59,29 @@ class PHPUnit_Framework_Constraint_ArrayHasKey extends PHPUnit_Framework_Constra
     }
 
     /**
+     * Returns the description of the failure
+     *
+     * The beginning of failure messages is "Failed asserting that" in most
+     * cases. This method should return the second part of that sentence.
+     *
+     * @param  mixed $other Evaluated value or object.
+     *
+     * @return string
+     */
+    protected function failureDescription($other)
+    {
+
+        return 'an array '.$this->toString();
+    }
+
+    /**
      * Returns a string representation of the constraint.
      *
      * @return string
      */
     public function toString()
     {
-        return 'has the key ' . $this->exporter->export($this->key);
-    }
 
-    /**
-     * Returns the description of the failure
-     *
-     * The beginning of failure messages is "Failed asserting that" in most
-     * cases. This method should return the second part of that sentence.
-     *
-     * @param  mixed  $other Evaluated value or object.
-     * @return string
-     */
-    protected function failureDescription($other)
-    {
-        return 'an array ' . $this->toString();
+        return 'has the key '.$this->exporter->export($this->key);
     }
 }

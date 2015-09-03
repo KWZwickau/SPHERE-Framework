@@ -28,11 +28,13 @@ namespace Doctrine\Common\Cache;
  */
 class VoidCache extends CacheProvider
 {
+
     /**
      * {@inheritDoc}
      */
     protected function doFetch($id)
     {
+
         return false;
     }
 
@@ -41,6 +43,7 @@ class VoidCache extends CacheProvider
      */
     protected function doContains($id)
     {
+
         return false;
     }
 
@@ -49,6 +52,7 @@ class VoidCache extends CacheProvider
      */
     protected function doSave($id, $data, $lifeTime = 0)
     {
+
         return true;
     }
 
@@ -57,6 +61,7 @@ class VoidCache extends CacheProvider
      */
     protected function doDelete($id)
     {
+
         return true;
     }
 
@@ -65,6 +70,7 @@ class VoidCache extends CacheProvider
      */
     protected function doFlush()
     {
+
         return true;
     }
 
@@ -73,6 +79,7 @@ class VoidCache extends CacheProvider
      */
     protected function doGetStats()
     {
+
         return;
     }
 }

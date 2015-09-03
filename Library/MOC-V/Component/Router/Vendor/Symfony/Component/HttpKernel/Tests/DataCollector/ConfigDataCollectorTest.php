@@ -19,19 +19,21 @@ use Symfony\Component\HttpKernel\Kernel;
 
 class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testCollect()
     {
+
         $kernel = new KernelForTest('test', true);
         $c = new ConfigDataCollector();
         $c->setKernel($kernel);
         $c->collect(new Request(), new Response());
 
-        $this->assertSame('test',$c->getEnv());
+        $this->assertSame('test', $c->getEnv());
         $this->assertTrue($c->isDebug());
-        $this->assertSame('config',$c->getName());
-        $this->assertSame('testkernel',$c->getAppName());
-        $this->assertSame(PHP_VERSION,$c->getPhpVersion());
-        $this->assertSame(Kernel::VERSION,$c->getSymfonyVersion());
+        $this->assertSame('config', $c->getName());
+        $this->assertSame('testkernel', $c->getAppName());
+        $this->assertSame(PHP_VERSION, $c->getPhpVersion());
+        $this->assertSame(Kernel::VERSION, $c->getSymfonyVersion());
         $this->assertNull($c->getToken());
 
         // if else clause because we don't know it
@@ -42,15 +44,16 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
         }
 
         // if else clause because we don't know it
-        if (((extension_loaded('eaccelerator') && ini_get('eaccelerator.enable'))
-                ||
-                (extension_loaded('apc') && ini_get('apc.enabled'))
-                ||
-                (extension_loaded('Zend OPcache') && ini_get('opcache.enable'))
-                ||
-                (extension_loaded('xcache') && ini_get('xcache.cacher'))
-                ||
-                (extension_loaded('wincache') && ini_get('wincache.ocenabled')))) {
+        if (( ( extension_loaded('eaccelerator') && ini_get('eaccelerator.enable') )
+            ||
+            ( extension_loaded('apc') && ini_get('apc.enabled') )
+            ||
+            ( extension_loaded('Zend OPcache') && ini_get('opcache.enable') )
+            ||
+            ( extension_loaded('xcache') && ini_get('xcache.cacher') )
+            ||
+            ( extension_loaded('wincache') && ini_get('wincache.ocenabled') ) )
+        ) {
             $this->assertTrue($c->hasAccelerator());
         } else {
             $this->assertFalse($c->hasAccelerator());
@@ -60,8 +63,10 @@ class ConfigDataCollectorTest extends \PHPUnit_Framework_TestCase
 
 class KernelForTest extends Kernel
 {
+
     public function getName()
     {
+
         return 'testkernel';
     }
 
@@ -75,6 +80,7 @@ class KernelForTest extends Kernel
 
     public function getBundles()
     {
+
         return array();
     }
 

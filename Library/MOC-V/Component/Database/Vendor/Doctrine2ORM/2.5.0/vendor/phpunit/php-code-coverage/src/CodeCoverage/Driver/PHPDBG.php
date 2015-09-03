@@ -16,11 +16,13 @@
  */
 class PHP_CodeCoverage_Driver_PHPDBG implements PHP_CodeCoverage_Driver
 {
+
     /**
      * Constructor.
      */
     public function __construct()
     {
+
         if (PHP_SAPI !== 'phpdbg') {
             throw new PHP_CodeCoverage_Exception(
                 'This driver requires the PHPDBG SAPI'
@@ -39,6 +41,7 @@ class PHP_CodeCoverage_Driver_PHPDBG implements PHP_CodeCoverage_Driver
      */
     public function start()
     {
+
         phpdbg_start_oplog();
     }
 
@@ -49,6 +52,7 @@ class PHP_CodeCoverage_Driver_PHPDBG implements PHP_CodeCoverage_Driver
      */
     public function stop()
     {
+
         static $fetchedLines = array();
 
         $dbgData = phpdbg_end_oplog();
@@ -86,15 +90,17 @@ class PHP_CodeCoverage_Driver_PHPDBG implements PHP_CodeCoverage_Driver
      *
      * @param  array $sourceLines
      * @param  array $dbgData
+     *
      * @return array
      */
     private function detectExecutedLines(array $sourceLines, array $dbgData)
     {
+
         foreach ($dbgData as $file => $coveredLines) {
             foreach ($coveredLines as $lineNo => $numExecuted) {
                 // phpdbg also reports $lineNo=0 when e.g. exceptions get thrown.
                 // make sure we only mark lines executed which are actually executable.
-                if (isset($sourceLines[$file][$lineNo])) {
+                if (isset( $sourceLines[$file][$lineNo] )) {
                     $sourceLines[$file][$lineNo] = self::LINE_EXECUTED;
                 }
             }

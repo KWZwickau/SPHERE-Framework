@@ -32,15 +32,17 @@ use Doctrine\DBAL\Schema\Sequence;
  */
 class SQLAnywhere12Platform extends SQLAnywhere11Platform
 {
+
     /**
      * {@inheritdoc}
      */
     public function getCreateSequenceSQL(Sequence $sequence)
     {
-        return 'CREATE SEQUENCE ' . $sequence->getQuotedName($this) .
-            ' INCREMENT BY ' . $sequence->getAllocationSize() .
-            ' START WITH ' . $sequence->getInitialValue() .
-            ' MINVALUE ' . $sequence->getInitialValue();
+
+        return 'CREATE SEQUENCE '.$sequence->getQuotedName($this).
+        ' INCREMENT BY '.$sequence->getAllocationSize().
+        ' START WITH '.$sequence->getInitialValue().
+        ' MINVALUE '.$sequence->getInitialValue();
     }
 
     /**
@@ -48,8 +50,9 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     public function getAlterSequenceSQL(Sequence $sequence)
     {
-        return 'ALTER SEQUENCE ' . $sequence->getQuotedName($this) .
-            ' INCREMENT BY ' . $sequence->getAllocationSize();
+
+        return 'ALTER SEQUENCE '.$sequence->getQuotedName($this).
+        ' INCREMENT BY '.$sequence->getAllocationSize();
     }
 
     /**
@@ -57,6 +60,7 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     public function getDateTimeTzFormatString()
     {
+
         return 'Y-m-d H:i:s.uP';
     }
 
@@ -65,6 +69,7 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     public function getDateTimeTzTypeDeclarationSQL(array $fieldDeclaration)
     {
+
         return 'TIMESTAMP WITH TIME ZONE';
     }
 
@@ -73,11 +78,12 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     public function getDropSequenceSQL($sequence)
     {
+
         if ($sequence instanceof Sequence) {
             $sequence = $sequence->getQuotedName($this);
         }
 
-        return 'DROP SEQUENCE ' . $sequence;
+        return 'DROP SEQUENCE '.$sequence;
     }
 
     /**
@@ -85,6 +91,7 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     public function getListSequencesSQL($database)
     {
+
         return 'SELECT sequence_name, increment_by, start_with, min_value FROM SYS.SYSSEQUENCE';
     }
 
@@ -93,7 +100,8 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     public function getSequenceNextValSQL($sequenceName)
     {
-        return 'SELECT ' . $sequenceName . '.NEXTVAL';
+
+        return 'SELECT '.$sequenceName.'.NEXTVAL';
     }
 
     /**
@@ -101,6 +109,7 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     public function supportsSequences()
     {
+
         return true;
     }
 
@@ -109,8 +118,9 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     protected function getAdvancedIndexOptionsSQL(Index $index)
     {
-        if ( ! $index->isPrimary() && $index->isUnique() && $index->hasFlag('with_nulls_not_distinct')) {
-            return ' WITH NULLS NOT DISTINCT' . parent::getAdvancedIndexOptionsSQL($index);
+
+        if (!$index->isPrimary() && $index->isUnique() && $index->hasFlag('with_nulls_not_distinct')) {
+            return ' WITH NULLS NOT DISTINCT'.parent::getAdvancedIndexOptionsSQL($index);
         }
 
         return parent::getAdvancedIndexOptionsSQL($index);
@@ -121,6 +131,7 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     protected function getReservedKeywordsClass()
     {
+
         return 'Doctrine\DBAL\Platforms\Keywords\SQLAnywhere12Keywords';
     }
 
@@ -129,6 +140,7 @@ class SQLAnywhere12Platform extends SQLAnywhere11Platform
      */
     protected function initializeDoctrineTypeMappings()
     {
+
         parent::initializeDoctrineTypeMappings();
         $this->doctrineTypeMapping['timestamp with time zone'] = 'datetime';
     }

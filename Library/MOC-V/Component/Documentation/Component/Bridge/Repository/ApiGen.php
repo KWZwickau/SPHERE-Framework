@@ -44,9 +44,9 @@ class ApiGen extends Bridge implements IBridgeInterface
         ExcludeParameter $Exclude = null
     ) {
 
-        AutoLoader::getNamespaceAutoLoader( 'ApiGen', __DIR__.'/../../../Vendor/ApiGen' );
-        AutoLoader::getNamespaceAutoLoader( 'TokenReflection', __DIR__.'/../../../Vendor/ApiGen/libs/TokenReflection' );
-        AutoLoader::getNamespaceAutoLoader( 'FSHL', __DIR__.'/../../../Vendor/ApiGen/libs/FSHL' );
+        AutoLoader::getNamespaceAutoLoader('ApiGen', __DIR__.'/../../../Vendor/ApiGen');
+        AutoLoader::getNamespaceAutoLoader('TokenReflection', __DIR__.'/../../../Vendor/ApiGen/libs/TokenReflection');
+        AutoLoader::getNamespaceAutoLoader('FSHL', __DIR__.'/../../../Vendor/ApiGen/libs/FSHL');
 
         $this->Project = $Project;
         $this->Title = $Title;
@@ -54,14 +54,14 @@ class ApiGen extends Bridge implements IBridgeInterface
         $this->Destination = $Destination;
         $this->Exclude = $Exclude;
 
-        set_time_limit( 0 );
+        set_time_limit(0);
         $Config = $this->getConfig();
 
         require_once( __DIR__.'/../../../Vendor/ApiGen/libs/Nette/Nette/loader.php' );
         $Neon = new NeonAdapter();
 
-        $File = FileSystem::getFileWriter( __DIR__.'/ApiGen.config' );
-        file_put_contents( $File->getLocation(), $Neon->dump( $Config ) );
+        $File = FileSystem::getFileWriter(__DIR__.'/ApiGen.config');
+        file_put_contents($File->getLocation(), $Neon->dump($Config));
 
         $_SERVER['argv'] = array(
             'DUMMY-SHELL-ARGS',
@@ -82,7 +82,7 @@ class ApiGen extends Bridge implements IBridgeInterface
             // Directory where to save the generated documentation
             'destination'    => $this->Destination->getDirectory(),
             // List of allowed file extensions
-            'extensions'     => array( 'php' ),
+            'extensions'   => array('php'),
             // Mask to exclude file or directory from processing
             // 'exclude'        => "'".$this->Exclude->getGlobList()."'",
             // Don't generate documentation for classes from file or directory with this mask
@@ -108,11 +108,11 @@ class ApiGen extends Bridge implements IBridgeInterface
             // Grouping of classes
             'groups'         => 'auto',
             // List of allowed HTML tags in documentation
-            'allowedHtml'    => array( 'b', 'i', 'a', 'ul', 'ol', 'li', 'p', 'br', 'var', 'samp', 'kbd', 'tt' ),
+            'allowedHtml'  => array('b', 'i', 'a', 'ul', 'ol', 'li', 'p', 'br', 'var', 'samp', 'kbd', 'tt'),
             // Element types for search input autocomplete
-            'autocomplete'   => array( 'classes', 'constants', 'functions' ),
+            'autocomplete' => array('classes', 'constants', 'functions'),
             // Generate documentation for methods and properties with given access level
-            'accessLevels'   => array( 'public', 'protected', 'private' ),
+            'accessLevels' => array('public', 'protected', 'private'),
             // Generate documentation for elements marked as internal and display internal documentation parts
             'internal'       => true,
             // Generate documentation for PHP internal classes
@@ -126,13 +126,13 @@ class ApiGen extends Bridge implements IBridgeInterface
             // Generate highlighted source code files
             'sourceCode'     => true,
             // Add a link to download documentation as a ZIP archive
-            'download' => false,
+            'download'     => false,
             // Save a check style report of poorly documented elements into a file
-            'report' => $this->Destination->getDirectory().DIRECTORY_SEPARATOR.'_improve.xml',
+            'report'       => $this->Destination->getDirectory().DIRECTORY_SEPARATOR.'_improve.xml',
             // Wipe out the destination directory first
-            'wipeout' => false,
+            'wipeout'      => false,
             // Don't display scanning and generating messages
-            'quiet'   => false,
+            'quiet'        => false,
             // Display progressbar
             'progressbar'    => false,
             // Use colors
@@ -145,9 +145,9 @@ class ApiGen extends Bridge implements IBridgeInterface
         if (null === $this->Exclude) {
             return $Default;
         } else {
-            return array_merge( $Default, array(
+            return array_merge($Default, array(
                 'exclude' => $this->Exclude->getGlobList()
-            ) );
+            ));
         }
     }
 }
