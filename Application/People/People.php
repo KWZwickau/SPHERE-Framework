@@ -73,9 +73,9 @@ class People implements IClusterInterface
             Main::getDispatcher()->registerWidget('Personen', new Panel('Personen in Gruppen', $tblGroupAll), 4, 6);
         }
 
-        $tblPersonAll = Person::useService()->getPersonAll();
         Main::getDispatcher()->registerWidget('Personen',
-            new Panel('Anzahl an Personen', 'Insgesamt: '.count($tblPersonAll)));
+            new Panel('Anzahl an Personen', 'Insgesamt: '.Person::useService()->countPersonAll())
+        );
     }
 
     /**
