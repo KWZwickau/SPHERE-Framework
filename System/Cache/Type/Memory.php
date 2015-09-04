@@ -16,6 +16,17 @@ class Memory implements IApiInterface
     private static $HitCount = 1;
     private static $MissCount = 0;
 
+    private $Partition = 'Default:';
+
+    /**
+     * @param string $Partition
+     */
+    public function __construct($Partition = 'Default')
+    {
+
+        $this->Partition = $Partition.':';
+    }
+
     /**
      * @param string   $Key
      * @param mixed    $Value
@@ -26,7 +37,7 @@ class Memory implements IApiInterface
     public function setValue($Key, $Value, $Timeout = null)
     {
 
-        self::$Memory[$Key] = $Value;
+        self::$Memory[$this->Partition.$Key] = $Value;
         return true;
     }
 
@@ -38,9 +49,9 @@ class Memory implements IApiInterface
     public function getValue($Key)
     {
 
-        if (array_key_exists($Key, self::$Memory)) {
+        if (array_key_exists($this->Partition.$Key, self::$Memory)) {
             self::$HitCount++;
-            return self::$Memory[$Key];
+            return self::$Memory[$this->Partition.$Key];
         }
         self::$MissCount++;
         return false;

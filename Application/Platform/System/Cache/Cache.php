@@ -83,37 +83,37 @@ class Cache extends Extension implements IModuleInterface
             $this->getRequest()->getPathBase().'/UnitTest/Console/phpMemcachedAdmin-1.2.2'));
 
         if ($Clear) {
-            (new CacheType(new ApcUser()))->getCache()->clearCache();
-            (new CacheType(new Apcu()))->getCache()->clearCache();
-            (new CacheType(new Memcached()))->getCache()->clearCache();
-            (new CacheType(new OpCache()))->getCache()->clearCache();
-            (new CacheType(new TwigCache()))->getCache()->clearCache();
+            (new CacheType(new ApcUser(), true))->getCache()->clearCache();
+            (new CacheType(new Apcu(), true))->getCache()->clearCache();
+            (new CacheType(new Memcached(), true))->getCache()->clearCache();
+            (new CacheType(new OpCache(), true))->getCache()->clearCache();
+            (new CacheType(new TwigCache(), true))->getCache()->clearCache();
         }
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        (new CacheType(new Memcached()))->getCache()
+                        (new CacheType(new Memcached(), true))->getCache()
                     ))
                 ), new Title('Memcached')),
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        (new CacheType(new Apcu()))->getCache()
+                        (new CacheType(new Apcu(), true))->getCache()
                     ))
                 ), new Title('APCu')),
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        (new CacheType(new Memory()))->getCache()
+                        (new CacheType(new Memory(), true))->getCache()
                     ))
                 ), new Title('Memory')),
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        (new CacheType(new OpCache()))->getCache()
+                        (new CacheType(new OpCache(), true))->getCache()
                     ))
                 ), new Title('Zend OpCache')),
                 new LayoutGroup(new LayoutRow(
                     new LayoutColumn(new Status(
-                        (new CacheType(new TwigCache()))->getCache()
+                        (new CacheType(new TwigCache(), true))->getCache()
                     ))
                 ), new Title('Twig'))
             ))

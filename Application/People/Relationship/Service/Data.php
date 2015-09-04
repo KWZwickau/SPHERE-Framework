@@ -7,10 +7,6 @@ use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\IApiInterface;
-use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**
@@ -84,12 +80,7 @@ class Data
     public function getTypeById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -99,12 +90,7 @@ class Data
     public function getTypeAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
-            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -116,12 +102,7 @@ class Data
     public function getRelationshipToPersonById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -133,12 +114,7 @@ class Data
     public function getRelationshipToCompanyById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -150,19 +126,14 @@ class Data
     public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
-            $EntityList = array_merge(
-                $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-                    TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
-                )),
-                $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-                    TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
-                ))
-            );
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = array_merge(
+            $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
+                TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPerson->getId()
+            )),
+            $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
+                TblToPerson::SERVICE_TBL_PERSON_TO => $tblPerson->getId()
+            ))
+        );
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -174,14 +145,9 @@ class Data
     public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
-                TblToCompany::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
+            TblToCompany::SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 

@@ -4,17 +4,15 @@ namespace SPHERE\Application\People\Person\Service;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\IApiInterface;
-use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\DataCacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Person\Service
  */
-class Data
+class Data extends DataCacheable
 {
 
     /** @var null|Binding $Connection */
@@ -122,12 +120,7 @@ class Data
     public function getSalutationAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblSalutation')->findAll();
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblSalutation')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -137,13 +130,7 @@ class Data
     public function getPersonAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblPerson')->findAll();
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityListBy('PersonAll', array(), array($this, 'getPersonAllCacheable'));
     }
 
     /**
@@ -154,12 +141,7 @@ class Data
     public function getPersonById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblPerson', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblPerson', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -171,13 +153,16 @@ class Data
     public function getSalutationById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblSalutation', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblSalutation', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
+    /**
+     * @return array
+     */
+    protected function getPersonAllCacheable()
+    {
+
+        return $this->Connection->getEntityManager()->getEntity('TblPerson')->findAll();
+    }
 }

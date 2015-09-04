@@ -39,7 +39,7 @@ class Frontend
     /**
      * @return Stage
      */
-    public static function frontendAccount()
+    public function frontendAccount()
     {
 
         $Stage = new Stage('Benutzerkonnten');

@@ -158,9 +158,10 @@ class Data
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return $this->Connection->getEntityManager()->getEntity('TblMember')->countBy(array(
+        $Count = $this->Connection->getEntityManager()->getEntity('TblMember')->countBy(array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
+        return $Count;
     }
 
     /**

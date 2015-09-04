@@ -8,9 +8,6 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblType;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\IApiInterface;
-use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**
@@ -72,12 +69,7 @@ class Data
     public function getTypeById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -87,12 +79,7 @@ class Data
     public function getTypeAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
-            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -104,12 +91,7 @@ class Data
     public function getMailById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblMail', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblMail', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -121,12 +103,7 @@ class Data
     public function getMailToPersonById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -138,12 +115,7 @@ class Data
     public function getMailToCompanyById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -153,12 +125,7 @@ class Data
     public function getMailAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblMail')->findAll();
-            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblMail')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -192,14 +159,9 @@ class Data
     public function getMailAllByPerson(TblPerson $tblPerson)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -211,14 +173,9 @@ class Data
     public function getMailAllByCompany(TblCompany $tblCompany)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
-                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-            ));
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
+            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+        ));
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 

@@ -4,6 +4,11 @@ namespace SPHERE\System\Authenticator\Type;
 use SPHERE\System\Authenticator\ITypeInterface;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Get
+ *
+ * @package SPHERE\System\Authenticator\Type
+ */
 class Get extends Extension implements ITypeInterface
 {
 

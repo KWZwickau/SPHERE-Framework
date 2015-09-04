@@ -3,9 +3,6 @@ namespace SPHERE\Application\Corporation\Company\Service;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\IApiInterface;
-use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**
@@ -79,7 +76,6 @@ class Data
     public function getCompanyAll()
     {
 
-        /** @var IApiInterface $Cache */
         $EntityList = $this->Connection->getEntityManager()->getEntity('TblCompany')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -92,12 +88,7 @@ class Data
     public function getCompanyById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblCompany', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblCompany', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 }

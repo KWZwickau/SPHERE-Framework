@@ -18,18 +18,22 @@ use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Icon\Repository\TileList;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Link\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Repository\Title;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
@@ -194,6 +198,24 @@ class Frontend
         $Stage = new Stage('Berechtigungen', 'Rechte');
         $this->menuButton($Stage);
         $tblRightAll = Access::useService()->getRightAll();
+
+        $PublicRouteAll = Main::getDispatcher()->getPublicRoutes();
+        array_walk($PublicRouteAll, function (&$Route) {
+
+            $Route = new PullClear(
+                new PullLeft($Route)
+                .new PullRight(
+                    new External(
+                        'Öffnen', $Route, null, array(), false
+                    ).
+                    new Danger(
+                        'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right', null,
+                        array('Name' => $Route)
+                    )
+                )
+            );
+        });
+
         $Stage->setContent(
             ( $tblRightAll
                 ? new TableData($tblRightAll, new Title('Bestehende Rechte', 'Routen'), array(
@@ -212,6 +234,7 @@ class Frontend
                     , new Primary('Hinzufügen')
                 ), $Name
             )
+            .new Panel('Öffentliche Routen', $PublicRouteAll, Panel::PANEL_TYPE_DANGER)
         );
         return $Stage;
     }

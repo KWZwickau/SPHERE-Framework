@@ -14,13 +14,14 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\Tb
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\DataCacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service
  */
-class Data
+class Data extends DataCacheable
 {
 
     /** @var null|Binding $Connection */
@@ -93,6 +94,19 @@ class Data
     }
 
     /**
+     * @param string $Name
+     *
+     * @return bool|TblIdentification
+     */
+    public function getIdentificationByName($Name)
+    {
+
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblIdentification')
+            ->findOneBy(array(TblIdentification::ATTR_NAME => $Name));
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @param string           $Username
      * @param string           $Password
      * @param null|TblToken    $tblToken
@@ -114,19 +128,6 @@ class Data
             Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
         return $Entity;
-    }
-
-    /**
-     * @param string $Name
-     *
-     * @return bool|TblIdentification
-     */
-    public function getIdentificationByName($Name)
-    {
-
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblIdentification')
-            ->findOneBy(array(TblIdentification::ATTR_NAME => $Name));
-        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -494,14 +495,16 @@ class Data
         if (null === $Session) {
             $Session = session_id();
         }
-        /** @var TblSession $Entity */
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblSession')
-            ->findOneBy(array(TblSession::ATTR_SESSION => $Session));
-        if (null === $Entity) {
-            return false;
-        } else {
+
+        /** @var false|TblSession $Entity */
+        $Entity = $this->getCachedEntityBy(
+            'AccountBySession', array($Session), array($this, 'getAccountBySessionCacheable')
+        );
+
+        if ($Entity) {
             return $Entity->getTblAccount();
         }
+        return $Entity;
     }
 
     /**
@@ -555,5 +558,18 @@ class Data
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param null|string $Session
+     *
+     * @return null|object
+     */
+    protected function getAccountBySessionCacheable($Session = null)
+    {
+
+        return $this->Connection->getEntityManager()->getEntity('TblSession')->findOneBy(array(
+            TblSession::ATTR_SESSION => $Session
+        ));
     }
 }

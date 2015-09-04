@@ -9,6 +9,8 @@ namespace SPHERE\System\Extension\Repository;
 class Debugger
 {
 
+    /** @var bool $Enabled */
+    public static $Enabled = false;
     /** @var array $Protocol */
     private static $Protocol = array();
     /** @var int $Timestamp */
@@ -64,7 +66,7 @@ class Debugger
         self::$Protocol[] = '<div class="text-'.$Status.' small">'
             .'&nbsp;<span class="glyphicon glyphicon-'.$Icon.'"></span>&nbsp;'.self::getRuntime()
             .'&nbsp;<span class="glyphicon glyphicon-transfer"></span>&nbsp;'
-            .'<samp>'.$Message.'</samp>'
+            .'<code>'.$Message.'</code>'
             .'</div>';
 
         self::$TimeGap = self::getTimeGap();
@@ -115,6 +117,9 @@ class Debugger
     final public static function getProtocol()
     {
 
+        if (!self::$Enabled) {
+            return '';
+        }
         if (!empty( self::$Protocol )) {
             self::addProtocol('Done #'.count(self::$Protocol));
         }
@@ -133,7 +138,7 @@ class Debugger
         print '<pre>';
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
-            var_dump($Dump);
+            self::addProtocol(print_r($Dump, true));
         }
         print '</pre>';
     }
@@ -148,9 +153,7 @@ class Debugger
 
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
-            ob_start();
-            var_dump($Dump);
-            self::addProtocol(ob_get_clean());
+            self::addProtocol(print_r($Dump, true));
         }
     }
 }

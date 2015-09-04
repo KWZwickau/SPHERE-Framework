@@ -9,7 +9,6 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMException;
 use Doctrine\ORM\Tools\Setup;
 use MOC\V\Component\Database\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Flash;
@@ -24,6 +23,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Message\Repository\Info;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\Type\Apcu;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
@@ -40,10 +40,6 @@ use SPHERE\System\Extension\Extension;
 class Database extends Extension
 {
 
-    /** @var null|bool $ConditionMemcached */
-    private static $ConditionMemcached = null;
-    /** @var null|bool $ConditionApc */
-    private static $ConditionApc = null;
     /** @var Identifier $Identifier */
     private $Identifier = null;
     /** @var array $Configuration */
@@ -114,37 +110,47 @@ class Database extends Extension
     }
 
     /**
-     * @param $EntityPath
-     * @param $EntityNamespace
+     * EntityManager
+     *
+     * @param string $EntityPath
+     * @param string $EntityNamespace
      *
      * @return Manager
-     * @throws ORMException
      */
     public function getEntityManager($EntityPath, $EntityNamespace)
     {
 
         // Sanitize Namespace
         $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
+
+        // System Cache
+        /** @var Memcached $SystemMemcached */
+        $SystemMemcached = (new Cache(new Memcached(), true))->getCache();
+        /** @var Apcu $SystemApc */
+        $SystemApc = (new Cache(new Apcu(), true))->getCache();
+
         $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
         $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
-        $MetadataConfiguration->addCustomHydrationMode( 'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator' );
+        $MetadataConfiguration->addCustomHydrationMode(
+            'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator'
+        );
         $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
-        if (self::$ConditionMemcached || self::$ConditionMemcached = class_exists('\Memcached', false)) {
-            /** @var Memcached $CacheDriver */
-            $CacheDriver = (new Cache(new Memcached()))->getCache();
+
+        if ($SystemMemcached->isAvailable()) {
             $Cache = new MemcachedCache();
-            $Cache->setMemcached($CacheDriver->getServer());
+            $Cache->setMemcached($SystemMemcached->getServer());
             $Cache->setNamespace($EntityPath);
             $ConnectionConfig->setResultCacheImpl($Cache);
-            $MetadataConfiguration->setQueryCacheImpl($Cache);
             $MetadataConfiguration->setHydrationCacheImpl($Cache);
-            if (self::$ConditionApc || self::$ConditionApc = function_exists('apc_fetch')) {
+            if ($SystemApc->isAvailable()) {
                 $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
+                $MetadataConfiguration->setQueryCacheImpl(new ApcCache());
             } else {
                 $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
+                $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
             }
         } else {
-            if (self::$ConditionApc || self::$ConditionApc = function_exists('apc_fetch')) {
+            if ($SystemApc->isAvailable()) {
                 $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
             } else {
                 $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
@@ -153,7 +159,9 @@ class Database extends Extension
             $MetadataConfiguration->setHydrationCacheImpl(new ArrayCache());
             $ConnectionConfig->setResultCacheImpl(new ArrayCache());
         }
-        // $ConnectionConfig->setSQLLogger( new Logger() );
+
+        $ConnectionConfig->setSQLLogger(new Logger());
+
         return new Manager(
             EntityManager::create($this->getConnection()->getConnection(), $MetadataConfiguration), $EntityNamespace
         );

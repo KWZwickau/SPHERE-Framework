@@ -146,7 +146,7 @@ class Search implements IApplicationInterface, IModuleInterface
                         new TableData($tblPersonAll, null,
                             array(
                                 'FullName' => 'Name',
-                                'Option'     => 'Optionen',
+                                'Option' => 'Optionen',
                             )
                         )
                     )

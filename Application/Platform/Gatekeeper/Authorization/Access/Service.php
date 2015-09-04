@@ -13,7 +13,6 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\IApiInterface;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
@@ -104,7 +103,6 @@ class Service extends Extension implements IServiceInterface
 
         if (empty( self::$AuthorizationCache )) {
             if (false !== ( $tblAccount = Account::useService()->getAccountBySession() )) {
-                /** @var IApiInterface $Cache */
                 $Cache = (new Cache(new Memcached()))->getCache();
                 if (!( $AuthorizationCache = $Cache->getValue(__METHOD__.'::'.$tblAccount->getId()) )) {
                     if (false !== ( $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount) )) {
@@ -128,7 +126,7 @@ class Service extends Extension implements IServiceInterface
                             }
                         }
                     }
-                    $Cache->setValue(__METHOD__.'::'.$tblAccount->getId(), self::$AuthorizationCache, 300);
+                    $Cache->setValue(__METHOD__.'::'.$tblAccount->getId(), self::$AuthorizationCache);
                 } else {
                     self::$AuthorizationCache = $AuthorizationCache;
                 }

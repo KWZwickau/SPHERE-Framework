@@ -10,10 +10,6 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\IApiInterface;
-use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Binding;
 
 /**
@@ -113,12 +109,7 @@ class Data
     public function getStateById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblState', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblState', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -130,12 +121,7 @@ class Data
     public function getCityById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblCity', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblCity', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -147,12 +133,7 @@ class Data
     public function getTypeById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -164,12 +145,7 @@ class Data
     public function getAddressById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblAddress', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblAddress', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -179,12 +155,7 @@ class Data
     public function getCityAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblCity')->findAll();
-            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblCity')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -194,12 +165,7 @@ class Data
     public function getStateAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblState')->findAll();
-            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblState')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -209,12 +175,7 @@ class Data
     public function getTypeAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
-            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -224,12 +185,7 @@ class Data
     public function getAddressAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblAddress')->findAll();
-            $Cache->setValue(__METHOD__, ( null === $EntityList ? false : $EntityList ), 500);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblAddress')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -331,12 +287,7 @@ class Data
     public function getAddressToPersonById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -348,12 +299,7 @@ class Data
     public function getAddressToCompanyById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -395,14 +341,9 @@ class Data
     public function getAddressAllByPerson(TblPerson $tblPerson)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
-                TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
-            ));
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
+            TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
+        ));
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -414,14 +355,9 @@ class Data
     public function getAddressAllByCompany(TblCompany $tblCompany)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
-                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
-            ));
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
+            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+        ));
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 

@@ -9,18 +9,15 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Cache\Cache;
-use SPHERE\System\Cache\IApiInterface;
-use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\DataCacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service
  */
-class Data
+class Data extends DataCacheable
 {
 
     /** @var null|Binding $Connection */
@@ -374,12 +371,7 @@ class Data
     public function getRightById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblRight', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 500);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblRight', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -391,14 +383,7 @@ class Data
     public function getRightByName($Name)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memory()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Name) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntity('TblRight')
-                ->findOneBy(array(TblRight::ATTR_ROUTE => $Name));
-            $Cache->setValue(__METHOD__.'::'.$Name, ( null === $Entity ? false : $Entity ), 300);
-        }
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityBy('RightByName', array($Name), array($this, 'getRightByNameCacheable'));
     }
 
     /**
@@ -407,12 +392,7 @@ class Data
     public function getRightAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblRight')->findAll();
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblRight')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -424,12 +404,7 @@ class Data
     public function getLevelById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblLevel', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblLevel', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -454,12 +429,7 @@ class Data
     public function getPrivilegeById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblPrivilege', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblPrivilege', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -522,12 +492,7 @@ class Data
     public function getPrivilegeAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblPrivilege')->findAll();
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblPrivilege')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -537,12 +502,7 @@ class Data
     public function getLevelAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblLevel')->findAll();
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblLevel')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -554,12 +514,7 @@ class Data
     public function getRoleById($Id)
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $Entity = $Cache->getValue(__METHOD__.'::'.$Id) )) {
-            $Entity = $this->Connection->getEntityManager()->getEntityById('TblRole', $Id);
-            $Cache->setValue(__METHOD__.'::'.$Id, ( null === $Entity ? false : $Entity ), 300);
-        }
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblRole', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -582,12 +537,7 @@ class Data
     public function getRoleAll()
     {
 
-        /** @var IApiInterface $Cache */
-        $Cache = (new Cache(new Memcached()))->getCache();
-        if (!( $EntityList = $Cache->getValue(__METHOD__) )) {
-            $EntityList = $this->Connection->getEntityManager()->getEntity('TblRole')->findAll();
-            $Cache->setValue(__METHOD__, ( empty( $EntityList ) ? false : $EntityList ), 300);
-        }
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblRole')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -609,5 +559,18 @@ class Data
             $V = $V->getTblLevel();
         });
         return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return null|object
+     */
+    protected function getRightByNameCacheable($Name)
+    {
+
+        return $this->Connection->getEntityManager()->getEntity('TblRight')->findOneBy(array(
+            TblRight::ATTR_ROUTE => $Name
+        ));
     }
 }

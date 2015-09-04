@@ -18,6 +18,8 @@ class Dispatcher
 
     private static $Widget = array();
 
+    private static $PublicRoutes = array();
+
     /**
      * @param IBridgeInterface|null $Router
      */
@@ -67,6 +69,21 @@ class Dispatcher
                 self::$Router->addRoute($Route);
             }
         }
+
+        if (!Access::useService()->getRightByName('/'.$Route->getPath())) {
+            if (!in_array($Route->getPath(), self::$PublicRoutes)) {
+                array_push(self::$PublicRoutes, '/'.$Route->getPath());
+            }
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public static function getPublicRoutes()
+    {
+
+        return self::$PublicRoutes;
     }
 
     /**

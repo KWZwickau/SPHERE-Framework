@@ -197,7 +197,7 @@ class Frontend implements IFrontendInterface
                         new Panel('Schülertransfer - Schulverlauf', array(
                             new TextArea('Meta[Transfer][1]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                         ), Panel::PANEL_TYPE_INFO),
-                    ) ),
+                    )),
                 )),
 
             )),

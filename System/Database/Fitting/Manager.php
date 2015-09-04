@@ -8,6 +8,8 @@ use Doctrine\ORM\ORMException;
 use Doctrine\ORM\TransactionRequiredException;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Type\Memory;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Manager
@@ -56,7 +58,17 @@ class Manager
     final public function getEntityById($ClassName, $Id)
     {
 
-        return $this->EntityManager->find($this->Namespace.$ClassName, $Id);
+        $Cache = (new Cache(new Memcached(__METHOD__)))->getCache();
+        $Key = sha1($this->Namespace.$ClassName.':'.$Id);
+
+        if (false === ( $Entity = $Cache->getValue($Key) )) {
+            $Cache->setValue($Key, ( $Entity = $this->EntityManager->find($this->Namespace.$ClassName, $Id) ));
+            Debugger::protocolDump('Get EntityById (Factory) '.$this->Namespace.$ClassName.':'.$Id.' > '.get_class($Entity));
+            return $Entity;
+        } else {
+            Debugger::protocolDump('Get EntityById (Cache) '.$this->Namespace.$ClassName.':'.$Id.' > '.get_class($Entity));
+            return $Entity;
+        }
     }
 
     /**
@@ -81,6 +93,7 @@ class Manager
         $this->EntityManager->flush();
         // Clear distributed Cache-System (if possible)
         (new Cache(new Memcached()))->getCache()->clearCache();
+        (new Cache(new Memory()))->getCache()->clearCache();
         return $this;
     }
 

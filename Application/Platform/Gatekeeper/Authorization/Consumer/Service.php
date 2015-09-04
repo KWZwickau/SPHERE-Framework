@@ -66,11 +66,15 @@ class Service implements IServiceInterface
     public function getConsumerById($Id)
     {
 
-        if (array_key_exists($Id, self::$ConsumerByIdCache)) {
+        if (is_numeric($Id)) {
+            if (array_key_exists($Id, self::$ConsumerByIdCache)) {
+                return self::$ConsumerByIdCache[$Id];
+            }
+            self::$ConsumerByIdCache[$Id] = (new Data($this->Binding))->getConsumerById($Id);
             return self::$ConsumerByIdCache[$Id];
+        } else {
+            return false;
         }
-        self::$ConsumerByIdCache[$Id] = (new Data($this->Binding))->getConsumerById($Id);
-        return self::$ConsumerByIdCache[$Id];
     }
 
     /**

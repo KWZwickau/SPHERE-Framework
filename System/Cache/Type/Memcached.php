@@ -17,6 +17,8 @@ class Memcached implements IApiInterface
     private static $Host = '';
     /** @var string $Port */
     private static $Port = '11211';
+    /** @var bool $Available */
+    private static $Available = false;
     /** @var array $Status */
     private $Status = null;
 
@@ -41,18 +43,6 @@ class Memcached implements IApiInterface
             return false;
         }
         return true;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isAvailable()
-    {
-
-        if (class_exists('\Memcached', false)) {
-            return true;
-        }
-        return false;
     }
 
     /**
@@ -89,9 +79,22 @@ class Memcached implements IApiInterface
     private function fetchStatus()
     {
 
-        if (null !== self::$Server && empty( $this->Status )) {
+        if ($this->isAvailable() && null !== self::$Server && empty( $this->Status )) {
             $this->Status = self::$Server->getStats();
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAvailable()
+    {
+
+        if (self::$Available || class_exists('\Memcached', false)) {
+            self::$Available = true;
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -170,7 +173,7 @@ class Memcached implements IApiInterface
         self::$Port = (integer)$Configuration['Port'];
 
         if (self::$Host && self::$Port) {
-            if (class_exists('\Memcached', false) && null === self::$Server) {
+            if ($this->isAvailable() && null === self::$Server) {
                 self::$Server = new \Memcached();
                 self::$Server->addServer(self::$Host, (integer)self::$Port);
                 self::$Server->setOption(\Memcached::OPT_TCP_NODELAY, true);

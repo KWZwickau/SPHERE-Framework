@@ -85,7 +85,6 @@ class Main extends Extension
             Education::registerCluster();
             Billing::registerCluster();
             Transfer::registerCluster();
-            Availability::registerCluster();
             Contact::registerCluster();
             /**
              * Execute Request
