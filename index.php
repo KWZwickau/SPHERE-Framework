@@ -42,7 +42,7 @@ if( false ) {
     (new Cache(new OpCache()))->getCache()->clearCache();
 }
 
-Debugger::$Enabled = true;
+Debugger::$Enabled = false;
 
 $Main = new Main();
 $Main->runPlatform();

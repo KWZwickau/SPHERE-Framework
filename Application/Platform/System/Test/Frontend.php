@@ -232,7 +232,7 @@ class Frontend extends Extension implements IFrontendInterface
 //        }
         $PictureList = Test::useService()->getTestPictureAll();
 
-        $Source = stream_get_contents($PictureList[0]->getImgData());
+//        $Source = stream_get_contents($PictureList[0]->getImgData());
 
         //print '<img src="data:image/jpeg;base64,'.base64_encode($Source).'" class="img-responsive"/>';
 

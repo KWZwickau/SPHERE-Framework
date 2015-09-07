@@ -10,6 +10,7 @@ use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Education\Education;
+use SPHERE\Application\Generator\Generator;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
@@ -119,6 +120,7 @@ class Main extends Extension
             Transfer::registerCluster();
             Contact::registerCluster();
             Setting::registerCluster();
+            Generator::registerCluster();
             /**
              * Execute Request
              */
