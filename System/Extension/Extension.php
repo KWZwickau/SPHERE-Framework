@@ -4,6 +4,8 @@ namespace SPHERE\System\Extension;
 use Markdownify\Converter;
 use MOC\V\Component\Template\Template;
 use MOC\V\Core\HttpKernel\HttpKernel;
+use SPHERE\System\Database\Fitting\Repository;
+use SPHERE\System\Extension\Repository\DataTables;
 use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\ModHex;
 use SPHERE\System\Extension\Repository\SuperGlobal;
@@ -24,6 +26,18 @@ class Extension
     {
 
         return new Debugger();
+    }
+
+    /**
+     * @param Repository $EntityRepository
+     * @param array      $Filter array( 'ColumnName' => 'Value', ... )
+     *
+     * @return DataTables
+     */
+    public function getDataTable(Repository $EntityRepository, $Filter = array())
+    {
+
+        return new DataTables($EntityRepository, $Filter);
     }
 
     /**

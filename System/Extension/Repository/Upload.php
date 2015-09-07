@@ -19,17 +19,21 @@ class Upload
     private $Storage;
     private $File;
     private $Validation = array();
+    private $isMoved = false;
+    private $Location;
 
     /**
-     * @param $Key
-     * @param $Location
+     * @param string $Key
+     * @param string $Location
+     * @param bool   $Overwrite
      */
-    function __construct($Key, $Location)
+    function __construct($Key, $Location, $Overwrite = false)
     {
 
         AutoLoader::getNamespaceAutoLoader('Upload', __DIR__.'/../../../Library/Upload/src');
 
-        $this->Storage = new FileSystem($Location);
+        $this->Location = $Location;
+        $this->Storage = new FileSystem($this->Location, $Overwrite);
         $this->File = new File($Key, $this->Storage);
     }
 
@@ -61,8 +65,97 @@ class Upload
         return $this;
     }
 
+    /**
+     * @return string
+     */
+    public function getMimeType()
+    {
+
+        if (!$this->isMoved) {
+            return $this->File->getMimetype();
+        } else {
+            $FileInfo = new \finfo(FILEINFO_MIME);
+            $MimeType = $FileInfo->file($this->getLocation().DIRECTORY_SEPARATOR.$this->getFilename());
+            $MimeTypeParts = preg_split('/\s*[;,]\s*/', $MimeType);
+            return strtolower($MimeTypeParts[0]);
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocation()
+    {
+
+        return realpath($this->Location);
+    }
+
+    /**
+     * @return string
+     */
+    public function getFilename()
+    {
+
+        return $this->File->getNameWithExtension();
+    }
+
+    /**
+     * @return bool|string
+     */
+    public function getContent()
+    {
+
+        if ($this->isMoved) {
+            return file_get_contents($this->getLocation().DIRECTORY_SEPARATOR.$this->getFilename());
+        } else {
+            return file_get_contents($this->File->getRealPath());
+        }
+    }
+
+    /**
+     * @return array
+     */
+    public function getDimensions()
+    {
+
+        return $this->File->getDimensions();
+    }
+
+    /**
+     * @return int
+     */
+    public function getSize()
+    {
+
+        return $this->File->getSize();
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+
+        return $this->File->getName();
+    }
+
+    /**
+     * @return string
+     */
+    public function getExtension()
+    {
+
+        return $this->File->getExtension();
+    }
+
+    /**
+     * @return Upload
+     * @throws \Exception
+     */
     public function doUpload()
     {
+
+        $this->isMoved = true;
 
         $this->setValidator();
         $this->tryUpload();
@@ -75,6 +168,9 @@ class Upload
         $this->File->addValidations($this->Validation);
     }
 
+    /**
+     * @throws \Exception
+     */
     private function tryUpload()
     {
 

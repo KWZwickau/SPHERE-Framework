@@ -26,7 +26,7 @@ class Service implements IServiceInterface
 {
 
     /** @var null|Binding */
-    private $Binding = null;
+    protected $Binding = null;
     /** @var null|Structure */
     private $Structure = null;
 

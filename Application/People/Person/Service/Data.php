@@ -134,6 +134,15 @@ class Data extends DataCacheable
     }
 
     /**
+     * @return \SPHERE\System\Database\Fitting\Repository
+     */
+    public function getPersonRepository()
+    {
+
+        return $this->Connection->getEntityManager()->getEntity('TblPerson');
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblPerson

@@ -45,17 +45,19 @@ class TableData extends Table
                 $Interactive = array_merge_recursive($Interactive, array(
                     "processing" => true,
                     "serverSide" => true,
-                    "ajax"       => ( false === strpos($this->getRequest()->getUrlBase().$DataList,
-                        '?') ? $this->getRequest()->getUrlBase().$DataList.'?REST=true' : $this->getRequest()->getUrlBase().$DataList.'&REST=true' ),
+                    "ajax" => array(
+                        "url"  => $this->getRequest()->getUrlBase().$DataList,
+                        "type" => "POST"
+                    ),
                     "columns"    => $DataColumns
                 ));
             } else {
                 $Interactive = array(
                     "processing" => true,
                     "serverSide" => true,
-                    "ajax"       => ( false === strpos($this->getRequest()->getUrlBase().$DataList, '?')
-                        ? $this->getRequest()->getUrlBase().$DataList.'?REST=true'
-                        : $this->getRequest()->getUrlBase().$DataList.'&REST=true'
+                    "ajax" => array(
+                        "url"  => $this->getRequest()->getUrlBase().$DataList,
+                        "type" => "POST"
                     ),
                     "columns"    => $DataColumns
                 );

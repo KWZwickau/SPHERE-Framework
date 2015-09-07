@@ -135,12 +135,10 @@ class Debugger
     final public static function screenDump($Content)
     {
 
-        print '<pre>';
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
-            self::addProtocol(print_r($Dump, true));
+            self::addProtocol('<pre>'.print_r($Dump, true).'</pre>');
         }
-        print '</pre>';
     }
 
     /**

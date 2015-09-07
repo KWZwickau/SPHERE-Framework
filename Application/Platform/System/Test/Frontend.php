@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Platform\System\Test;
 
 use MOC\V\Core\FileSystem\FileSystem;
+use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Common\Frontend\Form\Repository\Button\Danger;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Button\Reset;
@@ -208,28 +209,81 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-    public function frontendUpload()
+    /**
+     * @param $FileUpload
+     *
+     * @return Stage
+     */
+    public function frontendUpload($FileUpload)
     {
 
         $Stage = new Stage('Upload', 'Form-Test');
 
-        $this->getDebugger()->screenDump(
-            $this->getUpload('FileUpload', __DIR__)->validateMaxSize('5M')->validateMimeType('image/png')->doUpload()
-        );
+//        $DataList = scandir( __DIR__ );
+//
+//        foreach ($DataList as $Key => &$Data) {
+//            if (strtolower( substr( $Data, -3 ) ) != 'png'
+//                && strtolower( substr( $Data, -3 ) ) != 'jpg'
+//                && strtolower( substr( $Data, -3 ) ) != 'gif'
+//                && strtolower( substr( $Data, -4 ) ) != 'jpeg'
+//            ) {
+//                unset( $DataList[array_search( $Data, $DataList )] );
+//            }
+//        }
+        $PictureList = Test::useService()->getTestPictureAll();
+
+        $Source = stream_get_contents($PictureList[0]->getImgData());
+
+        //print '<img src="data:image/jpeg;base64,'.base64_encode($Source).'" class="img-responsive"/>';
+
+//        $PictureList = array_values( $DataList );
 
         $Stage->setContent(
-
-            (new Form(
-                new FormGroup(
-                    new FormRow(
-                        new FormColumn(array(
-                            new FileUpload('FileUpload', 'FileUpload', 'FileUpload'),
+            Test::useService()->UploadNow(
+                (new Form(
+                    new FormGroup(
+                        new FormRow(array(
+                            new FormColumn(array(
+                                new FileUpload('FileUpload', 'FileUpload', 'FileUpload')
+                            ), 8)
                         ))
                     )
-                )
-            ))->appendFormButton(new Primary('Hochladen', new Upload()))
+                ))->appendFormButton(new Primary('Hochladen', new Upload())), $FileUpload)
+            .self::PictureShow($PictureList)
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param $PictureList
+     *
+     * @return Layout
+     */
+    public function PictureShow($PictureList)
+    {
+
+        if (!empty( $PictureList )) {
+//            $this->getDebugger()->screenDump( $PictureList );
+            /** @var TblTestPicture $Picture */
+            foreach ($PictureList as $Key => &$Picture) {
+//                $this->getDebugger()->screenDump($Picture);
+                $Picture = new LayoutColumn(array(
+//                    '<div id="Thumb-'.$Key.'"></div>
+//                    <script type="text/javascript">
+//                        Client.Use("ModAlways", function()
+//                        {
+//                            jQuery("div#Thumb-'.$Key.'").load("/Api/Test/ShowThumbnail?Id='.$Picture->getId().'");
+//                        });
+//                    </script>'
+                    (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId())
+                ), 6);
+            }
+
+            return new Layout(
+                new LayoutGroup(new LayoutRow($PictureList))
+            );
+        }
+        return false;
     }
 }

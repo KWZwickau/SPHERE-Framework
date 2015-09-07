@@ -11,6 +11,7 @@ use SPHERE\System\Cache\Type\ApcUser;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Cache\Type\OpCache;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Setup: Php
@@ -41,7 +42,7 @@ if( false ) {
     (new Cache(new OpCache()))->getCache()->clearCache();
 }
 
-//Debugger::$Enabled = true;
+Debugger::$Enabled = true;
 
 $Main = new Main();
 $Main->runPlatform();

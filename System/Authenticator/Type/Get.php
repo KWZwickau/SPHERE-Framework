@@ -97,7 +97,7 @@ class Get extends Extension implements ITypeInterface
      *
      * @return mixed
      */
-    private function sortData($Data)
+    protected function sortData($Data)
     {
 
         array_walk($Data, function (&$V) {
@@ -113,7 +113,7 @@ class Get extends Extension implements ITypeInterface
     /**
      * @param $Value
      */
-    private function preventXSS(&$Value)
+    protected function preventXSS(&$Value)
     {
 
         $Value = strip_tags($Value);

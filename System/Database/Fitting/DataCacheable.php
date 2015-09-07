@@ -61,23 +61,23 @@ abstract class DataCacheable
 
         $Cache = (new Cache(new Memcached()))->getCache();
         $Key = sha1(implode(':', (array)$Parameter));
-        $Entity = null;
-        if (false === ( $Entity = $Cache->getValue($Key) )) {
+        $EntityList = null;
+        if (false === ( $EntityList = $Cache->getValue($Key) )) {
             if (is_callable($Callback)) {
-                $Entity = call_user_func_array($Callback, $Parameter);
-                if (!is_array($Entity)) {
+                $EntityList = call_user_func_array($Callback, $Parameter);
+                if (!is_array($EntityList)) {
                     throw new \Exception('getCachedEntityBy: Only multiple Entities allowed');
                 }
-                $Cache->setValue($Key, $Entity);
+                $Cache->setValue($Key, $EntityList);
                 Debugger::protocolDump(
                     'Get '.$MethodName.' (Factory) ['.implode('], [', (array)$Parameter).'] Result: '.(
-                    $Entity ? 'Ok' : ( null === $Entity ? 'None' : 'Error' ) )
+                    $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
                 );
             }
         } else {
             Debugger::protocolDump(
                 'Get '.$MethodName.' (Cache) ['.implode('], [', (array)$Parameter).'] Result: '.(
-                $Entity ? 'Ok' : ( null === $Entity ? 'None' : 'Error' ) )
+                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
             );
         }
         return ( empty( $EntityList ) ? false : $EntityList );

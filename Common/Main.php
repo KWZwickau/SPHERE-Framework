@@ -4,7 +4,7 @@ namespace SPHERE\Common;
 use Doctrine\DBAL\Driver\PDOException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
-use SPHERE\Application\Availability\Availability;
+use SPHERE\Application\Api\Api;
 use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
@@ -13,6 +13,7 @@ use SPHERE\Application\Education\Education;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
+use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Error;
@@ -71,6 +72,37 @@ class Main extends Extension
     public function runPlatform()
     {
 
+        /**
+         * REST-API
+         */
+        if (preg_match('!^/Api/!is', $this->getRequest()->getPathInfo())) {
+
+            try {
+                $this->getDebugger();
+                $this->setErrorHandler();
+                $this->setShutdownHandler();
+
+                /**
+                 * Register Cluster
+                 */
+                Platform::registerCluster();
+                Api::registerCluster();
+
+                if ($this->runAuthenticator()) {
+                    echo self::getDispatcher()->fetchRoute(
+                        $this->getRequest()->getPathInfo()
+                    );
+                } else {
+                    header('HTTP/1.0 400 Bad Request');
+                }
+                exit( 0 );
+            } catch (\Exception $Exception) {
+                $this->runSelfHeal($Exception);
+            }
+        }
+        /**
+         * APPLICATION
+         */
         try {
             $this->getDebugger();
             $this->setErrorHandler();
@@ -86,6 +118,7 @@ class Main extends Extension
             Billing::registerCluster();
             Transfer::registerCluster();
             Contact::registerCluster();
+            Setting::registerCluster();
             /**
              * Execute Request
              */
@@ -164,20 +197,18 @@ class Main extends Extension
     private function runAuthenticator()
     {
 
-        if (!array_key_exists('REST', $this->getRequest()->getParameterArray())) {
-            $Get = (new Authenticator(new Get()))->getAuthenticator();
-            $Post = (new Authenticator(new Post()))->getAuthenticator();
-            if (!( $Get->validateSignature() && $Post->validateSignature() )) {
-                self::getDisplay()->setClusterNavigation();
-                self::getDisplay()->setApplicationNavigation();
-                self::getDisplay()->setModuleNavigation();
-                self::getDisplay()->setServiceNavigation(new Link(
-                    new Link\Route('/'),
-                    new Link\Name('Zurück zur Anwendung')
-                ));
-                self::getDisplay()->setContent(Dispatcher::fetchRoute('System/Assistance/Error/Authenticator'));
-                return false;
-            }
+        $Get = (new Authenticator(new Get()))->getAuthenticator();
+        $Post = (new Authenticator(new Post()))->getAuthenticator();
+        if (!( $Get->validateSignature() && $Post->validateSignature() )) {
+            self::getDisplay()->setClusterNavigation();
+            self::getDisplay()->setApplicationNavigation();
+            self::getDisplay()->setModuleNavigation();
+            self::getDisplay()->setServiceNavigation(new Link(
+                new Link\Route('/'),
+                new Link\Name('Zurück zur Anwendung')
+            ));
+            self::getDisplay()->setContent(Dispatcher::fetchRoute('System/Assistance/Error/Authenticator'));
+            return false;
         }
         return true;
     }

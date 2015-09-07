@@ -41,7 +41,7 @@ class Data extends Extension
      * @param string      $Identifier
      * @param TblConsumer $tblConsumer
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken
+     * @return TblToken
      */
     public function createToken($Identifier, TblConsumer $tblConsumer = null)
     {
@@ -61,7 +61,7 @@ class Data extends Extension
     /**
      * @param string $Identifier
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken
+     * @return bool|TblToken
      */
     public function getTokenByIdentifier($Identifier)
     {
@@ -72,7 +72,7 @@ class Data extends Extension
     }
 
     /**
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken[]|bool
+     * @return TblToken[]|bool
      */
     public function getTokenAll()
     {
@@ -84,7 +84,7 @@ class Data extends Extension
     /**
      * @param integer $Id
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken
+     * @return bool|TblToken
      */
     public function getTokenById($Id)
     {
@@ -96,7 +96,7 @@ class Data extends Extension
     /**
      * @param TblConsumer $tblConsumer
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken[]
+     * @return bool|TblToken[]
      */
     public function getTokenAllByConsumer(TblConsumer $tblConsumer)
     {
@@ -108,7 +108,7 @@ class Data extends Extension
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken $tblToken
+     * @param TblToken $tblToken
      */
     public function destroyToken(TblToken $tblToken)
     {
