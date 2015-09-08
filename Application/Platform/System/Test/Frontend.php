@@ -43,6 +43,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutTab;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutTabs;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Warning;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -265,25 +266,55 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (!empty( $PictureList )) {
 //            $this->getDebugger()->screenDump( $PictureList );
+//            /** @var TblTestPicture $Picture */
+//            foreach ($PictureList as $Key => &$Picture) {
+////                $this->getDebugger()->screenDump($Picture);
+//                $Picture = new LayoutColumn(array(
+////                    '<div id="Thumb-'.$Key.'"></div>
+////                    <script type="text/javascript">
+////                        Client.Use("ModAlways", function()
+////                        {
+////                            jQuery("div#Thumb-'.$Key.'").load("/Api/Test/ShowThumbnail?Id='.$Picture->getId().'");
+////                        });
+////                    </script>'
+//                    (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId())
+//                ), 6);
+//            }
+//
+//            return new Layout(
+//                new LayoutGroup(new LayoutRow($PictureList))
+//            );
+
             /** @var TblTestPicture $Picture */
-            foreach ($PictureList as $Key => &$Picture) {
-//                $this->getDebugger()->screenDump($Picture);
-                $Picture = new LayoutColumn(array(
-//                    '<div id="Thumb-'.$Key.'"></div>
-//                    <script type="text/javascript">
-//                        Client.Use("ModAlways", function()
-//                        {
-//                            jQuery("div#Thumb-'.$Key.'").load("/Api/Test/ShowThumbnail?Id='.$Picture->getId().'");
-//                        });
-//                    </script>'
+            foreach ((array)$PictureList as $Index => $Picture) {
+                $PictureList[$Index] = new LayoutColumn(array(
                     (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId())
-                ), 6);
+                ), 4);
             }
 
-            return new Layout(
-                new LayoutGroup(new LayoutRow($PictureList))
+        } else {
+            $PictureList = array(
+                new LayoutColumn(
+                    new Warning('Keine Bilder hinterlegt')
+                )
             );
         }
-        return false;
+
+        $LayoutRowList = array();
+        $LayoutRowCount = 0;
+        $LayoutRow = null;
+        /**
+         * @var LayoutColumn $Picture
+         */
+        foreach ($PictureList as $Picture) {
+            if ($LayoutRowCount % 3 == 0) {
+                $LayoutRow = new LayoutRow(array());
+                $LayoutRowList[] = $LayoutRow;
+            }
+            $LayoutRow->addColumn($Picture);
+            $LayoutRowCount++;
+        }
+        return new Layout(new LayoutGroup($LayoutRowList));
+
     }
 }

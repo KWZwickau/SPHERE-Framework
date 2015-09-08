@@ -56,11 +56,29 @@ class Setup
     {
 
         $Table = $this->Connection->createTable($Schema, 'tblTestPicture');
+        if (!$this->Connection->hasColumn('tblTestPicture', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->Connection->hasColumn('tblTestPicture', 'FileName')) {
+            $Table->addColumn('FileName', 'string');
+        }
+        if (!$this->Connection->hasColumn('tblTestPicture', 'Extension')) {
+            $Table->addColumn('Extension', 'string');
+        }
         if (!$this->Connection->hasColumn('tblTestPicture', 'ImgData')) {
             $Table->addColumn('ImgData', 'blob');
         }
         if (!$this->Connection->hasColumn('tblTestPicture', 'ImgType')) {
             $Table->addColumn('ImgType', 'string');
+        }
+        if (!$this->Connection->hasColumn('tblTestPicture', 'Size')) {
+            $Table->addColumn('Size', 'integer');
+        }
+        if (!$this->Connection->hasColumn('tblTestPicture', 'Width')) {
+            $Table->addColumn('Width', 'integer');
+        }
+        if (!$this->Connection->hasColumn('tblTestPicture', 'Height')) {
+            $Table->addColumn('Height', 'integer');
         }
 
         return $Table;

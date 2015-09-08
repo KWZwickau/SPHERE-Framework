@@ -33,12 +33,18 @@ class Data extends DataCacheable
     }
 
     /**
+     * @param        $Name
+     * @param        $FileName
+     * @param        $Extension
      * @param $File
      * @param $Type
+     * @param        $Size
+     * @param        $Width
+     * @param        $Height
      *
-     * @return null|object|TblTestPicture
+     * @return null|TblTestPicture
      */
-    public function createTestPicture($File, $Type)
+    public function createTestPicture($Name, $FileName, $Extension, $File, $Type, $Size, $Width, $Height)
     {
 
         $Manager = $this->Connection->getEntityManager();
@@ -49,8 +55,14 @@ class Data extends DataCacheable
 
         if (null === $Entity) {
             $Entity = new TblTestPicture();
+            $Entity->setName($Name);
+            $Entity->setFileName($FileName);
+            $Entity->setExtension($Extension);
             $Entity->setImgData($File);
             $Entity->setImgType($Type);
+            $Entity->setSize($Size);
+            $Entity->setWidth($Width);
+            $Entity->setHeight($Height);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }
@@ -67,6 +79,7 @@ class Data extends DataCacheable
     {
 
         $Entity = $this->Connection->getEntityManager()->getEntityById('TblTestPicture', $Id);
+
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -78,6 +91,7 @@ class Data extends DataCacheable
     {
 
         $EntityList = $this->Connection->getEntityManager()->getEntity('TblTestPicture')->findAll();
+
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 }

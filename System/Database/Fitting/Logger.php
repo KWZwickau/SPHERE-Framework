@@ -29,9 +29,9 @@ class Logger extends Extension implements SQLLogger
         $this->Data = func_get_args();
         $this->Data[3] = $this->getDebugger()->getTimeGap();
 
-        $Log = '<br/>> DQL: '.highlight_string(print_r($sql, true), true);
-        $Log .= '<br/>> Parameter: '.highlight_string(print_r($params, true), true);
-        $Log .= '<br/>> Types: '.highlight_string(print_r($types, true), true);
+        $Log = '<br/>> DQL: '.print_r($sql, true);
+        $Log .= '<br/>> Parameter: '.print_r($params, true);
+        $Log .= '<br/>> Types: '.print_r($types, true);
 
         $this->getDebugger()->protocolDump($Log);
     }

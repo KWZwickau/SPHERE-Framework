@@ -15,9 +15,22 @@ use SPHERE\System\Database\Fitting\Element;
 class TblTestPicture extends Element
 {
 
-    const ATTR_IMG_DATA = 'ImgData';
-    const ATTR_IMG_TYPE = 'ImgType';
+    const ATTR_IMG_NAME = 'Name';
+    const ATTR_IMG_FILE_NAME = 'FileName';
+    const ATTR_IMG_EXTENSION = 'Extension';
 
+    /**
+     * @Column(type="string")
+     */
+    protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $FileName;
+    /**
+     * @Column(type="string")
+     */
+    protected $Extension;
     /**
      * @Column(type="blob")
      */
@@ -26,6 +39,72 @@ class TblTestPicture extends Element
      * @Column(type="string")
      */
     protected $ImgType;
+    /**
+     * @Column(type="integer")
+     */
+    protected $Size;
+    /**
+     * @Column(type="integer")
+     */
+    protected $Width;
+    /**
+     * @Column(type="integer")
+     */
+    protected $Height;
+
+    /**
+     * @return string $Name
+     */
+    public function getName()
+    {
+
+        return $this->Name;
+    }
+
+    /**
+     * @param string $Name
+     */
+    public function setName($Name)
+    {
+
+        $this->Name = $Name;
+    }
+
+    /**
+     * @return string $FileName
+     */
+    public function getFileName()
+    {
+
+        return $this->FileName;
+    }
+
+    /**
+     * @param string $FileName
+     */
+    public function setFileName($FileName)
+    {
+
+        $this->FileName = $FileName;
+    }
+
+    /**
+     * @return string $Extension
+     */
+    public function getExtension()
+    {
+
+        return $this->Extension;
+    }
+
+    /**
+     * @param string $Extension
+     */
+    public function setExtension($Extension)
+    {
+
+        $this->Extension = $Extension;
+    }
 
     /**
      * @return resource $ImgData
@@ -61,6 +140,60 @@ class TblTestPicture extends Element
     {
 
         $this->ImgType = $ImgType;
+    }
+
+    /**
+     * @return string $Size
+     */
+    public function getSize()
+    {
+
+        return $this->Size;
+    }
+
+    /**
+     * @param string $Size
+     */
+    public function setSize($Size)
+    {
+
+        $this->Size = $Size;
+    }
+
+    /**
+     * @return string $Width
+     */
+    public function getWidth()
+    {
+
+        return $this->Width;
+    }
+
+    /**
+     * @param string $Width
+     */
+    public function setWidth($Width)
+    {
+
+        $this->Width = $Width;
+    }
+
+    /**
+     * @return string $Height
+     */
+    public function getHeight()
+    {
+
+        return $this->Height;
+    }
+
+    /**
+     * @param string $Height
+     */
+    public function setHeight($Height)
+    {
+
+        $this->Height = $Height;
     }
 
 

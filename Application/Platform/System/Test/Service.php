@@ -9,7 +9,6 @@ use SPHERE\Application\Platform\System\Test\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
-use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
@@ -80,19 +79,31 @@ class Service extends Extension implements IServiceInterface
                         'image/gif',
                         'image/jpeg',
                         'image/jpg',
-                    ))
-                    ->doUpload();
+                    ));
+//                    ->doUpload();
 
-                if (!(new Data($this->Binding))->createTestPicture($Upload->getContent(), $Upload->getMimeType())) {
-                    $Stage .= new Danger('Der Upload konnte nicht erfasst werden')
-                        .new Redirect('/Platform/System/Test/Upload', 20);
+                $Dimension = $Upload->getDimensions();
+
+                if (!(new Data($this->Binding))->createTestPicture(
+                    $Upload->getName(),
+                    $Upload->getFilename(),
+                    $Upload->getExtension(),
+                    $Upload->getContent(),
+                    $Upload->getMimeType(),
+                    $Upload->getSize(),
+                    $Dimension['width'],
+                    $Dimension['height']
+                )
+                ) {
+                    $Stage .= new Danger('Der Upload konnte nicht erfasst werden');
+//                        .new Redirect('/Platform/System/Test/Upload', 20);
 
                 } else {
-                    $Stage .= new Success('Der Upload ist erfasst')
-                        .new Redirect('/Platform/System/Test/Upload', 20);
+                    $Stage .= new Success('Der Upload ist erfasst');
+//                        .new Redirect('/Platform/System/Test/Upload', 20);
                 }
 
-                unlink($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename());
+//                unlink($Upload->getLocation().DIRECTORY_SEPARATOR.$Upload->getFilename());
 
             } catch (\Exception $Exception) {
 

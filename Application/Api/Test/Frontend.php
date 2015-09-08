@@ -25,13 +25,26 @@ class Frontend implements IFrontendInterface
         $Image = App::useService()->getTestPictureById($Id);
         ob_start();
         if ($Image) {
-            header("Content-Type: ".$Image->getImgType());
+            //header("Content-Type: ".$Image->getImgType());
+            header("Content-Type: image/png");
+            //header("Content-Type: image/jpeg");
             $Content = imagecreatefromstring(stream_get_contents($Image->getImgData()));
-            $Thumb = imagecreatetruecolor(300, 300);
+            if (imagesx($Content) == imagesy($Content)) {
+                $Thumb = imagecreatetruecolor(300, 300);
+                imagecopyresampled($Thumb, $Content, 0, 0, 0, 0, 300, 300, imagesx($Content), imagesy($Content));
+            } elseif (imagesx($Content) > imagesy($Content)) {
 
-            imagecopyresized($Thumb, $Content, 0, 0, 0, 0, 300, 300, imagesx($Content), imagesy($Content));
+                $ImageY = ( imagesy($Content) / imagesx($Content) ) * 300;
+                $Thumb = imagecreatetruecolor(300, $ImageY);
+                imagecopyresampled($Thumb, $Content, 0, 0, 0, 0, 300, $ImageY, imagesx($Content), imagesy($Content));
+            } else {
+                $ImageX = ( imagesx($Content) / imagesy($Content) ) * 300;
+                $Thumb = imagecreatetruecolor($ImageX, 300);
+                imagecopyresampled($Thumb, $Content, 0, 0, 0, 0, $ImageX, 300, imagesx($Content), imagesy($Content));
+            }
 
-            print imagejpeg($Thumb);
+            //print imagejpeg($Thumb,null,100);
+            print imagepng($Thumb, null, 9);
 
         }
         return ob_get_clean();
@@ -46,13 +59,15 @@ class Frontend implements IFrontendInterface
             '/Api/Test/ShowImage'));
 
         return '<div class="thumbnail">
-            <img class="img-responsive img-circle" src="/Api/Test/ShowImage?'.$Query.'">
+            <img class="img-responsive" src="/Api/Test/ShowImage?'.$Query.'">
             <div class="caption text-center">
-                    <h4>Thumbnail</h4>
+             <!--
+                   <h4>Thumbnail</h4>
                     <p>{{ Description }}</p>
                     <p>
                             {{ Button }}
                     </p>
+              -->
             </div>
         </div>';
     }

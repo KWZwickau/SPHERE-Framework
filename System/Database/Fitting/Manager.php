@@ -9,7 +9,6 @@ use Doctrine\ORM\TransactionRequiredException;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Cache\Type\Memory;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Manager
@@ -43,6 +42,7 @@ class Manager
     final public function getEntity($ClassName)
     {
 
+        // MUST NOT USE Cache-System
         return $this->EntityManager->getRepository($this->Namespace.$ClassName);
     }
 
@@ -58,17 +58,8 @@ class Manager
     final public function getEntityById($ClassName, $Id)
     {
 
-        $Cache = (new Cache(new Memcached(__METHOD__)))->getCache();
-        $Key = sha1($this->Namespace.$ClassName.':'.$Id);
-
-        if (false === ( $Entity = $Cache->getValue($Key) )) {
-            $Cache->setValue($Key, ( $Entity = $this->EntityManager->find($this->Namespace.$ClassName, $Id) ));
-            Debugger::protocolDump('Get EntityById (Factory) '.$this->Namespace.$ClassName.':'.$Id.' > '.get_class($Entity));
-            return $Entity;
-        } else {
-            Debugger::protocolDump('Get EntityById (Cache) '.$this->Namespace.$ClassName.':'.$Id.' > '.get_class($Entity));
-            return $Entity;
-        }
+        // MUST NOT USE Cache-System
+        return $Entity = $this->EntityManager->find($this->Namespace.$ClassName, $Id);
     }
 
     /**

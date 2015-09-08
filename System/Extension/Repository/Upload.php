@@ -118,7 +118,15 @@ class Upload
     public function getDimensions()
     {
 
-        return $this->File->getDimensions();
+        if ($this->isMoved) {
+            list( $width, $height ) = getimagesize($this->getLocation().DIRECTORY_SEPARATOR.$this->getFilename());
+            return array(
+                'width'  => $width,
+                'height' => $height
+            );
+        } else {
+            return $this->File->getDimensions();
+        }
     }
 
     /**

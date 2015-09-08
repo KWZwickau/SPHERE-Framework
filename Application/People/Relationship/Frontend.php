@@ -291,14 +291,14 @@ class Frontend extends Extension implements IFrontendInterface
         $LayoutRowCount = 0;
         $LayoutRow = null;
         /**
-         * @var LayoutColumn $tblMail
+         * @var LayoutColumn $tblRelationship
          */
-        foreach ($tblRelationshipAll as $tblMail) {
+        foreach ($tblRelationshipAll as $tblRelationship) {
             if ($LayoutRowCount % 4 == 0) {
                 $LayoutRow = new LayoutRow(array());
                 $LayoutRowList[] = $LayoutRow;
             }
-            $LayoutRow->addColumn($tblMail);
+            $LayoutRow->addColumn($tblRelationship);
             $LayoutRowCount++;
         }
 
