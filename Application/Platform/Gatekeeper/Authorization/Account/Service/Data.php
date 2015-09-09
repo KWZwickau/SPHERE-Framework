@@ -114,7 +114,7 @@ class Data extends DataCacheable
      *
      * @return TblAccount
      */
-    public function createAccount($Username, $Password, $tblToken = null, $tblConsumer = null)
+    public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null)
     {
 
         $Manager = $this->Connection->getEntityManager();
@@ -323,6 +323,20 @@ class Data extends DataCacheable
             TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
         return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblAuthentication
+     */
+    public function getAuthenticationByAccount(TblAccount $tblAccount)
+    {
+
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblAuthentication')->findOneBy(array(
+            TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()
+        ));
+        return (null === $Entity ? false : $Entity);
     }
 
     /**

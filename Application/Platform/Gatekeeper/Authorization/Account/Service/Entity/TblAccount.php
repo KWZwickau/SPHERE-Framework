@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
@@ -108,7 +109,7 @@ class TblAccount extends Element
     }
 
     /**
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken
+     * @return bool|TblToken
      */
     public function getServiceTblToken()
     {
@@ -121,11 +122,24 @@ class TblAccount extends Element
     }
 
     /**
-     * @param null|\SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken $tblToken
+     * @param null|TblToken $tblToken
      */
     public function setServiceTblToken(TblToken $tblToken = null)
     {
 
         $this->serviceTblToken = ( null === $tblToken ? null : $tblToken->getId() );
+    }
+
+    /**
+     * @return bool|TblIdentification
+     */
+    public function getServiceTblIdentification()
+    {
+        $Authentication = Account::useService()->getAuthenticationByAccount($this);
+        if ($Authentication) {
+            return $Authentication->getTblIdentification();
+        } else {
+            return false;
+        }
     }
 }

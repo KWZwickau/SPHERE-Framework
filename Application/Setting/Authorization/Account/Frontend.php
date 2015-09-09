@@ -3,6 +3,8 @@ namespace SPHERE\Application\Setting\Authorization\Account;
 
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
@@ -16,22 +18,33 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Structure\Layout;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
+use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
-use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Setting\Authorization\Account
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -42,33 +55,96 @@ class Frontend implements IFrontendInterface
     public function frontendAccount($Account = null)
     {
 
-        $Stage = new Stage('Benutzerkonnten');
-        $Stage->setMessage('Bestehende Benutzerkonnten');
+        $Stage = new Stage('Benutzerkonten');
+        $Stage->setMessage('Hier können bestehende Benutzerkonten bearbeitet und neue angelegt werden');
 
         // Account
         $tblAccountAll = Account::useService()->getAccountAll();
-//        array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
-//
-//            /** @noinspection PhpUndefinedFieldInspection */
-//            $tblAccount->Option = new Danger('Löschen',
-//                '/Platform/Gatekeeper/Authorization/Account/Destroy',
-//                new Remove(), array('Id' => $tblAccount->getId()), 'Löschen'
-//            );
-//        });
+
+        if ($tblAccountAll) {
+            array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
+
+                if (
+                    $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId()
+                    && $tblAccount->getServiceTblConsumer()->getId() != Consumer::useService()->getConsumerBySession()->getId()
+                ) {
+
+                    $Content = array(
+                        ($tblAccount->getServiceTblIdentification() ? new Lock() . ' ' . $tblAccount->getServiceTblIdentification()->getDescription() : '')
+                        . ($tblAccount->getServiceTblToken() ? ' ' . new Key() . ' ' . $tblAccount->getServiceTblToken()->getSerial() : '')
+                    );
+
+                    $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
+                    array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
+                        $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
+                    });
+                    $Content = array_merge($Content, $tblAuthorizationAll);
+
+                    $Content = array_filter($Content);
+                    $Footer = new PullLeft(
+                        new Standard('',
+                            '/Setting/Authorization/Account/Edit',
+                            new Edit(), array('Id' => $tblAccount->getId()),
+                            'Benutzer ' . $tblAccount->getUsername() . ' bearbeiten'
+                        )
+                        . new Standard('',
+                            '/Setting/Authorization/Account/Destroy',
+                            new Remove(), array('Id' => $tblAccount->getId()),
+                            'Benutzer ' . $tblAccount->getUsername() . ' löschen'
+                        )
+                    );
+                    $tblAccount = new LayoutColumn(
+                        new Panel($tblAccount->getUsername(), $Content, Panel::PANEL_TYPE_INFO, new PullClear($Footer))
+                        , 3);
+                } else {
+                    $tblAccount = false;
+                }
+            });
+            $tblAccountAll = array_filter($tblAccountAll);
+        }
+        if ($tblAccountAll) {
+            $LayoutRowList = array();
+            $LayoutRowCount = 0;
+            $LayoutRow = null;
+            /**
+             * @var LayoutColumn $tblAccount
+             */
+            foreach ($tblAccountAll as $tblAccount) {
+                if ($LayoutRowCount % 4 == 0) {
+                    $LayoutRow = new LayoutRow(array());
+                    $LayoutRowList[] = $LayoutRow;
+                }
+                $LayoutRow->addColumn($tblAccount);
+                $LayoutRowCount++;
+            }
+        } else {
+            $LayoutRowList = new LayoutRow(
+                new LayoutColumn(
+                    new Warning('Keine Benutzerkonten vorhanden')
+                )
+            );
+        }
 
         $Stage->setContent(
-            ( $tblAccountAll
-                ? new TableData($tblAccountAll, null, array(
-                    'Username' => 'Benutzername',
-//                    'Option' => 'Optionen'
-                ))
-                : new Warning('Keine Benutzerkonnten vorhanden')
-            )
-            .Account::useService()->createAccount(
-                $this->formAccount()
-                    ->appendFormButton(new Primary('Benutzerkonnto hinzufügen'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-                , $Account));
+            new Layout(array(
+                new LayoutGroup(
+                    $LayoutRowList
+                    , new Title('Benutzer', 'Bestehende Benutzerkonten')
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Account::useService()->createAccount(
+                                $this->formAccount()
+                                    ->appendFormButton(new Primary('Benutzerkonto hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $Account)
+                        )
+                    ), new Title('Benutzerkonto hinzufügen')
+                ),
+            ))
+        );
+
         return $Stage;
     }
 
@@ -87,8 +163,20 @@ class Frontend implements IFrontendInterface
             if ($tblIdentification->getName() == 'System') {
                 $tblIdentification = false;
             } else {
+                switch (strtoupper($tblIdentification->getName())) {
+                    case 'STUDENT':
+                        $Global = $this->getGlobal();
+                        if (!isset($Global->POST['Account']['Identification'])) {
+                            $Global->POST['Account']['Identification'] = $tblIdentification->getId();
+                            $Global->savePost();
+                        }
+                        $Label = $tblIdentification->getDescription();
+                        break;
+                    default:
+                        $Label = $tblIdentification->getDescription() . ' (' . new Key() . ')';
+                }
                 $tblIdentification = new RadioBox(
-                    'Account[Identification]', $tblIdentification->getDescription(), $tblIdentification->getId()
+                    'Account[Identification]', $Label, $tblIdentification->getId()
                 );
             }
         });
@@ -101,13 +189,19 @@ class Frontend implements IFrontendInterface
             if ($tblRole->getName() == 'Administrator') {
                 $tblRole = false;
             } else {
-                $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
+                $tblRole = new CheckBox('Account[Role][' . $tblRole->getId() . ']', $tblRole->getName(),
                     $tblRole->getId());
             }
         });
         $tblRoleAll = array_filter($tblRoleAll);
 
         // Token
+        $Global = $this->getGlobal();
+        if (!isset($Global->POST['Account']['Token'])) {
+            $Global->POST['Account']['Token'] = 0;
+            $Global->savePost();
+        }
+
         $tblTokenAll = Token::useService()->getTokenAll();
         array_walk($tblTokenAll, function (TblToken &$tblToken) {
 
@@ -122,7 +216,7 @@ class Frontend implements IFrontendInterface
         array_unshift($tblTokenAll,
             new RadioBox('Account[Token]',
                 new Danger('KEIN Hardware-Token'),
-                null
+                0
             )
         );
 
@@ -139,16 +233,15 @@ class Frontend implements IFrontendInterface
                                 'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
                                 new Repeat()
                             ),
-                        ), Panel::PANEL_TYPE_INFO), 3),
+                        ), Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(array(
                         new Panel('Berechtigungsstufe zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO)
-                    ), 3),
+                    ), 4),
                     new FormColumn(array(
-                        new Panel('Authentifizierungstyp wählen', $tblIdentificationAll, Panel::PANEL_TYPE_INFO)
-                    ), 3),
-                    new FormColumn(array(
-                        new Panel('Hardware-Token zuweisen', $tblTokenAll, Panel::PANEL_TYPE_INFO)
-                    ), 3),
+                        new Panel(new Lock() . ' Authentifizierungstyp wählen', $tblIdentificationAll,
+                            Panel::PANEL_TYPE_INFO),
+                        new Panel(new Key() . ' Hardware-Token zuweisen', $tblTokenAll, Panel::PANEL_TYPE_INFO)
+                    ), 4),
                 ))
 
             )),
