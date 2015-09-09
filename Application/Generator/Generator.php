@@ -14,6 +14,7 @@ class Generator implements IClusterInterface
 
     public static function registerCluster()
     {
+
         Report::registerApplication();
     }
 

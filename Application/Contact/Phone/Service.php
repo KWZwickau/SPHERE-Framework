@@ -64,17 +64,6 @@ class Service implements IServiceInterface
     /**
      * @param integer $Id
      *
-     * @return bool|TblType
-     */
-    public function getTypeById($Id)
-    {
-
-        return (new Data($this->Binding))->getTypeById($Id);
-    }
-
-    /**
-     * @param integer $Id
-     *
      * @return bool|TblPhone
      */
     public function getPhoneById($Id)
@@ -167,6 +156,17 @@ class Service implements IServiceInterface
             }
         }
         return $Form;
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblType
+     */
+    public function getTypeById($Id)
+    {
+
+        return (new Data($this->Binding))->getTypeById($Id);
     }
 
     /**

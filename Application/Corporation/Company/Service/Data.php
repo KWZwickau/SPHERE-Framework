@@ -4,13 +4,14 @@ namespace SPHERE\Application\Corporation\Company\Service;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\DataCacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Corporation\Company\Service
  */
-class Data
+class Data extends DataCacheable
 {
 
     /** @var null|Binding $Connection */
@@ -32,15 +33,17 @@ class Data
 
     /**
      * @param string $Name
+     * @param string $Description
      *
      * @return TblCompany
      */
-    public function createCompany($Name)
+    public function createCompany($Name, $Description = '')
     {
 
         $Manager = $this->Connection->getEntityManager();
         $Entity = new TblCompany();
         $Entity->setName($Name);
+        $Entity->setDescription($Description);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         return $Entity;
@@ -49,12 +52,14 @@ class Data
     /**
      * @param TblCompany $tblCompany
      * @param string     $Name
+     * @param string     $Description
      *
      * @return TblCompany
      */
     public function updateCompany(
         TblCompany $tblCompany,
-        $Name
+        $Name,
+        $Description = ''
     ) {
 
         $Manager = $this->Connection->getEntityManager();
@@ -63,6 +68,7 @@ class Data
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setName($Name);
+            $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
             return true;
@@ -76,8 +82,16 @@ class Data
     public function getCompanyAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblCompany')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityListBy('CompanyAll', array(), array($this, 'getCompanyAllCacheable'));
+    }
+
+    /**
+     * @return int
+     */
+    public function countCompanyAll()
+    {
+
+        return $this->Connection->getEntityManager()->getEntity('TblCompany')->count();
     }
 
     /**
@@ -90,5 +104,14 @@ class Data
 
         $Entity = $this->Connection->getEntityManager()->getEntityById('TblCompany', $Id);
         return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @return array
+     */
+    protected function getCompanyAllCacheable()
+    {
+
+        return $this->Connection->getEntityManager()->getEntity('TblCompany')->findAll();
     }
 }

@@ -81,17 +81,6 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return bool|TblDebtorCommodity[]
-     */
-    public function entityCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
-    {
-
-        return (new Data($this->Binding))->entityCommodityDebtorAllByDebtor($tblDebtor);
-    }
-
-    /**
      * @param $Id
      *
      * @return bool|TblDebtor
@@ -180,39 +169,6 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param $Reference
-     *
-     * @return bool|TblReference
-     */
-    public function entityReferenceByReferenceActive($Reference)
-    {
-
-        return (new Data($this->Binding))->entityReferenceByReferenceActive($Reference);
-    }
-
-    /**
-     * @param $DebtorNumber
-     *
-     * @return bool|TblDebtor
-     */
-    public function entityDebtorByDebtorNumber($DebtorNumber)
-    {
-
-        return (new Data($this->Binding))->entityDebtorByDebtorNumber($DebtorNumber);
-    }
-
-    /**
-     * @param $Reference
-     *
-     * @return bool|TblReference
-     */
-    public function entityReferenceByReference($Reference)
-    {
-
-        return (new Data($this->Binding))->entityReferenceByReference($Reference);
-    }
-
-    /**
      * @param $ServiceManagement_Person
      *
      * @return bool|TblDebtor[]
@@ -248,6 +204,17 @@ class Service implements IServiceInterface
             array_push($tblCommodity, $tblDebtorCommodity->getServiceBillingCommodity());
         }
         return $tblCommodity;
+    }
+
+    /**
+     * @param TblDebtor $tblDebtor
+     *
+     * @return bool|TblDebtorCommodity[]
+     */
+    public function entityCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
+    {
+
+        return (new Data($this->Binding))->entityCommodityDebtorAllByDebtor($tblDebtor);
     }
 
     /**
@@ -441,6 +408,17 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param $Reference
+     *
+     * @return bool|TblReference
+     */
+    public function entityReferenceByReferenceActive($Reference)
+    {
+
+        return (new Data($this->Binding))->entityReferenceByReferenceActive($Reference);
+    }
+
+    /**
      * @param IFormInterface $Stage
      * @param                $Debtor
      * @param                $Id
@@ -512,6 +490,28 @@ class Service implements IServiceInterface
             .new Redirect('/Billing/Accounting/Banking', 2);
         }
         return $Stage;
+    }
+
+    /**
+     * @param $DebtorNumber
+     *
+     * @return bool|TblDebtor
+     */
+    public function entityDebtorByDebtorNumber($DebtorNumber)
+    {
+
+        return (new Data($this->Binding))->entityDebtorByDebtorNumber($DebtorNumber);
+    }
+
+    /**
+     * @param $Reference
+     *
+     * @return bool|TblReference
+     */
+    public function entityReferenceByReference($Reference)
+    {
+
+        return (new Data($this->Binding))->entityReferenceByReference($Reference);
     }
 
 }

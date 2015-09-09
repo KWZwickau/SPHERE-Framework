@@ -62,17 +62,6 @@ class Service implements IServiceInterface
     /**
      * @param TblBasket $tblBasket
      *
-     * @return bool|TblBasketItem[]
-     */
-    public function entityBasketItemAllByBasket(TblBasket $tblBasket)
-    {
-
-        return (new Data($this->Binding))->entityBasketItemAllByBasket($tblBasket);
-    }
-
-    /**
-     * @param TblBasket $tblBasket
-     *
      * @return bool|TblCommodity[]
      */
     public function entityCommodityAllByBasket(TblBasket $tblBasket)
@@ -82,34 +71,12 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param TblBasket $tblBasket
-     *
-     * @return bool|TblBasketPerson[]
-     */
-    public function entityBasketPersonAllByBasket(TblBasket $tblBasket)
-    {
-
-        return (new Data($this->Binding))->entityBasketPersonAllByBasket($tblBasket);
-    }
-
-    /**
      * @return bool|TblBasket[]
      */
     public function entityBasketAll()
     {
 
         return (new Data($this->Binding))->entityBasketAll();
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblBasket
-     */
-    public function entityBasketById($Id)
-    {
-
-        return (new Data($this->Binding))->entityBasketById($Id);
     }
 
     /**
@@ -205,6 +172,17 @@ class Service implements IServiceInterface
         }
 
         return $tblPerson;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool|TblBasketPerson[]
+     */
+    public function entityBasketPersonAllByBasket(TblBasket $tblBasket)
+    {
+
+        return (new Data($this->Binding))->entityBasketPersonAllByBasket($tblBasket);
     }
 
     /**
@@ -513,6 +491,17 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool|TblBasketItem[]
+     */
+    public function entityBasketItemAllByBasket(TblBasket $tblBasket)
+    {
+
+        return (new Data($this->Binding))->entityBasketItemAllByBasket($tblBasket);
+    }
+
+    /**
      * @param IFormInterface $Stage
      * @param                $Id
      * @param                $Date
@@ -551,5 +540,16 @@ class Service implements IServiceInterface
         }
 
         return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblBasket
+     */
+    public function entityBasketById($Id)
+    {
+
+        return (new Data($this->Binding))->entityBasketById($Id);
     }
 }

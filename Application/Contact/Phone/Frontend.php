@@ -99,6 +99,39 @@ class Frontend implements IFrontendInterface
     }
 
     /**
+     * @return Form
+     */
+    private function formNumber()
+    {
+
+        $tblPhoneAll = Phone::useService()->getPhoneAll();
+        $tblTypeAll = Phone::useService()->getTypeAll();
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Telefonnummer',
+                            array(
+                                new SelectBox('Type[Type]', 'Typ',
+                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
+                                ),
+                                new AutoCompleter('Number', 'Telefonnummer', 'Telefonnummer',
+                                    array('Number' => $tblPhoneAll), new PhoneIcon()
+                                )
+                            ), Panel::PANEL_TYPE_INFO
+                        ), 6),
+                    new FormColumn(
+                        new Panel('Sonstiges',
+                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                            , Panel::PANEL_TYPE_INFO
+                        ), 6),
+                )),
+            ))
+        );
+    }
+
+    /**
      * @param int    $Id
      * @param string $Number
      * @param array  $Type
@@ -144,39 +177,6 @@ class Frontend implements IFrontendInterface
         );
 
         return $Stage;
-    }
-
-    /**
-     * @return Form
-     */
-    private function formNumber()
-    {
-
-        $tblPhoneAll = Phone::useService()->getPhoneAll();
-        $tblTypeAll = Phone::useService()->getTypeAll();
-
-        return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Telefonnummer',
-                            array(
-                                new SelectBox('Type[Type]', 'Typ',
-                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ),
-                                new AutoCompleter('Number', 'Telefonnummer', 'Telefonnummer',
-                                    array('Number' => $tblPhoneAll), new PhoneIcon()
-                                )
-                            ), Panel::PANEL_TYPE_INFO
-                        ), 6),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                            , Panel::PANEL_TYPE_INFO
-                        ), 6),
-                )),
-            ))
-        );
     }
 
     /**

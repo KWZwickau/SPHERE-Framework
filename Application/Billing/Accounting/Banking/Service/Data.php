@@ -39,6 +39,27 @@ class Data
     }
 
     /**
+     * @param $PaymentType
+     *
+     * @return TblPaymentType|null|object
+     */
+    public function actionCreatePaymentType($PaymentType)
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity('TblPaymentType')->findOneBy(array(TblPaymentType::ATTR_NAME => $PaymentType));
+        if (null === $Entity) {
+            $Entity = new TblPaymentType();
+            $Entity->setName($PaymentType);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+                $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblDebtor
@@ -282,7 +303,6 @@ class Data
         return ( null === $EntityList ? false : $EntityList );
     }
 
-
     /**
      * @param $LeadTimeFollow
      * @param $LeadTimeFirst
@@ -483,27 +503,6 @@ class Data
                 TblReference::ATTR_IS_VOID   => false
             ));
         return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param $PaymentType
-     *
-     * @return TblPaymentType|null|object
-     */
-    public function actionCreatePaymentType($PaymentType)
-    {
-
-        $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity('TblPaymentType')->findOneBy(array(TblPaymentType::ATTR_NAME => $PaymentType));
-        if (null === $Entity) {
-            $Entity = new TblPaymentType();
-            $Entity->setName($PaymentType);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
-                $Entity);
-        }
-
-        return $Entity;
     }
 
     /**

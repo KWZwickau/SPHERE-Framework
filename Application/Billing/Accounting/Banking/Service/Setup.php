@@ -49,6 +49,23 @@ class Setup
 
     /**
      * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTablePaymentType(Schema &$Schema)
+    {
+
+        $Table = $this->Connection->createTable($Schema, 'tblPaymentType');
+
+        if (!$this->Connection->hasColumn('tblPaymentType', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
      * @param Table  $tblPaymentType
      *
      * @return Table tblDebtorCommodity
@@ -137,23 +154,6 @@ class Setup
         }
 
         $this->Connection->addForeignKey($Table, $tblDebtor);
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTablePaymentType(Schema &$Schema)
-    {
-
-        $Table = $this->Connection->createTable($Schema, 'tblPaymentType');
-
-        if (!$this->Connection->hasColumn('tblPaymentType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-
         return $Table;
     }
 }

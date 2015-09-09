@@ -9,6 +9,7 @@ use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -22,7 +23,6 @@ use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
-use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -32,7 +32,6 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -59,22 +58,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Firmen', 'Datenblatt');
 
-        $tblGroupAll = Group::useService()->getGroupAll();
-        if ($tblGroupAll) {
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
-
-                $Stage->addButton(
-                    new Standard(
-                        $tblGroup->getName(),
-                        new Route('/Corporation/Search/Group'), null,
-                        array('Id' => $tblGroup->getId()),
-                        $tblGroup->getDescription()
-                    )
-                );
-            }, $Stage);
-        }
-
         if (!$Id) {
 
             $BasicTable = Company::useService()->createCompany(
@@ -98,6 +81,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Company'] )) {
                 $Global->POST['Company']['Name'] = $tblCompany->getName();
+                $Global->POST['Company']['Description'] = $tblCompany->getDescription();
                 $tblGroupAll = Group::useService()->getGroupAllByCompany($tblCompany);
                 if (!empty( $tblGroupAll )) {
                     /** @var TblGroup $tblGroup */
@@ -150,28 +134,34 @@ class Frontend extends Extension implements IFrontendInterface
                 }
             }
 
-            switch (strtoupper($TabActive)) {
+//            switch (strtoupper($TabActive)) {
 //                case 'COMMON':
 //                    $MetaTable = Common::useFrontend()->frontendMeta( $tblCompany, $Meta );
 //                    break;
-                default:
-                    if (!empty( $MetaTabs )) {
-                        $MetaTable = new Well(new Muted('Bitte wählen Sie eine Rubrik'));
-                    } else {
-                        $MetaTable = new Well(new Warning('Keine Informationen verfügbar'));
-                    }
-            }
+//                default:
+//                    if (!empty( $MetaTabs )) {
+//                        $MetaTable = new Well(new Muted('Bitte wählen Sie eine Rubrik'));
+//                    } else {
+//                        $MetaTable = new Well(new Warning('Keine Informationen verfügbar'));
+//                    }
+//            }
 
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
-                        new LayoutRow(new LayoutColumn($BasicTable)),
+                        new LayoutRow(new LayoutColumn(array(
+                            new Panel(new Building().' Firma', array(
+                                $tblCompany->getName(),
+                                $tblCompany->getDescription(),
+                            ), Panel::PANEL_TYPE_SUCCESS),
+                            $BasicTable
+                        ))),
                         new Title(new Building().' Grunddaten', 'der Firma')
                     ),
-//                    new LayoutGroup( array(
-//                        new LayoutRow( new LayoutColumn( new LayoutTabs( $MetaTabs ) ) ),
-//                        new LayoutRow( new LayoutColumn( $MetaTable ) ),
-//                    ), new Title( new Tag().' Informationen', 'zur Firma' ) ),
+//                    new LayoutGroup(array(
+//                        new LayoutRow(new LayoutColumn(new LayoutTabs($MetaTabs))),
+//                        new LayoutRow(new LayoutColumn($MetaTable)),
+//                    ), new Title(new Tag().' Informationen', 'zur Firma')),
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             Address::useFrontend()->frontendLayoutCompany($tblCompany)
@@ -226,11 +216,24 @@ class Frontend extends Extension implements IFrontendInterface
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupList, function (TblGroup &$tblGroup) {
 
-                $tblGroup = new CheckBox(
-                    'Company[Group]['.$tblGroup->getId().']',
-                    $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
-                    $tblGroup->getId()
-                );
+                switch (strtoupper($tblGroup->getMetaTable())) {
+                    case 'COMMON':
+                        $Global = $this->getGlobal();
+                        $Global->POST['Company']['Group'][$tblGroup->getId()] = $tblGroup->getId();
+                        $Global->savePost();
+                        $tblGroup = new RadioBox(
+                            'Company[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        );
+                        break;
+                    default:
+                        $tblGroup = new CheckBox(
+                            'Company[Group]['.$tblGroup->getId().']',
+                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            $tblGroup->getId()
+                        );
+                }
             });
         } else {
             $tblGroupList = array(new Warning('Keine Gruppen vorhanden'));
@@ -242,6 +245,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Firmenname', array(
                             new TextField('Company[Name]', 'Name', 'Name'),
+                            new TextField('Company[Description]', 'Beschreibung', 'Beschreibung'),
                         ), Panel::PANEL_TYPE_INFO), 8),
                     new FormColumn(
                         new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),

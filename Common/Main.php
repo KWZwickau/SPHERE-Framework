@@ -2,20 +2,16 @@
 namespace SPHERE\Common;
 
 use Doctrine\DBAL\Driver\PDOException;
+use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
 use SPHERE\Application\Api\Api;
-use SPHERE\Application\Billing\Billing;
-use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
-use SPHERE\Application\Education\Education;
-use SPHERE\Application\Generator\Generator;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Setting\Setting;
-use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link;
@@ -23,6 +19,13 @@ use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Authenticator\Type\Post;
+use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\Type\ApcSma;
+use SPHERE\System\Cache\Type\Apcu;
+use SPHERE\System\Cache\Type\ApcUser;
+use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Type\Memory;
+use SPHERE\System\Cache\Type\OpCache;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -115,12 +118,12 @@ class Main extends Extension
             Platform::registerCluster();
             People::registerCluster();
             Corporation::registerCluster();
-            Education::registerCluster();
-            Billing::registerCluster();
-            Transfer::registerCluster();
-            Contact::registerCluster();
+//            Education::registerCluster();
+//            Billing::registerCluster();
+//            Transfer::registerCluster();
+//            Contact::registerCluster();
             Setting::registerCluster();
-            Generator::registerCluster();
+//            Generator::registerCluster();
             /**
              * Execute Request
              */
@@ -133,6 +136,14 @@ class Main extends Extension
             }
         } catch (PDOException $Exception) {
             $this->runSelfHeal($Exception);
+        } catch (InvalidFieldNameException $Exception) {
+            (new Cache(new ApcSma()))->getCache()->clearCache();
+            (new Cache(new Apcu()))->getCache()->clearCache();
+            (new Cache(new ApcUser()))->getCache()->clearCache();
+            (new Cache(new Memcached()))->getCache()->clearCache();
+            (new Cache(new Memory()))->getCache()->clearCache();
+            (new Cache(new OpCache()))->getCache()->clearCache();
+            $this->runSelfHeal($Exception);
         } catch (TableNotFoundException $Exception) {
             $this->runSelfHeal($Exception);
         } catch (\PDOException $Exception) {
@@ -140,7 +151,10 @@ class Main extends Extension
         } catch (\ErrorException $Exception) {
             self::getDisplay()->setException($Exception, 'Error');
         } catch (\Exception $Exception) {
-            self::getDisplay()->setException($Exception, 'Exception');
+
+            $this->getDebugger()->screenDump($Exception);
+
+            self::getDisplay()->setException($Exception, get_class($Exception));
         }
 
         try {

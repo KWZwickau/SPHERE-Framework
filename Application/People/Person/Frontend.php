@@ -44,7 +44,6 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Frontend\Text\Repository\Warning;
-use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -70,28 +69,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Personen', 'Datenblatt');
-
-        if ($Id) {
-            $Stage->setMessage('Personendaten bearbeiten');
-        } else {
-            $Stage->setMessage('Eine neue Person anlegen');
-        }
-
-        $tblGroupAll = Group::useService()->getGroupAll();
-        if ($Id && $tblGroupAll) {
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
-
-                $Stage->addButton(
-                    new Standard(
-                        $tblGroup->getName(),
-                        new Route('/People/Search/Group'), null,
-                        array('Id' => $tblGroup->getId()),
-                        $tblGroup->getDescription()
-                    )
-                );
-            }, $Stage);
-        }
 
         if (!$Id) {
 

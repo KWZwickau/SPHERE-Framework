@@ -97,6 +97,39 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @return Form
+     */
+    private function formAddress()
+    {
+
+        $tblMailAll = Mail::useService()->getMailAll();
+        $tblTypeAll = Mail::useService()->getTypeAll();
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('E-Mail Adresse',
+                            array(
+                                new SelectBox('Type[Type]', 'Typ',
+                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
+                                ),
+                                new AutoCompleter('Address', 'E-Mail Adresse', 'E-Mail Adresse',
+                                    array('Address' => $tblMailAll), new MailIcon()
+                                )
+                            ), Panel::PANEL_TYPE_INFO
+                        ), 6),
+                    new FormColumn(
+                        new Panel('Sonstiges',
+                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                            , Panel::PANEL_TYPE_INFO
+                        ), 6),
+                )),
+            ))
+        );
+    }
+
+    /**
      * @param int    $Id
      * @param string $Address
      * @param array  $Type
@@ -142,39 +175,6 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
-    }
-
-    /**
-     * @return Form
-     */
-    private function formAddress()
-    {
-
-        $tblMailAll = Mail::useService()->getMailAll();
-        $tblTypeAll = Mail::useService()->getTypeAll();
-
-        return new Form(
-            new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('E-Mail Adresse',
-                            array(
-                                new SelectBox('Type[Type]', 'Typ',
-                                    array('{{ Name }} {{ Description }}' => $tblTypeAll), new TileBig()
-                                ),
-                                new AutoCompleter('Address', 'E-Mail Adresse', 'E-Mail Adresse',
-                                    array('Address' => $tblMailAll), new MailIcon()
-                                )
-                            ), Panel::PANEL_TYPE_INFO
-                        ), 6),
-                    new FormColumn(
-                        new Panel('Sonstiges',
-                            new TextArea('Type[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                            , Panel::PANEL_TYPE_INFO
-                        ), 6),
-                )),
-            ))
-        );
     }
 
     /**

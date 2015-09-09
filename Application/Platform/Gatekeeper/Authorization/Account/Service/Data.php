@@ -336,7 +336,7 @@ class Data extends DataCacheable
         $Entity = $this->Connection->getEntityManager()->getEntity('TblAuthentication')->findOneBy(array(
             TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
-        return (null === $Entity ? false : $Entity);
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**

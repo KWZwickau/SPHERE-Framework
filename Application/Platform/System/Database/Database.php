@@ -53,12 +53,12 @@ class Database extends Extension implements IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Setup/Simulation',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Simulation',
                 __CLASS__.'::frontendSetup'
             )->setParameterDefault('Simulation', true)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '/Setup/Execution',
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Setup/Execution',
                 __CLASS__.'::frontendSetup'
             )->setParameterDefault('Simulation', false)
         );
@@ -101,7 +101,7 @@ class Database extends Extension implements IModuleInterface
 
         $Stage = new Stage('Database', 'Status');
         $this->menuButton($Stage);
-        $Configuration = parse_ini_file(__DIR__ . '/../../../../System/Database/Configuration.ini', true);
+        $Configuration = parse_ini_file(__DIR__.'/../../../../System/Database/Configuration.ini', true);
         $Result = array();
         foreach ((array)$Configuration as $Service => $Parameter) {
             $Service = explode(':', $Service);
@@ -183,14 +183,14 @@ class Database extends Extension implements IModuleInterface
         $Stage->addButton(new Standard('Status', new Link\Route(__NAMESPACE__), null,
             array(), 'Datenbankverbindungen'
         ));
-        $Stage->addButton(new Standard('Simulation', new Link\Route(__NAMESPACE__ . '/Setup/Simulation'), null,
+        $Stage->addButton(new Standard('Simulation', new Link\Route(__NAMESPACE__.'/Setup/Simulation'), null,
             array(), 'Anzeige von Strukturänderungen'
         ));
-        $Stage->addButton(new Standard('Durchführung', new Link\Route(__NAMESPACE__ . '/Setup/Execution'), null,
+        $Stage->addButton(new Standard('Durchführung', new Link\Route(__NAMESPACE__.'/Setup/Execution'), null,
             array(), 'Durchführen von Strukturänderungen und einspielen zugehöriger Daten'
         ));
         $Stage->addButton(new External('phpMyAdmin',
-            $this->getRequest()->getPathBase() . '/UnitTest/Console/phpMyAdmin-4.3.12'));
+            $this->getRequest()->getPathBase().'/UnitTest/Console/phpMyAdmin-4.3.12'));
     }
 
     /**
@@ -212,13 +212,13 @@ class Database extends Extension implements IModuleInterface
             new TableColumn($Status),
             new TableColumn($Service[0]),
             new TableColumn($Service[1]),
-            new TableColumn((isset($Service[2]) ? $Service[2] : null)),
-            new TableColumn((isset($Service[3]) ? $Service[3] : null)),
-            new TableColumn((isset($Service[4]) ? $Service[4] : null)),
+            new TableColumn(( isset( $Service[2] ) ? $Service[2] : null )),
+            new TableColumn(( isset( $Service[3] ) ? $Service[3] : null )),
+            new TableColumn(( isset( $Service[4] ) ? $Service[4] : null )),
             new TableColumn($Parameter['Driver']),
             new TableColumn($Parameter['Host']),
-            new TableColumn((isset($Parameter['Port']) ? $Parameter['Port'] : 'Default')),
-            new TableColumn(isset($Connection) ? $Connection->getDatabase() : '-NA-')
+            new TableColumn(( isset( $Parameter['Port'] ) ? $Parameter['Port'] : 'Default' )),
+            new TableColumn(isset( $Connection ) ? $Connection->getDatabase() : '-NA-')
         ));
     }
 

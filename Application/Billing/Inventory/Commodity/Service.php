@@ -74,17 +74,6 @@ class Service implements IServiceInterface
     /**
      * @param $Id
      *
-     * @return bool|TblCommodityType
-     */
-    public function entityCommodityTypeById($Id)
-    {
-
-        return (new Data($this->Binding))->entityCommodityTypeById($Id);
-    }
-
-    /**
-     * @param $Id
-     *
      * @return bool|TblCommodity
      */
     public function entityCommodityById($Id)
@@ -230,6 +219,17 @@ class Service implements IServiceInterface
             .new Redirect('/Billing/Inventory/Commodity', 1);
         }
         return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblCommodityType
+     */
+    public function entityCommodityTypeById($Id)
+    {
+
+        return (new Data($this->Binding))->entityCommodityTypeById($Id);
     }
 
     /**

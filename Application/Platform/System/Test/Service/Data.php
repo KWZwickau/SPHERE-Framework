@@ -36,8 +36,8 @@ class Data extends DataCacheable
      * @param        $Name
      * @param        $FileName
      * @param        $Extension
-     * @param $File
-     * @param $Type
+     * @param        $File
+     * @param        $Type
      * @param        $Size
      * @param        $Width
      * @param        $Height

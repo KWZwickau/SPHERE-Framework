@@ -31,6 +31,7 @@ class Data
     public function setupDatabaseContent()
     {
 
+        $this->createGroup('Alle', 'Firmendaten', '', true, 'COMMON');
         $this->createGroup('Schulen', '', '', true, 'SCHOOL');
     }
 

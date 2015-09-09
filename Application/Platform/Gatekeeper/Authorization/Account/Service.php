@@ -39,8 +39,8 @@ class Service implements IServiceInterface
      * Define Database Connection
      *
      * @param Identifier $Identifier
-     * @param string $EntityPath
-     * @param string $EntityNamespace
+     * @param string     $EntityPath
+     * @param string     $EntityNamespace
      */
     public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
@@ -151,7 +151,7 @@ class Service implements IServiceInterface
             // Destroy Cookie
             $params = session_get_cookie_params();
             setcookie(session_name(), '', 0, $params['path'], $params['domain'], $params['secure'],
-                isset($params['httponly']));
+                isset( $params['httponly'] ));
             session_start();
             // Generate New Id
             session_regenerate_id(true);
@@ -161,8 +161,8 @@ class Service implements IServiceInterface
 
     /**
      * @param IFormInterface $Form
-     * @param string $CredentialName
-     * @param string $CredentialLock
+     * @param string         $CredentialName
+     * @param string         $CredentialLock
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -176,16 +176,16 @@ class Service implements IServiceInterface
 
         switch ($this->isCredentialValid($CredentialName, $CredentialLock, false, $tblIdentification)) {
             case false: {
-                if (null !== $CredentialName && empty($CredentialName)) {
+                if (null !== $CredentialName && empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialName && !empty($CredentialName)) {
+                if (null !== $CredentialName && !empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialLock && empty($CredentialLock)) {
+                if (null !== $CredentialLock && empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
-                if (null !== $CredentialLock && !empty($CredentialLock)) {
+                if (null !== $CredentialLock && !empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 break;
@@ -201,7 +201,7 @@ class Service implements IServiceInterface
     /**
      * @param string $Username
      * @param string $Password
-     * @param bool $TokenString
+     * @param bool   $TokenString
      * @param TblIdentification $tblIdentification
      *
      * @return null|bool
@@ -209,7 +209,7 @@ class Service implements IServiceInterface
     private function isCredentialValid($Username, $Password, $TokenString, TblIdentification $tblIdentification)
     {
 
-        if (false === ($tblAccount = $this->getAccountByCredential($Username, $Password, $tblIdentification))) {
+        if (false === ( $tblAccount = $this->getAccountByCredential($Username, $Password, $tblIdentification) )) {
             return false;
         } else {
             if (false === $TokenString) {
@@ -219,7 +219,7 @@ class Service implements IServiceInterface
             } else {
                 try {
                     if (Token::useService()->isTokenValid($TokenString)) {
-                        if (false === ($Token = $tblAccount->getServiceTblToken())) {
+                        if (false === ( $Token = $tblAccount->getServiceTblToken() )) {
                             return null;
                         } else {
                             if ($Token->getIdentifier() == substr($TokenString, 0, 12)) {
@@ -254,9 +254,9 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param TblAccount  $tblAccount
      * @param null|string $Session
-     * @param integer $Timeout
+     * @param integer     $Timeout
      *
      * @return Service\Entity\TblSession
      */
@@ -268,9 +268,9 @@ class Service implements IServiceInterface
 
     /**
      * @param IFormInterface $Form
-     * @param string $CredentialName
-     * @param string $CredentialLock
-     * @param string $CredentialKey
+     * @param string         $CredentialName
+     * @param string         $CredentialLock
+     * @param string         $CredentialKey
      * @param TblIdentification $tblIdentification
      *
      * @return IFormInterface|Redirect
@@ -285,16 +285,16 @@ class Service implements IServiceInterface
 
         switch ($this->isCredentialValid($CredentialName, $CredentialLock, $CredentialKey, $tblIdentification)) {
             case false: {
-                if (null !== $CredentialName && empty($CredentialName)) {
+                if (null !== $CredentialName && empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialName && !empty($CredentialName)) {
+                if (null !== $CredentialName && !empty( $CredentialName )) {
                     $Form->setError('CredentialName', 'Bitte geben Sie einen gültigen Benutzernamen ein');
                 }
-                if (null !== $CredentialLock && empty($CredentialLock)) {
+                if (null !== $CredentialLock && empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
-                if (null !== $CredentialLock && !empty($CredentialLock)) {
+                if (null !== $CredentialLock && !empty( $CredentialLock )) {
                     $Form->setError('CredentialLock', 'Bitte geben Sie ein gültiges Passwort ein');
                 }
                 break;
@@ -303,7 +303,7 @@ class Service implements IServiceInterface
                 $Form->setSuccess('CredentialName', '');
                 $Form->setSuccess('CredentialLock', '');
                 $Form->setError('CredentialKey', 'Der von Ihnen angegebene YubiKey ist nicht gültig.'
-                    . '<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen');
+                    .'<br/>Bitte verwenden Sie Ihren YubiKey um dieses Feld zu befüllen');
                 break;
             }
             case true: {
@@ -336,7 +336,7 @@ class Service implements IServiceInterface
 
     /**
      * @param TblAccount $tblAccount
-     * @param TblRole $tblRole
+     * @param TblRole    $tblRole
      *
      * @return bool
      */
@@ -352,7 +352,7 @@ class Service implements IServiceInterface
             }
         }, $tblRole);
         $tblAuthorization = array_filter($tblAuthorization);
-        if (!empty($tblAuthorization)) {
+        if (!empty( $tblAuthorization )) {
             return true;
         }
         return false;
@@ -376,13 +376,14 @@ class Service implements IServiceInterface
      */
     public function getAuthenticationByAccount(TblAccount $tblAccount)
     {
+
         return (new Data($this->Binding))->getAuthenticationByAccount($tblAccount);
 
     }
 
     /**
-     * @param string $Username
-     * @param string $Password
+     * @param string        $Username
+     * @param string        $Password
      * @param null|TblToken $tblToken
      * @param null|TblConsumer $tblConsumer
      *
@@ -392,5 +393,29 @@ class Service implements IServiceInterface
     {
 
         return (new Data($this->Binding))->createAccount($Username, $Password, $tblToken, $tblConsumer);
+    }
+
+    /**
+     * @param TblAccount        $tblAccount
+     * @param TblIdentification $tblIdentification
+     *
+     * @return TblAuthentication
+     */
+    public function addAccountAuthentication(TblAccount $tblAccount, TblIdentification $tblIdentification)
+    {
+
+        return (new Data($this->Binding))->addAccountAuthentication($tblAccount, $tblIdentification);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
+     *
+     * @return TblAuthorization
+     */
+    public function addAccountAuthorization(TblAccount $tblAccount, TblRole $tblRole)
+    {
+
+        return (new Data($this->Binding))->addAccountAuthorization($tblAccount, $tblRole);
     }
 }

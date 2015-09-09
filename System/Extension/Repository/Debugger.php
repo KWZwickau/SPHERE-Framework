@@ -137,6 +137,7 @@ class Debugger
 
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
+            print '<pre>'.print_r($Dump, true).'</pre>';
             self::addProtocol('<pre>'.print_r($Dump, true).'</pre>');
         }
     }

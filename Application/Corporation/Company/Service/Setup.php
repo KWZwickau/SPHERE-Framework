@@ -58,6 +58,9 @@ class Setup
         if (!$this->Connection->hasColumn('tblCompany', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
+        if (!$this->Connection->hasColumn('tblCompany', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
         return $Table;
     }
 }

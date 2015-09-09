@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service;
 
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
@@ -31,10 +30,10 @@ class Data extends Extension
     public function setupDatabaseContent()
     {
 
-        $this->createToken('ccccccdilkui', Consumer::useService()->getConsumerByAcronym('DEMO'));
-        $this->createToken('ccccccectjge', Consumer::useService()->getConsumerByAcronym('DEMO'));
-        $this->createToken('ccccccectjgt', Consumer::useService()->getConsumerByAcronym('DEMO'));
-        $this->createToken('ccccccectjgr', Consumer::useService()->getConsumerByAcronym('DEMO'));
+        $this->createToken('ccccccdilkui');
+        $this->createToken('ccccccectjge');
+        $this->createToken('ccccccectjgt');
+        $this->createToken('ccccccectjgr');
     }
 
     /**

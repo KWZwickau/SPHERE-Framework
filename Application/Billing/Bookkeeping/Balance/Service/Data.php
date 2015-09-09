@@ -62,16 +62,6 @@ class Data
     }
 
     /**
-     * @return bool|TblBalance[]
-     */
-    public function entityBalanceAll()
-    {
-
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblBalance')->findAll();
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
      * @param integer $Id
      *
      * @return bool|TblPayment
@@ -80,20 +70,6 @@ class Data
     {
 
         $Entity = $this->Connection->getEntityManager()->getEntityById('TblPayment', $Id);
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param TblBalance $tblBalance
-     *
-     * @return bool|TblPayment[]
-     */
-    public function entityPaymentByBalance(TblBalance $tblBalance)
-    {
-
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblPayment')->findBy(
-            array(TblPayment::ATTR_TBL_BALANCE => $tblBalance->getId())
-        );
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -134,6 +110,47 @@ class Data
     }
 
     /**
+     * @return bool|TblBalance[]
+     */
+    public function entityBalanceAll()
+    {
+
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblBalance')->findAll();
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblBalance $tblBalance
+     *
+     * @return float
+     */
+    public function sumPriceItemByBalance(TblBalance $tblBalance)
+    {
+
+        $sum = 0.00;
+        $tblPaymentList = $this->entityPaymentByBalance($tblBalance);
+        foreach ($tblPaymentList as $tblPayment) {
+            $sum += $tblPayment->getValue();
+        }
+
+        return $sum;
+    }
+
+    /**
+     * @param TblBalance $tblBalance
+     *
+     * @return bool|TblPayment[]
+     */
+    public function entityPaymentByBalance(TblBalance $tblBalance)
+    {
+
+        $Entity = $this->Connection->getEntityManager()->getEntity('TblPayment')->findBy(
+            array(TblPayment::ATTR_TBL_BALANCE => $tblBalance->getId())
+        );
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
      * @return bool|TblInvoice[]
      */
     public function entityInvoiceHasExportDateAll()
@@ -164,23 +181,6 @@ class Data
     {
 
         return str_replace('.', ',', round($this->sumPriceItemByBalance($tblBalance), 2))." €";
-    }
-
-    /**
-     * @param TblBalance $tblBalance
-     *
-     * @return float
-     */
-    public function sumPriceItemByBalance(TblBalance $tblBalance)
-    {
-
-        $sum = 0.00;
-        $tblPaymentList = $this->entityPaymentByBalance($tblBalance);
-        foreach ($tblPaymentList as $tblPayment) {
-            $sum += $tblPayment->getValue();
-        }
-
-        return $sum;
     }
 
     /**

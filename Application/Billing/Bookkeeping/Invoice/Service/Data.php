@@ -129,19 +129,6 @@ class Data
     }
 
     /**
-     * @param TblTempInvoice $tblTempInvoice
-     *
-     * @return TblTempInvoiceCommodity[]|bool
-     */
-    public function entityTempInvoiceCommodityAllByTempInvoice(TblTempInvoice $tblTempInvoice)
-    {
-
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblTempInvoiceCommodity')
-            ->findBy(array(TblTempInvoiceCommodity::ATTR_TBL_TEMP_INVOICE => $tblTempInvoice->getId()));
-        return ( null === $EntityList ? false : $EntityList );
-    }
-
-    /**
      * @param TblInvoice $tblInvoice
      *
      * @return string
@@ -181,19 +168,6 @@ class Data
 
         $EntityList = $this->Connection->getEntityManager()->getEntity('TblInvoiceItem')
             ->findBy(array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
-        return ( null === $EntityList ? false : $EntityList );
-    }
-
-    /**
-     * @param TblBasket $tblBasket
-     *
-     * @return TblTempInvoice[]|bool
-     */
-    public function entityTempInvoiceAllByBasket(TblBasket $tblBasket)
-    {
-
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblTempInvoice')
-            ->findBy(array(TblTempInvoice::ATTR_SERVICE_BILLING_BASKET => $tblBasket->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -314,6 +288,32 @@ class Data
         }
 
         return true;
+    }
+
+    /**
+     * @param TblBasket $tblBasket
+     *
+     * @return TblTempInvoice[]|bool
+     */
+    public function entityTempInvoiceAllByBasket(TblBasket $tblBasket)
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblTempInvoice')
+            ->findBy(array(TblTempInvoice::ATTR_SERVICE_BILLING_BASKET => $tblBasket->getId()));
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblTempInvoice $tblTempInvoice
+     *
+     * @return TblTempInvoiceCommodity[]|bool
+     */
+    public function entityTempInvoiceCommodityAllByTempInvoice(TblTempInvoice $tblTempInvoice)
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblTempInvoiceCommodity')
+            ->findBy(array(TblTempInvoiceCommodity::ATTR_TBL_TEMP_INVOICE => $tblTempInvoice->getId()));
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**

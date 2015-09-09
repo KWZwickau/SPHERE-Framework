@@ -73,7 +73,7 @@ class Service extends Extension implements IServiceInterface
 
             try {
                 $Upload = $this->getUpload('FileUpload', __DIR__)
-                    ->validateMaxSize('5M')
+                    ->validateMaxSize('2M')
                     ->validateMimeType(array(
                         'image/png',
                         'image/gif',

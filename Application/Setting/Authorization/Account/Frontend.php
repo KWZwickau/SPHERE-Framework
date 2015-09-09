@@ -21,7 +21,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
+use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
+use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -66,17 +68,18 @@ class Frontend extends Extension implements IFrontendInterface
 
                 if (
                     $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId()
-                    && $tblAccount->getServiceTblConsumer()->getId() != Consumer::useService()->getConsumerBySession()->getId()
+                    && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
 
                     $Content = array(
-                        ($tblAccount->getServiceTblIdentification() ? new Lock() . ' ' . $tblAccount->getServiceTblIdentification()->getDescription() : '')
-                        . ($tblAccount->getServiceTblToken() ? ' ' . new Key() . ' ' . $tblAccount->getServiceTblToken()->getSerial() : '')
+                        ( $tblAccount->getServiceTblIdentification() ? new Lock().' '.$tblAccount->getServiceTblIdentification()->getDescription() : '' )
+                        .( $tblAccount->getServiceTblToken() ? ' '.new Key().' '.$tblAccount->getServiceTblToken()->getSerial() : '' )
                     );
 
                     $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
                     array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
-                        $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
+
+                        $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
                     });
                     $Content = array_merge($Content, $tblAuthorizationAll);
 
@@ -85,12 +88,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new Standard('',
                             '/Setting/Authorization/Account/Edit',
                             new Edit(), array('Id' => $tblAccount->getId()),
-                            'Benutzer ' . $tblAccount->getUsername() . ' bearbeiten'
+                            'Benutzer '.$tblAccount->getUsername().' bearbeiten'
                         )
-                        . new Standard('',
+                        .new Standard('',
                             '/Setting/Authorization/Account/Destroy',
                             new Remove(), array('Id' => $tblAccount->getId()),
-                            'Benutzer ' . $tblAccount->getUsername() . ' löschen'
+                            'Benutzer '.$tblAccount->getUsername().' löschen'
                         )
                     );
                     $tblAccount = new LayoutColumn(
@@ -129,7 +132,7 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(
                     $LayoutRowList
-                    , new Title('Benutzer', 'Bestehende Benutzerkonten')
+                    , new Title('Benutzer')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
@@ -166,14 +169,14 @@ class Frontend extends Extension implements IFrontendInterface
                 switch (strtoupper($tblIdentification->getName())) {
                     case 'STUDENT':
                         $Global = $this->getGlobal();
-                        if (!isset($Global->POST['Account']['Identification'])) {
+                        if (!isset( $Global->POST['Account']['Identification'] )) {
                             $Global->POST['Account']['Identification'] = $tblIdentification->getId();
                             $Global->savePost();
                         }
                         $Label = $tblIdentification->getDescription();
                         break;
                     default:
-                        $Label = $tblIdentification->getDescription() . ' (' . new Key() . ')';
+                        $Label = $tblIdentification->getDescription().' ('.new Key().')';
                 }
                 $tblIdentification = new RadioBox(
                     'Account[Identification]', $Label, $tblIdentification->getId()
@@ -189,7 +192,7 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblRole->getName() == 'Administrator') {
                 $tblRole = false;
             } else {
-                $tblRole = new CheckBox('Account[Role][' . $tblRole->getId() . ']', $tblRole->getName(),
+                $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
                     $tblRole->getId());
             }
         });
@@ -197,7 +200,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Token
         $Global = $this->getGlobal();
-        if (!isset($Global->POST['Account']['Token'])) {
+        if (!isset( $Global->POST['Account']['Token'] )) {
             $Global->POST['Account']['Token'] = 0;
             $Global->savePost();
         }
@@ -224,7 +227,7 @@ class Frontend extends Extension implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Benutzerkonto hinzufügen', array(
+                        new Panel(new PersonKey().' Benutzerkonto hinzufügen', array(
                             (new TextField('Account[Name]', 'Benutzername', 'Benutzername', new Person()))
                                 ->setPrefixValue($tblConsumer->getAcronym()),
                             new PasswordField(
@@ -235,12 +238,12 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                         ), Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(array(
-                        new Panel('Berechtigungsstufe zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO)
+                        new Panel(new Nameplate().' Berechtigungsstufe zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO)
                     ), 4),
                     new FormColumn(array(
-                        new Panel(new Lock() . ' Authentifizierungstyp wählen', $tblIdentificationAll,
+                        new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
-                        new Panel(new Key() . ' Hardware-Token zuweisen', $tblTokenAll, Panel::PANEL_TYPE_INFO)
+                        new Panel(new Key().' Hardware-Token zuweisen', $tblTokenAll, Panel::PANEL_TYPE_INFO)
                     ), 4),
                 ))
 

@@ -156,7 +156,7 @@ class Frontend implements IFrontendInterface
                     new FormColumn(
                         new Panel('Integration 3', array(
                             new SelectBox('Meta[Integration][3]', 'Förderschule',
-                                array('Name' => $tblCompanyAllSchool),
+                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
                                 new Education()),
                             new SelectBox('Meta[Integration][3]', 'Schulbegleitung', array(), new Person()),
                             new NumberField('Meta[Integration][3]', 'Stundenbedarf pro Woche',
@@ -169,7 +169,8 @@ class Frontend implements IFrontendInterface
                     new FormColumn(array(
                         new Panel('Ersteinschulung', array(
                             new SelectBox('Meta[Transfer][1]', 'Schule',
-                                array('Name' => $tblCompanyAllSchool)),
+                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
+                                new Education()),
                             new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
                             new TextArea('Meta[Transfer][1]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                         ), Panel::PANEL_TYPE_INFO),
@@ -178,15 +179,17 @@ class Frontend implements IFrontendInterface
                         new Panel('Schülertransfer - Aufnahme', array(
                             new SelectBox('Meta[Transfer][0]', 'Letzte Schulart', array()),
                             new SelectBox('Meta[Transfer][1]', 'Abgebende Schule',
-                                array('Name' => $tblCompanyAllSchool)),
+                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
+                                new Education()),
                             new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
                         ), Panel::PANEL_TYPE_INFO),
                     ), 4),
                     new FormColumn(array(
-                        new Panel('Schülertransfer - Aufnahme', array(
+                        new Panel('Schülertransfer - Abgabe', array(
                             new SelectBox('Meta[Transfer][0]', 'Letzte Schulart', array()),
-                            new SelectBox('Meta[Transfer][1]', 'Abgebende Schule',
-                                array('Name' => $tblCompanyAllSchool)),
+                            new SelectBox('Meta[Transfer][1]', 'Aufnehmende Schule',
+                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
+                                new Education()),
                             new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
                         ), Panel::PANEL_TYPE_INFO),
                     ), 4),

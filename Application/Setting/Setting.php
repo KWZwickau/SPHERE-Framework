@@ -27,7 +27,7 @@ class Setting implements IClusterInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Einstellungen'), new Link\Icon(new Cog()))
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__, 'Setting::frontendDashboard')
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __CLASS__.'::frontendDashboard')
         );
     }
 

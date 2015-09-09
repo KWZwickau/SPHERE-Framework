@@ -132,6 +132,17 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param string $MetaTable
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByMetaTable($MetaTable)
+    {
+
+        return (new Data($this->Binding))->getGroupByMetaTable($MetaTable);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param TblGroup       $tblGroup
      * @param array          $Group
@@ -178,7 +189,6 @@ class Service implements IServiceInterface
     }
 
     /**
-     *
      * @param TblGroup $tblGroup
      *
      * @return bool|TblPerson[]

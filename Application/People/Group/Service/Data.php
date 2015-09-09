@@ -31,10 +31,10 @@ class Data
     public function setupDatabaseContent()
     {
 
-        $this->createGroup('Alle', 'Personendaten', '', true, 'Common');
-        $this->createGroup('Interessent', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'Prospect');
-        $this->createGroup('Schüler', 'Alle aktiv verfügbaren Schüler', '', true, 'Student');
-        $this->createGroup('Sorgeberechtigt', '', '', true, 'Custody');
+        $this->createGroup('Alle', 'Personendaten', '', true, 'COMMON');
+        $this->createGroup('Interessent', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'PROSPECT');
+        $this->createGroup('Schüler', 'Alle aktiv verfügbaren Schüler', '', true, 'STUDENT');
+        $this->createGroup('Sorgeberechtigt', '', '', true, 'CUSTODY');
     }
 
     /**

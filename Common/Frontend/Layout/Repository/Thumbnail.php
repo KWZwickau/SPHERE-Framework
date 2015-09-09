@@ -48,7 +48,7 @@ class Thumbnail extends Extension implements ITemplateInterface
             $Size = getimagesize($File->getRealPath());
             $this->Template->setVariable('Height', $Size[1]);
         } else {
-            $File = FileSystem::getFileLoader( 'Common/Style/Resource/logo_kreide2.png');
+            $File = FileSystem::getFileLoader('Common/Style/Resource/logo_kreide2.png');
             $this->Template->setVariable('File', $File->getLocation());
             $Size = getimagesize($File->getRealPath());
             $this->Template->setVariable('Height', $Size[1]);

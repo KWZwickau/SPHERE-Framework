@@ -62,15 +62,6 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @return bool|TblInvoice[]
-     */
-    public function entityInvoiceAll()
-    {
-
-        return (new Data($this->Binding))->entityInvoiceAll();
-    }
-
-    /**
      * @param TblDebtor $tblDebtor
      *
      * @return bool
@@ -227,6 +218,15 @@ class Service implements IServiceInterface
                 return false;
             }
         }
+    }
+
+    /**
+     * @return bool|TblInvoice[]
+     */
+    public function entityInvoiceAll()
+    {
+
+        return (new Data($this->Binding))->entityInvoiceAll();
     }
 
     /**

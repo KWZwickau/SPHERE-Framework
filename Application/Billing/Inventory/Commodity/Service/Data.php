@@ -38,6 +38,26 @@ class Data
     }
 
     /**
+     * @param $Name
+     *
+     * @return TblCommodityType
+     */
+    public function actionCreateCommodityType($Name)
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity('TblCommodityType')->findOneBy(array('Name' => $Name,));
+        if (null === $Entity) {
+            $Entity = new TblCommodityType();
+            $Entity->setName($Name);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+                $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblCommodity
@@ -348,25 +368,5 @@ class Data
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param $Name
-     *
-     * @return TblCommodityType
-     */
-    public function actionCreateCommodityType($Name)
-    {
-
-        $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity('TblCommodityType')->findOneBy(array('Name' => $Name,));
-        if (null === $Entity) {
-            $Entity = new TblCommodityType();
-            $Entity->setName($Name);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
-                $Entity);
-        }
-        return $Entity;
     }
 }

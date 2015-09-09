@@ -64,7 +64,7 @@ class Service implements IServiceInterface
     public function countCompanyAll()
     {
 
-        return count($this->getCompanyAll());
+        return (new Data($this->Binding))->countCompanyAll();
     }
 
     /**
@@ -112,7 +112,9 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            if (( $tblCompany = (new Data($this->Binding))->createCompany($Company['Name']) )) {
+            if (( $tblCompany = (new Data($this->Binding))->createCompany($Company['Name'],
+                $Company['Description']) )
+            ) {
                 // Add to Group
                 if (isset( $Company['Group'] )) {
                     foreach ((array)$Company['Group'] as $tblGroup) {
@@ -171,7 +173,7 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            if ((new Data($this->Binding))->updateCompany($tblCompany, $Company['Name'])) {
+            if ((new Data($this->Binding))->updateCompany($tblCompany, $Company['Name'], $Company['Description'])) {
                 // Change Groups
                 if (isset( $Company['Group'] )) {
                     // Remove all Groups

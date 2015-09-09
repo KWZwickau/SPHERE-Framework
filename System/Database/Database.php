@@ -60,10 +60,10 @@ class Database extends Extension
         $this->Identifier = $Identifier;
         $Register = new Register();
         if (!$Register->hasConnection($this->Identifier)) {
-            $Configuration = parse_ini_file(__DIR__ . '/Configuration.ini', true);
-            if (isset($Configuration[$this->Identifier->getConfiguration(true)])) {
+            $Configuration = parse_ini_file(__DIR__.'/Configuration.ini', true);
+            if (isset( $Configuration[$this->Identifier->getConfiguration(true)] )) {
                 $this->Configuration = $Configuration[$this->Identifier->getConfiguration(true)];
-                $Driver = '\\SPHERE\\System\\Database\\Type\\' . $this->Configuration['Driver'];
+                $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
                 $Register->addConnection(
                     $this->Identifier,
                     new Connection(
@@ -71,20 +71,20 @@ class Database extends Extension
                         new $Driver,
                         $this->Configuration['Username'],
                         $this->Configuration['Password'],
-                        empty($this->Configuration['Database'])
+                        empty( $this->Configuration['Database'] )
                             ? str_replace(':', '', $this->Identifier->getConfiguration(false))
                             : $this->Configuration['Database'],
                         $this->Configuration['Host'],
-                        empty($this->Configuration['Port'])
+                        empty( $this->Configuration['Port'] )
                             ? null
                             : $this->Configuration['Port'],
                         $this->Timeout
                     )
                 );
             } else {
-                if (isset($Configuration[$this->Identifier->getConfiguration(false)])) {
+                if (isset( $Configuration[$this->Identifier->getConfiguration(false)] )) {
                     $this->Configuration = $Configuration[$this->Identifier->getConfiguration(false)];
-                    $Driver = '\\SPHERE\\System\\Database\\Type\\' . $this->Configuration['Driver'];
+                    $Driver = '\\SPHERE\\System\\Database\\Type\\'.$this->Configuration['Driver'];
                     $Register->addConnection(
                         $this->Identifier,
                         new Connection(
@@ -92,18 +92,18 @@ class Database extends Extension
                             new $Driver,
                             $this->Configuration['Username'],
                             $this->Configuration['Password'],
-                            empty($this->Configuration['Database'])
+                            empty( $this->Configuration['Database'] )
                                 ? str_replace(':', '', $this->Identifier->getConfiguration(false))
                                 : $this->Configuration['Database'],
                             $this->Configuration['Host'],
-                            empty($this->Configuration['Port'])
+                            empty( $this->Configuration['Port'] )
                                 ? null
                                 : $this->Configuration['Port'],
                             $this->Timeout
                         )
                     );
                 } else {
-                    throw new \Exception(__CLASS__ . ' > Missing Configuration: (' . $this->Identifier->getConfiguration() . ')');
+                    throw new \Exception(__CLASS__.' > Missing Configuration: ('.$this->Identifier->getConfiguration().')');
                 }
             }
         }
@@ -121,7 +121,7 @@ class Database extends Extension
     {
 
         // Sanitize Namespace
-        $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\') . '\\';
+        $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
 
         // System Cache
         /** @var Memcached $SystemMemcached */
@@ -294,10 +294,10 @@ class Database extends Extension
     public function addProtocol($Item)
     {
 
-        if (empty($this->Protocol)) {
-            $this->Protocol[] = '<samp>' . $Item . '</samp>';
+        if (empty( $this->Protocol )) {
+            $this->Protocol[] = '<samp>'.$Item.'</samp>';
         } else {
-            $this->Protocol[] = '<div>' . new Transfer() . '&nbsp;<samp>' . $Item . '</samp></div>';
+            $this->Protocol[] = '<div>'.new Transfer().'&nbsp;<samp>'.$Item.'</samp></div>';
         }
     }
 
@@ -313,18 +313,18 @@ class Database extends Extension
         if (count($this->Protocol) == 1) {
             $Protocol = new Success(
                 new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(new Ok() . '&nbsp' . implode('', $this->Protocol), 9),
-                    new LayoutColumn(new Off() . '&nbsp;Kein Update notwendig', 3)
+                    new LayoutColumn(new Ok().'&nbsp'.implode('', $this->Protocol), 9),
+                    new LayoutColumn(new Off().'&nbsp;Kein Update notwendig', 3)
                 ))))
             );
         } else {
             $Protocol = new Info(
                 new Layout(new LayoutGroup(new LayoutRow(array(
-                    new LayoutColumn(new Flash() . '&nbsp;' . implode('', $this->Protocol), 9),
+                    new LayoutColumn(new Flash().'&nbsp;'.implode('', $this->Protocol), 9),
                     new LayoutColumn(
-                        ($Simulate
-                            ? new Warning() . '&nbsp;Update notwendig'
-                            : new Ok() . '&nbsp;Update durchgeführt'
+                        ( $Simulate
+                            ? new Warning().'&nbsp;Update notwendig'
+                            : new Ok().'&nbsp;Update durchgeführt'
                         ), 3)
                 ))))
             );

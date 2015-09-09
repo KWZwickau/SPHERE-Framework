@@ -299,11 +299,11 @@ class Service implements IServiceInterface
             ) {
                 return new Success('Die Adresse wurde erfolgreich hinzugefügt')
                 .new Redirect('/Corporation/Company', 1,
-                    array('Id' => $tblPerson->getId()));
+                    array('Id' => $tblCompany->getId()));
             } else {
                 return new Danger('Die Adresse konnte nicht hinzugefügt werden')
                 .new Redirect('/Corporation/Company', 10,
-                    array('Id' => $tblPerson->getId()));
+                    array('Id' => $tblCompany->getId()));
             }
         }
         return $Form;

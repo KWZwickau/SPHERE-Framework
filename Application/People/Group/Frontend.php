@@ -13,7 +13,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
-use SPHERE\Common\Frontend\Icon\Repository\Group as GroupIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -48,14 +47,14 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param array $Group
+     * @param null|array $Group
      *
      * @return Stage
      */
-    public function frontendGroup($Group)
+    public function frontendGroup($Group = null)
     {
 
-        $Stage = new Stage('Personengruppen');
+        $Stage = new Stage('Gruppen');
         $tblGroupAll = Group::useService()->getGroupAll();
         if ($tblGroupAll) {
             array_walk($tblGroupAll, function (TblGroup &$tblGroup) {
@@ -69,9 +68,6 @@ class Frontend extends Extension implements IFrontendInterface
                 $Footer = new PullLeft(
                     new Standard('', '/People/Group/Edit', new Edit(),
                         array('Id' => $tblGroup->getId()), 'Daten ändern'
-                    )
-                    .new Standard('', '/People/Group/Manage', new GroupIcon(),
-                        array('Id' => $tblGroup->getId()), 'Personen ändern'
                     )
                     .( $tblGroup->getIsLocked()
                         ? ''
@@ -114,7 +110,7 @@ class Frontend extends Extension implements IFrontendInterface
             new Layout(array(
                 new LayoutGroup(
                     $LayoutRowList
-                    , new Title('Gruppen', 'Verfügbare Personengruppen')
+                    , new Title('Gruppen')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
@@ -139,29 +135,35 @@ class Frontend extends Extension implements IFrontendInterface
     private function formGroup()
     {
 
-        return new Form(array(
-            new FormGroup(array(
+        return new Form(
+            new FormGroup(
                 new FormRow(array(
-                    new FormColumn(array(
-                        new TextField('Group[Name]', 'Name', 'Name')
-                    ), 4),
-                    new FormColumn(array(
-                        new TextField('Group[Description]', 'Beschreibung', 'Beschreibung')
-                    ), 8),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new TextArea('Group[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                    )),
+                    new FormColumn(
+                        new Panel('Gruppe', array(
+                            new TextField('Group[Name]', 'Name', 'Name'),
+                            new TextField('Group[Description]', 'Beschreibung', 'Beschreibung')
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                    new FormColumn(
+                        new Panel('Sonstiges', array(
+                            new TextArea('Group[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 8),
                 ))
-            ))
-        ));
+            )
+        );
     }
 
-    public function frontendEditGroup($Id, $Group)
+    /**
+     * @param int        $Id
+     * @param null|array $Group
+     *
+     * @return Stage
+     */
+    public function frontendEditGroup($Id, $Group = null)
     {
 
-        $Stage = new Stage('Personengruppen');
+        $Stage = new Stage('Gruppe', 'Bearbeiten');
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
 
@@ -217,12 +219,12 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendDestroyGroup($Id, $Confirm = false)
     {
 
-        $Stage = new Stage('Personengruppe', 'Löschen');
+        $Stage = new Stage('Gruppe', 'Löschen');
         if ($Id) {
             $tblGroup = Group::useService()->getGroupById($Id);
             if (!$Confirm) {
                 $Stage->setContent(
-                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
                         new Panel(new Question().' Diese Gruppe wirklich löschen?', array(
                             $tblGroup->getName().' '.$tblGroup->getDescription(),
                             new Muted(new Small($tblGroup->getRemark()))
@@ -236,10 +238,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Nein', '/People/Group', new Disable()
                             )
                         )
-                    )))))
+                    ))))
                 );
             } else {
 
+                // Remove Group-Member
                 $tblPersonAll = Group::useService()->getPersonAllByGroup($tblGroup);
                 /** @noinspection PhpUnusedParameterInspection */
                 array_walk($tblPersonAll, function (TblPerson $tblPerson, $Index, TblGroup $tblGroup) {
@@ -247,14 +250,16 @@ class Frontend extends Extension implements IFrontendInterface
                     Group::useService()->removeGroupPerson($tblGroup, $tblPerson);
                 }, $tblGroup);
 
+                // Destroy Group
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             ( Group::useService()->destroyGroup($tblGroup)
                                 ? new Success('Die Gruppe wurde gelöscht')
+                                .new Redirect('/People/Group', 0)
                                 : new Danger('Die Gruppe konnte nicht gelöscht werden')
-                            ),
-                            new Redirect('/People/Group', 1)
+                                .new Redirect('/People/Group', 3)
+                            )
                         )))
                     )))
                 );
@@ -264,7 +269,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Die Gruppe konnte nicht gefunden werden'),
-                        new Redirect('/People/Group')
+                        new Redirect('/People/Group', 3)
                     )))
                 )))
             );

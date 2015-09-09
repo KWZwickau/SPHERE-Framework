@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
@@ -30,14 +31,16 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $PasswordSafety = trim($Account['PasswordSafety']);
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
-        $tblToken = Token::useService()->getTokenById((int)$Account['Token']);
+        if (!( $tblToken = Token::useService()->getTokenById((int)$Account['Token']) )) {
+            $tblToken = null;
+        }
 
-        if (empty($Username)) {
+        if (empty( $Username )) {
             $Form->setError('Account[Name]', 'Bitte geben Sie einen Benutzernamen an');
             $Error = true;
         } else {
             if (preg_match('!^[a-z0-9]{5,}$!is', $Username)) {
-                $Username = $tblConsumer->getAcronym() . '-' . $Username;
+                $Username = $tblConsumer->getAcronym().'-'.$Username;
                 if (!Account::useService()->getAccountByUsername($Username)) {
                     $Form->setSuccess('Account[Name]', '');
                 } else {
@@ -50,7 +53,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
-        if (empty($Password)) {
+        if (empty( $Password )) {
             $Form->setError('Account[Password]', 'Bitte geben Sie ein Passwort an');
             $Error = true;
         } else {
@@ -62,7 +65,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
 
-        if (empty($PasswordSafety)) {
+        if (empty( $PasswordSafety )) {
             $Form->setError('Account[PasswordSafety]', 'Bitte geben Sie ein Passwort an');
             $Error = true;
         }
@@ -71,7 +74,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             $Form->setError('Account[PasswordSafety]', 'Die beiden Passworte stimmen nicht überein');
             $Error = true;
         } else {
-            if (!empty($Password) && !empty($PasswordSafety)) {
+            if (!empty( $Password ) && !empty( $PasswordSafety )) {
                 $Form->setSuccess('Account[PasswordSafety]', '');
             } else {
                 $Form->setError('Account[PasswordSafety]', '');
@@ -79,7 +82,17 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         if (!$Error) {
-            Account::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer);
+            $tblAccount = Account::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer);
+            if ($tblAccount) {
+                $tblIdentification = Account::useService()->getIdentificationById($Account['Identification']);
+                Account::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
+                if (isset( $Account['Role'] )) {
+                    foreach ((array)$Account['Role'] as $Role) {
+                        $tblRole = Access::useService()->getRoleById($Role);
+                        Account::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                    }
+                }
+            }
         } else {
             Debugger::screenDump($Username, $Password, $tblToken, $tblConsumer, $Account);
         }

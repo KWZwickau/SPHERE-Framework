@@ -74,7 +74,7 @@ class Service implements IServiceInterface
     public function countPersonAll()
     {
 
-        return count($this->getPersonAll());
+        return (new Data($this->Binding))->countPersonAll();
     }
 
     /**

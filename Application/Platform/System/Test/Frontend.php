@@ -289,7 +289,7 @@ class Frontend extends Extension implements IFrontendInterface
             foreach ((array)$PictureList as $Index => $Picture) {
                 $PictureList[$Index] = new LayoutColumn(array(
                     (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId())
-                ), 4);
+                ), 3);
             }
 
         } else {
@@ -307,7 +307,7 @@ class Frontend extends Extension implements IFrontendInterface
          * @var LayoutColumn $Picture
          */
         foreach ($PictureList as $Picture) {
-            if ($LayoutRowCount % 3 == 0) {
+            if ($LayoutRowCount % 4 == 0) {
                 $LayoutRow = new LayoutRow(array());
                 $LayoutRowList[] = $LayoutRow;
             }

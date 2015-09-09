@@ -134,6 +134,15 @@ class Data extends DataCacheable
     }
 
     /**
+     * @return int
+     */
+    public function countPersonAll()
+    {
+
+        return $this->Connection->getEntityManager()->getEntity('TblPerson')->count();
+    }
+
+    /**
      * @return \SPHERE\System\Database\Fitting\Repository
      */
     public function getPersonRepository()

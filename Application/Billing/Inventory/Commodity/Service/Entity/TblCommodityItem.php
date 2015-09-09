@@ -52,6 +52,28 @@ class TblCommodityItem extends Element
     }
 
     /**
+     * @return bool|TblItem
+     */
+    public function getTblItem()
+    {
+
+        if (null === $this->tblItem) {
+            return false;
+        } else {
+            return Item::useService()->entityItemById($this->tblItem);
+        }
+    }
+
+    /**
+     * @param null|TblItem $tblItem
+     */
+    public function setTblItem(TblItem $tblItem = null)
+    {
+
+        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
+    }
+
+    /**
      * @return (type="decimal", precision=14, scale=4)
      */
     public function getQuantity()
@@ -89,27 +111,5 @@ class TblCommodityItem extends Element
     {
 
         $this->tblCommodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
-    }
-
-    /**
-     * @return bool|TblItem
-     */
-    public function getTblItem()
-    {
-
-        if (null === $this->tblItem) {
-            return false;
-        } else {
-            return Item::useService()->entityItemById($this->tblItem);
-        }
-    }
-
-    /**
-     * @param null|TblItem $tblItem
-     */
-    public function setTblItem(TblItem $tblItem = null)
-    {
-
-        $this->tblItem = ( null === $tblItem ? null : $tblItem->getId() );
     }
 }

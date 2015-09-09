@@ -245,7 +245,7 @@ class Frontend implements IFrontendInterface
                         new Panel(new Question().' Diese Adresse wirklich löschen?', array(
                             $tblToPerson->getTblType()->getName().' '.$tblToPerson->getTblType()->getDescription(),
                             new AddressLayout($tblToPerson->getTblAddress()),
-                            new Muted(new Small($tblToPerson->getRemark()))
+                            ( $tblToPerson->getRemark() ? new Muted(new Small($tblToPerson->getRemark())) : '' )
                         ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
@@ -311,7 +311,7 @@ class Frontend implements IFrontendInterface
                         new Panel(new Question().' Diese Adresse wirklich löschen?', array(
                             $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
                             new AddressLayout($tblToCompany->getTblAddress()),
-                            new Muted(new Small($tblToCompany->getRemark()))
+                            ( $tblToCompany->getRemark() ? new Muted(new Small($tblToCompany->getRemark())) : '' )
                         ),
                             Panel::PANEL_TYPE_DANGER,
                             new Standard(
