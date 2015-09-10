@@ -43,6 +43,7 @@ class Setup
         $this->setTableSession($Schema, $tblAccount);
         $this->setTableAuthorization($Schema, $tblAccount);
         $this->setTableAuthentication($Schema, $tblAccount, $tblIdentification);
+        $this->setTableUser($Schema, $tblAccount);
         /**
          * Migration & Protocol
          */
@@ -160,6 +161,23 @@ class Setup
         $Table = $this->Connection->createTable($Schema, 'tblAuthentication');
         $this->Connection->addForeignKey($Table, $tblAccount);
         $this->Connection->addForeignKey($Table, $tblIdentification);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblAccount
+     *
+     * @return Table
+     */
+    private function setTableUser(Schema &$Schema, Table $tblAccount)
+    {
+
+        $Table = $this->Connection->createTable($Schema, 'tblUser');
+        if (!$this->Connection->hasColumn('tblUser', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->Connection->addForeignKey($Table, $tblAccount);
         return $Table;
     }
 }

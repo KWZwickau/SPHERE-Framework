@@ -70,6 +70,23 @@ class Data extends DataCacheable
         return $Entity;
     }
 
+    public function removeTestPicture(TblTestPicture $tblTestPicture)
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntityById('TblTestPicture', $tblTestPicture->getId());
+
+        if (null !== $Entity) {
+
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * @param integer $Id
      *

@@ -7,13 +7,14 @@ use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\DataCacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Group\Service
  */
-class Data
+class Data extends DataCacheable
 {
 
     /** @var null|Binding $Connection */
@@ -107,8 +108,7 @@ class Data
     public function getGroupAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')->findAll();
-        return ( empty( $Entity ) ? false : $Entity );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup');
     }
 
     /**
@@ -119,8 +119,7 @@ class Data
     public function getGroupById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblGroup', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup', $Id);
     }
 
     /**

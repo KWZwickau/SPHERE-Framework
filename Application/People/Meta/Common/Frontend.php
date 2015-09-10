@@ -60,25 +60,20 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     $Global->POST['Meta']['Remark'] = $tblCommon->getRemark();
-
                     /** @var TblCommonBirthDates $tblCommonBirthDates */
                     $tblCommonBirthDates = $tblCommon->getTblCommonBirthDates();
                     if ($tblCommonBirthDates) {
                         $Global->POST['Meta']['BirthDates']['Birthday'] = $tblCommonBirthDates->getBirthday();
                         $Global->POST['Meta']['BirthDates']['Birthplace'] = $tblCommonBirthDates->getBirthplace();
                         $Global->POST['Meta']['BirthDates']['Gender'] = $tblCommonBirthDates->getGender();
-                        $Global->POST['Meta']['BirthDates']['Nationality'] = $tblCommonBirthDates->getNationality();
                     }
                     /** @var TblCommonInformation $tblCommonInformation */
                     $tblCommonInformation = $tblCommon->getTblCommonInformation();
                     if ($tblCommonInformation) {
-                        $Global->POST['Meta']['Title'] = $tblCommonInformation->getTitle();
-                        $Global->POST['Meta']['First'] = $tblCommonInformation->getFirstName();
-                        $Global->POST['Meta']['Middle'] = $tblPerson->getSecondName();
-                        $Global->POST['Meta']['Last'] = $tblPerson->getLastName();
-                        $Global->POST['Meta']['Type'] = $tblPerson->getTblPersonType()->getId();
-                        $Global->POST['Meta']['Remark'] = $tblPerson->getRemark();
-                        $Global->POST['Meta']['Denomination'] = $tblPerson->getDenomination();
+                        $Global->POST['Meta']['Information']['Nationality'] = $tblCommonInformation->getNationality();
+                        $Global->POST['Meta']['Information']['Denomination'] = $tblCommonInformation->getDenomination();
+                        $Global->POST['Meta']['Information']['IsAssistance'] = $tblCommonInformation->getIsAssistance();
+                        $Global->POST['Meta']['Information']['AssistanceActivity'] = $tblCommonInformation->getAssistanceActivity();
                     }
                     $Global->savePost();
                 }
@@ -86,10 +81,11 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
+            Common::useService()->createMeta(
             (new Form(array(
                 new FormGroup(array(
                     new FormRow(array(
-                        new FormColumn(
+                        new FormColumn(array(
                             new Panel('Geburtsdaten', array(
                                 new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
                                     new Calendar()),
@@ -100,13 +96,17 @@ class Frontend extends Extension implements IFrontendInterface
                                     TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
                                     TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
                                 ), new Child()),
-                                new AutoCompleter('Meta[BirthDates][Nationality]', 'Staatsangehörigkeit',
+                            ), Panel::PANEL_TYPE_INFO),
+                            new Panel('Sonstiges', array(
+                                new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                            ), Panel::PANEL_TYPE_INFO)
+                        ), 6),
+                        new FormColumn(array(
+                            new Panel('Informationen', array(
+                                new AutoCompleter('Meta[Information][Nationality]', 'Staatsangehörigkeit',
                                     'Staatsangehörigkeit',
                                     array(), new Nameplate()
                                 ),
-                            ), Panel::PANEL_TYPE_INFO), 6),
-                        new FormColumn(
-                            new Panel('Informationen', array(
                                 new AutoCompleter('Meta[Information][Denomination]', 'Konfession',
                                     'Konfession',
                                     array(), new TempleChurch()
@@ -121,19 +121,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     'Mitarbeitsbereitschaft - Tätigkeiten',
                                     'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
                                 ),
-                            ), Panel::PANEL_TYPE_INFO), 6),
+                            ), Panel::PANEL_TYPE_INFO)
+                        ), 6),
                     )),
                 )),
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new Panel('Sonstiges', array(
-                                new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                            ), Panel::PANEL_TYPE_INFO)),
-                    )),
-                )),
-            ),
-                new Primary('Informationen speichern')))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.')
+            ), new Primary('Informationen speichern')
+            ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta)
         );
 
         return $Stage;

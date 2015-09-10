@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
@@ -8,6 +10,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
@@ -186,8 +189,7 @@ class Data extends DataCacheable
     public function getIdentificationAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblIdentification')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblIdentification');
     }
 
     /**
@@ -259,8 +261,7 @@ class Data extends DataCacheable
     public function getAccountById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblAccount', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblAccount', $Id);
     }
 
     /**
@@ -269,8 +270,7 @@ class Data extends DataCacheable
     public function getAccountAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblAccount')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblAccount');
     }
 
     /**
@@ -281,8 +281,7 @@ class Data extends DataCacheable
     public function getIdentificationById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblIdentification', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblIdentification', $Id);
     }
 
     /**
@@ -293,8 +292,7 @@ class Data extends DataCacheable
     public function getSessionById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblSession', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblSession', $Id);
     }
 
     /**
@@ -305,10 +303,9 @@ class Data extends DataCacheable
     public function getAccountAllByToken(TblToken $tblToken)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblAccount')->findBy(array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblAccount', array(
             TblAccount::SERVICE_TBL_TOKEN => $tblToken->getId()
         ));
-        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
@@ -319,10 +316,10 @@ class Data extends DataCacheable
     public function getAuthorizationAllByAccount(TblAccount $tblAccount)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblAuthorization')->findBy(array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblAuthorization',
+            array(
             TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
-        return ( empty( $EntityList ) ? false : $EntityList );
     }
 
     /**
@@ -511,9 +508,9 @@ class Data extends DataCacheable
         }
 
         /** @var false|TblSession $Entity */
-        $Entity = $this->getCachedEntityBy(
-            'AccountBySession', array($Session), array($this, 'getAccountBySessionCacheable')
-        );
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblSession', array(
+            TblSession::ATTR_SESSION => $Session
+        ));
 
         if ($Entity) {
             return $Entity->getTblAccount();
@@ -575,15 +572,115 @@ class Data extends DataCacheable
     }
 
     /**
-     * @param null|string $Session
-     *
-     * @return null|object
+     * @return bool|TblPerson[]
      */
-    protected function getAccountBySessionCacheable($Session = null)
+    public function getPersonAllHavingNoAccount()
     {
 
-        return $this->Connection->getEntityManager()->getEntity('TblSession')->findOneBy(array(
-            TblSession::ATTR_SESSION => $Session
+        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+            ->select('U.serviceTblPerson')
+            ->from('\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser', 'U')
+            ->distinct()
+            ->getQuery()
+            ->getResult("COLUMN_HYDRATOR");
+
+        $tblPersonAll = Person::useService()->getPersonAll();
+        if ($tblPersonAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson, $Index, $Exclude) {
+
+                if (in_array($tblPerson->getId(), $Exclude)) {
+                    $tblPerson = false;
+                }
+            }, $Exclude);
+            $EntityList = array_filter($tblPersonAll);
+        } else {
+            $EntityList = null;
+        }
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByAccount(TblAccount $tblAccount)
+    {
+
+        $tblUserAll = $this->getUserAllByAccount($tblAccount);
+        if ($tblUserAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblUserAll, function (TblUser &$tblUser) {
+
+                $tblUser = $tblUser->getServiceTblPerson();
+            });
+            $EntityList = $tblUserAll;
+        } else {
+            $EntityList = null;
+        }
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblUser[]
+     */
+    public function getUserAllByAccount(TblAccount $tblAccount)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblUser', array(
+            TblUser::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblPerson  $tblPerson
+     *
+     * @return TblUser
+     */
+    public function addAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        $Entity = $Manager->getEntity('TblUser')
+            ->findOneBy(array(
+                TblUser::ATTR_TBL_ACCOUNT   => $tblAccount->getId(),
+                TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null === $Entity) {
+            $Entity = new TblUser();
+            $Entity->setTblAccount($tblAccount);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblPerson  $tblPerson
+     *
+     * @return bool
+     */
+    public function removeAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->Connection->getEntityManager();
+        /** @var TblUser $Entity */
+        $Entity = $Manager->getEntity('TblUser')
+            ->findOneBy(array(
+                TblUser::ATTR_TBL_ACCOUNT   => $tblAccount->getId(),
+                TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null !== $Entity) {
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 }

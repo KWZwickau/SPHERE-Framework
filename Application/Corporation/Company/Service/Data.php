@@ -82,7 +82,7 @@ class Data extends DataCacheable
     public function getCompanyAll()
     {
 
-        return $this->getCachedEntityListBy('CompanyAll', array(), array($this, 'getCompanyAllCacheable'));
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCompany');
     }
 
     /**
@@ -104,14 +104,5 @@ class Data extends DataCacheable
 
         $Entity = $this->Connection->getEntityManager()->getEntityById('TblCompany', $Id);
         return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @return array
-     */
-    protected function getCompanyAllCacheable()
-    {
-
-        return $this->Connection->getEntityManager()->getEntity('TblCompany')->findAll();
     }
 }

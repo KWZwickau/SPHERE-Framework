@@ -109,17 +109,18 @@ class Service extends Extension implements IServiceInterface
                         /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization $tblAuthorization */
                         foreach ($tblAuthorizationAll as $tblAuthorization) {
                             $tblRole = $tblAuthorization->getServiceTblRole();
-                            $tblLevelAll = $tblRole->getTblLevelAll();
-                            /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel */
-                            foreach ($tblLevelAll as $tblLevel) {
-                                $tblPrivilegeAll = $tblLevel->getTblPrivilegeAll();
-                                /** @var TblPrivilege $tblPrivilege */
-                                foreach ($tblPrivilegeAll as $tblPrivilege) {
-                                    $tblRightAll = $tblPrivilege->getTblRightAll();
-                                    /** @var TblRight $tblRight */
-                                    foreach ($tblRightAll as $tblRight) {
-                                        if (!in_array($tblRight->getRoute(), self::$AuthorizationCache)) {
-                                            array_push(self::$AuthorizationCache, $tblRight->getRoute());
+                            if (false !== ( $tblLevelAll = $tblRole->getTblLevelAll() )) {
+                                /** @var \SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel $tblLevel */
+                                foreach ($tblLevelAll as $tblLevel) {
+                                    $tblPrivilegeAll = $tblLevel->getTblPrivilegeAll();
+                                    /** @var TblPrivilege $tblPrivilege */
+                                    foreach ($tblPrivilegeAll as $tblPrivilege) {
+                                        $tblRightAll = $tblPrivilege->getTblRightAll();
+                                        /** @var TblRight $tblRight */
+                                        foreach ($tblRightAll as $tblRight) {
+                                            if (!in_array($tblRight->getRoute(), self::$AuthorizationCache)) {
+                                                array_push(self::$AuthorizationCache, $tblRight->getRoute());
+                                            }
                                         }
                                     }
                                 }

@@ -9,6 +9,7 @@ use SPHERE\Application\Platform\System\Test\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
@@ -108,9 +109,11 @@ class Service extends Extension implements IServiceInterface
             } catch (\Exception $Exception) {
 
                 $Stage->setError('FileUpload', $Exception->getMessage());
+
                 return $Stage;
             }
         }
+
         return $Stage;
     }
 
@@ -132,5 +135,26 @@ class Service extends Extension implements IServiceInterface
     {
 
         return (new Data($this->Binding))->getTestPictureById($Id);
+    }
+
+    /**
+     * @param TblTestPicture $tblTestPicture
+     *
+     * @return string
+     */
+    public function deleteTblTestPicture(TblTestPicture $tblTestPicture)
+    {
+
+        if (null === $tblTestPicture) {
+            return '';
+        }
+
+        if ((new Data($this->Binding))->removeTestPicture($tblTestPicture)) {
+            return new Success('Das Bild wurde erfolgreich gelöscht')
+            .new Redirect('/Platform/System/Test/Upload', 1);
+        } else {
+            return new Danger('Das Bild konnte nicht gelöscht werden');
+//            .new Redirect('/Platform/System/Test/Upload', 0);
+        }
     }
 }

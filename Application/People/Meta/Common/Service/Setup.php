@@ -63,9 +63,6 @@ class Setup
         if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Birthplace')) {
             $Table->addColumn('Birthplace', 'string');
         }
-        if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Nationality')) {
-            $Table->addColumn('Nationality', 'string');
-        }
         if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Gender')) {
             $Table->addColumn('Gender', 'smallint');
         }
@@ -81,6 +78,9 @@ class Setup
     {
 
         $Table = $this->Connection->createTable($Schema, 'tblCommonInformation');
+        if (!$this->Connection->hasColumn('tblCommonInformation', 'Nationality')) {
+            $Table->addColumn('Nationality', 'string');
+        }
         if (!$this->Connection->hasColumn('tblCommonInformation', 'Denomination')) {
             $Table->addColumn('Denomination', 'string');
         }
@@ -88,7 +88,7 @@ class Setup
             $Table->addColumn('AssistanceActivity', 'text');
         }
         if (!$this->Connection->hasColumn('tblCommonInformation', 'IsAssistance')) {
-            $Table->addColumn('IsAssistance', 'boolean');
+            $Table->addColumn('IsAssistance', 'smallint');
         }
         return $Table;
     }

@@ -120,8 +120,7 @@ class Data extends DataCacheable
     public function getSalutationAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblSalutation')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblSalutation');
     }
 
     /**
@@ -130,7 +129,7 @@ class Data extends DataCacheable
     public function getPersonAll()
     {
 
-        return $this->getCachedEntityListBy('PersonAll', array(), array($this, 'getPersonAllCacheable'));
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblPerson');
     }
 
     /**
@@ -143,15 +142,6 @@ class Data extends DataCacheable
     }
 
     /**
-     * @return \SPHERE\System\Database\Fitting\Repository
-     */
-    public function getPersonRepository()
-    {
-
-        return $this->Connection->getEntityManager()->getEntity('TblPerson');
-    }
-
-    /**
      * @param integer $Id
      *
      * @return bool|TblPerson
@@ -159,8 +149,7 @@ class Data extends DataCacheable
     public function getPersonById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblPerson', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblPerson', $Id);
     }
 
     /**
@@ -171,16 +160,6 @@ class Data extends DataCacheable
     public function getSalutationById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblSalutation', $Id);
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @return array
-     */
-    protected function getPersonAllCacheable()
-    {
-
-        return $this->Connection->getEntityManager()->getEntity('TblPerson')->findAll();
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblSalutation', $Id);
     }
 }

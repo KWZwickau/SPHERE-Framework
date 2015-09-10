@@ -284,14 +284,12 @@ class Frontend extends Extension implements IFrontendInterface
 //            return new Layout(
 //                new LayoutGroup(new LayoutRow($PictureList))
 //            );
-
             /** @var TblTestPicture $Picture */
             foreach ((array)$PictureList as $Index => $Picture) {
                 $PictureList[$Index] = new LayoutColumn(array(
                     (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId())
                 ), 3);
             }
-
         } else {
             $PictureList = array(
                 new LayoutColumn(
@@ -316,5 +314,18 @@ class Frontend extends Extension implements IFrontendInterface
         }
         return new Layout(new LayoutGroup($LayoutRowList));
 
+    }
+
+    public function frontendPictureDelete($Id)
+    {
+
+        $Stage = new Stage();
+        $Stage->setTitle('Bild');
+        $Stage->setDescription('entfernen');
+
+        $tblTestPicture = Test::useService()->getTestPictureById($Id);
+        $Stage->setContent(Test::useService()->deleteTblTestPicture($tblTestPicture));
+
+        return $Stage;
     }
 }

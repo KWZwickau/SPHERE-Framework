@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
+use SPHERE\System\Database\Fitting\Element;
+
 /**
  * Class Debugger
  *
@@ -10,7 +12,7 @@ class Debugger
 {
 
     /** @var bool $Enabled */
-    public static $Enabled = false;
+    public static $Enabled = true;
     /** @var array $Protocol */
     private static $Protocol = array();
     /** @var int $Timestamp */
@@ -137,8 +139,18 @@ class Debugger
 
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
-            print '<pre>'.print_r($Dump, true).'</pre>';
-            self::addProtocol('<pre>'.print_r($Dump, true).'</pre>');
+            if (is_object($Dump)) {
+                if ($Dump instanceof Element) {
+                    $Dump = print_r($Dump->__toArray(), true);
+                } else {
+                    $Dump = print_r($Dump, true);
+                }
+            }
+            if (is_array($Dump)) {
+                $Dump = print_r($Dump, true);
+            }
+            self::addProtocol('ScreenDump: '.$Dump);
+            print '<pre>'.$Dump.'</pre>';
         }
     }
 
@@ -152,7 +164,7 @@ class Debugger
 
         $Content = func_get_args();
         foreach ((array)$Content as $Dump) {
-            self::addProtocol(print_r($Dump, true));
+            self::addProtocol($Dump);
         }
     }
 }

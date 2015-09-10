@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
@@ -76,12 +77,23 @@ class Frontend extends Extension implements IFrontendInterface
                         .( $tblAccount->getServiceTblToken() ? ' '.new Key().' '.$tblAccount->getServiceTblToken()->getSerial() : '' )
                     );
 
-                    $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
-                    array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
+                    $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
+                    if ($tblPersonAll) {
+                        array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-                        $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
-                    });
-                    $Content = array_merge($Content, $tblAuthorizationAll);
+                            $tblPerson = new Person().' '.$tblPerson->getFullName();
+                        });
+                        $Content = array_merge($Content, $tblPersonAll);
+                    }
+
+                    $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
+                    if ($tblAuthorizationAll) {
+                        array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
+
+                            $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
+                        });
+                        $Content = array_merge($Content, $tblAuthorizationAll);
+                    }
 
                     $Content = array_filter($Content);
                     $Footer = new PullLeft(
@@ -223,6 +235,14 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        // Person
+        $tblPersonAll = Account::useService()->getPersonAllHavingNoAccount();
+        array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+
+            $tblPerson = new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId());
+        });
+        $tblPersonAll = array_filter($tblPersonAll);
+
         return new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -238,7 +258,8 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                         ), Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(array(
-                        new Panel(new Nameplate().' Berechtigungsstufe zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO)
+                        new Panel(new Nameplate().' Berechtigungsstufe zuweisen', $tblRoleAll, Panel::PANEL_TYPE_INFO),
+                        new Panel(new Person().' Person zuweisen', $tblPersonAll, Panel::PANEL_TYPE_INFO, null, true)
                     ), 4),
                     new FormColumn(array(
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,

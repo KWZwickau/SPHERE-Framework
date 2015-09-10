@@ -2,12 +2,14 @@
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
@@ -417,5 +419,62 @@ class Service implements IServiceInterface
     {
 
         return (new Data($this->Binding))->addAccountAuthorization($tblAccount, $tblRole);
+    }
+
+    /**
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllHavingNoAccount()
+    {
+
+        return (new Data($this->Binding))->getPersonAllHavingNoAccount();
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblPerson  $tblPerson
+     *
+     * @return TblUser
+     */
+    public function addAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->Binding))->addAccountPerson($tblAccount, $tblPerson);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblPerson  $tblPerson
+     *
+     * @return bool
+     */
+    public function removeAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
+    {
+
+        return (new Data($this->Binding))->removeAccountPerson($tblAccount, $tblPerson);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->Binding))->getPersonAllByAccount($tblAccount);
+
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblUser[]
+     */
+    public function getUserAllByAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->Binding))->getUserAllByAccount($tblAccount);
+
     }
 }

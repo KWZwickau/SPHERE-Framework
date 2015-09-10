@@ -4,8 +4,6 @@ namespace SPHERE\Application\Api\Test;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\System\Extension\Extension;
@@ -33,13 +31,13 @@ class Test extends Extension implements IApplicationInterface, IModuleInterface
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowThumbnail',
-                __NAMESPACE__.'\Frontend::ShowThumbnail'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowContent',
+                __NAMESPACE__.'\Frontend::ShowContent'
             )
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/PersonList',
-                __CLASS__.'::PersonList'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/ShowThumbnail',
+                __NAMESPACE__.'\Frontend::ShowThumbnail'
             )
         );
     }
@@ -58,24 +56,5 @@ class Test extends Extension implements IApplicationInterface, IModuleInterface
     public static function useFrontend()
     {
         // TODO: Implement useFrontend() method.
-    }
-
-    /**
-     * @return string
-     */
-    public function PersonList()
-    {
-
-        return $this->getDataTable(
-            Person::useService()->getPersonRepository()
-        )
-            ->setCallbackFunction(function (TblPerson $tblPerson) {
-
-                $tblPerson->FullName = $tblPerson->getFullName();
-//                $tblPerson->Option = new Standard('', '/People/Person', new Pencil(),
-//                    array('Id' => $tblPerson->getId()), 'Bearbeiten');
-                return $tblPerson;
-            })
-            ->getResult();
     }
 }

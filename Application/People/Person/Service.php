@@ -87,15 +87,6 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @return \SPHERE\System\Database\Fitting\Repository
-     */
-    public function getPersonRepository()
-    {
-
-        return (new Data($this->Binding))->getPersonRepository();
-    }
-
-    /**
      * @param TblGroup $tblGroup
      *
      * @return int

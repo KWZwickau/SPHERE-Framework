@@ -371,8 +371,7 @@ class Data extends DataCacheable
     public function getRightById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblRight', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblRight', $Id);
     }
 
     /**
@@ -383,7 +382,9 @@ class Data extends DataCacheable
     public function getRightByName($Name)
     {
 
-        return $this->getCachedEntityBy('RightByName', array($Name), array($this, 'getRightByNameCacheable'));
+        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblRight', array(
+            TblRight::ATTR_ROUTE => $Name
+        ));
     }
 
     /**
@@ -392,8 +393,7 @@ class Data extends DataCacheable
     public function getRightAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblRight')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblRight');
     }
 
     /**
@@ -404,8 +404,7 @@ class Data extends DataCacheable
     public function getLevelById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblLevel', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblLevel', $Id);
     }
 
     /**
@@ -429,8 +428,7 @@ class Data extends DataCacheable
     public function getPrivilegeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblPrivilege', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblPrivilege', $Id);
     }
 
     /**
@@ -492,8 +490,7 @@ class Data extends DataCacheable
     public function getPrivilegeAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblPrivilege')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblPrivilege');
     }
 
     /**
@@ -502,8 +499,7 @@ class Data extends DataCacheable
     public function getLevelAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblLevel')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblLevel');
     }
 
     /**
@@ -514,8 +510,7 @@ class Data extends DataCacheable
     public function getRoleById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblRole', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblRole', $Id);
     }
 
     /**
@@ -537,8 +532,7 @@ class Data extends DataCacheable
     public function getRoleAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblRole')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblRole');
     }
 
     /**
@@ -550,27 +544,17 @@ class Data extends DataCacheable
     public function getLevelAllByRole(TblRole $tblRole)
     {
 
-        /** @var TblRoleLevel[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblRoleLevel')->findBy(array(
-            TblRoleLevel::ATTR_TBL_ROLE => $tblRole->getId()
-        ));
-        array_walk($EntityList, function (TblRoleLevel &$V) {
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblRoleLevel',
+            array(
+                TblRoleLevel::ATTR_TBL_ROLE => $tblRole->getId()
+            )
+        );
+        if ($EntityList) {
+            array_walk($EntityList, function (TblRoleLevel &$V) {
 
-            $V = $V->getTblLevel();
-        });
-        return ( null === $EntityList ? false : $EntityList );
-    }
-
-    /**
-     * @param string $Name
-     *
-     * @return null|object
-     */
-    protected function getRightByNameCacheable($Name)
-    {
-
-        return $this->Connection->getEntityManager()->getEntity('TblRight')->findOneBy(array(
-            TblRight::ATTR_ROUTE => $Name
-        ));
+                $V = $V->getTblLevel();
+            });
+        }
+        return $EntityList;
     }
 }

@@ -5,13 +5,14 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Fitting\DataCacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service
  */
-class Data
+class Data extends DataCacheable
 {
 
     /** @var null|Binding $Connection */
@@ -36,7 +37,7 @@ class Data
      * @param string $Acronym
      * @param string $Name
      *
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer
+     * @return TblConsumer
      */
     public function createConsumer($Acronym, $Name)
     {
@@ -82,23 +83,21 @@ class Data
     /**
      * @param integer $Id
      *
-     * @return bool|\SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer
+     * @return bool|TblConsumer
      */
     public function getConsumerById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblConsumer', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblConsumer', $Id);
     }
 
     /**
-     * @return \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer[]|bool
+     * @return TblConsumer[]|bool
      */
     public function getConsumerAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblConsumer')->findAll();
-        return ( empty( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblConsumer');
     }
 
     /**

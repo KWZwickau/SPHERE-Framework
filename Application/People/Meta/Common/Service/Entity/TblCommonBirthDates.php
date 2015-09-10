@@ -27,25 +27,30 @@ class TblCommonBirthDates extends Element
      */
     protected $Birthplace;
     /**
-     * @Column(type="string")
-     */
-    protected $Nationality;
-    /**
      * @Column(type="smallint")
      */
     protected $Gender;
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getBirthday()
     {
 
-        return $this->Birthday;
+        if (null === $this->Birthday) {
+            return false;
+        }
+        /** @var \DateTime $Birthday */
+        $Birthday = $this->Birthday;
+        if ($Birthday instanceof \DateTime) {
+            return $Birthday->format('d.m.Y');
+        } else {
+            return (string)$Birthday;
+        }
     }
 
     /**
-     * @param mixed $Birthday
+     * @param \DateTime $Birthday
      */
     public function setBirthday(\DateTime $Birthday)
     {
@@ -54,7 +59,7 @@ class TblCommonBirthDates extends Element
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getBirthplace()
     {
@@ -63,7 +68,7 @@ class TblCommonBirthDates extends Element
     }
 
     /**
-     * @param mixed $Birthplace
+     * @param string $Birthplace
      */
     public function setBirthplace($Birthplace)
     {
@@ -72,25 +77,7 @@ class TblCommonBirthDates extends Element
     }
 
     /**
-     * @return mixed
-     */
-    public function getNationality()
-    {
-
-        return $this->Nationality;
-    }
-
-    /**
-     * @param mixed $Nationality
-     */
-    public function setNationality($Nationality)
-    {
-
-        $this->Nationality = $Nationality;
-    }
-
-    /**
-     * @return mixed
+     * @return int
      */
     public function getGender()
     {
@@ -99,7 +86,7 @@ class TblCommonBirthDates extends Element
     }
 
     /**
-     * @param mixed $Gender
+     * @param int $Gender
      */
     public function setGender($Gender)
     {
