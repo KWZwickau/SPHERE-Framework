@@ -119,13 +119,13 @@ class Task
                     ), 4)
                 )),
                 new LayoutRow(array(
-                    new LayoutColumn('', 2),
+                    new LayoutColumn('', 3),
                     new LayoutColumn(
                         ( empty( $this->Duty )
-                            ? new Muted('Keine Definition vorhanden')
+                            ? ''
                             : new Listing($this->Duty)
-                        ).'<hr/>'
-                        , 10)
+                        )
+                        , 9)
                 )),
             ))
         );

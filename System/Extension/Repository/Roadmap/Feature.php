@@ -112,7 +112,12 @@ class Feature
                         , 11)
                 )),
                 new LayoutRow(array(
-                    new LayoutColumn($this->Task)
+                    new LayoutColumn(
+                        ( $this->isDone !== true
+                            ? $this->Task
+                            : $this->Task
+                        )
+                    )
                 )),
             ))
         );
