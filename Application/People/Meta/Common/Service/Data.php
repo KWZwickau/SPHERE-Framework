@@ -64,7 +64,7 @@ class Data extends DataCacheable
         $Manager = $this->Connection->getEntityManager();
 
         $Entity = new TblCommonBirthDates();
-        $Entity->setBirthday(new \DateTime($Birthday));
+        $Entity->setBirthday(( $Birthday ? new \DateTime($Birthday) : null ));
         $Entity->setBirthplace($Birthplace);
         $Entity->setGender($Gender);
         $Manager->saveEntity($Entity);
@@ -184,7 +184,7 @@ class Data extends DataCacheable
         $Entity = $Manager->getEntityById('TblCommonBirthDates', $tblCommonBirthDates->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
-            $Entity->setBirthday(new \DateTime($Birthday));
+            $Entity->setBirthday(( $Birthday ? new \DateTime($Birthday) : null ));
             $Entity->setBirthplace($Birthplace);
             $Entity->setGender($Gender);
             $Manager->saveEntity($Entity);

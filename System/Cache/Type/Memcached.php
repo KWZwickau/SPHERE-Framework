@@ -2,6 +2,7 @@
 namespace SPHERE\System\Cache\Type;
 
 use SPHERE\System\Cache\IApiInterface;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Memcached
@@ -21,6 +22,8 @@ class Memcached implements IApiInterface
     private static $Available = false;
     /** @var array $Status */
     private $Status = null;
+    /** @var string|float $Timing */
+    private $Timing = '';
 
     /**
      * @return void
@@ -191,11 +194,24 @@ class Memcached implements IApiInterface
     public function setValue($Key, $Value, $Timeout = null)
     {
 
+        $this->Timing = Debugger::getTimeGap();
+
         if (null !== self::$Server) {
             self::$Server->set($Key, $Value, ( !$Timeout ? null : time() + $Timeout ));
+            $this->Timing = number_format(( Debugger::getTimeGap() - $this->Timing ) * 1000, 3, ',', '');
             return true;
         }
+        $this->Timing = number_format(( Debugger::getTimeGap() - $this->Timing ) * 1000, 3, ',', '');
         return false;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLastTiming()
+    {
+
+        return $this->Timing;
     }
 
     /**
@@ -206,13 +222,17 @@ class Memcached implements IApiInterface
     public function getValue($Key)
     {
 
+        $this->Timing = Debugger::getTimeGap();
+
         if (null !== self::$Server) {
             $Value = self::$Server->get($Key);
             // 0 = MEMCACHED_SUCCESS
             if (self::$Server->getResultCode() == 0) {
+                $this->Timing = number_format(( Debugger::getTimeGap() - $this->Timing ) * 1000, 3, ',', '');
                 return $Value;
             }
         }
+        $this->Timing = number_format(( Debugger::getTimeGap() - $this->Timing ) * 1000, 3, ',', '');
         return false;
     }
 }

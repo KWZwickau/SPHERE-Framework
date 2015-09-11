@@ -8,6 +8,7 @@ use SPHERE\System\Database\Fitting\Repository;
 use SPHERE\System\Extension\Repository\DataTables;
 use SPHERE\System\Extension\Repository\Debugger;
 use SPHERE\System\Extension\Repository\ModHex;
+use SPHERE\System\Extension\Repository\Roadmap;
 use SPHERE\System\Extension\Repository\SuperGlobal;
 use SPHERE\System\Extension\Repository\Upload;
 
@@ -99,5 +100,14 @@ class Extension
     {
 
         return new Converter();
+    }
+
+    /**
+     * @return Roadmap
+     */
+    public function getRoadmap()
+    {
+
+        return new Roadmap();
     }
 }

@@ -13,6 +13,11 @@ use SPHERE\System\Extension\Repository\Debugger;
 abstract class DataCacheable
 {
 
+    /** @var bool $Enabled */
+    private $Enabled = true;
+    /** @var bool $Debug */
+    private $Debug = false;
+
     /**
      * @param string  $__METHOD__ Initiator
      * @param Manager $EntityManager
@@ -26,22 +31,63 @@ abstract class DataCacheable
     {
 
         $Cache = (new Cache(new Memcached()))->getCache();
-        $Key = sha1($__METHOD__.':'.$EntityName.':'.$Id);
+        $Key = $this->getKeyHash($__METHOD__, $EntityName, $Id);
         $Entity = null;
-        if (false === ( $Entity = $Cache->getValue($Key) )) {
+        if (!$this->Enabled || false === ( $Entity = $Cache->getValue($Key) )) {
             $Entity = $EntityManager->getEntityById($EntityName, $Id);
-            $Cache->setValue($Key, $Entity);
-            Debugger::protocolDump(
-                'Get '.$__METHOD__.' (Factory) ['.implode('], [', array($EntityName, $Id)).'] Result: '.(
-                $Entity ? 'Ok' : ( null === $Entity ? 'None' : 'Error' ) )
-            );
+            $Cache->setValue($Key, $Entity, 300);
+            $this->debugFactory($__METHOD__, $Entity, $Id, $Cache->getLastTiming());
         } else {
-//            Debugger::protocolDump(
-//                'Get '.$__METHOD__.' (Cache) ['.implode('], [', array($EntityName, $Id)).'] Result: '.(
-//                $Entity ? 'Ok' : ( null === $Entity ? 'None' : 'Error' ) )
-//            );
+            $this->debugCache($__METHOD__, $Entity, $Id, $Cache->getLastTiming());
         }
         return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param string       $__METHOD__
+     * @param string       $EntityName
+     * @param string|array $Parameter
+     *
+     * @return string
+     */
+    private function getKeyHash($__METHOD__, $EntityName, $Parameter)
+    {
+
+        return sha1(session_id().':'.$__METHOD__.':'.$EntityName.':'.implode('#', (array)$Parameter));
+    }
+
+    /**
+     * @param string           $__METHOD__
+     * @param array|object     $EntityList
+     * @param array|string|int $Parameter
+     * @param string           $Timing
+     */
+    private function debugFactory($__METHOD__, $EntityList, $Parameter, $Timing)
+    {
+
+        if ($this->Debug) {
+            Debugger::protocolDump(
+                'Factory: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
+                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) ).' ~'.$Timing.'ms'
+            );
+        }
+    }
+
+    /**
+     * @param string            $__METHOD__
+     * @param array|object      $EntityList
+     * @param array |string|int $Parameter
+     * @param string            $Timing
+     */
+    private function debugCache($__METHOD__, $EntityList, $Parameter, $Timing)
+    {
+
+        if ($this->Debug) {
+            Debugger::protocolDump(
+                'Cache: '.$__METHOD__.' ['.implode('], [', (array)$Parameter).'] Result: '.(
+                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) ).' ~'.$Timing.'ms'
+            );
+        }
     }
 
     /**
@@ -57,20 +103,14 @@ abstract class DataCacheable
     {
 
         $Cache = (new Cache(new Memcached()))->getCache();
-        $Key = sha1($__METHOD__.':'.$EntityName.':'.implode(':', (array)$Parameter));
+        $Key = $this->getKeyHash($__METHOD__, $EntityName, $Parameter);
         $Entity = null;
-        if (false === ( $Entity = $Cache->getValue($Key) )) {
+        if (!$this->Enabled || false === ( $Entity = $Cache->getValue($Key) )) {
             $Entity = $EntityManager->getEntity($EntityName)->findOneBy($Parameter);
-            $Cache->setValue($Key, $Entity);
-            Debugger::protocolDump(
-                'Get '.$__METHOD__.' (Factory) ['.implode('], [', (array)$Parameter).'] Result: '.(
-                $Entity ? 'Ok' : ( null === $Entity ? 'None' : 'Error' ) )
-            );
+            $Cache->setValue($Key, $Entity, 300);
+            $this->debugFactory($__METHOD__, $Entity, $Parameter, $Cache->getLastTiming());
         } else {
-//            Debugger::protocolDump(
-//                'Get '.$__METHOD__.' (Cache) ['.implode('], [', (array)$Parameter).'] Result: '.(
-//                $Entity ? 'Ok' : ( null === $Entity ? 'None' : 'Error' ) )
-//            );
+            $this->debugCache($__METHOD__, $Entity, $Parameter, $Cache->getLastTiming());
         }
         return ( null === $Entity ? false : $Entity );
     }
@@ -88,21 +128,14 @@ abstract class DataCacheable
     {
 
         $Cache = (new Cache(new Memcached()))->getCache();
-        $Key = sha1($__METHOD__.':'.$EntityName.':'.implode(':', (array)$Parameter));
+        $Key = $this->getKeyHash($__METHOD__, $EntityName, $Parameter);
         $EntityList = null;
-        if (false === ( $EntityList = $Cache->getValue($Key) )) {
+        if (!$this->Enabled || false === ( $EntityList = $Cache->getValue($Key) )) {
             $EntityList = $EntityManager->getEntity($EntityName)->findBy($Parameter);
-            $Cache->setValue($Key, $EntityList);
-            Debugger::protocolDump(
-                'Get '.$__METHOD__.' (Factory) ['.implode('], [', (array)$Parameter).'] Result: '.(
-                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
-            );
-
+            $Cache->setValue($Key, $EntityList, 300);
+            $this->debugFactory($__METHOD__, $EntityList, $Parameter, $Cache->getLastTiming());
         } else {
-//            Debugger::protocolDump(
-//                'Get '.$__METHOD__.' (Cache) ['.implode('], [', (array)$Parameter).'] Result: '.(
-//                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
-//            );
+            $this->debugCache($__METHOD__, $EntityList, $Parameter, $Cache->getLastTiming());
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }
@@ -119,20 +152,14 @@ abstract class DataCacheable
     {
 
         $Cache = (new Cache(new Memcached()))->getCache();
-        $Key = sha1($__METHOD__.':'.$EntityName.':All');
+        $Key = $this->getKeyHash($__METHOD__, $EntityName, 'All');
         $EntityList = null;
-        if (false === ( $EntityList = $Cache->getValue($Key) )) {
+        if (!$this->Enabled || false === ( $EntityList = $Cache->getValue($Key) )) {
             $EntityList = $EntityManager->getEntity($EntityName)->findAll();
-            $Cache->setValue($Key, $EntityList);
-            Debugger::protocolDump(
-                'Get '.$__METHOD__.' (Factory) ['.implode('], [', array($EntityName, 'All')).'] Result: '.(
-                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
-            );
+            $Cache->setValue($Key, $EntityList, 300);
+            $this->debugFactory($__METHOD__, $EntityList, 'All', $Cache->getLastTiming());
         } else {
-//            Debugger::protocolDump(
-//                'Get '.$__METHOD__.' (Cache) ['.implode('], [', array($EntityName, 'All')).'] Result: '.(
-//                $EntityList ? 'Ok' : ( null === $EntityList ? 'None' : 'Error' ) )
-//            );
+            $this->debugCache($__METHOD__, $EntityList, 'All', $Cache->getLastTiming());
         }
         return ( empty( $EntityList ) ? false : $EntityList );
     }

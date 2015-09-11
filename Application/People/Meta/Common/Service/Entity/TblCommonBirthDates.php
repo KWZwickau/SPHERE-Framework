@@ -50,9 +50,9 @@ class TblCommonBirthDates extends Element
     }
 
     /**
-     * @param \DateTime $Birthday
+     * @param null|\DateTime $Birthday
      */
-    public function setBirthday(\DateTime $Birthday)
+    public function setBirthday(\DateTime $Birthday = null)
     {
 
         $this->Birthday = $Birthday;

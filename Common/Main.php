@@ -6,8 +6,11 @@ use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
 use SPHERE\Application\Api\Api;
+use SPHERE\Application\Billing\Billing;
+use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
+use SPHERE\Application\Education\Education;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
@@ -118,10 +121,10 @@ class Main extends Extension
             Platform::registerCluster();
             People::registerCluster();
             Corporation::registerCluster();
-//            Education::registerCluster();
-//            Billing::registerCluster();
+            Education::registerCluster();
+            Billing::registerCluster();
 //            Transfer::registerCluster();
-//            Contact::registerCluster();
+            Contact::registerCluster();
             Setting::registerCluster();
 //            Generator::registerCluster();
             /**

@@ -47,9 +47,9 @@ class TblProspectAppointment extends Element
     }
 
     /**
-     * @param \DateTime $ReservationDate
+     * @param null|\DateTime $ReservationDate
      */
-    public function setReservationDate(\DateTime $ReservationDate)
+    public function setReservationDate(\DateTime $ReservationDate = null)
     {
 
         $this->ReservationDate = $ReservationDate;
@@ -74,9 +74,9 @@ class TblProspectAppointment extends Element
     }
 
     /**
-     * @param \DateTime $InterviewDate
+     * @param  null|\DateTime $InterviewDate
      */
-    public function setInterviewDate(\DateTime $InterviewDate)
+    public function setInterviewDate(\DateTime $InterviewDate = null)
     {
 
         $this->InterviewDate = $InterviewDate;
@@ -101,9 +101,9 @@ class TblProspectAppointment extends Element
     }
 
     /**
-     * @param \DateTime $TrialDate
+     * @param null|\DateTime $TrialDate
      */
-    public function setTrialDate(\DateTime $TrialDate)
+    public function setTrialDate(\DateTime $TrialDate = null)
     {
 
         $this->TrialDate = $TrialDate;

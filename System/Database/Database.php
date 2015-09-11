@@ -48,6 +48,8 @@ class Database extends Extension
     private $Protocol = array();
     /** @var int $Timeout */
     private $Timeout = 1;
+    /** @var bool $UseCache */
+    private $UseCache = true;
 
     /**
      * @param Identifier $Identifier
@@ -136,28 +138,30 @@ class Database extends Extension
         );
         $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
 
-        if ($SystemMemcached->isAvailable()) {
-            $Cache = new MemcachedCache();
-            $Cache->setMemcached($SystemMemcached->getServer());
-            $Cache->setNamespace($EntityPath);
-            $ConnectionConfig->setResultCacheImpl($Cache);
-            $MetadataConfiguration->setHydrationCacheImpl($Cache);
-            if ($SystemApc->isAvailable()) {
-                $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
-                $MetadataConfiguration->setQueryCacheImpl(new ApcCache());
+        if ($this->UseCache) {
+            if ($SystemMemcached->isAvailable()) {
+                $Cache = new MemcachedCache();
+                $Cache->setMemcached($SystemMemcached->getServer());
+                $Cache->setNamespace($EntityPath);
+                $ConnectionConfig->setResultCacheImpl($Cache);
+                $MetadataConfiguration->setHydrationCacheImpl($Cache);
+                if ($SystemApc->isAvailable()) {
+                    $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
+                    $MetadataConfiguration->setQueryCacheImpl(new ApcCache());
+                } else {
+                    $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
+                    $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
+                }
             } else {
-                $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
+                if ($SystemApc->isAvailable()) {
+                    $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
+                } else {
+                    $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
+                }
                 $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
+                $MetadataConfiguration->setHydrationCacheImpl(new ArrayCache());
+                $ConnectionConfig->setResultCacheImpl(new ArrayCache());
             }
-        } else {
-            if ($SystemApc->isAvailable()) {
-                $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
-            } else {
-                $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
-            }
-            $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
-            $MetadataConfiguration->setHydrationCacheImpl(new ArrayCache());
-            $ConnectionConfig->setResultCacheImpl(new ArrayCache());
         }
 
         $ConnectionConfig->setSQLLogger(new Logger());

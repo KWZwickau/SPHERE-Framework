@@ -24,4 +24,9 @@ interface IApiInterface extends ITypeInterface
      * @return mixed|false
      */
     public function getValue($Key);
+
+    /**
+     * @return string
+     */
+    public function getLastTiming();
 }

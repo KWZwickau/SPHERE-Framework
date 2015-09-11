@@ -2,6 +2,7 @@
 namespace SPHERE\System\Cache\Type;
 
 use SPHERE\System\Cache\IApiInterface;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Memory
@@ -17,6 +18,8 @@ class Memory implements IApiInterface
     private static $MissCount = 0;
 
     private $Partition = 'Default:';
+    /** @var string|float $Timing */
+    private $Timing = '';
 
     /**
      * @param string $Partition
@@ -49,11 +52,16 @@ class Memory implements IApiInterface
     public function getValue($Key)
     {
 
+        $this->Timing = Debugger::getTimeGap();
+
         if (array_key_exists($this->Partition.$Key, self::$Memory)) {
+            $Value = self::$Memory[$this->Partition.$Key];
             self::$HitCount++;
-            return self::$Memory[$this->Partition.$Key];
+            $this->Timing = number_format(( Debugger::getTimeGap() - $this->Timing ) * 1000, 3, ',', '');
+            return $Value;
         }
         self::$MissCount++;
+        $this->Timing = number_format(( Debugger::getTimeGap() - $this->Timing ) * 1000, 3, ',', '');
         return false;
     }
 
@@ -187,4 +195,15 @@ class Memory implements IApiInterface
     {
 
     }
+
+    /**
+     * @return string
+     */
+    public function getLastTiming()
+    {
+
+        return '-NA-';
+    }
+
+
 }

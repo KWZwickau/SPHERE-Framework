@@ -58,7 +58,7 @@ class Setup
 
         $Table = $this->Connection->createTable($Schema, 'tblCommonBirthDates');
         if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Birthday')) {
-            $Table->addColumn('Birthday', 'datetime');
+            $Table->addColumn('Birthday', 'datetime', array('notnull' => false));
         }
         if (!$this->Connection->hasColumn('tblCommonBirthDates', 'Birthplace')) {
             $Table->addColumn('Birthplace', 'string');

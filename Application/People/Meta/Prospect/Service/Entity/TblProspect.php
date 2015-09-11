@@ -5,7 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\People\Meta\Common\Common;
+use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -64,7 +64,7 @@ class TblProspect extends Element
         if (null === $this->tblProspectAppointment) {
             return false;
         } else {
-            return Common::useService()->getProspectAppointmentById($this->tblProspectAppointment);
+            return Prospect::useService()->getProspectAppointmentById($this->tblProspectAppointment);
         }
     }
 
@@ -86,7 +86,7 @@ class TblProspect extends Element
         if (null === $this->tblProspectReservation) {
             return false;
         } else {
-            return Common::useService()->getProspectReservationById($this->tblProspectReservation);
+            return Prospect::useService()->getProspectReservationById($this->tblProspectReservation);
         }
     }
 

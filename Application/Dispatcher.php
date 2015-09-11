@@ -28,6 +28,33 @@ class Dispatcher
 
         if (null !== $Router) {
             self::$Router = $Router;
+
+            // Roadmap
+            $this->registerRoute($this->createRoute('Roadmap/Current', 'SPHERE\Application\Roadmap::frontendMap'));
+            $this->registerRoute($this->createRoute('Roadmap/Download', 'SPHERE\Application\Roadmap::frontendMap'));
+        }
+    }
+
+    /**
+     * @param RouteParameter $Route
+     *
+     * @throws \Exception
+     */
+    public static function registerRoute(RouteParameter $Route)
+    {
+
+        if (Access::useService()->hasAuthorization($Route->getPath())) {
+            if (in_array($Route->getPath(), self::$Router->getRouteList())) {
+                throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
+            } else {
+                self::$Router->addRoute($Route);
+            }
+        }
+
+        if (!Access::useService()->getRightByName('/'.$Route->getPath())) {
+            if (!in_array($Route->getPath(), self::$PublicRoutes)) {
+                array_push(self::$PublicRoutes, '/'.$Route->getPath());
+            }
         }
     }
 
@@ -52,29 +79,6 @@ class Dispatcher
         $Path = trim(str_replace('SPHERE/Application', '', $Path), '/');
 
         return new RouteParameter($Path, $Controller);
-    }
-
-    /**
-     * @param RouteParameter $Route
-     *
-     * @throws \Exception
-     */
-    public static function registerRoute(RouteParameter $Route)
-    {
-
-        if (Access::useService()->hasAuthorization($Route->getPath())) {
-            if (in_array($Route->getPath(), self::$Router->getRouteList())) {
-                throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
-            } else {
-                self::$Router->addRoute($Route);
-            }
-        }
-
-        if (!Access::useService()->getRightByName('/'.$Route->getPath())) {
-            if (!in_array($Route->getPath(), self::$PublicRoutes)) {
-                array_push(self::$PublicRoutes, '/'.$Route->getPath());
-            }
-        }
     }
 
     /**

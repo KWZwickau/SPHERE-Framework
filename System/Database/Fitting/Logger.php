@@ -43,7 +43,7 @@ class Logger extends Extension implements SQLLogger
     {
 
         $this->getDebugger()->addProtocol(
-            'Query Timing: '.number_format(( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 4, ',',
+            'Query Timing: '.number_format(( $this->getDebugger()->getTimeGap() - $this->Data[3] ) * 1000, 3, ',',
                 '').'ms'
         );
     }
