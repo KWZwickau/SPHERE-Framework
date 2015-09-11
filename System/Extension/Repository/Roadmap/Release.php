@@ -5,7 +5,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
-use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -113,14 +113,16 @@ class Release
             new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Header(( $this->isDone === true
+                        new Title(( $this->isDone === true
                             ? new Success(new TileBig().' Release: '.$this->Version)
                             : ( $this->isDone === false
                                 ? new Danger(new TileBig().' Release: '.$this->Version)
                                 : new Muted(new TileBig().' Release: '.$this->Version)
                             )
                         ), $this->Description)
-                    ), 5),
+                    )),
+                )),
+                new LayoutRow(array(
                     new LayoutColumn(array(
                         new Small($this->isDone === true
                             ? new Success(new Ok().' Fertig')
@@ -130,7 +132,7 @@ class Release
                             )
                         ),
                         $this->Status
-                    ), 7)
+                    ))
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(

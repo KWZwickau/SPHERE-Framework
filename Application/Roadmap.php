@@ -24,12 +24,12 @@ class Roadmap extends Extension
 
         $this->Roadmap = $this->getRoadmap();
 
-//        $this->poolMajor1MinorXPatchX();
-//        $this->versionMajor1Minor2Patch0();
-//        $this->versionMajor1Minor1Patch0();
-//        $this->versionMajor1Minor0Patch0();
-//        $this->versionMajor0Minor9Patch0();
         $this->versionMajor0Minor8Patch0();
+        $this->versionMajor0Minor9Patch0();
+        $this->versionMajor1Minor0Patch0();
+        $this->versionMajor1Minor1Patch0();
+        $this->versionMajor1Minor2Patch0();
+        $this->poolMajor1MinorXPatchX();
     }
 
     /**
@@ -92,7 +92,9 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Firma');
         $Feature->createTask('Grunddaten', 'Firmenname und Gruppenzugehörigkeit', true);
         $Feature->createTask('Adressdaten');
-        $Feature->createTask('Kontaktdaten');
+        $Feature->createTask('Kontaktdaten')
+            ->createDuty('Telefonnummer')
+            ->createDuty('E-Mail Adresse');
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
@@ -111,7 +113,7 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Hardware-Schlüssel')
             ->createDuty('Dem System YubiKeys hinzufügen', true)
-            ->createDuty('Bestehende YubiKeys entfernen', false);
+            ->createDuty('Bestehende YubiKeys entfernen');
         $Feature->createTask('Benutzerkonten')
             ->createDuty('Zugangsdaten')
             ->createDuty('Berechtigungsstufen')
@@ -119,12 +121,43 @@ class Roadmap extends Extension
     }
 
     /**
-     * @return Stage
+     * Version 0.9.0
+     * To be released Oktober
      */
-    public function frontendMap()
+    private function versionMajor0Minor9Patch0()
     {
 
-        return $this->Roadmap->getStage();
+        $Release = $this->Roadmap->createRelease('0.9.0', 'Demoversion (Oktober)', null);
+    }
+
+    /**
+     * Version 1.0.0
+     * To be released November
+     */
+    private function versionMajor1Minor0Patch0()
+    {
+
+        $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)', null);
+    }
+
+    /**
+     * Version 1.1.0
+     * To be released Q1 2016
+     */
+    private function versionMajor1Minor1Patch0()
+    {
+
+        $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Q1 2016)', null);
+    }
+
+    /**
+     * Version 1.2.0
+     * To be released Q1 2016
+     */
+    private function versionMajor1Minor2Patch0()
+    {
+
+        $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Q1 2016)', null);
     }
 
     /**
@@ -145,6 +178,8 @@ class Roadmap extends Extension
             ->createDuty('Analyse von Exportfunktion')
             ->createDuty('Analyse der Daten');
 
+        $Feature = $Category->createFeature('Fuxschool', 'Import von Daten');
+
         $Feature->createTask('Import von Personendaten', 'Zusätzlich zur Eingabe in Kreda')
             ->createDuty('Analyse von Fuxschool')
             ->createDuty('Analyse der Exportfunktion')
@@ -153,42 +188,11 @@ class Roadmap extends Extension
     }
 
     /**
-     * Version 1.2.0
-     * To be released Q1 2016
+     * @return Stage
      */
-    private function versionMajor1Minor2Patch0()
+    public function frontendMap()
     {
 
-        $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Q1 2016)', null);
-    }
-
-    /**
-     * Version 1.1.0
-     * To be released Q1 2016
-     */
-    private function versionMajor1Minor1Patch0()
-    {
-
-        $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Q1 2016)', null);
-    }
-
-    /**
-     * Version 1.0.0
-     * To be released November
-     */
-    private function versionMajor1Minor0Patch0()
-    {
-
-        $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)', null);
-    }
-
-    /**
-     * Version 0.9.0
-     * To be released Oktober
-     */
-    private function versionMajor0Minor9Patch0()
-    {
-
-        $Release = $this->Roadmap->createRelease('0.9.0', 'Demoversion (Oktober)', null);
+        return $this->Roadmap->getStage();
     }
 }

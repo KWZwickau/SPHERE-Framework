@@ -121,9 +121,12 @@ class Task
                 new LayoutRow(array(
                     new LayoutColumn('', 3),
                     new LayoutColumn(
-                        ( empty( $this->Duty )
-                            ? ''
-                            : new Listing($this->Duty)
+                        ( $this->isDone !== true
+                            ? ( empty( $this->Duty )
+                                ? ''
+                                : new Listing($this->Duty)
+                            )
+                            : ''
                         )
                         , 9)
                 )),
