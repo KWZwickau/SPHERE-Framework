@@ -3,6 +3,7 @@ namespace SPHERE\Application\Setting\Consumer;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Application\Setting\Consumer\SchoolBoard\SchoolBoard;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -20,6 +21,7 @@ class Consumer implements IApplicationInterface
     {
 
         School::registerModule();
+        SchoolBoard::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Mandant'), new Link\Icon(new Building()))

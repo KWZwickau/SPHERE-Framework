@@ -237,12 +237,13 @@ class Frontend extends Extension implements IFrontendInterface
 
         // Person
         $tblPersonAll = Account::useService()->getPersonAllHavingNoAccount();
-        array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+        if ($tblPersonAll) {
+            array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-            $tblPerson = new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId());
-        });
-        $tblPersonAll = array_filter($tblPersonAll);
-
+                $tblPerson = new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId());
+            });
+            $tblPersonAll = array_filter($tblPersonAll);
+        }
         return new Form(array(
             new FormGroup(array(
                 new FormRow(array(

@@ -154,9 +154,6 @@ class Main extends Extension
         } catch (\ErrorException $Exception) {
             self::getDisplay()->setException($Exception, 'Error');
         } catch (\Exception $Exception) {
-
-            $this->getDebugger()->screenDump($Exception);
-
             self::getDisplay()->setException($Exception, get_class($Exception));
         }
 
