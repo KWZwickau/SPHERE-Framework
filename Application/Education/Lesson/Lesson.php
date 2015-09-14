@@ -8,6 +8,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Lesson
+ *
+ * @package SPHERE\Application\Education\Lesson
+ */
 class Lesson implements IApplicationInterface
 {
 
@@ -25,6 +30,9 @@ class Lesson implements IApplicationInterface
         ));
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendDashboard()
     {
 
@@ -32,5 +40,4 @@ class Lesson implements IApplicationInterface
 
         return $Stage;
     }
-
 }

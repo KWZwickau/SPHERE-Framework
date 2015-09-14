@@ -1,9 +1,9 @@
 <?php
 namespace SPHERE\System\Extension\Repository\Roadmap;
 
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
@@ -69,7 +69,7 @@ class Feature
     function __toString()
     {
 
-        switch ($this->Status->getResult()) {
+        switch ($this->Status->getState()) {
             case Status::STATE_PLAN:
                 $this->isDone = null;
                 break;
@@ -98,11 +98,20 @@ class Feature
                         new Small($this->isDone === true
                             ? new Success(new Ok().' Fertig')
                             : ( $this->isDone === false
-                                ? new Danger(new Remove().' In Entwicklung')
-                                : new Muted(new Disable().' In Planung')
+                                ? new Danger(
+                                    new CogWheels().' In Entwicklung '
+                                    .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                )
+                                : new Muted(
+                                    new Disable().' In Planung '
+                                    .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                )
                             )
-                        ),
-                        $this->Status
+                        )
+                        .( $this->isDone === true
+                            ? $this->Status
+                            : $this->Status
+                        )
                     ), 5)
                 )),
                 new LayoutRow(array(
@@ -133,26 +142,29 @@ class Feature
         if (!empty( $this->Task )) {
             /** @var Task $Task */
             foreach ((array)$this->Task as $Task) {
-                switch ($Task->getStatus()->getResult()) {
-                    case Status::STATE_PLAN:
-                        $this->Status->setPlan();
-                        break;
-                    case Status::STATE_WORK:
-                        $this->Status->setWork();
-                        break;
-                    case Status::STATE_DONE:
-                        $this->Status->setDone();
-                        break;
-                }
+//                switch ($Task->getStatus()->getState()) {
+//                    case Status::STATE_PLAN:
+//                        $this->Status->addPlan();
+//                        break;
+//                    case Status::STATE_WORK:
+//                        $this->Status->addWork();
+//                        break;
+//                    case Status::STATE_DONE:
+//                        $this->Status->addDone();
+//                        break;
+//                }
+                $this->Status->addPlan($Task->getStatus()->getPlan());
+                $this->Status->addWork($Task->getStatus()->getWork());
+                $this->Status->addDone($Task->getStatus()->getDone());
             }
         } else {
             if ($this->isDone === true) {
-                $this->Status->setDone();
+                $this->Status->addDone();
             } else {
                 if ($this->isDone === false) {
-                    $this->Status->setWork();
+                    $this->Status->addWork();
                 } else {
-                    $this->Status->setPlan();
+                    $this->Status->addPlan();
                 }
             }
         }

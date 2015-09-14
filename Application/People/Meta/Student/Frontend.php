@@ -3,6 +3,8 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
+use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -59,6 +61,14 @@ class Frontend implements IFrontendInterface
             Group::useService()->getGroupByMetaTable('SCHOOL')
         );
         array_push($tblCompanyAllSchool, new TblCompany());
+
+        $tblSubjectAll = Subject::useService()->getSubjectAll();
+        array_push($tblSubjectAll, new TblSubject());
+
+        $tblSubjectAllForeignLanguage = Subject::useService()->getSubjectAllByCategory(
+            Subject::useService()->getCategoryById(2)
+        );
+        array_push($tblSubjectAllForeignLanguage, new TblSubject());
 
         $Stage->setMessage(
             new Danger(
@@ -195,12 +205,52 @@ class Frontend implements IFrontendInterface
                     ), 4),
                 )),
                 new FormRow(array(
-
                     new FormColumn(array(
                         new Panel('Schülertransfer - Schulverlauf', array(
                             new TextArea('Meta[Transfer][1]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                         ), Panel::PANEL_TYPE_INFO),
                     )),
+                )),
+                new FormRow(array(
+                    new FormColumn(array(
+                        new Panel('Unterrichtsfächer - Kurse', array(
+                            new SelectBox('Meta[Subject][1]', 'Vertiefungskurs',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                                new Education()),
+                            new SelectBox('Meta[Subject][1]', 'Neigungskurs',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                                new Education()),
+                            new SelectBox('Meta[Subject][1]', 'Profil',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                                new Education()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
+                        new Panel('Unterrichtsfächer - Fremdsprachen', array(
+                            new SelectBox('Meta[Subject][1]', '1. Fremdsprache',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAllForeignLanguage),
+                                new Education()),
+                            new SelectBox('Meta[Subject][2]', '2. Fremdsprache',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAllForeignLanguage),
+                                new Education()),
+                            new SelectBox('Meta[Subject][3]', '3. Fremdsprache',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAllForeignLanguage),
+                                new Education()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
+                    new FormColumn(array(
+                        new Panel('Unterrichtsfächer - Wahlpflichtfächer', array(
+                            new SelectBox('Meta[Subject][1]', '1. Wahlpflichtfach',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                                new Education()),
+                            new SelectBox('Meta[Subject][2]', '2. Wahlpflichtfach',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                                new Education()),
+                            new SelectBox('Meta[Subject][3]', '3. Wahlpflichtfach',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                                new Education()),
+                        ), Panel::PANEL_TYPE_INFO),
+                    ), 4),
                 )),
 
             )),

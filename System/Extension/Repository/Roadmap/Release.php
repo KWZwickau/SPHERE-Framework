@@ -1,11 +1,12 @@
 <?php
 namespace SPHERE\System\Extension\Repository\Roadmap;
 
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
+use SPHERE\Common\Frontend\Layout\Repository\Well;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -73,31 +74,34 @@ class Release
         if (!empty( $this->Category )) {
             /** @var Category $Category */
             foreach ((array)$this->Category as $Category) {
-                switch ($Category->getStatus()->getResult()) {
-                    case Status::STATE_PLAN:
-                        $this->Status->setPlan();
-                        break;
-                    case Status::STATE_WORK:
-                        $this->Status->setWork();
-                        break;
-                    case Status::STATE_DONE:
-                        $this->Status->setDone();
-                        break;
-                }
+//                switch ($Category->getStatus()->getState()) {
+//                    case Status::STATE_PLAN:
+//                        $this->Status->addPlan();
+//                        break;
+//                    case Status::STATE_WORK:
+//                        $this->Status->addWork();
+//                        break;
+//                    case Status::STATE_DONE:
+//                        $this->Status->addDone();
+//                        break;
+//                }
+                $this->Status->addPlan($Category->getStatus()->getPlan());
+                $this->Status->addWork($Category->getStatus()->getWork());
+                $this->Status->addDone($Category->getStatus()->getDone());
             }
         } else {
             if ($this->isDone === true) {
-                $this->Status->setDone();
+                $this->Status->addDone();
             } else {
                 if ($this->isDone === false) {
-                    $this->Status->setWork();
+                    $this->Status->addWork();
                 } else {
-                    $this->Status->setPlan();
+                    $this->Status->addPlan();
                 }
             }
         }
 
-        switch ($this->Status->getResult()) {
+        switch ($this->Status->getState()) {
             case Status::STATE_PLAN:
                 $this->isDone = null;
                 break;
@@ -113,35 +117,39 @@ class Release
             new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Title(( $this->isDone === true
-                            ? new Success(new TileBig().' Release: '.$this->Version)
-                            : ( $this->isDone === false
-                                ? new Danger(new TileBig().' Release: '.$this->Version)
-                                : new Muted(new TileBig().' Release: '.$this->Version)
+                        new Well(
+                            new Title(( $this->isDone === true
+                                ? new Success(new TileBig().' Release: '.$this->Version)
+                                : ( $this->isDone === false
+                                    ? new Danger(new TileBig().' Release: '.$this->Version)
+                                    : new Muted(new TileBig().' Release: '.$this->Version)
+                                )
+                            ), $this->Description)
+                            .new Small($this->isDone === true
+                                ? new Success(new Ok().' Fertig')
+                                : ( $this->isDone === false
+                                    ? new Danger(
+                                        new CogWheels().' In Entwicklung '
+                                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                    )
+                                    : new Muted(
+                                        new Disable().' In Planung '
+                                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                    )
+                                )
                             )
-                        ), $this->Description)
+                            .( $this->isDone === true
+                                ? $this->Status
+                                : $this->Status
+                            )
+                        )
                     )),
                 )),
                 new LayoutRow(array(
-                    new LayoutColumn(array(
-                        new Small($this->isDone === true
-                            ? new Success(new Ok().' Fertig')
-                            : ( $this->isDone === false
-                                ? new Danger(new Remove().' In Entwicklung')
-                                : new Muted(new Disable().' In Planung')
-                            )
-                        ),
-                        $this->Status
-                    ))
-                )),
-                new LayoutRow(array(
                     new LayoutColumn(
-                        '<hr/>'
-                    )
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        $this->Category
+                        new Well(
+                            implode($this->Category)
+                        )
                     )
                 )),
             ))

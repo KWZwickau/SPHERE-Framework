@@ -1,9 +1,9 @@
 <?php
 namespace SPHERE\System\Extension\Repository\Roadmap;
 
+use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
@@ -14,7 +14,6 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
-use SPHERE\Common\Frontend\Text\Repository\Strikethrough;
 use SPHERE\Common\Frontend\Text\Repository\Success;
 
 /**
@@ -60,20 +59,20 @@ class Task
     {
 
         if ($isDone === true) {
-            $this->Status->setDone();
-            $Content = new Small(new Ok().' '.new Strikethrough($Content));
+            $this->Status->addDone();
+            $Content = new Success(new Small(new Ok().' '.$Content));
         } else {
             if ($isDone === false) {
-                $this->Status->setWork();
-                $Content = new Small(new Remove().' '.$Content);
+                $this->Status->addWork();
+                $Content = new Danger(new Small(new CogWheels().' '.$Content));
             } else {
-                $this->Status->setPlan();
-                $Content = new Small(new Disable().' '.$Content);
+                $this->Status->addPlan();
+                $Content = new Muted(new Small(new Disable().' '.$Content));
             }
         }
         array_push($this->Duty, $Content);
 
-        switch ($this->Status->getResult()) {
+        switch ($this->Status->getState()) {
             case Status::STATE_PLAN:
                 $this->isDone = null;
                 break;
@@ -109,13 +108,22 @@ class Task
                     ), 6),
                     new LayoutColumn(array(
                         new Small($this->isDone === true
-                            ? new Success(new Ok().' Fertig')
+                            ? ''//new Success(new Ok().' Fertig')
                             : ( $this->isDone === false
-                                ? new Danger(new Remove().' In Entwicklung')
-                                : new Muted(new Disable().' In Planung')
+                                ? new Danger(
+                                    new CogWheels().' In Entwicklung '
+                                    .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                )
+                                : new Muted(
+                                    new Disable().' In Planung '
+                                    .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                )
                             )
-                        ),
-                        $this->Status
+                        )
+                        .( $this->isDone === true
+                            ? ''
+                            : $this->Status
+                        )
                     ), 4)
                 )),
                 new LayoutRow(array(
@@ -126,7 +134,7 @@ class Task
                                 ? ''
                                 : new Listing($this->Duty)
                             )
-                            : ''
+                            : new Listing($this->Duty)
                         )
                         , 9)
                 )),
@@ -142,12 +150,12 @@ class Task
 
         if (empty( $this->Duty )) {
             if ($this->isDone === true) {
-                $this->Status->setDone();
+                $this->Status->addDone();
             } else {
                 if ($this->isDone === false) {
-                    $this->Status->setWork();
+                    $this->Status->addWork();
                 } else {
-                    $this->Status->setPlan();
+                    $this->Status->addPlan();
                 }
             }
         }

@@ -51,26 +51,40 @@ class Roadmap extends Extension
         $Feature->createTask('Volltextsuche über Name', '', true);
 
         $Feature = $Category->createFeature('Gruppen');
-        $Feature->createTask('Festdefinierte Gruppen')
+        $Feature->createTask('Fest definierte Gruppen')
             ->createDuty('Alle (Personendaten)', true)
-            ->createDuty('Interessent', false)
-            ->createDuty('Schüler', false)
-            ->createDuty('Sorgeberechtigt');
+            ->createDuty('Interessent', true)
+            ->createDuty('Schüler', true)
+            ->createDuty('Sorgeberechtigt', true);
 
-        $Feature->createTask('Freidefinierbare Gruppen', false);
-
+        $Feature->createTask('Frei definierbare Gruppen', false)
+            ->createDuty('Gruppen hinzufügen', true)
+            ->createDuty('Gruppen bearbeiten', true)
+            ->createDuty('Gruppen löschen', true);
         $Feature = $Category->createFeature('Person');
-        $Feature->createTask('Grunddaten', 'Personname und Gruppenzugehörigkeit', true);
+        $Feature->createTask('Grunddaten', 'Personname und Gruppenzugehörigkeit')
+            ->createDuty('Name', true)
+            ->createDuty('Gruppen', true);
         $Feature->createTask('Informationen')
             ->createDuty('Personendaten', true)
             ->createDuty('Interessent', true)
             ->createDuty('Schülerakte', false)
             ->createDuty('Sorgerechtdaten');
-        $Feature->createTask('Adressdaten');
+        $Feature->createTask('Adressdaten')
+            ->createDuty('Adresse hinzufügen', true)
+            ->createDuty('Adresse bearbeiten')
+            ->createDuty('Adresse löschen', true);
         $Feature->createTask('Kontaktdaten')
-            ->createDuty('Telefonnummer')
-            ->createDuty('E-Mail Adresse');
-        $Feature->createTask('Beziehungen');
+            ->createDuty('Telefonnummer hinzufügen', true)
+            ->createDuty('Telefonnummer bearbeiten')
+            ->createDuty('Telefonnummer löschen', true)
+            ->createDuty('E-Mail Adresse hinzufügen', true)
+            ->createDuty('E-Mail Adresse bearbeiten', true)
+            ->createDuty('E-Mail Adresse löschen', true);
+        $Feature->createTask('Beziehungen')
+            ->createDuty('Beziehung hinzufügen', true)
+            ->createDuty('Beziehung bearbeiten')
+            ->createDuty('Beziehung löschen', true);
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
@@ -78,30 +92,52 @@ class Roadmap extends Extension
         $Category->createFeature('Dashboard');
 
         $Feature = $Category->createFeature('Suche');
-        $Feature->createTask('Filterung über Gruppen');
-        $Feature->createTask('Volltextsuche über Name');
+        $Feature->createTask('Filterung über Gruppen', '', true);
+        $Feature->createTask('Volltextsuche über Name', '', true);
 
         $Feature = $Category->createFeature('Gruppen');
-        $Feature->createTask('Festdefinierte Gruppen')
+        $Feature->createTask('Fest definierte Gruppen')
             ->createDuty('Alle', true)
             ->createDuty('Schulen', true);
-        $Feature->createTask('Freidefinierbare Gruppen')
-            ->createDuty('Gruppen hinzufügen', false)
-            ->createDuty('Gruppen löschen');
+        $Feature->createTask('Frei definierbare Gruppen')
+            ->createDuty('Gruppen hinzufügen', true)
+            ->createDuty('Gruppen bearbeiten', true)
+            ->createDuty('Gruppen löschen', true);
 
         $Feature = $Category->createFeature('Firma');
-        $Feature->createTask('Grunddaten', 'Firmenname und Gruppenzugehörigkeit', true);
-        $Feature->createTask('Adressdaten');
+        $Feature->createTask('Grunddaten', 'Firmenname und Gruppenzugehörigkeit', true)
+            ->createDuty('Name', true)
+            ->createDuty('Gruppen', true);
+        $Feature->createTask('Adressdaten')
+            ->createDuty('Adresse hinzufügen', true)
+            ->createDuty('Adresse bearbeiten')
+            ->createDuty('Adresse löschen', true);
         $Feature->createTask('Kontaktdaten')
-            ->createDuty('Telefonnummer')
-            ->createDuty('E-Mail Adresse');
+            ->createDuty('Telefonnummer hinzufügen', true)
+            ->createDuty('Telefonnummer bearbeiten')
+            ->createDuty('Telefonnummer löschen', false)
+            ->createDuty('E-Mail Adresse hinzufügen', true)
+            ->createDuty('E-Mail Adresse bearbeiten', false)
+            ->createDuty('E-Mail Adresse löschen', false);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
 
         $Feature = $Category->createFeature('Unterricht');
-        $Feature->createTask('Fächer');
-
+        $Feature->createTask('Fächer')
+            ->createDuty('Vordefinierte Fächer in Datenbank', true)
+            ->createDuty('Fach hinzufügen')
+            ->createDuty('Fach bearbeiten')
+            ->createDuty('Fach löschen');
+        $Feature->createTask('Fach-Kategorie')
+            ->createDuty('Vordefinierte Kategorien in Datenbank', true)
+            ->createDuty('Kategorie hinzufügen')
+            ->createDuty('Kategorie bearbeiten')
+            ->createDuty('Kategorie löschen');
+        $Feature->createTask('Fach-Kategorie zuweisen')
+            ->createDuty('Vordefinierte Verknüpfungen in Datenbank', true)
+            ->createDuty('Verknüpfung hinzufügen')
+            ->createDuty('Verknüpfung löschen');
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
 
@@ -112,12 +148,13 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Hardware-Schlüssel')
-            ->createDuty('Dem System YubiKeys hinzufügen', true)
-            ->createDuty('Bestehende YubiKeys entfernen');
+            ->createDuty('YubiKey hinzufügen', true)
+            ->createDuty('YubiKey entfernen');
         $Feature->createTask('Benutzerkonten')
-            ->createDuty('Zugangsdaten')
-            ->createDuty('Berechtigungsstufen')
-            ->createDuty('Authentifizierungsart');
+            ->createDuty('Zugangsdaten', false)
+            ->createDuty('Berechtigungsstufen', false)
+            ->createDuty('Authentifizierungsart', false)
+            ->createDuty('Person', false);
     }
 
     /**
@@ -128,6 +165,13 @@ class Roadmap extends Extension
     {
 
         $Release = $this->Roadmap->createRelease('0.9.0', 'Demoversion (Oktober)', null);
+
+        // Bildung
+        $Category = $Release->createCategory('Bildung');
+
+        $Feature = $Category->createFeature('Unterricht');
+        $Feature->createTask('Schuljahr');
+        $Feature->createTask('Klassen');
     }
 
     /**
@@ -138,6 +182,11 @@ class Roadmap extends Extension
     {
 
         $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)', null);
+
+        $Category = $Release->createCategory('Fehlerkorrekturen');
+        $Category = $Release->createCategory('Auswertungen')
+            ->createFeature('Festdefinierte Auswertungen')
+            ->createTask('für ESZC');
     }
 
     /**
@@ -148,6 +197,12 @@ class Roadmap extends Extension
     {
 
         $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Q1 2016)', null);
+
+        // Bildung
+        $Category = $Release->createCategory('Bildung');
+        $Feature = $Category->createFeature('Zensuren');
+        $Feature->createTask('Elektronisches Notenbuch');
+        $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
     }
 
     /**
@@ -158,6 +213,15 @@ class Roadmap extends Extension
     {
 
         $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Q1 2016)', null);
+
+        $Category = $Release->createCategory('Fakturierung');
+        $Category->createFeature('Leistungen');
+        $Category->createFeature('Buchhaltung');
+        $Category->createFeature('Rechnungswesen');
+
+        $Category = $Release->createCategory('Auswertungen');
+        $Category->createFeature('Statistik / Berichte (ähnlich Fuxschool)');
+        $Category->createFeature('Kamenz-Bericht');
     }
 
     /**
@@ -185,6 +249,18 @@ class Roadmap extends Extension
             ->createDuty('Analyse der Exportfunktion')
             ->createDuty('Analyse der Daten');
 
+        $Category = $Release->createCategory('Auswertungen');
+        $Feature = $Category->createFeature('Dynamische Auswertungen');
+        $Feature->createTask('Report-Designer');
+
+        // Bildung
+        $Category = $Release->createCategory('Bildung');
+        $Feature = $Category->createFeature('Zensuren');
+        $Feature->createTask('Zeugnisdruck')
+            ->createDuty('Layout-Designer');
+        $Feature = $Category->createFeature('Unterricht');
+        $Feature->createTask('Klassen')
+            ->createDuty('Sitzplan');
     }
 
     /**

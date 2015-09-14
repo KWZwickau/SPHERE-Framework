@@ -4,6 +4,8 @@ namespace MOC\V\Component\Template\Component\Bridge\Repository;
 use MOC\V\Component\Template\Component\Bridge\Bridge;
 use MOC\V\Component\Template\Component\IBridgeInterface;
 use MOC\V\Component\Template\Component\Parameter\Repository\FileParameter;
+use MOC\V\Core\AutoLoader\AutoLoader;
+use Umpirsky\Twig\Extension\PhpFunctionExtension;
 
 /**
  * Class TwigTemplate
@@ -26,6 +28,11 @@ class TwigTemplate extends Bridge implements IBridgeInterface
 
         require_once( __DIR__.'/../../../Vendor/Twig/lib/Twig/Autoloader.php' );
         \Twig_Autoloader::register();
+
+        AutoLoader::getNamespaceAutoLoader(
+            'Umpirsky\Twig\Extension',
+            __DIR__.'/../../../Vendor/TwigExtension/TwigPHPFunction/0.0.0/src'
+        );
     }
 
     /**
@@ -59,6 +66,7 @@ class TwigTemplate extends Bridge implements IBridgeInterface
         );
         $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_encode', 'utf8_encode'));
         $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_decode', 'utf8_decode'));
+        $this->Instance->addExtension(new PhpFunctionExtension());
         $this->Template = $this->Instance->loadTemplate(basename($Location->getFile()));
         return $this;
     }

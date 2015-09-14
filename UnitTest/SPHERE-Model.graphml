@@ -5057,7 +5057,7 @@
         <y:ProxyAutoBoundsNode>
           <y:Realizers active="0">
             <y:GenericGroupNode configuration="com.yworks.bpmn.Artifact.withShadow">
-              <y:Geometry height="450.0" width="920.0" x="4620.0" y="-1440.0"/>
+              <y:Geometry height="514.9271854642639" width="920.0" x="4620.0" y="-1440.0"/>
               <y:Fill color="#FFFFFFE6" transparent="false"/>
               <y:BorderStyle color="#000000" type="dotted" width="1.0"/>
               <y:NodeLabel alignment="left" autoSizePolicy="content" borderDistance="2.0" bottomInset="2" fontFamily="Dialog" fontSize="15" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="35.0" horizontalTextPosition="right" iconData="1" iconTextGap="4" leftInset="2" modelName="internal" modelPosition="tl" rightInset="2" textColor="#000000" topInset="2" verticalTextPosition="center" visible="true" width="104.71630859375" x="2.0" y="2.0">Education</y:NodeLabel>
@@ -5069,7 +5069,7 @@
               </y:StyleProperties>
               <y:State autoResize="true" closed="false" closedHeight="80.0" closedWidth="100.0"/>
               <y:Insets bottom="15" bottomF="15.0" left="15" leftF="15.0" right="15" rightF="15.0" top="15" topF="15.0"/>
-              <y:BorderInsets bottom="5" bottomF="5.0" left="5" leftF="5.0" right="5" rightF="5.0" top="10" topF="10.0"/>
+              <y:BorderInsets bottom="0" bottomF="0.0" left="5" leftF="5.0" right="5" rightF="5.0" top="10" topF="10.0"/>
             </y:GenericGroupNode>
             <y:GroupNode>
               <y:Geometry height="50.0" width="50.0" x="0.0" y="60.0"/>
@@ -5090,7 +5090,7 @@
             <y:ProxyAutoBoundsNode>
               <y:Realizers active="0">
                 <y:GenericGroupNode configuration="com.yworks.bpmn.Artifact.withShadow">
-                  <y:Geometry height="370.0" width="880.0" x="4640.0" y="-1380.0"/>
+                  <y:Geometry height="439.92718546426386" width="880.0" x="4640.0" y="-1380.0"/>
                   <y:Fill color="#FFFFFFE6" transparent="false"/>
                   <y:BorderStyle color="#000000" type="dashed" width="1.0"/>
                   <y:NodeLabel alignment="left" autoSizePolicy="content" borderDistance="2.0" bottomInset="2" fontFamily="Dialog" fontSize="15" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="35.0" horizontalTextPosition="right" iconData="1" iconTextGap="4" leftInset="2" modelName="internal" modelPosition="tl" rightInset="2" textColor="#000000" topInset="2" verticalTextPosition="center" visible="true" width="86.369140625" x="2.0" y="2.0">Lesson</y:NodeLabel>
@@ -5102,7 +5102,7 @@
                   </y:StyleProperties>
                   <y:State autoResize="true" closed="false" closedHeight="80.0" closedWidth="100.0"/>
                   <y:Insets bottom="15" bottomF="15.0" left="15" leftF="15.0" right="15" rightF="15.0" top="15" topF="15.0"/>
-                  <y:BorderInsets bottom="5" bottomF="5.0" left="5" leftF="5.0" right="5" rightF="5.0" top="10" topF="10.0"/>
+                  <y:BorderInsets bottom="0" bottomF="0.0" left="5" leftF="5.0" right="5" rightF="5.0" top="10" topF="10.0"/>
                 </y:GenericGroupNode>
                 <y:GroupNode>
                   <y:Geometry height="50.0" width="50.0" x="15.0" y="820.043253968254"/>
@@ -5123,7 +5123,7 @@
                 <y:ProxyAutoBoundsNode>
                   <y:Realizers active="0">
                     <y:GenericGroupNode configuration="com.yworks.bpmn.Artifact.withShadow">
-                      <y:Geometry height="180.0" width="660.0" x="4660.0" y="-1320.0"/>
+                      <y:Geometry height="364.92718546426386" width="660.0" x="4660.0" y="-1320.0"/>
                       <y:Fill color="#FFFFFFE6" transparent="false"/>
                       <y:BorderStyle color="#000000" type="dashed" width="1.0"/>
                       <y:NodeLabel alignment="left" autoSizePolicy="content" borderDistance="2.0" bottomInset="2" fontFamily="Dialog" fontSize="15" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="35.0" horizontalTextPosition="right" iconData="1" iconTextGap="4" leftInset="2" modelName="internal" modelPosition="tl" rightInset="2" textColor="#000000" topInset="2" verticalTextPosition="center" visible="true" width="88.03173828125" x="2.0" y="2.0">Subject</y:NodeLabel>
@@ -5135,7 +5135,7 @@
                       </y:StyleProperties>
                       <y:State autoResize="true" closed="false" closedHeight="80.0" closedWidth="100.0"/>
                       <y:Insets bottom="15" bottomF="15.0" left="15" leftF="15.0" right="15" rightF="15.0" top="15" topF="15.0"/>
-                      <y:BorderInsets bottom="5" bottomF="5.0" left="5" leftF="5.0" right="5" rightF="5.0" top="5" topF="5.0"/>
+                      <y:BorderInsets bottom="0" bottomF="0.0" left="5" leftF="5.0" right="5" rightF="5.0" top="5" topF="5.0"/>
                     </y:GenericGroupNode>
                     <y:GroupNode>
                       <y:Geometry height="50.0" width="50.0" x="15.0" y="820.043253968254"/>
@@ -5216,6 +5216,57 @@
                         </y:ModelParameter>
                       </y:NodeLabel>
                       <y:Shape type="roundrectangle"/>
+                    </y:ShapeNode>
+                  </data>
+                </node>
+                <node id="n5::n0::n0::n4">
+                  <data key="d6">
+                    <y:ShapeNode>
+                      <y:Geometry height="50.0" width="160.0" x="4791.47597696844" y="-1022.5728145357361"/>
+                      <y:Fill color="#FF0000" transparent="false"/>
+                      <y:BorderStyle hasColor="false" type="line" width="1.0"/>
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" modelName="custom" textColor="#000000" visible="true" width="65.365234375" x="47.3173828125" y="15.6494140625">tblCategory<y:LabelModel>
+                          <y:SmartNodeLabelModel distance="4.0"/>
+                        </y:LabelModel>
+                        <y:ModelParameter>
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+                        </y:ModelParameter>
+                      </y:NodeLabel>
+                      <y:Shape type="rectangle"/>
+                    </y:ShapeNode>
+                  </data>
+                </node>
+                <node id="n5::n0::n0::n5">
+                  <data key="d6">
+                    <y:ShapeNode>
+                      <y:Geometry height="30.0" width="150.0" x="5041.47597696844" y="-1000.0728145357361"/>
+                      <y:Fill color="#FF6600" transparent="false"/>
+                      <y:BorderStyle hasColor="false" type="line" width="1.0"/>
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" modelName="custom" textColor="#000000" visible="true" width="36.009765625" x="56.9951171875" y="5.6494140625">Name<y:LabelModel>
+                          <y:SmartNodeLabelModel distance="4.0"/>
+                        </y:LabelModel>
+                        <y:ModelParameter>
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+                        </y:ModelParameter>
+                      </y:NodeLabel>
+                      <y:Shape type="roundrectangle"/>
+                    </y:ShapeNode>
+                  </data>
+                </node>
+                <node id="n5::n0::n0::n6">
+                  <data key="d6">
+                    <y:ShapeNode>
+                      <y:Geometry height="40.0" width="160.0" x="5036.47597696844" y="-1140.0728145357361"/>
+                      <y:Fill color="#00CCFF" transparent="false"/>
+                      <y:BorderStyle hasColor="false" type="line" width="1.0"/>
+                      <y:NodeLabel alignment="center" autoSizePolicy="content" fontFamily="Dialog" fontSize="12" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="18.701171875" modelName="custom" textColor="#000000" visible="true" width="65.365234375" x="47.3173828125" y="10.6494140625">tblCategory<y:LabelModel>
+                          <y:SmartNodeLabelModel distance="4.0"/>
+                        </y:LabelModel>
+                        <y:ModelParameter>
+                          <y:SmartNodeLabelModelParameter labelRatioX="0.0" labelRatioY="0.0" nodeRatioX="0.0" nodeRatioY="0.0" offsetX="0.0" offsetY="0.0" upX="0.0" upY="-1.0"/>
+                        </y:ModelParameter>
+                      </y:NodeLabel>
+                      <y:Shape type="parallelogram"/>
                     </y:ShapeNode>
                   </data>
                 </node>
@@ -8538,6 +8589,29 @@
       <data key="d10">
         <y:PolyLineEdge>
           <y:Path sx="80.0" sy="12.5" tx="-69.03125" ty="-7.5"/>
+          <y:LineStyle color="#000000" type="dotted" width="1.0"/>
+          <y:Arrows source="none" target="none"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="n5::n0::n0::e3" source="n5::n0::n0::n4" target="n5::n0::n0::n5">
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="95.0" sy="12.5" tx="-75.0" ty="-0.0"/>
+          <y:LineStyle color="#000000" type="line" width="1.0"/>
+          <y:Arrows source="none" target="standard"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+    <edge id="n5::n0::n0::e4" source="n5::n0::n0::n4" target="n5::n0::n0::n6">
+      <data key="d10">
+        <y:PolyLineEdge>
+          <y:Path sx="95.0" sy="-12.5" tx="-63.03125" ty="0.0">
+            <y:Point x="4981.47597696844" y="-1010.0728145357361"/>
+            <y:Point x="4981.47597696844" y="-1120.0728145357361"/>
+          </y:Path>
           <y:LineStyle color="#000000" type="dotted" width="1.0"/>
           <y:Arrows source="none" target="none"/>
           <y:BendStyle smoothed="false"/>

@@ -26,7 +26,7 @@ class Status
      *
      * @return int
      */
-    public function getResult()
+    public function getState()
     {
 
         if ($this->getWork()) {
@@ -48,12 +48,6 @@ class Status
         return $this->Work;
     }
 
-    public function setWork()
-    {
-
-        $this->Work++;
-    }
-
     /**
      * @return int
      */
@@ -63,10 +57,22 @@ class Status
         return $this->Plan;
     }
 
-    public function setPlan()
+    /**
+     * @param int $Count
+     */
+    public function addWork($Count = 1)
     {
 
-        $this->Plan++;
+        $this->Work += $Count;
+    }
+
+    /**
+     * @param int $Count
+     */
+    public function addPlan($Count = 1)
+    {
+
+        $this->Plan += $Count;
     }
 
     /**
@@ -75,13 +81,12 @@ class Status
     function __toString()
     {
 
-        $All = $this->getDone() + $this->getWork() + $this->getPlan();
-        $Done = 100 / $All * $this->getDone();
-        $Work = 100 / $All * $this->getWork();
-        $Plan = 100 / $All * $this->getPlan();
+        $Done = $this->getDonePercent();
+        $Work = 100 / $this->getCount() * $this->getWork();
+        $Plan = 100 / $this->getCount() * $this->getPlan();
 
         return
-            '<div class="progress" style="height: 4px; margin: 3px 0;">
+            '<div class="progress" style="height: 4px; margin: 0;">
           <div class="progress-bar progress-bar-success" style="width: '.$Done.'%;">
             <span class="sr-only">'.$Done.'% Done</span>
           </div>
@@ -95,6 +100,24 @@ class Status
     }
 
     /**
+     * @return float
+     */
+    public function getDonePercent()
+    {
+
+        return 100 / $this->getCount() * $this->getDone();
+    }
+
+    /**
+     * @return int
+     */
+    public function getCount()
+    {
+
+        return $this->getPlan() + $this->getWork() + $this->getDone();
+    }
+
+    /**
      * @return int
      */
     public function getDone()
@@ -103,11 +126,12 @@ class Status
         return $this->Done;
     }
 
-    public function setDone()
+    /**
+     * @param int $Count
+     */
+    public function addDone($Count = 1)
     {
 
-        $this->Done++;
+        $this->Done += $Count;
     }
-
-
 }
