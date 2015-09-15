@@ -3,10 +3,12 @@ namespace SPHERE\System\Extension\Repository\Roadmap;
 
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -93,53 +95,72 @@ class Task
     function __toString()
     {
 
-        return (string)new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn('', 2),
-                    new LayoutColumn(array(
-                        new Header(( $this->isDone === true
-                            ? new Success(new Tag().' Task: '.$this->Name)
-                            : ( $this->isDone === false
-                                ? new Danger(new Tag().' Task: '.$this->Name)
-                                : new Muted(new Tag().' Task: '.$this->Name)
-                            )
-                        ), $this->Description)
-                    ), 6),
-                    new LayoutColumn(array(
-                        new Small($this->isDone === true
-                            ? ''//new Success(new Ok().' Fertig')
-                            : ( $this->isDone === false
-                                ? new Danger(
-                                    new CogWheels().' In Entwicklung '
-                                    .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+        if ($this->isDone === true) {
+            $Toggle = uniqid();
+            return (string)new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn('', 2),
+                        new LayoutColumn(array(
+                            new Header(new Success(new Tag().' Task: '.$this->Name), $this->Description),
+                        ), 9),
+                        new LayoutColumn(( !empty( $this->Duty ) ? new PullRight(
+                            '<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#'
+                            .$Toggle.'">'.new Info().'</button>'
+                        ) : '' ), 1)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            '<span id="'.$Toggle.'" class="collapse">'.new Listing($this->Duty).'</span>'
+                            , 9)
+                    )),
+                ))
+            );
+        } else {
+
+            return (string)new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn('', 2),
+                        new LayoutColumn(array(
+                            new Header(( $this->isDone === true
+                                ? new Success(new Tag().' Task: '.$this->Name)
+                                : ( $this->isDone === false
+                                    ? new Danger(new Tag().' Task: '.$this->Name)
+                                    : new Muted(new Tag().' Task: '.$this->Name)
                                 )
-                                : new Muted(
-                                    new Disable().' In Planung '
-                                    .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                            ), $this->Description)
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Small($this->isDone === true
+                                ? ''//new Success(new Ok().' Fertig')
+                                : ( $this->isDone === false
+                                    ? new Danger(
+                                        new CogWheels().' In Entwicklung '
+                                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                    )
+                                    : new Muted(
+                                        new Disable().' In Planung '
+                                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                                    )
                                 )
                             )
-                        )
-                        .( $this->isDone === true
-                            ? ''
-                            : $this->Status
-                        )
-                    ), 4)
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn('', 3),
-                    new LayoutColumn(
-                        ( $this->isDone !== true
-                            ? ( empty( $this->Duty )
+                            .$this->Status
+                        ), 4)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn('', 3),
+                        new LayoutColumn(
+                            ( empty( $this->Duty )
                                 ? ''
                                 : new Listing($this->Duty)
-                            )
-                            : new Listing($this->Duty)
+                            ), 9
                         )
-                        , 9)
-                )),
-            ))
-        );
+                    )),
+                ))
+            );
+        }
     }
 
     /**

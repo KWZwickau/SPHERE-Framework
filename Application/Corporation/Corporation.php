@@ -56,7 +56,7 @@ class Corporation implements IClusterInterface
                                 , 2, array(LayoutColumn::GRID_OPTION_HIDDEN_SM, LayoutColumn::GRID_OPTION_HIDDEN_XS)),
                             new LayoutColumn(
                                 new PullRight(
-                                    new Standard('', '/People/Search/Group',
+                                    new Standard('', '/Corporation/Search/Group',
                                         new \SPHERE\Common\Frontend\Icon\Repository\Group(),
                                         array('Id' => $tblGroup->getId()),
                                         'zur Gruppe')

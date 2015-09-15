@@ -41,13 +41,14 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Contact\Phone
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -169,6 +170,118 @@ class Frontend implements IFrontendInterface
                                     ->appendFormButton(new Primary('Telefonnummer hinzufügen'))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblCompany, $Number, $Type
+                            )
+                        )
+                    )
+                )),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param int    $Id
+     * @param string $Number
+     * @param array  $Type
+     *
+     * @return Stage
+     */
+    public function frontendUpdateToPerson($Id, $Number, $Type)
+    {
+
+        $Stage = new Stage('Telefonnummer', 'Bearbeiten');
+        $Stage->setMessage('Die Telefonnummer der gewählten Person ändern');
+
+        $tblToPerson = Phone::useService()->getPhoneToPersonById($Id);
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Number'] )) {
+            $Global->POST['Number'] = $tblToPerson->getTblPhone()->getNumber();
+            $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
+            $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
+            $Global->savePost();
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(new Building().' Person',
+                                $tblToPerson->getServiceTblPerson()->getFullName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
+                                )
+                            )
+                        )
+                    ),
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Phone::useService()->updatePhoneToPerson(
+                                $this->formNumber()
+                                    ->appendFormButton(new Primary('Änderungen speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblToPerson, $Number, $Type
+                            )
+                        )
+                    )
+                )),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param int    $Id
+     * @param string $Number
+     * @param array  $Type
+     *
+     * @return Stage
+     */
+    public function frontendUpdateToCompany($Id, $Number, $Type)
+    {
+
+        $Stage = new Stage('Telefonnummer', 'Bearbeiten');
+        $Stage->setMessage('Die Telefonnummer der gewählten Firma ändern');
+
+        $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Number'] )) {
+            $Global->POST['Number'] = $tblToCompany->getTblPhone()->getNumber();
+            $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
+            $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
+            $Global->savePost();
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(new Building().' Firma',
+                                $tblToCompany->getServiceTblCompany()->getName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId())
+                                )
+                            )
+                        )
+                    ),
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Phone::useService()->updatePhoneToCompany(
+                                $this->formNumber()
+                                    ->appendFormButton(new Primary('Änderungen speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblToCompany, $Number, $Type
                             )
                         )
                     )
@@ -310,6 +423,72 @@ class Frontend implements IFrontendInterface
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Die Telefonnummer konnte nicht gefunden werden'),
                         new Redirect('/People/Search/Group')
+                    )))
+                )))
+            );
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param int  $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyToCompany($Id, $Confirm = false)
+    {
+
+        $Stage = new Stage('Telefonnummer', 'Löschen');
+        if ($Id) {
+            $tblToCompany = Phone::useService()->getPhoneToCompanyById($Id);
+            $tblCompany = $tblToCompany->getServiceTblCompany();
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new Building().' Firma',
+                            $tblCompany->getName(),
+                            Panel::PANEL_TYPE_SUCCESS,
+                            new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                array('Id' => $tblCompany->getId())
+                            )
+                        ),
+                        new Panel(new Question().' Diese Telefonnummer wirklich löschen?', array(
+                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
+                            $tblToCompany->getTblPhone()->getNumber(),
+                            new Muted(new Small($tblToCompany->getRemark()))
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Corporation/Company/Phone/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            .new Standard(
+                                'Nein', '/Corporation/Company', new Disable(),
+                                array('Id' => $tblCompany->getId())
+                            )
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            ( Phone::useService()->removePhoneToCompany($tblToCompany)
+                                ? new Success('Die Telefonnummer wurde gelöscht')
+                                : new Danger('Die Telefonnummer konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()))
+                        )))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger('Die Telefonnummer konnte nicht gefunden werden'),
+                        new Redirect('/Corporation/Search/Group')
                     )))
                 )))
             );

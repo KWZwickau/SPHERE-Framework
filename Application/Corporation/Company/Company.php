@@ -78,6 +78,12 @@ class Company implements IApplicationInterface, IModuleInterface
             ->setParameterDefault('Type', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Phone/Edit', 'SPHERE\Application\Contact\Phone\Frontend::frontendUpdateToCompany'
+        )
+            ->setParameterDefault('Number', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Phone/Destroy', 'SPHERE\Application\Contact\Phone\Frontend::frontendDestroyToCompany'
         )
             ->setParameterDefault('Id', null)

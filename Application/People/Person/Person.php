@@ -45,6 +45,15 @@ class Person implements IApplicationInterface, IModuleInterface
             ->setParameterDefault('Type', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Address/Edit', 'SPHERE\Application\Contact\Address\Frontend::frontendUpdate'
+        )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('Street', null)
+            ->setParameterDefault('City', null)
+            ->setParameterDefault('State', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Address/Destroy', 'SPHERE\Application\Contact\Address\Frontend::frontendDestroyToPerson'
         )
             ->setParameterDefault('Id', null)
@@ -72,6 +81,12 @@ class Person implements IApplicationInterface, IModuleInterface
         // Contact: Phone
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Phone/Create', 'SPHERE\Application\Contact\Phone\Frontend::frontendCreateToPerson'
+        )
+            ->setParameterDefault('Number', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Phone/Edit', 'SPHERE\Application\Contact\Phone\Frontend::frontendUpdateToPerson'
         )
             ->setParameterDefault('Number', null)
             ->setParameterDefault('Type', null)

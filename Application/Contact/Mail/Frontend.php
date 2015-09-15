@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
@@ -188,7 +189,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('E-Mail Adresse', 'Bearbeiten');
-        $Stage->setMessage('Eine E-Mail Adresse zur gewählten Person ändern');
+        $Stage->setMessage('Die E-Mail Adresse der gewählten Person ändern');
 
         $tblToPerson = Mail::useService()->getMailToPersonById($Id);
 
@@ -223,6 +224,62 @@ class Frontend extends Extension implements IFrontendInterface
                                     ->appendFormButton(new Primary('Änderungen speichern'))
                                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                                 , $tblToPerson, $Address, $Type
+                            )
+                        )
+                    )
+                )),
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param int    $Id
+     * @param string $Address
+     * @param array  $Type
+     *
+     * @return Stage
+     */
+    public function frontendUpdateToCompany($Id, $Address, $Type)
+    {
+
+        $Stage = new Stage('E-Mail Adresse', 'Bearbeiten');
+        $Stage->setMessage('Die E-Mail Adresse der gewählten Firma ändern');
+
+        $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Address'] )) {
+            $Global->POST['Address'] = $tblToCompany->getTblMail()->getAddress();
+            $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
+            $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
+            $Global->savePost();
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(new Building().' Firma',
+                                $tblToCompany->getServiceTblCompany()->getName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId())
+                                )
+                            )
+                        )
+                    ),
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Mail::useService()->updateMailToCompany(
+                                $this->formAddress()
+                                    ->appendFormButton(new Primary('Änderungen speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblToCompany, $Address, $Type
                             )
                         )
                     )
@@ -351,6 +408,72 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutRow(new LayoutColumn(array(
                         new Danger('Die E-Mail Adresse konnte nicht gefunden werden'),
                         new Redirect('/People/Search/Group')
+                    )))
+                )))
+            );
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param int  $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyToCompany($Id, $Confirm = false)
+    {
+
+        $Stage = new Stage('E-Mail Adresse', 'Löschen');
+        if ($Id) {
+            $tblToCompany = Mail::useService()->getMailToCompanyById($Id);
+            $tblCompany = $tblToCompany->getServiceTblCompany();
+            if (!$Confirm) {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new PersonIcon().' Firma',
+                            $tblCompany->getName(),
+                            Panel::PANEL_TYPE_SUCCESS,
+                            new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                array('Id' => $tblCompany->getId())
+                            )
+                        ),
+                        new Panel(new Question().' Diese E-Mail Adresse wirklich löschen?', array(
+                            $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription(),
+                            $tblToCompany->getTblMail()->getAddress(),
+                            new Muted(new Small($tblToCompany->getRemark()))
+                        ),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Corporation/Company/Mail/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            .new Standard(
+                                'Nein', '/Corporation/Company', new Disable(),
+                                array('Id' => $tblCompany->getId())
+                            )
+                        )
+                    )))))
+                );
+            } else {
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            ( Mail::useService()->removeMailToCompany($tblToCompany)
+                                ? new Success('Die E-Mail Adresse wurde gelöscht')
+                                : new Danger('Die E-Mail Adresse konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()))
+                        )))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger('Die E-Mail Adresse konnte nicht gefunden werden'),
+                        new Redirect('/Corporation/Search/Group')
                     )))
                 )))
             );

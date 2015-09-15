@@ -6,6 +6,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -81,23 +82,44 @@ class Feature
                 break;
         }
 
-        return (string)new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn('', 1),
-                    new LayoutColumn(array(
-                        new Header(( $this->isDone === true
-                            ? new Success(new TileSmall().' Feature: '.$this->Name)
-                            : ( $this->isDone === false
+        if ($this->isDone === true) {
+            $Toggle = uniqid();
+            return (string)new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn('', 1),
+                        new LayoutColumn(array(
+                            new Header(new Success(new TileSmall().' Feature: '.$this->Name), $this->Description),
+                        ), 10),
+                        new LayoutColumn(( !empty( $this->Task ) ? new PullRight(
+                            '<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#'
+                            .$Toggle.'">'.new Ok().' Fertig'.'</button>'
+                        ) : '' ), 1)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn('', 1),
+                        new LayoutColumn('<hr/>', 11)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            '<span id="'.$Toggle.'" class="collapse">'.implode('', $this->Task).'</span>'
+                        )
+                    ),
+                ))
+            );
+        } else {
+            return (string)new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn('', 1),
+                        new LayoutColumn(array(
+                            new Header(( $this->isDone === false
                                 ? new Danger(new TileSmall().' Feature: '.$this->Name)
                                 : new Muted(new TileSmall().' Feature: '.$this->Name)
-                            )
-                        ), $this->Description)
-                    ), 6),
-                    new LayoutColumn(array(
-                        new Small($this->isDone === true
-                            ? new Success(new Ok().' Fertig')
-                            : ( $this->isDone === false
+                            ), $this->Description)
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Small(( $this->isDone === false
                                 ? new Danger(
                                     new CogWheels().' In Entwicklung '
                                     .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
@@ -106,30 +128,21 @@ class Feature
                                     new Disable().' In Planung '
                                     .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
                                 )
-                            )
-                        )
-                        .( $this->isDone === true
-                            ? $this->Status
-                            : $this->Status
-                        )
-                    ), 5)
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn('', 1),
-                    new LayoutColumn(
-                        '<hr/>'
-                        , 11)
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        ( $this->isDone !== true
-                            ? $this->Task
-                            : $this->Task
-                        )
-                    )
-                )),
-            ))
-        );
+
+                            ))
+                            .$this->Status
+                        ), 5)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn('', 1),
+                        new LayoutColumn('<hr/>', 11)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn($this->Task)
+                    )),
+                ))
+            );
+        }
     }
 
     /**
@@ -142,17 +155,6 @@ class Feature
         if (!empty( $this->Task )) {
             /** @var Task $Task */
             foreach ((array)$this->Task as $Task) {
-//                switch ($Task->getStatus()->getState()) {
-//                    case Status::STATE_PLAN:
-//                        $this->Status->addPlan();
-//                        break;
-//                    case Status::STATE_WORK:
-//                        $this->Status->addWork();
-//                        break;
-//                    case Status::STATE_DONE:
-//                        $this->Status->addDone();
-//                        break;
-//                }
                 $this->Status->addPlan($Task->getStatus()->getPlan());
                 $this->Status->addWork($Task->getStatus()->getWork());
                 $this->Status->addDone($Task->getStatus()->getDone());

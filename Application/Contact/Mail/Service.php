@@ -273,6 +273,59 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param TblToCompany   $tblToCompany
+     * @param string         $Address
+     * @param array          $Type
+     *
+     * @return IFormInterface|string
+     */
+    public function updateMailToCompany(
+        IFormInterface $Form,
+        TblToCompany $tblToCompany,
+        $Address,
+        $Type
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Address) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        $Address = filter_var($Address, FILTER_VALIDATE_EMAIL);
+
+        if (isset( $Address ) && empty( $Address )) {
+            $Form->setError('Address', 'Bitte geben Sie eine gültige E-Mail Adresse an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblMail = (new Data($this->Binding))->createMail($Address);
+            // Remove current
+            (new Data($this->Binding))->removeMailToCompany($tblToCompany);
+            // Add new
+            if ((new Data($this->Binding))->addMailToCompany($tblToCompany->getServiceTblCompany(), $tblMail,
+                $tblType, $Type['Remark'])
+            ) {
+                return new Success('Die E-Mail Adresse wurde erfolgreich geändert')
+                .new Redirect('/Corporation/Company', 1,
+                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+            } else {
+                return new Danger('Die E-Mail Adresse konnte nicht geändert werden')
+                .new Redirect('/Corporation/Company', 10,
+                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+            }
+        }
+        return $Form;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblToPerson

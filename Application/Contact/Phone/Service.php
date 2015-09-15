@@ -267,6 +267,57 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param TblToCompany   $tblToCompany
+     * @param string         $Number
+     * @param array          $Type
+     *
+     * @return IFormInterface|string
+     */
+    public function updatePhoneToCompany(
+        IFormInterface $Form,
+        TblToCompany $tblToCompany,
+        $Number,
+        $Type
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Number) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Number ) && empty( $Number )) {
+            $Form->setError('Number', 'Bitte geben Sie eine gültige Telefonnummer an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblPhone = (new Data($this->Binding))->createPhone($Number);
+            // Remove current
+            (new Data($this->Binding))->removePhoneToCompany($tblToCompany);
+            // Add new
+            if ((new Data($this->Binding))->addPhoneToCompany($tblToCompany->getServiceTblCompany(), $tblPhone,
+                $tblType, $Type['Remark'])
+            ) {
+                return new Success('Die Telefonnummer wurde erfolgreich geändert')
+                .new Redirect('/Corporation/Company', 1,
+                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+            } else {
+                return new Danger('Die Telefonnummer konnte nicht geändert werden')
+                .new Redirect('/Corporation/Company', 10,
+                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+            }
+        }
+        return $Form;
+    }
+
+    /**
      * @param integer $Id
      *
      * @return bool|TblToPerson

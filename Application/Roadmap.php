@@ -72,11 +72,11 @@ class Roadmap extends Extension
             ->createDuty('Sorgerechtdaten');
         $Feature->createTask('Adressdaten')
             ->createDuty('Adresse hinzufügen', true)
-            ->createDuty('Adresse bearbeiten')
+            ->createDuty('Adresse bearbeiten', false)
             ->createDuty('Adresse löschen', true);
         $Feature->createTask('Kontaktdaten')
             ->createDuty('Telefonnummer hinzufügen', true)
-            ->createDuty('Telefonnummer bearbeiten')
+            ->createDuty('Telefonnummer bearbeiten', true)
             ->createDuty('Telefonnummer löschen', true)
             ->createDuty('E-Mail Adresse hinzufügen', true)
             ->createDuty('E-Mail Adresse bearbeiten', true)
@@ -114,11 +114,11 @@ class Roadmap extends Extension
             ->createDuty('Adresse löschen', true);
         $Feature->createTask('Kontaktdaten')
             ->createDuty('Telefonnummer hinzufügen', true)
-            ->createDuty('Telefonnummer bearbeiten')
-            ->createDuty('Telefonnummer löschen', false)
+            ->createDuty('Telefonnummer bearbeiten', true)
+            ->createDuty('Telefonnummer löschen', true)
             ->createDuty('E-Mail Adresse hinzufügen', true)
-            ->createDuty('E-Mail Adresse bearbeiten', false)
-            ->createDuty('E-Mail Adresse löschen', false);
+            ->createDuty('E-Mail Adresse bearbeiten', true)
+            ->createDuty('E-Mail Adresse löschen', true);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
@@ -184,6 +184,19 @@ class Roadmap extends Extension
         $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)', null);
 
         $Category = $Release->createCategory('Fehlerkorrekturen');
+        $Feature = $Category->createFeature('Cache System');
+        $Task = $Feature->createTask('MemcacheD');
+        $Task->createDuty('Konfiguration');
+        $Task->createDuty('Performance');
+        $Task = $Feature->createTask('ApcU');
+        $Task->createDuty('Konfiguration');
+        $Feature = $Category->createFeature('Database System');
+        $Task = $Feature->createTask('MySql');
+        $Task->createDuty('Konfiguration');
+        $Task->createDuty('Performance');
+        $Feature = $Category->createFeature('Code Style');
+        $Task = $Feature->createTask('PSR-1/PSR2');
+        $Feature = $Category->createFeature('Code Performance');
         $Category = $Release->createCategory('Auswertungen')
             ->createFeature('Festdefinierte Auswertungen')
             ->createTask('für ESZC');
