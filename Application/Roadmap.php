@@ -44,7 +44,9 @@ class Roadmap extends Extension
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
 
-        $Category->createFeature('Dashboard');
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: People')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
         $Feature = $Category->createFeature('Suche');
         $Feature->createTask('Filterung über Gruppen', '', true);
@@ -89,7 +91,9 @@ class Roadmap extends Extension
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
 
-        $Category->createFeature('Dashboard');
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: Corporation')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
         $Feature = $Category->createFeature('Suche');
         $Feature->createTask('Filterung über Gruppen', '', true);
@@ -125,19 +129,11 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Fächer')
-            ->createDuty('Vordefinierte Fächer in Datenbank', true)
-            ->createDuty('Fach hinzufügen')
-            ->createDuty('Fach bearbeiten')
-            ->createDuty('Fach löschen');
+            ->createDuty('Vordefinierte Fächer in Datenbank', true);
         $Feature->createTask('Fach-Kategorie')
-            ->createDuty('Vordefinierte Kategorien in Datenbank', true)
-            ->createDuty('Kategorie hinzufügen')
-            ->createDuty('Kategorie bearbeiten')
-            ->createDuty('Kategorie löschen');
+            ->createDuty('Vordefinierte Kategorien in Datenbank', true);
         $Feature->createTask('Fach-Kategorie zuweisen')
-            ->createDuty('Vordefinierte Verknüpfungen in Datenbank', true)
-            ->createDuty('Verknüpfung hinzufügen')
-            ->createDuty('Verknüpfung löschen');
+            ->createDuty('Vordefinierte Verknüpfungen in Datenbank', true);
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
 
@@ -169,7 +165,24 @@ class Roadmap extends Extension
         // Bildung
         $Category = $Release->createCategory('Bildung');
 
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: Education')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+        $Feature->createTask('Board: Lesson')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+
         $Feature = $Category->createFeature('Unterricht');
+        $Feature->createTask('Fächer')
+            ->createDuty('Fach hinzufügen')
+            ->createDuty('Fach bearbeiten')
+            ->createDuty('Fach löschen');
+        $Feature->createTask('Fach-Kategorie zuweisen')
+            ->createDuty('Kategorie hinzufügen')
+            ->createDuty('Kategorie bearbeiten')
+            ->createDuty('Kategorie löschen');
+        $Feature->createTask('Fach-Kategorie zuweisen')
+            ->createDuty('Verknüpfung hinzufügen')
+            ->createDuty('Verknüpfung löschen');
         $Feature->createTask('Schuljahr');
         $Feature->createTask('Klassen');
     }
