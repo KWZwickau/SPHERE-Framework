@@ -47,6 +47,11 @@ class Test implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendPictureDelete'
             )->setParameterDefault('Id', null)
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Upload/Delete/Check',
+                __NAMESPACE__.'\Frontend::frontendPictureDeleteCheck'
+            )->setParameterDefault('Id', null)
+        );
     }
 
     /**
@@ -75,7 +80,7 @@ class Test implements IModuleInterface
     public function frontendProtocol()
     {
 
-        $Stage = new Stage('Protokoll', 'Aktivit�ten');
+        $Stage = new Stage('Protokoll', 'Aktivit?ten');
 
         $ProtocolList = Protocol::useService()->getProtocolAll();
 //        foreach($ProtocolList as $Key => &$Protocol)

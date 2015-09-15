@@ -3,6 +3,7 @@ namespace SPHERE\Application\Api\Test;
 
 use MOC\V\Component\Template\Template;
 use SPHERE\Application\Platform\System\Test\Test as App;
+use SPHERE\Application\Platform\System\Test\Test;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
@@ -70,31 +71,36 @@ class Frontend implements IFrontendInterface
         return ob_get_clean();
     }
 
-    public function ShowThumbnail($Id = null)
+    public function ShowThumbnail($Id = null, $Option = false)
     {
 
-        $Auth = new Authenticator(new Get());
+        if ($Id === null) {
+            return false;
+        }
+        $Picture = Test::useService()->getTestPictureById($Id);
+        $Name = $Picture->getName();
 
+        $Auth = new Authenticator(new Get());
         $Query = http_build_query($Auth->getAuthenticator()->createSignature(array('Id' => $Id),
             '/Api/Test/ShowImage'));
-        $Button = new Standard('','/Platform/System/Test/Upload/Delete',new Remove(),array( 'Id' => $Id ), 'Löschen');
+        $Button = null;
+        if ($Option) {
+            $Button = new Standard('', '/Platform/System/Test/Upload/Delete/Check', new Remove(), array('Id' => $Id),
+                'Löschen');
+        }
 
         return Template::getTwigTemplateString( '<div class="thumbnail">
             <img class="img-responsive" src="/Api/Test/ShowImage?'.$Query.'">
             <div class="caption text-center">
-                Name
+            {{ Name }}
             </div>
             <div class="text-right" >
             {{ Button }}
             </div>
-             <!--
-                   <h4>Thumbnail</h4>
-                    <p>{{ Description }}</p>
-                    <p>
-                       {{ Button }}
-                    </p>
-              -->
-        </div>' )->setVariable( 'Button', $Button )->getContent();
+        </div>')
+            ->setVariable('Button', $Button)
+            ->setVariable('Name', $Name)
+            ->getContent();
     }
 
     public function ShowFile($Id = null)

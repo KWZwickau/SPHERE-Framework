@@ -23,6 +23,8 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Badge;
@@ -287,7 +289,7 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblTestPicture $Picture */
             foreach ((array)$PictureList as $Index => $Picture) {
                 $PictureList[$Index] = new LayoutColumn(array(
-                    (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId())
+                    (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Picture->getId(), true)
                 ), 3);
             }
         } else {
@@ -314,6 +316,35 @@ class Frontend extends Extension implements IFrontendInterface
         }
         return new Layout(new LayoutGroup($LayoutRowList));
 
+    }
+
+    public function frontendPictureDeleteCheck($Id)
+    {
+
+        $Stage = new Stage();
+        $Stage->setTitle('Bild');
+        $Stage->setDescription('wirklich entfernen?');
+
+        $Stage->setContent(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                            new LayoutColumn(array(
+                                (new \SPHERE\Application\Api\Test\Frontend())->ShowThumbnail($Id)
+                            ), 4),
+                            new LayoutColumn(array(
+                                new \SPHERE\Common\Frontend\Message\Repository\Warning('Soll das Bild wirklich gelöscht werden?')
+                            ,
+                                new Standard('Löschen', '/Platform/System/Test/Upload/Delete', new Ok(),
+                                    array('Id' => $Id))
+                            ,
+                                new Standard('Abbrechen', '/Platform/System/Test/Upload', new Disable())
+                            ), 8)
+                        )
+                    ))
+            )
+        );
+        return $Stage;
     }
 
     public function frontendPictureDelete($Id)

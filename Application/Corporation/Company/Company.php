@@ -46,6 +46,15 @@ class Company implements IApplicationInterface, IModuleInterface
             ->setParameterDefault('Type', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Address/Edit', 'SPHERE\Application\Contact\Address\Frontend::frontendUpdateToCompany'
+        )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('Street', null)
+            ->setParameterDefault('City', null)
+            ->setParameterDefault('State', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Address/Destroy', 'SPHERE\Application\Contact\Address\Frontend::frontendDestroyToCompany'
         )
             ->setParameterDefault('Id', null)
@@ -61,6 +70,7 @@ class Company implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Mail/Edit', 'SPHERE\Application\Contact\Mail\Frontend::frontendUpdateToCompany'
         )
+            ->setParameterDefault('Id', null)
             ->setParameterDefault('Address', null)
             ->setParameterDefault('Type', null)
         );
@@ -80,6 +90,7 @@ class Company implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Phone/Edit', 'SPHERE\Application\Contact\Phone\Frontend::frontendUpdateToCompany'
         )
+            ->setParameterDefault('Id', null)
             ->setParameterDefault('Number', null)
             ->setParameterDefault('Type', null)
         );

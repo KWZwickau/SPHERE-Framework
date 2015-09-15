@@ -72,7 +72,7 @@ class Roadmap extends Extension
             ->createDuty('Sorgerechtdaten');
         $Feature->createTask('Adressdaten')
             ->createDuty('Adresse hinzufügen', true)
-            ->createDuty('Adresse bearbeiten', false)
+            ->createDuty('Adresse bearbeiten', true)
             ->createDuty('Adresse löschen', true);
         $Feature->createTask('Kontaktdaten')
             ->createDuty('Telefonnummer hinzufügen', true)
@@ -110,7 +110,7 @@ class Roadmap extends Extension
             ->createDuty('Gruppen', true);
         $Feature->createTask('Adressdaten')
             ->createDuty('Adresse hinzufügen', true)
-            ->createDuty('Adresse bearbeiten')
+            ->createDuty('Adresse bearbeiten', true)
             ->createDuty('Adresse löschen', true);
         $Feature->createTask('Kontaktdaten')
             ->createDuty('Telefonnummer hinzufügen', true)

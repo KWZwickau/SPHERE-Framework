@@ -228,6 +228,180 @@ class Service implements IServiceInterface
 
     /**
      * @param IFormInterface $Form
+     * @param TblToPerson    $tblToPerson
+     * @param array          $Street
+     * @param array          $City
+     * @param int            $State
+     * @param array          $Type
+     *
+     * @return IFormInterface|string
+     */
+    public function updateAddressToPerson(
+        IFormInterface $Form,
+        TblToPerson $tblToPerson,
+        $Street,
+        $City,
+        $State,
+        $Type
+    )
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Street
+            && null === $City
+            && null === $State
+        ) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
+            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Number]');
+        }
+        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
+            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Number]');
+        }
+
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Code]');
+        }
+        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
+            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Name]');
+        }
+
+        if (!$Error) {
+
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblState = $this->getStateById($State);
+            $tblCity = (new Data($this->Binding))->createCity(
+                $City['Code'], $City['Name'], $City['District']
+            );
+            $tblAddress = (new Data($this->Binding))->createAddress(
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
+            );
+            // Remove current
+            (new Data($this->Binding))->removeAddressToPerson($tblToPerson);
+            // Add new
+            if ((new Data($this->Binding))->addAddressToPerson($tblToPerson->getServiceTblPerson(), $tblAddress,
+                $tblType,
+                $Type['Remark'])
+            ) {
+                return new Success('Die Adresse wurde erfolgreich geändert')
+                .new Redirect('/People/Person', 1,
+                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+            } else {
+                return new Danger('Die Adresse konnte nicht geändert werden')
+                .new Redirect('/People/Person', 10,
+                    array('Id' => $tblToPerson->getServiceTblPerson()->getId()));
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblToCompany   $tblToCompany
+     * @param array          $Street
+     * @param array          $City
+     * @param int            $State
+     * @param array          $Type
+     *
+     * @return IFormInterface|string
+     */
+    public function updateAddressToCompany(
+        IFormInterface $Form,
+        TblToCompany $tblToCompany,
+        $Street,
+        $City,
+        $State,
+        $Type
+    )
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Street
+            && null === $City
+            && null === $State
+        ) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Street['Name'] ) && empty( $Street['Name'] )) {
+            $Form->setError('Street[Name]', 'Bitte geben Sie eine Strasse an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Number]');
+        }
+        if (isset( $Street['Number'] ) && empty( $Street['Number'] )) {
+            $Form->setError('Street[Number]', 'Bitte geben Sie eine Hausnummer an');
+            $Error = true;
+        } else {
+            $Form->setSuccess('Street[Number]');
+        }
+
+        if (isset( $City['Code'] ) && !preg_match('!^[0-9]{5}$!is', $City['Code'])) {
+            $Form->setError('City[Code]', 'Bitte geben Sie eine fünfstellige Postleitzahl ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Code]');
+        }
+        if (isset( $City['Name'] ) && empty( $City['Name'] )) {
+            $Form->setError('City[Name]', 'Bitte geben Sie einen Namen ein');
+            $Error = true;
+        } else {
+            $Form->setSuccess('City[Name]');
+        }
+
+        if (!$Error) {
+
+            $tblType = $this->getTypeById($Type['Type']);
+            $tblState = $this->getStateById($State);
+            $tblCity = (new Data($this->Binding))->createCity(
+                $City['Code'], $City['Name'], $City['District']
+            );
+            $tblAddress = (new Data($this->Binding))->createAddress(
+                $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
+            );
+            // Remove current
+            (new Data($this->Binding))->removeAddressToCompany($tblToCompany);
+            // Add new
+            if ((new Data($this->Binding))->addAddressToCompany($tblToCompany->getServiceTblCompany(), $tblAddress,
+                $tblType,
+                $Type['Remark'])
+            ) {
+                return new Success('Die Adresse wurde erfolgreich geändert')
+                .new Redirect('/Corporation/Company', 1,
+                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+            } else {
+                return new Danger('Die Adresse konnte nicht geändert werden')
+                .new Redirect('/Corporation/Company', 10,
+                    array('Id' => $tblToCompany->getServiceTblCompany()->getId()));
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param IFormInterface $Form
      * @param TblCompany     $tblCompany
      * @param array          $Street
      * @param array          $City

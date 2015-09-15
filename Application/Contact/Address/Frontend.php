@@ -42,13 +42,14 @@ use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\Contact\Address
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -116,10 +117,10 @@ class Frontend implements IFrontendInterface
             new FormGroup(array(
                 new FormRow(array(
                     new FormColumn(
-                        new Panel('Straße', array(
+                        new Panel('Anschrift', array(
                             new SelectBox('Type[Type]', 'Typ', array('{{ Name }} {{ Description }}' => $tblType),
                                 new TileBig()),
-                            new AutoCompleter('Street[Name]', 'Name', 'Name',
+                            new AutoCompleter('Street[Name]', 'Straße', 'Straße',
                                 array('StreetName' => $tblAddress), new MapMarker()
                             ),
                             new TextField('Street[Number]', 'Hausnummer', 'Hausnummer', new MapMarker())
@@ -202,21 +203,127 @@ class Frontend implements IFrontendInterface
     }
 
     /**
+     * @param int   $Id
+     * @param array $Street
+     * @param array $City
+     * @param int   $State
+     * @param array $Type
+     *
      * @return Stage
      */
-    public function frontendUpdate()
+    public function frontendUpdateToPerson($Id, $Street, $City, $State, $Type)
     {
 
         $Stage = new Stage('Adresse', 'Bearbeiten');
+        $Stage->setMessage('Die Adresse der gewählten Person ändern');
+
+        $tblToPerson = Address::useService()->getAddressToPersonById($Id);
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Address'] )) {
+            $Global->POST['Type']['Type'] = $tblToPerson->getTblType()->getId();
+            $Global->POST['Type']['Remark'] = $tblToPerson->getRemark();
+            $Global->POST['Street']['Name'] = $tblToPerson->getTblAddress()->getStreetName();
+            $Global->POST['Street']['Number'] = $tblToPerson->getTblAddress()->getStreetNumber();
+            $Global->POST['City']['Code'] = $tblToPerson->getTblAddress()->getTblCity()->getCode();
+            $Global->POST['City']['Name'] = $tblToPerson->getTblAddress()->getTblCity()->getName();
+            $Global->POST['City']['District'] = $tblToPerson->getTblAddress()->getTblCity()->getDistrict();
+            $Global->POST['State'] = $tblToPerson->getTblAddress()->getTblState()->getId();
+            $Global->savePost();
+        }
 
         $Stage->setContent(
-            $this->formAddress()
-                ->appendFormButton(new Primary('Änderungen speichern'))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(new PersonIcon().' Person',
+                                $tblToPerson->getServiceTblPerson()->getFullName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard('Zurück zur Person', '/People/Person', new ChevronLeft(),
+                                    array('Id' => $tblToPerson->getServiceTblPerson()->getId())
+                                )
+                            )
+                        )
+                    ),
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Address::useService()->updateAddressToPerson(
+                                $this->formAddress()
+                                    ->appendFormButton(new Primary('Änderungen speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblToPerson, $Street, $City, $State, $Type
+                            )
+                        )
+                    )
+                )),
+            ))
         );
-
         return $Stage;
+    }
 
+    /**
+     * @param int   $Id
+     * @param array $Street
+     * @param array $City
+     * @param int   $State
+     * @param array $Type
+     *
+     * @return Stage
+     */
+    public function frontendUpdateToCompany($Id, $Street, $City, $State, $Type)
+    {
+
+        $Stage = new Stage('Adresse', 'Bearbeiten');
+        $Stage->setMessage('Die Adresse der gewählten Firma ändern');
+
+        $tblToCompany = Address::useService()->getAddressToCompanyById($Id);
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Address'] )) {
+            $Global->POST['Type']['Type'] = $tblToCompany->getTblType()->getId();
+            $Global->POST['Type']['Remark'] = $tblToCompany->getRemark();
+            $Global->POST['Street']['Name'] = $tblToCompany->getTblAddress()->getStreetName();
+            $Global->POST['Street']['Number'] = $tblToCompany->getTblAddress()->getStreetNumber();
+            $Global->POST['City']['Code'] = $tblToCompany->getTblAddress()->getTblCity()->getCode();
+            $Global->POST['City']['Name'] = $tblToCompany->getTblAddress()->getTblCity()->getName();
+            $Global->POST['City']['District'] = $tblToCompany->getTblAddress()->getTblCity()->getDistrict();
+            $Global->POST['State'] = $tblToCompany->getTblAddress()->getTblState()->getId();
+            $Global->savePost();
+        }
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel(new PersonIcon().' Firma',
+                                $tblToCompany->getServiceTblCompany()->getName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard('Zurück zur Firma', '/Corporation/Company', new ChevronLeft(),
+                                    array('Id' => $tblToCompany->getServiceTblCompany()->getId())
+                                )
+                            )
+                        )
+                    ),
+                )),
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Address::useService()->updateAddressToCompany(
+                                $this->formAddress()
+                                    ->appendFormButton(new Primary('Änderungen speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblToCompany, $Street, $City, $State, $Type
+                            )
+                        )
+                    )
+                )),
+            ))
+        );
+        return $Stage;
     }
 
     /**
