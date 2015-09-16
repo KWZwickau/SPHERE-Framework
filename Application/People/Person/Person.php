@@ -108,8 +108,39 @@ class Person implements IApplicationInterface, IModuleInterface
             ->setParameterDefault('Type', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Relationship/Edit',
+            'SPHERE\Application\People\Relationship\Frontend::frontendUpdateToPerson'
+        )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('To', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Relationship/Destroy',
             'SPHERE\Application\People\Relationship\Frontend::frontendDestroyToPerson'
+        )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('Confirm', false)
+        );
+        // Corporation: Relationship
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE\Application\Corporation\Company'.'/Relationship/Create',
+            'SPHERE\Application\People\Relationship\Frontend::frontendCreateToCompany'
+        )
+            ->setParameterDefault('To', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE\Application\Corporation\Company'.'/Relationship/Edit',
+            'SPHERE\Application\People\Relationship\Frontend::frontendUpdateToCompany'
+        )
+            ->setParameterDefault('Id', null)
+            ->setParameterDefault('To', null)
+            ->setParameterDefault('Type', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            'SPHERE\Application\Corporation\Company'.'/Relationship/Destroy',
+            'SPHERE\Application\People\Relationship\Frontend::frontendDestroyToCompany'
         )
             ->setParameterDefault('Id', null)
             ->setParameterDefault('Confirm', false)
@@ -136,6 +167,4 @@ class Person implements IApplicationInterface, IModuleInterface
 
         return new Frontend();
     }
-
-
 }

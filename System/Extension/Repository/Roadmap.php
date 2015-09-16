@@ -15,6 +15,9 @@ class Roadmap
     /** @var Release[] $Release */
     private $Release = array();
 
+    /**
+     * @return Stage
+     */
     public function getStage()
     {
 

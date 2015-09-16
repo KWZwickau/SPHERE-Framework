@@ -237,12 +237,18 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ),
                     new LayoutGroup(array(
-                        new LayoutRow(new LayoutColumn(
-                            Relationship::useFrontend()->frontendLayoutPerson($tblPerson)
-                        )),
-                    ), (new Title(new TagList().' Beziehungen', 'zu Personen'))
+                        new LayoutRow(new LayoutColumn(array(
+                            Relationship::useFrontend()->frontendLayoutPerson($tblPerson),
+                            Relationship::useFrontend()->frontendLayoutCompany($tblPerson)
+                        ))),
+                    ), (new Title(new TagList().' Beziehungen', 'zu Personen und Firmen'))
                         ->addButton(
-                            new Standard('Beziehung hinzufügen', '/People/Person/Relationship/Create',
+                            new Standard('Personenbeziehung hinzufügen', '/People/Person/Relationship/Create',
+                                new ChevronDown(), array('Id' => $tblPerson->getId())
+                            )
+                        )
+                        ->addButton(
+                            new Standard('Firmenbeziehung hinzufügen', '/Corporation/Company/Relationship/Create',
                                 new ChevronDown(), array('Id' => $tblPerson->getId())
                             )
                         )

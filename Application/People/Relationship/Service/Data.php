@@ -152,6 +152,20 @@ class Data
     }
 
     /**
+     * @param TblCompany $tblCompany
+     *
+     * @return bool|TblToCompany[]
+     */
+    public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
+            TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
+        ));
+        return ( empty( $EntityList ) ? false : $EntityList );
+    }
+
+    /**
      * @param TblPerson $tblPersonFrom
      * @param TblPerson $tblPersonTo
      * @param TblType   $tblType
@@ -167,13 +181,6 @@ class Data
     ) {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity('TblToPerson')
-            ->findOneBy(array(
-                TblToPerson::SERVICE_TBL_PERSON_FROM => $tblPersonFrom->getId(),
-                TblToPerson::SERVICE_TBL_PERSON_TO   => $tblPersonTo->getId(),
-                TblToPerson::ATT_TBL_TYPE            => $tblType->getId(),
-            ));
-        if (null === $Entity) {
             $Entity = new TblToPerson();
             $Entity->setServiceTblPersonFrom($tblPersonFrom);
             $Entity->setServiceTblPersonTo($tblPersonTo);
@@ -181,7 +188,6 @@ class Data
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
-        }
         return $Entity;
     }
 
@@ -239,13 +245,6 @@ class Data
     ) {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity('TblToCompany')
-            ->findOneBy(array(
-                TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
-                TblToCompany::SERVICE_TBL_PERSON  => $tblPerson->getId(),
-                TblToCompany::ATT_TBL_TYPE        => $tblType->getId(),
-            ));
-        if (null === $Entity) {
             $Entity = new TblToCompany();
             $Entity->setServiceTblCompany($tblCompany);
             $Entity->setServiceTblPerson($tblPerson);
@@ -253,7 +252,6 @@ class Data
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
-        }
         return $Entity;
     }
 }

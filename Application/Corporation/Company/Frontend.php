@@ -7,6 +7,7 @@ use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\RadioBox;
@@ -190,7 +191,12 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ),
-
+                    new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            Relationship::useFrontend()->frontendLayoutCompany($tblCompany)
+                        ))),
+                    ), (new Title(new TagList().' Beziehungen', 'zu Personen'))
+                    ),
                 ))
             );
 

@@ -21,6 +21,8 @@ class Panel extends Extension implements ITemplateInterface
     const PANEL_TYPE_DANGER = 'panel-danger';
     /** @var string $Hash */
     protected $Hash = '';
+    /** @var string $Title */
+    private $Title = '';
     /** @var IBridgeInterface $Template */
     private $Template = null;
     /** @var string|array $Content */
@@ -39,8 +41,9 @@ class Panel extends Extension implements ITemplateInterface
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Panel.twig');
-        $this->Template->setVariable('Title', $Title);
+        $this->Title = $Title;
         $this->Filter = $Filter;
+        $this->Template->setVariable('Title', $this->Title);
         $this->Content = ( is_array($Content) ? array_filter($Content) : $Content );
         $this->Template->setVariable('Filter', $Filter);
         $this->Template->setVariable('Footer', $Footer);
@@ -82,13 +85,22 @@ class Panel extends Extension implements ITemplateInterface
                     $this->Filter = 50;
                 }
                 $this->Template->setVariable('FilterSize', $this->Filter);
+                if( isset($this->getGlobal()->POST['PanelSearch-'.sha1($this->Title)]) ) {
+                    $Value = $this->getGlobal()->POST['PanelSearch-'.sha1($this->Title)];
+                    $this->Template->setVariable('FilterValue', "'".$Value."'");
+                } else {
+                    $Value = '';
+                    $this->Template->setVariable('FilterValue', '');
+                }
                 array_unshift($this->Content,
-                    '<input type="text" class="form-control search" name="PanelSearch" placeholder="Filtern">'
+                    '<input type="text" class="form-control search" name="PanelSearch-'.sha1($this->Title).'" placeholder="Filtern" value="'.$Value.'">'
                     .( $this->Filter < count($this->Content)
                         ? new PullRight(new Label($this->Filter.' von '.count($this->Content).' Einträgen'))
                         : new PullRight(new Label(count($this->Content).' Einträge'))
                     )
                 );
+            } else {
+                $this->Template->setVariable('FilterValue', '');
             }
             $this->Template->setVariable('Content', array_shift($this->Content));
             $this->Template->setVariable('ContentList', $this->Content);
