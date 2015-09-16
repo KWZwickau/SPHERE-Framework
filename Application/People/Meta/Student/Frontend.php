@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -37,6 +38,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
 use SPHERE\Common\Frontend\Icon\Repository\StopSign;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
@@ -65,6 +67,66 @@ class Frontend implements IFrontendInterface
         );
         array_push($tblCompanyAllSchool, new TblCompany());
 
+        // Orientation
+        $tblCategoryOrientation = Subject::useService()->getGroupByIdentifier('ORIENTATION')->getTblCategoryAll();
+        array_walk($tblCategoryOrientation, function (TblCategory &$tblCategory) {
+
+            $tblCategory = $tblCategory->getTblSubjectAll();
+        });
+        $tblSubjectOrientation = array();
+        array_walk_recursive($tblCategoryOrientation, function ($tblSubject) use (&$tblSubjectOrientation) {
+
+            $tblSubjectOrientation[] = $tblSubject;
+        });
+        array_push($tblSubjectOrientation, new TblSubject());
+
+        // Advanced
+        $tblCategoryAdvanced = Subject::useService()->getGroupByIdentifier('ADVANCED')->getTblCategoryAll();
+        array_walk($tblCategoryAdvanced, function (TblCategory &$tblCategory) {
+
+            $tblCategory = $tblCategory->getTblSubjectAll();
+        });
+        $tblSubjectAdvanced = array();
+        array_walk_recursive($tblCategoryAdvanced, function ($tblSubject) use (&$tblSubjectAdvanced) {
+
+            $tblSubjectAdvanced[] = $tblSubject;
+        });
+        array_push($tblSubjectAdvanced, new TblSubject());
+
+        // Profile
+        $tblCategoryProfile = Subject::useService()->getGroupByIdentifier('STANDARD')->getTblCategoryByIdentifier('PROFILE');
+        $tblCategoryProfile = $tblCategoryProfile->getTblSubjectAll();
+        $tblSubjectProfile = array();
+        array_walk_recursive($tblCategoryProfile, function ($tblSubject) use (&$tblSubjectProfile) {
+
+            $tblSubjectProfile[] = $tblSubject;
+        });
+        array_push($tblSubjectProfile, new TblSubject());
+
+        // Religion
+        $tblCategoryReligion = Subject::useService()->getGroupByIdentifier('STANDARD')->getTblCategoryByIdentifier('RELIGION');
+        $tblCategoryReligion = $tblCategoryReligion->getTblSubjectAll();
+        $tblSubjectReligion = array();
+        array_walk_recursive($tblCategoryReligion, function ($tblSubject) use (&$tblSubjectReligion) {
+
+            $tblSubjectReligion[] = $tblSubject;
+        });
+        array_push($tblSubjectReligion, new TblSubject());
+
+        // ForeignLanguage
+        $tblCategoryForeignLanguage = Subject::useService()->getGroupByIdentifier('STANDARD')->getTblCategoryByIdentifier('FOREIGNLANGUAGE');
+        $tblCategoryForeignLanguage = $tblCategoryForeignLanguage->getTblSubjectAll();
+        $tblSubjectForeignLanguage = array();
+        array_walk_recursive($tblCategoryForeignLanguage, function ($tblSubject) use (&$tblSubjectForeignLanguage) {
+
+            $tblSubjectForeignLanguage[] = $tblSubject;
+        });
+        array_push($tblSubjectForeignLanguage, new TblSubject());
+
+
+
+
+
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         array_push($tblSubjectAll, new TblSubject());
 
@@ -72,6 +134,10 @@ class Frontend implements IFrontendInterface
             Subject::useService()->getCategoryById(2)
         );
         array_push($tblSubjectAllForeignLanguage, new TblSubject());
+        $tblSubjectAllReligion = Subject::useService()->getSubjectAllByCategory(
+            Subject::useService()->getCategoryById(6)
+        );
+        array_push($tblSubjectAllReligion, new TblSubject());
 
         $Stage->setMessage(
             new Danger(
@@ -217,27 +283,43 @@ class Frontend implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(array(
                         new Panel('Unterrichtsfächer - Kurse', array(
-                            new SelectBox('Meta[Subject][1]', 'Vertiefungskurs',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                                new Education()),
                             new SelectBox('Meta[Subject][1]', 'Neigungskurs',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                                new Education()),
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectOrientation),
+                                new Education())
+                            .new Listing(array(
+                                'Klasse 8: Philosophie',
+                                'Klasse 9: Mathematik'
+                            ))
+                        ,
+                            new SelectBox('Meta[Subject][1]', 'Vertiefungskurs',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAdvanced),
+                                new Education())
+                            .new Listing(array(
+                                'Klasse 10: Germanistik',
+                                'Klasse 10: Mathematik'
+                            ))
+                        ,
                             new SelectBox('Meta[Subject][1]', 'Profil',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectProfile),
+                                new Education()),
+                            new SelectBox('Meta[Subject][1]', 'Religion',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectReligion),
                                 new Education()),
                         ), Panel::PANEL_TYPE_INFO),
                     ), 4),
                     new FormColumn(array(
                         new Panel('Unterrichtsfächer - Fremdsprachen', array(
                             new SelectBox('Meta[Subject][1]', '1. Fremdsprache',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAllForeignLanguage),
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
                                 new Education()),
                             new SelectBox('Meta[Subject][2]', '2. Fremdsprache',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAllForeignLanguage),
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
                                 new Education()),
                             new SelectBox('Meta[Subject][3]', '3. Fremdsprache',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAllForeignLanguage),
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
+                                new Education()),
+                            new SelectBox('Meta[Subject][4]', '4. Fremdsprache',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
                                 new Education()),
                         ), Panel::PANEL_TYPE_INFO),
                     ), 4),

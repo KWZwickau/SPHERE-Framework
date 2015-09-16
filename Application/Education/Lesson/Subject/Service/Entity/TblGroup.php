@@ -10,10 +10,10 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblCategory")
+ * @Table(name="tblGroup")
  * @Cache(usage="READ_ONLY")
  */
-class TblCategory extends Element
+class TblGroup extends Element
 {
 
     const ATTR_IDENTIFIER = 'Identifier';
@@ -37,6 +37,7 @@ class TblCategory extends Element
      * @Column(type="string")
      */
     protected $Description;
+
 
     /**
      * @return string
@@ -111,11 +112,22 @@ class TblCategory extends Element
     }
 
     /**
-     * @return bool|TblSubject[]
+     * @return bool|TblCategory[]
      */
-    public function getTblSubjectAll()
+    public function getTblCategoryAll()
     {
 
-        return Subject::useService()->getSubjectAllByCategory($this);
+        return Subject::useService()->getCategoryAllByGroup($this);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblCategory
+     */
+    public function getTblCategoryByIdentifier($Identifier)
+    {
+
+        return Subject::useService()->getCategoryByIdentifier($Identifier);
     }
 }

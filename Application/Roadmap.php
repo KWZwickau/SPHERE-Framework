@@ -139,10 +139,15 @@ class Roadmap extends Extension
         $Category = $Release->createCategory('Bildung');
 
         $Feature = $Category->createFeature('Unterricht');
-        $Feature->createTask('Fächer')
-            ->createDuty('Vordefinierte Fächer in Datenbank', true);
-        $Feature->createTask('Fach-Kategorie')
+        $Feature->createTask('Kategorie-Gruppen', 'z.B. Neigungskurs, Vertiefungskurs, Profil, ...')
+            ->createDuty('Fest definierte Gruppen in Datenbank', false);
+        $Feature->createTask('Fach-Kategorie', 'z.B. Fremdsprache, Soziales & Diakonie, Technik')
+            ->createDuty('Fest definierte Kategorien in Datenbank', false)
             ->createDuty('Vordefinierte Kategorien in Datenbank', true);
+        $Feature->createTask('Kategorie-Gruppen/Kategorie zuweisen')
+            ->createDuty('Vordefinierte Verknüpfungen in Datenbank', false);
+        $Feature->createTask('Fächer', 'z.B. Deutsch, Mathematik, Künstlerisches Profil')
+            ->createDuty('Vordefinierte Fächer in Datenbank', true);
         $Feature->createTask('Fach-Kategorie zuweisen')
             ->createDuty('Vordefinierte Verknüpfungen in Datenbank', true);
 

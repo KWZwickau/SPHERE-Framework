@@ -34,15 +34,81 @@ class Setup
     {
 
         $Schema = clone $this->Connection->getSchema();
-        $tblSubject = $this->setTableSubject($Schema);
+        $tblGroup = $this->setTableGroup($Schema);
         $tblCategory = $this->setTableCategory($Schema);
-        $this->setTableMember($Schema, $tblSubject, $tblCategory);
+        $this->setTableGroupCategory($Schema, $tblGroup, $tblCategory);
+        $tblSubject = $this->setTableSubject($Schema);
+        $this->setTableCategorySubject($Schema, $tblCategory, $tblSubject);
         /**
          * Migration & Protocol
          */
         $this->Connection->addProtocol(__CLASS__);
         $this->Connection->setMigration($Schema, $Simulate);
         return $this->Connection->getProtocol($Simulate);
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableGroup(Schema &$Schema)
+    {
+
+        $Table = $this->Connection->createTable($Schema, 'tblGroup');
+        if (!$this->Connection->hasColumn('tblGroup', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->Connection->hasColumn('tblGroup', 'IsLocked')) {
+            $Table->addColumn('IsLocked', 'boolean');
+        }
+        if (!$this->Connection->hasColumn('tblGroup', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->Connection->hasColumn('tblGroup', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     *
+     * @return Table
+     */
+    private function setTableCategory(Schema &$Schema)
+    {
+
+        $Table = $this->Connection->createTable($Schema, 'tblCategory');
+        if (!$this->Connection->hasColumn('tblCategory', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->Connection->hasColumn('tblCategory', 'IsLocked')) {
+            $Table->addColumn('IsLocked', 'boolean');
+        }
+        if (!$this->Connection->hasColumn('tblCategory', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->Connection->hasColumn('tblCategory', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblGroup
+     * @param Table  $tblCategory
+     *
+     * @return Table
+     */
+    private function setTableGroupCategory(Schema &$Schema, Table $tblGroup, Table $tblCategory)
+    {
+
+        $Table = $this->Connection->createTable($Schema, 'tblGroupCategory');
+        $this->Connection->addForeignKey($Table, $tblGroup);
+        $this->Connection->addForeignKey($Table, $tblCategory);
+        return $Table;
     }
 
     /**
@@ -71,38 +137,19 @@ class Setup
 
     /**
      * @param Schema $Schema
-     *
-     * @return Table
-     */
-    private function setTableCategory(Schema &$Schema)
-    {
-
-        $Table = $this->Connection->createTable($Schema, 'tblCategory');
-        if (!$this->Connection->hasColumn('tblCategory', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-        if (!$this->Connection->hasColumn('tblCategory', 'Description')) {
-            $Table->addColumn('Description', 'string');
-        }
-        if (!$this->Connection->hasColumn('tblCategory', 'IsLocked')) {
-            $Table->addColumn('IsLocked', 'boolean');
-        }
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param Table  $tblSubject
      * @param Table  $tblCategory
+     * @param Table  $tblSubject
      *
      * @return Table
      */
-    private function setTableMember(Schema &$Schema, Table $tblSubject, Table $tblCategory)
+    private function setTableCategorySubject(Schema &$Schema, Table $tblCategory, Table $tblSubject)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblMember');
-        $this->Connection->addForeignKey($Table, $tblSubject);
+        $Table = $this->Connection->createTable($Schema, 'tblCategorySubject');
         $this->Connection->addForeignKey($Table, $tblCategory);
+        $this->Connection->addForeignKey($Table, $tblSubject);
         return $Table;
     }
+
+
 }

@@ -10,44 +10,44 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity
- * @Table(name="tblMember")
- * @Cache(usage="NONSTRICT_READ_WRITE")
+ * @Table(name="tblGroupCategory")
+ * @Cache(usage="READ_ONLY")
  */
-class TblMember extends Element
+class TblGroupCategory extends Element
 {
 
-    const ATTR_TBL_SUBJECT = 'tblSubject';
+    const ATTR_TBL_GROUP = 'tblGroup';
     const ATTR_TBL_CATEGORY = 'tblCategory';
 
     /**
      * @Column(type="bigint")
      */
-    protected $tblSubject;
+    protected $tblGroup;
     /**
      * @Column(type="bigint")
      */
     protected $tblCategory;
 
     /**
-     * @return bool|TblSubject
+     * @return bool|TblGroup
      */
-    public function getTblSubject()
+    public function getTblGroup()
     {
 
-        if (null === $this->tblSubject) {
+        if (null === $this->tblGroup) {
             return false;
         } else {
-            return Subject::useService()->getSubjectById($this->tblSubject);
+            return Subject::useService()->getGroupById($this->tblGroup);
         }
     }
 
     /**
-     * @param null|TblSubject $tblSubject
+     * @param null|TblGroup $tblGroup
      */
-    public function setTblSubject(TblSubject $tblSubject = null)
+    public function setTblGroup(TblGroup $tblGroup = null)
     {
 
-        $this->tblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
+        $this->tblGroup = ( null === $tblGroup ? null : $tblGroup->getId() );
     }
 
     /**

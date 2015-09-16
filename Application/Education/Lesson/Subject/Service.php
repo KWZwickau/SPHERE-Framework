@@ -3,7 +3,8 @@ namespace SPHERE\Application\Education\Lesson\Subject;
 
 use SPHERE\Application\Education\Lesson\Subject\Service\Data;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblMember;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategorySubject;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Setup;
 use SPHERE\Application\IServiceInterface;
@@ -88,12 +89,24 @@ class Service implements IServiceInterface
      * @param TblCategory $tblCategory
      * @param TblSubject  $tblSubject
      *
-     * @return TblMember
+     * @return TblCategorySubject
      */
     public function addCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
     {
 
         return (new Data($this->Binding))->addCategorySubject($tblCategory, $tblSubject);
+    }
+
+    /**
+     *
+     * @param TblGroup $tblGroup
+     *
+     * @return bool|TblCategory[]
+     */
+    public function getCategoryAllByGroup(TblGroup $tblGroup)
+    {
+
+        return (new Data($this->Binding))->getCategoryAllByGroup($tblGroup);
     }
 
     /**
@@ -111,12 +124,45 @@ class Service implements IServiceInterface
     /**
      * @param int $Id
      *
+     * @return bool|TblGroup
+     */
+    public function getGroupById($Id)
+    {
+
+        return (new Data($this->Binding))->getGroupById($Id);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByIdentifier($Identifier)
+    {
+
+        return (new Data($this->Binding))->getGroupByIdentifier($Identifier);
+    }
+
+    /**
+     * @param int $Id
+     *
      * @return bool|TblCategory
      */
     public function getCategoryById($Id)
     {
 
         return (new Data($this->Binding))->getCategoryById($Id);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblCategory
+     */
+    public function getCategoryByIdentifier($Identifier)
+    {
+
+        return (new Data($this->Binding))->getCategoryByIdentifier($Identifier);
     }
 
     /**
