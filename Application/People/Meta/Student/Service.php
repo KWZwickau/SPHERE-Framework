@@ -8,6 +8,11 @@ use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\People\Meta\Student
+ */
 class Service implements IServiceInterface
 {
 

@@ -9,6 +9,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class ScoreType
+ *
+ * @package SPHERE\Application\Education\Graduation\ScoreType
+ */
 class ScoreType implements IModuleInterface
 {
 

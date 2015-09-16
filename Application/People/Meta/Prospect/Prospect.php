@@ -5,6 +5,11 @@ use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\System\Database\Link\Identifier;
 
+/**
+ * Class Prospect
+ *
+ * @package SPHERE\Application\People\Meta\Prospect
+ */
 class Prospect implements IModuleInterface
 {
 

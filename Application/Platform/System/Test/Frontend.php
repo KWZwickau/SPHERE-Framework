@@ -318,6 +318,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     }
 
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
     public function frontendPictureDeleteCheck($Id)
     {
 
@@ -347,6 +352,11 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
     public function frontendPictureDelete($Id)
     {
 

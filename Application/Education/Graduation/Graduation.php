@@ -8,6 +8,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Graduation
+ *
+ * @package SPHERE\Application\Education\Graduation
+ */
 class Graduation implements IApplicationInterface
 {
 

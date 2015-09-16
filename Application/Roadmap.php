@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application;
 
+use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Roadmap as RoadmapExtension;
@@ -43,6 +44,8 @@ class Roadmap extends Extension
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
+        $Category->createFeature('Person hinzufügen','',true);
+        $Category->createFeature('Person bearbeiten','',true);
 
         $Feature = $Category->createFeature('Dashboards');
         $Feature->createTask('Board: People')
@@ -57,7 +60,8 @@ class Roadmap extends Extension
             ->createDuty('Alle (Personendaten)', true)
             ->createDuty('Interessent', true)
             ->createDuty('Schüler', true)
-            ->createDuty('Sorgeberechtigt', true);
+            ->createDuty('Sorgeberechtigt', true)
+            ->createDuty('Mitarbeiter', true);
 
         $Feature->createTask('Frei definierbare Gruppen', false)
             ->createDuty('Gruppen hinzufügen', true)
@@ -67,7 +71,7 @@ class Roadmap extends Extension
         $Feature->createTask('Grunddaten', 'Personname und Gruppenzugehörigkeit')
             ->createDuty('Name', true)
             ->createDuty('Gruppen', true);
-        $Feature->createTask('Informationen')
+        $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Personendaten', true)
             ->createDuty('Interessent', true)
             ->createDuty('Schülerakte', false)
@@ -84,12 +88,17 @@ class Roadmap extends Extension
             ->createDuty('E-Mail Adresse bearbeiten', true)
             ->createDuty('E-Mail Adresse löschen', true);
         $Feature->createTask('Beziehungen')
-            ->createDuty('Beziehung hinzufügen', true)
-            ->createDuty('Beziehung bearbeiten')
-            ->createDuty('Beziehung löschen', true);
+            ->createDuty('Personenbeziehung hinzufügen', true)
+            ->createDuty('Personenbeziehung bearbeiten',true)
+            ->createDuty('Personenbeziehung löschen', true)
+            ->createDuty('Firmenbeziehung hinzufügen', true)
+            ->createDuty('Firmenbeziehung bearbeiten',true)
+            ->createDuty('Firmenbeziehung löschen', true);
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
+        $Category->createFeature('Firma hinzufügen','',true);
+        $Category->createFeature('Firma bearbeiten','',true);
 
         $Feature = $Category->createFeature('Dashboards');
         $Feature->createTask('Board: Corporation')
@@ -123,6 +132,8 @@ class Roadmap extends Extension
             ->createDuty('E-Mail Adresse hinzufügen', true)
             ->createDuty('E-Mail Adresse bearbeiten', true)
             ->createDuty('E-Mail Adresse löschen', true);
+        $Feature->createTask('Beziehungen')
+            ->createDuty('Erfolgt über Personenverwaltung', true);
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
@@ -134,11 +145,14 @@ class Roadmap extends Extension
             ->createDuty('Vordefinierte Kategorien in Datenbank', true);
         $Feature->createTask('Fach-Kategorie zuweisen')
             ->createDuty('Vordefinierte Verknüpfungen in Datenbank', true);
+
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
 
-        $Feature = $Category->createFeature('Mandant');
-        $Feature->createTask('Schulen');
+        $Feature = $Category->createFeature('Mandant', new External( 'siehe EGE', 'http://www.ege-annaberg.de/node/416') );
+        $Feature->createTask('Schulen')
+            ->createDuty('Eigene Schulen aus Firmen wählen')
+            ->createDuty('Zugehörige Schulform wählen');
         $Feature->createTask('Schulträger');
         $Feature->createTask('Förderverein');
 
@@ -196,6 +210,15 @@ class Roadmap extends Extension
 
         $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)', null);
 
+        // Personenverwaltung
+        $Category = $Release->createCategory('Personenverwaltung');
+        $Category->createFeature('Person löschen');
+
+        // Firmenverwaltung
+        $Category = $Release->createCategory('Firmenverwaltung');
+        $Category->createFeature('Firma löschen');
+
+        // Fehlerbehebung
         $Category = $Release->createCategory('Fehlerkorrekturen');
         $Feature = $Category->createFeature('Cache System');
         $Task = $Feature->createTask('MemcacheD');
@@ -208,9 +231,11 @@ class Roadmap extends Extension
         $Task->createDuty('Konfiguration');
         $Task->createDuty('Performance');
         $Feature = $Category->createFeature('Code Style');
-        $Task = $Feature->createTask('PSR-1/PSR2');
-        $Feature = $Category->createFeature('Code Performance');
-        $Category = $Release->createCategory('Auswertungen')
+        $Feature->createTask('PSR-1/PSR2');
+        $Category->createFeature('Code Performance');
+
+        // Auswertungen
+        $Release->createCategory('Auswertungen')
             ->createFeature('Festdefinierte Auswertungen')
             ->createTask('für ESZC');
     }

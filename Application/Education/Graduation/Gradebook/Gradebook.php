@@ -7,6 +7,11 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class Gradebook
+ *
+ * @package SPHERE\Application\Education\Graduation\Gradebook
+ */
 class Gradebook implements IModuleInterface
 {
 

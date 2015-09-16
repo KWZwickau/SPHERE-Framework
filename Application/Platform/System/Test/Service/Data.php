@@ -70,6 +70,11 @@ class Data extends DataCacheable
         return $Entity;
     }
 
+    /**
+     * @param TblTestPicture $tblTestPicture
+     *
+     * @return bool
+     */
     public function removeTestPicture(TblTestPicture $tblTestPicture)
     {
 

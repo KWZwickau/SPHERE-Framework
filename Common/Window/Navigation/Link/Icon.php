@@ -15,6 +15,9 @@ class Icon extends Extension
     /** @var IIconInterface $Value */
     private $Value = null;
 
+    /**
+     * @param IIconInterface $Value
+     */
     public function __construct(IIconInterface $Value)
     {
 

@@ -16,6 +16,12 @@ use SPHERE\System\Extension\Repository\Debugger;
 class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service
 {
 
+    /**
+     * @param IFormInterface $Form
+     * @param array          $Account
+     *
+     * @return IFormInterface
+     */
     public function createAccount(IFormInterface $Form, $Account)
     {
 

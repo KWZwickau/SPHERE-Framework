@@ -16,6 +16,11 @@ class Name extends Extension
     /** @var string $Value */
     private $Value = '';
 
+    /**
+     * @param string $Value
+     *
+     * @throws \Exception
+     */
     public function __construct($Value)
     {
 

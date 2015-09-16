@@ -69,12 +69,21 @@ class Service implements IServiceInterface
         return (new Data($this->Binding))->getScoreTypeById($Id);
     }
 
+    /**
+     * @param $Name
+     * @param $Short
+     *
+     * @return null|object|TblScoreType
+     */
     public function setTblScoreType($Name, $Short)
     {
 
         return (new Data($this->Binding))->createScoreType($Name, $Short);
     }
 
+    /**
+     * @return bool|Service\Entity\TblScoreType[]
+     */
     public function getScoreTypeAll()
     {
 

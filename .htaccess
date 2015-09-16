@@ -1,91 +1,91 @@
 # External Network Access
 
-	Allow from All
+    Allow from All
 
 # Set Security Option
 
-	# Disable Directory-Listing
-	Options -Indexes
-	# Implement Option HttpOnly/Secure for Cookies (Secure works only if page is under httpS) !
-	Header edit Set-Cookie ^(.*)$ $1;HttpOnly
-	# "Pragma: " is deprecated, use "Cache-Control: "
-	Header unset Pragma
-	# Suppress Header-Information
-	Header unset X-Powered-By
+    # Disable Directory-Listing
+    Options -Indexes
+    # Implement Option HttpOnly/Secure for Cookies (Secure works only if page is under httpS) !
+    Header edit Set-Cookie ^(.*)$ $1;HttpOnly
+    # "Pragma: " is deprecated, use "Cache-Control: "
+    Header unset Pragma
+    # Suppress Header-Information
+    Header unset X-Powered-By
 
 # Set Default Encoding to UTF-8
 
-	<FilesMatch "\.(html|css|js|php|map|woff|woff2)$">
-		AddDefaultCharset UTF-8
-		DefaultLanguage en-US
-	</FilesMatch>
+    <FilesMatch "\.(html|css|js|php|map|woff|woff2)$">
+        AddDefaultCharset UTF-8
+        DefaultLanguage en-US
+    </FilesMatch>
 
 # Restrict Server PHP-File Access
 
-	<FilesMatch "(\.php|\.html)$">
-		Order Deny,Allow
-		Deny from All
-	</FilesMatch>
-	<FilesMatch "^(index.php)$">
-		Allow from All
-	</FilesMatch>
+    <FilesMatch "(\.php|\.html)$">
+        Order Deny,Allow
+        Deny from All
+    </FilesMatch>
+    <FilesMatch "^(index.php)$">
+        Allow from All
+    </FilesMatch>
 
 # Rewrite settings
 
-	RewriteEngine On
+    RewriteEngine On
 
-	# Force WWW:
-	#RewriteCond %{HTTP_HOST} !^www\.domain\.de [NC]
-	#RewriteRule ^(.*)$ http://www.domain.de/$1 [R=301,L]
+    # Force WWW:
+    #RewriteCond %{HTTP_HOST} !^www\.domain\.de [NC]
+    #RewriteRule ^(.*)$ http://www.domain.de/$1 [R=301,L]
 
-	# Force SSL:
-	#RewriteCond %{SERVER_PORT} 80
-	#RewriteRule ^(.*)$ https://www.domain.de/$1 [R=301,L]
+    # Force SSL:
+    #RewriteCond %{SERVER_PORT} 80
+    #RewriteRule ^(.*)$ https://www.domain.de/$1 [R=301,L]
 
-	# Platform Root:
-	RewriteBase /
-	RewriteRule ^index\.php$ - [L]
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteCond %{REQUEST_FILENAME} !-d
-	RewriteRule . /index.php [L]
+    # Platform Root:
+    RewriteBase /
+    RewriteRule ^index\.php$ - [L]
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule . /index.php [L]
 
 # Cache settings
 
-	# Header set Cache-Control "max-age=600, private, must-revalidate"
-	# No ETag
-	<FilesMatch "\.(gif|jpg|jpeg|png|swf|css|js|html?|xml|txt|ico|woff|map)$">
-		FileETag none
-	</FilesMatch>
-	# 480 weeks
-	<FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf|woff|map)$">
-		Header set Cache-Control "max-age=290304000, public, must-revalidate"
-	</FilesMatch>
-	# 2 DAYS
-	<FilesMatch "\.(xml|txt)$">
-		Header set Cache-Control "max-age=172800, public, must-revalidate"
-	</FilesMatch>
-	# 2 HOURS
-	<FilesMatch "\.(html|htm)$">
-		Header set Cache-Control "max-age=7200, public, must-revalidate"
-	</FilesMatch>
+    # Header set Cache-Control "max-age=600, private, must-revalidate"
+    # No ETag
+    <FilesMatch "\.(gif|jpg|jpeg|png|swf|css|js|html?|xml|txt|ico|woff|map)$">
+        FileETag none
+    </FilesMatch>
+    # 480 weeks
+    <FilesMatch "\.(ico|pdf|flv|jpg|jpeg|png|gif|js|css|swf|woff|map)$">
+        Header set Cache-Control "max-age=290304000, public, must-revalidate"
+    </FilesMatch>
+    # 2 DAYS
+    <FilesMatch "\.(xml|txt)$">
+        Header set Cache-Control "max-age=172800, public, must-revalidate"
+    </FilesMatch>
+    # 2 HOURS
+    <FilesMatch "\.(html|htm)$">
+        Header set Cache-Control "max-age=7200, public, must-revalidate"
+    </FilesMatch>
 
 # Compress everything except images
 
-	# Insert filter
-	SetOutputFilter DEFLATE
+    # Insert filter
+    SetOutputFilter DEFLATE
 
-	# Netscape 4.x has some problems...
-	BrowserMatch ^Mozilla/4 gzip-only-text/html
+    # Netscape 4.x has some problems...
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
 
-	# Netscape 4.06-4.08 have some more problems
-	BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    # Netscape 4.06-4.08 have some more problems
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
 
-	# MSIE masquerades as Netscape, but it is fine
-	BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
-	# Don't compress images
-	SetEnvIfNoCase Request_URI \
-	\.(?:gif|jpe?g|png|swf|flv)$ no-gzip dont-vary
+    # MSIE masquerades as Netscape, but it is fine
+    BrowserMatch \bMSIE !no-gzip !gzip-only-text/html
+    # Don't compress images
+    SetEnvIfNoCase Request_URI \
+    \.(?:gif|jpe?g|png|swf|flv)$ no-gzip dont-vary
 
-	# Make sure proxies don't deliver the wrong content
-	Header append Vary User-Agent env=!dont-vary
-	Header append Vary Accept-Encoding
+    # Make sure proxies don't deliver the wrong content
+    Header append Vary User-Agent env=!dont-vary
+    Header append Vary Accept-Encoding

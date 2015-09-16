@@ -8,6 +8,11 @@ use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
 
+/**
+ * Class Division
+ *
+ * @package SPHERE\Application\Education\Lesson\Division
+ */
 class Division implements IModuleInterface
 {
 

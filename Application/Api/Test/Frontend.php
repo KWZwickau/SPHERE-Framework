@@ -71,6 +71,12 @@ class Frontend implements IFrontendInterface
         return ob_get_clean();
     }
 
+    /**
+     * @param null       $Id
+     * @param bool|false $Option
+     *
+     * @return bool|string
+     */
     public function ShowThumbnail($Id = null, $Option = false)
     {
 
@@ -103,6 +109,11 @@ class Frontend implements IFrontendInterface
             ->getContent();
     }
 
+    /**
+     * @param null $Id
+     *
+     * @return string
+     */
     public function ShowFile($Id = null)
         {
 

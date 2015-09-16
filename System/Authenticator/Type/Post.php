@@ -4,6 +4,11 @@ namespace SPHERE\System\Authenticator\Type;
 use SPHERE\System\Authenticator\ITypeInterface;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class Post
+ *
+ * @package SPHERE\System\Authenticator\Type
+ */
 class Post extends Extension implements ITypeInterface
 {
 
@@ -56,7 +61,7 @@ class Post extends Extension implements ITypeInterface
     /**
      * @param $Value
      */
-    private function preventXSS(&$Value)
+    protected function preventXSS(&$Value)
     {
 
         $Value = strip_tags($Value);

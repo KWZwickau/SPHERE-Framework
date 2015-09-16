@@ -5,6 +5,11 @@ use SPHERE\Application\Education\Graduation\ScoreType\Service\Entity\TblScoreTyp
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
 
+/**
+ * Class Data
+ *
+ * @package SPHERE\Application\Education\Graduation\ScoreType\Service
+ */
 class Data
 {
 

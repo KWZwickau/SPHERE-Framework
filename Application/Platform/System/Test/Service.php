@@ -16,6 +16,11 @@ use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
+/**
+ * Class Service
+ *
+ * @package SPHERE\Application\Platform\System\Test
+ */
 class Service extends Extension implements IServiceInterface
 {
 

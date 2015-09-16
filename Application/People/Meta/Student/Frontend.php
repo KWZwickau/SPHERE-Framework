@@ -50,6 +50,9 @@ class Frontend implements IFrontendInterface
 {
 
     /**
+     * @param TblPerson $tblPerson
+     * @param array     $Meta
+     *
      * @return Stage
      */
     public function frontendMeta(TblPerson $tblPerson = null, $Meta = array())

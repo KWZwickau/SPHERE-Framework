@@ -40,6 +40,5 @@ class PullRight extends Extension implements ITemplateInterface
     {
 
         return '<div class="pull-right">'.$this->Content.'</div>';
-        return '<div class="clearfix"><div class="pull-right">'.$this->Content.'</div></div>';
     }
 }

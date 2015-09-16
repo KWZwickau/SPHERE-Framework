@@ -24,6 +24,11 @@ use SPHERE\Common\Window\Stage;
 class Frontend
 {
 
+    /**
+     * @param $ScoreType
+     *
+     * @return Stage
+     */
     public function frontendScoreType($ScoreType)
     {
 
@@ -72,6 +77,11 @@ class Frontend
         return $Stage;
     }
 
+    /**
+     * @param $Id
+     *
+     * @return Stage
+     */
     public function frontendScoreTypeRemove($Id)
     {
 

@@ -6,6 +6,11 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Fitting\Structure;
 
+/**
+ * Class Setup
+ *
+ * @package SPHERE\Application\Education\Graduation\ScoreType\Service
+ */
 class Setup
 {
 
@@ -33,7 +38,7 @@ class Setup
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $tblScoreTypes = $this->setTableScoreTypes($Schema);
+        $this->setTableScoreTypes($Schema);
         /**
          * Migration & Protocol
          */

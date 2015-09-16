@@ -7,6 +7,11 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 
+/**
+ * Class Certificate
+ *
+ * @package SPHERE\Application\Education\Graduation\Certificate
+ */
 class Certificate implements IModuleInterface
 {
 

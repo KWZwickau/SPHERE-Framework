@@ -3,6 +3,11 @@ namespace SPHERE\Application\People\Meta\Student\Service;
 
 use SPHERE\System\Database\Fitting\Structure;
 
+/**
+ * Class Setup
+ *
+ * @package SPHERE\Application\People\Meta\Student\Service
+ */
 class Setup
 {
 

@@ -5,6 +5,11 @@ use SPHERE\Common\Frontend\Form\IStructureInterface;
 use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\System\Extension\Extension;
 
+/**
+ * Class FormGroup
+ *
+ * @package SPHERE\Common\Frontend\Form\Structure
+ */
 class FormGroup extends Extension implements IStructureInterface
 {
 
