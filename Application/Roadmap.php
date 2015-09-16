@@ -71,7 +71,7 @@ class Roadmap extends Extension
             ->createDuty('Personendaten', true)
             ->createDuty('Interessent', true)
             ->createDuty('Schülerakte', false)
-            ->createDuty('Sorgerechtdaten');
+            ->createDuty('Sorgerechtdaten', true);
         $Feature->createTask('Adressdaten')
             ->createDuty('Adresse hinzufügen', true)
             ->createDuty('Adresse bearbeiten', true)
