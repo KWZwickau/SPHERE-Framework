@@ -7,7 +7,7 @@ use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -57,10 +57,7 @@ class Frontend implements IFrontendInterface
 
         $tblGroup = Group::useService()->getGroupById($Id);
         if ($tblGroup) {
-            $Stage->setMessage(
-                new PullClear(new Bold($tblGroup->getName()).' '.new Small($tblGroup->getDescription())).
-                new PullClear(new Danger(new Italic(nl2br($tblGroup->getRemark()))))
-            );
+
             $tblCompanyAll = Group::useService()->getCompanyAllByGroup($tblGroup);
 
             if ($tblCompanyAll) {
@@ -71,15 +68,25 @@ class Frontend implements IFrontendInterface
                 });
             }
             $Stage->setContent(
-                new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-                    new TableData($tblCompanyAll, null,
-                        array(
-                            'Name'        => 'Name',
-                            'Description' => 'Beschreibung',
-                            'Option'      => 'Optionen',
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(
+                        new Panel(new PersonGroup().' Gruppe', array(
+                            new Bold($tblGroup->getName()),
+                            ( $tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : '' ),
+                            ( $tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '' )
+                        ), Panel::PANEL_TYPE_SUCCESS
                         )
-                    )
-                ))))
+                    )),
+                    new LayoutRow(new LayoutColumn(
+                        new TableData($tblCompanyAll, null,
+                            array(
+                                'Name'        => 'Name',
+                                'Description' => 'Beschreibung',
+                                'Option'      => 'Optionen',
+                            )
+                        )
+                    ))
+                )))
             );
         } else {
             $Stage->setMessage('Bitte wählen Sie eine Gruppe');

@@ -36,6 +36,7 @@ class Data extends DataCacheable
         $this->createGroup('Interessent', 'Schüler die zur Aufnahme vorgemerkt sind', '', true, 'PROSPECT');
         $this->createGroup('Schüler', 'Alle aktiv verfügbaren Schüler', '', true, 'STUDENT');
         $this->createGroup('Sorgeberechtigt', '', '', true, 'CUSTODY');
+        $this->createGroup('Mitarbeiter', '', '', true, 'STAFF');
     }
 
     /**
