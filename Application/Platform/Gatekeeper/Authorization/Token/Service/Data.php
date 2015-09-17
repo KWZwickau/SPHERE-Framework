@@ -108,6 +108,8 @@ class Data extends Extension
 
     /**
      * @param TblToken $tblToken
+     *
+     * @return bool
      */
     public function destroyToken(TblToken $tblToken)
     {
@@ -117,6 +119,8 @@ class Data extends Extension
         if (null !== $Entity) {
             $Manager->killEntity($Entity);
             Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            return true;
         }
+        return false;
     }
 }

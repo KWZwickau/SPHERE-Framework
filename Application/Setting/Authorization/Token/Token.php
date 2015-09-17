@@ -26,6 +26,12 @@ class Token implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendYubiKey')
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(
+                __NAMESPACE__.'/Destroy', __NAMESPACE__.'\Frontend::frontendDestroyToken'
+            )
+                ->setParameterDefault('Id', null)
+        );
     }
 
     /**

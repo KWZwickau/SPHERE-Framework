@@ -23,7 +23,18 @@ class Account implements IModuleInterface
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendAccount')
+            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__.'\Frontend::frontendLayoutAccount')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
+                __NAMESPACE__.'\Frontend::frontendCreateAccount')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit', __NAMESPACE__.'\Frontend::frontendUpdateAccount')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroyAccount')
         );
     }
 

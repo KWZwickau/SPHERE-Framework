@@ -22,7 +22,7 @@ class Token implements IModuleInterface
         Database::registerService(__CLASS__);
 
         Main::getDisplay()->addModuleNavigation(new Link(new Link\Route(__NAMESPACE__),
-            new Link\Name('Hardware-Token')),
+            new Link\Name('Hardware-Schlüssel')),
             new Link\Route('/Platform/Gatekeeper/Authorization')
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(

@@ -7,6 +7,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
@@ -19,26 +20,34 @@ use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Edit;
+use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
 use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Nameplate;
+use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
+use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Layout\Repository\PullClear;
-use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
-use SPHERE\Common\Frontend\Message\Repository\Warning;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -51,19 +60,27 @@ class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
-     * @param null $Account
-     *
      * @return Stage
      */
-    public function frontendAccount($Account = null)
+    public function frontendLayoutAccount()
     {
 
         $Stage = new Stage('Benutzerkonten');
-        $Stage->setMessage('Hier können bestehende Benutzerkonten bearbeitet und neue angelegt werden');
+        $Stage->setMessage('Hier können neue Nutzerzugänge angelegt und bestehende Benutzerkonten bearbeitet bzw. gelöscht werden');
+        $Stage->addButton(new Standard(
+            'Neues Benutzerkonto anlegen', '/Setting/Authorization/Account/Create', new Pencil()
+        ));
+        $Stage->setContent($this->layoutAccount());
+        return $Stage;
+    }
 
-        // Account
+    /**
+     * @return Layout
+     */
+    public function layoutAccount()
+    {
+
         $tblAccountAll = Account::useService()->getAccountAll();
-
         if ($tblAccountAll) {
             array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
 
@@ -72,80 +89,91 @@ class Frontend extends Extension implements IFrontendInterface
                     && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
 
-                    $Content = array(
-                        ( $tblAccount->getServiceTblIdentification() ? new Lock().' '.$tblAccount->getServiceTblIdentification()->getDescription() : '' )
-                        .( $tblAccount->getServiceTblToken() ? ' '.new Key().' '.$tblAccount->getServiceTblToken()->getSerial() : '' )
-                    );
-
                     $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
                     if ($tblPersonAll) {
                         array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
-                            $tblPerson = new Person().' '.$tblPerson->getFullName();
+                            $tblPerson = $tblPerson->getFullName();
                         });
-                        $Content = array_merge($Content, $tblPersonAll);
                     }
 
                     $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
                     if ($tblAuthorizationAll) {
                         array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
 
-                            $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
+                            $tblAuthorization = $tblAuthorization->getServiceTblRole()->getName();
                         });
-                        $Content = array_merge($Content, $tblAuthorizationAll);
                     }
 
-                    $Content = array_filter($Content);
-                    $Footer = new PullLeft(
-                        new Standard('',
-                            '/Setting/Authorization/Account/Edit',
-                            new Edit(), array('Id' => $tblAccount->getId()),
-                            'Benutzer '.$tblAccount->getUsername().' bearbeiten'
-                        )
-                        .new Standard('',
-                            '/Setting/Authorization/Account/Destroy',
-                            new Remove(), array('Id' => $tblAccount->getId()),
-                            'Benutzer '.$tblAccount->getUsername().' löschen'
-                        )
+                    $tblAccount = array(
+                        'Username'       => new Listing(array($tblAccount->getUsername())),
+                        'Person'         => new Listing(!empty( $tblPersonAll )
+                            ? $tblPersonAll
+                            : array(new Danger(new Exclamation().new Small(' Keine Person angeben')))
+                        ),
+                        'Authentication' => new Listing(array($tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '')),
+                        'Authorization'  => new Listing(!empty( $tblAuthorizationAll )
+                            ? $tblAuthorizationAll
+                            : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
+                        ),
+                        'Token'          => new Listing(array(
+                            $tblAccount->getServiceTblToken()
+                                ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
+                                    4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
+                                : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
+                        )),
+                        'Option'         =>
+                            new Standard('',
+                                '/Setting/Authorization/Account/Edit',
+                                new Edit(), array('Id' => $tblAccount->getId()),
+                                'Benutzer '.$tblAccount->getUsername().' bearbeiten'
+                            )
+                            .new Standard('',
+                                '/Setting/Authorization/Account/Destroy',
+                                new Remove(), array('Id' => $tblAccount->getId()),
+                                'Benutzer '.$tblAccount->getUsername().' löschen'
+                            )
                     );
-                    $tblAccount = new LayoutColumn(
-                        new Panel($tblAccount->getUsername(), $Content, Panel::PANEL_TYPE_INFO, new PullClear($Footer))
-                        , 3);
                 } else {
                     $tblAccount = false;
                 }
             });
             $tblAccountAll = array_filter($tblAccountAll);
         }
-        if ($tblAccountAll) {
-            $LayoutRowList = array();
-            $LayoutRowCount = 0;
-            $LayoutRow = null;
-            /**
-             * @var LayoutColumn $tblAccount
-             */
-            foreach ($tblAccountAll as $tblAccount) {
-                if ($LayoutRowCount % 4 == 0) {
-                    $LayoutRow = new LayoutRow(array());
-                    $LayoutRowList[] = $LayoutRow;
-                }
-                $LayoutRow->addColumn($tblAccount);
-                $LayoutRowCount++;
-            }
-        } else {
-            $LayoutRowList = new LayoutRow(
-                new LayoutColumn(
-                    new Warning('Keine Benutzerkonten vorhanden')
-                )
-            );
-        }
 
+        return new Layout(
+            new LayoutGroup(
+                new LayoutRow(
+                    new LayoutColumn(
+                        new TableData(
+                            $tblAccountAll,
+                            null,
+                            array(
+                                'Username'       => new PersonKey().' Benutzerkonto',
+                                'Person'         => new Person().' Person',
+                                'Authentication' => new Lock().' Kontotyp',
+                                'Authorization'  => new Nameplate().' Berechtigungen',
+                                'Token'          => new Key().' Hadware-Schlüssel',
+                                'Option'         => 'Optionen'
+                            )
+                        )
+                    )
+                )
+            )
+        );
+    }
+
+    /**
+     * @param null $Account
+     *
+     * @return Stage
+     */
+    public function frontendCreateAccount($Account = null)
+    {
+
+        $Stage = new Stage('Benutzerkonto', 'Hinzufügen');
         $Stage->setContent(
             new Layout(array(
-                new LayoutGroup(
-                    $LayoutRowList
-                    , new Title('Benutzer')
-                ),
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
@@ -159,7 +187,6 @@ class Frontend extends Extension implements IFrontendInterface
                 ),
             ))
         );
-
         return $Stage;
     }
 
@@ -230,7 +257,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblTokenAll = array_filter($tblTokenAll);
         array_unshift($tblTokenAll,
             new RadioBox('Account[Token]',
-                new Danger('KEIN Hardware-Token'),
+                new Danger('KEIN Hardware-Schlüssel'),
                 0
             )
         );
@@ -265,11 +292,126 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(array(
                         new Panel(new Lock().' Authentifizierungstyp wählen', $tblIdentificationAll,
                             Panel::PANEL_TYPE_INFO),
-                        new Panel(new Key().' Hardware-Token zuweisen', $tblTokenAll, Panel::PANEL_TYPE_INFO)
+                        new Panel(new Key().' Hardware-Schlüssel zuweisen', $tblTokenAll, Panel::PANEL_TYPE_INFO)
                     ), 4),
                 ))
 
             )),
         ));
+    }
+
+    /**
+     * @param int  $Id
+     * @param bool $Confirm
+     *
+     * @return Stage
+     */
+    public function frontendDestroyAccount($Id, $Confirm = false)
+    {
+
+        $Stage = new Stage('Benutzerkonto', 'Löschen');
+        if ($Id) {
+            $tblAccount = Account::useService()->getAccountById($Id);
+            if (!$Confirm) {
+
+                $Content = array(
+                    $tblAccount->getUsername(),
+                    ( $tblAccount->getServiceTblIdentification() ? new Lock().' '.$tblAccount->getServiceTblIdentification()->getDescription() : '' )
+                    .( $tblAccount->getServiceTblToken() ? ' '.new Key().' '.$tblAccount->getServiceTblToken()->getSerial() : '' )
+                );
+
+                $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
+                if ($tblPersonAll) {
+                    array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
+
+                        $tblPerson = new Person().' '.$tblPerson->getFullName();
+                    });
+                    $Content = array_merge($Content, $tblPersonAll);
+                }
+
+                $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
+                if ($tblAuthorizationAll) {
+                    array_walk($tblAuthorizationAll, function (TblAuthorization &$tblAuthorization) {
+
+                        $tblAuthorization = new Nameplate().' '.$tblAuthorization->getServiceTblRole()->getName();
+                    });
+                    $Content = array_merge($Content, $tblAuthorizationAll);
+                }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(array(
+                        new Panel(new PersonKey().' Benutzerkonto', $Content, Panel::PANEL_TYPE_SUCCESS),
+                        new Panel(new Question().' Dieses Benutzerkonto wirklich löschen?', array(),
+                            Panel::PANEL_TYPE_DANGER,
+                            new Standard(
+                                'Ja', '/Setting/Authorization/Account/Destroy', new Ok(),
+                                array('Id' => $Id, 'Confirm' => true)
+                            )
+                            .new Standard(
+                                'Nein', '/Setting/Authorization/Account', new Disable()
+                            )
+                        )
+                    )))))
+                );
+            } else {
+
+                // Remove Session
+                $tblSessionAll = Account::useService()->getSessionAllByAccount($tblAccount);
+                if (!empty( $tblSessionAll )) {
+                    /** @var TblSession $tblSession */
+                    foreach ($tblSessionAll as $tblSession) {
+                        Account::useService()->destroySession(null, $tblSession->getSession());
+                    }
+                }
+
+                // Remove User
+                $tblPersonAll = Account::useService()->getPersonAllByAccount($tblAccount);
+                if (!empty( $tblPersonAll )) {
+                    /** @var TblPerson $tblPerson */
+                    foreach ($tblPersonAll as $tblPerson) {
+                        Account::useService()->removeAccountPerson($tblAccount, $tblPerson);
+                    }
+                }
+
+                // Remove Authentication
+                $tblAuthentication = Account::useService()->getAuthenticationByAccount($tblAccount);
+                if (!empty( $tblAuthentication )) {
+                    Account::useService()->removeAccountAuthentication($tblAccount,
+                        $tblAuthentication->getTblIdentification());
+                }
+
+                // Remove Authorization
+                $tblAuthorizationAll = Account::useService()->getAuthorizationAllByAccount($tblAccount);
+                if (!empty( $tblAuthorizationAll )) {
+                    /** @var TblAuthorization $tblAuthorization */
+                    foreach ($tblAuthorizationAll as $tblAuthorization) {
+                        Account::useService()->removeAccountAuthorization($tblAccount,
+                            $tblAuthorization->getServiceTblRole());
+                    }
+                }
+
+                $Stage->setContent(
+                    new Layout(new LayoutGroup(array(
+                        new LayoutRow(new LayoutColumn(array(
+                            ( Account::useService()->destroyAccount($tblAccount)
+                                ? new Success('Das Benutzerkonto wurde gelöscht')
+                                : new Danger('Das Benutzerkonto konnte nicht gelöscht werden')
+                            ),
+                            new Redirect('/Setting/Authorization/Account', 1)
+                        )))
+                    )))
+                );
+            }
+        } else {
+            $Stage->setContent(
+                new Layout(new LayoutGroup(array(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Danger('Das Benutzerkonto konnte nicht gefunden werden'),
+                        new Redirect('/Setting/Authorization/Account')
+                    )))
+                )))
+            );
+        }
+        return $Stage;
     }
 }

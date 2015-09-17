@@ -67,7 +67,7 @@ class Frontend
         $tblTokenAll = array_filter($tblTokenAll);
         array_unshift($tblTokenAll,
             new RadioBox('Account[Token]',
-                new \SPHERE\Common\Frontend\Text\Repository\Danger('KEIN Hardware-Token'),
+                new \SPHERE\Common\Frontend\Text\Repository\Danger('KEIN Hardware-Schlüssel'),
                 null
             )
         );
@@ -148,7 +148,7 @@ class Frontend
                             new Panel('Berechtigungsstufe', $tblRoleAll)
                         ), 4),
                         new FormColumn(array(
-                            new Panel('Hardware-Token', $tblTokenAll)
+                            new Panel('Hardware-Schlüssel', $tblTokenAll)
                         ), 4),
                     ))
 

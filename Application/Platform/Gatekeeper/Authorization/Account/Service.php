@@ -9,6 +9,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -140,25 +141,30 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param Redirect $Redirect
-     * @param null|string $Session
+     * @param null|Redirect $Redirect
+     * @param null|string   $Session
      *
-     * @return bool
+     * @return bool|Redirect
      */
-    public function destroySession(Redirect $Redirect, $Session = null)
+    public function destroySession(Redirect $Redirect = null, $Session = null)
     {
 
-        (new Data($this->Binding))->destroySession($Session);
-        if (!headers_sent()) {
-            // Destroy Cookie
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', 0, $params['path'], $params['domain'], $params['secure'],
-                isset( $params['httponly'] ));
-            session_start();
-            // Generate New Id
-            session_regenerate_id(true);
+        if (null === $Session) {
+            if ((new Data($this->Binding))->destroySession($Session)) {
+                if (!headers_sent()) {
+                    // Destroy Cookie
+                    $params = session_get_cookie_params();
+                    setcookie(session_name(), '', 0, $params['path'], $params['domain'], $params['secure'],
+                        isset( $params['httponly'] ));
+                    session_start();
+                    // Generate New Id
+                    session_regenerate_id(true);
+                }
+            }
+            return $Redirect;
+        } else {
+            return (new Data($this->Binding))->destroySession($Session);
         }
-        return $Redirect;
     }
 
     /**
@@ -477,4 +483,51 @@ class Service implements IServiceInterface
         return (new Data($this->Binding))->getUserAllByAccount($tblAccount);
 
     }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblSession[]
+     */
+    public function getSessionAllByAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->Binding))->getSessionAllByAccount($tblAccount);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param TblRole    $tblRole
+     *
+     * @return bool
+     */
+    public function removeAccountAuthorization(TblAccount $tblAccount, TblRole $tblRole)
+    {
+
+        return (new Data($this->Binding))->removeAccountAuthorization($tblAccount, $tblRole);
+    }
+
+    /**
+     * @param TblAccount        $tblAccount
+     * @param TblIdentification $tblIdentification
+     *
+     * @return bool
+     */
+    public function removeAccountAuthentication(TblAccount $tblAccount, TblIdentification $tblIdentification)
+    {
+
+        return (new Data($this->Binding))->removeAccountAuthentication($tblAccount, $tblIdentification);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function destroyAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->Binding))->destroyAccount($tblAccount);
+    }
+
 }

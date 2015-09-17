@@ -31,7 +31,7 @@ class Frontend
     public function frontendYubiKey($CredentialKey)
     {
 
-        $Stage = new Stage('Hardware-Token', 'YubiKey');
+        $Stage = new Stage('Hardware-Schlüssel', 'YubiKey');
         $tblTokenAll = Token::useService()->getTokenAll();
 
         array_walk($tblTokenAll, function (TblToken &$tblToken) {
@@ -56,12 +56,12 @@ class Frontend
         });
         $Stage->setContent(
             ( $tblTokenAll
-                ? new TableData($tblTokenAll, new Title('Bestehende Hardware-Token'), array(
+                ? new TableData($tblTokenAll, new Title('Bestehende Hardware-Schlüssel'), array(
                     'Name'   => 'Name',
                     'Number' => 'Seriennummer',
 //                    'Option' => 'Optionen'
                 ))
-                : new Warning('Keine Hardware-Token vorhanden')
+                : new Warning('Keine Hardware-Schlüssel vorhanden')
             )
             .Token::useService()->createToken(
                 new Form(new FormGroup(
@@ -69,7 +69,7 @@ class Frontend
                             new FormColumn(
                                 new PasswordField('CredentialKey', 'YubiKey', 'YubiKey')
                             )
-                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Hardware-Token anlegen'))
+                        ), new \SPHERE\Common\Frontend\Form\Repository\Title('Hardware-Schlüssel anlegen'))
                     , new Primary('Hinzufügen')
                 ), $CredentialKey
             )

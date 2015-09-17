@@ -203,7 +203,7 @@ class Data extends DataCacheable
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblAuthorization $Entity */
-        $Entity = $Manager->getEntity('TblAccountRole')
+        $Entity = $Manager->getEntity('TblAuthorization')
             ->findOneBy(array(
                 TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
                 TblAuthorization::SERVICE_TBL_ROLE => $tblRole->getId()
@@ -227,7 +227,7 @@ class Data extends DataCacheable
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblAuthentication $Entity */
-        $Entity = $Manager->getEntity('TblAccountIdentification')
+        $Entity = $Manager->getEntity('TblAuthentication')
             ->findOneBy(array(
                 TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()

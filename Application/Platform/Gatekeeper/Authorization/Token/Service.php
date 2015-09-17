@@ -61,7 +61,7 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer $tblConsumer
+     * @param TblConsumer $tblConsumer
      *
      * @return bool|TblToken[]
      */
@@ -92,12 +92,14 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param \SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken $tblToken
+     * @param TblToken $tblToken
+     *
+     * @return bool
      */
     public function destroyToken(TblToken $tblToken)
     {
 
-        (new Data($this->Binding))->destroyToken($tblToken);
+        return (new Data($this->Binding))->destroyToken($tblToken);
     }
 
     /**
@@ -116,7 +118,7 @@ class Service implements IServiceInterface
                 if (false === $this->getTokenByIdentifier(substr($CredentialKey, 0, 12))) {
                     if ((new Data($this->Binding))->createToken(substr($CredentialKey, 0, 12), $tblConsumer)) {
                         $Form->setSuccess('CredentialKey',
-                            'Der YubiKey wurde hinzugefügt'.new Redirect('/Sphere/Management/Token', 5)
+                            'Der YubiKey wurde hinzugefügt'.new Redirect('/Sphere/Management/Token', 3)
                         );
                     }
                 } else {
