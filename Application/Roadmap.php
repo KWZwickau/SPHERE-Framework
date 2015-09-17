@@ -44,12 +44,6 @@ class Roadmap extends Extension
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
-        $Category->createFeature('Person hinzufügen','',true);
-        $Category->createFeature('Person bearbeiten','',true);
-
-        $Feature = $Category->createFeature('Dashboards');
-        $Feature->createTask('Board: People')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
         $Feature = $Category->createFeature('Suche');
         $Feature->createTask('Filterung über Gruppen', '', true);
@@ -89,20 +83,14 @@ class Roadmap extends Extension
             ->createDuty('E-Mail Adresse löschen', true);
         $Feature->createTask('Beziehungen')
             ->createDuty('Personenbeziehung hinzufügen', true)
-            ->createDuty('Personenbeziehung bearbeiten',true)
+            ->createDuty('Personenbeziehung bearbeiten', true)
             ->createDuty('Personenbeziehung löschen', true)
             ->createDuty('Firmenbeziehung hinzufügen', true)
-            ->createDuty('Firmenbeziehung bearbeiten',true)
+            ->createDuty('Firmenbeziehung bearbeiten', true)
             ->createDuty('Firmenbeziehung löschen', true);
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
-        $Category->createFeature('Firma hinzufügen','',true);
-        $Category->createFeature('Firma bearbeiten','',true);
-
-        $Feature = $Category->createFeature('Dashboards');
-        $Feature->createTask('Board: Corporation')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
         $Feature = $Category->createFeature('Suche');
         $Feature->createTask('Filterung über Gruppen', '', true);
@@ -140,12 +128,12 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Kategorie-Gruppen', 'z.B. Neigungskurs, Vertiefungskurs, Profil, ...')
-            ->createDuty('Fest definierte Gruppen in Datenbank', false);
+            ->createDuty('Fest definierte Gruppen in Datenbank', true);
         $Feature->createTask('Fach-Kategorie', 'z.B. Fremdsprache, Soziales & Diakonie, Technik')
-            ->createDuty('Fest definierte Kategorien in Datenbank', false)
+            ->createDuty('Fest definierte Kategorien in Datenbank', true)
             ->createDuty('Vordefinierte Kategorien in Datenbank', true);
         $Feature->createTask('Kategorie-Gruppen/Kategorie zuweisen')
-            ->createDuty('Vordefinierte Verknüpfungen in Datenbank', false);
+            ->createDuty('Vordefinierte Verknüpfungen in Datenbank', true);
         $Feature->createTask('Fächer', 'z.B. Deutsch, Mathematik, Künstlerisches Profil')
             ->createDuty('Vordefinierte Fächer in Datenbank', true);
         $Feature->createTask('Fach-Kategorie zuweisen')
@@ -154,22 +142,35 @@ class Roadmap extends Extension
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
 
-        $Feature = $Category->createFeature('Mandant', new External( 'siehe EGE', 'http://www.ege-annaberg.de/node/416') );
+        $Feature = $Category->createFeature('Mandant',
+            new External('siehe EGE', 'http://www.ege-annaberg.de/node/416'));
         $Feature->createTask('Schulen')
             ->createDuty('Eigene Schulen aus Firmen wählen')
+            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
+            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen')
+            ->createDuty('Vordefinierte Schulform in Datenbank')
             ->createDuty('Zugehörige Schulform wählen');
-        $Feature->createTask('Schulträger');
-        $Feature->createTask('Förderverein');
+        $Feature->createTask('Schulträger')
+            ->createDuty('Eigenen Träger aus Firmen wählen')
+            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
+            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen');
+        $Feature->createTask('Förderverein')
+            ->createDuty('Eigenen Verein aus Firmen wählen')
+            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
+            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen');
 
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Hardware-Schlüssel')
             ->createDuty('YubiKey hinzufügen', true)
-            ->createDuty('YubiKey entfernen');
+            ->createDuty('YubiKey entfernen', true);
         $Feature->createTask('Benutzerkonten')
             ->createDuty('Zugangsdaten', false)
             ->createDuty('Berechtigungsstufen', false)
             ->createDuty('Authentifizierungsart', false)
-            ->createDuty('Person', false);
+            ->createDuty('Person', false)
+            ->createDuty('Benutzerkonten anlegen', false)
+            ->createDuty('Benutzerkonten löschen', true);
+
     }
 
     /**
@@ -179,7 +180,19 @@ class Roadmap extends Extension
     private function versionMajor0Minor9Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('0.9.0', 'Demoversion (Oktober)', null);
+        $Release = $this->Roadmap->createRelease('0.9.0', 'Demoversion (Oktober)');
+
+        // Personenverwaltung
+        $Category = $Release->createCategory('Personenverwaltung');
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: People')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+
+        // Firmenverwaltung
+        $Category = $Release->createCategory('Firmenverwaltung');
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: Corporation')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
@@ -195,15 +208,34 @@ class Roadmap extends Extension
             ->createDuty('Fach hinzufügen')
             ->createDuty('Fach bearbeiten')
             ->createDuty('Fach löschen');
-        $Feature->createTask('Fach-Kategorie zuweisen')
+        $Feature->createTask('Fach-Kategorie')
             ->createDuty('Kategorie hinzufügen')
             ->createDuty('Kategorie bearbeiten')
             ->createDuty('Kategorie löschen');
         $Feature->createTask('Fach-Kategorie zuweisen')
             ->createDuty('Verknüpfung hinzufügen')
             ->createDuty('Verknüpfung löschen');
-        $Feature->createTask('Schuljahr');
-        $Feature->createTask('Klassen');
+        $Feature->createTask('Kategorie-Gruppe zuweisen')
+            ->createDuty('Verknüpfung hinzufügen')
+            ->createDuty('Verknüpfung löschen');
+        $Feature->createTask('Schuljahr')
+            ->createDuty('Schuljahr hinzufügen')
+            ->createDuty('Zeitraum hinzufügen')
+            ->createDuty('Abschnitt verknüpfen');
+        $Feature->createTask('Klassenstufe')
+            ->createDuty('Klassenstufe hinzufügen')
+            ->createDuty('Klassenstufe löschen')
+            ->createDuty('Schulform verknüpfen');
+        $Feature->createTask('Klassen')
+            ->createDuty('Klasse hinzufügen')
+            ->createDuty('Klasse löschen')
+            ->createDuty('Schuljahr verknüpfen')
+            ->createDuty('Klassenstufe verknüpfen')
+            ->createDuty('Fachklasse verknüpfen')
+            ->createDuty('Klassen-Schüler verknüpfen')
+            ->createDuty('Klassen-Lehrer verknüpfen')
+            ->createDuty('Fach-Schüler verknüpfen')
+            ->createDuty('Fach-Lehrer verknüpfen');
     }
 
     /**
@@ -213,7 +245,7 @@ class Roadmap extends Extension
     private function versionMajor1Minor0Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)', null);
+        $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)');
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
@@ -252,7 +284,7 @@ class Roadmap extends Extension
     private function versionMajor1Minor1Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Q1 2016)', null);
+        $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Q1 2016)');
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
@@ -268,7 +300,7 @@ class Roadmap extends Extension
     private function versionMajor1Minor2Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Q1 2016)', null);
+        $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Q1 2016)');
 
         $Category = $Release->createCategory('Fakturierung');
         $Category->createFeature('Leistungen');

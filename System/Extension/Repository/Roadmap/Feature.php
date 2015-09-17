@@ -3,7 +3,6 @@ namespace SPHERE\System\Extension\Repository\Roadmap;
 
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -93,7 +92,7 @@ class Feature
                         ), 10),
                         new LayoutColumn(( !empty( $this->Task ) ? new PullRight(
                             '<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#'
-                            .$Toggle.'">'.new Ok().' Fertig'.'</button>'
+                            .$Toggle.'">'.new TileSmall().'</button>'
                         ) : '' ), 1)
                     )),
                     new LayoutRow(array(

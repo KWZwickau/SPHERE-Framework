@@ -3,9 +3,9 @@ namespace SPHERE\System\Extension\Repository\Roadmap;
 
 use SPHERE\Common\Frontend\Icon\Repository\CogWheels;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
-use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\TileList;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -81,22 +81,41 @@ class Category
                 break;
         }
 
-        return (string)new Layout(
-            new LayoutGroup(array(
-                new LayoutRow(array(
-                    new LayoutColumn(array(
-                        new Header(( $this->isDone === true
-                            ? new Success(new TileList().' Kategorie: '.$this->Name)
-                            : ( $this->isDone === false
+        if ($this->isDone === true) {
+            $Toggle = uniqid();
+            return (string)new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Header(new Success(new TileList().' Kategorie: '.$this->Name), $this->Description),
+                        ), 11),
+                        new LayoutColumn(( !empty( $this->Feature ) ? new PullRight(
+                            '<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#'
+                            .$Toggle.'">'.new TileList().'</button>'
+                        ) : '' ), 1)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn('<hr/>', 12)
+                    )),
+                    new LayoutRow(
+                        new LayoutColumn(
+                            '<span id="'.$Toggle.'" class="collapse">'.implode('', $this->Feature).'</span>'
+                        )
+                    ),
+                ))
+            );
+        } else {
+            return (string)new Layout(
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Header(( $this->isDone === false
                                 ? new Danger(new TileList().' Kategorie: '.$this->Name)
                                 : new Muted(new TileList().' Kategorie: '.$this->Name)
-                            )
-                        ), $this->Description)
-                    ), 6),
-                    new LayoutColumn(array(
-                        new Small($this->isDone === true
-                            ? new Success(new Ok().' Fertig')
-                            : ( $this->isDone === false
+                            ), $this->Description)
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Small($this->isDone === false
                                 ? new Danger(
                                     new CogWheels().' In Entwicklung '
                                     .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
@@ -105,24 +124,20 @@ class Category
                                     new Disable().' In Planung '
                                     .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
                                 )
-                            )
+                            ).$this->Status
+                        ), 6)
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            '<hr/>'
                         )
-                        .( $this->isDone === true
-                            ? $this->Status
-                            : $this->Status
-                        )
-                    ), 6)
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn(
-                        '<hr/>'
-                    )
-                )),
-                new LayoutRow(array(
-                    new LayoutColumn($this->Feature)
-                )),
-            ))
-        );
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn($this->Feature)
+                    )),
+                ))
+            );
+        }
     }
 
     /**
@@ -135,17 +150,6 @@ class Category
         if (!empty( $this->Feature )) {
             /** @var Feature $Feature */
             foreach ((array)$this->Feature as $Feature) {
-//                switch ($Feature->getStatus()->getState()) {
-//                    case Status::STATE_PLAN:
-//                        $this->Status->addPlan();
-//                        break;
-//                    case Status::STATE_WORK:
-//                        $this->Status->addWork();
-//                        break;
-//                    case Status::STATE_DONE:
-//                        $this->Status->addDone();
-//                        break;
-//                }
                 $this->Status->addPlan($Feature->getStatus()->getPlan());
                 $this->Status->addWork($Feature->getStatus()->getWork());
                 $this->Status->addDone($Feature->getStatus()->getDone());

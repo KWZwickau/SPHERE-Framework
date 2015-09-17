@@ -11,6 +11,8 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Message\Repository\Info;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -74,17 +76,6 @@ class Release
         if (!empty( $this->Category )) {
             /** @var Category $Category */
             foreach ((array)$this->Category as $Category) {
-//                switch ($Category->getStatus()->getState()) {
-//                    case Status::STATE_PLAN:
-//                        $this->Status->addPlan();
-//                        break;
-//                    case Status::STATE_WORK:
-//                        $this->Status->addWork();
-//                        break;
-//                    case Status::STATE_DONE:
-//                        $this->Status->addDone();
-//                        break;
-//                }
                 $this->Status->addPlan($Category->getStatus()->getPlan());
                 $this->Status->addWork($Category->getStatus()->getWork());
                 $this->Status->addDone($Category->getStatus()->getDone());
@@ -113,43 +104,52 @@ class Release
                 break;
         }
 
+        $Toggle = uniqid();
+        $Content = new Title(( $this->isDone === true
+                ? new Success(new TileBig().' Release: '.$this->Version)
+                : ( $this->isDone === false
+                    ? new Danger(new TileBig().' Release: '.$this->Version)
+                    : new Muted(new TileBig().' Release: '.$this->Version)
+                )
+            ), $this->Description)
+            .new Small($this->isDone === true
+                ? ''
+                : ( $this->isDone === false
+                    ? new Danger(
+                        new CogWheels().' In Entwicklung '
+                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                    )
+                    : new Muted(
+                        new Disable().' In Planung '
+                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
+                    )
+                )
+            )
+            .( $this->isDone === true
+                ?
+                '<button type="button" class="btn btn-default" data-toggle="collapse" data-target="#'
+                .$Toggle.'">'.new Ok().' Entwicklung abgeschlossen'.'</button>'
+                : $this->Status
+            );
+
         return (string)new Layout(
             new LayoutGroup(array(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Well(
-                            new Title(( $this->isDone === true
-                                ? new Success(new TileBig().' Release: '.$this->Version)
-                                : ( $this->isDone === false
-                                    ? new Danger(new TileBig().' Release: '.$this->Version)
-                                    : new Muted(new TileBig().' Release: '.$this->Version)
-                                )
-                            ), $this->Description)
-                            .new Small($this->isDone === true
-                                ? new Success(new Ok().' Fertig')
-                                : ( $this->isDone === false
-                                    ? new Danger(
-                                        new CogWheels().' In Entwicklung '
-                                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
-                                    )
-                                    : new Muted(
-                                        new Disable().' In Planung '
-                                        .number_format($this->Status->getDonePercent(), 1, ',', '').'%'
-                                    )
-                                )
-                            )
-                            .( $this->isDone === true
-                                ? $this->Status
-                                : $this->Status
+                        ( null === $this->isDone
+                            ? new Well($Content)
+                            : ( false === $this->isDone
+                                ? new Info($Content)
+                                : new Warning($Content)
                             )
                         )
                     )),
                 )),
                 new LayoutRow(array(
                     new LayoutColumn(
-                        new Well(
-                            implode($this->Category)
-                        )
+                        $this->isDone !== true
+                            ? new Well(implode($this->Category))
+                            : '<span id="'.$Toggle.'" class="collapse">'.new Warning(implode($this->Category)).'</span>'
                     )
                 )),
             ))

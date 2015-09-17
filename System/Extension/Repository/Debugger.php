@@ -12,7 +12,7 @@ class Debugger
 {
 
     /** @var bool $Enabled */
-    public static $Enabled = true;
+    public static $Enabled = false;
     /** @var array $Protocol */
     private static $Protocol = array();
     /** @var int $Timestamp */
