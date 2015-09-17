@@ -3,6 +3,8 @@ namespace SPHERE\Application\Platform\System\Protocol;
 
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Platform\System\Archive\Archive;
+use SPHERE\Application\Platform\System\Archive\Service\Entity\TblArchive;
 use SPHERE\Application\Platform\System\Protocol\Service\Data;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Application\Platform\System\Protocol\Service\Setup;
@@ -63,7 +65,7 @@ class Service implements IServiceInterface
      * @param string  $DatabaseName
      * @param Element $Entity
      *
-     * @return false|\SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol
+     * @return false|TblProtocol
      */
     public function createInsertEntry(
         $DatabaseName,
@@ -76,6 +78,13 @@ class Service implements IServiceInterface
         } else {
             $tblConsumer = null;
         }
+
+        Archive::useService()->createArchiveEntry(
+            $DatabaseName,
+            ( $tblAccount ? $tblAccount : null ),
+            ( $tblConsumer ? $tblConsumer : null ),
+            $Entity, TblArchive::ARCHIVE_TYPE_CREATE
+        );
 
         return (new Data($this->Binding))->createProtocolEntry(
             $DatabaseName,
@@ -106,13 +115,22 @@ class Service implements IServiceInterface
             $tblConsumer = null;
         }
 
-        return (new Data($this->Binding))->createProtocolEntry(
+        if (( $Protocol = (new Data($this->Binding))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),
             $From,
             $To
-        );
+        ) )
+        ) {
+            Archive::useService()->createArchiveEntry(
+                $DatabaseName,
+                ( $tblAccount ? $tblAccount : null ),
+                ( $tblConsumer ? $tblConsumer : null ),
+                $To, TblArchive::ARCHIVE_TYPE_UPDATE
+            );
+        };
+        return $Protocol;
     }
 
     /**
