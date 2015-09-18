@@ -68,7 +68,7 @@ class Roadmap extends Extension
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Personendaten', true)
             ->createDuty('Interessent', true)
-            ->createDuty('Schülerakte', false)
+            ->createDuty('Schülerakte (Versetzung, AGs, Kurse)', false)
             ->createDuty('Sorgerechtdaten', true);
         $Feature->createTask('Adressdaten')
             ->createDuty('Adresse hinzufügen', true)
@@ -161,6 +161,7 @@ class Roadmap extends Extension
             ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
             ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen');
 
+        // Einstellungen
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Hardware-Schlüssel')
             ->createDuty('YubiKey hinzufügen', true)
@@ -172,6 +173,14 @@ class Roadmap extends Extension
             ->createDuty('Person', false)
             ->createDuty('Benutzerkonten anlegen', false)
             ->createDuty('Benutzerkonten löschen', true);
+
+	    // Demoversion
+	    $Feature = $Category->createFeature('Demoversion');
+	    $Feature->createTask('Datenbank')
+		    ->createDuty('Demodaten neu', false)
+		    ->createDuty('Benutzerzugänge übernehmen', false);
+	    $Feature->createTask('Programmcode')
+		    ->createDuty('Programmcode veröffentlichen', false);
 
     }
 
