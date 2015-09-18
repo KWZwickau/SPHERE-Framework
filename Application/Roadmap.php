@@ -87,8 +87,8 @@ class Roadmap extends Extension
             ->createDuty('Personenbeziehung löschen', true)
             ->createDuty('Firmenbeziehung hinzufügen', true)
             ->createDuty('Firmenbeziehung bearbeiten', true)
-            ->createDuty('Firmenbeziehung löschen', true)
-            ->createDuty('Anzeige von Adress- und Kontaktdaten', false);
+            ->createDuty('Firmenbeziehung löschen', true);
+
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
