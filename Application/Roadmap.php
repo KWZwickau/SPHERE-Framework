@@ -88,8 +88,7 @@ class Roadmap extends Extension
             ->createDuty('Firmenbeziehung hinzufügen', true)
             ->createDuty('Firmenbeziehung bearbeiten', true)
             ->createDuty('Firmenbeziehung löschen', true)
-	        ->createDuty('Anzeige von Adress- und Kontaktdaten', false);
-
+            ->createDuty('Anzeige von Adress- und Kontaktdaten', false);
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
@@ -174,13 +173,13 @@ class Roadmap extends Extension
             ->createDuty('Benutzerkonten anlegen', false)
             ->createDuty('Benutzerkonten löschen', true);
 
-	    // Demoversion
-	    $Feature = $Category->createFeature('Demoversion');
-	    $Feature->createTask('Datenbank')
-		    ->createDuty('Demodaten neu', false)
-		    ->createDuty('Benutzerzugänge übernehmen', false);
-	    $Feature->createTask('Programmcode')
-		    ->createDuty('Programmcode veröffentlichen', false);
+        // Demoversion
+        $Feature = $Category->createFeature('Demoversion');
+        $Feature->createTask('Datenbank')
+            ->createDuty('Demodaten neu', false)
+            ->createDuty('Benutzerzugänge übernehmen', false);
+        $Feature->createTask('Programmcode')
+            ->createDuty('Programmcode veröffentlichen', false);
 
     }
 
