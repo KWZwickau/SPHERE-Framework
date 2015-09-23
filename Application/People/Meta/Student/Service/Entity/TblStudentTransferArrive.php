@@ -7,6 +7,8 @@ use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -17,12 +19,14 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStudentTransferArrive extends Element
 {
 
-    const SERVICE_TBL_COMPANY = 'serviceTblCompany';
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceTblCompany;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblType;
     /**
      * @Column(type="datetime")
      */
@@ -97,5 +101,27 @@ class TblStudentTransferArrive extends Element
     {
 
         $this->serviceTblCompany = ( null === $tblCompany ? null : $tblCompany->getId() );
+    }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblType()
+    {
+
+        if (null === $this->serviceTblType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceTblType(TblType $tblType = null)
+    {
+
+        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
     }
 }
