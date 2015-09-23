@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Education;
 
 use SPHERE\Application\Education\Lesson\Lesson;
+use SPHERE\Application\Education\School\School;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -18,6 +19,7 @@ class Education implements IClusterInterface
     public static function registerCluster()
     {
 
+        School::registerApplication();
         Lesson::registerApplication();
 //        Graduation::registerApplication();
 
