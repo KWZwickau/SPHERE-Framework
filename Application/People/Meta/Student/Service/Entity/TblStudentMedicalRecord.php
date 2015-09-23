@@ -19,11 +19,11 @@ class TblStudentMedicalRecord extends Element
 
     const SERVICE_TBL_PERSON_ATTENDING_DOCTOR = 'serviceTblPersonAttendingDoctor';
     /**
-     * @Column(type="string")
+     * @Column(type="text")
      */
     protected $Disease;
     /**
-     * @Column(type="string")
+     * @Column(type="text")
      */
     protected $Medication;
     /**
