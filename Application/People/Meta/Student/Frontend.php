@@ -282,7 +282,7 @@ class Frontend implements IFrontendInterface
                 )),
                 new FormRow(array(
                     new FormColumn(array(
-                        new Panel('Unterrichtsfächer - Kurse', array(
+                        new Panel('Unterrichtsfächer - Profil', array(
                             new SelectBox('Meta[Subject][1]', 'Neigungskurs',
                                 array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectOrientation),
                                 new Education())
