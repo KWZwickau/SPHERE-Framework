@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Meta\Student;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -67,85 +66,56 @@ class Frontend implements IFrontendInterface
         array_push($tblCompanyAllSchool, new TblCompany());
 
         // Orientation
-        $tblCategoryOrientation = Subject::useService()->getGroupByIdentifier('ORIENTATION')->getTblCategoryAll();
-        array_walk($tblCategoryOrientation, function (TblCategory &$tblCategory) {
-
-            $tblCategory = $tblCategory->getTblSubjectAll();
-        });
-        $tblSubjectOrientation = array();
-        array_walk_recursive($tblCategoryOrientation, function ($tblSubject) use (&$tblSubjectOrientation) {
-
-            $tblSubjectOrientation[] = $tblSubject;
-        });
-        array_push($tblSubjectOrientation, new TblSubject());
+        $tblSubjectOrientation = Subject::useService()->getSubjectOrientationAll();
+        if ($tblSubjectOrientation) {
+            array_push($tblSubjectOrientation, new TblSubject());
+        } else {
+            $tblSubjectOrientation = array();
+        }
 
         // Advanced
-        $tblCategoryAdvanced = Subject::useService()->getGroupByIdentifier('ADVANCED')->getTblCategoryAll();
-        array_walk($tblCategoryAdvanced, function (TblCategory &$tblCategory) {
-
-            $tblCategory = $tblCategory->getTblSubjectAll();
-        });
-        $tblSubjectAdvanced = array();
-        array_walk_recursive($tblCategoryAdvanced, function ($tblSubject) use (&$tblSubjectAdvanced) {
-
-            $tblSubjectAdvanced[] = $tblSubject;
-        });
-        array_push($tblSubjectAdvanced, new TblSubject());
+        $tblSubjectAdvanced = Subject::useService()->getSubjectAdvancedAll();
+        if ($tblSubjectAdvanced) {
+            array_push($tblSubjectAdvanced, new TblSubject());
+        } else {
+            $tblSubjectAdvanced = array();
+        }
 
         // Elective
-        $tblCategoryElective = Subject::useService()->getGroupByIdentifier('ELECTIVE')->getTblCategoryAll();
-        array_walk($tblCategoryElective, function (TblCategory &$tblCategory) {
-
-            $tblCategory = $tblCategory->getTblSubjectAll();
-        });
-        $tblSubjectElective = array();
-        array_walk_recursive($tblCategoryElective, function ($tblSubject) use (&$tblSubjectElective) {
-
-            $tblSubjectElective[] = $tblSubject;
-        });
-        array_push($tblSubjectElective, new TblSubject());
+        $tblSubjectElective = Subject::useService()->getSubjectElectiveAll();
+        if ($tblSubjectElective) {
+            array_push($tblSubjectElective, new TblSubject());
+        } else {
+            $tblSubjectElective = array();
+        }
 
         // Profile
-        $tblCategoryProfile = Subject::useService()->getGroupByIdentifier('STANDARD')->getTblCategoryByIdentifier('PROFILE');
-        $tblCategoryProfile = $tblCategoryProfile->getTblSubjectAll();
-        $tblSubjectProfile = array();
-        array_walk_recursive($tblCategoryProfile, function ($tblSubject) use (&$tblSubjectProfile) {
-
-            $tblSubjectProfile[] = $tblSubject;
-        });
-        array_push($tblSubjectProfile, new TblSubject());
+        $tblSubjectProfile = Subject::useService()->getSubjectProfileAll();
+        if ($tblSubjectProfile) {
+            array_push($tblSubjectProfile, new TblSubject());
+        } else {
+            $tblSubjectProfile = array();
+        }
 
         // Religion
-        $tblCategoryReligion = Subject::useService()->getGroupByIdentifier('STANDARD')->getTblCategoryByIdentifier('RELIGION');
-        $tblCategoryReligion = $tblCategoryReligion->getTblSubjectAll();
-        $tblSubjectReligion = array();
-        array_walk_recursive($tblCategoryReligion, function ($tblSubject) use (&$tblSubjectReligion) {
-
-            $tblSubjectReligion[] = $tblSubject;
-        });
-        array_push($tblSubjectReligion, new TblSubject());
+        $tblSubjectReligion = Subject::useService()->getSubjectReligionAll();
+        if ($tblSubjectReligion) {
+            array_push($tblSubjectReligion, new TblSubject());
+        } else {
+            $tblSubjectReligion = array();
+        }
 
         // ForeignLanguage
-        $tblCategoryForeignLanguage = Subject::useService()->getGroupByIdentifier('STANDARD')->getTblCategoryByIdentifier('FOREIGNLANGUAGE');
-        $tblCategoryForeignLanguage = $tblCategoryForeignLanguage->getTblSubjectAll();
-        $tblSubjectForeignLanguage = array();
-        array_walk_recursive($tblCategoryForeignLanguage, function ($tblSubject) use (&$tblSubjectForeignLanguage) {
+        $tblSubjectForeignLanguage = Subject::useService()->getSubjectForeignLanguageAll();
+        if ($tblSubjectForeignLanguage) {
+            array_push($tblSubjectForeignLanguage, new TblSubject());
+        } else {
+            $tblSubjectForeignLanguage = array();
+        }
 
-            $tblSubjectForeignLanguage[] = $tblSubject;
-        });
-        array_push($tblSubjectForeignLanguage, new TblSubject());
-
+        // All
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         array_push($tblSubjectAll, new TblSubject());
-
-        $tblSubjectAllForeignLanguage = Subject::useService()->getSubjectAllByCategory(
-            Subject::useService()->getCategoryById(2)
-        );
-        array_push($tblSubjectAllForeignLanguage, new TblSubject());
-        $tblSubjectAllReligion = Subject::useService()->getSubjectAllByCategory(
-            Subject::useService()->getCategoryById(6)
-        );
-        array_push($tblSubjectAllReligion, new TblSubject());
 
         $Stage->setMessage(
             new Danger(
