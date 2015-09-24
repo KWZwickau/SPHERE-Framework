@@ -35,6 +35,7 @@ class Data extends DataCacheable
 
         $tblGroupOrientation = $this->createGroup('Neigungskurs', '', true, 'ORIENTATION');
         $tblGroupAdvanced = $this->createGroup('Vertiefungskurs', '', true, 'ADVANCED');
+        $tblGroupElective = $this->createGroup('Wahlfach', '', true, 'ELECTIVE');
         $tblGroupStandard = $this->createGroup('Standardfach', '', true, 'STANDARD');
 
         // Profil
@@ -68,6 +69,10 @@ class Data extends DataCacheable
         $tblSubject = $this->createSubject('SCHW', 'Schrauberwerkstatt');
         $this->addCategorySubject($tblCategory, $tblSubject);
 
+        // Wahlfach
+        $tblCategoryElective = $tblCategory = $this->createCategory('Wahlfach');
+        $this->addGroupCategory($tblGroupElective, $tblCategoryElective);
+
         // Muttersprache
         $tblCategory = $this->createCategory('Muttersprache');
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
@@ -95,8 +100,10 @@ class Data extends DataCacheable
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
         $tblSubject = $this->createSubject('MU', 'Musik');
         $this->addCategorySubject($tblCategory, $tblSubject);
+        $this->addCategorySubject($tblCategoryElective, $tblSubject);
         $tblSubject = $this->createSubject('KU', 'Kunst');
         $this->addCategorySubject($tblCategory, $tblSubject);
+        $this->addCategorySubject($tblCategoryElective, $tblSubject);
         $tblSubject = $this->createSubject('DASP', 'Darstellendes Spiel');
         $this->addCategorySubject($tblCategory, $tblSubject);
 
@@ -121,8 +128,10 @@ class Data extends DataCacheable
         $this->addGroupCategory($tblGroupStandard, $tblCategory);
         $tblSubject = $this->createSubject('GE', 'Geschichte');
         $this->addCategorySubject($tblCategory, $tblSubject);
+        $this->addCategorySubject($tblCategoryElective, $tblSubject);
         $tblSubject = $this->createSubject('GEO', 'Geographie');
         $this->addCategorySubject($tblCategory, $tblSubject);
+        $this->addCategorySubject($tblCategoryElective, $tblSubject);
         $tblSubject = $this->createSubject('SOP', 'Sozialkunde/Politik');
         $this->addCategorySubject($tblCategory, $tblSubject);
         $tblSubject = $this->createSubject('WI', 'Wirtschaft');

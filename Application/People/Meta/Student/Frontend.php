@@ -38,7 +38,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
 use SPHERE\Common\Frontend\Icon\Repository\StopSign;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
@@ -92,6 +91,19 @@ class Frontend implements IFrontendInterface
             $tblSubjectAdvanced[] = $tblSubject;
         });
         array_push($tblSubjectAdvanced, new TblSubject());
+
+        // Elective
+        $tblCategoryElective = Subject::useService()->getGroupByIdentifier('ELECTIVE')->getTblCategoryAll();
+        array_walk($tblCategoryElective, function (TblCategory &$tblCategory) {
+
+            $tblCategory = $tblCategory->getTblSubjectAll();
+        });
+        $tblSubjectElective = array();
+        array_walk_recursive($tblCategoryElective, function ($tblSubject) use (&$tblSubjectElective) {
+
+            $tblSubjectElective[] = $tblSubject;
+        });
+        array_push($tblSubjectElective, new TblSubject());
 
         // Profile
         $tblCategoryProfile = Subject::useService()->getGroupByIdentifier('STANDARD')->getTblCategoryByIdentifier('PROFILE');
@@ -282,7 +294,7 @@ class Frontend implements IFrontendInterface
                             new SelectBox('Meta[Subject][1]', 'Neigungskurs',
                                 array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectOrientation),
                                 new Education())
-                            .new Listing(array(
+                            .new Panel('Historie', array(
                                 'Klasse 8: Philosophie',
                                 'Klasse 9: Mathematik'
                             ))
@@ -290,7 +302,7 @@ class Frontend implements IFrontendInterface
                             new SelectBox('Meta[Subject][1]', 'Vertiefungskurs',
                                 array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAdvanced),
                                 new Education())
-                            .new Listing(array(
+                            .new Panel('Historie', array(
                                 'Klasse 10: Germanistik',
                                 'Klasse 10: Mathematik'
                             ))
@@ -305,30 +317,27 @@ class Frontend implements IFrontendInterface
                     ), 4),
                     new FormColumn(array(
                         new Panel('Unterrichtsfächer - Fremdsprachen', array(
-                            new SelectBox('Meta[Subject][1]', '1. Fremdsprache',
+                            new SelectBox('Meta[Subject][ForeignLanguage][First]', '1. Fremdsprache',
                                 array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
                                 new Education()),
-                            new SelectBox('Meta[Subject][2]', '2. Fremdsprache',
+                            new SelectBox('Meta[Subject][ForeignLanguage][Second]', '2. Fremdsprache',
                                 array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
                                 new Education()),
-                            new SelectBox('Meta[Subject][3]', '3. Fremdsprache',
+                            new SelectBox('Meta[Subject][ForeignLanguage][Third]', '3. Fremdsprache',
                                 array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
                                 new Education()),
-                            new SelectBox('Meta[Subject][4]', '4. Fremdsprache',
+                            new SelectBox('Meta[Subject][ForeignLanguage][Fourth]', '4. Fremdsprache',
                                 array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
                                 new Education()),
                         ), Panel::PANEL_TYPE_INFO),
                     ), 4),
                     new FormColumn(array(
-                        new Panel('Unterrichtsfächer - Wahlpflichtfächer', array(
-                            new SelectBox('Meta[Subject][1]', '1. Wahlpflichtfach',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                        new Panel('Unterrichtsfächer - Wahlfächer', array(
+                            new SelectBox('Meta[Subject][Elective][First]', '1. Wahlfach',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
                                 new Education()),
-                            new SelectBox('Meta[Subject][2]', '2. Wahlpflichtfach',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                                new Education()),
-                            new SelectBox('Meta[Subject][3]', '3. Wahlpflichtfach',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
+                            new SelectBox('Meta[Subject][Elective][Second]', '2. Wahlfach',
+                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
                                 new Education()),
                         ), Panel::PANEL_TYPE_INFO),
                     ), 4),

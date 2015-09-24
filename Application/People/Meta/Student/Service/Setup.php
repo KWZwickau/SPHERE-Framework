@@ -63,7 +63,7 @@ class Setup
         if (!$this->Connection->hasColumn('tblStudentMedicalRecord', 'Medication')) {
             $Table->addColumn('Medication', 'text');
         }
-        if (!$this->Connection->hasColumn('tblStudent', 'serviceTblPersonAttendingDoctor')) {
+        if (!$this->Connection->hasColumn('tblStudentMedicalRecord', 'serviceTblPersonAttendingDoctor')) {
             $Table->addColumn('serviceTblPersonAttendingDoctor', 'bigint', array('notnull' => false));
         }
         if (!$this->Connection->hasColumn('tblStudentMedicalRecord', 'InsuranceState')) {
