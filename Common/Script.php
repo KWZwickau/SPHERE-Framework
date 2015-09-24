@@ -120,6 +120,14 @@ class Script extends Extension
             'MathJax', '/Library/MathJax/2.5.0/MathJax.js?config=TeX-MML-AM_HTMLorMML-full',
             "'undefined' !== typeof MathJax"
         );
+        $this->setSource(
+            'jQuery.Carousel', '/Library/jQuery.jCarousel/0.3.3/dist/jquery.jcarousel.min.js',
+            "'undefined' !== typeof jQuery.fn.jcarousel"
+        );
+        $this->setSource(
+            'jQuery.FlowPlayer', 'Library/jQuery.FlowPlayer/6.0.3/flowplayer.min.js',
+            "'undefined' !== typeof jQuery.fn.flowplayer"
+        );
 
         /**
          * Module (jQuery plugin)
@@ -143,6 +151,12 @@ class Script extends Extension
         );
         $this->setModule(
             'ModSelecter', array('jQuery.Selecter', 'jQuery')
+        );
+        $this->setModule(
+            'ModCarousel', array('jQuery.Carousel', 'jQuery')
+        );
+        $this->setModule(
+            'ModVideo', array('jQuery.FlowPlayer', 'jQuery')
         );
         $this->setModule(
             'ModSelect', array('Bootstrap.Select', 'Bootstrap', 'jQuery')

@@ -43,7 +43,7 @@
                 },
                 stop: function(e, ui, $widget)
                 {
-                    Storage.localStorage.set('ModGrid', selfApi.serialize())
+                    Storage.localStorage.set('ModGrid', selfApi.serialize());
 
                     // Stop event from propagating down the tree on the capture phase
                     var player = ui.$player;

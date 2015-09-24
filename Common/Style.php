@@ -41,6 +41,9 @@ class Style extends Extension
         $this->setSource('/Library/Bootstrap.Select/1.6.4/dist/css/bootstrap-select.min.css');
         $this->setSource('/Library/Twitter.Typeahead.Bootstrap/1.0.1/typeaheadjs.css');
 
+        $this->setSource('/Library/jQuery.jCarousel/0.3.3/examples/responsive/jcarousel.responsive.css');
+        $this->setSource('/Library/jQuery.FlowPlayer/6.0.3/skin/functional.css');
+
         $this->setSource('/Common/Style/Correction.css');
         $this->setSource('/Common/Style/PhpInfo.css');
 

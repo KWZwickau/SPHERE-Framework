@@ -390,9 +390,9 @@ class Service implements IServiceInterface
     }
 
     /**
-     * @param string        $Username
-     * @param string        $Password
-     * @param null|TblToken $tblToken
+     * @param string           $Username
+     * @param string           $Password
+     * @param null|TblToken    $tblToken
      * @param null|TblConsumer $tblConsumer
      *
      * @return TblAccount
