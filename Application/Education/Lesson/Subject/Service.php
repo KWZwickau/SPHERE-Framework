@@ -65,6 +65,152 @@ class Service implements IServiceInterface
     }
 
     /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectOrientationAll()
+    {
+
+        $tblSubjectList = array();
+        $tblCategory = $this->getGroupByIdentifier('ORIENTATION');
+        if ($tblCategory) {
+            $tblCategory = $tblCategory->getTblCategoryAll();
+            if ($tblCategory) {
+                array_walk($tblCategory, function (TblCategory &$tblCategory) {
+
+                    $tblCategory = $tblCategory->getTblSubjectAll();
+                });
+                array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
+
+                    $tblSubjectList[] = $tblSubject;
+                });
+            }
+        }
+        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByIdentifier($Identifier)
+    {
+
+        return (new Data($this->Binding))->getGroupByIdentifier($Identifier);
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAdvancedAll()
+    {
+
+        $tblSubjectList = array();
+        $tblCategory = $this->getGroupByIdentifier('ADVANCED');
+        if ($tblCategory) {
+            $tblCategory = $tblCategory->getTblCategoryAll();
+            if ($tblCategory) {
+                array_walk($tblCategory, function (TblCategory &$tblCategory) {
+
+                    $tblCategory = $tblCategory->getTblSubjectAll();
+                });
+                array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
+
+                    $tblSubjectList[] = $tblSubject;
+                });
+            }
+        }
+        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectProfileAll()
+    {
+
+        $tblSubjectList = array();
+        $tblGroup = $this->getGroupByIdentifier('STANDARD');
+        if ($tblGroup) {
+            $tblCategory = $tblGroup->getTblCategoryByIdentifier('PROFILE');
+            if ($tblCategory) {
+                $tblSubjectAll = $tblCategory->getTblSubjectAll();
+                array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+
+                    $tblSubjectList[] = $tblSubject;
+                });
+            }
+        }
+        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectReligionAll()
+    {
+
+        $tblSubjectList = array();
+        $tblGroup = $this->getGroupByIdentifier('STANDARD');
+        if ($tblGroup) {
+            $tblCategory = $tblGroup->getTblCategoryByIdentifier('RELIGION');
+            if ($tblCategory) {
+                $tblSubjectAll = $tblCategory->getTblSubjectAll();
+                array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+
+                    $tblSubjectList[] = $tblSubject;
+                });
+            }
+        }
+        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectForeignLanguageAll()
+    {
+
+        $tblSubjectList = array();
+        $tblGroup = $this->getGroupByIdentifier('STANDARD');
+        if ($tblGroup) {
+            $tblCategory = $tblGroup->getTblCategoryByIdentifier('FOREIGNLANGUAGE');
+            if ($tblCategory) {
+                $tblSubjectAll = $tblCategory->getTblSubjectAll();
+                array_walk_recursive($tblSubjectAll, function ($tblSubject) use (&$tblSubjectList) {
+
+                    $tblSubjectList[] = $tblSubject;
+                });
+            }
+        }
+        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectElectiveAll()
+    {
+
+        $tblSubjectList = array();
+        $tblCategory = $this->getGroupByIdentifier('ELECTIVE');
+        if ($tblCategory) {
+            $tblCategory = $tblCategory->getTblCategoryAll();
+            if ($tblCategory) {
+                array_walk($tblCategory, function (TblCategory &$tblCategory) {
+
+                    $tblCategory = $tblCategory->getTblSubjectAll();
+                });
+                array_walk_recursive($tblCategory, function ($tblSubject) use (&$tblSubjectList) {
+
+                    $tblSubjectList[] = $tblSubject;
+                });
+            }
+        }
+        return ( empty( $tblSubjectList ) ? false : $tblSubjectList );
+    }
+
+    /**
      * int
      */
     public function countSubjectAll()
@@ -130,17 +276,6 @@ class Service implements IServiceInterface
     {
 
         return (new Data($this->Binding))->getGroupById($Id);
-    }
-
-    /**
-     * @param string $Identifier
-     *
-     * @return bool|TblGroup
-     */
-    public function getGroupByIdentifier($Identifier)
-    {
-
-        return (new Data($this->Binding))->getGroupByIdentifier($Identifier);
     }
 
     /**
