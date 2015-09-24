@@ -1,5 +1,5 @@
 <?php
-namespace SPHERE\Application\Setting\Consumer\School;
+namespace SPHERE\Application\Setting\Consumer\SponsorAssociation;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
@@ -8,37 +8,35 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
-use SPHERE\System\Extension\Extension;
 
 /**
  * Class School
  *
- * @package SPHERE\Application\Setting\Consumer\School
+ * @package SPHERE\Application\Setting\Consumer\SponsorAssociation
  */
-class School extends Extension implements IModuleInterface
+class SponsorAssociation implements IModuleInterface
 {
 
     public static function registerModule()
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schulen'), new Link\Icon(new Education()))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Förderverein'), new Link\Icon(new Education()))
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__, '/Frontend::frontendDashboard')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
-                __NAMESPACE__.'/Frontend::frontendSchoolCreate'
+                __NAMESPACE__.'/Frontend::frontendSponsorAssociationCreate'
             )
-                ->setParameterDefault('School', null)
-                ->setParameterDefault('Type', null)
+                ->setParameterDefault('SponsorAssociation', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
-                __NAMESPACE__.'/Frontend::frontendSchoolDelete'
+                __NAMESPACE__.'/Frontend::frontendSponsorAssociationDelete'
             )
-                ->setParameterDefault('School', null)
+                ->setParameterDefault('SponsorAssociation', null)
         );
     }
 
@@ -49,7 +47,8 @@ class School extends Extension implements IModuleInterface
     {
 
         return new Service(
-            new Identifier('Setting', 'Consumer', 'School', null, Consumer::useService()->getConsumerBySession()),
+            new Identifier('Setting', 'Consumer', 'SponsorAssociation', null,
+                Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
