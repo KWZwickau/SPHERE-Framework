@@ -34,7 +34,7 @@ class Success extends Extension implements ILinkInterface
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/Link.twig');
         $this->Template->setVariable('ElementName', $Name);
-        $this->Template->setVariable('ElementType', 'success');
+        $this->Template->setVariable('ElementType', 'btn btn-success');
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
         }

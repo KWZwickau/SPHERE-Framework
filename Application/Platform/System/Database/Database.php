@@ -224,10 +224,11 @@ class Database extends Extension implements IModuleInterface
 
     /**
      * @param bool $Simulation
+     * @param bool $Heal
      *
      * @return Stage
      */
-    public function frontendSetup($Simulation = true)
+    public function frontendSetup($Simulation = true, $Heal = false)
     {
 
         $ClassList = get_declared_classes();
@@ -236,7 +237,9 @@ class Database extends Extension implements IModuleInterface
         );
 
         $Stage = new Stage('Database', 'Setup');
-        $this->menuButton($Stage);
+        if (!$Heal) {
+            $this->menuButton($Stage);
+        }
         if ($Simulation) {
             $ClassList = self::$ServiceRegister;
             array_walk($ClassList, function (&$Class) {

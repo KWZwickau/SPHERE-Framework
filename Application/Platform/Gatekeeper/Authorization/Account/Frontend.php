@@ -55,16 +55,20 @@ class Frontend
         $tblConsumer = Consumer::useService()->getConsumerBySession();
         // Token
         $tblTokenAll = Token::useService()->getTokenAll();
-        array_walk($tblTokenAll, function (TblToken &$tblToken) {
+        if ($tblTokenAll) {
+            array_walk($tblTokenAll, function (TblToken &$tblToken) {
 
-            if (Account::useService()->getAccountAllByToken($tblToken)) {
-                $tblToken = false;
-            } else {
-                $tblToken = new RadioBox('Account[Token]',
-                    implode(' ', str_split($tblToken->getSerial(), 4)), $tblToken->getId());
-            }
-        });
-        $tblTokenAll = array_filter($tblTokenAll);
+                if (Account::useService()->getAccountAllByToken($tblToken)) {
+                    $tblToken = false;
+                } else {
+                    $tblToken = new RadioBox('Account[Token]',
+                        implode(' ', str_split($tblToken->getSerial(), 4)), $tblToken->getId());
+                }
+            });
+            $tblTokenAll = array_filter($tblTokenAll);
+        } else {
+            $tblTokenAll = array();
+        }
         array_unshift($tblTokenAll,
             new RadioBox('Account[Token]',
                 new \SPHERE\Common\Frontend\Text\Repository\Danger('KEIN Hardware-Schlüssel'),
@@ -74,43 +78,52 @@ class Frontend
 
         // Identification
         $tblIdentificationAll = Account::useService()->getIdentificationAll();
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification, $Index, $isSystem) {
+        if ($tblIdentificationAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification, $Index, $isSystem) {
 
-            if ($tblIdentification->getName() == 'System' && !$isSystem) {
-                $tblIdentification = false;
-            } else {
-                $tblIdentification = new RadioBox(
-                    'Account[Identification]', $tblIdentification->getDescription(), $tblIdentification->getId()
-                );
-            }
-        }, $isSystem);
-        $tblIdentificationAll = array_filter($tblIdentificationAll);
+                if ($tblIdentification->getName() == 'System' && !$isSystem) {
+                    $tblIdentification = false;
+                } else {
+                    $tblIdentification = new RadioBox(
+                        'Account[Identification]', $tblIdentification->getDescription(), $tblIdentification->getId()
+                    );
+                }
+            }, $isSystem);
+            $tblIdentificationAll = array_filter($tblIdentificationAll);
+        } else {
+            $tblIdentificationAll = array();
+        }
 
         // Role
         $tblRoleAll = Access::useService()->getRoleAll();
-        /** @noinspection PhpUnusedParameterInspection */
-        array_walk($tblRoleAll, function (TblRole &$tblRole, $Index, $isSystem) {
+        if ($tblRoleAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblRoleAll, function (TblRole &$tblRole, $Index, $isSystem) {
 
-            if ($tblRole->getName() == 'Administrator' && !$isSystem) {
-                $tblRole = false;
-            } else {
-                $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
-                    $tblRole->getId());
-            }
-        }, $isSystem);
-        $tblRoleAll = array_filter($tblRoleAll);
-
+                if ($tblRole->getName() == 'Administrator' && !$isSystem) {
+                    $tblRole = false;
+                } else {
+                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
+                        $tblRole->getId());
+                }
+            }, $isSystem);
+            $tblRoleAll = array_filter($tblRoleAll);
+        } else {
+            $tblRoleAll = array();
+        }
         // Account
         $tblAccountAll = Account::useService()->getAccountAll();
-        array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
+        if ($tblAccountAll) {
+            array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
 
-            /** @noinspection PhpUndefinedFieldInspection */
-            $tblAccount->Option = new Danger('Löschen',
-                '/Platform/Gatekeeper/Authorization/Account/Destroy',
-                new Remove(), array('Id' => $tblAccount->getId()), 'Löschen'
-            );
-        });
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblAccount->Option = new Danger('Löschen',
+                    '/Platform/Gatekeeper/Authorization/Account/Destroy',
+                    new Remove(), array('Id' => $tblAccount->getId()), 'Löschen'
+                );
+            });
+        }
 
         $Stage->setContent(
             ( $tblAccountAll

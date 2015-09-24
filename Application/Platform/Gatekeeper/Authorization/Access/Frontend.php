@@ -84,30 +84,32 @@ class Frontend
         $Stage = new Stage('Berechtigungen', 'Zugriffslevel');
         $this->menuButton($Stage);
         $tblLevelAll = Access::useService()->getLevelAll();
-        array_walk($tblLevelAll, function (TblLevel &$tblLevel) {
+        if ($tblLevelAll) {
+            array_walk($tblLevelAll, function (TblLevel &$tblLevel) {
 
-            $tblPrivilege = Access::useService()->getPrivilegeAllByLevel($tblLevel);
-            if (empty( $tblPrivilege )) {
-                /** @noinspection PhpUndefinedFieldInspection */
-                $tblLevel->Option = new Warning('Keine Privilegien vergeben')
-                    .new PullRight(new Danger('Privilegien hinzufügen',
-                        '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
-                        null, array('Id' => $tblLevel->getId())
-                    ));
-            } else {
-                array_walk($tblPrivilege, function (TblPrivilege &$tblPrivilege) {
+                $tblPrivilege = Access::useService()->getPrivilegeAllByLevel($tblLevel);
+                if (empty( $tblPrivilege )) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblLevel->Option = new Warning('Keine Privilegien vergeben')
+                        .new PullRight(new Danger('Privilegien hinzufügen',
+                            '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
+                            null, array('Id' => $tblLevel->getId())
+                        ));
+                } else {
+                    array_walk($tblPrivilege, function (TblPrivilege &$tblPrivilege) {
 
-                    $tblPrivilege = $tblPrivilege->getName();
-                });
-                array_unshift($tblPrivilege, '');
-                /** @noinspection PhpUndefinedFieldInspection */
-                $tblLevel->Option = new Panel('Privilegien', $tblPrivilege)
-                    .new PullRight(new Danger('Privilegien bearbeiten',
-                        '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
-                        null, array('Id' => $tblLevel->getId())
-                    ));
-            }
-        });
+                        $tblPrivilege = $tblPrivilege->getName();
+                    });
+                    array_unshift($tblPrivilege, '');
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblLevel->Option = new Panel('Privilegien', $tblPrivilege)
+                        .new PullRight(new Danger('Privilegien bearbeiten',
+                            '/Platform/Gatekeeper/Authorization/Access/LevelGrantPrivilege',
+                            null, array('Id' => $tblLevel->getId())
+                        ));
+                }
+            });
+        }
         $Stage->setContent(
             ( $tblLevelAll
                 ? new TableData($tblLevelAll, new Title('Bestehende Zugriffslevel'), array(
@@ -141,30 +143,32 @@ class Frontend
         $Stage = new Stage('Berechtigungen', 'Privilegien');
         $this->menuButton($Stage);
         $tblPrivilegeAll = Access::useService()->getPrivilegeAll();
-        array_walk($tblPrivilegeAll, function (TblPrivilege &$tblPrivilege) {
+        if ($tblPrivilegeAll) {
+            array_walk($tblPrivilegeAll, function (TblPrivilege &$tblPrivilege) {
 
-            $tblRight = Access::useService()->getRightAllByPrivilege($tblPrivilege);
-            if (empty( $tblRight )) {
-                /** @noinspection PhpUndefinedFieldInspection */
-                $tblPrivilege->Option = new Warning('Keine Rechte vergeben')
-                    .new PullRight(new Danger('Rechte hinzufügen',
-                        '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
-                        null, array('Id' => $tblPrivilege->getId())
-                    ));
-            } else {
-                array_walk($tblRight, function (TblRight &$tblRight) {
+                $tblRight = Access::useService()->getRightAllByPrivilege($tblPrivilege);
+                if (empty( $tblRight )) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblPrivilege->Option = new Warning('Keine Rechte vergeben')
+                        .new PullRight(new Danger('Rechte hinzufügen',
+                            '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
+                            null, array('Id' => $tblPrivilege->getId())
+                        ));
+                } else {
+                    array_walk($tblRight, function (TblRight &$tblRight) {
 
-                    $tblRight = $tblRight->getRoute();
-                });
-                array_unshift($tblRight, '');
-                /** @noinspection PhpUndefinedFieldInspection */
-                $tblPrivilege->Option = new Panel('Rechte (Routen)', $tblRight)
-                    .new PullRight(new Danger('Rechte bearbeiten',
-                        '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
-                        null, array('Id' => $tblPrivilege->getId())
-                    ));
-            }
-        });
+                        $tblRight = $tblRight->getRoute();
+                    });
+                    array_unshift($tblRight, '');
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblPrivilege->Option = new Panel('Rechte (Routen)', $tblRight)
+                        .new PullRight(new Danger('Rechte bearbeiten',
+                            '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
+                            null, array('Id' => $tblPrivilege->getId())
+                        ));
+                }
+            });
+        }
         $Stage->setContent(
             ( $tblPrivilegeAll
                 ? new TableData($tblPrivilegeAll, new Title('Bestehende Privilegien'), array(
@@ -250,31 +254,33 @@ class Frontend
         $Stage = new Stage('Berechtigungen', 'Rollen');
         $this->menuButton($Stage);
         $tblRoleAll = Access::useService()->getRoleAll();
-        array_walk($tblRoleAll, function (TblRole &$tblRole) {
+        if ($tblRoleAll) {
+            array_walk($tblRoleAll, function (TblRole &$tblRole) {
 
-            $tblLevel = Access::useService()->getLevelAllByRole($tblRole);
+                $tblLevel = Access::useService()->getLevelAllByRole($tblRole);
 
-            if (empty( $tblLevel )) {
-                /** @noinspection PhpUndefinedFieldInspection */
-                $tblRole->Option = new Warning('Keine Zugriffslevel vergeben')
-                    .new PullRight(new Danger('Zugriffslevel hinzufügen',
-                        '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
-                        null, array('Id' => $tblRole->getId())
-                    ));
-            } else {
-                array_walk($tblLevel, function (TblLevel &$tblLevel) {
+                if (empty( $tblLevel )) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblRole->Option = new Warning('Keine Zugriffslevel vergeben')
+                        .new PullRight(new Danger('Zugriffslevel hinzufügen',
+                            '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
+                            null, array('Id' => $tblRole->getId())
+                        ));
+                } else {
+                    array_walk($tblLevel, function (TblLevel &$tblLevel) {
 
-                    $tblLevel = $tblLevel->getName();
-                });
-                array_unshift($tblLevel, '');
-                /** @noinspection PhpUndefinedFieldInspection */
-                $tblRole->Option = new Panel('Zugriffslevel', $tblLevel)
-                    .new PullRight(new Danger('Zugriffslevel bearbeiten',
-                        '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
-                        null, array('Id' => $tblRole->getId())
-                    ));
-            }
-        });
+                        $tblLevel = $tblLevel->getName();
+                    });
+                    array_unshift($tblLevel, '');
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblRole->Option = new Panel('Zugriffslevel', $tblLevel)
+                        .new PullRight(new Danger('Zugriffslevel bearbeiten',
+                            '/Platform/Gatekeeper/Authorization/Access/RoleGrantLevel',
+                            null, array('Id' => $tblRole->getId())
+                        ));
+                }
+            });
+        }
         $Stage->setContent(
             ( $tblRoleAll
                 ? new TableData($tblRoleAll, new Title('Bestehende Rollen'), array(

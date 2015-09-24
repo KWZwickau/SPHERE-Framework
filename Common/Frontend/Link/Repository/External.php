@@ -35,7 +35,7 @@ class External extends Extension implements ILinkInterface
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/External.twig');
         $this->Template->setVariable('ElementName', $Name);
-        $this->Template->setVariable('ElementType', 'default');
+        $this->Template->setVariable('ElementType', 'btn btn-default');
         if (null === $Icon) {
             $Icon = new Extern();
         }

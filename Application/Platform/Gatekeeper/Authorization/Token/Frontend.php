@@ -33,27 +33,28 @@ class Frontend
 
         $Stage = new Stage('Hardware-Schlüssel', 'YubiKey');
         $tblTokenAll = Token::useService()->getTokenAll();
+        if ($tblTokenAll) {
+            array_walk($tblTokenAll, function (TblToken &$tblToken) {
 
-        array_walk($tblTokenAll, function (TblToken &$tblToken) {
-
-            /** @noinspection PhpUndefinedFieldInspection */
-            $tblToken->Name = strtoupper($tblToken->getIdentifier());
-            strtoupper($tblToken->getIdentifier());
-            if ($tblToken->getSerial() % 2 != 0) {
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblToken->Number = '0'.$tblToken->getSerial();
-            } else {
+                $tblToken->Name = strtoupper($tblToken->getIdentifier());
+                strtoupper($tblToken->getIdentifier());
+                if ($tblToken->getSerial() % 2 != 0) {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblToken->Number = '0'.$tblToken->getSerial();
+                } else {
+                    /** @noinspection PhpUndefinedFieldInspection */
+                    $tblToken->Number = $tblToken->getSerial();
+                }
                 /** @noinspection PhpUndefinedFieldInspection */
-                $tblToken->Number = $tblToken->getSerial();
-            }
-            /** @noinspection PhpUndefinedFieldInspection */
-            $tblToken->Number = substr($tblToken->Number, 0, 4).' '.substr($tblToken->Number, 4, 4);
-            /** @noinspection PhpUndefinedFieldInspection */
-            $tblToken->Option = new Danger('Löschen',
-                '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
-                new Remove(), array('Id' => $tblToken->getId()), 'Löschen'
-            );
-        });
+                $tblToken->Number = substr($tblToken->Number, 0, 4).' '.substr($tblToken->Number, 4, 4);
+                /** @noinspection PhpUndefinedFieldInspection */
+                $tblToken->Option = new Danger('Löschen',
+                    '/Platform/Gatekeeper/Authorization/Access/PrivilegeGrantRight',
+                    new Remove(), array('Id' => $tblToken->getId()), 'Löschen'
+                );
+            });
+        }
         $Stage->setContent(
             ( $tblTokenAll
                 ? new TableData($tblTokenAll, new Title('Bestehende Hardware-Schlüssel'), array(

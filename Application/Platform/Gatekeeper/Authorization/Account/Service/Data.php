@@ -318,8 +318,8 @@ class Data extends DataCacheable
 
         return $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblAuthorization',
             array(
-            TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId()
-        ));
+                TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId()
+            ));
     }
 
     /**

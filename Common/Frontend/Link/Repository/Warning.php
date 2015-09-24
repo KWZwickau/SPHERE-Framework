@@ -34,7 +34,7 @@ class Warning extends Extension implements ILinkInterface
         $this->Name = $Name;
         $this->Template = $this->getTemplate(__DIR__.'/Link.twig');
         $this->Template->setVariable('ElementName', $Name);
-        $this->Template->setVariable('ElementType', 'warning');
+        $this->Template->setVariable('ElementType', 'btn btn-warning');
         if (null !== $Icon) {
             $this->Template->setVariable('ElementIcon', $Icon);
         }

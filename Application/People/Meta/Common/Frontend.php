@@ -82,51 +82,52 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setContent(
             Common::useService()->createMeta(
-            (new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(array(
-                            new Panel('Geburtsdaten', array(
-                                new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
-                                    new Calendar()),
-                                new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort', array(),
-                                    new MapMarker()),
-                                new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
-                                    TblCommonBirthDates::VALUE_GENDER_NULL   => '',
-                                    TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
-                                    TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
-                                ), new Child()),
-                            ), Panel::PANEL_TYPE_INFO),
-                            new Panel('Sonstiges', array(
-                                new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
-                            ), Panel::PANEL_TYPE_INFO)
-                        ), 6),
-                        new FormColumn(array(
-                            new Panel('Informationen', array(
-                                new AutoCompleter('Meta[Information][Nationality]', 'Staatsangehörigkeit',
-                                    'Staatsangehörigkeit',
-                                    array(), new Nameplate()
-                                ),
-                                new AutoCompleter('Meta[Information][Denomination]', 'Konfession',
-                                    'Konfession',
-                                    array(), new TempleChurch()
-                                ),
-                                new SelectBox('Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
-                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
-                                    TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
-                                    TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
-                                ), new Sheriff()
-                                ),
-                                new TextArea('Meta[Information][AssistanceActivity]',
-                                    'Mitarbeitsbereitschaft - Tätigkeiten',
-                                    'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
-                                ),
-                            ), Panel::PANEL_TYPE_INFO)
-                        ), 6),
+                (new Form(array(
+                    new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(array(
+                                new Panel('Geburtsdaten', array(
+                                    new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
+                                        new Calendar()),
+                                    new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
+                                        array(),
+                                        new MapMarker()),
+                                    new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
+                                        TblCommonBirthDates::VALUE_GENDER_NULL   => '',
+                                        TblCommonBirthDates::VALUE_GENDER_MALE   => 'Männlich',
+                                        TblCommonBirthDates::VALUE_GENDER_FEMALE => 'Weiblich'
+                                    ), new Child()),
+                                ), Panel::PANEL_TYPE_INFO),
+                                new Panel('Sonstiges', array(
+                                    new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil())
+                                ), Panel::PANEL_TYPE_INFO)
+                            ), 6),
+                            new FormColumn(array(
+                                new Panel('Informationen', array(
+                                    new AutoCompleter('Meta[Information][Nationality]', 'Staatsangehörigkeit',
+                                        'Staatsangehörigkeit',
+                                        array(), new Nameplate()
+                                    ),
+                                    new AutoCompleter('Meta[Information][Denomination]', 'Konfession',
+                                        'Konfession',
+                                        array(), new TempleChurch()
+                                    ),
+                                    new SelectBox('Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_YES  => 'Ja',
+                                        TblCommonInformation::VALUE_IS_ASSISTANCE_NO   => 'Nein'
+                                    ), new Sheriff()
+                                    ),
+                                    new TextArea('Meta[Information][AssistanceActivity]',
+                                        'Mitarbeitsbereitschaft - Tätigkeiten',
+                                        'Mitarbeitsbereitschaft - Tätigkeiten', new Pencil()
+                                    ),
+                                ), Panel::PANEL_TYPE_INFO)
+                            ), 6),
+                        )),
                     )),
-                )),
-            ), new Primary('Informationen speichern')
-            ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta)
+                ), new Primary('Informationen speichern')
+                ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta)
         );
 
         return $Stage;

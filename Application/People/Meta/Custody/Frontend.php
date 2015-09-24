@@ -80,7 +80,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), Panel::PANEL_TYPE_INFO
                                 ), 6),
                         )),
-                )),
+                    )),
                 ), new Primary('Informationen speichern')
                 ))->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'), $tblPerson, $Meta)
         );

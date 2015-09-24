@@ -123,10 +123,6 @@ class Frontend implements IFrontendInterface
         });
         array_push($tblSubjectForeignLanguage, new TblSubject());
 
-
-
-
-
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         array_push($tblSubjectAll, new TblSubject());
 

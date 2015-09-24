@@ -181,13 +181,13 @@ class Data
     ) {
 
         $Manager = $this->Connection->getEntityManager();
-            $Entity = new TblToPerson();
-            $Entity->setServiceTblPersonFrom($tblPersonFrom);
-            $Entity->setServiceTblPersonTo($tblPersonTo);
-            $Entity->setTblType($tblType);
-            $Entity->setRemark($Remark);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        $Entity = new TblToPerson();
+        $Entity->setServiceTblPersonFrom($tblPersonFrom);
+        $Entity->setServiceTblPersonTo($tblPersonTo);
+        $Entity->setTblType($tblType);
+        $Entity->setRemark($Remark);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         return $Entity;
     }
 
@@ -245,13 +245,13 @@ class Data
     ) {
 
         $Manager = $this->Connection->getEntityManager();
-            $Entity = new TblToCompany();
-            $Entity->setServiceTblCompany($tblCompany);
-            $Entity->setServiceTblPerson($tblPerson);
-            $Entity->setTblType($tblType);
-            $Entity->setRemark($Remark);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        $Entity = new TblToCompany();
+        $Entity->setServiceTblCompany($tblCompany);
+        $Entity->setServiceTblPerson($tblPerson);
+        $Entity->setTblType($tblType);
+        $Entity->setRemark($Remark);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         return $Entity;
     }
 }

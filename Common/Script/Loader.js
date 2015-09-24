@@ -1,7 +1,7 @@
 var Client = (function()
 {
     'use strict';
-    var useDelay = 5;
+    var useDelay = 30;
     var useConfig = {};
     var setModule = function(Module, Depending)
     {

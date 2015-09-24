@@ -95,7 +95,7 @@ class Frontend implements IFrontendInterface
                 'Löschen');
         }
 
-        return Template::getTwigTemplateString( '<div class="thumbnail">
+        return Template::getTwigTemplateString('<div class="thumbnail">
             <img class="img-responsive" src="/Api/Test/ShowImage?'.$Query.'">
             <div class="caption text-center">
             {{ Name }}
@@ -115,13 +115,13 @@ class Frontend implements IFrontendInterface
      * @return string
      */
     public function ShowFile($Id = null)
-        {
+    {
 
-            $Auth = new Authenticator(new Get());
+        $Auth = new Authenticator(new Get());
 
-            $Query = http_build_query($Auth->getAuthenticator()->createSignature(array('Id' => $Id),
-                '/Api/Test/ShowContent'));
+        $Query = http_build_query($Auth->getAuthenticator()->createSignature(array('Id' => $Id),
+            '/Api/Test/ShowContent'));
 
-            return '<iframe id="File-'.$Id.'" style="display: block" src="/Api/Test/ShowContent?'.$Query.'"></iframe>';
-        }
+        return '<iframe id="File-'.$Id.'" style="display: block" src="/Api/Test/ShowContent?'.$Query.'"></iframe>';
+    }
 }

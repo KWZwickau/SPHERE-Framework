@@ -33,7 +33,7 @@ class Test implements IModuleInterface
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__,
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Frontend',
                 __NAMESPACE__.'\Frontend::frontendPlatform'
             )
         );
