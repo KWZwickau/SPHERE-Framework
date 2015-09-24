@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
-use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;

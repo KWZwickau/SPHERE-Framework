@@ -167,4 +167,13 @@ class Debugger
             self::addProtocol($Dump);
         }
     }
+
+    /**
+     * @return bool
+     */
+    final public static function isActive()
+    {
+
+        return self::$Enabled;
+    }
 }

@@ -164,7 +164,9 @@ class Database extends Extension
             }
         }
 
-        $ConnectionConfig->setSQLLogger(new Logger());
+        if ($this->getDebugger()->isActive()) {
+            $ConnectionConfig->setSQLLogger(new Logger());
+        }
 
         return new Manager(
             EntityManager::create($this->getConnection()->getConnection(), $MetadataConfiguration), $EntityNamespace
