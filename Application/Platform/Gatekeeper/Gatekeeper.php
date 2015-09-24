@@ -4,7 +4,6 @@ namespace SPHERE\Application\Platform\Gatekeeper;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authentication\Authentication;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Authorization;
-use SPHERE\Application\Platform\Gatekeeper\MyAccount\MyAccount;
 use SPHERE\Common\Frontend\Icon\Repository\PersonKey;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -22,7 +21,6 @@ class Gatekeeper implements IApplicationInterface
     {
 
         Authorization::registerModule();
-        MyAccount::registerModule();
         Authentication::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(

@@ -1,6 +1,7 @@
 <?php
-namespace SPHERE\Application\Platform\Gatekeeper\MyAccount;
+namespace SPHERE\Application\Setting\MyAccount;
 
+use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
@@ -11,24 +12,29 @@ use SPHERE\Common\Window\Navigation\Link;
 /**
  * Class MyAccount
  *
- * @package SPHERE\Application\Platform\Gatekeeper\MyAccount
+ * @package SPHERE\Application\Setting\MyAccount
  */
-class MyAccount implements IModuleInterface
+class MyAccount implements IApplicationInterface, IModuleInterface
 {
+
+    public static function registerApplication()
+    {
+
+        self::registerModule();
+    }
 
     public static function registerModule()
     {
 
         if (Account::useService()->getAccountBySession()) {
-            Main::getDisplay()->addServiceNavigation(new Link(new Link\Route(__NAMESPACE__),
-                new Link\Name('Profil'), new Link\Icon(new Person())
+            Main::getDisplay()->addApplicationNavigation(new Link(new Link\Route(__NAMESPACE__),
+                new Link\Name('Mein Benutzerkonto'), new Link\Icon(new Person())
             ));
         }
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendMyAccount'
-        )
-        );
+        ));
     }
 
     /**
