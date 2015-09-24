@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1443096037">
+    <project timestamp="1443096037">
+        <file name="D:\WebProject\SPHERE-Framework\UnitTest\Suite\System\AuthenticatorTest.php">
+            <class name="AuthenticatorTest" namespace="global" fullPackage="SPHERE" package="SPHERE">
+                <metrics methods="3" coveredmethods="3" conditionals="0" coveredconditionals="0" statements="15"
+                         coveredstatements="15" elements="18" coveredelements="18"/>
+            </class>
+            <line num="16" type="method" name="testTypeGet" crap="1" count="1"/>
+            <line num="19" type="stmt" count="1"/>
+            <line num="20" type="stmt" count="1"/>
+            <line num="21" type="stmt" count="1"/>
+            <line num="22" type="stmt" count="1"/>
+            <line num="23" type="stmt" count="1"/>
+            <line num="25" type="method" name="testTypePost" crap="1" count="1"/>
+            <line num="28" type="stmt" count="1"/>
+            <line num="29" type="stmt" count="1"/>
+            <line num="30" type="stmt" count="1"/>
+            <line num="31" type="stmt" count="1"/>
+            <line num="32" type="stmt" count="1"/>
+            <line num="34" type="method" name="testAuthenticator" crap="1" count="1"/>
+            <line num="37" type="stmt" count="1"/>
+            <line num="38" type="stmt" count="1"/>
+            <line num="40" type="stmt" count="1"/>
+            <line num="41" type="stmt" count="1"/>
+            <line num="42" type="stmt" count="1"/>
+            <line num="738" type="stmt" count="3"/>
+            <metrics loc="43" ncloc="38" classes="1" methods="3" coveredmethods="3" conditionals="0"
+                     coveredconditionals="0" statements="16" coveredstatements="16" elements="19" coveredelements="19"/>
+        </file>
+        <metrics files="1" loc="43" ncloc="38" classes="1" methods="3" coveredmethods="3" conditionals="0"
+                 coveredconditionals="0" statements="16" coveredstatements="16" elements="19" coveredelements="19"/>
+    </project>
+</coverage>

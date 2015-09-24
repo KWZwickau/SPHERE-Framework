@@ -1,0 +1,27 @@
+## Customize the test machine
+machine:
+
+  timezone:
+    Europe/Berlin # Set the timezone
+
+  php:
+    version: 5.4.4
+
+## Customize dependencies
+dependencies:
+  pre:
+    - curl -s http://getcomposer.org/installer | php
+    - php composer.phar install --no-interaction
+
+## Customize test commands
+test:
+  override:
+    - mkdir -p build/logs
+    - phpunit --configuration UnitTest/phpunit.xml --coverage-text --debug
+    - phpunit --configuration UnitTest/phpunit.xml --coverage-clover build/logs/clover.xml
+
+## Specifying branches to build
+general:
+  branches:
+    ignore:
+      - gh-pages

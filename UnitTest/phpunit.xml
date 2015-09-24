@@ -6,19 +6,20 @@
          processIsolation="false">
     <testsuites>
         <testsuite name="SPHERE">
-            <directory suffix=".php">./Tests/System</directory>
-            <directory suffix=".php">./Tests/Common</directory>
-            <directory suffix=".php">./Tests/Application</directory>
+            <directory suffix=".php">./Suite</directory>
         </testsuite>
     </testsuites>
     <filter>
         <whitelist processUncoveredFilesFromWhitelist="false">
-            <directory suffix=".php">./Tests/System</directory>
-            <directory suffix=".php">./Tests/Common</directory>
-            <directory suffix=".php">./Tests/Application</directory>
-            <directory suffix=".php">./../System</directory>
-            <directory suffix=".php">./../Common</directory>
+            <directory suffix=".php">./Suite</directory>
             <directory suffix=".php">./../Application</directory>
+            <directory suffix=".php">./../Common</directory>
+            <directory suffix=".php">./../System</directory>
+            <exclude>
+                <directory>./../Common/Script</directory>
+                <directory>./../Common/Style</directory>
+                <directory>./../System/Database/Fitting</directory>
+            </exclude>
         </whitelist>
     </filter>
     <logging>

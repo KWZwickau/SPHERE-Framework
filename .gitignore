@@ -1,2 +1,5 @@
+.git/
 .idea/
 .project
+/Common/Style/Resource/*.lesscache
+
