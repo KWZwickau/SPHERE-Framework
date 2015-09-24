@@ -40,7 +40,7 @@ class Roadmap extends Extension
     private function versionMajor0Minor8Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('0.8.0', 'Demoversion (28.09.2015)');
+        $Release = $this->Roadmap->createRelease('0.8.0', 'Demoversion (Ziel 28.09.2015)');
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
@@ -61,6 +61,7 @@ class Roadmap extends Extension
             ->createDuty('Gruppen hinzufügen', true)
             ->createDuty('Gruppen bearbeiten', true)
             ->createDuty('Gruppen löschen', true);
+
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Grunddaten', 'Personname und Gruppenzugehörigkeit')
             ->createDuty('Name', true)
@@ -87,8 +88,7 @@ class Roadmap extends Extension
             ->createDuty('Personenbeziehung löschen', true)
             ->createDuty('Firmenbeziehung hinzufügen', true)
             ->createDuty('Firmenbeziehung bearbeiten', true)
-            ->createDuty('Firmenbeziehung löschen', true)
-            ->createDuty('Anzeige von Adress- und Kontaktdaten', false);
+            ->createDuty('Firmenbeziehung löschen', true);
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
@@ -190,13 +190,17 @@ class Roadmap extends Extension
     private function versionMajor0Minor9Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('0.9.0', 'Demoversion (Oktober)');
+        $Release = $this->Roadmap->createRelease('0.9.0', 'Demoversion (Ziel Oktober)');
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
         $Feature = $Category->createFeature('Dashboards');
         $Feature->createTask('Board: People')
             ->createDuty('Klären welcher Inhalt enthalten sein soll');
+
+        $Feature = $Category->createFeature('Person');
+        $Feature->createTask('Beziehungen')
+            ->createDuty('Anzeige von Adress- und Kontaktdaten');
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
@@ -255,7 +259,7 @@ class Roadmap extends Extension
     private function versionMajor1Minor0Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (November)');
+        $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (Ziel November)');
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
@@ -294,7 +298,7 @@ class Roadmap extends Extension
     private function versionMajor1Minor1Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Q1 2016)');
+        $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Ziel Q1 2016)');
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
@@ -310,7 +314,7 @@ class Roadmap extends Extension
     private function versionMajor1Minor2Patch0()
     {
 
-        $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Q1 2016)');
+        $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Ziel Q1 2016)');
 
         $Category = $Release->createCategory('Fakturierung');
         $Category->createFeature('Leistungen');
@@ -329,7 +333,7 @@ class Roadmap extends Extension
     private function poolMajor1MinorXPatchX()
     {
 
-        $Release = $this->Roadmap->createRelease('1.x.x', 'KREDA (2016)');
+        $Release = $this->Roadmap->createRelease('1.x.x', 'KREDA (Ziel 2016)');
 
         $Category = $Release->createCategory('Datentransfer', 'Austausch mit anderen Programmen');
 
