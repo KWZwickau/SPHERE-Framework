@@ -1,7 +1,7 @@
 SPHERE-Framework (KREDA)
 ========================
 
-Please take into account that current versions of MOC-Framework Mark V could contain serious bugs.
+Please take into account that current versions of SPHERE-Framework could contain serious bugs.
 
 Don't use them in production environments.
 
