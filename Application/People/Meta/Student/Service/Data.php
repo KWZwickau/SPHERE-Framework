@@ -3,6 +3,11 @@ namespace SPHERE\Application\People\Meta\Student\Service;
 
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferArrive;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferEnrollment;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferLeave;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferProcess;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
@@ -31,6 +36,28 @@ class Data extends DataCacheable
     public function setupDatabaseContent()
     {
 
+    }
+
+    /**
+     * @param TblPerson               $tblPerson
+     * @param TblStudentMedicalRecord $tblStudentMedicalRecord
+     *
+     * @return TblStudent
+     */
+    public function createStudent(
+        TblPerson $tblPerson,
+        TblStudentMedicalRecord $tblStudentMedicalRecord
+    ) {
+
+        $Manager = $this->Connection->getEntityManager();
+
+        $Entity = new TblStudent();
+        $Entity->setServiceTblPerson($tblPerson);
+        $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+
+        return $Entity;
     }
 
     /**
@@ -133,6 +160,68 @@ class Data extends DataCacheable
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentMedicalRecord',
+            $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentTransfer
+     */
+    public function getStudentTransferById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentTransfer',
+            $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentTransferArrive
+     */
+    public function getStudentTransferArriveById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentTransferArrive',
+            $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentTransferEnrollment
+     */
+    public function getStudentTransferEnrollmentById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(),
+            'TblStudentTransferEnrollment',
+            $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentTransferLeave
+     */
+    public function getStudentTransferLeaveById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentTransferLeave',
+            $Id);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblStudentTransferProcess
+     */
+    public function getStudentTransferProcessById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(),
+            'TblStudentTransferProcess',
             $Id);
     }
 }

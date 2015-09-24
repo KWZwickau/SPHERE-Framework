@@ -32,6 +32,10 @@ class TblStudent extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentTransport;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentTransfer;
 
     /**
      * @return bool|TblStudentMedicalRecord
@@ -77,6 +81,27 @@ class TblStudent extends Element
         $this->tblStudentTransport = ( null === $tblStudentTransport ? null : $tblStudentTransport->getId() );
     }
 
+    /**
+     * @return bool|TblStudentTransfer
+     */
+    public function getTblStudentTransfer()
+    {
+
+        if (null === $this->tblStudentTransfer) {
+            return false;
+        } else {
+            return Student::useService()->getStudentTransferById($this->tblStudentTransfer);
+        }
+    }
+
+    /**
+     * @param null|TblStudentTransfer $tblStudentTransfer
+     */
+    public function setTblStudentTransfer(TblStudentTransfer $tblStudentTransfer = null)
+    {
+
+        $this->tblStudentTransfer = ( null === $tblStudentTransfer ? null : $tblStudentTransfer->getId() );
+    }
 
     /**
      * @return bool|TblPerson

@@ -5,6 +5,8 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -15,6 +17,7 @@ use SPHERE\Common\Frontend\Form\Repository\Field\NumberField;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
+use SPHERE\Common\Frontend\Form\Repository\Title;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
@@ -40,13 +43,14 @@ use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  *
  * @package SPHERE\Application\People\Meta\Student
  */
-class Frontend implements IFrontendInterface
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -60,68 +64,35 @@ class Frontend implements IFrontendInterface
 
         $Stage = new Stage();
 
-        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
-            Group::useService()->getGroupByMetaTable('SCHOOL')
-        );
-        array_push($tblCompanyAllSchool, new TblCompany());
-
-        // Orientation
-        $tblSubjectOrientation = Subject::useService()->getSubjectOrientationAll();
-        if ($tblSubjectOrientation) {
-            array_push($tblSubjectOrientation, new TblSubject());
-        } else {
-            $tblSubjectOrientation = array();
-        }
-
-        // Advanced
-        $tblSubjectAdvanced = Subject::useService()->getSubjectAdvancedAll();
-        if ($tblSubjectAdvanced) {
-            array_push($tblSubjectAdvanced, new TblSubject());
-        } else {
-            $tblSubjectAdvanced = array();
-        }
-
-        // Elective
-        $tblSubjectElective = Subject::useService()->getSubjectElectiveAll();
-        if ($tblSubjectElective) {
-            array_push($tblSubjectElective, new TblSubject());
-        } else {
-            $tblSubjectElective = array();
-        }
-
-        // Profile
-        $tblSubjectProfile = Subject::useService()->getSubjectProfileAll();
-        if ($tblSubjectProfile) {
-            array_push($tblSubjectProfile, new TblSubject());
-        } else {
-            $tblSubjectProfile = array();
-        }
-
-        // Religion
-        $tblSubjectReligion = Subject::useService()->getSubjectReligionAll();
-        if ($tblSubjectReligion) {
-            array_push($tblSubjectReligion, new TblSubject());
-        } else {
-            $tblSubjectReligion = array();
-        }
-
-        // ForeignLanguage
-        $tblSubjectForeignLanguage = Subject::useService()->getSubjectForeignLanguageAll();
-        if ($tblSubjectForeignLanguage) {
-            array_push($tblSubjectForeignLanguage, new TblSubject());
-        } else {
-            $tblSubjectForeignLanguage = array();
-        }
-
-        // All
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
-        array_push($tblSubjectAll, new TblSubject());
-
         $Stage->setMessage(
             new Danger(
                 new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
             )
         );
+
+        if (null !== $tblPerson) {
+            $Global = $this->getGlobal();
+            if (!isset( $Global->POST['Meta'] )) {
+                /** @var TblStudent $tblStudent */
+                $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+                if ($tblStudent) {
+                    /** @var TblStudentMedicalRecord $tblStudentMedicalRecord */
+                    $tblStudentMedicalRecord = $tblStudent->getTblStudentMedicalRecord();
+                    if ($tblStudentMedicalRecord) {
+                        $Global->POST['Meta']['MedicalRecord']['Disease'] = $tblStudentMedicalRecord->getDisease();
+                        $Global->POST['Meta']['MedicalRecord']['Medication'] = $tblStudentMedicalRecord->getMedication();
+                        $Global->POST['Meta']['MedicalRecord']['AttendingDoctor'] = (
+                        $tblStudentMedicalRecord->getServiceTblPersonAttendingDoctor()
+                            ? $tblStudentMedicalRecord->getServiceTblPersonAttendingDoctor()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['MedicalRecord']['InsuranceState'] = $tblStudentMedicalRecord->getInsuranceState();
+                        $Global->POST['Meta']['MedicalRecord']['Insurance'] = $tblStudentMedicalRecord->getInsurance();
+                    }
+                    $Global->savePost();
+                }
+            }
+        }
 
         $Stage->setContent((new Form(array(
             new FormGroup(array(
@@ -180,145 +151,244 @@ class Frontend implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO),
                     ), 3),
                 )),
-                new FormRow(array(
-                    new FormColumn(
-                        new Panel('Integration 1', array(
-                            new CheckBox('Meta[Integration][CoachingRequired]', 'Förderbedarf', 1),
-                            new Aspect('Förderschwerpunkte:'),
-                            new CheckBox('Meta[Integration][PracticeModule][1]', 'Schwerpunkt A', 1),
-                            new CheckBox('Meta[Integration][PracticeModule][2]', 'Schwerpunkt B', 1),
-                            new CheckBox('Meta[Integration][PracticeModule][3]', 'Schwerpunkt C', 1),
-                            new Aspect('Teilleistungsstörungen:'),
-                            new CheckBox('Meta[Integration][Disorder][1]', 'Störung A', 1),
-                            new CheckBox('Meta[Integration][Disorder][2]', 'Störung B', 1),
-                            new CheckBox('Meta[Integration][Disorder][3]', 'Störung C', 1),
-                            new CheckBox('Meta[Integration][Disorder][4]', 'Störung D', 1),
-                            new CheckBox('Meta[Integration][Disorder][5]', 'Störung E', 1),
-                        ), Panel::PANEL_TYPE_INFO), 4),
-                    new FormColumn(
-                        new Panel('Integration 2', array(
-                            new DatePicker('Meta[Integration][CoachingCounselDate]', 'Förderantrag Beratung',
-                                'Förderantrag Beratung',
-                                new Calendar()
-                            ),
-                            new DatePicker('Meta[Integration][CoachingRequestDate]', 'Förderantrag',
-                                'Förderantrag',
-                                new Calendar()
-                            ),
-                            new DatePicker('Meta[Integration][CoachingDecisionDate]', 'Förderbescheid SBA',
-                                'Förderbescheid SBA',
-                                new Calendar()
-                            )
-                        ), Panel::PANEL_TYPE_INFO), 4),
-                    new FormColumn(
-                        new Panel('Integration 3', array(
-                            new SelectBox('Meta[Integration][3]', 'Förderschule',
-                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                                new Education()),
-                            new SelectBox('Meta[Integration][3]', 'Schulbegleitung', array(), new Person()),
-                            new NumberField('Meta[Integration][3]', 'Stundenbedarf pro Woche',
-                                'Stundenbedarf pro Woche', new Clock()),
-                            new TextArea('Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
-
-                        ), Panel::PANEL_TYPE_INFO), 4),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Panel('Ersteinschulung', array(
-                            new SelectBox('Meta[Transfer][1]', 'Schule',
-                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                                new Education()),
-                            new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
-                            new TextArea('Meta[Transfer][1]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                    new FormColumn(array(
-                        new Panel('Schülertransfer - Aufnahme', array(
-                            new SelectBox('Meta[Transfer][0]', 'Letzte Schulart', array()),
-                            new SelectBox('Meta[Transfer][1]', 'Abgebende Schule',
-                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                                new Education()),
-                            new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                    new FormColumn(array(
-                        new Panel('Schülertransfer - Abgabe', array(
-                            new SelectBox('Meta[Transfer][0]', 'Letzte Schulart', array()),
-                            new SelectBox('Meta[Transfer][1]', 'Aufnehmende Schule',
-                                array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                                new Education()),
-                            new DatePicker('Meta[Transfer][2]', 'Datum', 'Datum', new Calendar()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Panel('Schülertransfer - Schulverlauf', array(
-                            new TextArea('Meta[Transfer][1]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    )),
-                )),
-                new FormRow(array(
-                    new FormColumn(array(
-                        new Panel('Unterrichtsfächer - Profil', array(
-                            new SelectBox('Meta[Subject][1]', 'Neigungskurs',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectOrientation),
-                                new Education())
-                            .new Panel('Historie', array(
-                                'Klasse 8: Philosophie',
-                                'Klasse 9: Mathematik'
-                            ))
-                        ,
-                            new SelectBox('Meta[Subject][1]', 'Vertiefungskurs',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAdvanced),
-                                new Education())
-                            .new Panel('Historie', array(
-                                'Klasse 10: Germanistik',
-                                'Klasse 10: Mathematik'
-                            ))
-                        ,
-                            new SelectBox('Meta[Subject][1]', 'Profil',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectProfile),
-                                new Education()),
-                            new SelectBox('Meta[Subject][1]', 'Religion',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectReligion),
-                                new Education()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                    new FormColumn(array(
-                        new Panel('Unterrichtsfächer - Fremdsprachen', array(
-                            new SelectBox('Meta[Subject][ForeignLanguage][First]', '1. Fremdsprache',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                                new Education()),
-                            new SelectBox('Meta[Subject][ForeignLanguage][Second]', '2. Fremdsprache',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                                new Education()),
-                            new SelectBox('Meta[Subject][ForeignLanguage][Third]', '3. Fremdsprache',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                                new Education()),
-                            new SelectBox('Meta[Subject][ForeignLanguage][Fourth]', '4. Fremdsprache',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                                new Education()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                    new FormColumn(array(
-                        new Panel('Unterrichtsfächer - Wahlfächer', array(
-                            new SelectBox('Meta[Subject][Elective][First]', '1. Wahlfach',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
-                                new Education()),
-                            new SelectBox('Meta[Subject][Elective][Second]', '2. Wahlfach',
-                                array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
-                                new Education()),
-                        ), Panel::PANEL_TYPE_INFO),
-                    ), 4),
-                )),
-
             )),
+            $this->formGroupIntegration($tblPerson, $Meta),
+            $this->formGroupTransfer($tblPerson, $Meta),
+            $this->formGroupSubject($tblPerson, $Meta),
         ),
             new Primary('Informationen speichern')
         )
         )->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert.'));
 
         return $Stage;
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param array          $Meta
+     *
+     * @return FormGroup
+     */
+    private function formGroupIntegration(TblPerson $tblPerson = null, $Meta = array())
+    {
+
+        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
+            Group::useService()->getGroupByMetaTable('SCHOOL')
+        );
+        array_push($tblCompanyAllSchool, new TblCompany());
+
+        return new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new Panel('Integration 1', array(
+                        new CheckBox('Meta[Integration][CoachingRequired]', 'Förderbedarf', 1),
+                        new Aspect('Förderschwerpunkte:'),
+                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Schwerpunkt A', 1),
+                        new CheckBox('Meta[Integration][PracticeModule][2]', 'Schwerpunkt B', 1),
+                        new CheckBox('Meta[Integration][PracticeModule][3]', 'Schwerpunkt C', 1),
+                        new Aspect('Teilleistungsstörungen:'),
+                        new CheckBox('Meta[Integration][Disorder][1]', 'Störung A', 1),
+                        new CheckBox('Meta[Integration][Disorder][2]', 'Störung B', 1),
+                        new CheckBox('Meta[Integration][Disorder][3]', 'Störung C', 1),
+                        new CheckBox('Meta[Integration][Disorder][4]', 'Störung D', 1),
+                        new CheckBox('Meta[Integration][Disorder][5]', 'Störung E', 1),
+                    ), Panel::PANEL_TYPE_INFO), 4),
+                new FormColumn(
+                    new Panel('Integration 2', array(
+                        new DatePicker('Meta[Integration][CoachingCounselDate]', 'Förderantrag Beratung',
+                            'Förderantrag Beratung',
+                            new Calendar()
+                        ),
+                        new DatePicker('Meta[Integration][CoachingRequestDate]', 'Förderantrag',
+                            'Förderantrag',
+                            new Calendar()
+                        ),
+                        new DatePicker('Meta[Integration][CoachingDecisionDate]', 'Förderbescheid SBA',
+                            'Förderbescheid SBA',
+                            new Calendar()
+                        )
+                    ), Panel::PANEL_TYPE_INFO), 4),
+                new FormColumn(
+                    new Panel('Integration 3', array(
+                        new SelectBox('Meta[Integration][3]', 'Förderschule',
+                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
+                            new Education()),
+                        new SelectBox('Meta[Integration][3]', 'Schulbegleitung', array(), new Person()),
+                        new NumberField('Meta[Integration][3]', 'Stundenbedarf pro Woche',
+                            'Stundenbedarf pro Woche', new Clock()),
+                        new TextArea('Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+
+                    ), Panel::PANEL_TYPE_INFO), 4),
+            )),
+        ), new Title('Integration'));
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param array          $Meta
+     *
+     * @return FormGroup
+     */
+    private function formGroupTransfer(TblPerson $tblPerson = null, $Meta = array())
+    {
+
+        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
+            Group::useService()->getGroupByMetaTable('SCHOOL')
+        );
+        array_push($tblCompanyAllSchool, new TblCompany());
+
+        return new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(array(
+                    new Panel('Ersteinschulung', array(
+                        new SelectBox('Meta[Transfer][Enrollment][School]', 'Schule',
+                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
+                            new Education()),
+                        new DatePicker('Meta[Transfer][Enrollment][Date]', 'Datum', 'Datum', new Calendar()),
+                        new TextArea('Meta[Transfer][Enrollment][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                    ), Panel::PANEL_TYPE_INFO),
+                ), 4),
+                new FormColumn(array(
+                    new Panel('Schülertransfer - Aufnahme', array(
+                        new SelectBox('Meta[Transfer][Arrive][Type]', 'Letzte Schulart', array()),
+                        new SelectBox('Meta[Transfer][Arrive][School]', 'Abgebende Schule',
+                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
+                            new Education()),
+                        new DatePicker('Meta[Transfer][Arrive][Date]', 'Datum', 'Datum', new Calendar()),
+                    ), Panel::PANEL_TYPE_INFO),
+                ), 4),
+                new FormColumn(array(
+                    new Panel('Schülertransfer - Abgabe', array(
+                        new SelectBox('Meta[Transfer][Leave][Type]', 'Letzte Schulart', array()),
+                        new SelectBox('Meta[Transfer][Leave][School]', 'Aufnehmende Schule',
+                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
+                            new Education()),
+                        new DatePicker('Meta[Transfer][Leave][Date]', 'Datum', 'Datum', new Calendar()),
+                    ), Panel::PANEL_TYPE_INFO),
+                ), 4),
+            )),
+            new FormRow(array(
+                new FormColumn(array(
+                    new Panel('Schülertransfer - Schulverlauf', array(
+                        new TextArea('Meta[Transfer][Process][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                    ), Panel::PANEL_TYPE_INFO),
+                )),
+            )),
+        ), new Title('Schülertransfer'));
+    }
+
+    /**
+     * @param TblPerson|null $tblPerson
+     * @param array          $Meta
+     *
+     * @return FormGroup
+     */
+    private function formGroupSubject(TblPerson $tblPerson = null, $Meta = array())
+    {
+
+        // Orientation
+        $tblSubjectOrientation = Subject::useService()->getSubjectOrientationAll();
+        if ($tblSubjectOrientation) {
+            array_push($tblSubjectOrientation, new TblSubject());
+        } else {
+            $tblSubjectOrientation = array();
+        }
+
+        // Advanced
+        $tblSubjectAdvanced = Subject::useService()->getSubjectAdvancedAll();
+        if ($tblSubjectAdvanced) {
+            array_push($tblSubjectAdvanced, new TblSubject());
+        } else {
+            $tblSubjectAdvanced = array();
+        }
+
+        // Elective
+        $tblSubjectElective = Subject::useService()->getSubjectElectiveAll();
+        if ($tblSubjectElective) {
+            array_push($tblSubjectElective, new TblSubject());
+        } else {
+            $tblSubjectElective = array();
+        }
+
+        // Profile
+        $tblSubjectProfile = Subject::useService()->getSubjectProfileAll();
+        if ($tblSubjectProfile) {
+            array_push($tblSubjectProfile, new TblSubject());
+        } else {
+            $tblSubjectProfile = array();
+        }
+
+        // Religion
+        $tblSubjectReligion = Subject::useService()->getSubjectReligionAll();
+        if ($tblSubjectReligion) {
+            array_push($tblSubjectReligion, new TblSubject());
+        } else {
+            $tblSubjectReligion = array();
+        }
+
+        // ForeignLanguage
+        $tblSubjectForeignLanguage = Subject::useService()->getSubjectForeignLanguageAll();
+        if ($tblSubjectForeignLanguage) {
+            array_push($tblSubjectForeignLanguage, new TblSubject());
+        } else {
+            $tblSubjectForeignLanguage = array();
+        }
+
+        return new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(array(
+                    new Panel('Unterrichtsfächer - Profil', array(
+                        new SelectBox('Meta[Subject][Orientation]', 'Neigungskurs',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectOrientation),
+                            new Education())
+                        .new Panel('Historie', array(
+                            'Klasse 8: Philosophie',
+                            'Klasse 9: Mathematik'
+                        ))
+                    ,
+                        new SelectBox('Meta[Subject][Advanced]', 'Vertiefungskurs',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAdvanced),
+                            new Education())
+                        .new Panel('Historie', array(
+                            'Klasse 10: Germanistik',
+                            'Klasse 10: Mathematik'
+                        ))
+                    ,
+                        new SelectBox('Meta[Subject][Profile]', 'Profil',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectProfile),
+                            new Education()),
+                        new SelectBox('Meta[Subject][Religion]', 'Religion',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectReligion),
+                            new Education()),
+                    ), Panel::PANEL_TYPE_INFO),
+                ), 4),
+                new FormColumn(array(
+                    new Panel('Unterrichtsfächer - Fremdsprachen', array(
+                        new SelectBox('Meta[Subject][ForeignLanguage][First]', '1. Fremdsprache',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
+                            new Education()),
+                        new SelectBox('Meta[Subject][ForeignLanguage][Second]', '2. Fremdsprache',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
+                            new Education()),
+                        new SelectBox('Meta[Subject][ForeignLanguage][Third]', '3. Fremdsprache',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
+                            new Education()),
+                        new SelectBox('Meta[Subject][ForeignLanguage][Fourth]', '4. Fremdsprache',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
+                            new Education()),
+                    ), Panel::PANEL_TYPE_INFO),
+                ), 4),
+                new FormColumn(array(
+                    new Panel('Unterrichtsfächer - Wahlfächer', array(
+                        new SelectBox('Meta[Subject][Elective][First]', '1. Wahlfach',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
+                            new Education()),
+                        new SelectBox('Meta[Subject][Elective][Second]', '2. Wahlfach',
+                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
+                            new Education()),
+                    ), Panel::PANEL_TYPE_INFO),
+                ), 4),
+            )),
+        ), new Title('Fächer'));
     }
 }
