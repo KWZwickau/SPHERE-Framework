@@ -203,6 +203,8 @@ class Roadmap extends Extension
             ->createDuty('Klären welcher Inhalt enthalten sein soll');
 
         $Feature = $Category->createFeature('Person');
+        $Feature->createTask('Informationen (Metadaten)')
+            ->createDuty('Schülerakte (Ersteinschulung: Abgebende Kita)');
         $Feature->createTask('Beziehungen')
             ->createDuty('Anzeige von Adress- und Kontaktdaten');
 
