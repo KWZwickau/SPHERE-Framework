@@ -3,11 +3,11 @@ namespace SPHERE\Application\Setting\MyAccount;
 
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Common\Frontend\Icon\Repository\Person;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class MyAccount
@@ -35,14 +35,25 @@ class MyAccount implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, 'Frontend::frontendMyAccount'
         ));
+
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Password', __NAMESPACE__.'\Frontend::frontendChangePassword'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Consumer', __NAMESPACE__.'\Frontend::frontendChangeConsumer'
+        ));
     }
 
     /**
-     * @return IServiceInterface
+     * @return Service
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
+        return new Service(new Identifier('Platform', 'Gatekeeper', 'Authorization', 'Account'),
+            __DIR__.'/../../Platform/Gatekeeper/Authorization/Account/Service/Entity',
+            '\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity'
+        );
     }
 
     /**
