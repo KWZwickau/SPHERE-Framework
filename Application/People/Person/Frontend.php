@@ -315,9 +315,9 @@ class Frontend extends Extension implements IFrontendInterface
                         ), Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
                         new Panel('Name', array(
-                            new TextField('Person[FirstName]', 'Vorname', 'Vorname'),
-                            new TextField('Person[SecondName]', 'Zweitname', 'Zweitname'),
-                            new TextField('Person[LastName]', 'Nachname', 'Nachname'),
+                            new TextField('Person[FirstName]', 'Rufname', 'Vorname'),
+                            new TextField('Person[SecondName]', 'weitere Vornamen', 'Zweiter Vorname'),
+                            new TextField('Person[LastName]', 'Nachname geb. Geburtsname', 'Nachname / Geburtsname'),
                         ), Panel::PANEL_TYPE_INFO), 4),
                     new FormColumn(
                         new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
