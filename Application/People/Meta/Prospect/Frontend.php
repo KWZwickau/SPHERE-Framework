@@ -110,7 +110,7 @@ class Frontend extends Extension implements IFrontendInterface
                                         new Calendar()
                                     ),
                                 ), Panel::PANEL_TYPE_INFO)
-                            ), 6),
+                            ), 3),
                             new FormColumn(array(
                                 new Panel('Voranmeldung für', array(
                                     new TextField('Meta[Reservation][Year]', 'Schuljahr', 'Schuljahr'),
@@ -120,14 +120,12 @@ class Frontend extends Extension implements IFrontendInterface
                                     new SelectBox('Meta[Reservation][SchoolOptionB]', 'Schule: Option 2',
                                         array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool), new Education()),
                                 ), Panel::PANEL_TYPE_INFO)
-                            ), 6),
-                        )),
-                        new FormRow(array(
+                            ), 4),
                             new FormColumn(array(
                                 new Panel('Sonstiges', array(
                                     new TextArea('Meta[Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                                 ), Panel::PANEL_TYPE_INFO)
-                            )),
+                            ), 5),
                         )),
                     )),
                 ), new Primary('Informationen speichern')
