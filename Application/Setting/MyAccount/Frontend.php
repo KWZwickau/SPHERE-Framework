@@ -4,7 +4,18 @@ namespace SPHERE\Application\Setting\MyAccount;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
+use SPHERE\Common\Frontend\Form\Repository\Field\PasswordField;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Lock;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -17,6 +28,7 @@ use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
 
 /**
@@ -26,6 +38,76 @@ use SPHERE\Common\Window\Stage;
  */
 class Frontend implements IFrontendInterface
 {
+
+    /**
+     * @param string $CredentialLock
+     * @param string $CredentialLockSafety
+     *
+     * @return Stage
+     */
+    public static function frontendChangePassword($CredentialLock = null, $CredentialLockSafety = null)
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+        $Stage = new Stage('Mein Benutzerkonto', 'Passwort ändern');
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                MyAccount::useService()->updatePassword(
+                    new Form(
+                        new FormGroup(
+                            new FormRow(array(
+                                new FormColumn(
+                                    new Panel('Passwort', array(
+                                        new PasswordField('CredentialLock', 'Neues Passwort',
+                                            'Neues Passwort',
+                                            new Lock()),
+                                        new PasswordField('CredentialLockSafety', 'Passwort wiederholen',
+                                            'Passwort wiederholen',
+                                            new Repeat())
+                                    ), Panel::PANEL_TYPE_INFO)
+                                ),
+                            ))
+                        ), new Primary('Neues Passwort speichern')
+                    ), $tblAccount, $CredentialLock, $CredentialLockSafety
+                )
+            )), new Title('Neues Passwort'))));
+        return $Stage;
+    }
+
+    /**
+     * @param int $Consumer
+     *
+     * @return Stage
+     */
+    public static function frontendChangeConsumer($Consumer = null)
+    {
+
+        $tblAccount = Account::useService()->getAccountBySession();
+
+        $Stage = new Stage('Mein Benutzerkonto', 'Mandant ändern');
+        $Stage->setContent(
+            new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+                MyAccount::useService()->updateConsumer(
+                    new Form(
+                        new FormGroup(
+                            new FormRow(array(
+                                new FormColumn(
+                                    new Panel('Mandant', array(
+                                        new SelectBox('Consumer', 'Neuer Mandant',
+                                            array(
+                                                '{{ Acronym }} {{ Name }}' => Consumer::useService()->getConsumerAll()
+                                            ),
+                                            new Building()),
+                                    ), Panel::PANEL_TYPE_INFO)
+                                ),
+                            ))
+                        ), new Primary('Neuen Mandant speichern')
+                    ), $tblAccount, $Consumer
+                )
+            )), new Title('Mandant ändern'))));
+
+        return $Stage;
+    }
 
     /**
      * @return Stage
@@ -116,7 +198,7 @@ class Frontend implements IFrontendInterface
                             new Panel(
                                 'Benutzerkonto: '.$tblAccount->getUsername(), $Account
                                 , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Passwort ändern', '')
+                                new Standard('Passwort ändern', new Route(__NAMESPACE__.'/Password'))
                             )
                         )
                     )
@@ -132,6 +214,8 @@ class Frontend implements IFrontendInterface
                                     'TODO: Anzeigen von Schulen, Schulträger, Vörderverein',
                                     'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
                                 )
+                                , Panel::PANEL_TYPE_DEFAULT,
+                                new Standard('Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
                             )
                         )
                     )
