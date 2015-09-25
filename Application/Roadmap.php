@@ -26,6 +26,7 @@ class Roadmap extends Extension
         $this->Roadmap = $this->getRoadmap();
 
         $this->versionMajor0Minor8Patch0();
+        $this->versionMajor0Minor8Patch1();
         $this->versionMajor0Minor9Patch0();
         $this->versionMajor1Minor0Patch0();
         $this->versionMajor1Minor1Patch0();
@@ -143,6 +144,52 @@ class Roadmap extends Extension
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
 
+        // Einstellungen
+        $Feature = $Category->createFeature('Benutzer');
+        $Feature->createTask('Hardware-Schlüssel')
+            ->createDuty('YubiKey hinzufügen', true)
+            ->createDuty('YubiKey entfernen', true);
+        $Feature->createTask('Benutzerkonten')
+            ->createDuty('Zugangsdaten', false)
+            ->createDuty('Berechtigungsstufen', false)
+            ->createDuty('Authentifizierungsart', false)
+            ->createDuty('Person', false)
+            ->createDuty('Benutzerkonten anlegen', false)
+            ->createDuty('Benutzerkonten löschen', true);
+        $Feature->createTask('Mein Benutzerkonto')
+            ->createDuty('Informationen anzeigen', false)
+            ->createDuty('Passwort ändern', true)
+            ->createDuty('Mandant ändern (Administrator)', true);
+
+        // Demoversion
+        $Feature = $Category->createFeature('Demoversion');
+        $Feature->createTask('Datenbank')
+            ->createDuty('Demodaten neu', false)
+            ->createDuty('Benutzerzugänge übernehmen', false);
+        $Feature->createTask('Programmcode')
+            ->createDuty('Programmcode veröffentlichen', false);
+
+    }
+
+    /**
+     * Version 0.8.1
+     * To be released KW41
+     */
+    private function versionMajor0Minor8Patch1()
+    {
+
+        $Release = $this->Roadmap->createRelease('0.8.1', 'Demoversion (Ziel KW41)');
+
+        // Personenverwaltung
+        $Category = $Release->createCategory('Personenverwaltung');
+
+        $Feature = $Category->createFeature('Person');
+        $Feature->createTask('Informationen (Metadaten)')
+            ->createDuty('Schülerakte (Versetzung, 3x AG, Kurse)', false);
+
+        // Einstellungen
+        $Category = $Release->createCategory('Einstellungen');
+
         $Feature = $Category->createFeature('Mandant',
             new External('siehe EGE', 'http://www.ege-annaberg.de/node/416'));
         $Feature->createTask('Schulen')
@@ -162,20 +209,14 @@ class Roadmap extends Extension
 
         // Einstellungen
         $Feature = $Category->createFeature('Benutzer');
-        $Feature->createTask('Hardware-Schlüssel')
-            ->createDuty('YubiKey hinzufügen', true)
-            ->createDuty('YubiKey entfernen', true);
         $Feature->createTask('Benutzerkonten')
             ->createDuty('Zugangsdaten', false)
             ->createDuty('Berechtigungsstufen', false)
             ->createDuty('Authentifizierungsart', false)
             ->createDuty('Person', false)
-            ->createDuty('Benutzerkonten anlegen', false)
-            ->createDuty('Benutzerkonten löschen', true);
+            ->createDuty('Benutzerkonten anlegen', false);
         $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Informationen anzeigen', false)
-            ->createDuty('Passwort ändern', true)
-            ->createDuty('Mandant ändern (Administrator)', true);
+            ->createDuty('Informationen anzeigen', false);
 
         // Demoversion
         $Feature = $Category->createFeature('Demoversion');
