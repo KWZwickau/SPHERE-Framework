@@ -530,4 +530,27 @@ class Service implements IServiceInterface
         return (new Data($this->Binding))->destroyAccount($tblAccount);
     }
 
+    /**
+     * @param string     $Password
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function changePassword($Password, TblAccount $tblAccount = null)
+    {
+
+        return (new Data($this->Binding))->changePassword($Password, $tblAccount);
+    }
+
+    /**
+     * @param TblConsumer $tblConsumer
+     * @param TblAccount  $tblAccount
+     *
+     * @return bool
+     */
+    public function changeConsumer(TblConsumer $tblConsumer, TblAccount $tblAccount = null)
+    {
+
+        return (new Data($this->Binding))->changeConsumer($tblConsumer, $tblAccount);
+    }
 }

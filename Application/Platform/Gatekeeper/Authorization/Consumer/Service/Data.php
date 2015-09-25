@@ -31,6 +31,7 @@ class Data extends DataCacheable
     {
 
         $this->createConsumer('DEMO', 'Mandant');
+        $this->createConsumer('ESZC', 'Freie Evangelische Schulverein Chemnitz e.V.');
     }
 
     /**
