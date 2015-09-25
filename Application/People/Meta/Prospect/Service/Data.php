@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect\Service;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
@@ -75,14 +76,18 @@ class Data extends DataCacheable
     }
 
     /**
-     * @param string $ReservationYear
-     * @param string $ReservationDivision
+     * @param string          $ReservationYear
+     * @param string          $ReservationDivision
+     * @param null|TblCompany $tblCompanyOptionA
+     * @param null|TblCompany $tblCompanyOptionB
      *
      * @return TblProspectReservation
      */
     public function createProspectReservation(
         $ReservationYear,
-        $ReservationDivision
+        $ReservationDivision,
+        TblCompany $tblCompanyOptionA = null,
+        TblCompany $tblCompanyOptionB = null
     ) {
 
         $Manager = $this->Connection->getEntityManager();
@@ -90,6 +95,8 @@ class Data extends DataCacheable
         $Entity = new TblProspectReservation();
         $Entity->setReservationYear($ReservationYear);
         $Entity->setReservationDivision($ReservationDivision);
+        $Entity->setServiceTblCompanyOptionA($tblCompanyOptionA);
+        $Entity->setServiceTblCompanyOptionB($tblCompanyOptionB);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
 
@@ -193,13 +200,17 @@ class Data extends DataCacheable
      * @param TblProspectReservation $tblProspectReservation
      * @param string                 $ReservationYear
      * @param string                 $ReservationDivision
+     * @param null|TblCompany        $tblCompanyOptionA
+     * @param null|TblCompany        $tblCompanyOptionB
      *
      * @return TblProspectReservation
      */
     public function updateProspectReservation(
         TblProspectReservation $tblProspectReservation,
         $ReservationYear,
-        $ReservationDivision
+        $ReservationDivision,
+        TblCompany $tblCompanyOptionA = null,
+        TblCompany $tblCompanyOptionB = null
     ) {
 
         $Manager = $this->Connection->getEntityManager();
@@ -209,6 +220,8 @@ class Data extends DataCacheable
             $Protocol = clone $Entity;
             $Entity->setReservationYear($ReservationYear);
             $Entity->setReservationDivision($ReservationDivision);
+            $Entity->setServiceTblCompanyOptionA($tblCompanyOptionA);
+            $Entity->setServiceTblCompanyOptionB($tblCompanyOptionB);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
             return true;

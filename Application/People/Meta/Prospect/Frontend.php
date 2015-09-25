@@ -1,12 +1,15 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect;
 
+use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextArea;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -14,6 +17,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -47,6 +51,11 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
+        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
+            Group::useService()->getGroupByMetaTable('SCHOOL')
+        );
+        array_push($tblCompanyAllSchool, new TblCompany());
+
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Meta'] )) {
@@ -66,6 +75,16 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblProspectReservation) {
                         $Global->POST['Meta']['Reservation']['Year'] = $tblProspectReservation->getReservationYear();
                         $Global->POST['Meta']['Reservation']['Division'] = $tblProspectReservation->getReservationDivision();
+                        $Global->POST['Meta']['Reservation']['SchoolOptionA'] = (
+                        $tblProspectReservation->getServiceTblCompanyOptionA()
+                            ? $tblProspectReservation->getServiceTblCompanyOptionA()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Reservation']['SchoolOptionB'] = (
+                        $tblProspectReservation->getServiceTblCompanyOptionB()
+                            ? $tblProspectReservation->getServiceTblCompanyOptionB()->getId()
+                            : 0
+                        );
                     }
                     $Global->savePost();
                 }
@@ -96,6 +115,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel('Voranmeldung für', array(
                                     new TextField('Meta[Reservation][Year]', 'Schuljahr', 'Schuljahr'),
                                     new TextField('Meta[Reservation][Division]', 'Klassenstufe', 'Klassenstufe'),
+                                    new SelectBox('Meta[Reservation][SchoolOptionA]', 'Schule: Option 1',
+                                        array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool), new Education()),
+                                    new SelectBox('Meta[Reservation][SchoolOptionB]', 'Schule: Option 2',
+                                        array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool), new Education()),
                                 ), Panel::PANEL_TYPE_INFO)
                             ), 6),
                         )),
