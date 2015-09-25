@@ -199,6 +199,30 @@ class Data extends DataCacheable
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Account');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
+        // Level: Setting
+        $tblLevel = $this->createLevel('Setting');
+        $this->addRoleLevel($tblRole, $tblLevel);
+        // Privilege: Setting
+        $tblPrivilege = $this->createPrivilege('Setting');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Setting');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: MyAccount (Setting)
+        $tblPrivilege = $this->createPrivilege('MyAccount (Setting)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Setting/MyAccount');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Password (Setting,MyAccount)
+        $tblPrivilege = $this->createPrivilege('Password (Setting,MyAccount)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Setting/MyAccount/Password');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Consumer (Setting,MyAccount)
+        $tblPrivilege = $this->createPrivilege('Consumer (Setting,MyAccount)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Setting/MyAccount/Consumer');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+
     }
 
     /**

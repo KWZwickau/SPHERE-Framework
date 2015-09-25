@@ -84,10 +84,10 @@ class Setup
         if (!$this->Connection->hasColumn('tblProspectReservation', 'ReservationDivision')) {
             $Table->addColumn('ReservationDivision', 'string');
         }
-        if (!$this->Connection->hasColumn('tblStudentReservation', 'serviceTblCompanyOptionA')) {
+        if (!$this->Connection->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionA')) {
             $Table->addColumn('serviceTblCompanyOptionA', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblStudentReservation', 'serviceTblCompanyOptionB')) {
+        if (!$this->Connection->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionB')) {
             $Table->addColumn('serviceTblCompanyOptionB', 'bigint', array('notnull' => false));
         }
         return $Table;
