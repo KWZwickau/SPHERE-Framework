@@ -172,6 +172,10 @@ class Roadmap extends Extension
             ->createDuty('Person', false)
             ->createDuty('Benutzerkonten anlegen', false)
             ->createDuty('Benutzerkonten löschen', true);
+        $Feature->createTask('Mein Benutzerkonto')
+            ->createDuty('Informationen anzeigen', false)
+            ->createDuty('Passwort ändern', true)
+            ->createDuty('Mandant ändern (Administrator)', true);
 
         // Demoversion
         $Feature = $Category->createFeature('Demoversion');
