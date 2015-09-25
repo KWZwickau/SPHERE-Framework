@@ -27,6 +27,7 @@ class Roadmap extends Extension
 
         $this->versionMajor0Minor8Patch0();
         $this->versionMajor0Minor8Patch1();
+        $this->versionMajor0Minor8Patch2();
         $this->versionMajor0Minor9Patch0();
         $this->versionMajor1Minor0Patch0();
         $this->versionMajor1Minor1Patch0();
@@ -185,8 +186,7 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
-            ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)')
-            ->createDuty('Schülerakte (Speichern)');
+            ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)');
 
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
@@ -218,7 +218,31 @@ class Roadmap extends Extension
         $Category = $Release->createCategory('Demoversion');
         $Feature = $Category->createFeature('Veröffentlichen');
         $Feature->createTask('Programmcode')
-            ->createDuty('Programmcode veröffentlichen');
+            ->createDuty('Programmcode veröffentlichen 0.8.1');
+
+    }
+
+    /**
+     * Version 0.8.2
+     * To be released KW41/42
+     */
+    private function versionMajor0Minor8Patch2()
+    {
+
+        $Release = $this->Roadmap->createRelease('0.8.2', 'Demoversion (Ziel KW41/42)');
+
+        // Personenverwaltung
+        $Category = $Release->createCategory('Personenverwaltung');
+
+        $Feature = $Category->createFeature('Person');
+        $Feature->createTask('Informationen (Metadaten)')
+            ->createDuty('Schülerakte (Speichern)');
+
+        // Demoversion
+        $Category = $Release->createCategory('Demoversion');
+        $Feature = $Category->createFeature('Veröffentlichen');
+        $Feature->createTask('Programmcode')
+            ->createDuty('Programmcode veröffentlichen 0.8.2');
 
     }
 
