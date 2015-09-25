@@ -69,7 +69,7 @@ class Roadmap extends Extension
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Personendaten', true)
             ->createDuty('Interessent', true)
-            ->createDuty('Schülerakte (Versetzung, AGs, Kurse)', false)
+            ->createDuty('Schülerakte (Versetzung, 3x AG, Kurse)', false)
             ->createDuty('Sorgerechtdaten', true);
         $Feature->createTask('Adressdaten')
             ->createDuty('Adresse hinzufügen', true)
@@ -206,7 +206,8 @@ class Roadmap extends Extension
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Ersteinschulung: Abgebende Kita)');
         $Feature->createTask('Beziehungen')
-            ->createDuty('Anzeige von Adress- und Kontaktdaten');
+            ->createDuty('Anzeige von Adress- und Kontaktdaten')
+            ->createDuty('Frei definierbare Beziehungstypen');
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
@@ -369,6 +370,13 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Klassen')
             ->createDuty('Sitzplan');
+
+        // Diverses
+        $Category = $Release->createCategory('Diverses');
+        $Feature = $Category->createFeature('Letzte Änderung der Daten anzeigen');
+        $Feature->createTask('Person')
+            ->createDuty('Metadaten');
+
     }
 
     /**
