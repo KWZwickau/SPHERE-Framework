@@ -276,10 +276,11 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormRow(array(
                     new FormColumn(
                         new Panel(new PersonKey().' Benutzerkonto hinzufügen', array(
-                            (new TextField('Account[Name]', 'Benutzername', 'Benutzername', new Person()))
+                            (new TextField('Account[Name]', 'Benutzername (min. 5 Zeichen)', 'Benutzername',
+                                new Person()))
                                 ->setPrefixValue($tblConsumer->getAcronym()),
                             new PasswordField(
-                                'Account[Password]', 'Passwort', 'Passwort', new Lock()),
+                                'Account[Password]', 'Passwort (min. 8 Zeichen)', 'Passwort', new Lock()),
                             new PasswordField(
                                 'Account[PasswordSafety]', 'Passwort wiederholen', 'Passwort wiederholen',
                                 new Repeat()

@@ -143,8 +143,6 @@ class Roadmap extends Extension
 
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
-
-        // Einstellungen
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Hardware-Schlüssel')
             ->createDuty('YubiKey hinzufügen', true)
@@ -154,8 +152,8 @@ class Roadmap extends Extension
             ->createDuty('Berechtigungsstufen', true)
             ->createDuty('Authentifizierungstyp', true)
             ->createDuty('Hardware-Schlüssel', true)
-            ->createDuty('Person', false)
-            ->createDuty('Benutzerkonten anlegen', false)
+            ->createDuty('Person wählen', true)
+            ->createDuty('Benutzerkonten anlegen', true)
             ->createDuty('Benutzerkonten löschen', true);
         $Feature->createTask('Mein Benutzerkonto')
             ->createDuty('Informationen anzeigen (Teilweise)', true)
@@ -163,8 +161,10 @@ class Roadmap extends Extension
             ->createDuty('Mandant ändern (Administrator)', true);
 
         // Demoversion
-        $Feature = $Category->createFeature('Demoversion');
+        $Category = $Release->createCategory('Demoversion');
+        $Feature = $Category->createFeature('Veröffentlichen');
         $Feature->createTask('Datenbank')
+            ->createDuty('Berechtigungskonzept erstellen / übernehmen', false)
             ->createDuty('Benutzerzugänge übernehmen', false);
         $Feature->createTask('Programmcode')
             ->createDuty('Programmcode veröffentlichen', false);
@@ -185,10 +185,17 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
-            ->createDuty('Schülerakte (Speichern)', false);
+            ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)')
+            ->createDuty('Schülerakte (Speichern)');
 
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
+
+        $Feature = $Category->createFeature('Benutzer');
+        $Feature->createTask('Benutzerkonten')
+            ->createDuty('Benutzerkonten bearbeiten');
+        $Feature->createTask('Mein Benutzerkonto')
+            ->createDuty('Informationen anzeigen (Vervollständigen)');
 
         $Feature = $Category->createFeature('Mandant',
             new External('siehe EGE', 'http://www.ege-annaberg.de/node/416'));
@@ -207,18 +214,11 @@ class Roadmap extends Extension
             ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
             ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen');
 
-        // Einstellungen
-        $Feature = $Category->createFeature('Benutzer');
-        $Feature->createTask('Benutzerkonten')
-            ->createDuty('Person', false)
-            ->createDuty('Benutzerkonten anlegen', false);
-        $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Informationen anzeigen (Vervollständigen)');
-
         // Demoversion
-        $Feature = $Category->createFeature('Demoversion');
+        $Category = $Release->createCategory('Demoversion');
+        $Feature = $Category->createFeature('Veröffentlichen');
         $Feature->createTask('Programmcode')
-            ->createDuty('Programmcode veröffentlichen', false);
+            ->createDuty('Programmcode veröffentlichen');
 
     }
 

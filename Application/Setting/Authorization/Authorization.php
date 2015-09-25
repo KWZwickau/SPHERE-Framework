@@ -24,7 +24,7 @@ class Authorization implements IApplicationInterface
         Account::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Benutzer'), new Link\Icon(new Person()))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Benutzerverwaltung'), new Link\Icon(new Person()))
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__, 'Authorization::frontendDashboard')
@@ -37,9 +37,7 @@ class Authorization implements IApplicationInterface
     public function frontendDashboard()
     {
 
-        $Stage = new Stage('Dashboard', 'Benutzer');
-
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Authorization'));
+        $Stage = new Stage('Dashboard', 'Benutzerverwaltung');
 
         return $Stage;
     }

@@ -27,6 +27,8 @@ class Panel extends Extension implements ITemplateInterface
     private $Template = null;
     /** @var string|array $Content */
     private $Content = '';
+    /** @var string|array $Footer */
+    private $Footer = '';
     /** @var bool|int $Filter */
     private $Filter = false;
 
@@ -45,8 +47,8 @@ class Panel extends Extension implements ITemplateInterface
         $this->Filter = $Filter;
         $this->Template->setVariable('Title', $this->Title);
         $this->Content = ( is_array($Content) ? array_filter($Content) : $Content );
+        $this->Footer = ( is_array($Footer) ? array_filter($Footer) : $Footer );
         $this->Template->setVariable('Filter', $Filter);
-        $this->Template->setVariable('Footer', $Footer);
         $this->Template->setVariable('Type', $Type);
     }
 
@@ -107,6 +109,11 @@ class Panel extends Extension implements ITemplateInterface
         } else {
             $this->Template->setVariable('Content', $this->Content);
             $this->Template->setVariable('ContentList', array());
+        }
+        if (is_array($this->Footer)) {
+            $this->Template->setVariable('Footer', trim(implode('', $this->Footer)));
+        } else {
+            $this->Template->setVariable('Footer', trim((string)$this->Footer));
         }
         return $this->Template->getContent();
     }

@@ -1,12 +1,15 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
+use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access as GatekeeperAccess;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token as GatekeeperToken;
 use SPHERE\Common\Frontend\Form\IFormInterface;
-use SPHERE\System\Extension\Repository\Debugger;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 
 /**
  * Class Service
@@ -54,7 +57,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                     $Error = true;
                 }
             } else {
-                $Form->setError('Account[Name]', 'Der Benutzername darf nur Buchstaben und Zahlen enthalten');
+                $Form->setError('Account[Name]',
+                    'Der Benutzername darf nur Buchstaben und Zahlen enthalten und muss mindestens 5 Zeichen lang sein');
                 $Error = true;
             }
         }
@@ -72,7 +76,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         if (empty( $PasswordSafety )) {
-            $Form->setError('Account[PasswordSafety]', 'Bitte geben Sie ein Passwort an');
+            $Form->setError('Account[PasswordSafety]', 'Bitte geben Sie das Passwort erneut an');
             $Error = true;
         }
         if ($Password != $PasswordSafety) {
@@ -98,9 +102,16 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
                         GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
                 }
+                if (isset( $Account['User'] )) {
+                    $tblPerson = Person::useService()->getPersonById($Account['User']);
+                    GatekeeperAccount::useService()->addAccountPerson($tblAccount, $tblPerson);
+                }
+                return new Success('Das Benutzerkonnto wurde erstellt')
+                .new Redirect('/Setting/Authorization/Account', 3);
+            } else {
+                return new Danger('Das Benutzerkonnto konnte nicht erstellt werden')
+                .new Redirect('/Setting/Authorization/Account', 3);
             }
-        } else {
-            Debugger::screenDump($Username, $Password, $tblToken, $tblConsumer, $Account);
         }
 
         return $Form;
