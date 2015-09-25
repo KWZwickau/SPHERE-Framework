@@ -23,8 +23,8 @@ class Authorization implements IModuleInterface
 
         Consumer::registerModule();
         Token::registerModule();
-        Account::registerModule();
         Access::registerModule();
+        Account::registerModule();
     }
 
     /**

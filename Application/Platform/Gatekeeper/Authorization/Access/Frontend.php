@@ -204,22 +204,25 @@ class Frontend
         $tblRightAll = Access::useService()->getRightAll();
 
         $PublicRouteAll = Main::getDispatcher()->getPublicRoutes();
-        array_walk($PublicRouteAll, function (&$Route) {
+        if ($PublicRouteAll) {
+            array_walk($PublicRouteAll, function (&$Route) {
 
-            $Route = new PullClear(
-                new PullLeft($Route)
-                .new PullRight(
-                    new External(
-                        'Öffnen', $Route, null, array(), false
-                    ).
-                    new Danger(
-                        'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right', null,
-                        array('Name' => $Route)
+                $Route = new PullClear(
+                    new PullLeft('<span class="sphere-label">'.$Route.'</span>')
+                    .new PullRight(
+                        new External(
+                            'Öffnen', $Route, null, array(), false
+                        ).
+                        new Danger(
+                            'Hinzufügen', '/Platform/Gatekeeper/Authorization/Access/Right', null,
+                            array('Name' => $Route)
+                        )
                     )
-                )
-            );
-        });
-
+                );
+            });
+        } else {
+            $PublicRouteAll = array();
+        }
         $Stage->setContent(
             ( $tblRightAll
                 ? new TableData($tblRightAll, new Title('Bestehende Rechte', 'Routen'), array(
@@ -238,7 +241,7 @@ class Frontend
                     , new Primary('Hinzufügen')
                 ), $Name
             )
-            .new Panel('Öffentliche Routen', $PublicRouteAll, Panel::PANEL_TYPE_DANGER)
+            .new Panel('Öffentliche Routen', $PublicRouteAll, Panel::PANEL_TYPE_DANGER, null, 50)
         );
         return $Stage;
     }

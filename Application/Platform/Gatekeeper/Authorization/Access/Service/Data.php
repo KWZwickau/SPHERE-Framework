@@ -38,65 +38,78 @@ class Data extends DataCacheable
         /**
          * Administrator
          */
+        // Role: Cloud-Administrator
         $tblRole = $this->createRole('Administrator');
 
-        // Mandanten
-        $tblLevel = $this->createLevel('Mandanten');
+        // Level: Platform
+        $tblLevel = $this->createLevel('Platform');
         $this->addRoleLevel($tblRole, $tblLevel);
-
-        $tblPrivilege = $this->createPrivilege('Mandanten');
+        // Privilege: Platform
+        $tblPrivilege = $this->createPrivilege('Platform');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper');
+        // Privilege: System (Platform)
+        $tblPrivilege = $this->createPrivilege('System (Platform)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/System');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
+        // Privilege: History (Platform,System)
+        $tblPrivilege = $this->createPrivilege('History (Platform,System)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/System/Protocol');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Consumer');
+        $tblRight = $this->createRight('/Platform/System/Archive');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Cache (Platform,System)
+        $tblPrivilege = $this->createPrivilege('Cache (Platform,System)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/System/Cache');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Database (Platform,System)
+        $tblPrivilege = $this->createPrivilege('Database (Platform,System)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/System/Database');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Database/Setup/Simulation');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Database/Setup/Execution');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Test (Platform,System)
+        $tblPrivilege = $this->createPrivilege('Test (Platform,System)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/System/Test');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Test/Frontend');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Test/Upload');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Test/Upload/Delete');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Platform/System/Test/Upload/Delete/Check');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Hardware-Token
-        $tblLevel = $this->createLevel('Hardware-Token');
+        // Level: Authorization
+        $tblLevel = $this->createLevel('Authorization');
         $this->addRoleLevel($tblRole, $tblLevel);
-
-        $tblPrivilege = $this->createPrivilege('Hardware-Token');
+        // Privilege: Platform
+        $tblPrivilege = $this->createPrivilege('Platform');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Token');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-
-        // Benutzerkonten
-        $tblLevel = $this->createLevel('Benutzerkonten');
-        $this->addRoleLevel($tblRole, $tblLevel);
-
-        $tblPrivilege = $this->createPrivilege('Benutzerkonten');
+        // Privilege: Gatekeeper (Platform)
+        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Account');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-
-        // Rechteverwaltung
-        $tblLevel = $this->createLevel('Rechteverwaltung');
-        $this->addRoleLevel($tblRole, $tblLevel);
-
-        $tblPrivilege = $this->createPrivilege('Rechteverwaltung');
+        // Privilege: Authorization (Platform,Gatekeeper)
+        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/Gatekeeper');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Access (Platform,Gatekeeper,Authorization)
+        $tblPrivilege = $this->createPrivilege('Access (Platform,Gatekeeper,Authorization)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Role');
@@ -114,34 +127,78 @@ class Data extends DataCacheable
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Right');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Plattform
-        $tblLevel = $this->createLevel('Plattform');
+        // Level: Consumer
+        $tblLevel = $this->createLevel('Consumer');
         $this->addRoleLevel($tblRole, $tblLevel);
-
-        $tblPrivilege = $this->createPrivilege('System');
+        // Privilege: Platform
+        $tblPrivilege = $this->createPrivilege('Platform');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/System');
+        // Privilege: Gatekeeper (Platform)
+        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/System/Cache');
+        // Privilege: Authorization (Platform,Gatekeeper)
+        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/System/Database');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/System/Database/Setup/Simulation');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/System/Database/Setup/Execution');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        $tblRight = $this->createRight('/Platform/System/Protocol');
+        // Privilege: Consumer (Platform,Gatekeeper,Authorization)
+        $tblPrivilege = $this->createPrivilege('Consumer (Platform,Gatekeeper,Authorization)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Consumer');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        /**
-         * Schüler / Eltern
-         */
-        $tblRole = $this->createRole('Schüler / Eltern');
-
-        $tblLevel = $this->createLevel('Zensuren');
+        // Level: Token
+        $tblLevel = $this->createLevel('Token');
         $this->addRoleLevel($tblRole, $tblLevel);
+        // Privilege: Platform
+        $tblPrivilege = $this->createPrivilege('Platform');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Gatekeeper (Platform)
+        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Authorization (Platform,Gatekeeper)
+        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Token (Platform,Gatekeeper,Authorization)
+        $tblPrivilege = $this->createPrivilege('Token (Platform,Gatekeeper,Authorization)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Token');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+
+        // Level: Account
+        $tblLevel = $this->createLevel('Account');
+        $this->addRoleLevel($tblRole, $tblLevel);
+        // Privilege: Platform
+        $tblPrivilege = $this->createPrivilege('Platform');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Gatekeeper (Platform)
+        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Authorization (Platform,Gatekeeper)
+        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        // Privilege: Account (Platform,Gatekeeper,Authorization)
+        $tblPrivilege = $this->createPrivilege('Account (Platform,Gatekeeper,Authorization)');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Account');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+
     }
 
     /**

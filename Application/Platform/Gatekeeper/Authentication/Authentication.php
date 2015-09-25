@@ -88,9 +88,16 @@ class Authentication implements IModuleInterface
             ->setParameterDefault('CredentialLock', null)
             ->setParameterDefault('CredentialKey', null)
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendWelcome')
-        );
+
+        if (Account::useService()->getAccountBySession()) {
+            Main::getDispatcher()->registerRoute(
+                Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendWelcome')
+            );
+        } else {
+            Main::getDispatcher()->registerRoute(
+                Main::getDispatcher()->createRoute('', __NAMESPACE__.'\Frontend::frontendIdentification')
+            );
+        }
     }
 
     /**
