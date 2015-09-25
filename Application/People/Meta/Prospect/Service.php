@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect;
 
+use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Meta\Prospect\Service\Data;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
@@ -83,10 +84,14 @@ class Service implements IServiceInterface
                 $Meta['Appointment']['InterviewDate'],
                 $Meta['Appointment']['TrialDate']
             );
+            $OptionA = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionA']);
+            $OptionB = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionB']);
             (new Data($this->Binding))->updateProspectReservation(
                 $tblProspect->getTblProspectReservation(),
                 $Meta['Reservation']['Year'],
-                $Meta['Reservation']['Division']
+                $Meta['Reservation']['Division'],
+                ( $OptionA ? $OptionA : null ),
+                ( $OptionB ? $OptionB : null )
             );
             (new Data($this->Binding))->updateProspect(
                 $tblProspect,
@@ -98,9 +103,13 @@ class Service implements IServiceInterface
                 $Meta['Appointment']['InterviewDate'],
                 $Meta['Appointment']['TrialDate']
             );
+            $OptionA = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionA']);
+            $OptionB = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionB']);
             $tblProspectReservation = (new Data($this->Binding))->createProspectReservation(
                 $Meta['Reservation']['Year'],
-                $Meta['Reservation']['Division']
+                $Meta['Reservation']['Division'],
+                ( $OptionA ? $OptionA : null ),
+                ( $OptionB ? $OptionB : null )
             );
             (new Data($this->Binding))->createProspect(
                 $tblPerson,
