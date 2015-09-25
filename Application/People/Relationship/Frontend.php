@@ -258,7 +258,10 @@ class Frontend extends Extension implements IFrontendInterface
 
         array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
 
-            $tblCompany = new PullClear(new RadioBox('To', $tblCompany->getName().' '.$tblCompany->getDescription(),
+            $tblCompany = new PullClear(new RadioBox('To', $tblCompany->getName().(
+                $tblCompany->getDescription()
+                    ? ' - '.$tblCompany->getDescription()
+                    : '' ),
                 $tblCompany->getId()));
         });
 

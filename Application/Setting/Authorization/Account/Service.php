@@ -1,10 +1,10 @@
 <?php
 namespace SPHERE\Application\Setting\Authorization\Account;
 
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access as GatekeeperAccess;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account as GatekeeperAccount;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer as GatekeeperConsumer;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token as GatekeeperToken;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\System\Extension\Repository\Debugger;
 
@@ -36,8 +36,8 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         $Password = trim($Account['Password']);
         $PasswordSafety = trim($Account['PasswordSafety']);
 
-        $tblConsumer = Consumer::useService()->getConsumerBySession();
-        if (!( $tblToken = Token::useService()->getTokenById((int)$Account['Token']) )) {
+        $tblConsumer = GatekeeperConsumer::useService()->getConsumerBySession();
+        if (!( $tblToken = GatekeeperToken::useService()->getTokenById((int)$Account['Token']) )) {
             $tblToken = null;
         }
 
@@ -47,7 +47,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         } else {
             if (preg_match('!^[a-z0-9]{5,}$!is', $Username)) {
                 $Username = $tblConsumer->getAcronym().'-'.$Username;
-                if (!Account::useService()->getAccountByUsername($Username)) {
+                if (!GatekeeperAccount::useService()->getAccountByUsername($Username)) {
                     $Form->setSuccess('Account[Name]', '');
                 } else {
                     $Form->setError('Account[Name]', 'Der angegebene Benutzername ist bereits vergeben');
@@ -88,14 +88,14 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
         }
 
         if (!$Error) {
-            $tblAccount = Account::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer);
+            $tblAccount = GatekeeperAccount::useService()->insertAccount($Username, $Password, $tblToken, $tblConsumer);
             if ($tblAccount) {
-                $tblIdentification = Account::useService()->getIdentificationById($Account['Identification']);
-                Account::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
+                $tblIdentification = GatekeeperAccount::useService()->getIdentificationById($Account['Identification']);
+                GatekeeperAccount::useService()->addAccountAuthentication($tblAccount, $tblIdentification);
                 if (isset( $Account['Role'] )) {
                     foreach ((array)$Account['Role'] as $Role) {
-                        $tblRole = Access::useService()->getRoleById($Role);
-                        Account::useService()->addAccountAuthorization($tblAccount, $tblRole);
+                        $tblRole = GatekeeperAccess::useService()->getRoleById($Role);
+                        GatekeeperAccount::useService()->addAccountAuthorization($tblAccount, $tblRole);
                     }
                 }
             }

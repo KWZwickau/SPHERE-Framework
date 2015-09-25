@@ -150,9 +150,10 @@ class Roadmap extends Extension
             ->createDuty('YubiKey hinzufügen', true)
             ->createDuty('YubiKey entfernen', true);
         $Feature->createTask('Benutzerkonten')
-            ->createDuty('Zugangsdaten', false)
-            ->createDuty('Berechtigungsstufen', false)
-            ->createDuty('Authentifizierungsart', false)
+            ->createDuty('Zugangsdaten', true)
+            ->createDuty('Berechtigungsstufen', true)
+            ->createDuty('Authentifizierungstyp', true)
+            ->createDuty('Hardware-Schlüssel', true)
             ->createDuty('Person', false)
             ->createDuty('Benutzerkonten anlegen', false)
             ->createDuty('Benutzerkonten löschen', true);
@@ -164,7 +165,6 @@ class Roadmap extends Extension
         // Demoversion
         $Feature = $Category->createFeature('Demoversion');
         $Feature->createTask('Datenbank')
-            ->createDuty('Demodaten neu', false)
             ->createDuty('Benutzerzugänge übernehmen', false);
         $Feature->createTask('Programmcode')
             ->createDuty('Programmcode veröffentlichen', false);
@@ -210,9 +210,6 @@ class Roadmap extends Extension
         // Einstellungen
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Benutzerkonten')
-            ->createDuty('Zugangsdaten', false)
-            ->createDuty('Berechtigungsstufen', false)
-            ->createDuty('Authentifizierungsart', false)
             ->createDuty('Person', false)
             ->createDuty('Benutzerkonten anlegen', false);
         $Feature->createTask('Mein Benutzerkonto')
@@ -220,9 +217,6 @@ class Roadmap extends Extension
 
         // Demoversion
         $Feature = $Category->createFeature('Demoversion');
-        $Feature->createTask('Datenbank')
-            ->createDuty('Demodaten neu', false)
-            ->createDuty('Benutzerzugänge übernehmen', false);
         $Feature->createTask('Programmcode')
             ->createDuty('Programmcode veröffentlichen', false);
 
@@ -248,6 +242,7 @@ class Roadmap extends Extension
             ->createDuty('Schülerakte (Ersteinschulung: Abgebende Kita)');
         $Feature->createTask('Beziehungen')
             ->createDuty('Anzeige von Adress- und Kontaktdaten')
+            ->createDuty('Trennung von Beziehungstypen (Personenbeziehungen)')
             ->createDuty('Frei definierbare Beziehungstypen');
 
         // Firmenverwaltung
@@ -255,6 +250,9 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Dashboards');
         $Feature->createTask('Board: Corporation')
             ->createDuty('Klären welcher Inhalt enthalten sein soll');
+        $Feature->createTask('Beziehungen')
+            ->createDuty('Trennung von Beziehungstypen (Firmenbeziehungen)')
+            ->createDuty('Frei definierbare Beziehungstypen');
 
         // Bildung
         $Category = $Release->createCategory('Bildung');
