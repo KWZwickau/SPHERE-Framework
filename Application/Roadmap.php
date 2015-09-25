@@ -58,7 +58,7 @@ class Roadmap extends Extension
             ->createDuty('Sorgeberechtigt', true)
             ->createDuty('Mitarbeiter', true);
 
-        $Feature->createTask('Frei definierbare Gruppen', false)
+        $Feature->createTask('Frei definierbare Gruppen')
             ->createDuty('Gruppen hinzufügen', true)
             ->createDuty('Gruppen bearbeiten', true)
             ->createDuty('Gruppen löschen', true);
@@ -70,7 +70,7 @@ class Roadmap extends Extension
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Personendaten', true)
             ->createDuty('Interessent', true)
-            ->createDuty('Schülerakte (Versetzung, 3x AG, Kurse)', false)
+            ->createDuty('Schülerakte (Ansicht)', true)
             ->createDuty('Sorgerechtdaten', true);
         $Feature->createTask('Adressdaten')
             ->createDuty('Adresse hinzufügen', true)
@@ -157,7 +157,7 @@ class Roadmap extends Extension
             ->createDuty('Benutzerkonten anlegen', false)
             ->createDuty('Benutzerkonten löschen', true);
         $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Informationen anzeigen', false)
+            ->createDuty('Informationen anzeigen (Teilweise)', true)
             ->createDuty('Passwort ändern', true)
             ->createDuty('Mandant ändern (Administrator)', true);
 
@@ -185,7 +185,7 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
-            ->createDuty('Schülerakte (Versetzung, 3x AG, Kurse)', false);
+            ->createDuty('Schülerakte (Speichern)', false);
 
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
@@ -216,7 +216,7 @@ class Roadmap extends Extension
             ->createDuty('Person', false)
             ->createDuty('Benutzerkonten anlegen', false);
         $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Informationen anzeigen', false);
+            ->createDuty('Informationen anzeigen (Vervollständigen)');
 
         // Demoversion
         $Feature = $Category->createFeature('Demoversion');
