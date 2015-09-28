@@ -231,7 +231,7 @@ class Main extends Extension
     /**
      * @param \Exception $Exception
      */
-    private function runSelfHeal(\Exception $Exception = null)
+    public static function runSelfHeal(\Exception $Exception = null)
     {
 
         $Display = new Display();
@@ -240,8 +240,8 @@ class Main extends Extension
                 ? new Error($Exception->getCode(), $Exception->getMessage())
                 : ''
             ).
-            (new System\Database\Database())->frontendSetup(false)
-            .(new Redirect($this->getRequest()->getPathInfo(), 60))
+            (new System\Database\Database())->frontendSetup(false, true)
+            . (new Redirect(self::getRequest()->getPathInfo(), 60))
         );
         echo $Display->getContent(true);
         exit( 0 );

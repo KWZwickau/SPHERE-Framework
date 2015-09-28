@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Corporation\Search\Group;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -27,11 +26,11 @@ class Group implements IModuleInterface
     }
 
     /**
-     * @return IServiceInterface
+     * @return \SPHERE\Application\Corporation\Group\Service
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+        return \SPHERE\Application\Corporation\Group\Group::useService();
     }
 
     /**

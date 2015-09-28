@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Corporation\Search\Group;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;

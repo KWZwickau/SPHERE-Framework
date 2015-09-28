@@ -21,6 +21,15 @@ class Extension
 {
 
     /**
+     * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
+     */
+    public static function getRequest()
+    {
+
+        return HttpKernel::getRequest();
+    }
+
+    /**
      * @return Debugger
      */
     public function getDebugger()
@@ -31,7 +40,7 @@ class Extension
 
     /**
      * @param Repository $EntityRepository
-     * @param array      $Filter array( 'ColumnName' => 'Value', ... )
+     * @param array $Filter array( 'ColumnName' => 'Value', ... )
      *
      * @return DataTables
      */
@@ -50,15 +59,6 @@ class Extension
     {
 
         return ModHex::withString($String);
-    }
-
-    /**
-     * @return \MOC\V\Core\HttpKernel\Component\IBridgeInterface
-     */
-    public function getRequest()
-    {
-
-        return HttpKernel::getRequest();
     }
 
     /**

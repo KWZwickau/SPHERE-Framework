@@ -46,7 +46,7 @@ if (true) {
     (new Cache(new TwigCache()))->getCache()->clearCache();
 }
 
-Debugger::$Enabled = false;
+Debugger::$Enabled = true;
 
 $Main->runPlatform();
 

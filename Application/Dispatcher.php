@@ -5,6 +5,7 @@ use MOC\V\Component\Router\Component\IBridgeInterface;
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Main;
 
 /**
  * Class Dispatcher
@@ -44,18 +45,21 @@ class Dispatcher
     public static function registerRoute(RouteParameter $Route)
     {
 
-        if (Access::useService()->hasAuthorization($Route->getPath())) {
-            if (in_array($Route->getPath(), self::$Router->getRouteList())) {
-                throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
-            } else {
-                self::$Router->addRoute($Route);
+        try {
+            if (Access::useService()->hasAuthorization($Route->getPath())) {
+                if (in_array($Route->getPath(), self::$Router->getRouteList())) {
+                    throw new \Exception(__CLASS__ . ' > Route already available! (' . $Route->getPath() . ')');
+                } else {
+                    self::$Router->addRoute($Route);
+                }
             }
-        }
-
-        if (!Access::useService()->getRightByName('/'.$Route->getPath())) {
-            if (!in_array($Route->getPath(), self::$PublicRoutes)) {
-                array_push(self::$PublicRoutes, '/'.$Route->getPath());
+            if (!Access::useService()->getRightByName('/' . $Route->getPath())) {
+                if (!in_array($Route->getPath(), self::$PublicRoutes)) {
+                    array_push(self::$PublicRoutes, '/' . $Route->getPath());
+                }
             }
+        } catch (\Exception $Exception) {
+            Main::runSelfHeal($Exception);
         }
     }
 
