@@ -34,50 +34,39 @@ class Data extends DataCacheable
 
     public function setupDatabaseContent()
     {
-
         /**
-         * Administrator
+         * CLOUD
+         * Administrator (Setup Role)
          */
-        // Role: Cloud-Administrator
         $tblRoleCloud = $this->createRole('Administrator');
 
-        // Level: Platform
-        $tblLevel = $this->createLevel('Platform');
+        // Level: Cloud - Platform
+        $tblLevel = $this->createLevel('Cloud - Platform');
         $this->addRoleLevel($tblRoleCloud, $tblLevel);
-        // Privilege: Platform
-        $tblPrivilege = $this->createPrivilege('Platform');
+
+        // Privilege: Cloud - System
+        $tblPrivilege = $this->createPrivilege('Cloud - System');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: System (Platform)
-        $tblPrivilege = $this->createPrivilege('System (Platform)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform/System');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: History (Platform,System)
-        $tblPrivilege = $this->createPrivilege('History (Platform,System)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+
         $tblRight = $this->createRight('/Platform/System/Protocol');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/System/Archive');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Cache (Platform,System)
-        $tblPrivilege = $this->createPrivilege('Cache (Platform,System)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform/System/Cache');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Database (Platform,System)
-        $tblPrivilege = $this->createPrivilege('Database (Platform,System)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+
         $tblRight = $this->createRight('/Platform/System/Database');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/System/Database/Setup/Simulation');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/System/Database/Setup/Execution');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Test (Platform,System)
-        $tblPrivilege = $this->createPrivilege('Test (Platform,System)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+
+        $tblRight = $this->createRight('/Platform/System/Cache');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+
         $tblRight = $this->createRight('/Platform/System/Test');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/System/Test/Frontend');
@@ -89,27 +78,16 @@ class Data extends DataCacheable
         $tblRight = $this->createRight('/Platform/System/Test/Upload/Delete/Check');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Level: Authorization
-        $tblLevel = $this->createLevel('Authorization');
-        $this->addRoleLevel($tblRoleCloud, $tblLevel);
-        // Privilege: Platform
-        $tblPrivilege = $this->createPrivilege('Platform');
+        // Privilege: Cloud - Gatekeeper
+        $tblPrivilege = $this->createPrivilege('Cloud - Gatekeeper');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Gatekeeper (Platform)
-        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform/Gatekeeper');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Authorization (Platform,Gatekeeper)
-        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Access (Platform,Gatekeeper,Authorization)
-        $tblPrivilege = $this->createPrivilege('Access (Platform,Gatekeeper,Authorization)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Role');
@@ -127,147 +105,88 @@ class Data extends DataCacheable
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Access/Right');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Level: Consumer
-        $tblLevel = $this->createLevel('Consumer');
-        $this->addRoleLevel($tblRoleCloud, $tblLevel);
-        // Privilege: Platform
-        $tblPrivilege = $this->createPrivilege('Platform');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Gatekeeper (Platform)
-        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform/Gatekeeper');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Authorization (Platform,Gatekeeper)
-        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Consumer (Platform,Gatekeeper,Authorization)
-        $tblPrivilege = $this->createPrivilege('Consumer (Platform,Gatekeeper,Authorization)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Consumer');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Level: Token
-        $tblLevel = $this->createLevel('Token');
-        $this->addRoleLevel($tblRoleCloud, $tblLevel);
-        // Privilege: Platform
-        $tblPrivilege = $this->createPrivilege('Platform');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Gatekeeper (Platform)
-        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform/Gatekeeper');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Authorization (Platform,Gatekeeper)
-        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Token (Platform,Gatekeeper,Authorization)
-        $tblPrivilege = $this->createPrivilege('Token (Platform,Gatekeeper,Authorization)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Token');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Level: Account
-        $tblLevel = $this->createLevel('Account');
-        $this->addRoleLevel($tblRoleCloud, $tblLevel);
-        // Privilege: Platform
-        $tblPrivilege = $this->createPrivilege('Platform');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Gatekeeper (Platform)
-        $tblPrivilege = $this->createPrivilege('Gatekeeper (Platform)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform/Gatekeeper');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Authorization (Platform,Gatekeeper)
-        $tblPrivilege = $this->createPrivilege('Authorization (Platform,Gatekeeper)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization');
-        $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Account (Platform,Gatekeeper,Authorization)
-        $tblPrivilege = $this->createPrivilege('Account (Platform,Gatekeeper,Authorization)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Platform/Gatekeeper/Authorization/Account');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Level: Setting
-        $tblLevel = $this->createLevel('Setting');
+        // Level: Cloud - Setting
+        $tblLevel = $this->createLevel('Cloud - Setting');
         $this->addRoleLevel($tblRoleCloud, $tblLevel);
-        // Privilege: Setting
-        $tblPrivilege = $this->createPrivilege('Setting');
+
+        // Privilege: Cloud - MyAccount
+        $tblPrivilege = $this->createPrivilege('Cloud - MyAccount');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Setting');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: MyAccount (Setting)
-        $tblPrivilege = $this->createPrivilege('MyAccount (Setting)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Setting/MyAccount');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Password (Setting,MyAccount)
-        $tblPrivilege = $this->createPrivilege('Password (Setting,MyAccount)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+
         $tblRight = $this->createRight('/Setting/MyAccount/Password');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Consumer (Setting,MyAccount)
-        $tblPrivilege = $this->createPrivilege('Consumer (Setting,MyAccount)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+
         $tblRight = $this->createRight('/Setting/MyAccount/Consumer');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
         /**
-         * Systemverwaltung
+         * SERVER
+         * Benutzer Einstellungen (No Role Setup)
          */
-        // Role: Consumer-Administrator
-        $tblRole = $this->createRole('Systemverwaltung');
 
-        // Level: Einstellungen (Mandant)
-        $tblLevel = $this->createLevel('Einstellungen (Mandant)');
+        // Level: Benutzer - Einstellungen
+        $tblLevel = $this->createLevel('Benutzer - Einstellungen');
+        // !!! Add To CLOUD Administrator
         $this->addRoleLevel($tblRoleCloud, $tblLevel);
-        $this->addRoleLevel($tblRole, $tblLevel);
 
-        // Privilege: Einstellungen (Mandant,Einstellungen)
-        $tblPrivilege = $this->createPrivilege('Einstellungen (Mandant,Einstellungen)');
+        // Privilege: Benutzer - Mein Benutzerkonto
+        $tblPrivilege = $this->createPrivilege('Benutzer - Mein Benutzerkonto');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Setting');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-
-        // Privilege: Mein Benutzerkonto (Mandant,Einstellungen)
-        $tblPrivilege = $this->createPrivilege('Mein Benutzerkonto (Mandant,Einstellungen)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Setting/MyAccount');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-        // Privilege: Mein Benutzerkonto (Mandant,Einstellungen), Password ändern
-        $tblPrivilege = $this->createPrivilege('Mein Benutzerkonto (Mandant,Einstellungen), Password ändern');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+
         $tblRight = $this->createRight('/Setting/MyAccount/Password');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Privilege: Benutzerverwaltung (Mandant,Einstellungen)
-        $tblPrivilege = $this->createPrivilege('Benutzerverwaltung (Mandant,Einstellungen)');
+        /**
+         * SERVER
+         * Administrator Einstellungen (No Role Setup)
+         */
+
+        // Level: Administrator - Einstellungen
+        $tblLevel = $this->createLevel('Administrator - Einstellungen');
+        // !!! Add To CLOUD Administrator
+        $this->addRoleLevel($tblRoleCloud, $tblLevel);
+
+        // Privilege: Administrator - Mein Benutzerkonto
+        $tblPrivilege = $this->createPrivilege('Administrator - Mein Benutzerkonto');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Setting');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $tblRight = $this->createRight('/Setting/MyAccount');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+
+        $tblRight = $this->createRight('/Setting/MyAccount/Password');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+
+        // Privilege: Administrator - Benutzerverwaltung
+        $tblPrivilege = $this->createPrivilege('Administrator - Benutzerverwaltung');
+        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
+        $tblRight = $this->createRight('/Setting');
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Privilege: Hardware-Schlüssel (Mandant,Einstellungen,Benutzerverwaltung)
-        $tblPrivilege = $this->createPrivilege('Hardware-Schlüssel (Mandant,Einstellungen,Benutzerverwaltung)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Setting/Authorization/Token');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization/Token/Destroy');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
 
-        // Privilege: Benutzerkonten (Mandant,Einstellungen,Benutzerverwaltung)
-        $tblPrivilege = $this->createPrivilege('Benutzerkonten (Mandant,Einstellungen,Benutzerverwaltung)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Setting/Authorization/Account');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization/Account/Create');
@@ -276,12 +195,6 @@ class Data extends DataCacheable
 //        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization/Account/Destroy');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
-
-        // Privilege: Mandantverwaltung (Mandant,Einstellungen)
-        $tblPrivilege = $this->createPrivilege('Mandantverwaltung (Mandant,Einstellungen)');
-        $this->addLevelPrivilege($tblLevel, $tblPrivilege);
-        $tblRight = $this->createRight('/Setting/Consumer');
-//        $this->addPrivilegeRight($tblPrivilege, $tblRight);
     }
 
     /**

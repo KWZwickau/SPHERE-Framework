@@ -85,7 +85,7 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblAccountAll, function (TblAccount &$tblAccount) {
 
                 if (
-                    $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId()
+                    ( $tblAccount->getServiceTblIdentification() && $tblAccount->getServiceTblIdentification()->getId() != Account::useService()->getIdentificationByName('System')->getId() )
                     && $tblAccount->getServiceTblConsumer()->getId() == Consumer::useService()->getConsumerBySession()->getId()
                 ) {
 
@@ -153,7 +153,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Person'         => new Person().' Person',
                                 'Authentication' => new Lock().' Kontotyp',
                                 'Authorization'  => new Nameplate().' Berechtigungen',
-                                'Token'          => new Key().' Hadware-Schlüssel',
+                                'Token' => new Key().' Hardware-Schlüssel',
                                 'Option'         => 'Optionen'
                             )
                         )
@@ -244,7 +244,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        $tblTokenAll = Token::useService()->getTokenAll();
+        $tblTokenAll = Token::useService()->getTokenAllByConsumer(Consumer::useService()->getConsumerBySession());
         array_walk($tblTokenAll, function (TblToken &$tblToken) {
 
             if (Account::useService()->getAccountAllByToken($tblToken)) {

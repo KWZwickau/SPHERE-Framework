@@ -32,6 +32,15 @@ class Data extends DataCacheable
 
         $this->createConsumer('DEMO', 'Mandant');
         $this->createConsumer('ESZC', 'Freie Evangelische Schulverein Chemnitz e.V.');
+        $this->createConsumer('EGE', 'Evangelische Schulgemeinschaft Erzgebirge e.V.');
+        $this->createConsumer('EVOSG', 'Ev. Oberschule Gersdorf / Christl. Schulverein e.V.');
+        $this->createConsumer('ESVL', 'Ev. Schulverein Leukersdorf e.V.');
+        $this->createConsumer('EVAMTL', 'Ev. Schulzentrum Muldental, Großbardau');
+        $this->createConsumer('EVAP', 'Ev. Schulzentrum Pirna');
+        $this->createConsumer('EZGH', 'Ev. Zinzendorf-Gymnasium Herrnhut');
+        $this->createConsumer('LWSZ', 'Lebenswelt Schule e. V.');
+        $this->createConsumer('FEGH', 'Freie Evangelische Grundschule Hormersdorf');
+
     }
 
     /**

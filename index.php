@@ -36,7 +36,7 @@ AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__.'/', 'SPHERE');
 
 $Main = new Main();
 
-if (true) {
+if (false) {
     (new Cache(new ApcSma()))->getCache()->clearCache();
     (new Cache(new Apcu()))->getCache()->clearCache();
     (new Cache(new ApcUser()))->getCache()->clearCache();
@@ -46,7 +46,7 @@ if (true) {
     (new Cache(new TwigCache()))->getCache()->clearCache();
 }
 
-Debugger::$Enabled = true;
+Debugger::$Enabled = false;
 
 $Main->runPlatform();
 

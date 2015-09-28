@@ -165,10 +165,10 @@ class Roadmap extends Extension
         $Category = $Release->createCategory('Demoversion');
         $Feature = $Category->createFeature('Veröffentlichen');
         $Feature->createTask('Datenbank')
-            ->createDuty('Berechtigungskonzept erstellen / übernehmen', false)
-            ->createDuty('Benutzerzugänge übernehmen', false);
+            ->createDuty('Berechtigungskonzept erstellen / übernehmen', true)
+            ->createDuty('Benutzerzugänge übernehmen', true);
         $Feature->createTask('Programmcode')
-            ->createDuty('Programmcode veröffentlichen', false);
+            ->createDuty('Programmcode veröffentlichen', true);
 
     }
 
