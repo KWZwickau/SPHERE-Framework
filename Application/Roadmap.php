@@ -193,7 +193,7 @@ class Roadmap extends Extension
 
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Benutzerkonten')
-            ->createDuty('Benutzerkonten bearbeiten');
+            ->createDuty('Benutzerkonten bearbeiten', false);
         $Feature->createTask('Mein Benutzerkonto')
             ->createDuty('Informationen anzeigen (Vervollständigen)');
 

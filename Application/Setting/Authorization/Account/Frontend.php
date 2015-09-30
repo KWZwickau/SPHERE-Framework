@@ -191,51 +191,61 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
      * @return Form
      */
-    private function formAccount()
+    private function formAccount(TblAccount $tblAccount = null)
     {
 
         $tblConsumer = Consumer::useService()->getConsumerBySession();
 
         // Identification
         $tblIdentificationAll = Account::useService()->getIdentificationAll();
-        array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification) {
+        if ($tblIdentificationAll) {
+            array_walk($tblIdentificationAll, function (TblIdentification &$tblIdentification) {
 
-            if ($tblIdentification->getName() == 'System') {
-                $tblIdentification = false;
-            } else {
-                switch (strtoupper($tblIdentification->getName())) {
-                    case 'STUDENT':
-                        $Global = $this->getGlobal();
-                        if (!isset( $Global->POST['Account']['Identification'] )) {
-                            $Global->POST['Account']['Identification'] = $tblIdentification->getId();
-                            $Global->savePost();
-                        }
-                        $Label = $tblIdentification->getDescription();
-                        break;
-                    default:
-                        $Label = $tblIdentification->getDescription().' ('.new Key().')';
+                if ($tblIdentification->getName() == 'System') {
+                    $tblIdentification = false;
+                } else {
+                    switch (strtoupper($tblIdentification->getName())) {
+                        case 'STUDENT':
+                            $Global = $this->getGlobal();
+                            if (!isset( $Global->POST['Account']['Identification'] )) {
+                                $Global->POST['Account']['Identification'] = $tblIdentification->getId();
+                                $Global->savePost();
+                            }
+                            $Label = $tblIdentification->getDescription();
+                            break;
+                        default:
+                            $Label = $tblIdentification->getDescription().' ('.new Key().')';
+                    }
+                    $tblIdentification = new RadioBox(
+                        'Account[Identification]', $Label, $tblIdentification->getId()
+                    );
                 }
-                $tblIdentification = new RadioBox(
-                    'Account[Identification]', $Label, $tblIdentification->getId()
-                );
-            }
-        });
-        $tblIdentificationAll = array_filter($tblIdentificationAll);
+            });
+            $tblIdentificationAll = array_filter($tblIdentificationAll);
+        } else {
+            $tblIdentificationAll = array();
+        }
 
         // Role
         $tblRoleAll = Access::useService()->getRoleAll();
-        array_walk($tblRoleAll, function (TblRole &$tblRole) {
+        if ($tblRoleAll) {
+            array_walk($tblRoleAll, function (TblRole &$tblRole) {
 
-            if ($tblRole->getName() == 'Administrator') {
-                $tblRole = false;
-            } else {
-                $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
-                    $tblRole->getId());
-            }
-        });
-        $tblRoleAll = array_filter($tblRoleAll);
+                if ($tblRole->getName() == 'Administrator') {
+                    $tblRole = false;
+                } else {
+                    $tblRole = new CheckBox('Account[Role]['.$tblRole->getId().']', $tblRole->getName(),
+                        $tblRole->getId());
+                }
+            });
+            $tblRoleAll = array_filter($tblRoleAll);
+        } else {
+            $tblRoleAll = array();
+        }
 
         // Token
         $Global = $this->getGlobal();
@@ -245,16 +255,20 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblTokenAll = Token::useService()->getTokenAllByConsumer(Consumer::useService()->getConsumerBySession());
-        array_walk($tblTokenAll, function (TblToken &$tblToken) {
+        if ($tblTokenAll) {
+            array_walk($tblTokenAll, function (TblToken &$tblToken) {
 
-            if (Account::useService()->getAccountAllByToken($tblToken)) {
-                $tblToken = false;
-            } else {
-                $tblToken = new RadioBox('Account[Token]',
-                    implode(' ', str_split($tblToken->getSerial(), 4)), $tblToken->getId());
-            }
-        });
-        $tblTokenAll = array_filter($tblTokenAll);
+                if (Account::useService()->getAccountAllByToken($tblToken)) {
+                    $tblToken = false;
+                } else {
+                    $tblToken = new RadioBox('Account[Token]',
+                        implode(' ', str_split($tblToken->getSerial(), 4)), $tblToken->getId());
+                }
+            });
+            $tblTokenAll = array_filter($tblTokenAll);
+        } else {
+            $tblTokenAll = array();
+        }
         array_unshift($tblTokenAll,
             new RadioBox('Account[Token]',
                 new Danger('KEIN Hardware-Schlüssel'),
@@ -270,7 +284,22 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPerson = new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId());
             });
             $tblPersonAll = array_filter($tblPersonAll);
+        } else {
+            $tblPersonAll = array();
         }
+        // Current Person
+        if ($tblAccount) {
+            $User = Account::useService()->getUserAllByAccount($tblAccount);
+            if ($User) {
+                $tblPerson = $User[0]->getServiceTblPerson();
+                if ($tblPerson) {
+                    array_unshift($tblPersonAll,
+                        new RadioBox('Account[User]', $tblPerson->getFullName(), $tblPerson->getId())
+                    );
+                }
+            }
+        }
+
         return new Form(array(
             new FormGroup(array(
                 new FormRow(array(
@@ -299,6 +328,77 @@ class Frontend extends Extension implements IFrontendInterface
 
             )),
         ));
+    }
+
+    /**
+     * @param null|int   $Id
+     * @param null|array $Account
+     *
+     * @return Stage
+     */
+    public function frontendUpdateAccount($Id = null, $Account = null)
+    {
+
+        $Stage = new Stage('Benutzerkonto', 'Bearbeiten');
+        $tblAccount = Account::useService()->getAccountById($Id);
+        if ($tblAccount) {
+
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Account']['Name'] = preg_replace('!^(.*?)-!is', '', $tblAccount->getUsername());
+                $Global->POST['Account']['Identification'] = $tblAccount->getServiceTblIdentification()->getId();
+                $Global->POST['Account']['Token'] = (
+                $tblAccount->getServiceTblToken()
+                    ? $tblAccount->getServiceTblToken()->getId()
+                    : 0
+                );
+                $User = Account::useService()->getUserAllByAccount($tblAccount);
+                if ($User) {
+                    $Global->POST['Account']['User'] = $User[0]->getId();
+                }
+
+                $Authorization = Account::useService()->getAuthorizationAllByAccount($tblAccount);
+                if ($Authorization) {
+                    /** @var TblAuthorization $Role */
+                    foreach ((array)$Authorization as $Role) {
+                        $Global->POST['Account']['Role'][$Role->getServiceTblRole()->getId()] = $Role->getServiceTblRole()->getId();
+                    }
+                }
+
+                $Global->savePost();
+            }
+
+            $Stage->setContent(
+                new Layout(array(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                Account::useService()->createAccount(
+                                    $this->formAccount($tblAccount)
+                                        ->appendFormButton(new Primary('Änderungen speichern'))
+                                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                    , $Account)
+                            )
+                        ), new Title('Benutzerkonto ändern')
+                    ),
+                ))
+            );
+        } else {
+            $Stage->setContent(
+                new Layout(
+                    new LayoutGroup(
+                        new LayoutRow(
+                            new LayoutColumn(
+                                new Danger(
+                                    'Das Benutzerkonto konnte nicht gefunden werden'
+                                )
+                            )
+                        ), new Title('Benutzerkonto ändern')
+                    )
+                )
+            );
+        }
+        return $Stage;
     }
 
     /**
