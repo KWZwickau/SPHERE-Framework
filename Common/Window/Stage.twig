@@ -1,26 +1,37 @@
-<h3>{{ StageTitle }}
-    <small>{{ StageDescription }}</small>
-</h3>
-{% if StageMessage is not empty %}
-    <div class="row">
-        <div class="col-xs-12">
-            {{ StageMessage }}
-        </div>
-    </div>
-    <hr/>
-{% endif %}
+{% if(StageSize == 'full') %}
+<div class="col-xs-12">
+    {% else %}
+    <div class="col-lg-offset-1 col-lg-10 col-xs-12">
+        {% endif %}
 
-{% if StageMenu is not empty %}
-    <div class="row">
-        <div class="col-xs-12">
-            {#<div class="btn-group">#}
-                {% for Button in StageMenu %}
-                    {{ Button }}
-                {% endfor %}
-            {#</div>#}
-        </div>
-    </div>
-    <br/>
-{% endif %}
-{{ StageContent }}
+        <h3>{{ StageTitle }}
+            <small>{{ StageDescription }}</small>
+        </h3>
+        {% if StageMessage is not empty %}
+            <div class="row">
+                <div class="col-xs-12">
+                    {{ StageMessage }}
+                </div>
+            </div>
+            <hr/>
+        {% endif %}
 
+        {% if StageMenu is not empty %}
+            <div class="row">
+                <div class="col-xs-12">
+                    {#<div class="btn-group">#}
+                    {% for Button in StageMenu %}
+                        {{ Button }}
+                    {% endfor %}
+                    {#</div>#}
+                </div>
+            </div>
+            <br/>
+        {% endif %}
+        {{ StageContent }}
+
+        {% if(StageSize == 'full') %}
+    </div>
+    {% else %}
+</div>
+{% endif %}

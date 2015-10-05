@@ -10,10 +10,12 @@ use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Education\Education;
+use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
 use SPHERE\Application\Setting\Setting;
+use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Window\Display;
 use SPHERE\Common\Window\Error;
 use SPHERE\Common\Window\Navigation\Link;
@@ -122,10 +124,11 @@ class Main extends Extension
             Corporation::registerCluster();
             Education::registerCluster();
 //            Billing::registerCluster();
-//            Transfer::registerCluster();
+            Transfer::registerCluster();
             Contact::registerCluster();
             Setting::registerCluster();
 //            Generator::registerCluster();
+            Manual::registerCluster();
             /**
              * Execute Request
              */
