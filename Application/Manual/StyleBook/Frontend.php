@@ -1,0 +1,34 @@
+<?php
+namespace SPHERE\Application\Manual\StyleBook;
+
+use SPHERE\Common\Documentation\Content\StyleBook;
+use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Window\Stage;
+
+/**
+ * Class Frontend
+ *
+ * @package SPHERE\Application\Manual\StyleBook
+ */
+class Frontend implements IFrontendInterface
+{
+
+    /**
+     * @param null|string $Chapter
+     * @param null|string $Page
+     * @param null|string $Search
+     *
+     * @return Stage
+     */
+    public function frontendStyleBook($Chapter = null, $Page = null, $Search = null)
+    {
+
+        $Stage = new Stage(null, null, Stage::STAGE_SIZE_FULL);
+
+        $Stage->setContent(
+            new StyleBook($Chapter, $Page, $Search)
+        );
+
+        return $Stage;
+    }
+}
