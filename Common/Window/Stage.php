@@ -15,9 +15,10 @@ use SPHERE\System\Extension\Extension;
 class Stage extends Extension implements ITemplateInterface
 {
 
+    const STAGE_SIZE_DEFAULT = 'default';
+    const STAGE_SIZE_FULL = 'full';
     /** @var IBridgeInterface $Template */
     private $Template = null;
-
     /** @var string $Title */
     private $Title = '';
     /** @var string $Description */
@@ -32,8 +33,9 @@ class Stage extends Extension implements ITemplateInterface
     /**
      * @param null|string $Title
      * @param null|string $Description
+     * @param string      $Size
      */
-    function __construct($Title = null, $Description = null)
+    function __construct($Title = null, $Description = null, $Size = Stage::STAGE_SIZE_DEFAULT)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Stage.twig');
@@ -43,6 +45,7 @@ class Stage extends Extension implements ITemplateInterface
         if (null !== $Description) {
             $this->setDescription($Description);
         }
+        $this->Template->setVariable('StageSize', $Size);
     }
 
     /**

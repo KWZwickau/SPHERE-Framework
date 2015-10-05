@@ -1,0 +1,41 @@
+namespace SPHERE\[...];
+
+use Doctrine\ORM\Mapping\Cache;
+use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
+use Doctrine\ORM\Mapping\Table;
+use SPHERE\System\Database\Fitting\Element;
+
+/**
+ * @Entity
+ * @Table(name="tblTableName[...]")
+ * @Cache(usage="READ_ONLY")
+ */
+class TblTableName[...] extends Element
+{
+
+    const ATTR_COLUMN_NAME[...] = 'ColumnName[...]';
+
+    /**
+     * @Column(type="string")
+     */
+    protected $ColumnName[...];
+
+    /**
+     * @return string
+     */
+    public function getColumnName[...]()
+    {
+
+        return $this->ColumnName[...];
+    }
+
+    /**
+     * @param string $ColumnName[...]
+     */
+    public function setColumnName[...]($ColumnName[...])
+    {
+
+        $this->ColumnName[...] = $ColumnName[...];
+    }
+}

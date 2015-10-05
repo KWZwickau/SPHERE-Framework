@@ -12,7 +12,7 @@ class Name extends Extension
 {
 
     /** @var string $Pattern */
-    private $Pattern = '|^[a-z\söäüß\-]+$|is';
+    private $Pattern = '|^[a-z\söäüß\-&]+$|is';
     /** @var string $Value */
     private $Value = '';
 

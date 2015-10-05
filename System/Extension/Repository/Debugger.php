@@ -149,6 +149,9 @@ class Debugger
             if (is_array($Dump)) {
                 $Dump = print_r($Dump, true);
             }
+            if (null === $Dump) {
+                $Dump = 'NULL';
+            }
             self::addProtocol('ScreenDump: '.$Dump);
             print '<pre>'.$Dump.'</pre>';
         }

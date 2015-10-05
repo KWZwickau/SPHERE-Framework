@@ -125,8 +125,12 @@ class Script extends Extension
             "'undefined' !== typeof jQuery.fn.jcarousel"
         );
         $this->setSource(
-            'jQuery.FlowPlayer', 'Library/jQuery.FlowPlayer/6.0.3/flowplayer.min.js',
+            'jQuery.FlowPlayer', '/Library/jQuery.FlowPlayer/6.0.3/flowplayer.min.js',
             "'undefined' !== typeof jQuery.fn.flowplayer"
+        );
+        $this->setSource(
+            'Highlight.js', '/Library/Highlight.js/8.8.0/highlight.pack.js',
+            "'undefined' !== typeof hljs"
         );
 
         /**
@@ -134,7 +138,7 @@ class Script extends Extension
          */
 
         $this->setModule(
-            'ModAlways', array('List.Js', 'Bootstrap', 'jQuery.Ui', 'jQuery')
+            'ModAlways', array('Highlight.js', 'List.Js', 'Bootstrap', 'jQuery.Ui', 'jQuery')
         );
         $this->setModule(
             'ModTable',

@@ -40,6 +40,10 @@
              * Activate: External Link
              */
             $('a[rel="external"]').attr('target', '_blank');
+            /**
+             * Activate: Source-Code Highlighter
+             */
+            hljs.initHighlighting();
         });
         return this;
 
