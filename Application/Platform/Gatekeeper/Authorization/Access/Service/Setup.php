@@ -123,6 +123,9 @@ class Setup
         if (!$this->Connection->hasIndex($Table, array('Name'))) {
             $Table->addUniqueIndex(array('Name'));
         }
+        if (!$this->Connection->hasColumn('tblRole', 'IsInternal')) {
+            $Table->addColumn('IsInternal', 'boolean');
+        }
         return $Table;
     }
 

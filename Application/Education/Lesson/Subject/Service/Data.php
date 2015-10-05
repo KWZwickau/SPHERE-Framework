@@ -8,14 +8,14 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\DataCacheable;
+use SPHERE\System\Database\Fitting\Cacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Education\Lesson\Subject\Service
  */
-class Data extends DataCacheable
+class Data extends Cacheable
 {
 
     /** @var null|Binding $Connection */

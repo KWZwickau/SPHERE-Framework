@@ -5,14 +5,14 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\DataCacheable;
+use SPHERE\System\Database\Fitting\Cacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Person\Service
  */
-class Data extends DataCacheable
+class Data extends Cacheable
 {
 
     /** @var null|Binding $Connection */
@@ -32,6 +32,8 @@ class Data extends DataCacheable
 
         $this->createSalutation('Herr', true);
         $this->createSalutation('Frau', true);
+        $this->createSalutation('Schüler', true);
+
     }
 
     /**
@@ -130,6 +132,23 @@ class Data extends DataCacheable
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblPerson');
+    }
+
+    /**
+     * @param $FirstName
+     * @param $LastName
+     *
+     * @return bool|TblPerson[]
+     */
+    public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
+    {
+
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblPerson')->findBy(array(
+            TblPerson::ATTR_FIRST_NAME => $FirstName,
+            TblPerson::ATTR_LAST_NAME  => $LastName
+        ));
+
+        return empty( $EntityList ) ? false : $EntityList;
     }
 
     /**

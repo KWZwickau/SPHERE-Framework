@@ -6,11 +6,11 @@ use SPHERE\System\Cache\Type\Memcached;
 use SPHERE\System\Extension\Repository\Debugger;
 
 /**
- * Class DataCacheable
+ * Class Cacheable
  *
  * @package SPHERE\System\Database\Fitting
  */
-abstract class DataCacheable
+abstract class Cacheable
 {
 
     /** @var bool $Enabled */

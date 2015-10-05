@@ -22,6 +22,10 @@ class TblRole extends Element
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsInternal;
 
     /**
      * @param string $Name
@@ -57,5 +61,23 @@ class TblRole extends Element
     {
 
         return Access::useService()->getLevelAllByRole($this);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsInternal()
+    {
+
+        return $this->IsInternal;
+    }
+
+    /**
+     * @param bool $IsInternal
+     */
+    public function setIsInternal($IsInternal)
+    {
+
+        $this->IsInternal = (bool)$IsInternal;
     }
 }

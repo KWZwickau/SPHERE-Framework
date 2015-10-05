@@ -10,14 +10,14 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\DataCacheable;
+use SPHERE\System\Database\Fitting\Cacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service
  */
-class Data extends DataCacheable
+class Data extends Cacheable
 {
 
     /** @var null|Binding $Connection */
@@ -34,11 +34,12 @@ class Data extends DataCacheable
 
     public function setupDatabaseContent()
     {
+
         /**
          * CLOUD
          * Administrator (Setup Role)
          */
-        $tblRoleCloud = $this->createRole('Administrator');
+        $tblRoleCloud = $this->createRole('Administrator', true);
 
         // Level: Cloud - Platform
         $tblLevel = $this->createLevel('Cloud - Platform');
@@ -192,23 +193,25 @@ class Data extends DataCacheable
         $tblRight = $this->createRight('/Setting/Authorization/Account/Create');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization/Account/Edit');
-//        $this->addPrivilegeRight($tblPrivilege, $tblRight);
+        $this->addPrivilegeRight($tblPrivilege, $tblRight);
         $tblRight = $this->createRight('/Setting/Authorization/Account/Destroy');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
     }
 
     /**
      * @param string $Name
+     * @param bool   $IsInternal
      *
      * @return TblRole
      */
-    public function createRole($Name)
+    public function createRole($Name, $IsInternal = false)
     {
 
         $Manager = $this->Connection->getEntityManager();
         $Entity = $Manager->getEntity('TblRole')->findOneBy(array(TblRole::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblRole($Name);
+            $Entity->setIsInternal($IsInternal);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
         }

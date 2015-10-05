@@ -5,14 +5,14 @@ use SPHERE\Application\People\Meta\Custody\Service\Entity\TblCustody;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\DataCacheable;
+use SPHERE\System\Database\Fitting\Cacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Meta\Custody\Service
  */
-class Data extends DataCacheable
+class Data extends Cacheable
 {
 
     /** @var null|Binding $Connection */

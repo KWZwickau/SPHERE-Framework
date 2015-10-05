@@ -32,8 +32,8 @@ class Dispatcher
             self::$Router = $Router;
 
             // Roadmap
-            $this->registerRoute($this->createRoute('Roadmap/Current', 'SPHERE\Application\Roadmap::frontendMap'));
-            $this->registerRoute($this->createRoute('Roadmap/Download', 'SPHERE\Application\Roadmap::frontendMap'));
+            $this->registerRoute($this->createRoute('Roadmap/Current', 'SPHERE\Common\Roadmap\Roadmap::frontendMap'));
+            $this->registerRoute($this->createRoute('Roadmap/Download', 'SPHERE\Common\Roadmap\Roadmap::frontendMap'));
         }
     }
 

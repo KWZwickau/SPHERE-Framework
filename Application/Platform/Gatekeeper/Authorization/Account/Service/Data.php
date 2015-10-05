@@ -17,14 +17,14 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\Tb
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\DataCacheable;
+use SPHERE\System\Database\Fitting\Cacheable;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service
  */
-class Data extends DataCacheable
+class Data extends Cacheable
 {
 
     /** @var null|Binding $Connection */
