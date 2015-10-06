@@ -23,7 +23,7 @@ class Frontend implements IFrontendInterface
     public function frontendStyleBook($Chapter = null, $Page = null, $Search = null)
     {
 
-        $Stage = new Stage(null, null, Stage::STAGE_SIZE_FULL);
+        $Stage = new Stage();
 
         $Stage->setContent(
             new StyleBook($Chapter, $Page, $Search)

@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Common\Documentation\Designer;
 
+use SPHERE\Common\Frontend\Icon\Repository\TagList;
+use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Icon\Repository\Unchecked;
 use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Paragraph;
@@ -9,6 +11,8 @@ use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 
 /**
  * Class Page
@@ -46,7 +50,7 @@ class Page
     public function addHeadline($Title, $Description = '')
     {
 
-        $Element = new Headline($this->markSearch($Title), $this->markSearch($Description));
+        $Element = new Headline(new TagList().' '.$this->markSearch($Title), $this->markSearch($Description));
         array_push($this->ElementList, $Element);
         return $this;
     }
@@ -85,11 +89,12 @@ class Page
     }
 
     /**
-     * @param array $Code
+     * @param string|array $Code
+     * @param string       $Description
      *
      * @return Page
      */
-    public function addCode($Code)
+    public function addCode($Code, $Description = '')
     {
 
         if (!is_array($Code)) {
@@ -98,7 +103,9 @@ class Page
         foreach ((array)$Code as $Line => $Value) {
             $Code[$Line] = preg_replace('!\t!is', '    ', $Value);
         }
-        $Element = '<pre><code class="php">'.$this->markSearch(implode("\n", $Code)).'</code></pre>';
+        $Element = '<pre><code class="php">'.$this->markSearch(implode("\n", $Code)).'</code>'
+            .( $Description ? '<hr/>'.new Small(new Muted($Description)) : '' )
+            .'</pre>';
         array_push($this->ElementList, $Element);
         return $this;
     }
@@ -135,7 +142,7 @@ class Page
                     new LayoutColumn(
                         implode('', $this->ElementList)
                     )
-                )), new Title($this->markSearch($this->Title), $this->markSearch($this->Description))
+                )), new Title(new TileBig().' '.$this->markSearch($this->Title), $this->markSearch($this->Description))
             )
         );
     }

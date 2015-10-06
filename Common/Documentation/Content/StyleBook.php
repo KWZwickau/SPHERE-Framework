@@ -4,6 +4,8 @@ namespace SPHERE\Common\Documentation\Content;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Common\Documentation\Designer;
 use SPHERE\Common\Documentation\Designer\Book;
+use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 
 /**
  * Class StyleBook
@@ -32,12 +34,92 @@ class StyleBook
         $this->Book = $Designer->createBook('Styleguide & Cookbook');
         $this->Book->setVisible($Chapter, $Page);
 
+        $Chapter = $this->Book->createChapter('Struktur', 'von Cluster bis Service');
+        if ($Chapter->getHash() == $this->Book->getCurrentChapter()) {
+
+            $Page = $Chapter->createPage('1. Cluster', 'Strukturen & Namen', $Search);
+            $Page->addHeadline('1.1. Allgemein');
+            $Page->addParagraph(new Small(new Danger('Der CLUSTER bildet immer die Basis für eine (oder mehrere) APPLICATION und liegt direkt im Anwendungsverzeichnis')));
+            $Page->addSeparator();
+
+            $Page->addParagraph('Im folgenden wird');
+            $Page->addCode('/{ROOT}/');
+            $Page->addParagraph('als Platzhalter für die Installationsbasis verwendet (z.B: /var/www, /htdocs, etc...)');
+
+            $Page->addHeadline('1.2. Verzeichnisstruktur');
+            $Page->addParagraph(new Small(new Danger('Reservierte Php-Schlüsselwörter DÜRFEN NICHT als Verzeichnisnamen verwendet werden')));
+            $Page->addSeparator();
+
+            $Page->addParagraph('Alle CLUSTER liegen im Anwendungspfad von SPHERE');
+            $Page->addCode('/{ROOT}/Application/');
+
+            $Page->addParagraph('in einem Unterverzeichnis, welches den CLUSTER eineindeutig kennnzeichnet z.B:');
+            $Page->addCode('/{ROOT}/Application/ClusterName/');
+
+            $Page->addParagraph('Dieses Unterverzeichnis enthält eine Php-Datei mit identischem Namen');
+            $Page->addCode('/{ROOT}/Application/ClusterName/ClusterName.php');
+
+            $Page->addHeadline('1.3. Dateistruktur');
+            $Page->addParagraph(new Small(new Danger('Der NAMESPACE in einer Datei/Klasse MUSS IMMER der Verzeichnisstruktur entsprechen!')));
+            $Page->addSeparator();
+
+            $Page->addParagraph('In dieser Datei wird die "Cluster-Klasse" mit identischem Namen definiert, z.B:');
+            $Page->addCode(array(
+                'namespace SPHERE\Application\ClusterName;',
+                '',
+                'class ClusterName',
+                '{',
+                '}'
+            ),
+                'Man kann sehen, daß reservierte Schlüsselworte (von Php) nicht als Cluster-Name verwendet werden können');
+            $Page->addParagraph('Die Klasse MUSS IMMER das Cluster-Interface implementieren');
+            $Page->addCode(array(
+                'namespace SPHERE\Application\ClusterName;',
+                '',
+                'use SPHERE\Application\IClusterInterface;',
+                '',
+                'class ClusterName implements IClusterInterface',
+                '{',
+                "\t".'public static function registerCluster()',
+                "\t".'{',
+                "\t".'}',
+                '}'
+            ), 'Der Cluster enthält für gewöhnlich nur diese eine Methode');
+
+            $Page->addHeadline('1.4. Registrieren von Anwendungen');
+            $Page->addSeparator();
+            $Page->addCode(array(
+                'namespace SPHERE\Application\ClusterName;',
+                '',
+                'use SPHERE\Application\IClusterInterface;',
+                'use SPHERE\Application\ClusterName\ApplicationName\ApplicationName;',
+                '',
+                'class ClusterName implements IClusterInterface',
+                '{',
+                "\t".'public static function registerCluster()',
+                "\t".'{',
+                "\t\t".'ApplicationName::registerApplication();',
+                "\t".'}',
+                '}'
+            ), 'Code-Beispiel');
+
+            $Page->addHeadline('1.5. Registrieren von Menüpunkten');
+            $Page->addSeparator();
+            $Page->addCode('// TODO', 'Code-Beispiel');
+
+            $Page = $Chapter->createPage('2. Application', 'Strukturen & Namen', $Search);
+            $Page->addHeadline('2.1. Allgemein');
+            $Page->addParagraph(new Small(new Danger('Die APPLICATION bildet immer die Basis für ein (oder mehrere) MODULE und liegt im Cluster-Verzeichnis')));
+            $Page->addSeparator();
+        }
+
         $Chapter = $this->Book->createChapter('Names-Konventionen', 'Frontend');
         if ($Chapter->getHash() == $this->Book->getCurrentChapter()) {
         }
+
         $Chapter = $this->Book->createChapter('Names-Konventionen', 'Backend');
         if ($Chapter->getHash() == $this->Book->getCurrentChapter()) {
-            $Page = $Chapter->createPage('Entity', 'Konstanten/Attribute/Funktionen', $Search);
+            $Page = $Chapter->createPage('Entity', 'Konstanten / Attribute / Methoden', $Search);
 
             $Page->addHeadline('Beispiel', 'Quelltext');
             $Page->addSeparator();
@@ -51,52 +133,70 @@ class StyleBook
             $Page->addCode(array("const ATTR_VARIABLE_WITH_FULL_NAME = 'VariableWithFullName';"));
 
             $Page = $Chapter->createPage('Setup', 'Struktur/Methoden/Variablen', $Search);
+
             $Page = $Chapter->createPage('Data', 'Struktur/Methoden/Variablen', $Search);
+            $Page->addHeadline('Allgemein');
+            $Page->addParagraph(new Small(new Danger('Enthält NUR Methoden die DIREKT mit ENTITIES arbeiten, OHNE zusätzliche Logik')));
+            $Page->addSeparator();
+            $Page->addHeadline('Methoden-Namen');
+            $Page->addSeparator();
+
+            $Page->addCode(array(
+                'create[Methode]',
+                'update[Methode]',
+                'destroy[Methode]',
+                'add[Methode]',
+                'remove[Methode]',
+                'get[Methode]',
+                'count[Methode]',
+            ));
+
             $Page = $Chapter->createPage('Service', 'Struktur/Methoden/Variablen', $Search);
+            $Page->addHeadline('Allgemein');
+            $Page->addParagraph(new Small(new Danger('Enthält NUR Methoden die NICHT DIREKT mit ENTITIES arbeiten')));
+            $Page->addParagraph(new Small(new Danger('Verwendet NUR Methoden aus DATA um ENTITIES zu manipulieren und IMMER mit zusätzlicher Logik')));
+            $Page->addSeparator();
+
+            $Page->addHeadline('Benutzerdaten (Frontend)');
+            $Page->addParagraph(new Small(new Danger('POST: Werden durch ein Formular eingegeben / manipuliert')));
+            $Page->addParagraph(new Small(new Danger('GET: Werden durch einen signierten Link manipuliert')));
+            $Page->addSeparator();
+
+            $Page->addHeadline('Auslesen von Daten (Frontend/Backend)');
+
+            $Page->addCode(array(
+                'public function getEntityNameAll(){};',
+                'public function countEntityNameAll(){};',
+            ));
+
+            $Page->addHeadline('POST - Daten (Formulare)');
+
+            $Page->addCode(array(
+                'public function createEntityName( IFormInterface $Form, ..Eigenschaften,.. ){};',
+                'public function changeEntityName( IFormInterface $Form, ..Eigenschaften,.. ){};',
+                'public function destroyEntityName( IFormInterface $Form, ..Eigenschaften,.. ){};',
+            ));
+
+            $Page->addHeadline('GET - Daten (Link)');
+
+            $Page->addCode(array(
+                'public function addEntityNameAToEntityNameB( EntityNameA $EntityNameA, EntityNameB $EntityNameB ){};',
+                'public function removeEntityNameAFromEntityNameB( EntityNameA $EntityNameA, EntityNameB $EntityNameB ){};',
+            ));
+
+            $Page->addHeadline('Interne - Datenmanipulation (z.B: Importe)');
+
+            $Page->addCode(array(
+                'public function insertEntityName( ..Eigenschaften,.. ){};',
+                'public function updateEntityName( EntityName $EntityName, ..Eigenschaften,.. ){};',
+                'public function deleteEntityName( EntityName $EntityName ){};',
+            ));
         }
 
         $Chapter = $this->Book->createChapter('Datenbank', 'Verbindungen');
         if ($Chapter->getHash() == $this->Book->getCurrentChapter()) {
             $Page = $Chapter->createPage('Entities', '', $Search);
         }
-
-//        $Chapter = $this->Book->createChapter('IT – Sicherheitskonzept', 'für die Nutzung des Software KREDA');
-//        if ($Chapter->getHash() == $this->Book->getCurrentChapter()) {
-//            $Page = $Chapter->createPage('Dokument', 'Stand: 01.06.2015', $Search);
-//            $Page->addHeadline('1. Präambel');
-//            $Page->addSeparator();
-//            $Page->addParagraph('Die Software KREDA ist ein Schulverwaltungsprogramm, in welchem unterschiedlichste personenbezogene Informationen verarbeitet werden.');
-//            $Page->addParagraph('Es wird auf Veranlassung der Schulstiftung im Bereich der evangelischen Schulen in Sachsen eingesetzt.');
-//
-//            $Page->addHeadline('2. Begriffsbestimmungen');
-//            $Page->addSeparator();
-//            $Page->addParagraph('Folgende Begriffsbestimmungen gelten für das Sicherheitskonzept:');
-//            $Page->addParagraph('Software KREDA: Das ist ein Computerprogramm in Form einer mandantenfähigen WEB-Applikation mit zentraler Datenhaltung (verteilt auf mehrere Datenbanken/Server).');
-//            $Page->addParagraph('Mandant: Ein (1) Mandant entspricht hierbei einem (1) Schulträger, der die Software KREDA ausschließlich für eigene Zwecke nutzt. Unter Schulträger wird in diesem Sicherheitskonzept eine natürliche Person oder eine juristische Person (des privaten oder öffentlichen Rechtes verstanden, der eine oder mehrere Ersatzschulen entsprechend den gesetzlichen Regelung des Freistaates Sachsen betreibt.');
-//            $Page->addParagraph('Hosting-Anbieter: Ein Unternehmen bzw. eine Institution, bei der die technischen und organisatorischen Vorkehrungen getroffen werden, um die Software KREDA in der oben genannten Form für die Nutzung durch die Mandanten bereitzustellen und die darin verwalteten Daten sowie die Software KREDA selbst so zu sichern, dass bei Fehlern eine zeitlich angemessene Wiederinbetriebnahme ermöglicht wird.');
-//            $Page->addParagraph('Support-Dienstleister: Ein Unternehmen bzw. eine Institution, dass die technischen Abläufe in der Software KREDA entwickelt, betreut, Unterstützung für die Mandanten anbietet und Fehler in dieser Software behebt.');
-//            $Page->addParagraph('Schulstiftung: Die Schulstiftung der evangelisch-lutherischen Landeskirche Sachsen, die die Bereitstellung der Software KREDA für die Mandanten organisatorisch betreut und dabei insbesondere');
-//            $Page->addParagraph('- die Kommunikation zwischen den einzelnen hier benannten Partnern betreut,');
-//            $Page->addParagraph('- der Zulassung von Mandanten als Nutzer zustimmt und');
-//            $Page->addParagraph('- die Einhaltung des Sicherheitskonzeptes sowie der Qualität des Schulverwaltungsprogramms insgesamt kontrolliert.');
-//
-//            $Page->addCode(array(
-//                'public function __toString() {',
-//                '    return (string) $this->Book;',
-//                '}'
-//            ));
-//
-//            $Page->addHeadline('3. Klassifizierung von Daten');
-//            $Page->addSeparator();
-//            $Page->addHeadline('3.1. allgemeine Informationen');
-//            $Page->addSeparator();
-//            $Page->addParagraph('- allgemeine Verwaltungsinformationen (Bezeichnung der Schule, Anschriftendaten der Schule und Informationen zum Schulträger)');
-//            $Page->addParagraph('- Kontaktinformationen zur Schule');
-//            $Page->addParagraph('- Lizenzinformationen');
-//            $Page->addParagraph('- Ansprechpartner seitens des Programmierers');
-//            $Page->addParagraph('- Ansprechpartner in der Schulstiftung');
-//            $Page->addParagraph('- Anschrift des Datenschutzbeauftragten der Schulstiftung');
-//        }
     }
 
     /**
