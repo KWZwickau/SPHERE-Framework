@@ -3,6 +3,7 @@ namespace SPHERE\Common\Documentation\Designer;
 
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
+use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -61,7 +62,7 @@ class Chapter
                     new LayoutColumn(
                         implode('', $this->PageList)
                     ),
-                )), new Title($this->Title, $this->Description)
+                )), new Title(new TileSmall().' '.$this->Title, $this->Description)
             )
         );
     }

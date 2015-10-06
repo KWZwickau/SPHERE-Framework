@@ -43,7 +43,7 @@ class Style extends Extension
 
         $this->setSource('/Library/jQuery.jCarousel/0.3.3/examples/responsive/jcarousel.responsive.css');
         $this->setSource('/Library/jQuery.FlowPlayer/6.0.3/skin/functional.css');
-        $this->setSource('/Library/Highlight.js/8.8.0/styles/tomorrow.css');
+        $this->setSource('/Library/Highlight.js/8.8.0/styles/docco.css');
 
         $this->setSource('/Common/Style/Correction.css');
         $this->setSource('/Common/Style/PhpInfo.css');

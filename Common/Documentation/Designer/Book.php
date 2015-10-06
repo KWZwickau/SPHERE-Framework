@@ -102,7 +102,7 @@ class Book extends Extension
                     new LayoutColumn(
                         implode('', $this->ChapterList)
                         , 9),
-                )), new Title($this->Title)
+                )), new Title(new \SPHERE\Common\Frontend\Icon\Repository\Book().' '.$this->Title)
             )
         );
     }
