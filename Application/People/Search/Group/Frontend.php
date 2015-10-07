@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Search\Group;
 
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
@@ -12,10 +14,12 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Italic;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\Common\Window\Stage;
@@ -62,7 +66,26 @@ class Frontend implements IFrontendInterface
             if ($tblPersonAll) {
                 array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
 
+                    $tblAddressAll = Address::useService()->getAddressAllByPerson($tblPerson);
+                    if ($tblAddressAll) {
+                        array_walk($tblAddressAll, function (TblToPerson &$tblToPerson) {
+
+                            $tblToPerson =
+                                new Small(new Muted($tblToPerson->getTblType()->getName())).'<br/>'.
+                                new \SPHERE\Common\Frontend\Layout\Repository\Address(
+                                    $tblToPerson->getTblAddress()
+                                ).( $tblToPerson->getRemark()
+                                    ? '<br/>'.new Small(new Muted($tblToPerson->getRemark()))
+                                    : ''
+                                );
+                        });
+                    }
+
                     $tblPerson->FullName = $tblPerson->getFullName();
+                    $tblPerson->Address = ( $tblAddressAll
+                        ? implode('<hr/>', $tblAddressAll)
+                        : new Warning('Keine Adresse hinterlegt')
+                    );
                     $tblPerson->Option = new Standard('', '/People/Person', new Pencil(),
                         array('Id' => $tblPerson->getId()), 'Bearbeiten');
                 });
@@ -81,6 +104,7 @@ class Frontend implements IFrontendInterface
                         new TableData($tblPersonAll, null,
                             array(
                                 'FullName' => 'Name',
+                                'Address' => 'Adresse',
                                 'Option'   => 'Optionen',
                             )
                         )
