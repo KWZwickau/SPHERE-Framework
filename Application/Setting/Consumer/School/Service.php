@@ -1,11 +1,12 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\School;
 
+
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Setting\Consumer\School\Service\Data;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
-use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblType;
 use SPHERE\Application\Setting\Consumer\School\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -18,6 +19,7 @@ use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
+
 
 /**
  * Class Service
@@ -36,17 +38,17 @@ class Service extends Extension implements IServiceInterface
      * Define Database Connection
      *
      * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
+     * @param string $EntityPath
+     * @param string $EntityNamespace
      */
     public function __construct(
         Identifier $Identifier,
         $EntityPath,
-        $EntityNamespace
-    ) {
+        $EntityNamespace )
+    {
 
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
+        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
+        $this->Structure = new Structure( $Identifier );
     }
 
     /**
@@ -55,35 +57,15 @@ class Service extends Extension implements IServiceInterface
      *
      * @return string
      */
-    public function setupService($doSimulation, $withData)
+    public function setupService( $doSimulation, $withData )
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            ( new Data( $this->Binding ) )->setupDatabaseContent();
         }
 
         return $Protocol;
-    }
-
-    /**
-     * @return bool|TblType[]
-     */
-    public function getTypeAll()
-    {
-
-        return (new Data($this->Binding))->getTypeAll();
-    }
-
-    /**
-     * @param integer $Id
-     *
-     * @return bool|TblType[]
-     */
-    public function getTypeById($Id)
-    {
-
-        return (new Data($this->Binding))->getTypeById($Id);
     }
 
     /**
@@ -92,14 +74,23 @@ class Service extends Extension implements IServiceInterface
     public function getSchoolAll()
     {
 
-        return (new Data($this->Binding))->getSchoolAll();
+        return ( new Data( $this->Binding ) )->getSchoolAll();
     }
 
-    //ToDo
+    /**
+     * @param $Id
+     * @return bool|TblSchool
+     */
+    public function getSchoolById( $Id )
+    {
+
+        return ( new Data( $this->Binding ) )->getSchoolById( $Id );
+    }
+
     /**
      * @param IFormInterface $Form
-     * @param integer        $School
-     * @param array          $Type
+     * @param integer $School
+     * @param array $Type
      *
      * @return IFormInterface|string
      */
@@ -120,50 +111,34 @@ class Service extends Extension implements IServiceInterface
         $Error = false;
 
         if (null === $School) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie eine Schule aus')))));
+            $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie eine Schule aus' ) ) ) ) );
             $Error = true;
         }
 
         if (!$Error) {
-            $tblCompany = Company::useService()->getCompanyById($School);
-            $tblType = (new Data($this->Binding))->getTypeById($Type['Type']);
+            $tblCompany = Company::useService()->getCompanyById( $School );
+            $tblType = Type::useService()->getTypeById( $Type['Type'] );
 
-            if ((new Data($this->Binding))->addSchool($tblCompany, $tblType)
+            if (( new Data( $this->Binding ) )->addSchool( $tblCompany, $tblType )
             ) {
-                return new Success('Die Schule wurde erfolgreich hinzugefügt')
-                .new Redirect('/Setting/Consumer/School', 1, array('Id' => $tblCompany->getId()));
+                return new Success( 'Die Schule wurde erfolgreich hinzugefügt' )
+                .new Redirect( '/Setting/Consumer/School', 1, array( 'Id' => $tblCompany->getId() ) );
             } else {
-                return new Danger('Die Schule konnte nicht hinzugefügt werden')
-                .new Redirect('/Setting/Consumer/School', 10, array('Id' => $tblCompany->getId()));
+                return new Danger( 'Die Schule konnte nicht hinzugefügt werden' )
+                .new Redirect( '/Setting/Consumer/School', 10, array( 'Id' => $tblCompany->getId() ) );
             }
         }
 
         return $Form;
     }
 
-    //ToDo
-    public function removeSchool(
-        IFormInterface $Form,
-        $School
-    ) {
-
-        /**
-         * Skip to Frontend
-         */
-        if (null === $School) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie die zu entfernende Schule aus')))));
-
-            return $Form;
-        }
-
-        $tblSchool = (new Data($this->Binding))->getSchoolById($School);
-
-        if ((new Data($this->Binding))->removeSchool($tblSchool)) {
-            return new Success('Die Schule wurde erfolgreich entfernt')
-            .new Redirect('/Setting/Consumer/School', 1);
-        } else {
-            return new Danger('Die Schule konnte nicht entfernt werden')
-            .new Redirect('/Setting/Consumer/School', 10);
-        }
+    /**
+     * @param TblSchool $tblSchool
+     *
+     * @return bool
+     */
+    public function destroySchool( TblSchool $tblSchool )
+    {
+        return ( new Data( $this->Binding ) )->removeSchool( $tblSchool );
     }
 }

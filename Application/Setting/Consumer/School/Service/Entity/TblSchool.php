@@ -3,7 +3,8 @@ namespace SPHERE\Application\Setting\Consumer\School\Service\Entity;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Setting\Consumer\School\School;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -15,7 +16,7 @@ class TblSchool extends Element
 {
 
     const SERVICE_TBL_COMPANY = 'serviceTblCompany';
-    const ATT_TBL_TYPE = 'tblType';
+    const SERVICE_TBL_TYPE = 'serviceTblType';
 
     /**
      * @Column(type="bigint")
@@ -24,7 +25,7 @@ class TblSchool extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblType;
+    protected $serviceTblType;
 
     /**
      * @return bool|TblCompany
@@ -51,23 +52,23 @@ class TblSchool extends Element
     /**
      * @return bool|TblType
      */
-    public function getTblType()
+    public function getServiceTblType()
     {
 
-        if (null === $this->tblType) {
+        if (null === $this->serviceTblType) {
             return false;
         } else {
-            return School::useService()->getTypeById($this->tblType);
+            return Type::useService()->getTypeById($this->serviceTblType);
         }
     }
 
     /**
-     * @param null|TblType $tblType
+     * @param null|TblType $serviceTblType
      */
-    public function setTblType(TblType $tblType = null)
+    public function setTblType(TblType $serviceTblType = null)
     {
 
-        $this->tblType = ( null === $tblType ? null : $tblType->getId() );
+        $this->serviceTblType = ( null === $serviceTblType ? null : $serviceTblType->getId() );
     }
 
 }

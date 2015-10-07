@@ -4,7 +4,6 @@ namespace SPHERE\Application\Setting\Consumer\School;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Education;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -31,14 +30,20 @@ class School extends Extension implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
                 __NAMESPACE__.'/Frontend::frontendSchoolCreate'
             )
-                ->setParameterDefault('School', null)
-                ->setParameterDefault('Type', null)
+            ->setParameterDefault('School', null)
+            ->setParameterDefault('Type', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
                 __NAMESPACE__.'/Frontend::frontendSchoolDelete'
             )
-                ->setParameterDefault('School', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'/Frontend::frontendSchoolDestroy'
+            )
+                ->setParameterDefault( 'Id', null )
+                ->setParameterDefault( 'Confirm', false )
         );
     }
 
@@ -47,7 +52,6 @@ class School extends Extension implements IModuleInterface
      */
     public static function useService()
     {
-
         return new Service(
             new Identifier('Setting', 'Consumer', 'School', null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
@@ -55,11 +59,10 @@ class School extends Extension implements IModuleInterface
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-
         return new Frontend();
     }
 }

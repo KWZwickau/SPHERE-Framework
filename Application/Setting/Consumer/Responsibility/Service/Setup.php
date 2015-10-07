@@ -19,7 +19,7 @@ class Setup
     /**
      * @param Structure $Connection
      */
-    function __construct(Structure $Connection)
+    function __construct( Structure $Connection )
     {
 
         $this->Connection = $Connection;
@@ -30,21 +30,21 @@ class Setup
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema( $Simulate = true )
     {
 
         /**
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $this->setTableResponsibility($Schema);
+        $this->setTableResponsibility( $Schema );
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
+        $this->Connection->addProtocol( __CLASS__ );
+        $this->Connection->setMigration( $Schema, $Simulate );
 
-        return $this->Connection->getProtocol($Simulate);
+        return $this->Connection->getProtocol( $Simulate );
     }
 
     /**
@@ -52,12 +52,12 @@ class Setup
      *
      * @return Table
      */
-    private function setTableResponsibility(Schema &$Schema)
+    private function setTableResponsibility( Schema &$Schema )
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblResponsibility');
-        if (!$this->Connection->hasColumn('tblResponsibility', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint');
+        $Table = $this->Connection->createTable( $Schema, 'tblResponsibility' );
+        if (!$this->Connection->hasColumn( 'tblResponsibility', 'serviceTblCompany' )) {
+            $Table->addColumn( 'serviceTblCompany', 'bigint' );
         }
 
         return $Table;

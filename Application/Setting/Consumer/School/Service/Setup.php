@@ -19,7 +19,7 @@ class Setup
     /**
      * @param Structure $Connection
      */
-    function __construct(Structure $Connection)
+    function __construct( Structure $Connection )
     {
 
         $this->Connection = $Connection;
@@ -30,22 +30,21 @@ class Setup
      *
      * @return string
      */
-    public function setupDatabaseSchema($Simulate = true)
+    public function setupDatabaseSchema( $Simulate = true )
     {
 
         /**
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $tblType = $this->setTableType($Schema);
-        $this->setTableSchool($Schema, $tblType);
+        $this->setTableSchool( $Schema );
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
+        $this->Connection->addProtocol( __CLASS__ );
+        $this->Connection->setMigration( $Schema, $Simulate );
 
-        return $this->Connection->getProtocol($Simulate);
+        return $this->Connection->getProtocol( $Simulate );
     }
 
     /**
@@ -53,32 +52,16 @@ class Setup
      *
      * @return Table
      */
-    private function setTableType(Schema &$Schema)
+    private function setTableSchool( Schema &$Schema )
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblType');
-        if (!$this->Connection->hasColumn('tblType', 'Name')) {
-            $Table->addColumn('Name', 'string');
+        $Table = $this->Connection->createTable( $Schema, 'tblSchool' );
+        if (!$this->Connection->hasColumn( 'tblSchool', 'serviceTblCompany' )) {
+            $Table->addColumn( 'serviceTblCompany', 'bigint' );
         }
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param        $tblType
-     *
-     * @return Table
-     */
-    private function setTableSchool(Schema &$Schema, $tblType)
-    {
-
-        $Table = $this->Connection->createTable($Schema, 'tblSchool');
-        if (!$this->Connection->hasColumn('tblSchool', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint');
+        if (!$this->Connection->hasColumn( 'tblSchool', 'serviceTblType' )) {
+            $Table->addColumn( 'serviceTblType', 'bigint' );
         }
-
-        $this->Connection->addForeignKey($Table, $tblType);
 
         return $Table;
     }

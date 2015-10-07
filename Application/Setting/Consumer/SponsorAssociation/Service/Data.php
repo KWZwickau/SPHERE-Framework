@@ -21,7 +21,7 @@ class Data extends Extension
     /**
      * @param Binding $Connection
      */
-    function __construct(Binding $Connection)
+    function __construct( Binding $Connection )
     {
 
         $this->Connection = $Connection;
@@ -34,13 +34,12 @@ class Data extends Extension
 
     /**
      * @param integer $Id
-     *
      * @return bool|TblSponsorAssociation
      */
-    public function getSponsorAssociationById($Id)
+    public function getSponsorAssociationById( $Id )
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblSponsorAssociation', $Id);
+        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblSponsorAssociation', $Id );
 
         return ( null === $Entity ? false : $Entity );
     }
@@ -51,7 +50,7 @@ class Data extends Extension
     public function getSponsorAssociationAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblSponsorAssociation')->findAll();
+        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblSponsorAssociation' )->findAll();
 
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
@@ -61,19 +60,19 @@ class Data extends Extension
      *
      * @return TblSponsorAssociation|bool
      */
-    public function addSponsorAssociation(TblCompany $tblCompany)
+    public function addSponsorAssociation( TblCompany $tblCompany )
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity('TblSponsorAssociation')
-            ->findOneBy(array(
+        $Entity = $Manager->getEntity( 'TblSponsorAssociation' )
+            ->findOneBy( array(
                 TblSponsorAssociation::SERVICE_TBL_COMPANY => $tblCompany->getId(),
-            ));
+            ) );
         if (null === $Entity) {
             $Entity = new TblSponsorAssociation();
-            $Entity->setServiceTblCompany($tblCompany);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            $Entity->setServiceTblCompany( $tblCompany );
+            $Manager->saveEntity( $Entity );
+            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
             return $Entity;
         }
         return false;
@@ -84,15 +83,15 @@ class Data extends Extension
      *
      * @return bool
      */
-    public function removeSponsorAssociation(TblSponsorAssociation $tblSponsorAssociation)
+    public function removeSponsorAssociation( TblSponsorAssociation $tblSponsorAssociation )
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblSponsorAssociation $Entity */
-        $Entity = $Manager->getEntityById('TblSponsorAssociation', $tblSponsorAssociation->getId());
+        $Entity = $Manager->getEntityById( 'TblSponsorAssociation', $tblSponsorAssociation->getId() );
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
-            $Manager->killEntity($Entity);
+            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
+            $Manager->killEntity( $Entity );
 
             return true;
         }
