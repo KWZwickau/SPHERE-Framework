@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Manual;
 
 use SPHERE\Application\IClusterInterface;
+use SPHERE\Application\Manual\Kreda\Kreda;
 use SPHERE\Application\Manual\StyleBook\StyleBook;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -18,6 +19,7 @@ class Manual implements IClusterInterface
     public static function registerCluster()
     {
 
+        Kreda::registerApplication();
         StyleBook::registerApplication();
 
         Main::getDisplay()->addServiceNavigation(
