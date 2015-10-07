@@ -5,11 +5,11 @@ use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\System\Extension\Repository\Roadmap as RoadmapExtension;
 
 /**
- * Class Version08
+ * Class Major0Minor8
  *
  * @package SPHERE\Common\Roadmap\Milestone
  */
-class Version08
+class Major0Minor8
 {
 
     /**
@@ -18,7 +18,7 @@ class Version08
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function versionMajor0Minor8Patch2(RoadmapExtension $Roadmap)
+    public static function Patch2(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.8.2', 'Demoversion (Ziel KW41/42)');
@@ -51,7 +51,7 @@ class Version08
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function versionMajor0Minor8Patch1(RoadmapExtension $Roadmap)
+    public static function Patch1(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.8.1', 'Demoversion (Ziel KW41)');
@@ -115,7 +115,7 @@ class Version08
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function versionMajor0Minor8Patch0(RoadmapExtension $Roadmap)
+    public static function Patch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.8.0', 'Demoversion (Ziel 28.09.2015)');

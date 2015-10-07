@@ -1,8 +1,11 @@
 <?php
 namespace SPHERE\Common\Roadmap;
 
-use SPHERE\Common\Roadmap\Milestone\Version08;
-use SPHERE\Common\Roadmap\Milestone\Version09;
+use SPHERE\Common\Roadmap\Milestone\Major0Minor8;
+use SPHERE\Common\Roadmap\Milestone\Major0Minor9;
+use SPHERE\Common\Roadmap\Milestone\Major1Minor0;
+use SPHERE\Common\Roadmap\Milestone\Major1Minor1;
+use SPHERE\Common\Roadmap\Milestone\Major1Minor2;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Roadmap as RoadmapExtension;
@@ -26,92 +29,18 @@ class Roadmap extends Extension
 
         $this->Roadmap = $this->getRoadmap();
 
-        Version08::versionMajor0Minor8Patch0($this->Roadmap);
-        Version08::versionMajor0Minor8Patch1($this->Roadmap);
-        Version08::versionMajor0Minor8Patch2($this->Roadmap);
+        Major0Minor8::Patch0($this->Roadmap);
+        Major0Minor8::Patch1($this->Roadmap);
+        Major0Minor8::Patch2($this->Roadmap);
 
-        Version09::versionMajor0Minor9Patch0($this->Roadmap);
-        Version09::versionMajor0Minor9Patch1($this->Roadmap);
+        Major0Minor9::Patch0($this->Roadmap);
+        Major0Minor9::Patch1($this->Roadmap);
 
-        $this->versionMajor1Minor0Patch0();
-        $this->versionMajor1Minor1Patch0();
-        $this->versionMajor1Minor2Patch0();
+        Major1Minor0::Patch0($this->Roadmap);
+        Major1Minor1::Patch0($this->Roadmap);
+        Major1Minor2::Patch0($this->Roadmap);
 
         $this->poolMajor1MinorXPatchX();
-    }
-
-    /**
-     * Version 1.0.0
-     * To be released November
-     */
-    private function versionMajor1Minor0Patch0()
-    {
-
-        $Release = $this->Roadmap->createRelease('1.0.0', 'KREDA (Ziel November)');
-
-        // Personenverwaltung
-        $Category = $Release->createCategory('Personenverwaltung');
-        $Category->createFeature('Person löschen');
-
-        // Firmenverwaltung
-        $Category = $Release->createCategory('Firmenverwaltung');
-        $Category->createFeature('Firma löschen');
-
-        // Fehlerbehebung
-        $Category = $Release->createCategory('Fehlerkorrekturen');
-        $Feature = $Category->createFeature('Cache System');
-        $Task = $Feature->createTask('MemcacheD');
-        $Task->createDuty('Konfiguration');
-        $Task->createDuty('Performance');
-        $Task = $Feature->createTask('ApcU');
-        $Task->createDuty('Konfiguration');
-        $Feature = $Category->createFeature('Database System');
-        $Task = $Feature->createTask('MySql');
-        $Task->createDuty('Konfiguration');
-        $Task->createDuty('Performance');
-        $Feature = $Category->createFeature('Code Style');
-        $Feature->createTask('PSR-1/PSR2');
-        $Category->createFeature('Code Performance');
-
-        // Auswertungen
-        $Release->createCategory('Auswertungen')
-            ->createFeature('Festdefinierte Auswertungen')
-            ->createTask('für ESZC');
-    }
-
-    /**
-     * Version 1.1.0
-     * To be released Q1 2016
-     */
-    private function versionMajor1Minor1Patch0()
-    {
-
-        $Release = $this->Roadmap->createRelease('1.1.0', 'KREDA (Ziel Q1 2016)');
-
-        // Bildung
-        $Category = $Release->createCategory('Bildung');
-        $Feature = $Category->createFeature('Zensuren');
-        $Feature->createTask('Elektronisches Notenbuch');
-        $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
-    }
-
-    /**
-     * Version 1.2.0
-     * To be released Q1 2016
-     */
-    private function versionMajor1Minor2Patch0()
-    {
-
-        $Release = $this->Roadmap->createRelease('1.2.0', 'KREDA (Ziel Q1 2016)');
-
-        $Category = $Release->createCategory('Fakturierung');
-        $Category->createFeature('Leistungen');
-        $Category->createFeature('Buchhaltung');
-        $Category->createFeature('Rechnungswesen');
-
-        $Category = $Release->createCategory('Auswertungen');
-        $Category->createFeature('Statistik / Berichte (ähnlich Fuxschool)');
-        $Category->createFeature('Kamenz-Bericht');
     }
 
     /**

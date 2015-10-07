@@ -4,11 +4,11 @@ namespace SPHERE\Common\Roadmap\Milestone;
 use SPHERE\System\Extension\Repository\Roadmap as RoadmapExtension;
 
 /**
- * Class Version09
+ * Class Major0Minor9
  *
  * @package SPHERE\Common\Roadmap\Milestone
  */
-class Version09
+class Major0Minor9
 {
 
     /**
@@ -17,7 +17,7 @@ class Version09
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function versionMajor0Minor9Patch0(RoadmapExtension $Roadmap)
+    public static function Patch0(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.9.0', 'Demoversion (Ziel Oktober)');
@@ -52,7 +52,7 @@ class Version09
      *
      * @param RoadmapExtension $Roadmap
      */
-    public static function versionMajor0Minor9Patch1(RoadmapExtension $Roadmap)
+    public static function Patch1(RoadmapExtension $Roadmap)
     {
 
         $Release = $Roadmap->createRelease('0.9.1', 'Demoversion (Ziel Oktober)');
