@@ -56,23 +56,12 @@ class Major0Minor8
 
         $Release = $Roadmap->createRelease('0.8.1', 'Demoversion (Ziel KW41)');
 
-        // Plattform
-        $Category = $Release->createCategory('Plattform');
-        $Feature = $Category->createFeature('Rollenverwaltung');
-        $Feature->createTask('Trennung interne/externe Rollen')
-            ->createDuty('Entity anpassen', true)
-            ->createDuty('Schema anpassen', true)
-            ->createDuty('System: Verwaltung anpassen', true)
-            ->createDuty('Mandant: Einstellungen anpassen', true);
-
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
 
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
-            ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)')
-            ->createDuty('Personendaten (Autocomplete, Staatsangehörigkeit)', true)
-            ->createDuty('Personendaten (Autocomplete, Konfession)', true);
+            ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)');
 
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
@@ -81,7 +70,6 @@ class Major0Minor8
         $Feature->createTask('Benutzerkonten')
             ->createDuty('Benutzerkonten bearbeiten', false);
         $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Passwort ändern', true)
             ->createDuty('Informationen anzeigen (Vervollständigen)');
 
         $Feature = $Category->createFeature('Mandant',
@@ -106,6 +94,49 @@ class Major0Minor8
         $Feature = $Category->createFeature('Veröffentlichen');
         $Feature->createTask('Programmcode')
             ->createDuty('Programmcode veröffentlichen 0.8.1');
+
+    }
+
+    /**
+     * Version 0.8.0.1
+     * To be released KW41
+     *
+     * @param RoadmapExtension $Roadmap
+     */
+    public static function Patch0Fix1(RoadmapExtension $Roadmap)
+    {
+
+        $Release = $Roadmap->createRelease('0.8.0.1', 'Demoversion (Ziel KW41)');
+
+        // Plattform
+        $Category = $Release->createCategory('Plattform');
+        $Feature = $Category->createFeature('Rollenverwaltung');
+        $Feature->createTask('Trennung interne/externe Rollen')
+            ->createDuty('Entity anpassen', true)
+            ->createDuty('Schema anpassen', true)
+            ->createDuty('System: Verwaltung anpassen', true)
+            ->createDuty('Mandant: Einstellungen anpassen', true);
+
+        // Personenverwaltung
+        $Category = $Release->createCategory('Personenverwaltung');
+
+        $Feature = $Category->createFeature('Person');
+        $Feature->createTask('Informationen (Metadaten)')
+            ->createDuty('Personendaten (Autocomplete, Staatsangehörigkeit)', true)
+            ->createDuty('Personendaten (Autocomplete, Konfession)', true);
+
+        // Einstellungen
+        $Category = $Release->createCategory('Einstellungen');
+
+        $Feature = $Category->createFeature('Benutzer');
+        $Feature->createTask('Mein Benutzerkonto')
+            ->createDuty('Passwort ändern', true);
+
+        // Demoversion
+        $Category = $Release->createCategory('Demoversion');
+        $Feature = $Category->createFeature('Veröffentlichen');
+        $Feature->createTask('Programmcode')
+            ->createDuty('Programmcode veröffentlichen 0.8.0.1', true);
 
     }
 

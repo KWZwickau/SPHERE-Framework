@@ -30,6 +30,7 @@ class Roadmap extends Extension
         $this->Roadmap = $this->getRoadmap();
 
         Major0Minor8::Patch0($this->Roadmap);
+        Major0Minor8::Patch0Fix1($this->Roadmap);
         Major0Minor8::Patch1($this->Roadmap);
         Major0Minor8::Patch2($this->Roadmap);
 
