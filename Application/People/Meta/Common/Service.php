@@ -129,6 +129,35 @@ class Service implements IServiceInterface
         return (new Data($this->Binding))->getCommonByPerson($tblPerson);
     }
 
+    /***
+     * @param TblPerson $tblPerson
+     * @param           $Birthday
+     * @param           $Birthplace
+     *
+     * @param           $Denomination
+     */
+    public function createMetaFromImport(TblPerson $tblPerson, $Birthday, $Birthplace, $Denomination)
+    {
+
+        $tblCommonBirthDates = (new Data($this->Binding))->createCommonBirthDates(
+            $Birthday,
+            $Birthplace,
+            0
+        );
+        $tblCommonInformation = (new Data($this->Binding))->createCommonInformation(
+            '',
+            $Denomination,
+            0,
+            ''
+        );
+        (new Data($this->Binding))->createCommon(
+            $tblPerson,
+            $tblCommonBirthDates,
+            $tblCommonInformation,
+            ''
+        );
+    }
+
     /**
      * @param int $Id
      *
@@ -160,5 +189,23 @@ class Service implements IServiceInterface
     {
 
         return (new Data($this->Binding))->getCommonInformationById($Id);
+    }
+
+    /**
+     * @return bool|TblCommonInformation[]
+     */
+    public function getCommonInformationAll()
+    {
+
+        return (new Data($this->Binding))->getCommonInformationAll();
+    }
+
+    /**
+     * @return bool|TblCommonBirthDates[]
+     */
+    public function getCommonBirthDatesAll()
+    {
+
+        return (new Data($this->Binding))->getCommonBirthDatesAll();
     }
 }

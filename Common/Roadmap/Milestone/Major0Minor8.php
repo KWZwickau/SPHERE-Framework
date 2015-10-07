@@ -29,7 +29,7 @@ class Major0Minor8
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Speichern)')
-            ->createDuty('Personendaten (Selectbox, Konfession)');
+            ->createDuty('Personendaten (Vorbelegtes Autocomplete, Konfession)', false);
 
         // Plattform
         $Category = $Release->createCategory('Plattform');
@@ -71,8 +71,8 @@ class Major0Minor8
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)')
-            ->createDuty('Personendaten (Autocomplete, Staatsangehörigkeit)', false)
-            ->createDuty('Personendaten (Autocomplete, Konfession)', false);
+            ->createDuty('Personendaten (Autocomplete, Staatsangehörigkeit)', true)
+            ->createDuty('Personendaten (Autocomplete, Konfession)', true);
 
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');

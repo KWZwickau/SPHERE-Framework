@@ -80,6 +80,40 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblCommonBirthDatesAll = Common::useService()->getCommonBirthDatesAll();
+        $tblBirthplaceAll = array();
+        if ($tblCommonBirthDatesAll) {
+            array_walk($tblCommonBirthDatesAll,
+                function (TblCommonBirthDates &$tblCommonBirthDates) use (&$tblBirthplaceAll) {
+
+                    if ($tblCommonBirthDates->getBirthplace()) {
+                        if (!in_array($tblCommonBirthDates->getBirthplace(), $tblBirthplaceAll)) {
+                            array_push($tblBirthplaceAll, $tblCommonBirthDates->getBirthplace());
+                        }
+                    }
+                });
+        }
+
+        $tblCommonInformationAll = Common::useService()->getCommonInformationAll();
+        $tblNationalityAll = array();
+        $tblDenominationAll = array();
+        if ($tblCommonInformationAll) {
+            array_walk($tblCommonInformationAll,
+                function (TblCommonInformation &$tblCommonInformation) use (&$tblNationalityAll, &$tblDenominationAll) {
+
+                    if ($tblCommonInformation->getNationality()) {
+                        if (!in_array($tblCommonInformation->getNationality(), $tblNationalityAll)) {
+                            array_push($tblNationalityAll, $tblCommonInformation->getNationality());
+                        }
+                    }
+                    if ($tblCommonInformation->getDenomination()) {
+                        if (!in_array($tblCommonInformation->getDenomination(), $tblDenominationAll)) {
+                            array_push($tblDenominationAll, $tblCommonInformation->getDenomination());
+                        }
+                    }
+                });
+        }
+
         $Stage->setContent(
             Common::useService()->createMeta(
                 (new Form(array(
@@ -90,7 +124,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     new DatePicker('Meta[BirthDates][Birthday]', 'Geburtstag', 'Geburtstag',
                                         new Calendar()),
                                     new AutoCompleter('Meta[BirthDates][Birthplace]', 'Geburtsort', 'Geburtsort',
-                                        array(),
+                                        $tblBirthplaceAll,
                                         new MapMarker()),
                                     new SelectBox('Meta[BirthDates][Gender]', 'Geschlecht', array(
                                         TblCommonBirthDates::VALUE_GENDER_NULL   => '',
@@ -106,11 +140,11 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel('Informationen', array(
                                     new AutoCompleter('Meta[Information][Nationality]', 'Staatsangehörigkeit',
                                         'Staatsangehörigkeit',
-                                        array(), new Nameplate()
+                                        $tblNationalityAll, new Nameplate()
                                     ),
                                     new AutoCompleter('Meta[Information][Denomination]', 'Konfession',
                                         'Konfession',
-                                        array(), new TempleChurch()
+                                        $tblDenominationAll, new TempleChurch()
                                     ),
                                     new SelectBox('Meta[Information][IsAssistance]', 'Mitarbeitsbereitschaft', array(
                                         TblCommonInformation::VALUE_IS_ASSISTANCE_NULL => '',

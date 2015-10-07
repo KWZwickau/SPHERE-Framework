@@ -165,6 +165,24 @@ class Data extends Cacheable
     }
 
     /**
+     * @return bool|TblCommonInformation[]
+     */
+    public function getCommonInformationAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCommonInformation');
+    }
+
+    /**
+     * @return bool|TblCommonBirthDates[]
+     */
+    public function getCommonBirthDatesAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCommonBirthDates');
+    }
+
+    /**
      * @param TblCommonBirthDates $tblCommonBirthDates
      * @param string              $Birthday
      * @param string              $Birthplace
