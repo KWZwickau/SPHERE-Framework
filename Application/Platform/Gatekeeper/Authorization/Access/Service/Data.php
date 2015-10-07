@@ -203,14 +203,14 @@ class Data extends Cacheable
          */
         $tblRole = $this->createRole('Schulstiftung', true);
 
-        // Level: Schulstiftung
-        $tblLevel = $this->createLevel('Schulstiftung - Roadmap');
+        // Level: Cloud - Roadmap
+        $tblLevel = $this->createLevel('Cloud - Roadmap');
         $this->addRoleLevel($tblRole, $tblLevel);
         // !!! Add To CLOUD Administrator
         $this->addRoleLevel($tblRoleCloud, $tblLevel);
 
-        // Privilege: Schulstiftung - Roadmap
-        $tblPrivilege = $this->createPrivilege('Schulstiftung - Roadmap');
+        // Privilege: Cloud - Roadmap
+        $tblPrivilege = $this->createPrivilege('Cloud - Roadmap');
         $this->addLevelPrivilege($tblLevel, $tblPrivilege);
         $tblRight = $this->createRight('/Roadmap');
         $this->addPrivilegeRight($tblPrivilege, $tblRight);
