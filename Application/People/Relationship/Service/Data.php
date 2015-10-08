@@ -37,6 +37,8 @@ class Data
         $this->createType('Bevollmächtigt');
         $this->createType('Geschwisterkind');
         $this->createType('Arzt');
+        $this->createType('Ehepartner');
+        $this->createType('Lebensabschnittsgefährte');
     }
 
     /**

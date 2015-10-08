@@ -21,7 +21,7 @@ class Data extends Extension
     /**
      * @param Binding $Connection
      */
-    function __construct( Binding $Connection )
+    function __construct(Binding $Connection)
     {
 
         $this->Connection = $Connection;
@@ -37,10 +37,10 @@ class Data extends Extension
      *
      * @return bool|TblResponsibility
      */
-    public function getResponsibilityById( $Id )
+    public function getResponsibilityById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById( 'TblResponsibility', $Id );
+        $Entity = $this->Connection->getEntityManager()->getEntityById('TblResponsibility', $Id);
 
         return ( null === $Entity ? false : $Entity );
     }
@@ -51,7 +51,7 @@ class Data extends Extension
     public function getResponsibilityAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity( 'TblResponsibility' )->findAll();
+        $EntityList = $this->Connection->getEntityManager()->getEntity('TblResponsibility')->findAll();
 
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
@@ -61,19 +61,19 @@ class Data extends Extension
      *
      * @return TblResponsibility|bool
      */
-    public function addResponsibility( TblCompany $tblCompany )
+    public function addResponsibility(TblCompany $tblCompany)
     {
 
         $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity( 'TblResponsibility' )
-            ->findOneBy( array(
+        $Entity = $Manager->getEntity('TblResponsibility')
+            ->findOneBy(array(
                 TblResponsibility::SERVICE_TBL_COMPANY => $tblCompany->getId(),
-            ) );
+            ));
         if (null === $Entity) {
             $Entity = new TblResponsibility();
-            $Entity->setServiceTblCompany( $tblCompany );
-            $Manager->saveEntity( $Entity );
-            Protocol::useService()->createInsertEntry( $this->Connection->getDatabase(), $Entity );
+            $Entity->setServiceTblCompany($tblCompany);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
 
             return $Entity;
         }
@@ -86,15 +86,15 @@ class Data extends Extension
      *
      * @return bool
      */
-    public function removeResponsibility( TblResponsibility $tblResponsibility )
+    public function removeResponsibility(TblResponsibility $tblResponsibility)
     {
 
         $Manager = $this->Connection->getEntityManager();
         /** @var TblResponsibility $Entity */
-        $Entity = $Manager->getEntityById( 'TblResponsibility', $tblResponsibility->getId() );
+        $Entity = $Manager->getEntityById('TblResponsibility', $tblResponsibility->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry( $this->Connection->getDatabase(), $Entity );
-            $Manager->killEntity( $Entity );
+            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            $Manager->killEntity($Entity);
 
             return true;
         }

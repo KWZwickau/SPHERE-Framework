@@ -41,8 +41,8 @@ class SponsorAssociation implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
                 __NAMESPACE__.'/Frontend::frontendSponsorAssociationDestroy'
             )
-                ->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'Confirm', false )
+                ->setParameterDefault('Id', null)
+                ->setParameterDefault('Confirm', false)
         );
     }
 
@@ -51,8 +51,10 @@ class SponsorAssociation implements IModuleInterface
      */
     public static function useService()
     {
+
         return new Service(
-            new Identifier('Setting', 'Consumer', 'SponsorAssociation', null, Consumer::useService()->getConsumerBySession()),
+            new Identifier('Setting', 'Consumer', 'SponsorAssociation', null,
+                Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
     }
@@ -62,6 +64,7 @@ class SponsorAssociation implements IModuleInterface
      */
     public static function useFrontend()
     {
+
         return new Frontend();
     }
 }

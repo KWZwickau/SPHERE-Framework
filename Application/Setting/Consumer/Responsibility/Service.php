@@ -4,8 +4,8 @@ namespace SPHERE\Application\Setting\Consumer\Responsibility;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Data;
+use SPHERE\Application\Setting\Consumer\Responsibility\Service\Entity\TblResponsibility;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -18,7 +18,6 @@ use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
-
 
 /**
  * Class Service
@@ -37,8 +36,8 @@ class Service extends Extension implements IServiceInterface
      * Define Database Connection
      *
      * @param Identifier $Identifier
-     * @param string $EntityPath
-     * @param string $EntityNamespace
+     * @param string     $EntityPath
+     * @param string     $EntityNamespace
      */
     public function __construct(
         Identifier $Identifier,
@@ -46,8 +45,8 @@ class Service extends Extension implements IServiceInterface
         $EntityNamespace
     ) {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -56,12 +55,12 @@ class Service extends Extension implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
 
         return $Protocol;
@@ -73,7 +72,7 @@ class Service extends Extension implements IServiceInterface
     public function getResponsibilityAll()
     {
 
-        return ( new Data( $this->Binding ) )->getResponsibilityAll();
+        return (new Data($this->Binding))->getResponsibilityAll();
     }
 
     /**
@@ -81,15 +80,15 @@ class Service extends Extension implements IServiceInterface
      *
      * @return bool|TblResponsibility
      */
-    public function getResponsibilityById( $Id )
+    public function getResponsibilityById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getResponsibilityById( $Id );
+        return (new Data($this->Binding))->getResponsibilityById($Id);
     }
 
     /**
      * @param IFormInterface $Form
-     * @param integer $Responsibility
+     * @param integer        $Responsibility
      *
      * @return IFormInterface|string
      */
@@ -106,23 +105,23 @@ class Service extends Extension implements IServiceInterface
         if (empty( $Global->POST )) {
             return $Form;
         }
-        if (!empty( $Global->POST ) && null === $Responsibility ) {
-            $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie einen Schulträger aus' ) ) ) ) );
+        if (!empty( $Global->POST ) && null === $Responsibility) {
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Schulträger aus')))));
             return $Form;
         }
 
         $Error = false;
 
         if (!$Error) {
-            $tblCompany = Company::useService()->getCompanyById( $Responsibility );
+            $tblCompany = Company::useService()->getCompanyById($Responsibility);
 
-            if (( new Data( $this->Binding ) )->addResponsibility( $tblCompany )
+            if ((new Data($this->Binding))->addResponsibility($tblCompany)
             ) {
-                return new Success( 'Der Schulträger wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/Setting/Consumer/Responsibility', 1, array( 'Id' => $tblCompany->getId() ) );
+                return new Success('Der Schulträger wurde erfolgreich hinzugefügt')
+                .new Redirect('/Setting/Consumer/Responsibility', 1, array('Id' => $tblCompany->getId()));
             } else {
-                return new Danger( 'Der Schulträger konnte nicht hinzugefügt werden' )
-                .new Redirect( '/Setting/Consumer/Responsibility', 10, array( 'Id' => $tblCompany->getId() ) );
+                return new Danger('Der Schulträger konnte nicht hinzugefügt werden')
+                .new Redirect('/Setting/Consumer/Responsibility', 10, array('Id' => $tblCompany->getId()));
             }
         }
 
@@ -134,9 +133,9 @@ class Service extends Extension implements IServiceInterface
      *
      * @return bool
      */
-    public function destroyResponsibility( TblResponsibility $tblResponsibility )
+    public function destroyResponsibility(TblResponsibility $tblResponsibility)
     {
 
-        return ( new Data( $this->Binding ) )->removeResponsibility( $tblResponsibility );
+        return (new Data($this->Binding))->removeResponsibility($tblResponsibility);
     }
 }

@@ -30,8 +30,8 @@ class School extends Extension implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
                 __NAMESPACE__.'/Frontend::frontendSchoolCreate'
             )
-            ->setParameterDefault('School', null)
-            ->setParameterDefault('Type', null)
+                ->setParameterDefault('School', null)
+                ->setParameterDefault('Type', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
@@ -42,8 +42,8 @@ class School extends Extension implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
                 __NAMESPACE__.'/Frontend::frontendSchoolDestroy'
             )
-                ->setParameterDefault( 'Id', null )
-                ->setParameterDefault( 'Confirm', false )
+                ->setParameterDefault('Id', null)
+                ->setParameterDefault('Confirm', false)
         );
     }
 

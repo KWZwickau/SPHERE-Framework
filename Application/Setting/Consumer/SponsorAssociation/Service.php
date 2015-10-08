@@ -1,11 +1,10 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\SponsorAssociation;
 
-
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Entity\TblSponsorAssociation;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Data;
+use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Entity\TblSponsorAssociation;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -18,7 +17,6 @@ use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
 use SPHERE\System\Extension\Extension;
-
 
 /**
  * Class Service
@@ -37,17 +35,17 @@ class Service extends Extension implements IServiceInterface
      * Define Database Connection
      *
      * @param Identifier $Identifier
-     * @param string $EntityPath
-     * @param string $EntityNamespace
+     * @param string     $EntityPath
+     * @param string     $EntityNamespace
      */
     public function __construct(
         Identifier $Identifier,
         $EntityPath,
-        $EntityNamespace )
-    {
+        $EntityNamespace
+    ) {
 
-        $this->Binding = new Binding( $Identifier, $EntityPath, $EntityNamespace );
-        $this->Structure = new Structure( $Identifier );
+        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
+        $this->Structure = new Structure($Identifier);
     }
 
     /**
@@ -56,12 +54,12 @@ class Service extends Extension implements IServiceInterface
      *
      * @return string
      */
-    public function setupService( $doSimulation, $withData )
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = ( new Setup( $this->Structure ) )->setupDatabaseSchema( $doSimulation );
+        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            ( new Data( $this->Binding ) )->setupDatabaseContent();
+            (new Data($this->Binding))->setupDatabaseContent();
         }
 
         return $Protocol;
@@ -73,21 +71,21 @@ class Service extends Extension implements IServiceInterface
     public function getSponsorAssociationAll()
     {
 
-        return ( new Data( $this->Binding ) )->getSponsorAssociationAll();
+        return (new Data($this->Binding))->getSponsorAssociationAll();
     }
 
     /**
      * @return bool|TblSponsorAssociation
      */
-    public function getSponsorAssociationById( $Id )
+    public function getSponsorAssociationById($Id)
     {
 
-        return ( new Data( $this->Binding ) )->getSponsorAssociationById( $Id );
+        return (new Data($this->Binding))->getSponsorAssociationById($Id);
     }
 
     /**
      * @param IFormInterface $Form
-     * @param integer $SponsorAssociation
+     * @param integer        $SponsorAssociation
      *
      * @return IFormInterface|string
      */
@@ -105,23 +103,23 @@ class Service extends Extension implements IServiceInterface
         if (empty( $Global->POST )) {
             return $Form;
         }
-        if (!empty( $Global->POST ) && null === $SponsorAssociation ) {
-            $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie einen Förderverein aus' ) ) ) ) );
+        if (!empty( $Global->POST ) && null === $SponsorAssociation) {
+            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Förderverein aus')))));
             return $Form;
         }
 
         $Error = false;
 
         if (!$Error) {
-            $tblCompany = Company::useService()->getCompanyById( $SponsorAssociation );
+            $tblCompany = Company::useService()->getCompanyById($SponsorAssociation);
 
-            if (( new Data( $this->Binding ) )->addSponsorAssociation( $tblCompany )
+            if ((new Data($this->Binding))->addSponsorAssociation($tblCompany)
             ) {
-                return new Success( 'Der Förderverein wurde erfolgreich hinzugefügt' )
-                .new Redirect( '/Setting/Consumer/SponsorAssociation', 1, array( 'Id' => $tblCompany->getId() ) );
+                return new Success('Der Förderverein wurde erfolgreich hinzugefügt')
+                .new Redirect('/Setting/Consumer/SponsorAssociation', 1, array('Id' => $tblCompany->getId()));
             } else {
-                return new Danger( 'Der Förderverein konnte nicht hinzugefügt werden' )
-                .new Redirect( '/Setting/Consumer/SponsorAssociation', 10, array( 'Id' => $tblCompany->getId() ) );
+                return new Danger('Der Förderverein konnte nicht hinzugefügt werden')
+                .new Redirect('/Setting/Consumer/SponsorAssociation', 10, array('Id' => $tblCompany->getId()));
             }
         }
 
@@ -133,8 +131,9 @@ class Service extends Extension implements IServiceInterface
      *
      * @return bool
      */
-    public function destroySponsorAssociation( TblSponsorAssociation $tblSponsorAssociation )
+    public function destroySponsorAssociation(TblSponsorAssociation $tblSponsorAssociation)
     {
-        return ( new Data( $this->Binding ) )->removeSponsorAssociation( $tblSponsorAssociation );
+
+        return (new Data($this->Binding))->removeSponsorAssociation($tblSponsorAssociation);
     }
 }
