@@ -18,13 +18,11 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Link;
 use SPHERE\Common\Frontend\Icon\Repository\MapMarker;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneFax;
 use SPHERE\Common\Frontend\Icon\Repository\PhoneMobil;
 use SPHERE\Common\Frontend\Icon\Repository\Question;
@@ -32,7 +30,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
 use SPHERE\Common\Frontend\Icon\Repository\Mail as MailIcon;
-use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\Phone as PhoneIcon;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -101,15 +98,7 @@ class Frontend extends Extension implements IFrontendInterface
                         ( new Title( new TagList().' '.
                             new \SPHERE\Common\Frontend\Text\Repository\Warning( $tblSchool->getServiceTblType()->getName() ).' '
                             .$tblCompany->getName(), ' Kontaktdaten'
-                        ) )->addButton( new Standard( 'Adresse hinzufügen', '/Corporation/Company/Address/Create',
-                            new ChevronDown(), array( 'Id' => $tblCompany->getId() ) ) )
-                            ->addButton( new Standard( 'Telefonnummer hinzufügen',
-                                '/Corporation/Company/Phone/Create',
-                                new ChevronDown(), array( 'Id' => $tblCompany->getId() ) ) )
-                            ->addButton( new Standard( 'E-Mail Adresse hinzufügen',
-                                '/Corporation/Company/Mail/Create',
-                                new ChevronDown(), array( 'Id' => $tblCompany->getId() ) ) )
-
+                        ) )
                     ),
                 ) );
             }
@@ -362,17 +351,7 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblToCompany = new LayoutColumn(
                     new Panel(
-                        new MapMarker().' '.$tblToCompany->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_SUCCESS,
-                        new Standard(
-                            '', '/Corporation/Company/Address/Edit', new Pencil(),
-                            array( 'Id' => $tblToCompany->getId() ),
-                            'Bearbeiten'
-                        )
-                        .new Standard(
-                            '', '/Corporation/Company/Address/Destroy', new Remove(),
-                            array( 'Id' => $tblToCompany->getId() ), 'Löschen'
-                        )
-                    )
+                        new MapMarker().' '.$tblToCompany->getTblType()->getName(), $Panel, Panel::PANEL_TYPE_SUCCESS )
                     , 3 );
             } );
         } else {
@@ -408,17 +387,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 $tblToCompany->getTblType()->getName().' '.$tblToCompany->getTblType()->getDescription() )
                                 ? Panel::PANEL_TYPE_DANGER
                                 : Panel::PANEL_TYPE_SUCCESS
-                            ),
-                            new Standard(
-                                '', '/Corporation/Company/Phone/Edit', new Pencil(),
-                                array( 'Id' => $tblToCompany->getId() ),
-                                'Bearbeiten'
-                            )
-                            .new Standard(
-                                '', '/Corporation/Company/Phone/Destroy', new Remove(),
-                                array( 'Id' => $tblToCompany->getId() ), 'Löschen'
-                            )
-                        )
+                            ) )
                         , 3 );
                 } );
         } else {
@@ -441,18 +410,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $tblToCompany = new LayoutColumn(
                         new Panel(
                             new MailIcon().' '.$tblToCompany->getTblType()->getName(), $Panel,
-                            Panel::PANEL_TYPE_SUCCESS,
-
-                            new Standard(
-                                '', '/Corporation/Company/Mail/Edit', new Pencil(),
-                                array( 'Id' => $tblToCompany->getId() ),
-                                'Bearbeiten'
-                            )
-                            .new Standard(
-                                '', '/Corporation/Company/Mail/Destroy', new Remove(),
-                                array( 'Id' => $tblToCompany->getId() ), 'Löschen'
-                            )
-                        )
+                            Panel::PANEL_TYPE_SUCCESS )
                         , 3 );
                 } );
         } else {
@@ -464,10 +422,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         if ($tblRelationshipAll !== false) {
             array_walk( $tblRelationshipAll, function (
-                \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany &$tblToCompany,
-                $Index,
-                TblCompany $tblCompany
-            ) {
+                \SPHERE\Application\People\Relationship\Service\Entity\TblToCompany &$tblToCompany ) {
 
                 $Panel = array(
                     $tblToCompany->getServiceTblPerson()->getFullName(),
@@ -480,11 +435,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblToCompany = new LayoutColumn(
                     new Panel(
                         new Building().' '.new Link().' '.$tblToCompany->getTblType()->getName(), $Panel,
-                        Panel::PANEL_TYPE_DEFAULT,
-                        new Standard(
-                            '', '/People/Person', new PersonIcon(),
-                            array( 'Id' => $tblToCompany->getServiceTblPerson()->getId() ), 'zur Person' )
-                    )
+                        Panel::PANEL_TYPE_DEFAULT )
                     , 3 );
             }, $tblCompany );
         } else {

@@ -105,7 +105,7 @@ class Service extends Extension implements IServiceInterface
         if (empty( $Global->POST )) {
             return $Form;
         }
-        if (!empty( $Global->POST && null === $SponsorAssociation )) {
+        if (!empty( $Global->POST ) && null === $SponsorAssociation ) {
             $Form->appendGridGroup( new FormGroup( new FormRow( new FormColumn( new Danger( 'Bitte wählen Sie einen Förderverein aus' ) ) ) ) );
             return $Form;
         }
