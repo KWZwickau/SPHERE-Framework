@@ -2,9 +2,9 @@
 namespace SPHERE\Application\Setting\Consumer\School\Service;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
-use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblType;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Extension\Extension;
 
@@ -31,50 +31,10 @@ class Data extends Extension
     public function setupDatabaseContent()
     {
 
-        $this->createType('Grundschule');
-        $this->createType('Mittelschule');
-        $this->createType('Oberschule');
-        $this->createType('Gymnasium');
-    }
-
-    /**
-     * @param string $Name
-     *
-     * @return TblType
-     */
-    public function createType($Name)
-    {
-
-        $Manager = $this->Connection->getEntityManager();
-        $Entity = $Manager->getEntity('TblType')->findOneBy(array(
-            TblType::ATTR_NAME => $Name
-        ));
-        if (null === $Entity) {
-            $Entity = new TblType();
-            $Entity->setName($Name);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
-        }
-
-        return $Entity;
     }
 
     /**
      * @param integer $Id
-     *
-     * @return bool|TblType
-     */
-    public function getTypeById($Id)
-    {
-
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
-
-        return ( null === $Entity ? false : $Entity );
-    }
-
-    /**
-     * @param integer $Id
-     *
      * @return bool|TblSchool
      */
     public function getSchoolById($Id)
@@ -96,17 +56,6 @@ class Data extends Extension
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
-    /**
-     * @return bool|TblType[]
-     */
-    public function getTypeAll()
-    {
-
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
-
-        return ( empty ( $EntityList ) ? false : $EntityList );
-    }
-
 
     /**
      * @param TblCompany $tblCompany
@@ -121,7 +70,7 @@ class Data extends Extension
         $Entity = $Manager->getEntity('TblSchool')
             ->findOneBy(array(
                 TblSchool::SERVICE_TBL_COMPANY => $tblCompany->getId(),
-                TblSchool::ATT_TBL_TYPE        => $tblType->getId(),
+                TblSchool::SERVICE_TBL_TYPE => $tblType->getId(),
             ));
         if (null === $Entity) {
             $Entity = new TblSchool();

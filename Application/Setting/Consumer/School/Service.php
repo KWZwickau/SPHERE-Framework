@@ -1,11 +1,12 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\School;
 
+
 use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Setting\Consumer\School\Service\Data;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
-use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblType;
 use SPHERE\Application\Setting\Consumer\School\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -67,26 +68,6 @@ class Service extends Extension implements IServiceInterface
     }
 
     /**
-     * @return bool|TblType[]
-     */
-    public function getTypeAll()
-    {
-
-        return (new Data($this->Binding))->getTypeAll();
-    }
-
-    /**
-     * @param integer $Id
-     *
-     * @return bool|TblType[]
-     */
-    public function getTypeById($Id)
-    {
-
-        return (new Data($this->Binding))->getTypeById($Id);
-    }
-
-    /**
      * @return bool|TblSchool[]
      */
     public function getSchoolAll()
@@ -95,7 +76,17 @@ class Service extends Extension implements IServiceInterface
         return (new Data($this->Binding))->getSchoolAll();
     }
 
-    //ToDo
+    /**
+     * @param $Id
+     *
+     * @return bool|TblSchool
+     */
+    public function getSchoolById($Id )
+    {
+
+        return (new Data($this->Binding))->getSchoolById($Id);
+    }
+
     /**
      * @param IFormInterface $Form
      * @param integer        $School
@@ -126,9 +117,9 @@ class Service extends Extension implements IServiceInterface
 
         if (!$Error) {
             $tblCompany = Company::useService()->getCompanyById($School);
-            $tblType = (new Data($this->Binding))->getTypeById($Type['Type']);
+            $tblType = Type::useService()->getTypeById($Type['Type']);
 
-            if ((new Data($this->Binding))->addSchool($tblCompany, $tblType)
+            if ((new Data($this->Binding))->addSchool($tblCompany, $tblType )
             ) {
                 return new Success('Die Schule wurde erfolgreich hinzugefügt')
                 .new Redirect('/Setting/Consumer/School', 1, array('Id' => $tblCompany->getId()));
@@ -141,29 +132,14 @@ class Service extends Extension implements IServiceInterface
         return $Form;
     }
 
-    //ToDo
-    public function removeSchool(
-        IFormInterface $Form,
-        $School
-    ) {
+    /**
+     * @param TblSchool $tblSchool
+     *
+     * @return bool
+     */
+    public function destroySchool(TblSchool $tblSchool)
+    {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $School) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie die zu entfernende Schule aus')))));
-
-            return $Form;
-        }
-
-        $tblSchool = (new Data($this->Binding))->getSchoolById($School);
-
-        if ((new Data($this->Binding))->removeSchool($tblSchool)) {
-            return new Success('Die Schule wurde erfolgreich entfernt')
-            .new Redirect('/Setting/Consumer/School', 1);
-        } else {
-            return new Danger('Die Schule konnte nicht entfernt werden')
-            .new Redirect('/Setting/Consumer/School', 10);
-        }
+        return (new Data($this->Binding))->removeSchool($tblSchool);
     }
 }
