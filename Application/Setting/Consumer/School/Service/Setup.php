@@ -37,8 +37,7 @@ class Setup
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $tblType = $this->setTableType($Schema);
-        $this->setTableSchool($Schema, $tblType);
+        $this->setTableSchool($Schema);
         /**
          * Migration & Protocol
          */
@@ -53,32 +52,16 @@ class Setup
      *
      * @return Table
      */
-    private function setTableType(Schema &$Schema)
-    {
-
-        $Table = $this->Connection->createTable($Schema, 'tblType');
-        if (!$this->Connection->hasColumn('tblType', 'Name')) {
-            $Table->addColumn('Name', 'string');
-        }
-
-        return $Table;
-    }
-
-    /**
-     * @param Schema $Schema
-     * @param        $tblType
-     *
-     * @return Table
-     */
-    private function setTableSchool(Schema &$Schema, $tblType)
+    private function setTableSchool(Schema &$Schema)
     {
 
         $Table = $this->Connection->createTable($Schema, 'tblSchool');
         if (!$this->Connection->hasColumn('tblSchool', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint');
         }
-
-        $this->Connection->addForeignKey($Table, $tblType);
+        if (!$this->Connection->hasColumn('tblSchool', 'serviceTblType')) {
+            $Table->addColumn('serviceTblType', 'bigint');
+        }
 
         return $Table;
     }

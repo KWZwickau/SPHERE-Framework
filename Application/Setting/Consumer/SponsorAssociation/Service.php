@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\SponsorAssociation;
 
+
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Data;
@@ -74,7 +75,15 @@ class Service extends Extension implements IServiceInterface
         return (new Data($this->Binding))->getSponsorAssociationAll();
     }
 
-    //ToDo
+    /**
+     * @return bool|TblSponsorAssociation
+     */
+    public function getSponsorAssociationById($Id)
+    {
+
+        return (new Data($this->Binding))->getSponsorAssociationById($Id);
+    }
+
     /**
      * @param IFormInterface $Form
      * @param integer        $SponsorAssociation
@@ -90,7 +99,12 @@ class Service extends Extension implements IServiceInterface
          * Skip to Frontend
          */
 
-        if (null === $SponsorAssociation) {
+        $Global = $this->getGlobal();
+
+        if (empty( $Global->POST )) {
+            return $Form;
+        }
+        if (!empty( $Global->POST && null === $SponsorAssociation )) {
             $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Förderverein aus')))));
             return $Form;
         }
@@ -114,32 +128,13 @@ class Service extends Extension implements IServiceInterface
     }
 
     /**
-     * @param IFormInterface $Form
-     * @param                $SponsorAssociation
+     * @param TblSponsorAssociation $tblSponsorAssociation
      *
-     * @return IFormInterface|string
+     * @return bool
      */
-    public function removeSponsorAssociation(
-        IFormInterface $Form,
-        $SponsorAssociation
-    ) {
+    public function destroySponsorAssociation(TblSponsorAssociation $tblSponsorAssociation)
+    {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $SponsorAssociation) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie den zu entfernenden Förderverein aus')))));
-            return $Form;
-        }
-
-        $tblSponsorAssociation = (new Data($this->Binding))->getSponsorAssociationById($SponsorAssociation);
-
-        if ((new Data($this->Binding))->removeSponsorAssociation($tblSponsorAssociation)) {
-            return new Success('Der Förderverein wurde erfolgreich entfernt')
-            .new Redirect('/Setting/Consumer/SponsorAssociation', 1);
-        } else {
-            return new Danger('Der Förderverein konnte nicht entfernt werden')
-            .new Redirect('/Setting/Consumer/SponsorAssociation', 10);
-        }
+        return (new Data($this->Binding))->removeSponsorAssociation($tblSponsorAssociation);
     }
 }
