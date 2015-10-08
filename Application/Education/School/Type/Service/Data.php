@@ -28,6 +28,15 @@ class Data
     public function setupDatabaseContent()
     {
 
+        $this->createType('Berufliches Gymnasium', '');
+        $this->createType('Berufsfachschule', '');
+        $this->createType('Berufsschule', '');
+        $this->createType('Fachoberschule', '');
+        $this->createType('Fachschule', '');
+        $this->createType('Grundschule', '');
+        $this->createType('Gymnasium', '');
+        $this->createType('Mittelschule / Oberschule', '');
+        $this->createType('allgemein bildende Förderschule', '');
     }
 
     /**
