@@ -75,6 +75,7 @@ class Service extends Extension implements IServiceInterface
     }
 
     /**
+     * @param $Id
      * @return bool|TblSponsorAssociation
      */
     public function getSponsorAssociationById($Id)

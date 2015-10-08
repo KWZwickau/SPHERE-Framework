@@ -229,9 +229,11 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @return Form
+     * @param $Id
+     * @param bool|false $Confirm
+     * @return Stage
      */
-    private function formSponsorAssociationCompanyDelete()
+    public function formSponsorAssociationCompanyDelete($Id, $Confirm = false)
     {
 
         $Stage = new Stage('Förderverein', 'Löschen');
