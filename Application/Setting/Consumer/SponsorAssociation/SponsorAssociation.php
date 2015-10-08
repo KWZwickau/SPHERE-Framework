@@ -51,6 +51,7 @@ class SponsorAssociation implements IModuleInterface
      */
     public static function useService()
     {
+
         return new Service(
             new Identifier('Setting', 'Consumer', 'SponsorAssociation', null,
                 Consumer::useService()->getConsumerBySession()),
@@ -63,6 +64,7 @@ class SponsorAssociation implements IModuleInterface
      */
     public static function useFrontend()
     {
+
         return new Frontend();
     }
 }

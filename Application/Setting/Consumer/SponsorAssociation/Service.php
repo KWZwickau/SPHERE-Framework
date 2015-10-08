@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\SponsorAssociation;
 
-
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Setting\Consumer\SponsorAssociation\Service\Data;
@@ -104,7 +103,7 @@ class Service extends Extension implements IServiceInterface
         if (empty( $Global->POST )) {
             return $Form;
         }
-        if (!empty( $Global->POST && null === $SponsorAssociation )) {
+        if (!empty( $Global->POST ) && null === $SponsorAssociation) {
             $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Förderverein aus')))));
             return $Form;
         }
