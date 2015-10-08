@@ -105,7 +105,7 @@ class Service extends Extension implements IServiceInterface
         if (empty( $Global->POST )) {
             return $Form;
         }
-        if (!empty( $Global->POST && null === $Responsibility )) {
+        if (!empty( $Global->POST ) && null === $Responsibility) {
             $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Schulträger aus')))));
             return $Form;
         }

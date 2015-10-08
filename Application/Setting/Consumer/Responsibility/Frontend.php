@@ -13,7 +13,6 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
-use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
@@ -82,14 +81,6 @@ class Frontend extends Extension implements IFrontendInterface
                             School::useFrontend()->frontendLayoutCombine($tblCompany)
                         )),
                     ), (new Title(new TagList().' Kontaktdaten', 'von '.$tblCompany->getName()))
-                        ->addButton(new Standard('Adresse hinzufügen', '/Corporation/Company/Address/Create',
-                            new ChevronDown(), array('Id' => $tblCompany->getId())))
-                        ->addButton(new Standard('Telefonnummer hinzufügen',
-                            '/Corporation/Company/Phone/Create',
-                            new ChevronDown(), array('Id' => $tblCompany->getId())))
-                        ->addButton(new Standard('E-Mail Adresse hinzufügen',
-                            '/Corporation/Company/Mail/Create',
-                            new ChevronDown(), array('Id' => $tblCompany->getId())))
                     ),
                 ));
             }
@@ -237,7 +228,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param            $Id
+     * @param $Id
      * @param bool|false $Confirm
      *
      * @return Stage
