@@ -34,7 +34,6 @@ class Data extends Extension
 
     /**
      * @param integer $Id
-     *
      * @return bool|TblSponsorAssociation
      */
     public function getSponsorAssociationById($Id)

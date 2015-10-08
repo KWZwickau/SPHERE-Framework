@@ -11,7 +11,6 @@ use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Responsibility
- *
  * @package SPHERE\Application\Setting\Consumer\Responsibility
  */
 class Responsibility implements IModuleInterface
@@ -21,7 +20,8 @@ class Responsibility implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schulträger'), new Link\Icon(new Education()))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schulträger'),
+                new Link\Icon(new Education()))
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__, '/Frontend::frontendDashboard')
@@ -30,13 +30,19 @@ class Responsibility implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Create',
                 __NAMESPACE__.'/Frontend::frontendResponsibilityCreate'
             )
-                ->setParameterDefault('Responsibility', false)
+                ->setParameterDefault('Responsibility', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
                 __NAMESPACE__.'/Frontend::frontendResponsibilityDelete'
             )
-                ->setParameterDefault('Responsibility', false)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'/Frontend::frontendResponsibilityDestroy'
+            )
+                ->setParameterDefault('Id', null)
+                ->setParameterDefault('Confirm', false)
         );
     }
 

@@ -1,30 +1,30 @@
 <?php
-namespace SPHERE\Application\Setting\Consumer\SchoolBoard;
+namespace SPHERE\Application\Education\School\Building;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\Icon\Repository\Education;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\Common\Window\Stage;
 
 /**
- * Class SchoolBoard
+ * Class Building
  *
- * @package SPHERE\Application\Setting\Consumer\SchoolBoard
+ * @package SPHERE\Application\Education\School\Building
  */
-class SchoolBoard implements IModuleInterface
+class Building implements IModuleInterface
 {
 
     public static function registerModule()
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Schulträger'), new Link\Icon(new Education()))
+            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Gebäude & Räume'))
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__, __CLASS__.'::frontendDashboard')
-        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__, __CLASS__.'::frontendDashboard'
+        ));
     }
 
     /**
@@ -41,5 +41,16 @@ class SchoolBoard implements IModuleInterface
     public static function useFrontend()
     {
         // TODO: Implement useFrontend() method.
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendDashboard()
+    {
+
+        $Stage = new Stage('Dashboard', 'Gebäude & Räume');
+
+        return $Stage;
     }
 }

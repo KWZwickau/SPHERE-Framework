@@ -74,8 +74,10 @@ class Data extends Extension
             $Entity->setServiceTblCompany($tblCompany);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+
             return $Entity;
         }
+
         return false;
     }
 

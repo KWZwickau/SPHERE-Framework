@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Setting\Consumer\Responsibility;
 
+
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Setting\Consumer\Responsibility\Service\Data;
@@ -75,6 +76,17 @@ class Service extends Extension implements IServiceInterface
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblResponsibility
+     */
+    public function getResponsibilityById($Id)
+    {
+
+        return (new Data($this->Binding))->getResponsibilityById($Id);
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param integer        $Responsibility
      *
@@ -88,13 +100,12 @@ class Service extends Extension implements IServiceInterface
         /**
          * Skip to Frontend
          */
+        $Global = $this->getGlobal();
 
-        var_dump($Responsibility);
-
-        if (null === $Responsibility) {
+        if (empty( $Global->POST )) {
             return $Form;
         }
-        if (false === $Responsibility) {
+        if (!empty( $Global->POST && null === $Responsibility )) {
             $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie einen Schulträger aus')))));
             return $Form;
         }
@@ -117,27 +128,14 @@ class Service extends Extension implements IServiceInterface
         return $Form;
     }
 
-    public function removeResponsibility(
-        IFormInterface $Form,
-        $Responsibility
-    ) {
+    /**
+     * @param TblResponsibility $tblResponsibility
+     *
+     * @return bool
+     */
+    public function destroyResponsibility(TblResponsibility $tblResponsibility)
+    {
 
-        /**
-         * Skip to Frontend
-         */
-        if (null === $Responsibility) {
-            $Form->appendGridGroup(new FormGroup(new FormRow(new FormColumn(new Danger('Bitte wählen Sie den zu entfernenden Schulträger aus')))));
-            return $Form;
-        }
-
-        $tblResponsibility = (new Data($this->Binding))->getResponsibilityById($Responsibility);
-
-        if ((new Data($this->Binding))->removeResponsibility($tblResponsibility)) {
-            return new Success('Der Schulträger wurde erfolgreich entfernt')
-            .new Redirect('/Setting/Consumer/Responsibility', 1);
-        } else {
-            return new Danger('Der Schulträger konnte nicht entfernt werden')
-            .new Redirect('/Setting/Consumer/Responsibility', 10);
-        }
+        return (new Data($this->Binding))->removeResponsibility($tblResponsibility);
     }
 }

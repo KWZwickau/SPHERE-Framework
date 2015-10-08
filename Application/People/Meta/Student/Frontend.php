@@ -5,6 +5,10 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\School\Course\Course;
+use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
@@ -108,11 +112,6 @@ class Frontend extends Extension implements IFrontendInterface
     private function formGroupTransfer(TblPerson $tblPerson = null, $Meta = array())
     {
 
-        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
-            Group::useService()->getGroupByMetaTable('SCHOOL')
-        );
-        array_push($tblCompanyAllSchool, new TblCompany());
-
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Meta'] )) {
@@ -176,83 +175,73 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
+            Group::useService()->getGroupByMetaTable('SCHOOL')
+        );
+        if ($tblCompanyAllSchool) {
+            array_push($tblCompanyAllSchool, new TblCompany());
+        } else {
+            $tblCompanyAllSchool = array(new TblCompany());
+        }
+
+        $tblSchoolTypeAll = Type::useService()->getTypeAll();
+        if ($tblSchoolTypeAll) {
+            array_push($tblSchoolTypeAll, new TblType());
+        } else {
+            $tblSchoolTypeAll = array(new TblType());
+        }
+
+        $tblSchoolCourseAll = Course::useService()->getCourseAll();
+        if ($tblSchoolCourseAll) {
+            array_push($tblSchoolCourseAll, new TblCourse());
+        } else {
+            $tblSchoolCourseAll = array(new TblCourse());
+        }
+
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Ersteinschulung', array(
-                        new SelectBox('Meta[Transfer][Enrollment][School]', 'Schule',
-                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                            new Education()),
+                        new SelectBox('Meta[Transfer][Enrollment][School]', 'Schule', array(
+                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                        ), new Education()),
                         new DatePicker('Meta[Transfer][Enrollment][Date]', 'Datum', 'Datum', new Calendar()),
                         new TextArea('Meta[Transfer][Enrollment][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
                 new FormColumn(array(
-                    // TODO:
                     new Panel('Schüler - Aufnahme', array(
                         new TextField('Meta[Transfer][Arrive][Identifier]', 'Schülernummer',
                             new Danger(new Info().' Schülernummer')),
                         new SelectBox('Meta[Transfer][Arrive][Type]', 'Letzte Schulart', array(
-                            '',
-                            'Grundschule',
-                            'allgemein bildende Förderschule',
-                            'Mittelschule / Oberschule',
-                            'Gymnasium',
-                            'Berufsschule',
-                            'Berufsfachschule',
-                            'Fachschule',
-                            'Fachoberschule',
-                            'Berufliches Gymnasium',
+                            '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                         ), new Education()),
-                        new SelectBox('Meta[Transfer][Arrive][School]', 'Abgebende Schule',
-                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                            new Education()),
+                        new SelectBox('Meta[Transfer][Arrive][School]', 'Abgebende Schule', array(
+                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                        ), new Education()),
                         new DatePicker('Meta[Transfer][Arrive][Date]', 'Datum', 'Datum', new Calendar()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
                 new FormColumn(array(
-                    // TODO:
                     new Panel('Schüler - Abgabe', array(
                         new SelectBox('Meta[Transfer][Leave][Type]', 'Letzte Schulart', array(
-                            '',
-                            'Grundschule',
-                            'allgemein bildende Förderschule',
-                            'Mittelschule / Oberschule',
-                            'Gymnasium',
-                            'Berufsschule',
-                            'Berufsfachschule',
-                            'Fachschule',
-                            'Fachoberschule',
-                            'Berufliches Gymnasium',
+                            '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                         ), new Education()),
-                        new SelectBox('Meta[Transfer][Leave][School]', 'Aufnehmende Schule',
-                            array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
-                            new Education()),
+                        new SelectBox('Meta[Transfer][Leave][School]', 'Aufnehmende Schule', array(
+                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                        ), new Education()),
                         new DatePicker('Meta[Transfer][Leave][Date]', 'Datum', 'Datum', new Calendar()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
             )),
             new FormRow(array(
                 new FormColumn(array(
-                    // TODO:
                     new Panel('Schulverlauf', array(
                         new SelectBox('Meta[Transfer][Process][Type]', 'Aktuelle Schulart', array(
-                            '',
-                            'Grundschule',
-                            'allgemein bildende Förderschule',
-                            'Mittelschule / Oberschule',
-                            'Gymnasium',
-                            'Berufsschule',
-                            'Berufsfachschule',
-                            'Fachschule',
-                            'Fachoberschule',
-                            'Berufliches Gymnasium',
+                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool,
                         ), new Education()),
                         new SelectBox('Meta[Transfer][Process][Type]', 'Aktueller Bildungsgang', array(
-                            '',
-                            'Hauptschule',
-                            'Realschule',
-                            'Gymnasium'
+                            '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
                         ), new Education()),
                         new TextArea('Meta[Transfer][Process][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
@@ -264,7 +253,10 @@ class Frontend extends Extension implements IFrontendInterface
                             new Bold('Aktuelle Klasse 10b'),
                             '2016/2017 Klasse 9b',
                             '2015/2016 Klasse 8a',
-                        )),
+                        ))
+                        .new Warning(
+                            'Vom System erkannte Besuche.<br/>Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
+                        ),
                     ), Panel::PANEL_TYPE_DEFAULT),
                 ), 3),
                 new FormColumn(array(
@@ -273,14 +265,20 @@ class Frontend extends Extension implements IFrontendInterface
                         new Listing(array(
                             '2015/2016 Klassenstufe 8',
                             '2017/2018 Klassenstufe 10'
-                        )),
-                        new Warning(
+                        ))
+                        .new Warning(
                             'Vom System erkannte Schuljahr&shy;wiederholungen.<br/>Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
                         ),
                     ), Panel::PANEL_TYPE_DEFAULT),
                 ), 3),
             )),
-        ), new Title('Schülertransfer'));
+        ), new Title('Schülertransfer',
+            new Warning(
+                new Danger(
+                    new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Es können im Moment nur fest vorgegebene Schularten/Bildungsgänge in der aktuellen Demo-Version verwendet werden'
+                )
+            )
+        ));
     }
 
     /**
@@ -459,7 +457,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Klasse 8: Philosophie',
                             'Klasse 9: Mathematik'
                         ))
-                    ,
+                        .new Warning(
+                            'Vom System erkannte Fachklassen<br/>Wird bei Zensurenvergabe im entsprechenden Fach erzeugt'
+                        ),
                         new SelectBox('Meta[Subject][Advanced]', 'Vertiefungskurs',
                             array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAdvanced),
                             new Education())
@@ -467,7 +467,9 @@ class Frontend extends Extension implements IFrontendInterface
                             'Klasse 10: Germanistik',
                             'Klasse 10: Mathematik'
                         ))
-                    ,
+                        .new Warning(
+                            'Vom System erkannte Fachklassen<br/>Wird bei Zensurenvergabe im entsprechenden Fach erzeugt'
+                        ),
                         new SelectBox('Meta[Subject][Profile]', 'Profil',
                             array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectProfile),
                             new Education()),

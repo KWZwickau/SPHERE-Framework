@@ -1,5 +1,6 @@
 <?php
-namespace SPHERE\Application\Setting\Consumer\School\Service;
+
+namespace SPHERE\Application\Education\School\Course\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
@@ -8,7 +9,7 @@ use SPHERE\System\Database\Fitting\Structure;
 /**
  * Class Setup
  *
- * @package SPHERE\Application\Setting\Consumer\School\Service
+ * @package SPHERE\Application\Education\School\Course\Service
  */
 class Setup
 {
@@ -37,32 +38,31 @@ class Setup
          * Table
          */
         $Schema = clone $this->Connection->getSchema();
-        $this->setTableSchool($Schema);
+        $this->setTableCourse($Schema);
         /**
          * Migration & Protocol
          */
         $this->Connection->addProtocol(__CLASS__);
         $this->Connection->setMigration($Schema, $Simulate);
-
         return $this->Connection->getProtocol($Simulate);
     }
+
 
     /**
      * @param Schema $Schema
      *
      * @return Table
      */
-    private function setTableSchool(Schema &$Schema)
+    private function setTableCourse(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblSchool');
-        if (!$this->Connection->hasColumn('tblSchool', 'serviceTblCompany')) {
-            $Table->addColumn('serviceTblCompany', 'bigint');
+        $Table = $this->Connection->createTable($Schema, 'tblCourse');
+        if (!$this->Connection->hasColumn('tblCourse', 'Name')) {
+            $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblSchool', 'serviceTblType')) {
-            $Table->addColumn('serviceTblType', 'bigint');
+        if (!$this->Connection->hasColumn('tblCourse', 'Description')) {
+            $Table->addColumn('Description', 'string');
         }
-
         return $Table;
     }
 }
