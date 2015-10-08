@@ -78,10 +78,9 @@ class Service extends Extension implements IServiceInterface
 
     /**
      * @param $Id
-     *
      * @return bool|TblSchool
      */
-    public function getSchoolById($Id )
+    public function getSchoolById($Id)
     {
 
         return (new Data($this->Binding))->getSchoolById($Id);
@@ -119,7 +118,7 @@ class Service extends Extension implements IServiceInterface
             $tblCompany = Company::useService()->getCompanyById($School);
             $tblType = Type::useService()->getTypeById($Type['Type']);
 
-            if ((new Data($this->Binding))->addSchool($tblCompany, $tblType )
+            if ((new Data($this->Binding))->addSchool($tblCompany, $tblType)
             ) {
                 return new Success('Die Schule wurde erfolgreich hinzugefügt')
                 .new Redirect('/Setting/Consumer/School', 1, array('Id' => $tblCompany->getId()));

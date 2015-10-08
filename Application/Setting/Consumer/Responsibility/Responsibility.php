@@ -11,6 +11,7 @@ use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Responsibility
+ *
  * @package SPHERE\Application\Setting\Consumer\Responsibility
  */
 class Responsibility implements IModuleInterface
