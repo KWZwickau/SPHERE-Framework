@@ -75,19 +75,19 @@ class Major0Minor8
         $Feature = $Category->createFeature('Mandant',
             new External('siehe EGE', 'http://www.ege-annaberg.de/node/416'));
         $Feature->createTask('Schulen')
-            ->createDuty('Eigene Schulen aus Firmen wählen')
-            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
-            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen')
-            ->createDuty('Vordefinierte Schulform in Datenbank')
-            ->createDuty('Zugehörige Schulform wählen');
+            ->createDuty('Eigene Schulen aus Firmen wählen', true)
+            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen', true)
+            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen', true)
+            ->createDuty('Vordefinierte Schulform in Datenbank', true)
+            ->createDuty('Zugehörige Schulform wählen', true);
         $Feature->createTask('Schulträger')
-            ->createDuty('Eigenen Träger aus Firmen wählen')
-            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
-            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen');
+            ->createDuty('Eigenen Träger aus Firmen wählen', true)
+            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen', true)
+            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen', true);
         $Feature->createTask('Förderverein')
-            ->createDuty('Eigenen Verein aus Firmen wählen')
-            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen')
-            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen');
+            ->createDuty('Eigenen Verein aus Firmen wählen', true)
+            ->createDuty('Kontaktdaten und Adressen kommen aus Firmen', true)
+            ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen', true);
 
         // Demoversion
         $Category = $Release->createCategory('Demoversion');
