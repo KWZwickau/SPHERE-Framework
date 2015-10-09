@@ -4,27 +4,15 @@ namespace SPHERE\Application\Education\Graduation\ScoreType\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Education\Graduation\ScoreType\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -37,14 +25,14 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $this->setTableScoreTypes($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
 
@@ -56,11 +44,11 @@ class Setup
     private function setTableScoreTypes(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblScoreType');
-        if (!$this->Connection->hasColumn('tblScoreType', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblScoreType');
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblScoreType', 'Short')) {
+        if (!$this->getConnection()->hasColumn('tblScoreType', 'Short')) {
             $Table->addColumn('Short', 'string');
         }
         return $Table;

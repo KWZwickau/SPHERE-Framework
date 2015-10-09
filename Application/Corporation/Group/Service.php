@@ -6,41 +6,19 @@ use SPHERE\Application\Corporation\Group\Service\Data;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
 use SPHERE\Application\Corporation\Group\Service\Setup;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Corporation\Group
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -51,9 +29,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -64,7 +42,7 @@ class Service implements IServiceInterface
     public function getGroupAll()
     {
 
-        return (new Data($this->Binding))->getGroupAll();
+        return (new Data($this->getBinding()))->getGroupAll();
     }
 
     /**
@@ -75,7 +53,7 @@ class Service implements IServiceInterface
     public function getGroupById($Id)
     {
 
-        return (new Data($this->Binding))->getGroupById($Id);
+        return (new Data($this->getBinding()))->getGroupById($Id);
     }
 
     /**
@@ -107,7 +85,7 @@ class Service implements IServiceInterface
         }
 
         if (!$Error) {
-            if ((new Data($this->Binding))->createGroup(
+            if ((new Data($this->getBinding()))->createGroup(
                 $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
@@ -128,7 +106,7 @@ class Service implements IServiceInterface
     public function getGroupByName($Name)
     {
 
-        return (new Data($this->Binding))->getGroupByName($Name);
+        return (new Data($this->getBinding()))->getGroupByName($Name);
     }
 
     /**
@@ -139,7 +117,7 @@ class Service implements IServiceInterface
     public function getGroupByMetaTable($MetaTable)
     {
 
-        return (new Data($this->Binding))->getGroupByMetaTable($MetaTable);
+        return (new Data($this->getBinding()))->getGroupByMetaTable($MetaTable);
     }
 
     /**
@@ -173,7 +151,7 @@ class Service implements IServiceInterface
         }
 
         if (!$Error) {
-            if ((new Data($this->Binding))->updateGroup(
+            if ((new Data($this->getBinding()))->updateGroup(
                 $tblGroup, $Group['Name'], $Group['Description'], $Group['Remark']
             )
             ) {
@@ -196,7 +174,7 @@ class Service implements IServiceInterface
     public function getCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return (new Data($this->Binding))->getCompanyAllByGroup($tblGroup);
+        return (new Data($this->getBinding()))->getCompanyAllByGroup($tblGroup);
     }
 
 
@@ -206,7 +184,7 @@ class Service implements IServiceInterface
     public function getCompanyAllHavingNoGroup()
     {
 
-        return (new Data($this->Binding))->getCompanyAllHavingNoGroup();
+        return (new Data($this->getBinding()))->getCompanyAllHavingNoGroup();
     }
 
     /**
@@ -218,7 +196,7 @@ class Service implements IServiceInterface
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        return (new Data($this->Binding))->countCompanyAllByGroup($tblGroup);
+        return (new Data($this->getBinding()))->countCompanyAllByGroup($tblGroup);
     }
 
     /**
@@ -230,7 +208,7 @@ class Service implements IServiceInterface
     public function getGroupAllByCompany(TblCompany $tblCompany)
     {
 
-        return (new Data($this->Binding))->getGroupAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getGroupAllByCompany($tblCompany);
     }
 
     /**
@@ -242,7 +220,7 @@ class Service implements IServiceInterface
     public function removeGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
     {
 
-        return (new Data($this->Binding))->removeGroupCompany($tblGroup, $tblCompany);
+        return (new Data($this->getBinding()))->removeGroupCompany($tblGroup, $tblCompany);
     }
 
     /**
@@ -254,7 +232,7 @@ class Service implements IServiceInterface
     public function addGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
     {
 
-        return (new Data($this->Binding))->addGroupCompany($tblGroup, $tblCompany);
+        return (new Data($this->getBinding()))->addGroupCompany($tblGroup, $tblCompany);
     }
 
     /**
@@ -265,6 +243,6 @@ class Service implements IServiceInterface
     public function destroyGroup(TblGroup $tblGroup)
     {
 
-        return (new Data($this->Binding))->destroyGroup($tblGroup);
+        return (new Data($this->getBinding()))->destroyGroup($tblGroup);
     }
 }

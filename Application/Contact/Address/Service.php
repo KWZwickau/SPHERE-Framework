@@ -10,42 +10,20 @@ use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Address\Service\Entity\TblType;
 use SPHERE\Application\Contact\Address\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Contact\Address
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -56,9 +34,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -71,7 +49,7 @@ class Service implements IServiceInterface
     public function getCityById($Id)
     {
 
-        return (new Data($this->Binding))->getCityById($Id);
+        return (new Data($this->getBinding()))->getCityById($Id);
     }
 
     /**
@@ -82,7 +60,7 @@ class Service implements IServiceInterface
     public function getAddressById($Id)
     {
 
-        return (new Data($this->Binding))->getAddressById($Id);
+        return (new Data($this->getBinding()))->getAddressById($Id);
     }
 
     /**
@@ -91,7 +69,7 @@ class Service implements IServiceInterface
     public function getCityAll()
     {
 
-        return (new Data($this->Binding))->getCityAll();
+        return (new Data($this->getBinding()))->getCityAll();
     }
 
     /**
@@ -100,7 +78,7 @@ class Service implements IServiceInterface
     public function getStateAll()
     {
 
-        return (new Data($this->Binding))->getStateAll();
+        return (new Data($this->getBinding()))->getStateAll();
     }
 
     /**
@@ -109,7 +87,7 @@ class Service implements IServiceInterface
     public function getAddressAll()
     {
 
-        return (new Data($this->Binding))->getAddressAll();
+        return (new Data($this->getBinding()))->getAddressAll();
     }
 
     /**
@@ -118,7 +96,7 @@ class Service implements IServiceInterface
     public function getTypeAll()
     {
 
-        return (new Data($this->Binding))->getTypeAll();
+        return (new Data($this->getBinding()))->getTypeAll();
     }
 
     /**
@@ -182,14 +160,14 @@ class Service implements IServiceInterface
 
             $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
-            $tblCity = (new Data($this->Binding))->createCity(
+            $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
-            $tblAddress = (new Data($this->Binding))->createAddress(
+            $tblAddress = (new Data($this->getBinding()))->createAddress(
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
             );
 
-            if ((new Data($this->Binding))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
+            if ((new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress, $tblType,
                 $Type['Remark'])
             ) {
                 return new Success('Die Adresse wurde erfolgreich hinzugefügt')
@@ -212,7 +190,7 @@ class Service implements IServiceInterface
     public function getTypeById($Id)
     {
 
-        return (new Data($this->Binding))->getTypeById($Id);
+        return (new Data($this->getBinding()))->getTypeById($Id);
     }
 
     /**
@@ -223,7 +201,36 @@ class Service implements IServiceInterface
     public function getStateById($Id)
     {
 
-        return (new Data($this->Binding))->getStateById($Id);
+        return (new Data($this->getBinding()))->getStateById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param           $StreetName
+     * @param           $StreetNumber
+     * @param           $CityCode
+     * @param           $CityName
+     */
+    public function createAddressToPersonFromImport(
+        TblPerson $tblPerson,
+        $StreetName,
+        $StreetNumber,
+        $CityCode,
+        $CityName
+    ) {
+
+        $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, '');
+        // TODO tblState
+        $tblAddress = (new Data($this->getBinding()))->createAddress(
+            Address::useService()->getStateById(1),
+            $tblCity,
+            $StreetName,
+            $StreetNumber,
+            ''
+        );
+
+        (new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress,
+            Address::useService()->getTypeById(1), '');
     }
 
     /**
@@ -288,16 +295,16 @@ class Service implements IServiceInterface
 
             $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
-            $tblCity = (new Data($this->Binding))->createCity(
+            $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
-            $tblAddress = (new Data($this->Binding))->createAddress(
+            $tblAddress = (new Data($this->getBinding()))->createAddress(
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
             );
             // Remove current
-            (new Data($this->Binding))->removeAddressToPerson($tblToPerson);
+            (new Data($this->getBinding()))->removeAddressToPerson($tblToPerson);
             // Add new
-            if ((new Data($this->Binding))->addAddressToPerson($tblToPerson->getServiceTblPerson(), $tblAddress,
+            if ((new Data($this->getBinding()))->addAddressToPerson($tblToPerson->getServiceTblPerson(), $tblAddress,
                 $tblType,
                 $Type['Remark'])
             ) {
@@ -375,16 +382,16 @@ class Service implements IServiceInterface
 
             $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
-            $tblCity = (new Data($this->Binding))->createCity(
+            $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
-            $tblAddress = (new Data($this->Binding))->createAddress(
+            $tblAddress = (new Data($this->getBinding()))->createAddress(
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
             );
             // Remove current
-            (new Data($this->Binding))->removeAddressToCompany($tblToCompany);
+            (new Data($this->getBinding()))->removeAddressToCompany($tblToCompany);
             // Add new
-            if ((new Data($this->Binding))->addAddressToCompany($tblToCompany->getServiceTblCompany(), $tblAddress,
+            if ((new Data($this->getBinding()))->addAddressToCompany($tblToCompany->getServiceTblCompany(), $tblAddress,
                 $tblType,
                 $Type['Remark'])
             ) {
@@ -461,14 +468,14 @@ class Service implements IServiceInterface
 
             $tblType = $this->getTypeById($Type['Type']);
             $tblState = $this->getStateById($State);
-            $tblCity = (new Data($this->Binding))->createCity(
+            $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
-            $tblAddress = (new Data($this->Binding))->createAddress(
+            $tblAddress = (new Data($this->getBinding()))->createAddress(
                 $tblState, $tblCity, $Street['Name'], $Street['Number'], ''
             );
 
-            if ((new Data($this->Binding))->addAddressToCompany($tblCompany, $tblAddress, $tblType,
+            if ((new Data($this->getBinding()))->addAddressToCompany($tblCompany, $tblAddress, $tblType,
                 $Type['Remark'])
             ) {
                 return new Success('Die Adresse wurde erfolgreich hinzugefügt')
@@ -491,7 +498,7 @@ class Service implements IServiceInterface
     public function getAddressAllByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getAddressAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getAddressAllByPerson($tblPerson);
     }
 
     /**
@@ -502,7 +509,7 @@ class Service implements IServiceInterface
     public function getAddressAllByCompany(TblCompany $tblCompany)
     {
 
-        return (new Data($this->Binding))->getAddressAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getAddressAllByCompany($tblCompany);
     }
 
     /**
@@ -513,7 +520,7 @@ class Service implements IServiceInterface
     public function getAddressToPersonById($Id)
     {
 
-        return (new Data($this->Binding))->getAddressToPersonById($Id);
+        return (new Data($this->getBinding()))->getAddressToPersonById($Id);
     }
 
 
@@ -525,7 +532,7 @@ class Service implements IServiceInterface
     public function getAddressToCompanyById($Id)
     {
 
-        return (new Data($this->Binding))->getAddressToCompanyById($Id);
+        return (new Data($this->getBinding()))->getAddressToCompanyById($Id);
     }
 
     /**
@@ -536,7 +543,7 @@ class Service implements IServiceInterface
     public function removeAddressToPerson(TblToPerson $tblToPerson)
     {
 
-        return (new Data($this->Binding))->removeAddressToPerson($tblToPerson);
+        return (new Data($this->getBinding()))->removeAddressToPerson($tblToPerson);
     }
 
     /**
@@ -547,6 +554,6 @@ class Service implements IServiceInterface
     public function removeAddressToCompany(TblToCompany $tblToCompany)
     {
 
-        return (new Data($this->Binding))->removeAddressToCompany($tblToCompany);
+        return (new Data($this->getBinding()))->removeAddressToCompany($tblToCompany);
     }
 }

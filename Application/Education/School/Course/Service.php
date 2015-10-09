@@ -4,37 +4,15 @@ namespace SPHERE\Application\Education\School\Course;
 use SPHERE\Application\Education\School\Course\Service\Data;
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Course\Service\Setup;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Education\School\Course
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -45,9 +23,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -58,7 +36,7 @@ class Service implements IServiceInterface
     public function getCourseAll()
     {
 
-        return (new Data($this->Binding))->getCourseAll();
+        return (new Data($this->getBinding()))->getCourseAll();
     }
 
     /**
@@ -69,6 +47,6 @@ class Service implements IServiceInterface
     public function getCourseById($Id)
     {
 
-        return (new Data($this->Binding))->getCourseById($Id);
+        return (new Data($this->getBinding()))->getCourseById($Id);
     }
 }

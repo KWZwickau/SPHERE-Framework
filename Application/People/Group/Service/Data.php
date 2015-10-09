@@ -6,28 +6,15 @@ use SPHERE\Application\People\Group\Service\Entity\TblMember;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Group\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -51,7 +38,7 @@ class Data extends Cacheable
     public function createGroup($Name, $Description, $Remark, $IsLocked = false, $MetaTable = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
@@ -71,7 +58,7 @@ class Data extends Cacheable
             $Entity->setIsLocked($IsLocked);
             $Entity->setMetaTable($MetaTable);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
 
         return $Entity;
@@ -88,7 +75,7 @@ class Data extends Cacheable
     public function updateGroup(TblGroup $tblGroup, $Name, $Description, $Remark)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblGroup $Entity */
         $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
         if (null !== $Entity) {
@@ -97,7 +84,7 @@ class Data extends Cacheable
             $Entity->setDescription($Description);
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -109,7 +96,7 @@ class Data extends Cacheable
     public function getGroupAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup');
     }
 
     /**
@@ -120,7 +107,7 @@ class Data extends Cacheable
     public function getGroupById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', $Id);
     }
 
     /**
@@ -131,7 +118,7 @@ class Data extends Cacheable
     public function getGroupByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(TblGroup::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -144,7 +131,7 @@ class Data extends Cacheable
     public function getGroupByMetaTable($MetaTable)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(
                 TblGroup::ATTR_META_TABLE => $MetaTable,
                 TblGroup::ATTR_IS_LOCKED  => true
@@ -161,7 +148,7 @@ class Data extends Cacheable
     public function countPersonAllByGroup(TblGroup $tblGroup)
     {
 
-        $Count = $this->Connection->getEntityManager()->getEntity('TblMember')->countBy(array(
+        $Count = $this->getConnection()->getEntityManager()->getEntity('TblMember')->countBy(array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
         return $Count;
@@ -176,7 +163,7 @@ class Data extends Cacheable
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblMember')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblMember')->findBy(array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
         array_walk($EntityList, function (TblMember &$V) {
@@ -192,7 +179,7 @@ class Data extends Cacheable
     public function getPersonAllHavingNoGroup()
     {
 
-        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+        $Exclude = $this->getConnection()->getEntityManager()->getQueryBuilder()
             ->select('M.serviceTblPerson')
             ->from('\SPHERE\Application\People\Group\Service\Entity\TblMember', 'M')
             ->distinct()
@@ -225,7 +212,7 @@ class Data extends Cacheable
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblMember')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblMember')->findBy(array(
             TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
         array_walk($EntityList, function (TblMember &$V) {
@@ -244,7 +231,7 @@ class Data extends Cacheable
     public function addGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
                 TblMember::ATTR_TBL_GROUP     => $tblGroup->getId(),
@@ -255,7 +242,7 @@ class Data extends Cacheable
             $Entity->setTblGroup($tblGroup);
             $Entity->setServiceTblPerson($tblPerson);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -269,7 +256,7 @@ class Data extends Cacheable
     public function removeGroupPerson(TblGroup $tblGroup, TblPerson $tblPerson)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
@@ -277,7 +264,7 @@ class Data extends Cacheable
                 TblMember::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -292,11 +279,11 @@ class Data extends Cacheable
     public function destroyGroup(TblGroup $tblGroup)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }

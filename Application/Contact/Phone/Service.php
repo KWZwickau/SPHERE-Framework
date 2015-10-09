@@ -8,42 +8,20 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Contact\Phone\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Contact\Phone
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -54,9 +32,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -69,7 +47,7 @@ class Service implements IServiceInterface
     public function getPhoneById($Id)
     {
 
-        return (new Data($this->Binding))->getPhoneById($Id);
+        return (new Data($this->getBinding()))->getPhoneById($Id);
     }
 
     /**
@@ -78,7 +56,7 @@ class Service implements IServiceInterface
     public function getPhoneAll()
     {
 
-        return (new Data($this->Binding))->getPhoneAll();
+        return (new Data($this->getBinding()))->getPhoneAll();
     }
 
     /**
@@ -87,7 +65,7 @@ class Service implements IServiceInterface
     public function getTypeAll()
     {
 
-        return (new Data($this->Binding))->getTypeAll();
+        return (new Data($this->getBinding()))->getTypeAll();
     }
 
     /**
@@ -98,7 +76,7 @@ class Service implements IServiceInterface
     public function getPhoneAllByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getPhoneAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getPhoneAllByPerson($tblPerson);
     }
 
     /**
@@ -109,7 +87,7 @@ class Service implements IServiceInterface
     public function getPhoneAllByCompany(TblCompany $tblCompany)
     {
 
-        return (new Data($this->Binding))->getPhoneAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getPhoneAllByCompany($tblCompany);
     }
 
     /**
@@ -144,9 +122,9 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblPhone = (new Data($this->Binding))->createPhone($Number);
+            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
 
-            if ((new Data($this->Binding))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
+            if ((new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Type['Remark'])
             ) {
                 return new Success('Die Telefonnummer wurde erfolgreich hinzugefügt')
                 .new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
@@ -166,7 +144,22 @@ class Service implements IServiceInterface
     public function getTypeById($Id)
     {
 
-        return (new Data($this->Binding))->getTypeById($Id);
+        return (new Data($this->getBinding()))->getTypeById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param           $Number
+     * @param TblType   $tblType
+     */
+    public function createPhoneToPersonFromImport(
+        TblPerson $tblPerson,
+        $Number,
+        TblType $tblType
+    ) {
+
+        $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
+        (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, '');
     }
 
     /**
@@ -201,9 +194,9 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblPhone = (new Data($this->Binding))->createPhone($Number);
+            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
 
-            if ((new Data($this->Binding))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
+            if ((new Data($this->getBinding()))->addPhoneToCompany($tblCompany, $tblPhone, $tblType, $Type['Remark'])
             ) {
                 return new Success('Die Telefonnummer wurde erfolgreich hinzugefügt')
                 .new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()));
@@ -247,11 +240,11 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblPhone = (new Data($this->Binding))->createPhone($Number);
+            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
             // Remove current
-            (new Data($this->Binding))->removePhoneToPerson($tblToPerson);
+            (new Data($this->getBinding()))->removePhoneToPerson($tblToPerson);
             // Add new
-            if ((new Data($this->Binding))->addPhoneToPerson($tblToPerson->getServiceTblPerson(), $tblPhone,
+            if ((new Data($this->getBinding()))->addPhoneToPerson($tblToPerson->getServiceTblPerson(), $tblPhone,
                 $tblType, $Type['Remark'])
             ) {
                 return new Success('Die Telefonnummer wurde erfolgreich geändert')
@@ -298,11 +291,11 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblPhone = (new Data($this->Binding))->createPhone($Number);
+            $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
             // Remove current
-            (new Data($this->Binding))->removePhoneToCompany($tblToCompany);
+            (new Data($this->getBinding()))->removePhoneToCompany($tblToCompany);
             // Add new
-            if ((new Data($this->Binding))->addPhoneToCompany($tblToCompany->getServiceTblCompany(), $tblPhone,
+            if ((new Data($this->getBinding()))->addPhoneToCompany($tblToCompany->getServiceTblCompany(), $tblPhone,
                 $tblType, $Type['Remark'])
             ) {
                 return new Success('Die Telefonnummer wurde erfolgreich geändert')
@@ -325,7 +318,7 @@ class Service implements IServiceInterface
     public function getPhoneToPersonById($Id)
     {
 
-        return (new Data($this->Binding))->getPhoneToPersonById($Id);
+        return (new Data($this->getBinding()))->getPhoneToPersonById($Id);
     }
 
 
@@ -337,7 +330,7 @@ class Service implements IServiceInterface
     public function getPhoneToCompanyById($Id)
     {
 
-        return (new Data($this->Binding))->getPhoneToCompanyById($Id);
+        return (new Data($this->getBinding()))->getPhoneToCompanyById($Id);
     }
 
     /**
@@ -348,7 +341,7 @@ class Service implements IServiceInterface
     public function removePhoneToPerson(TblToPerson $tblToPerson)
     {
 
-        return (new Data($this->Binding))->removePhoneToPerson($tblToPerson);
+        return (new Data($this->getBinding()))->removePhoneToPerson($tblToPerson);
     }
 
     /**
@@ -359,6 +352,6 @@ class Service implements IServiceInterface
     public function removePhoneToCompany(TblToCompany $tblToCompany)
     {
 
-        return (new Data($this->Binding))->removePhoneToCompany($tblToCompany);
+        return (new Data($this->getBinding()))->removePhoneToCompany($tblToCompany);
     }
 }

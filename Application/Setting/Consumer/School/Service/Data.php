@@ -5,28 +5,15 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Setting\Consumer\School\Service\Entity\TblSchool;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Extension\Extension;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Setting\Consumer\School\Service
  */
-class Data extends Extension
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -35,12 +22,13 @@ class Data extends Extension
 
     /**
      * @param integer $Id
+     *
      * @return bool|TblSchool
      */
     public function getSchoolById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblSchool', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblSchool', $Id);
 
         return ( null === $Entity ? false : $Entity );
     }
@@ -51,7 +39,7 @@ class Data extends Extension
     public function getSchoolAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblSchool')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblSchool')->findAll();
 
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
@@ -66,7 +54,7 @@ class Data extends Extension
     public function addSchool(TblCompany $tblCompany, TblType $tblType)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSchool')
             ->findOneBy(array(
                 TblSchool::SERVICE_TBL_COMPANY => $tblCompany->getId(),
@@ -77,7 +65,7 @@ class Data extends Extension
             $Entity->setServiceTblCompany($tblCompany);
             $Entity->setTblType($tblType);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
             return $Entity;
         }
         return false;
@@ -91,11 +79,11 @@ class Data extends Extension
     public function removeSchool(TblSchool $tblSchool)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblSchool $Entity */
         $Entity = $Manager->getEntityById('TblSchool', $tblSchool->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
 
             return true;

@@ -3,27 +3,15 @@ namespace SPHERE\Application\Education\Lesson\Subject\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Education\Lesson\Subject\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -33,7 +21,7 @@ class Setup
     public function setupDatabaseSchema($Simulate = true)
     {
 
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblGroup = $this->setTableGroup($Schema);
         $tblCategory = $this->setTableCategory($Schema);
         $this->setTableGroupCategory($Schema, $tblGroup, $tblCategory);
@@ -42,9 +30,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -55,17 +43,17 @@ class Setup
     private function setTableGroup(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblGroup');
-        if (!$this->Connection->hasColumn('tblGroup', 'Identifier')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblGroup');
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
-        if (!$this->Connection->hasColumn('tblGroup', 'IsLocked')) {
+        if (!$this->getConnection()->hasColumn('tblGroup', 'IsLocked')) {
             $Table->addColumn('IsLocked', 'boolean');
         }
-        if (!$this->Connection->hasColumn('tblGroup', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblGroup', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         return $Table;
@@ -79,17 +67,17 @@ class Setup
     private function setTableCategory(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblCategory');
-        if (!$this->Connection->hasColumn('tblCategory', 'Identifier')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblCategory');
+        if (!$this->getConnection()->hasColumn('tblCategory', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
-        if (!$this->Connection->hasColumn('tblCategory', 'IsLocked')) {
+        if (!$this->getConnection()->hasColumn('tblCategory', 'IsLocked')) {
             $Table->addColumn('IsLocked', 'boolean');
         }
-        if (!$this->Connection->hasColumn('tblCategory', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblCategory', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblCategory', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblCategory', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         return $Table;
@@ -105,9 +93,9 @@ class Setup
     private function setTableGroupCategory(Schema &$Schema, Table $tblGroup, Table $tblCategory)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblGroupCategory');
-        $this->Connection->addForeignKey($Table, $tblGroup);
-        $this->Connection->addForeignKey($Table, $tblCategory);
+        $Table = $this->getConnection()->createTable($Schema, 'tblGroupCategory');
+        $this->getConnection()->addForeignKey($Table, $tblGroup);
+        $this->getConnection()->addForeignKey($Table, $tblCategory);
         return $Table;
     }
 
@@ -119,17 +107,17 @@ class Setup
     private function setTableSubject(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblSubject');
-        if (!$this->Connection->hasColumn('tblSubject', 'Acronym')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblSubject');
+        if (!$this->getConnection()->hasColumn('tblSubject', 'Acronym')) {
             $Table->addColumn('Acronym', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Acronym'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Acronym'))) {
             $Table->addUniqueIndex(array('Acronym'));
         }
-        if (!$this->Connection->hasColumn('tblSubject', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblSubject', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblSubject', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblSubject', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         return $Table;
@@ -145,11 +133,9 @@ class Setup
     private function setTableCategorySubject(Schema &$Schema, Table $tblCategory, Table $tblSubject)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblCategorySubject');
-        $this->Connection->addForeignKey($Table, $tblCategory);
-        $this->Connection->addForeignKey($Table, $tblSubject);
+        $Table = $this->getConnection()->createTable($Schema, 'tblCategorySubject');
+        $this->getConnection()->addForeignKey($Table, $tblCategory);
+        $this->getConnection()->addForeignKey($Table, $tblSubject);
         return $Table;
     }
-
-
 }

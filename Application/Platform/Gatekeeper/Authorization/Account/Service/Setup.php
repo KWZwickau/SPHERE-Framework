@@ -4,27 +4,15 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -37,7 +25,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblAccount = $this->setTableAccount($Schema);
         $tblIdentification = $this->setTableIdentification($Schema);
         $this->setTableSession($Schema, $tblAccount);
@@ -47,9 +35,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -60,23 +48,23 @@ class Setup
     private function setTableAccount(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAccount');
-        if (!$this->Connection->hasColumn('tblAccount', 'Username')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAccount');
+        if (!$this->getConnection()->hasColumn('tblAccount', 'Username')) {
             $Table->addColumn('Username', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Username'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Username'))) {
             $Table->addUniqueIndex(array('Username'));
         }
-        if (!$this->Connection->hasColumn('tblAccount', 'Password')) {
+        if (!$this->getConnection()->hasColumn('tblAccount', 'Password')) {
             $Table->addColumn('Password', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Username', 'Password'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Username', 'Password'))) {
             $Table->addIndex(array('Username', 'Password'));
         }
-        if (!$this->Connection->hasColumn('tblAccount', 'serviceTblToken')) {
+        if (!$this->getConnection()->hasColumn('tblAccount', 'serviceTblToken')) {
             $Table->addColumn('serviceTblToken', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblAccount', 'serviceTblConsumer')) {
+        if (!$this->getConnection()->hasColumn('tblAccount', 'serviceTblConsumer')) {
             $Table->addColumn('serviceTblConsumer', 'bigint', array('notnull' => false));
         }
         return $Table;
@@ -90,17 +78,17 @@ class Setup
     private function setTableIdentification(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblIdentification');
-        if (!$this->Connection->hasColumn('tblIdentification', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblIdentification');
+        if (!$this->getConnection()->hasColumn('tblIdentification', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Name'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Name'))) {
             $Table->addUniqueIndex(array('Name'));
         }
-        if (!$this->Connection->hasColumn('tblIdentification', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblIdentification', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Description'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Description'))) {
             $Table->addIndex(array('Description'));
         }
         return $Table;
@@ -115,17 +103,17 @@ class Setup
     private function setTableSession(Schema &$Schema, Table $tblAccount)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblSession');
-        if (!$this->Connection->hasColumn('tblSession', 'Session')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblSession');
+        if (!$this->getConnection()->hasColumn('tblSession', 'Session')) {
             $Table->addColumn('Session', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Session'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Session'))) {
             $Table->addIndex(array('Session'));
         }
-        if (!$this->Connection->hasColumn('tblSession', 'Timeout')) {
+        if (!$this->getConnection()->hasColumn('tblSession', 'Timeout')) {
             $Table->addColumn('Timeout', 'integer');
         }
-        $this->Connection->addForeignKey($Table, $tblAccount);
+        $this->getConnection()->addForeignKey($Table, $tblAccount);
         return $Table;
     }
 
@@ -139,11 +127,11 @@ class Setup
     private function setTableAuthorization(Schema &$Schema, Table $tblAccount)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAuthorization');
-        if (!$this->Connection->hasColumn('tblAuthorization', 'serviceTblRole')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAuthorization');
+        if (!$this->getConnection()->hasColumn('tblAuthorization', 'serviceTblRole')) {
             $Table->addColumn('serviceTblRole', 'bigint', array('notnull' => false));
         }
-        $this->Connection->addForeignKey($Table, $tblAccount);
+        $this->getConnection()->addForeignKey($Table, $tblAccount);
         return $Table;
     }
 
@@ -158,9 +146,9 @@ class Setup
     private function setTableAuthentication(Schema &$Schema, Table $tblAccount, Table $tblIdentification)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAuthentication');
-        $this->Connection->addForeignKey($Table, $tblAccount);
-        $this->Connection->addForeignKey($Table, $tblIdentification);
+        $Table = $this->getConnection()->createTable($Schema, 'tblAuthentication');
+        $this->getConnection()->addForeignKey($Table, $tblAccount);
+        $this->getConnection()->addForeignKey($Table, $tblIdentification);
         return $Table;
     }
 
@@ -173,11 +161,11 @@ class Setup
     private function setTableUser(Schema &$Schema, Table $tblAccount)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblUser');
-        if (!$this->Connection->hasColumn('tblUser', 'serviceTblPerson')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblUser');
+        if (!$this->getConnection()->hasColumn('tblUser', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        $this->Connection->addForeignKey($Table, $tblAccount);
+        $this->getConnection()->addForeignKey($Table, $tblAccount);
         return $Table;
     }
 }

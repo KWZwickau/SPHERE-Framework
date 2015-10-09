@@ -7,28 +7,15 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Education\Lesson\Subject\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -165,7 +152,7 @@ class Data extends Cacheable
     public function createGroup($Name, $Description = '', $IsLocked = false, $Identifier = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
                 TblGroup::ATTR_IS_LOCKED  => $IsLocked,
@@ -183,7 +170,7 @@ class Data extends Cacheable
             $Entity->setIsLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -199,7 +186,7 @@ class Data extends Cacheable
     public function createCategory($Name, $Description = '', $IsLocked = false, $Identifier = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblCategory')->findOneBy(array(
                 TblCategory::ATTR_IS_LOCKED  => $IsLocked,
@@ -217,7 +204,7 @@ class Data extends Cacheable
             $Entity->setIsLocked($IsLocked);
             $Entity->setIdentifier($Identifier);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -231,7 +218,7 @@ class Data extends Cacheable
     public function addGroupCategory(TblGroup $tblGroup, TblCategory $tblCategory)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblGroupCategory')
             ->findOneBy(array(
                 TblGroupCategory::ATTR_TBL_GROUP    => $tblGroup->getId(),
@@ -242,7 +229,7 @@ class Data extends Cacheable
             $Entity->setTblGroup($tblGroup);
             $Entity->setTblCategory($tblCategory);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -257,7 +244,7 @@ class Data extends Cacheable
     public function createSubject($Acronym, $Name, $Description = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSubject')->findOneBy(array(
             TblSubject::ATTR_ACRONYM => $Acronym,
         ));
@@ -267,7 +254,7 @@ class Data extends Cacheable
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -281,7 +268,7 @@ class Data extends Cacheable
     public function addCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCategorySubject')
             ->findOneBy(array(
                 TblCategorySubject::ATTR_TBL_CATEGORY => $tblCategory->getId(),
@@ -292,7 +279,7 @@ class Data extends Cacheable
             $Entity->setTblCategory($tblCategory);
             $Entity->setTblSubject($tblSubject);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -305,7 +292,7 @@ class Data extends Cacheable
     public function getSubjectByAcronym($Acronym)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblSubject', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubject', array(
             TblSubject::ATTR_ACRONYM => $Acronym
         ));
     }
@@ -316,7 +303,7 @@ class Data extends Cacheable
     public function countSubjectAll()
     {
 
-        return $this->Connection->getEntityManager()->getEntity('TblSubject')->count();
+        return $this->getConnection()->getEntityManager()->getEntity('TblSubject')->count();
     }
 
     /**
@@ -325,7 +312,7 @@ class Data extends Cacheable
     public function getGroupAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup');
     }
 
     /**
@@ -337,7 +324,7 @@ class Data extends Cacheable
     public function removeGroupCategory(TblGroup $tblGroup, TblCategory $tblCategory)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblGroupCategory $Entity */
         $Entity = $Manager->getEntity('TblGroupCategory')
             ->findOneBy(array(
@@ -345,7 +332,7 @@ class Data extends Cacheable
                 TblGroupCategory::ATTR_TBL_CATEGORY => $tblCategory->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -361,7 +348,7 @@ class Data extends Cacheable
     public function removeCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblCategorySubject $Entity */
         $Entity = $Manager->getEntity('TblCategorySubject')
             ->findOneBy(array(
@@ -369,7 +356,7 @@ class Data extends Cacheable
                 TblCategorySubject::ATTR_TBL_SUBJECT  => $tblSubject->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -385,7 +372,7 @@ class Data extends Cacheable
     {
 
         /** @var TblCategorySubject[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblCategorySubject')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblCategorySubject')->findBy(array(
             TblCategorySubject::ATTR_TBL_CATEGORY => $tblCategory->getId()
         ));
         array_walk($EntityList, function (TblCategorySubject &$V) {
@@ -404,7 +391,7 @@ class Data extends Cacheable
     {
 
         /** @var TblGroupCategory[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblGroupCategory')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGroupCategory')->findBy(array(
             TblGroupCategory::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
         array_walk($EntityList, function (TblGroupCategory &$V) {
@@ -422,7 +409,7 @@ class Data extends Cacheable
     public function getGroupById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', $Id);
     }
 
     /**
@@ -433,7 +420,7 @@ class Data extends Cacheable
     public function getGroupByIdentifier($Identifier)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
             TblGroup::ATTR_IDENTIFIER => strtoupper($Identifier)
         ));
     }
@@ -446,7 +433,7 @@ class Data extends Cacheable
     public function getCategoryById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblCategory', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCategory', $Id);
     }
 
     /**
@@ -457,7 +444,7 @@ class Data extends Cacheable
     public function getCategoryByIdentifier($Identifier)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblCategory', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCategory', array(
             TblCategory::ATTR_IDENTIFIER => strtoupper($Identifier)
         ));
     }
@@ -470,7 +457,7 @@ class Data extends Cacheable
     public function getSubjectById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblSubject', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubject', $Id);
     }
 
     /**
@@ -479,7 +466,7 @@ class Data extends Cacheable
     public function getSubjectAllHavingNoCategory()
     {
 
-        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+        $Exclude = $this->getConnection()->getEntityManager()->getQueryBuilder()
             ->select('NM.tblSubject')
             ->from(__NAMESPACE__.'\Entity\TblCategorySubject', 'NM')
             ->distinct()
@@ -508,7 +495,7 @@ class Data extends Cacheable
     public function getSubjectAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblSubject');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubject');
     }
 
     /**
@@ -517,7 +504,7 @@ class Data extends Cacheable
     public function getCategoryAllHavingNoGroup()
     {
 
-        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+        $Exclude = $this->getConnection()->getEntityManager()->getQueryBuilder()
             ->select('NM.tblCategory')
             ->from(__NAMESPACE__.'\Entity\TblGroupCategory', 'NM')
             ->distinct()
@@ -546,6 +533,6 @@ class Data extends Cacheable
     public function getCategoryAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCategory');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCategory');
     }
 }

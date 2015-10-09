@@ -3,27 +3,15 @@ namespace SPHERE\Application\People\Meta\Prospect\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\People\Meta\Prospect\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,16 +24,16 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblProspectAppointment = $this->setTableProspectAppointment($Schema);
         $tblProspectReservation = $this->setTableProspectReservation($Schema);
         $this->setTableProspect($Schema, $tblProspectAppointment, $tblProspectReservation);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -56,14 +44,14 @@ class Setup
     private function setTableProspectAppointment(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblProspectAppointment');
-        if (!$this->Connection->hasColumn('tblProspectAppointment', 'ReservationDate')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblProspectAppointment');
+        if (!$this->getConnection()->hasColumn('tblProspectAppointment', 'ReservationDate')) {
             $Table->addColumn('ReservationDate', 'datetime', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblProspectAppointment', 'InterviewDate')) {
+        if (!$this->getConnection()->hasColumn('tblProspectAppointment', 'InterviewDate')) {
             $Table->addColumn('InterviewDate', 'datetime', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblProspectAppointment', 'TrialDate')) {
+        if (!$this->getConnection()->hasColumn('tblProspectAppointment', 'TrialDate')) {
             $Table->addColumn('TrialDate', 'datetime', array('notnull' => false));
         }
         return $Table;
@@ -77,17 +65,17 @@ class Setup
     private function setTableProspectReservation(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblProspectReservation');
-        if (!$this->Connection->hasColumn('tblProspectReservation', 'ReservationYear')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblProspectReservation');
+        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'ReservationYear')) {
             $Table->addColumn('ReservationYear', 'string');
         }
-        if (!$this->Connection->hasColumn('tblProspectReservation', 'ReservationDivision')) {
+        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'ReservationDivision')) {
             $Table->addColumn('ReservationDivision', 'string');
         }
-        if (!$this->Connection->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionA')) {
+        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionA')) {
             $Table->addColumn('serviceTblCompanyOptionA', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionB')) {
+        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionB')) {
             $Table->addColumn('serviceTblCompanyOptionB', 'bigint', array('notnull' => false));
         }
         return $Table;
@@ -103,15 +91,15 @@ class Setup
     private function setTableProspect(Schema &$Schema, Table $tblProspectAppointment, Table $tblProspectReservation)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblProspect');
-        if (!$this->Connection->hasColumn('tblProspect', 'serviceTblPerson')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblProspect');
+        if (!$this->getConnection()->hasColumn('tblProspect', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblProspect', 'Remark')) {
+        if (!$this->getConnection()->hasColumn('tblProspect', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
-        $this->Connection->addForeignKey($Table, $tblProspectAppointment);
-        $this->Connection->addForeignKey($Table, $tblProspectReservation);
+        $this->getConnection()->addForeignKey($Table, $tblProspectAppointment);
+        $this->getConnection()->addForeignKey($Table, $tblProspectReservation);
         return $Table;
     }
 }

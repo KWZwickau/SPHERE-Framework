@@ -3,28 +3,15 @@ namespace SPHERE\Application\Education\School\Course\Service;
 
 use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Education\School\Course\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -43,7 +30,7 @@ class Data extends Cacheable
     public function createCourse($Name, $Description = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblCourse')
             ->findOneBy(array(TblCourse::ATTR_NAME => $Name));
@@ -53,7 +40,7 @@ class Data extends Cacheable
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -66,7 +53,7 @@ class Data extends Cacheable
     public function getCourseById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblCourse', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCourse', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -78,7 +65,7 @@ class Data extends Cacheable
     public function getCourseByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblCourse')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblCourse')
             ->findOneBy(array(TblCourse::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -89,6 +76,6 @@ class Data extends Cacheable
     public function getCourseAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCourse');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCourse');
     }
 }

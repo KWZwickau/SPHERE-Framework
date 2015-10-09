@@ -4,28 +4,15 @@ namespace SPHERE\Application\People\Person\Service;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Person\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -45,13 +32,13 @@ class Data extends Cacheable
     public function createSalutation($Salutation, $IsLocked = false)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblSalutation')->findOneBy(array(TblSalutation::ATTR_SALUTATION => $Salutation));
         if (null === $Entity) {
             $Entity = new TblSalutation($Salutation);
             $Entity->setIsLocked($IsLocked);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -68,7 +55,7 @@ class Data extends Cacheable
     public function createPerson(TblSalutation $tblSalutation, $Title, $FirstName, $SecondName, $LastName)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPerson();
         $Entity->setTblSalutation($tblSalutation);
         $Entity->setTitle($Title);
@@ -76,7 +63,7 @@ class Data extends Cacheable
         $Entity->setSecondName($SecondName);
         $Entity->setLastName($LastName);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
     }
 
@@ -99,7 +86,7 @@ class Data extends Cacheable
         $LastName
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblPerson $Entity */
         $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
         $Protocol = clone $Entity;
@@ -110,7 +97,7 @@ class Data extends Cacheable
             $Entity->setSecondName($SecondName);
             $Entity->setLastName($LastName);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -122,7 +109,7 @@ class Data extends Cacheable
     public function getSalutationAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblSalutation');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation');
     }
 
     /**
@@ -131,7 +118,7 @@ class Data extends Cacheable
     public function getPersonAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblPerson');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson');
     }
 
     /**
@@ -143,7 +130,7 @@ class Data extends Cacheable
     public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblPerson')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPerson')->findBy(array(
             TblPerson::ATTR_FIRST_NAME => $FirstName,
             TblPerson::ATTR_LAST_NAME  => $LastName
         ));
@@ -157,7 +144,7 @@ class Data extends Cacheable
     public function countPersonAll()
     {
 
-        return $this->Connection->getEntityManager()->getEntity('TblPerson')->count();
+        return $this->getConnection()->getEntityManager()->getEntity('TblPerson')->count();
     }
 
     /**
@@ -168,7 +155,7 @@ class Data extends Cacheable
     public function getPersonById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblPerson', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
     }
 
     /**
@@ -179,6 +166,6 @@ class Data extends Cacheable
     public function getSalutationById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblSalutation', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation', $Id);
     }
 }

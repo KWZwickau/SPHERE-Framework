@@ -4,28 +4,15 @@ namespace SPHERE\Application\People\Meta\Custody\Service;
 use SPHERE\Application\People\Meta\Custody\Service\Entity\TblCustody;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Meta\Custody\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -47,7 +34,7 @@ class Data extends Cacheable
         $Employment
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblCustody();
         $Entity->setServiceTblPerson($tblPerson);
@@ -55,7 +42,7 @@ class Data extends Cacheable
         $Entity->setOccupation($Occupation);
         $Entity->setEmployment($Employment);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -75,7 +62,7 @@ class Data extends Cacheable
         $Employment
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblCustody $Entity */
         $Entity = $Manager->getEntityById('TblCustody', $tblCustody->getId());
         if (null !== $Entity) {
@@ -84,7 +71,7 @@ class Data extends Cacheable
             $Entity->setOccupation($Occupation);
             $Entity->setEmployment($Employment);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -98,7 +85,7 @@ class Data extends Cacheable
     public function getCustodyByPerson(TblPerson $tblPerson)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblCustody', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCustody', array(
             TblCustody::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
@@ -111,6 +98,6 @@ class Data extends Cacheable
     public function getCustodyById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblCustody', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCustody', $Id);
     }
 }

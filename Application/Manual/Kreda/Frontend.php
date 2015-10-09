@@ -2,7 +2,6 @@
 namespace SPHERE\Application\Manual\Kreda;
 
 use SPHERE\Common\Documentation\Content\Kreda;
-use SPHERE\Common\Documentation\Content\KredaManual;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Window\Stage;
 

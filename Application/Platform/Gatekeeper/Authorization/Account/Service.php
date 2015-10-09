@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Account;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Data;
@@ -17,40 +16,20 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\Tb
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\System\Gatekeeper\Authorization\Account
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
 
     /** @var TblAccount[] $AccountByIdCache */
     private static $AccountByIdCache = array();
     /** @var TblIdentification[] $IdentificationByIdCache */
     private static $IdentificationByIdCache = array();
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -61,9 +40,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -76,7 +55,7 @@ class Service implements IServiceInterface
     public function getAccountBySession($Session = null)
     {
 
-        return (new Data($this->Binding))->getAccountBySession($Session);
+        return (new Data($this->getBinding()))->getAccountBySession($Session);
     }
 
     /**
@@ -87,7 +66,7 @@ class Service implements IServiceInterface
     public function getAccountByUsername($Username)
     {
 
-        return (new Data($this->Binding))->getAccountByUsername($Username);
+        return (new Data($this->getBinding()))->getAccountByUsername($Username);
     }
 
     /**
@@ -101,7 +80,7 @@ class Service implements IServiceInterface
         if (array_key_exists($Id, self::$AccountByIdCache)) {
             return self::$AccountByIdCache[$Id];
         }
-        self::$AccountByIdCache[$Id] = (new Data($this->Binding))->getAccountById($Id);
+        self::$AccountByIdCache[$Id] = (new Data($this->getBinding()))->getAccountById($Id);
         return self::$AccountByIdCache[$Id];
     }
 
@@ -116,7 +95,7 @@ class Service implements IServiceInterface
         if (array_key_exists($Id, self::$IdentificationByIdCache)) {
             return self::$IdentificationByIdCache[$Id];
         }
-        self::$IdentificationByIdCache[$Id] = (new Data($this->Binding))->getIdentificationById($Id);
+        self::$IdentificationByIdCache[$Id] = (new Data($this->getBinding()))->getIdentificationById($Id);
         return self::$IdentificationByIdCache[$Id];
     }
 
@@ -128,7 +107,7 @@ class Service implements IServiceInterface
     public function getIdentificationByName($Name)
     {
 
-        return (new Data($this->Binding))->getIdentificationByName($Name);
+        return (new Data($this->getBinding()))->getIdentificationByName($Name);
     }
 
     /**
@@ -137,7 +116,7 @@ class Service implements IServiceInterface
     public function getIdentificationAll()
     {
 
-        return (new Data($this->Binding))->getIdentificationAll();
+        return (new Data($this->getBinding()))->getIdentificationAll();
     }
 
     /**
@@ -150,7 +129,7 @@ class Service implements IServiceInterface
     {
 
         if (null === $Session) {
-            if ((new Data($this->Binding))->destroySession($Session)) {
+            if ((new Data($this->getBinding()))->destroySession($Session)) {
                 if (!headers_sent()) {
                     // Destroy Cookie
                     $params = session_get_cookie_params();
@@ -163,7 +142,7 @@ class Service implements IServiceInterface
             }
             return $Redirect;
         } else {
-            return (new Data($this->Binding))->destroySession($Session);
+            return (new Data($this->getBinding()))->destroySession($Session);
         }
     }
 
@@ -258,7 +237,7 @@ class Service implements IServiceInterface
     public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
     {
 
-        return (new Data($this->Binding))->getAccountByCredential($Username, $Password, $tblIdentification);
+        return (new Data($this->getBinding()))->getAccountByCredential($Username, $Password, $tblIdentification);
     }
 
     /**
@@ -271,7 +250,7 @@ class Service implements IServiceInterface
     private function createSession(TblAccount $tblAccount, $Session = null, $Timeout = 1800)
     {
 
-        return (new Data($this->Binding))->createSession($tblAccount, $Session, $Timeout);
+        return (new Data($this->getBinding()))->createSession($tblAccount, $Session, $Timeout);
     }
 
     /**
@@ -328,7 +307,7 @@ class Service implements IServiceInterface
     public function getAccountAll()
     {
 
-        return (new Data($this->Binding))->getAccountAll();
+        return (new Data($this->getBinding()))->getAccountAll();
     }
 
     /**
@@ -339,7 +318,7 @@ class Service implements IServiceInterface
     public function getAccountAllByToken(TblToken $tblToken)
     {
 
-        return (new Data($this->Binding))->getAccountAllByToken($tblToken);
+        return (new Data($this->getBinding()))->getAccountAllByToken($tblToken);
     }
 
     /**
@@ -374,7 +353,7 @@ class Service implements IServiceInterface
     public function getAuthorizationAllByAccount(TblAccount $tblAccount)
     {
 
-        return (new Data($this->Binding))->getAuthorizationAllByAccount($tblAccount);
+        return (new Data($this->getBinding()))->getAuthorizationAllByAccount($tblAccount);
     }
 
     /**
@@ -385,7 +364,7 @@ class Service implements IServiceInterface
     public function getAuthenticationByAccount(TblAccount $tblAccount)
     {
 
-        return (new Data($this->Binding))->getAuthenticationByAccount($tblAccount);
+        return (new Data($this->getBinding()))->getAuthenticationByAccount($tblAccount);
 
     }
 
@@ -400,7 +379,7 @@ class Service implements IServiceInterface
     public function insertAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null)
     {
 
-        return (new Data($this->Binding))->createAccount($Username, $Password, $tblToken, $tblConsumer);
+        return (new Data($this->getBinding()))->createAccount($Username, $Password, $tblToken, $tblConsumer);
     }
 
     /**
@@ -412,7 +391,7 @@ class Service implements IServiceInterface
     public function addAccountAuthentication(TblAccount $tblAccount, TblIdentification $tblIdentification)
     {
 
-        return (new Data($this->Binding))->addAccountAuthentication($tblAccount, $tblIdentification);
+        return (new Data($this->getBinding()))->addAccountAuthentication($tblAccount, $tblIdentification);
     }
 
     /**
@@ -424,7 +403,7 @@ class Service implements IServiceInterface
     public function addAccountAuthorization(TblAccount $tblAccount, TblRole $tblRole)
     {
 
-        return (new Data($this->Binding))->addAccountAuthorization($tblAccount, $tblRole);
+        return (new Data($this->getBinding()))->addAccountAuthorization($tblAccount, $tblRole);
     }
 
     /**
@@ -433,7 +412,7 @@ class Service implements IServiceInterface
     public function getPersonAllHavingNoAccount()
     {
 
-        return (new Data($this->Binding))->getPersonAllHavingNoAccount();
+        return (new Data($this->getBinding()))->getPersonAllHavingNoAccount();
     }
 
     /**
@@ -445,7 +424,7 @@ class Service implements IServiceInterface
     public function addAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->addAccountPerson($tblAccount, $tblPerson);
+        return (new Data($this->getBinding()))->addAccountPerson($tblAccount, $tblPerson);
     }
 
     /**
@@ -457,7 +436,7 @@ class Service implements IServiceInterface
     public function removeAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->removeAccountPerson($tblAccount, $tblPerson);
+        return (new Data($this->getBinding()))->removeAccountPerson($tblAccount, $tblPerson);
     }
 
     /**
@@ -468,7 +447,7 @@ class Service implements IServiceInterface
     public function getPersonAllByAccount(TblAccount $tblAccount)
     {
 
-        return (new Data($this->Binding))->getPersonAllByAccount($tblAccount);
+        return (new Data($this->getBinding()))->getPersonAllByAccount($tblAccount);
 
     }
 
@@ -480,7 +459,7 @@ class Service implements IServiceInterface
     public function getUserAllByAccount(TblAccount $tblAccount)
     {
 
-        return (new Data($this->Binding))->getUserAllByAccount($tblAccount);
+        return (new Data($this->getBinding()))->getUserAllByAccount($tblAccount);
 
     }
 
@@ -492,7 +471,7 @@ class Service implements IServiceInterface
     public function getSessionAllByAccount(TblAccount $tblAccount)
     {
 
-        return (new Data($this->Binding))->getSessionAllByAccount($tblAccount);
+        return (new Data($this->getBinding()))->getSessionAllByAccount($tblAccount);
     }
 
     /**
@@ -504,7 +483,7 @@ class Service implements IServiceInterface
     public function removeAccountAuthorization(TblAccount $tblAccount, TblRole $tblRole)
     {
 
-        return (new Data($this->Binding))->removeAccountAuthorization($tblAccount, $tblRole);
+        return (new Data($this->getBinding()))->removeAccountAuthorization($tblAccount, $tblRole);
     }
 
     /**
@@ -516,7 +495,7 @@ class Service implements IServiceInterface
     public function removeAccountAuthentication(TblAccount $tblAccount, TblIdentification $tblIdentification)
     {
 
-        return (new Data($this->Binding))->removeAccountAuthentication($tblAccount, $tblIdentification);
+        return (new Data($this->getBinding()))->removeAccountAuthentication($tblAccount, $tblIdentification);
     }
 
     /**
@@ -527,7 +506,7 @@ class Service implements IServiceInterface
     public function destroyAccount(TblAccount $tblAccount)
     {
 
-        return (new Data($this->Binding))->destroyAccount($tblAccount);
+        return (new Data($this->getBinding()))->destroyAccount($tblAccount);
     }
 
     /**
@@ -539,7 +518,7 @@ class Service implements IServiceInterface
     public function changePassword($Password, TblAccount $tblAccount = null)
     {
 
-        return (new Data($this->Binding))->changePassword($Password, $tblAccount);
+        return (new Data($this->getBinding()))->changePassword($Password, $tblAccount);
     }
 
     /**
@@ -551,6 +530,6 @@ class Service implements IServiceInterface
     public function changeConsumer(TblConsumer $tblConsumer, TblAccount $tblAccount = null)
     {
 
-        return (new Data($this->Binding))->changeConsumer($tblConsumer, $tblAccount);
+        return (new Data($this->getBinding()))->changeConsumer($tblConsumer, $tblAccount);
     }
 }

@@ -1,16 +1,13 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Token;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Token\Token as HardwareToken;
 use SPHERE\System\Token\Type\YubiKey;
 use SPHERE\System\Token\YubiKey\BadOTPException;
@@ -22,27 +19,8 @@ use SPHERE\System\Token\YubiKey\ReplayedOTPException;
  *
  * @package SPHERE\Application\System\Gatekeeper\Authorization\Token
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    protected $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -53,9 +31,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -68,7 +46,7 @@ class Service implements IServiceInterface
     public function getTokenAllByConsumer(TblConsumer $tblConsumer)
     {
 
-        return (new Data($this->Binding))->getTokenAllByConsumer($tblConsumer);
+        return (new Data($this->getBinding()))->getTokenAllByConsumer($tblConsumer);
     }
 
     /**
@@ -79,7 +57,7 @@ class Service implements IServiceInterface
     public function getTokenById($Id)
     {
 
-        return (new Data($this->Binding))->getTokenById($Id);
+        return (new Data($this->getBinding()))->getTokenById($Id);
     }
 
     /**
@@ -88,7 +66,7 @@ class Service implements IServiceInterface
     public function getTokenAll()
     {
 
-        return (new Data($this->Binding))->getTokenAll();
+        return (new Data($this->getBinding()))->getTokenAll();
     }
 
     /**
@@ -99,7 +77,7 @@ class Service implements IServiceInterface
     public function destroyToken(TblToken $tblToken)
     {
 
-        return (new Data($this->Binding))->destroyToken($tblToken);
+        return (new Data($this->getBinding()))->destroyToken($tblToken);
     }
 
     /**
@@ -116,7 +94,7 @@ class Service implements IServiceInterface
             if (null !== $CredentialKey && !empty( $CredentialKey )) {
                 $this->isTokenValid($CredentialKey);
                 if (false === $this->getTokenByIdentifier(substr($CredentialKey, 0, 12))) {
-                    if ((new Data($this->Binding))->createToken(substr($CredentialKey, 0, 12), $tblConsumer)) {
+                    if ((new Data($this->getBinding()))->createToken(substr($CredentialKey, 0, 12), $tblConsumer)) {
                         $Form->setSuccess('CredentialKey',
                             'Der YubiKey wurde hinzugefügt'.new Redirect('/Sphere/Management/Token', 3)
                         );
@@ -169,6 +147,6 @@ class Service implements IServiceInterface
     public function getTokenByIdentifier($Identifier)
     {
 
-        return (new Data($this->Binding))->getTokenByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getTokenByIdentifier($Identifier);
     }
 }

@@ -3,27 +3,15 @@ namespace SPHERE\Application\Contact\Address\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Contact\Address\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,7 +24,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblCity = $this->setTableCity($Schema);
         $tblState = $this->setTableState($Schema);
         $tblAddress = $this->setTableAddress($Schema, $tblCity, $tblState);
@@ -46,9 +34,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -59,14 +47,14 @@ class Setup
     private function setTableCity(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblCity');
-        if (!$this->Connection->hasColumn('tblCity', 'Code')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblCity');
+        if (!$this->getConnection()->hasColumn('tblCity', 'Code')) {
             $Table->addColumn('Code', 'string');
         }
-        if (!$this->Connection->hasColumn('tblCity', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblCity', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblCity', 'District')) {
+        if (!$this->getConnection()->hasColumn('tblCity', 'District')) {
             $Table->addColumn('District', 'string', array('notnull' => false));
         }
         return $Table;
@@ -80,11 +68,11 @@ class Setup
     private function setTableState(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblState');
-        if (!$this->Connection->hasColumn('tblState', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblState');
+        if (!$this->getConnection()->hasColumn('tblState', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Name'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Name'))) {
             $Table->addUniqueIndex(array('Name'));
         }
         return $Table;
@@ -100,18 +88,18 @@ class Setup
     private function setTableAddress(Schema &$Schema, Table $tblCity, Table $tblState)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAddress');
-        if (!$this->Connection->hasColumn('tblAddress', 'StreetName')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAddress');
+        if (!$this->getConnection()->hasColumn('tblAddress', 'StreetName')) {
             $Table->addColumn('StreetName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAddress', 'StreetNumber')) {
+        if (!$this->getConnection()->hasColumn('tblAddress', 'StreetNumber')) {
             $Table->addColumn('StreetNumber', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAddress', 'PostOfficeBox')) {
+        if (!$this->getConnection()->hasColumn('tblAddress', 'PostOfficeBox')) {
             $Table->addColumn('PostOfficeBox', 'string');
         }
-        $this->Connection->addForeignKey($Table, $tblCity);
-        $this->Connection->addForeignKey($Table, $tblState);
+        $this->getConnection()->addForeignKey($Table, $tblCity);
+        $this->getConnection()->addForeignKey($Table, $tblState);
         return $Table;
     }
 
@@ -123,11 +111,11 @@ class Setup
     private function setTableType(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblType');
-        if (!$this->Connection->hasColumn('tblType', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblType');
+        if (!$this->getConnection()->hasColumn('tblType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblType', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
 
@@ -144,15 +132,15 @@ class Setup
     private function setTableToPerson(Schema &$Schema, Table $tblAddress, Table $tblType)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblToPerson');
-        if (!$this->Connection->hasColumn('tblToPerson', 'Remark')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblToPerson');
+        if (!$this->getConnection()->hasColumn('tblToPerson', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
-        if (!$this->Connection->hasColumn('tblToPerson', 'serviceTblPerson')) {
+        if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        $this->Connection->addForeignKey($Table, $tblAddress);
-        $this->Connection->addForeignKey($Table, $tblType);
+        $this->getConnection()->addForeignKey($Table, $tblAddress);
+        $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
     }
 
@@ -166,15 +154,15 @@ class Setup
     private function setTableToCompany(Schema &$Schema, Table $tblAddress, Table $tblType)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblToCompany');
-        if (!$this->Connection->hasColumn('tblToCompany', 'Remark')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblToCompany');
+        if (!$this->getConnection()->hasColumn('tblToCompany', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
-        if (!$this->Connection->hasColumn('tblToCompany', 'serviceTblCompany')) {
+        if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
-        $this->Connection->addForeignKey($Table, $tblAddress);
-        $this->Connection->addForeignKey($Table, $tblType);
+        $this->getConnection()->addForeignKey($Table, $tblAddress);
+        $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
     }
 }

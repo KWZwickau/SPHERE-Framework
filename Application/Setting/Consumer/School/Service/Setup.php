@@ -3,27 +3,15 @@ namespace SPHERE\Application\Setting\Consumer\School\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Setting\Consumer\School\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,15 +24,15 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $this->setTableSchool($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
 
-        return $this->Connection->getProtocol($Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -55,11 +43,11 @@ class Setup
     private function setTableSchool(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblSchool');
-        if (!$this->Connection->hasColumn('tblSchool', 'serviceTblCompany')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblSchool');
+        if (!$this->getConnection()->hasColumn('tblSchool', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblSchool', 'serviceTblType')) {
+        if (!$this->getConnection()->hasColumn('tblSchool', 'serviceTblType')) {
             $Table->addColumn('serviceTblType', 'bigint');
         }
 

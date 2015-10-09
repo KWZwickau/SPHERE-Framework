@@ -3,27 +3,15 @@ namespace SPHERE\Application\Education\Graduation\ScoreType\Service;
 
 use SPHERE\Application\Education\Graduation\ScoreType\Service\Entity\TblScoreType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Education\Graduation\ScoreType\Service
  */
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -51,7 +39,7 @@ class Data
     public function createScoreType($Name, $Short)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblScoreType')
             ->findOneBy(array(TblScoreType::ATTR_NAME => $Name));
@@ -63,7 +51,7 @@ class Data
 
             var_dump($Entity);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -76,14 +64,14 @@ class Data
     public function removeScoreTypeByEntity(TblScoreType $tblScoreType)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblScoreType')->findOneBy(
             array(
                 'Id' => $tblScoreType->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
@@ -99,7 +87,7 @@ class Data
     public function getScoreTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblScoreType', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblScoreType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -111,7 +99,7 @@ class Data
     public function getScoreTypeByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblScoreType')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblScoreType')
             ->findOneBy(array(TblScoreType::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -122,7 +110,7 @@ class Data
     public function getScoreTypeAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblScoreType')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblScoreType')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 }
