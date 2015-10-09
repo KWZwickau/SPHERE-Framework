@@ -91,7 +91,7 @@ class Task
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         if ($this->isDone === true) {
