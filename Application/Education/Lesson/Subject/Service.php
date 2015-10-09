@@ -8,16 +8,21 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Setup;
 use SPHERE\Application\IServiceInterface;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Fitting\Binding;
 use SPHERE\System\Database\Fitting\Structure;
 use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Education\Lesson\Subject
  */
-class Service implements IServiceInterface
+class Service extends Extension implements IServiceInterface
 {
 
     /** @var null|Binding */
@@ -309,5 +314,94 @@ class Service implements IServiceInterface
     {
 
         return (new Data($this->Binding))->getSubjectById($Id);
+    }
+
+    /**
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAll()
+    {
+
+        return (new Data($this->Binding))->getGroupAll();
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param null|array     $Subject
+     *
+     * @return IFormInterface|string
+     */
+    public function createSubject(
+        IFormInterface $Form,
+        $Subject
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Subject) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Subject['Acronym'] ) && empty( $Subject['Acronym'] )) {
+            $Form->setError('Subject[Acronym]', 'Bitte geben Sie ein eineindeutiges Kürzel an');
+            $Error = true;
+        } else {
+            if ($this->getSubjectByAcronym($Subject['Acronym'])) {
+                $Form->setError('Subject[Acronym]', 'Dieses Kürzel wird bereits verwendet');
+                $Error = true;
+            }
+        }
+
+        if (isset( $Subject['Name'] ) && empty( $Subject['Name'] )) {
+            $Form->setError('Subject[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            if ((new Data($this->Binding))->createSubject(
+                $Subject['Acronym'], $Subject['Name'], $Subject['Description']
+            )
+            ) {
+                return new Success('Das Fach wurde erfolgreich hinzugefügt')
+                .new Redirect($this->getRequest()->getUrl(), 3);
+            } else {
+                return new Danger('Das Fach konnte nicht hinzugefügt werden')
+                .new Redirect($this->getRequest()->getUrl());
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param string $Acronym
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByAcronym($Acronym)
+    {
+
+        return (new Data($this->Binding))->getSubjectByAcronym($Acronym);
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAllHavingNoCategory()
+    {
+
+        return (new Data($this->Binding))->getSubjectAllHavingNoCategory();
+    }
+
+    /**
+     * @return bool|TblCategory[]
+     */
+    public function getCategoryAllHavingNoGroup()
+    {
+
+        return (new Data($this->Binding))->getCategoryAllHavingNoGroup();
     }
 }

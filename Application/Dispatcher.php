@@ -141,12 +141,12 @@ class Dispatcher
             $Row = 1;
             $Column = 1;
             foreach ((array)self::$Widget[$Location] as $Index => $Widget) {
-                $Dashboard .= '<li id="Widget-'.$Index.'" '
+                $Dashboard .= '<li id="Widget-'.$Location.'-'.$Index.'" '
                     .'data-row="'.$Row.'" '
                     .'data-col="'.$Column.'" '
                     .'data-sizex="'.$Widget[1].'" '
                     .'data-sizey="'.$Widget[2].'" '
-                    .'class="Widget">'.$Widget[0].'</li>';
+                    .'class="Widget"><div class="Widget-Payload">'.$Widget[0].'</div></li>';
                 if ($Column >= 8) {
                     $Column = 1;
                     $Row++;

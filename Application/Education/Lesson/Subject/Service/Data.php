@@ -298,6 +298,19 @@ class Data extends Cacheable
     }
 
     /**
+     * @param string $Acronym
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByAcronym($Acronym)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblSubject', array(
+            TblSubject::ATTR_ACRONYM => $Acronym
+        ));
+    }
+
+    /**
      * @return int
      */
     public function countSubjectAll()
@@ -313,24 +326,6 @@ class Data extends Cacheable
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblGroup');
-    }
-
-    /**
-     * @return bool|TblCategory[]
-     */
-    public function getCategoryAll()
-    {
-
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCategory');
-    }
-
-    /**
-     * @return bool|TblSubject[]
-     */
-    public function getSubjectAll()
-    {
-
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblSubject');
     }
 
     /**
@@ -476,5 +471,81 @@ class Data extends Cacheable
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblSubject', $Id);
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAllHavingNoCategory()
+    {
+
+        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+            ->select('NM.tblSubject')
+            ->from(__NAMESPACE__.'\Entity\TblCategorySubject', 'NM')
+            ->distinct()
+            ->getQuery()
+            ->getResult("COLUMN_HYDRATOR");
+
+        $tblSubjectAll = $this->getSubjectAll();
+        if ($tblSubjectAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblSubjectAll, function (TblSubject &$tblSubject, $Index, $Exclude) {
+
+                if (in_array($tblSubject->getId(), $Exclude)) {
+                    $tblSubject = false;
+                }
+            }, $Exclude);
+            $EntityList = array_filter($tblSubjectAll);
+        } else {
+            $EntityList = null;
+        }
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblSubject');
+    }
+
+    /**
+     * @return bool|TblCategory[]
+     */
+    public function getCategoryAllHavingNoGroup()
+    {
+
+        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+            ->select('NM.tblCategory')
+            ->from(__NAMESPACE__.'\Entity\TblGroupCategory', 'NM')
+            ->distinct()
+            ->getQuery()
+            ->getResult("COLUMN_HYDRATOR");
+
+        $tblCategoryAll = $this->getCategoryAll();
+        if ($tblCategoryAll) {
+            /** @noinspection PhpUnusedParameterInspection */
+            array_walk($tblCategoryAll, function (TblCategory &$tblCategory, $Index, $Exclude) {
+
+                if (in_array($tblCategory->getId(), $Exclude)) {
+                    $tblCategory = false;
+                }
+            }, $Exclude);
+            $EntityList = array_filter($tblCategoryAll);
+        } else {
+            $EntityList = null;
+        }
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @return bool|TblCategory[]
+     */
+    public function getCategoryAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCategory');
     }
 }

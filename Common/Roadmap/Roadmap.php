@@ -73,6 +73,18 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Dynamische Auswertungen');
         $Feature->createTask('Report-Designer');
 
+        // Personenverwaltung
+        $Category = $Release->createCategory('Personenverwaltung');
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: People')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+
+        // Firmenverwaltung
+        $Category = $Release->createCategory('Firmenverwaltung');
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: Corporation')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+
         // Bildung
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');
@@ -81,6 +93,15 @@ class Roadmap extends Extension
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Klassen')
             ->createDuty('Sitzplan');
+
+        $Feature = $Category->createFeature('Dashboards');
+        $Feature->createTask('Board: Education')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+        $Feature->createTask('Board: Lesson')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+        $Feature->createTask('Board: Subject')
+            ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
+
 
         // Diverses
         $Category = $Release->createCategory('Diverses');

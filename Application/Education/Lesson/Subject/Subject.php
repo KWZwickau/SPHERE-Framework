@@ -1,17 +1,24 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Subject;
 
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Icon\Repository\Transfer;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Frontend\Text\Repository\Italic;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Frontend\Text\Repository\Success;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -34,32 +41,105 @@ class Subject implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Create', __NAMESPACE__.'\Frontend::frontendCreateSubject'
+        ));
+    }
 
-        $tblSubjectAll = Subject::useService()->getSubjectAll();
-        if ($tblSubjectAll) {
-            /** @var TblSubject $tblSubject */
-            foreach ((array)$tblSubjectAll as $Index => $tblSubject) {
-                $tblSubjectAll[$tblSubject->getName()] =
-                    new Layout(new LayoutGroup(new LayoutRow(array(
-                        new LayoutColumn(
-                            $tblSubject->getAcronym()
-                            , array(3, 3, 3, 3)
-                        ),
-                        new LayoutColumn(
-                            $tblSubject->getName()
-                            .new Muted(new Small('<br/>'.$tblSubject->getDescription()))
-                            , array(9, 9, 9, 9)
-                        ),
-                    ))));
-                $tblSubjectAll[$Index] = false;
-            }
-            $tblSubjectAll = array_filter($tblSubjectAll);
-            Main::getDispatcher()->registerWidget('Fächer', new Panel('Fächer verfügbar', $tblSubjectAll), 3, 8);
+    /**
+     * @return Frontend
+     */
+    public static function useFrontend()
+    {
+
+        return new Frontend();
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendDashboard()
+    {
+
+        $Stage = new Stage('Dashboard', 'Fächer');
+
+        $Stage->addButton(new Standard('Fächer bearbeiten', __NAMESPACE__.'\Create'));
+
+        $tblGroupAll = $this->useService()->getGroupAll();
+        $Content = array();
+
+        array_push($Content, new LayoutRow(array(
+            new LayoutColumn(array(
+                new Title(new Italic(new Bold('Unzugeordnet'))),
+            ))
+        )));
+
+        $tblUnusedSubjectAll = $this->useService()->getSubjectAllHavingNoCategory();
+        if ($tblUnusedSubjectAll) {
+            array_walk($tblUnusedSubjectAll, function (TblSubject &$tblSubject) {
+
+                $tblSubject = new Bold($tblSubject->getAcronym()).' - '
+                    .$tblSubject->getName().' '
+                    .new Small(new Muted($tblSubject->getDescription()));
+            });
+        } else {
+            $tblUnusedSubjectAll = new Success('Keine unzugeordneten Fächer');
+        }
+        $tblUnusedCategoryAll = $this->useService()->getCategoryAllHavingNoGroup();
+        if ($tblUnusedCategoryAll) {
+            array_walk($tblUnusedCategoryAll, function (TblCategory &$tblCategory) {
+
+                $tblCategory = new Bold($tblCategory->getName()).' - '
+                    .new Small(new Muted($tblCategory->getDescription()));
+            });
+        } else {
+            $tblUnusedCategoryAll = new Success('Keine unzugeordneten Kategorien');
         }
 
-        Main::getDispatcher()->registerWidget('Fächer',
-            new Panel('Anzahl an Fächern', 'Insgesamt: '.Subject::useService()->countSubjectAll()), 2, 1
+        array_push($Content, new LayoutRow(array(
+            new LayoutColumn(new Panel('Kategorien', $tblUnusedCategoryAll), 6),
+            new LayoutColumn(new Panel('Fächer', $tblUnusedSubjectAll), 6),
+        )));
+
+        // Payload
+        array_walk($tblGroupAll, function (TblGroup $tblGroup) use (&$Content) {
+
+            array_push($Content, new LayoutRow(array(
+                new LayoutColumn(array(
+                    new Title('Gruppe: '.new Bold($tblGroup->getName()), $tblGroup->getDescription()),
+                    new Standard('Zuweisen von Kategoriern', '', new Transfer(), array())
+                ))
+            )));
+            $tblCategoryAll = $this->useService()->getCategoryAllByGroup($tblGroup);
+            array_walk($tblCategoryAll, function (TblCategory $tblCategory) use (&$Content, $tblGroup) {
+
+                $tblSubjectAll = $this->useService()->getSubjectAllByCategory($tblCategory);
+                array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
+
+                    $tblSubject = new Bold($tblSubject->getAcronym()).' - '
+                        .$tblSubject->getName().' '
+                        .new Small(new Muted($tblSubject->getDescription()));
+                });
+
+                $Height = floor(( ( count($tblSubjectAll) + 2 ) / 3 ) + 1);
+                Main::getDispatcher()->registerWidget($tblGroup->getIdentifier(),
+                    new Panel(
+                        $tblCategory->getName().' '.$tblCategory->getDescription(),
+                        $tblSubjectAll,
+                        ( $tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
+                        new Standard('Zuweisen von Fächern', '', new Transfer(), array())
+                    )
+                    , 2, ( $Height ? $Height : $Height + 2 ));
+            });
+            array_push($Content, new LayoutRow(array(
+                new LayoutColumn(Main::getDispatcher()->fetchDashboard($tblGroup->getIdentifier()))
+            )));
+        });
+
+        $Stage->setContent(
+            new Layout(new LayoutGroup($Content, new Title('Fächer', 'Zusammensetzung')))
         );
+        return $Stage;
     }
 
     /**
@@ -72,26 +152,5 @@ class Subject implements IModuleInterface
             new Identifier('Education', 'Lesson', 'Subject', null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
         );
-    }
-
-    /**
-     * @return IFrontendInterface
-     */
-    public static function useFrontend()
-    {
-        // TODO: Implement useFrontend() method.
-    }
-
-    /**
-     * @return Stage
-     */
-    public function frontendDashboard()
-    {
-
-        $Stage = new Stage('Dashboard', 'Fächer');
-
-        $Stage->setContent(Main::getDispatcher()->fetchDashboard('Fächer'));
-
-        return $Stage;
     }
 }

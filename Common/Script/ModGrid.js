@@ -83,9 +83,24 @@
         }
         selfElement.show();
 
+        if (!settings.draggable.handle) {
+            settings.draggable.handle = 'li.Widget';
+        }
         var selfGrid = selfElement.gridster(settings);
         var selfApi = selfGrid.data('gridster');
         this.css({'width': $(window).width()});
+
+        /**
+         * Fix Selection of Payload not working
+         */
+        selfElement.find(".Widget-Payload *").on('mousedown', function()
+        {
+            selfApi.disable().disable_resize();
+        });
+        selfElement.find(".Widget-Payload *").on('mouseup', function()
+        {
+            selfApi.enable().enable_resize();
+        });
 
         return this;
     };
