@@ -36,7 +36,7 @@ class TblSession extends Element
     /**
      * @param string $Session
      */
-    function __construct($Session)
+    public function __construct($Session)
     {
 
         $this->Session = $Session;

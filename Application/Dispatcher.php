@@ -25,7 +25,7 @@ class Dispatcher
     /**
      * @param IBridgeInterface|null $Router
      */
-    function __construct(IBridgeInterface $Router = null)
+    public function __construct(IBridgeInterface $Router = null)
     {
 
         if (null !== $Router) {

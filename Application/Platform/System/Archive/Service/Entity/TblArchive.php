@@ -63,7 +63,7 @@ class TblArchive extends Element
     /**
      * @param int $ArchiveType
      */
-    function __construct($ArchiveType = TblArchive::ARCHIVE_TYPE_CREATE)
+    public function __construct($ArchiveType = TblArchive::ARCHIVE_TYPE_CREATE)
     {
 
         $this->ArchiveType = $ArchiveType;

@@ -56,7 +56,7 @@ class Database extends Extension
      *
      * @throws \Exception
      */
-    function __construct(Identifier $Identifier)
+    public function __construct(Identifier $Identifier)
     {
 
         $this->Identifier = $Identifier;

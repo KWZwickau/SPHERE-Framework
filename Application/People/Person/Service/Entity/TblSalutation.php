@@ -28,7 +28,7 @@ class TblSalutation extends Element
     /**
      * @param string $Salutation
      */
-    function __construct($Salutation)
+    public function __construct($Salutation)
     {
 
         $this->Salutation = $Salutation;

@@ -27,7 +27,7 @@ class Upload
      * @param string $Location
      * @param bool   $Overwrite
      */
-    function __construct($Key, $Location, $Overwrite = false)
+    public function __construct($Key, $Location, $Overwrite = false)
     {
 
         AutoLoader::getNamespaceAutoLoader('Upload', __DIR__.'/../../../Library/Upload/src');

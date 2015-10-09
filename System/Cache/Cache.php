@@ -19,7 +19,7 @@ class Cache
      * @param ITypeInterface $Type
      * @param bool           $ForceType
      */
-    function __construct(ITypeInterface $Type = null, $ForceType = false)
+    public function __construct(ITypeInterface $Type = null, $ForceType = false)
     {
 
         if ($Type === null) {
