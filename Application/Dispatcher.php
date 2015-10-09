@@ -48,14 +48,14 @@ class Dispatcher
         try {
             if (Access::useService()->hasAuthorization($Route->getPath())) {
                 if (in_array($Route->getPath(), self::$Router->getRouteList())) {
-                    throw new \Exception(__CLASS__ . ' > Route already available! (' . $Route->getPath() . ')');
+                    throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
                 } else {
                     self::$Router->addRoute($Route);
                 }
             }
-            if (!Access::useService()->getRightByName('/' . $Route->getPath())) {
+            if (!Access::useService()->getRightByName('/'.$Route->getPath())) {
                 if (!in_array($Route->getPath(), self::$PublicRoutes)) {
-                    array_push(self::$PublicRoutes, '/' . $Route->getPath());
+                    array_push(self::$PublicRoutes, '/'.$Route->getPath());
                 }
             }
         } catch (\Exception $Exception) {

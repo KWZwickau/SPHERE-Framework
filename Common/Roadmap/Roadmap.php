@@ -102,7 +102,6 @@ class Roadmap extends Extension
         $Feature->createTask('Board: Subject')
             ->createDuty('Klären welcher Inhalt enthalten sein soll', false);
 
-
         // Diverses
         $Category = $Release->createCategory('Diverses');
         $Feature = $Category->createFeature('Letzte Änderung der Daten anzeigen');

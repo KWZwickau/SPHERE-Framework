@@ -87,7 +87,7 @@ class Panel extends Extension implements ITemplateInterface
                     $this->Filter = 50;
                 }
                 $this->Template->setVariable('FilterSize', $this->Filter);
-                if( isset($this->getGlobal()->POST['PanelSearch-'.sha1($this->Title)]) ) {
+                if (isset( $this->getGlobal()->POST['PanelSearch-'.sha1($this->Title)] )) {
                     $Value = $this->getGlobal()->POST['PanelSearch-'.sha1($this->Title)];
                     $this->Template->setVariable('FilterValue', "'".$Value."'");
                 } else {

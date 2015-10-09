@@ -75,9 +75,9 @@ class Frontend implements IFrontendInterface
                             .$tblToPerson->getTblAddress()->getTblCity()->getName().' '
                             .$tblToPerson->getTblAddress()->getTblState()->getName()
                             .( $tblToPerson->getRemark()
-                                    ? '<br/>'.new Small(new Muted($tblToPerson->getRemark()))
-                                    : ''
-                                );
+                                ? '<br/>'.new Small(new Muted($tblToPerson->getRemark()))
+                                : ''
+                            );
                     }
 
                     $tblPerson->FullName = $tblPerson->getFullName();

@@ -30,6 +30,7 @@ class Group implements IModuleInterface
      */
     public static function useService()
     {
+
         return \SPHERE\Application\Corporation\Group\Group::useService();
     }
 

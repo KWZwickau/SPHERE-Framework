@@ -244,7 +244,7 @@ class Main extends Extension
                 : ''
             ).
             (new System\Database\Database())->frontendSetup(false, true)
-            . (new Redirect(self::getRequest()->getPathInfo(), 60))
+            .(new Redirect(self::getRequest()->getPathInfo(), 60))
         );
         echo $Display->getContent(true);
         exit( 0 );

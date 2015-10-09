@@ -139,24 +139,24 @@ class Memory implements IApiInterface
         preg_match('/^\s*([0-9.]+)\s*([KMGTPE])B?\s*$/i', $Byte, $Match);
         $Value = (float)$Match[1];
         switch (strtoupper($Match[2])) {
-            /** @noinspection PhpMissingBreakStatementInspection */
             case 'E':
-                $Value = $Value * 1024;
-            /** @noinspection PhpMissingBreakStatementInspection */
+                $Value = $Value * 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
+                break;
             case 'P':
-                $Value = $Value * 1024;
-            /** @noinspection PhpMissingBreakStatementInspection */
+                $Value = $Value * 1024 * 1024 * 1024 * 1024 * 1024;
+                break;
             case 'T':
-                $Value = $Value * 1024;
-            /** @noinspection PhpMissingBreakStatementInspection */
+                $Value = $Value * 1024 * 1024 * 1024 * 1024;
+                break;
             case 'G':
-                $Value = $Value * 1024;
-            /** @noinspection PhpMissingBreakStatementInspection */
+                $Value = $Value * 1024 * 1024 * 1024;
+                break;
             case 'M':
-                $Value = $Value * 1024;
-            /** @noinspection PhpMissingBreakStatementInspection */
+                $Value = $Value * 1024 * 1024;
+                break;
             case 'K':
                 $Value = $Value * 1024;
+                break;
         }
         return (integer)$Value;
     }

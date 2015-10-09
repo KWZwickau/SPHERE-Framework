@@ -40,7 +40,7 @@ class Extension
 
     /**
      * @param Repository $EntityRepository
-     * @param array $Filter array( 'ColumnName' => 'Value', ... )
+     * @param array      $Filter array( 'ColumnName' => 'Value', ... )
      *
      * @return DataTables
      */
