@@ -138,6 +138,9 @@ class Consumer implements IApplicationInterface
             new Panel('Förderverein', $tblSponsorAssociationAll), 2, 2);
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendDashboard()
     {
 

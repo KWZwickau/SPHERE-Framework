@@ -25,7 +25,7 @@ class Dispatcher
     /**
      * @param IBridgeInterface|null $Router
      */
-    function __construct(IBridgeInterface $Router = null)
+    public function __construct(IBridgeInterface $Router = null)
     {
 
         if (null !== $Router) {
@@ -48,14 +48,14 @@ class Dispatcher
         try {
             if (Access::useService()->hasAuthorization($Route->getPath())) {
                 if (in_array($Route->getPath(), self::$Router->getRouteList())) {
-                    throw new \Exception(__CLASS__ . ' > Route already available! (' . $Route->getPath() . ')');
+                    throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
                 } else {
                     self::$Router->addRoute($Route);
                 }
             }
-            if (!Access::useService()->getRightByName('/' . $Route->getPath())) {
+            if (!Access::useService()->getRightByName('/'.$Route->getPath())) {
                 if (!in_array($Route->getPath(), self::$PublicRoutes)) {
-                    array_push(self::$PublicRoutes, '/' . $Route->getPath());
+                    array_push(self::$PublicRoutes, '/'.$Route->getPath());
                 }
             }
         } catch (\Exception $Exception) {
@@ -141,12 +141,12 @@ class Dispatcher
             $Row = 1;
             $Column = 1;
             foreach ((array)self::$Widget[$Location] as $Index => $Widget) {
-                $Dashboard .= '<li id="Widget-'.$Index.'" '
+                $Dashboard .= '<li id="Widget-'.$Location.'-'.$Index.'" '
                     .'data-row="'.$Row.'" '
                     .'data-col="'.$Column.'" '
                     .'data-sizex="'.$Widget[1].'" '
                     .'data-sizey="'.$Widget[2].'" '
-                    .'class="Widget">'.$Widget[0].'</li>';
+                    .'class="Widget"><div class="Widget-Payload">'.$Widget[0].'</div></li>';
                 if ($Column >= 8) {
                     $Column = 1;
                     $Row++;

@@ -3,27 +3,15 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,14 +24,14 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $this->setTableConsumer($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -54,14 +42,14 @@ class Setup
     private function setTableConsumer(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblConsumer');
-        if (!$this->Connection->hasColumn('tblConsumer', 'Acronym')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblConsumer');
+        if (!$this->getConnection()->hasColumn('tblConsumer', 'Acronym')) {
             $Table->addColumn('Acronym', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Acronym'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Acronym'))) {
             $Table->addUniqueIndex(array('Acronym'));
         }
-        if (!$this->Connection->hasColumn('tblConsumer', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblConsumer', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
 

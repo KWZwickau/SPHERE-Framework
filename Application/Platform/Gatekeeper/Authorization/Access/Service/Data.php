@@ -9,28 +9,15 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\T
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRole;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblRoleLevel;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -229,13 +216,13 @@ class Data extends Cacheable
     public function createRole($Name, $IsInternal = false)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblRole')->findOneBy(array(TblRole::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblRole($Name);
             $Entity->setIsInternal($IsInternal);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -248,12 +235,12 @@ class Data extends Cacheable
     public function createLevel($Name)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(TblLevel::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblLevel($Name);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -267,7 +254,7 @@ class Data extends Cacheable
     public function addRoleLevel(TblRole $tblRole, TblLevel $tblLevel)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblRoleLevel')
             ->findOneBy(array(
                 TblRoleLevel::ATTR_TBL_ROLE  => $tblRole->getId(),
@@ -278,7 +265,7 @@ class Data extends Cacheable
             $Entity->setTblRole($tblRole);
             $Entity->setTblLevel($tblLevel);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -291,12 +278,12 @@ class Data extends Cacheable
     public function createPrivilege($Name)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPrivilege')->findOneBy(array(TblPrivilege::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblPrivilege($Name);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -310,7 +297,7 @@ class Data extends Cacheable
     public function addLevelPrivilege(TblLevel $tblLevel, TblPrivilege $tblPrivilege)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblLevelPrivilege')
             ->findOneBy(array(
                 TblLevelPrivilege::ATTR_TBL_LEVEL     => $tblLevel->getId(),
@@ -321,7 +308,7 @@ class Data extends Cacheable
             $Entity->setTblLevel($tblLevel);
             $Entity->setTblPrivilege($tblPrivilege);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -334,12 +321,12 @@ class Data extends Cacheable
     public function createRight($Route)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblRight')->findOneBy(array(TblRight::ATTR_ROUTE => $Route));
         if (null === $Entity) {
             $Entity = new TblRight($Route);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -353,7 +340,7 @@ class Data extends Cacheable
     public function addPrivilegeRight(TblPrivilege $tblPrivilege, TblRight $tblRight)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPrivilegeRight')
             ->findOneBy(array(
                 TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId(),
@@ -364,7 +351,7 @@ class Data extends Cacheable
             $Entity->setTblPrivilege($tblPrivilege);
             $Entity->setTblRight($tblRight);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -378,7 +365,7 @@ class Data extends Cacheable
     public function removeRoleLevel(TblRole $tblRole, TblLevel $tblLevel)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblRoleLevel $Entity */
         $Entity = $Manager->getEntity('TblRoleLevel')
             ->findOneBy(array(
@@ -386,7 +373,7 @@ class Data extends Cacheable
                 TblRoleLevel::ATTR_TBL_LEVEL => $tblLevel->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -402,7 +389,7 @@ class Data extends Cacheable
     public function removePrivilegeRight(TblPrivilege $tblPrivilege, TblRight $tblRight)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblPrivilegeRight $Entity */
         $Entity = $Manager->getEntity('TblPrivilegeRight')
             ->findOneBy(array(
@@ -410,7 +397,7 @@ class Data extends Cacheable
                 TblPrivilegeRight::ATTR_TBL_RIGHT     => $tblRight->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -426,7 +413,7 @@ class Data extends Cacheable
     public function removeLevelPrivilege(TblLevel $tblLevel, TblPrivilege $tblPrivilege)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblLevelPrivilege $Entity */
         $Entity = $Manager->getEntity('TblLevelPrivilege')
             ->findOneBy(array(
@@ -434,7 +421,7 @@ class Data extends Cacheable
                 TblLevelPrivilege::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -449,7 +436,7 @@ class Data extends Cacheable
     public function getRightById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblRight', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRight', $Id);
     }
 
     /**
@@ -460,7 +447,7 @@ class Data extends Cacheable
     public function getRightByName($Name)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblRight', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRight', array(
             TblRight::ATTR_ROUTE => $Name
         ));
     }
@@ -471,7 +458,7 @@ class Data extends Cacheable
     public function getRightAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblRight');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRight');
     }
 
     /**
@@ -482,7 +469,7 @@ class Data extends Cacheable
     public function getLevelById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblLevel', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', $Id);
     }
 
     /**
@@ -493,7 +480,7 @@ class Data extends Cacheable
     public function getLevelByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblLevel')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblLevel')
             ->findOneBy(array(TblLevel::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -506,7 +493,7 @@ class Data extends Cacheable
     public function getPrivilegeById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblPrivilege', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrivilege', $Id);
     }
 
     /**
@@ -517,7 +504,7 @@ class Data extends Cacheable
     public function getPrivilegeByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblPrivilege')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPrivilege')
             ->findOneBy(array(TblPrivilege::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -532,7 +519,7 @@ class Data extends Cacheable
     {
 
         /** @var TblLevelPrivilege[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblLevelPrivilege')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblLevelPrivilege')->findBy(array(
             TblLevelPrivilege::ATTR_TBL_LEVEL => $tblLevel->getId()
         ));
         array_walk($EntityList, function (TblLevelPrivilege &$V) {
@@ -552,7 +539,7 @@ class Data extends Cacheable
     {
 
         /** @var TblPrivilegeRight[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblPrivilegeRight')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPrivilegeRight')->findBy(array(
             TblPrivilegeRight::ATTR_TBL_PRIVILEGE => $tblPrivilege->getId()
         ));
         array_walk($EntityList, function (TblPrivilegeRight &$V) {
@@ -568,7 +555,7 @@ class Data extends Cacheable
     public function getPrivilegeAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblPrivilege');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPrivilege');
     }
 
     /**
@@ -577,7 +564,7 @@ class Data extends Cacheable
     public function getLevelAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblLevel');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel');
     }
 
     /**
@@ -588,7 +575,7 @@ class Data extends Cacheable
     public function getRoleById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblRole', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRole', $Id);
     }
 
     /**
@@ -599,7 +586,7 @@ class Data extends Cacheable
     public function getRoleByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblRole')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblRole')
             ->findOneBy(array(TblRole::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -610,7 +597,7 @@ class Data extends Cacheable
     public function getRoleAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblRole');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblRole');
     }
 
     /**
@@ -622,7 +609,8 @@ class Data extends Cacheable
     public function getLevelAllByRole(TblRole $tblRole)
     {
 
-        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblRoleLevel',
+        $EntityList = $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblRoleLevel',
             array(
                 TblRoleLevel::ATTR_TBL_ROLE => $tblRole->getId()
             )

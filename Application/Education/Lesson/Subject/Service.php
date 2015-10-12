@@ -7,37 +7,19 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategorySubjec
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Setup;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Window\Redirect;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Education\Lesson\Subject
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -48,9 +30,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -61,7 +43,7 @@ class Service implements IServiceInterface
     public function getSubjectAll()
     {
 
-        return (new Data($this->Binding))->getSubjectAll();
+        return (new Data($this->getBinding()))->getSubjectAll();
     }
 
     /**
@@ -96,7 +78,7 @@ class Service implements IServiceInterface
     public function getGroupByIdentifier($Identifier)
     {
 
-        return (new Data($this->Binding))->getGroupByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getGroupByIdentifier($Identifier);
     }
 
     /**
@@ -216,7 +198,7 @@ class Service implements IServiceInterface
     public function countSubjectAll()
     {
 
-        return (new Data($this->Binding))->countSubjectAll();
+        return (new Data($this->getBinding()))->countSubjectAll();
     }
 
     /**
@@ -228,7 +210,7 @@ class Service implements IServiceInterface
     public function removeCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
     {
 
-        return (new Data($this->Binding))->removeCategorySubject($tblCategory, $tblSubject);
+        return (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
     }
 
     /**
@@ -240,7 +222,7 @@ class Service implements IServiceInterface
     public function addCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
     {
 
-        return (new Data($this->Binding))->addCategorySubject($tblCategory, $tblSubject);
+        return (new Data($this->getBinding()))->addCategorySubject($tblCategory, $tblSubject);
     }
 
     /**
@@ -252,7 +234,7 @@ class Service implements IServiceInterface
     public function getCategoryAllByGroup(TblGroup $tblGroup)
     {
 
-        return (new Data($this->Binding))->getCategoryAllByGroup($tblGroup);
+        return (new Data($this->getBinding()))->getCategoryAllByGroup($tblGroup);
     }
 
     /**
@@ -264,7 +246,7 @@ class Service implements IServiceInterface
     public function getSubjectAllByCategory(TblCategory $tblCategory)
     {
 
-        return (new Data($this->Binding))->getSubjectAllByCategory($tblCategory);
+        return (new Data($this->getBinding()))->getSubjectAllByCategory($tblCategory);
     }
 
     /**
@@ -275,7 +257,7 @@ class Service implements IServiceInterface
     public function getGroupById($Id)
     {
 
-        return (new Data($this->Binding))->getGroupById($Id);
+        return (new Data($this->getBinding()))->getGroupById($Id);
     }
 
     /**
@@ -286,7 +268,7 @@ class Service implements IServiceInterface
     public function getCategoryById($Id)
     {
 
-        return (new Data($this->Binding))->getCategoryById($Id);
+        return (new Data($this->getBinding()))->getCategoryById($Id);
     }
 
     /**
@@ -297,7 +279,7 @@ class Service implements IServiceInterface
     public function getCategoryByIdentifier($Identifier)
     {
 
-        return (new Data($this->Binding))->getCategoryByIdentifier($Identifier);
+        return (new Data($this->getBinding()))->getCategoryByIdentifier($Identifier);
     }
 
     /**
@@ -308,6 +290,95 @@ class Service implements IServiceInterface
     public function getSubjectById($Id)
     {
 
-        return (new Data($this->Binding))->getSubjectById($Id);
+        return (new Data($this->getBinding()))->getSubjectById($Id);
+    }
+
+    /**
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAll()
+    {
+
+        return (new Data($this->getBinding()))->getGroupAll();
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param null|array     $Subject
+     *
+     * @return IFormInterface|string
+     */
+    public function createSubject(
+        IFormInterface $Form,
+        $Subject
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Subject) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Subject['Acronym'] ) && empty( $Subject['Acronym'] )) {
+            $Form->setError('Subject[Acronym]', 'Bitte geben Sie ein eineindeutiges Kürzel an');
+            $Error = true;
+        } else {
+            if ($this->getSubjectByAcronym($Subject['Acronym'])) {
+                $Form->setError('Subject[Acronym]', 'Dieses Kürzel wird bereits verwendet');
+                $Error = true;
+            }
+        }
+
+        if (isset( $Subject['Name'] ) && empty( $Subject['Name'] )) {
+            $Form->setError('Subject[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            if ((new Data($this->getBinding()))->createSubject(
+                $Subject['Acronym'], $Subject['Name'], $Subject['Description']
+            )
+            ) {
+                return new Success('Das Fach wurde erfolgreich hinzugefügt')
+                .new Redirect($this->getRequest()->getUrl(), 3);
+            } else {
+                return new Danger('Das Fach konnte nicht hinzugefügt werden')
+                .new Redirect($this->getRequest()->getUrl());
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param string $Acronym
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectByAcronym($Acronym)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectByAcronym($Acronym);
+    }
+
+    /**
+     * @return bool|TblSubject[]
+     */
+    public function getSubjectAllHavingNoCategory()
+    {
+
+        return (new Data($this->getBinding()))->getSubjectAllHavingNoCategory();
+    }
+
+    /**
+     * @return bool|TblCategory[]
+     */
+    public function getCategoryAllHavingNoGroup()
+    {
+
+        return (new Data($this->getBinding()))->getCategoryAllHavingNoGroup();
     }
 }

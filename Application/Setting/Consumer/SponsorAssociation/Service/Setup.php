@@ -3,48 +3,36 @@ namespace SPHERE\Application\Setting\Consumer\SponsorAssociation\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Setting\Consumer\SponsorAssociation\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct( Structure $Connection )
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
      *
      * @return string
      */
-    public function setupDatabaseSchema( $Simulate = true )
+    public function setupDatabaseSchema($Simulate = true)
     {
 
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
-        $this->setTableSponsorAssociation( $Schema );
+        $Schema = clone $this->getConnection()->getSchema();
+        $this->setTableSponsorAssociation($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol( __CLASS__ );
-        $this->Connection->setMigration( $Schema, $Simulate );
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
 
-        return $this->Connection->getProtocol( $Simulate );
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -52,12 +40,12 @@ class Setup
      *
      * @return Table
      */
-    private function setTableSponsorAssociation( Schema &$Schema )
+    private function setTableSponsorAssociation(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable( $Schema, 'tblSponsorAssociation' );
-        if (!$this->Connection->hasColumn( 'tblSponsorAssociation', 'serviceTblCompany' )) {
-            $Table->addColumn( 'serviceTblCompany', 'bigint' );
+        $Table = $this->getConnection()->createTable($Schema, 'tblSponsorAssociation');
+        if (!$this->getConnection()->hasColumn('tblSponsorAssociation', 'serviceTblCompany')) {
+            $Table->addColumn('serviceTblCompany', 'bigint');
         }
 
         return $Table;

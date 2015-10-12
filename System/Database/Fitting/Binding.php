@@ -24,7 +24,7 @@ class Binding
      * @param string     $EntityPath
      * @param string     $EntityNamespace
      */
-    function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
+    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
     {
 
         $this->Database = new Database($Identifier);

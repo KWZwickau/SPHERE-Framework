@@ -16,28 +16,15 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Token;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -85,13 +72,13 @@ class Data extends Cacheable
     public function createIdentification($Name, $Description = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblIdentification')->findOneBy(array(TblIdentification::ATTR_NAME => $Name));
         if (null === $Entity) {
             $Entity = new TblIdentification($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -104,7 +91,7 @@ class Data extends Cacheable
     public function getIdentificationByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblIdentification')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblIdentification')
             ->findOneBy(array(TblIdentification::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -120,7 +107,7 @@ class Data extends Cacheable
     public function createAccount($Username, $Password, TblToken $tblToken = null, TblConsumer $tblConsumer = null)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAccount')->findOneBy(array(TblAccount::ATTR_USERNAME => $Username));
         if (null === $Entity) {
             $Entity = new TblAccount($Username);
@@ -128,7 +115,7 @@ class Data extends Cacheable
             $Entity->setServiceTblToken($tblToken);
             $Entity->setServiceTblConsumer($tblConsumer);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -142,7 +129,7 @@ class Data extends Cacheable
     public function addAccountAuthentication(TblAccount $tblAccount, TblIdentification $tblIdentification)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAuthentication')
             ->findOneBy(array(
                 TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
@@ -153,7 +140,7 @@ class Data extends Cacheable
             $Entity->setTblAccount($tblAccount);
             $Entity->setTblIdentification($tblIdentification);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -167,7 +154,7 @@ class Data extends Cacheable
     public function addAccountAuthorization(TblAccount $tblAccount, TblRole $tblRole)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAuthorization')
             ->findOneBy(array(
                 TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
@@ -178,7 +165,7 @@ class Data extends Cacheable
             $Entity->setTblAccount($tblAccount);
             $Entity->setServiceTblRole($tblRole);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -189,7 +176,7 @@ class Data extends Cacheable
     public function getIdentificationAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblIdentification');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblIdentification');
     }
 
     /**
@@ -201,7 +188,7 @@ class Data extends Cacheable
     public function removeAccountAuthorization(TblAccount $tblAccount, TblRole $tblRole)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblAuthorization $Entity */
         $Entity = $Manager->getEntity('TblAuthorization')
             ->findOneBy(array(
@@ -209,7 +196,7 @@ class Data extends Cacheable
                 TblAuthorization::SERVICE_TBL_ROLE => $tblRole->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -225,7 +212,7 @@ class Data extends Cacheable
     public function removeAccountAuthentication(TblAccount $tblAccount, TblIdentification $tblIdentification)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblAuthentication $Entity */
         $Entity = $Manager->getEntity('TblAuthentication')
             ->findOneBy(array(
@@ -233,7 +220,7 @@ class Data extends Cacheable
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -248,7 +235,7 @@ class Data extends Cacheable
     public function getAccountByUsername($Username)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblAccount')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(TblAccount::ATTR_USERNAME => $Username));
         return ( null === $Entity ? false : $Entity );
     }
@@ -261,7 +248,7 @@ class Data extends Cacheable
     public function getAccountById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblAccount', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccount', $Id);
     }
 
     /**
@@ -270,7 +257,7 @@ class Data extends Cacheable
     public function getAccountAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblAccount');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccount');
     }
 
     /**
@@ -281,7 +268,8 @@ class Data extends Cacheable
     public function getIdentificationById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblIdentification', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblIdentification',
+            $Id);
     }
 
     /**
@@ -292,7 +280,7 @@ class Data extends Cacheable
     public function getSessionById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblSession', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSession', $Id);
     }
 
     /**
@@ -303,7 +291,7 @@ class Data extends Cacheable
     public function getAccountAllByToken(TblToken $tblToken)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblAccount', array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAccount', array(
             TblAccount::SERVICE_TBL_TOKEN => $tblToken->getId()
         ));
     }
@@ -316,7 +304,7 @@ class Data extends Cacheable
     public function getAuthorizationAllByAccount(TblAccount $tblAccount)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblAuthorization',
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblAuthorization',
             array(
                 TblAuthorization::ATTR_TBL_ACCOUNT => $tblAccount->getId()
             ));
@@ -330,7 +318,7 @@ class Data extends Cacheable
     public function getAuthenticationByAccount(TblAccount $tblAccount)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblAuthentication')->findOneBy(array(
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')->findOneBy(array(
             TblAuthentication::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
         return ( null === $Entity ? false : $Entity );
@@ -344,7 +332,7 @@ class Data extends Cacheable
     public function getAccountAllByConsumer(TblConsumer $tblConsumer)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblAccount')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblAccount')->findBy(array(
             TblAccount::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
         ));
         return ( empty( $EntityList ) ? false : $EntityList );
@@ -360,7 +348,7 @@ class Data extends Cacheable
     public function getAccountByCredential($Username, $Password, TblIdentification $tblIdentification = null)
     {
 
-        $tblAccount = $this->Connection->getEntityManager()->getEntity('TblAccount')
+        $tblAccount = $this->getConnection()->getEntityManager()->getEntity('TblAccount')
             ->findOneBy(array(
                 TblAccount::ATTR_USERNAME => $Username,
                 TblAccount::ATTR_PASSWORD => hash('sha256', $Password)
@@ -370,7 +358,7 @@ class Data extends Cacheable
             return false;
         }
 
-        $tblAuthentication = $this->Connection->getEntityManager()->getEntity('TblAuthentication')
+        $tblAuthentication = $this->getConnection()->getEntityManager()->getEntity('TblAuthentication')
             ->findOneBy(array(
                 TblAuthentication::ATTR_TBL_ACCOUNT        => $tblAccount->getId(),
                 TblAuthentication::ATTR_TBL_IDENTIFICATION => $tblIdentification->getId()
@@ -391,7 +379,7 @@ class Data extends Cacheable
     public function getSessionAllByAccount(TblAccount $tblAccount)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblSession')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblSession')->findBy(array(
             TblSession::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
         return ( empty( $EntityList ) ? false : $EntityList );
@@ -410,18 +398,18 @@ class Data extends Cacheable
         if (null === $Session) {
             $Session = session_id();
         }
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblSession $Entity */
         $Entity = $Manager->getEntity('TblSession')->findOneBy(array(TblSession::ATTR_SESSION => $Session));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
         }
         $Entity = new TblSession($Session);
         $Entity->setTblAccount($tblAccount);
         $Entity->setTimeout(time() + $Timeout);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
     }
 
@@ -437,11 +425,11 @@ class Data extends Cacheable
             $Session = session_id();
         }
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblSession $Entity */
         $Entity = $Manager->getEntity('TblSession')->findOneBy(array(TblSession::ATTR_SESSION => $Session));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -456,11 +444,11 @@ class Data extends Cacheable
     public function destroyAccount(TblAccount $tblAccount)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -479,7 +467,7 @@ class Data extends Cacheable
         if (null === $tblAccount) {
             $tblAccount = $this->getAccountBySession();
         }
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /**
          * @var TblAccount $Protocol
          * @var TblAccount $Entity
@@ -489,7 +477,7 @@ class Data extends Cacheable
         if (null !== $Entity) {
             $Entity->setPassword(hash('sha256', $Password));
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -508,7 +496,7 @@ class Data extends Cacheable
         }
 
         /** @var false|TblSession $Entity */
-        $Entity = $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblSession', array(
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSession', array(
             TblSession::ATTR_SESSION => $Session
         ));
 
@@ -530,7 +518,7 @@ class Data extends Cacheable
         if (null === $tblAccount) {
             $tblAccount = $this->getAccountBySession();
         }
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /**
          * @var TblAccount $Protocol
          * @var TblAccount $Entity
@@ -540,7 +528,7 @@ class Data extends Cacheable
         if (null !== $Entity) {
             $Entity->setServiceTblToken($tblToken);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -558,14 +546,14 @@ class Data extends Cacheable
         if (null === $tblAccount) {
             $tblAccount = $this->getAccountBySession();
         }
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblAccount $Entity */
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setServiceTblConsumer($tblConsumer);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -577,7 +565,7 @@ class Data extends Cacheable
     public function getPersonAllHavingNoAccount()
     {
 
-        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+        $Exclude = $this->getConnection()->getEntityManager()->getQueryBuilder()
             ->select('U.serviceTblPerson')
             ->from('\SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser', 'U')
             ->distinct()
@@ -630,7 +618,7 @@ class Data extends Cacheable
     public function getUserAllByAccount(TblAccount $tblAccount)
     {
 
-        return $this->getCachedEntityListBy(__METHOD__, $this->Connection->getEntityManager(), 'TblUser', array(
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblUser', array(
             TblUser::ATTR_TBL_ACCOUNT => $tblAccount->getId()
         ));
     }
@@ -644,7 +632,7 @@ class Data extends Cacheable
     public function addAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblUser')
             ->findOneBy(array(
                 TblUser::ATTR_TBL_ACCOUNT   => $tblAccount->getId(),
@@ -655,7 +643,7 @@ class Data extends Cacheable
             $Entity->setTblAccount($tblAccount);
             $Entity->setServiceTblPerson($tblPerson);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -669,7 +657,7 @@ class Data extends Cacheable
     public function removeAccountPerson(TblAccount $tblAccount, TblPerson $tblPerson)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblUser $Entity */
         $Entity = $Manager->getEntity('TblUser')
             ->findOneBy(array(
@@ -677,7 +665,7 @@ class Data extends Cacheable
                 TblUser::SERVICE_TBL_PERSON => $tblPerson->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }

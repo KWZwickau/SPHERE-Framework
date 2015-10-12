@@ -3,6 +3,7 @@ namespace SPHERE\System\Database\Fitting;
 
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Extension\Extension;
 use SPHERE\System\Extension\Repository\Debugger;
 
 /**
@@ -10,7 +11,7 @@ use SPHERE\System\Extension\Repository\Debugger;
  *
  * @package SPHERE\System\Database\Fitting
  */
-abstract class Cacheable
+abstract class Cacheable extends Extension
 {
 
     /** @var bool $Enabled */

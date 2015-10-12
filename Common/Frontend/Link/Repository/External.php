@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Icon\Repository\Extern;
 use SPHERE\Common\Frontend\Link\ILinkInterface;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Extension\Extension;
@@ -33,6 +34,9 @@ class External extends Extension implements ILinkInterface
     {
 
         $this->Name = $Name;
+        if (false !== strpos($Path, '\\')) {
+            $Path = new Route($Path);
+        }
         $this->Template = $this->getTemplate(__DIR__.'/External.twig');
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementType', 'btn btn-default');

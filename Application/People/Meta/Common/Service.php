@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Meta\Common;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Meta\Common\Service\Data;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommon;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
@@ -11,36 +10,15 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\People\Meta\Common
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -51,9 +29,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -77,36 +55,36 @@ class Service implements IServiceInterface
 
         $tblCommon = $this->getCommonByPerson($tblPerson);
         if ($tblCommon) {
-            (new Data($this->Binding))->updateCommonBirthDates(
+            (new Data($this->getBinding()))->updateCommonBirthDates(
                 $tblCommon->getTblCommonBirthDates(),
                 $Meta['BirthDates']['Birthday'],
                 $Meta['BirthDates']['Birthplace'],
                 $Meta['BirthDates']['Gender']
             );
-            (new Data($this->Binding))->updateCommonInformation(
+            (new Data($this->getBinding()))->updateCommonInformation(
                 $tblCommon->getTblCommonInformation(),
                 $Meta['Information']['Nationality'],
                 $Meta['Information']['Denomination'],
                 $Meta['Information']['IsAssistance'],
                 $Meta['Information']['AssistanceActivity']
             );
-            (new Data($this->Binding))->updateCommon(
+            (new Data($this->getBinding()))->updateCommon(
                 $tblCommon,
                 $Meta['Remark']
             );
         } else {
-            $tblCommonBirthDates = (new Data($this->Binding))->createCommonBirthDates(
+            $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
                 $Meta['BirthDates']['Birthday'],
                 $Meta['BirthDates']['Birthplace'],
                 $Meta['BirthDates']['Gender']
             );
-            $tblCommonInformation = (new Data($this->Binding))->createCommonInformation(
+            $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
                 $Meta['Information']['Nationality'],
                 $Meta['Information']['Denomination'],
                 $Meta['Information']['IsAssistance'],
                 $Meta['Information']['AssistanceActivity']
             );
-            (new Data($this->Binding))->createCommon(
+            (new Data($this->getBinding()))->createCommon(
                 $tblPerson,
                 $tblCommonBirthDates,
                 $tblCommonInformation,
@@ -126,7 +104,7 @@ class Service implements IServiceInterface
     public function getCommonByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getCommonByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getCommonByPerson($tblPerson);
     }
 
     /***
@@ -139,18 +117,18 @@ class Service implements IServiceInterface
     public function createMetaFromImport(TblPerson $tblPerson, $Birthday, $Birthplace, $Denomination)
     {
 
-        $tblCommonBirthDates = (new Data($this->Binding))->createCommonBirthDates(
+        $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
             $Birthday,
             $Birthplace,
             0
         );
-        $tblCommonInformation = (new Data($this->Binding))->createCommonInformation(
+        $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
             '',
             $Denomination,
             0,
             ''
         );
-        (new Data($this->Binding))->createCommon(
+        (new Data($this->getBinding()))->createCommon(
             $tblPerson,
             $tblCommonBirthDates,
             $tblCommonInformation,
@@ -166,7 +144,7 @@ class Service implements IServiceInterface
     public function getCommonById($Id)
     {
 
-        return (new Data($this->Binding))->getCommonById($Id);
+        return (new Data($this->getBinding()))->getCommonById($Id);
     }
 
     /**
@@ -177,7 +155,7 @@ class Service implements IServiceInterface
     public function getCommonBirthDatesById($Id)
     {
 
-        return (new Data($this->Binding))->getCommonBirthDatesById($Id);
+        return (new Data($this->getBinding()))->getCommonBirthDatesById($Id);
     }
 
     /**
@@ -188,7 +166,7 @@ class Service implements IServiceInterface
     public function getCommonInformationById($Id)
     {
 
-        return (new Data($this->Binding))->getCommonInformationById($Id);
+        return (new Data($this->getBinding()))->getCommonInformationById($Id);
     }
 
     /**
@@ -197,7 +175,7 @@ class Service implements IServiceInterface
     public function getCommonInformationAll()
     {
 
-        return (new Data($this->Binding))->getCommonInformationAll();
+        return (new Data($this->getBinding()))->getCommonInformationAll();
     }
 
     /**
@@ -206,6 +184,6 @@ class Service implements IServiceInterface
     public function getCommonBirthDatesAll()
     {
 
-        return (new Data($this->Binding))->getCommonBirthDatesAll();
+        return (new Data($this->getBinding()))->getCommonBirthDatesAll();
     }
 }

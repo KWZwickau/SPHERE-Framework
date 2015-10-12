@@ -37,7 +37,7 @@ class DataTables extends Extension
      * @param Repository $EntityRepository
      * @param array      $Filter array( 'ColumnName' => 'Value', ... )
      */
-    function __construct(Repository $EntityRepository, $Filter = array())
+    public function __construct(Repository $EntityRepository, $Filter = array())
     {
 
         $this->QueryBuilder = $EntityRepository->createQueryBuilder(self::QUERY_BUILDER_ALIAS);

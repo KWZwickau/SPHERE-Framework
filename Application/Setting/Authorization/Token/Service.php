@@ -33,7 +33,7 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Toke
             if (null !== $CredentialKey && !empty( $CredentialKey )) {
                 $this->isTokenValid($CredentialKey);
                 if (false === $this->getTokenByIdentifier(substr($CredentialKey, 0, 12))) {
-                    (new Data($this->Binding))->createToken(substr($CredentialKey, 0, 12), $tblConsumer);
+                    (new Data($this->getBinding()))->createToken(substr($CredentialKey, 0, 12), $tblConsumer);
                     return new Success('Der YubiKey wurde hinzugefügt')
                     .new Redirect('/Setting/Authorization/Token', 3);
                 } else {

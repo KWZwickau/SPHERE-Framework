@@ -5,7 +5,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -13,20 +13,8 @@ use SPHERE\System\Database\Fitting\Element;
  *
  * @package SPHERE\Application\Platform\System\Protocol\Service
  */
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * Takes an __PHP_Incomplete_Class and casts it to a stdClass object.
@@ -64,12 +52,20 @@ class Data
     }
 
     /**
+     * @return void
+     */
+    public function setupDatabaseContent()
+    {
+        // TODO: Implement setupDatabaseContent() method.
+    }
+
+    /**
      * @return TblProtocol[]|bool
      */
     public function getProtocolAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblProtocol')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblProtocol')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -101,7 +97,7 @@ class Data
             }
         }
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblProtocol();
         $Entity->setProtocolDatabase($DatabaseName);

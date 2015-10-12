@@ -55,7 +55,6 @@ use SPHERE\System\Extension\Extension;
 class Frontend extends Extension implements IFrontendInterface
 {
 
-
     /**
      * @param bool|false|string $TabActive
      *

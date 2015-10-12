@@ -5,28 +5,15 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service\Entity\TblToken;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Extension\Extension;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service
  */
-class Data extends Extension
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -77,14 +64,14 @@ class Data extends Extension
     public function createToken($Identifier, TblConsumer $tblConsumer = null)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblToken')->findOneBy(array(TblToken::ATTR_IDENTIFIER => $Identifier));
         if (null === $Entity) {
             $Entity = new TblToken($Identifier);
             $Entity->setSerial($this->getModHex($Identifier)->getSerialNumber());
             $Entity->setServiceTblConsumer($tblConsumer);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -97,7 +84,7 @@ class Data extends Extension
     public function getTokenByIdentifier($Identifier)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblToken')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblToken')
             ->findOneBy(array(TblToken::ATTR_IDENTIFIER => $Identifier));
         return ( null === $Entity ? false : $Entity );
     }
@@ -108,7 +95,7 @@ class Data extends Extension
     public function getTokenAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToken')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToken')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -120,7 +107,7 @@ class Data extends Extension
     public function getTokenById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToken', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToken', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -132,7 +119,7 @@ class Data extends Extension
     public function getTokenAllByConsumer(TblConsumer $tblConsumer)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToken')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToken')->findBy(array(
             TblToken::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
         ));
         return ( empty( $EntityList ) ? false : $EntityList );
@@ -146,11 +133,11 @@ class Data extends Extension
     public function destroyToken(TblToken $tblToken)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblToken', $tblToken->getId());
         if (null !== $Entity) {
             $Manager->killEntity($Entity);
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             return true;
         }
         return false;

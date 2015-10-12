@@ -3,28 +3,15 @@ namespace SPHERE\Application\Corporation\Company\Service;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Corporation\Company\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -40,12 +27,12 @@ class Data extends Cacheable
     public function createCompany($Name, $Description = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblCompany();
         $Entity->setName($Name);
         $Entity->setDescription($Description);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         return $Entity;
     }
 
@@ -62,7 +49,7 @@ class Data extends Cacheable
         $Description = ''
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblCompany $Entity */
         $Entity = $Manager->getEntityById('TblCompany', $tblCompany->getId());
         $Protocol = clone $Entity;
@@ -70,7 +57,7 @@ class Data extends Cacheable
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -82,7 +69,7 @@ class Data extends Cacheable
     public function getCompanyAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCompany');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCompany');
     }
 
     /**
@@ -91,7 +78,7 @@ class Data extends Cacheable
     public function countCompanyAll()
     {
 
-        return $this->Connection->getEntityManager()->getEntity('TblCompany')->count();
+        return $this->getConnection()->getEntityManager()->getEntity('TblCompany')->count();
     }
 
     /**
@@ -102,7 +89,7 @@ class Data extends Cacheable
     public function getCompanyById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblCompany', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCompany', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 }

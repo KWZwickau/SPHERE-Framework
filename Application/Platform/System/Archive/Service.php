@@ -1,44 +1,22 @@
 <?php
 namespace SPHERE\Application\Platform\System\Archive;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Archive\Service\Data;
 use SPHERE\Application\Platform\System\Archive\Service\Entity\TblArchive;
 use SPHERE\Application\Platform\System\Archive\Service\Setup;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Platform\System\Archive
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -49,7 +27,7 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        return (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        return (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
     }
 
     /**
@@ -69,7 +47,7 @@ class Service implements IServiceInterface
         $Type = TblArchive::ARCHIVE_TYPE_CREATE
     ) {
 
-        (new Data($this->Binding))->createArchiveEntry(
+        (new Data($this->getBinding()))->createArchiveEntry(
             $DatabaseName, $tblAccount, $tblConsumer, $Entity, $Type
         );
     }
@@ -80,7 +58,7 @@ class Service implements IServiceInterface
     public function getArchiveAll()
     {
 
-        return (new Data($this->Binding))->getArchiveAll();
+        return (new Data($this->getBinding()))->getArchiveAll();
     }
 
     /**
@@ -91,7 +69,7 @@ class Service implements IServiceInterface
     public function getArchiveAllByConsumer(TblConsumer $tblConsumer)
     {
 
-        return (new Data($this->Binding))->getArchiveAllByConsumer($tblConsumer);
+        return (new Data($this->getBinding()))->getArchiveAllByConsumer($tblConsumer);
     }
 
     /**

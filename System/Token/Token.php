@@ -17,7 +17,7 @@ class Token
      *
      * @throws \Exception
      */
-    function __construct(ITypeInterface $Type)
+    public function __construct(ITypeInterface $Type)
     {
 
         $this->Type = $Type;

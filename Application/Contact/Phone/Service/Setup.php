@@ -3,27 +3,15 @@ namespace SPHERE\Application\Contact\Phone\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Contact\Phone\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,7 +24,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblPhone = $this->setTablePhone($Schema);
         $tblType = $this->setTableType($Schema);
         $this->setTableToPerson($Schema, $tblPhone, $tblType);
@@ -44,9 +32,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -57,8 +45,8 @@ class Setup
     private function setTablePhone(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblPhone');
-        if (!$this->Connection->hasColumn('tblPhone', 'Number')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblPhone');
+        if (!$this->getConnection()->hasColumn('tblPhone', 'Number')) {
             $Table->addColumn('Number', 'string');
         }
         return $Table;
@@ -72,11 +60,11 @@ class Setup
     private function setTableType(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblType');
-        if (!$this->Connection->hasColumn('tblType', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblType');
+        if (!$this->getConnection()->hasColumn('tblType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblType', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
 
@@ -93,15 +81,15 @@ class Setup
     private function setTableToPerson(Schema &$Schema, Table $tblPhone, Table $tblType)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblToPerson');
-        if (!$this->Connection->hasColumn('tblToPerson', 'Remark')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblToPerson');
+        if (!$this->getConnection()->hasColumn('tblToPerson', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
-        if (!$this->Connection->hasColumn('tblToPerson', 'serviceTblPerson')) {
+        if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        $this->Connection->addForeignKey($Table, $tblPhone);
-        $this->Connection->addForeignKey($Table, $tblType);
+        $this->getConnection()->addForeignKey($Table, $tblPhone);
+        $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
     }
 
@@ -115,15 +103,15 @@ class Setup
     private function setTableToCompany(Schema &$Schema, Table $tblPhone, Table $tblType)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblToCompany');
-        if (!$this->Connection->hasColumn('tblToCompany', 'Remark')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblToCompany');
+        if (!$this->getConnection()->hasColumn('tblToCompany', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
-        if (!$this->Connection->hasColumn('tblToCompany', 'serviceTblCompany')) {
+        if (!$this->getConnection()->hasColumn('tblToCompany', 'serviceTblCompany')) {
             $Table->addColumn('serviceTblCompany', 'bigint', array('notnull' => false));
         }
-        $this->Connection->addForeignKey($Table, $tblPhone);
-        $this->Connection->addForeignKey($Table, $tblType);
+        $this->getConnection()->addForeignKey($Table, $tblPhone);
+        $this->getConnection()->addForeignKey($Table, $tblType);
         return $Table;
     }
 }

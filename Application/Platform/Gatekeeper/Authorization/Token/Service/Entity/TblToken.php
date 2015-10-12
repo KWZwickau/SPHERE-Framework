@@ -39,7 +39,7 @@ class TblToken extends Element
     /**
      * @param string $Identifier
      */
-    function __construct($Identifier)
+    public function __construct($Identifier)
     {
 
         $this->Identifier = $Identifier;

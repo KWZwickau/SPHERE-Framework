@@ -41,7 +41,7 @@ class Display extends Extension implements ITemplateInterface
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Display.twig');

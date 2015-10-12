@@ -33,7 +33,7 @@ class Stage extends Extension implements ITemplateInterface
      * @param null|string $Title
      * @param null|string $Description
      */
-    function __construct($Title = null, $Description = null)
+    public function __construct($Title = null, $Description = null)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Stage.twig');

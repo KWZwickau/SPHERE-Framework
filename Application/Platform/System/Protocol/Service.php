@@ -1,44 +1,22 @@
 <?php
 namespace SPHERE\Application\Platform\System\Protocol;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\System\Archive\Archive;
 use SPHERE\Application\Platform\System\Archive\Service\Entity\TblArchive;
 use SPHERE\Application\Platform\System\Protocol\Service\Data;
 use SPHERE\Application\Platform\System\Protocol\Service\Entity\TblProtocol;
 use SPHERE\Application\Platform\System\Protocol\Service\Setup;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractService;
 use SPHERE\System\Database\Fitting\Element;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\System\Platform\Protocol
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -49,7 +27,7 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        return (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        return (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
     }
 
     /**
@@ -58,7 +36,7 @@ class Service implements IServiceInterface
     public function getProtocolAll()
     {
 
-        return (new Data($this->Binding))->getProtocolAll();
+        return (new Data($this->getBinding()))->getProtocolAll();
     }
 
     /**
@@ -86,7 +64,7 @@ class Service implements IServiceInterface
             $Entity, TblArchive::ARCHIVE_TYPE_CREATE
         );
 
-        return (new Data($this->Binding))->createProtocolEntry(
+        return (new Data($this->getBinding()))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),
@@ -115,7 +93,7 @@ class Service implements IServiceInterface
             $tblConsumer = null;
         }
 
-        if (( $Protocol = (new Data($this->Binding))->createProtocolEntry(
+        if (( $Protocol = (new Data($this->getBinding()))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),
@@ -151,7 +129,7 @@ class Service implements IServiceInterface
             $tblConsumer = null;
         }
 
-        return (new Data($this->Binding))->createProtocolEntry(
+        return (new Data($this->getBinding()))->createProtocolEntry(
             $DatabaseName,
             ( $tblAccount ? $tblAccount : null ),
             ( $tblConsumer ? $tblConsumer : null ),

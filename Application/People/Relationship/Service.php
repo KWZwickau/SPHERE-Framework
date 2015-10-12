@@ -3,7 +3,6 @@ namespace SPHERE\Application\People\Relationship;
 
 use SPHERE\Application\Corporation\Company\Company;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Data;
@@ -18,37 +17,15 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
-use SPHERE\System\Extension\Extension;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\People\Relationship
  */
-class Service extends Extension implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -59,9 +36,9 @@ class Service extends Extension implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -74,7 +51,7 @@ class Service extends Extension implements IServiceInterface
     public function getPersonRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getPersonRelationshipAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getPersonRelationshipAllByPerson($tblPerson);
     }
 
     /**
@@ -85,7 +62,7 @@ class Service extends Extension implements IServiceInterface
     public function getCompanyRelationshipAllByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getCompanyRelationshipAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getCompanyRelationshipAllByPerson($tblPerson);
     }
 
     /**
@@ -96,7 +73,7 @@ class Service extends Extension implements IServiceInterface
     public function getCompanyRelationshipAllByCompany(TblCompany $tblCompany)
     {
 
-        return (new Data($this->Binding))->getCompanyRelationshipAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getCompanyRelationshipAllByCompany($tblCompany);
     }
 
     /**
@@ -138,7 +115,7 @@ class Service extends Extension implements IServiceInterface
 
             $tblType = $this->getTypeById($Type['Type']);
 
-            if ((new Data($this->Binding))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
+            if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
                 $Type['Remark'])
             ) {
                 return new Success('Die Beziehung wurde erfolgreich hinzugefügt')
@@ -159,7 +136,7 @@ class Service extends Extension implements IServiceInterface
     public function getTypeById($Id)
     {
 
-        return (new Data($this->Binding))->getTypeById($Id);
+        return (new Data($this->getBinding()))->getTypeById($Id);
     }
 
     /**
@@ -197,7 +174,7 @@ class Service extends Extension implements IServiceInterface
 
             $tblType = $this->getTypeById($Type['Type']);
 
-            if ((new Data($this->Binding))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
+            if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
                 $Type['Remark'])
             ) {
                 return new Success('Die Beziehung wurde erfolgreich hinzugefügt')
@@ -250,9 +227,9 @@ class Service extends Extension implements IServiceInterface
         if (!$Error) {
             $tblType = $this->getTypeById($Type['Type']);
             // Remove current
-            (new Data($this->Binding))->removePersonRelationshipToPerson($tblToPerson);
+            (new Data($this->getBinding()))->removePersonRelationshipToPerson($tblToPerson);
             // Add new
-            if ((new Data($this->Binding))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
+            if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
                 $Type['Remark'])
             ) {
                 return new Success('Die Beziehung wurde erfolgreich geändert')
@@ -303,9 +280,9 @@ class Service extends Extension implements IServiceInterface
         if (!$Error) {
             $tblType = $this->getTypeById($Type['Type']);
             // Remove current
-            (new Data($this->Binding))->removeCompanyRelationshipToPerson($tblToCompany);
+            (new Data($this->getBinding()))->removeCompanyRelationshipToPerson($tblToCompany);
             // Add new
-            if ((new Data($this->Binding))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
+            if ((new Data($this->getBinding()))->addCompanyRelationshipToPerson($tblCompanyTo, $tblPersonFrom, $tblType,
                 $Type['Remark'])
             ) {
                 return new Success('Die Beziehung wurde erfolgreich geändert')
@@ -326,7 +303,7 @@ class Service extends Extension implements IServiceInterface
     public function getTypeAll()
     {
 
-        return (new Data($this->Binding))->getTypeAll();
+        return (new Data($this->getBinding()))->getTypeAll();
     }
 
     /**
@@ -337,7 +314,7 @@ class Service extends Extension implements IServiceInterface
     public function removePersonRelationshipToPerson(TblToPerson $tblToPerson)
     {
 
-        return (new Data($this->Binding))->removePersonRelationshipToPerson($tblToPerson);
+        return (new Data($this->getBinding()))->removePersonRelationshipToPerson($tblToPerson);
     }
 
     /**
@@ -348,7 +325,7 @@ class Service extends Extension implements IServiceInterface
     public function removeCompanyRelationshipToPerson(TblToCompany $tblToCompany)
     {
 
-        return (new Data($this->Binding))->removeCompanyRelationshipToPerson($tblToCompany);
+        return (new Data($this->getBinding()))->removeCompanyRelationshipToPerson($tblToCompany);
     }
 
     /**
@@ -359,7 +336,7 @@ class Service extends Extension implements IServiceInterface
     public function getRelationshipToPersonById($Id)
     {
 
-        return (new Data($this->Binding))->getRelationshipToPersonById($Id);
+        return (new Data($this->getBinding()))->getRelationshipToPersonById($Id);
     }
 
     /**
@@ -370,6 +347,6 @@ class Service extends Extension implements IServiceInterface
     public function getRelationshipToCompanyById($Id)
     {
 
-        return (new Data($this->Binding))->getRelationshipToCompanyById($Id);
+        return (new Data($this->getBinding()))->getRelationshipToCompanyById($Id);
     }
 }

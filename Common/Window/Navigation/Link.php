@@ -32,7 +32,7 @@ class Link extends Extension
      * @param Icon|null $Icon
      * @param bool      $Active
      */
-    function __construct(Route $Route, Name $Name, Icon $Icon = null, $Active = false)
+    public function __construct(Route $Route, Name $Name, Icon $Icon = null, $Active = false)
     {
 
         $this->Route = $Route;

@@ -70,7 +70,7 @@ class Release
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         if (!empty( $this->Category )) {

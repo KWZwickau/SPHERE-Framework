@@ -26,7 +26,7 @@ class TblPrivilege extends Element
     /**
      * @param string $Name
      */
-    function __construct($Name)
+    public function __construct($Name)
     {
 
         $this->Name = $Name;

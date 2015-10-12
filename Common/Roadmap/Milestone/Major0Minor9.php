@@ -24,9 +24,6 @@ class Major0Minor9
 
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
-        $Feature = $Category->createFeature('Dashboards');
-        $Feature->createTask('Board: People')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
 
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
@@ -38,9 +35,7 @@ class Major0Minor9
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
-        $Feature = $Category->createFeature('Dashboards');
-        $Feature->createTask('Board: Corporation')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
+        $Feature = $Category->createFeature('Firma');
         $Feature->createTask('Beziehungen')
             ->createDuty('Trennung von Beziehungstypen (Firmenbeziehungen)')
             ->createDuty('Frei definierbare Beziehungstypen');
@@ -60,21 +55,15 @@ class Major0Minor9
         // Bildung
         $Category = $Release->createCategory('Bildung');
 
-        $Feature = $Category->createFeature('Dashboards');
-        $Feature->createTask('Board: Education')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
-        $Feature->createTask('Board: Lesson')
-            ->createDuty('Klären welcher Inhalt enthalten sein soll');
-
         $Feature = $Category->createFeature('Unterricht');
         $Feature->createTask('Fächer')
-            ->createDuty('Fach hinzufügen')
-            ->createDuty('Fach bearbeiten')
-            ->createDuty('Fach löschen');
+            ->createDuty('Fach hinzufügen', true)
+            ->createDuty('Fach bearbeiten', false)
+            ->createDuty('Fach löschen', false);
         $Feature->createTask('Fach-Kategorie')
-            ->createDuty('Kategorie hinzufügen')
-            ->createDuty('Kategorie bearbeiten')
-            ->createDuty('Kategorie löschen');
+            ->createDuty('Kategorie hinzufügen', false)
+            ->createDuty('Kategorie bearbeiten', false)
+            ->createDuty('Kategorie löschen', false);
         $Feature->createTask('Fach-Kategorie zuweisen')
             ->createDuty('Verknüpfung hinzufügen')
             ->createDuty('Verknüpfung löschen');

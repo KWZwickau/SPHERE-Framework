@@ -4,28 +4,15 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -52,14 +39,14 @@ class Data extends Cacheable
     public function createConsumer($Acronym, $Name)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblConsumer')
             ->findOneBy(array(TblConsumer::ATTR_ACRONYM => $Acronym));
         if (null === $Entity) {
             $Entity = new TblConsumer($Acronym);
             $Entity->setName($Name);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -72,7 +59,7 @@ class Data extends Cacheable
     public function getConsumerByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblConsumer')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblConsumer')
             ->findOneBy(array(TblConsumer::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -85,7 +72,7 @@ class Data extends Cacheable
     public function getConsumerByAcronym($Acronym)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblConsumer')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblConsumer')
             ->findOneBy(array(TblConsumer::ATTR_ACRONYM => $Acronym));
         return ( null === $Entity ? false : $Entity );
     }
@@ -98,7 +85,7 @@ class Data extends Cacheable
     public function getConsumerById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblConsumer', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer', $Id);
     }
 
     /**
@@ -107,7 +94,7 @@ class Data extends Cacheable
     public function getConsumerAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblConsumer');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblConsumer');
     }
 
     /**

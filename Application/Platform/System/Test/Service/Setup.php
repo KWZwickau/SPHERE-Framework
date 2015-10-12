@@ -3,27 +3,15 @@ namespace SPHERE\Application\Platform\System\Test\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Platform\System\Test\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,15 +24,15 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $this->setTestPicture($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
 
-        return $this->Connection->getProtocol($Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -55,29 +43,29 @@ class Setup
     private function setTestPicture(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblTestPicture');
-        if (!$this->Connection->hasColumn('tblTestPicture', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblTestPicture');
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblTestPicture', 'FileName')) {
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'FileName')) {
             $Table->addColumn('FileName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblTestPicture', 'Extension')) {
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'Extension')) {
             $Table->addColumn('Extension', 'string');
         }
-        if (!$this->Connection->hasColumn('tblTestPicture', 'ImgData')) {
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'ImgData')) {
             $Table->addColumn('ImgData', 'blob');
         }
-        if (!$this->Connection->hasColumn('tblTestPicture', 'ImgType')) {
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'ImgType')) {
             $Table->addColumn('ImgType', 'string');
         }
-        if (!$this->Connection->hasColumn('tblTestPicture', 'Size')) {
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'Size')) {
             $Table->addColumn('Size', 'integer');
         }
-        if (!$this->Connection->hasColumn('tblTestPicture', 'Width')) {
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'Width')) {
             $Table->addColumn('Width', 'integer');
         }
-        if (!$this->Connection->hasColumn('tblTestPicture', 'Height')) {
+        if (!$this->getConnection()->hasColumn('tblTestPicture', 'Height')) {
             $Table->addColumn('Height', 'integer');
         }
 

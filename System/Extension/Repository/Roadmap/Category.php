@@ -66,7 +66,7 @@ class Category
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         switch ($this->Status->getState()) {

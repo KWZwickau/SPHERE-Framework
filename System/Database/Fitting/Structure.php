@@ -22,7 +22,7 @@ class Structure
     /**
      * @param Identifier $Identifier
      */
-    function __construct(Identifier $Identifier)
+    public function __construct(Identifier $Identifier)
     {
 
         $this->Database = new Database($Identifier);

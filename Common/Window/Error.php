@@ -21,7 +21,7 @@ class Error extends Extension implements ITemplateInterface
      * @param integer|string $Code
      * @param null           $Message
      */
-    function __construct($Code, $Message = null)
+    public function __construct($Code, $Message = null)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Error.twig');

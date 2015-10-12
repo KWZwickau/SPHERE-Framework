@@ -3,27 +3,15 @@ namespace SPHERE\Application\People\Group\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\People\Group\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,15 +24,15 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblGroup = $this->setTableGroup($Schema);
         $this->setTableMember($Schema, $tblGroup);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -55,20 +43,20 @@ class Setup
     private function setTableGroup(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblGroup');
-        if (!$this->Connection->hasColumn('tblGroup', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblGroup');
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblGroup', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->Connection->hasColumn('tblGroup', 'Remark')) {
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Remark')) {
             $Table->addColumn('Remark', 'text');
         }
-        if (!$this->Connection->hasColumn('tblGroup', 'IsLocked')) {
+        if (!$this->getConnection()->hasColumn('tblGroup', 'IsLocked')) {
             $Table->addColumn('IsLocked', 'boolean');
         }
-        if (!$this->Connection->hasColumn('tblGroup', 'MetaTable')) {
+        if (!$this->getConnection()->hasColumn('tblGroup', 'MetaTable')) {
             $Table->addColumn('MetaTable', 'string');
         }
         return $Table;
@@ -83,11 +71,11 @@ class Setup
     private function setTableMember(Schema &$Schema, Table $tblGroup)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblMember');
-        if (!$this->Connection->hasColumn('tblMember', 'serviceTblPerson')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblMember');
+        if (!$this->getConnection()->hasColumn('tblMember', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }
-        $this->Connection->addForeignKey($Table, $tblGroup);
+        $this->getConnection()->addForeignKey($Table, $tblGroup);
         return $Table;
     }
 }
