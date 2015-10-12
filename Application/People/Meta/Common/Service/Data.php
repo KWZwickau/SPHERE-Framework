@@ -6,28 +6,15 @@ use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonBirthDates;
 use SPHERE\Application\People\Meta\Common\Service\Entity\TblCommonInformation;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Meta\Common\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -43,7 +30,7 @@ class Data extends Cacheable
     public function getCommonByPerson(TblPerson $tblPerson)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblCommon', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', array(
             TblCommon::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
@@ -61,14 +48,14 @@ class Data extends Cacheable
         $Gender
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblCommonBirthDates();
         $Entity->setBirthday(( $Birthday ? new \DateTime($Birthday) : null ));
         $Entity->setBirthplace($Birthplace);
         $Entity->setGender($Gender);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -88,7 +75,7 @@ class Data extends Cacheable
         $AssistanceActivity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblCommonInformation();
         $Entity->setNationality($Nationality);
@@ -96,7 +83,7 @@ class Data extends Cacheable
         $Entity->setIsAssistance($IsAssistance);
         $Entity->setAssistanceActivity($AssistanceActivity);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -116,7 +103,7 @@ class Data extends Cacheable
         $Remark
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblCommon();
         $Entity->setServiceTblPerson($tblPerson);
@@ -124,7 +111,7 @@ class Data extends Cacheable
         $Entity->setTblCommonInformation($tblCommonInformation);
         $Entity->setRemark($Remark);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -137,7 +124,7 @@ class Data extends Cacheable
     public function getCommonById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblCommon', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommon', $Id);
     }
 
     /**
@@ -148,7 +135,7 @@ class Data extends Cacheable
     public function getCommonBirthDatesById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblCommonBirthDates',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommonBirthDates',
             $Id);
     }
 
@@ -160,7 +147,8 @@ class Data extends Cacheable
     public function getCommonInformationById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblCommonInformation',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCommonInformation',
             $Id);
     }
 
@@ -170,7 +158,8 @@ class Data extends Cacheable
     public function getCommonInformationAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCommonInformation');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCommonInformation');
     }
 
     /**
@@ -179,7 +168,8 @@ class Data extends Cacheable
     public function getCommonBirthDatesAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->Connection->getEntityManager(), 'TblCommonBirthDates');
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblCommonBirthDates');
     }
 
     /**
@@ -197,7 +187,7 @@ class Data extends Cacheable
         $Gender
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblCommonBirthDates $Entity */
         $Entity = $Manager->getEntityById('TblCommonBirthDates', $tblCommonBirthDates->getId());
         if (null !== $Entity) {
@@ -206,7 +196,7 @@ class Data extends Cacheable
             $Entity->setBirthplace($Birthplace);
             $Entity->setGender($Gender);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -229,7 +219,7 @@ class Data extends Cacheable
         $AssistanceActivity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblCommonInformation $Entity */
         $Entity = $Manager->getEntityById('TblCommonInformation', $tblCommonInformation->getId());
         if (null !== $Entity) {
@@ -239,7 +229,7 @@ class Data extends Cacheable
             $Entity->setIsAssistance($IsAssistance);
             $Entity->setAssistanceActivity($AssistanceActivity);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -256,14 +246,14 @@ class Data extends Cacheable
         $Remark
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblCommon $Entity */
         $Entity = $Manager->getEntityById('TblCommon', $tblCommon->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;

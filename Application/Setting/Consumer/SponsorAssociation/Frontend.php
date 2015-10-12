@@ -68,7 +68,7 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        if ($tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll()) {
+        if (( $tblSponsorAssociationAll = SponsorAssociation::useService()->getSponsorAssociationAll() )) {
 
             $tblCompanyAll[] = null;
 
@@ -229,9 +229,12 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @return Form
+     * @param            $Id
+     * @param bool|false $Confirm
+     *
+     * @return Stage
      */
-    private function formSponsorAssociationCompanyDelete()
+    public function formSponsorAssociationCompanyDelete($Id, $Confirm = false)
     {
 
         $Stage = new Stage('Förderverein', 'Löschen');

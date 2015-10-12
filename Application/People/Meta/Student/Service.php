@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Meta\Student\Service\Data;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
@@ -15,36 +14,15 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\People\Meta\Student
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -55,9 +33,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -70,7 +48,7 @@ class Service implements IServiceInterface
     public function getStudentById($Id)
     {
 
-        return (new Data($this->Binding))->getStudentById($Id);
+        return (new Data($this->getBinding()))->getStudentById($Id);
     }
 
     /**
@@ -81,7 +59,7 @@ class Service implements IServiceInterface
     public function getStudentMedicalRecordById($Id)
     {
 
-        return (new Data($this->Binding))->getStudentMedicalRecordById($Id);
+        return (new Data($this->getBinding()))->getStudentMedicalRecordById($Id);
     }
 
     /**
@@ -92,7 +70,7 @@ class Service implements IServiceInterface
     public function getStudentTransferById($Id)
     {
 
-        return (new Data($this->Binding))->getStudentTransferById($Id);
+        return (new Data($this->getBinding()))->getStudentTransferById($Id);
     }
 
     /**
@@ -103,7 +81,7 @@ class Service implements IServiceInterface
     public function getStudentTransferArriveById($Id)
     {
 
-        return (new Data($this->Binding))->getStudentTransferArriveById($Id);
+        return (new Data($this->getBinding()))->getStudentTransferArriveById($Id);
     }
 
     /**
@@ -114,7 +92,7 @@ class Service implements IServiceInterface
     public function getStudentTransferEnrollmentById($Id)
     {
 
-        return (new Data($this->Binding))->getStudentTransferEnrollmentById($Id);
+        return (new Data($this->getBinding()))->getStudentTransferEnrollmentById($Id);
     }
 
     /**
@@ -125,7 +103,7 @@ class Service implements IServiceInterface
     public function getStudentTransferLeaveById($Id)
     {
 
-        return (new Data($this->Binding))->getStudentTransferLeaveById($Id);
+        return (new Data($this->getBinding()))->getStudentTransferLeaveById($Id);
     }
 
     /**
@@ -136,7 +114,7 @@ class Service implements IServiceInterface
     public function getStudentTransferProcessById($Id)
     {
 
-        return (new Data($this->Binding))->getStudentTransferProcessById($Id);
+        return (new Data($this->getBinding()))->getStudentTransferProcessById($Id);
     }
 
     /**
@@ -158,7 +136,7 @@ class Service implements IServiceInterface
 
         $tblStudent = $this->getStudentByPerson($tblPerson);
         if ($tblStudent) {
-            (new Data($this->Binding))->updateStudentMedicalRecord(
+            (new Data($this->getBinding()))->updateStudentMedicalRecord(
                 $tblStudent->getTblStudentMedicalRecord(),
                 $Meta['MedicalRecord']['Disease'],
                 $Meta['MedicalRecord']['Medication'],
@@ -167,14 +145,14 @@ class Service implements IServiceInterface
                 $Meta['MedicalRecord']['Insurance']
             );
         } else {
-            $tblStudentMedicalRecord = (new Data($this->Binding))->createStudentMedicalRecord(
+            $tblStudentMedicalRecord = (new Data($this->getBinding()))->createStudentMedicalRecord(
                 $Meta['MedicalRecord']['Disease'],
                 $Meta['MedicalRecord']['Medication'],
                 $Meta['MedicalRecord']['tblPersonAttendingDoctor'],
                 $Meta['MedicalRecord']['InsuranceState'],
                 $Meta['MedicalRecord']['Insurance']
             );
-            (new Data($this->Binding))->createStudent(
+            (new Data($this->getBinding()))->createStudent(
                 $tblPerson,
                 $tblStudentMedicalRecord
             );
@@ -192,6 +170,6 @@ class Service implements IServiceInterface
     public function getStudentByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getStudentByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getStudentByPerson($tblPerson);
     }
 }

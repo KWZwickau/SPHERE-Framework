@@ -25,7 +25,7 @@ class TblRight extends Element
     /**
      * @param string $Route
      */
-    function __construct($Route)
+    public function __construct($Route)
     {
 
         $this->Route = $Route;

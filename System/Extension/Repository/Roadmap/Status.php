@@ -78,7 +78,7 @@ class Status
     /**
      * @return string
      */
-    function __toString()
+    public function __toString()
     {
 
         $Done = $this->getDonePercent();

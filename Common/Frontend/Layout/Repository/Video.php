@@ -22,10 +22,14 @@ class Video extends Extension implements ITemplateInterface
     /** @var array $Source */
     private $Source = array();
 
+    /**
+     * @param File      $Source
+     * @param File|null $Splash
+     */
     public function __construct(File $Source, File $Splash = null)
     {
 
-        if ($Location = $Source->getRealPath()) {
+        if (( $Location = $Source->getRealPath() )) {
             $FileInfo = new \finfo(FILEINFO_MIME_TYPE);
             $MimeType = $FileInfo->buffer(file_get_contents($Location));
         } else {

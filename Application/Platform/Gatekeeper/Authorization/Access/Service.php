@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Access;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblLevel;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Service\Entity\TblPrivilege;
@@ -14,17 +13,14 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Memcached;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
-use SPHERE\System\Extension\Extension;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\System\Gatekeeper\Authorization\Access
  */
-class Service extends Extension implements IServiceInterface
+class Service extends AbstractService
 {
 
     /** @var array $AuthorizationRequest */
@@ -37,24 +33,6 @@ class Service extends Extension implements IServiceInterface
     private static $LevelByIdCache = array();
     /** @var TblPrivilege[] $PrivilegeByIdCache */
     private static $PrivilegeByIdCache = array();
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -65,9 +43,9 @@ class Service extends Extension implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -143,7 +121,7 @@ class Service extends Extension implements IServiceInterface
     public function getRightByName($Name)
     {
 
-        return (new Data($this->Binding))->getRightByName($Name);
+        return (new Data($this->getBinding()))->getRightByName($Name);
     }
 
     /**
@@ -154,7 +132,7 @@ class Service extends Extension implements IServiceInterface
     public function getRightById($Id)
     {
 
-        return (new Data($this->Binding))->getRightById($Id);
+        return (new Data($this->getBinding()))->getRightById($Id);
     }
 
     /**
@@ -163,7 +141,7 @@ class Service extends Extension implements IServiceInterface
     public function getRightAll()
     {
 
-        return (new Data($this->Binding))->getRightAll();
+        return (new Data($this->getBinding()))->getRightAll();
     }
 
     /**
@@ -180,7 +158,7 @@ class Service extends Extension implements IServiceInterface
         }
         if (!empty( $Name )) {
             $Form->setSuccess('Name', 'Das Recht wurde hinzugefügt');
-            (new Data($this->Binding))->createRight($Name);
+            (new Data($this->getBinding()))->createRight($Name);
             return new Redirect('/Platform/Gatekeeper/Authorization/Access/Right', 0);
         }
         return $Form;
@@ -200,7 +178,7 @@ class Service extends Extension implements IServiceInterface
         }
         if (!empty( $Name )) {
             $Form->setSuccess('Name', 'Das Privileg wurde hinzugefügt');
-            (new Data($this->Binding))->createPrivilege($Name);
+            (new Data($this->getBinding()))->createPrivilege($Name);
             return new Redirect('/Platform/Gatekeeper/Authorization/Access/Privilege', 0);
         }
         return $Form;
@@ -217,7 +195,7 @@ class Service extends Extension implements IServiceInterface
         if (array_key_exists($Id, self::$PrivilegeByIdCache)) {
             return self::$PrivilegeByIdCache[$Id];
         }
-        self::$PrivilegeByIdCache[$Id] = (new Data($this->Binding))->getPrivilegeById($Id);
+        self::$PrivilegeByIdCache[$Id] = (new Data($this->getBinding()))->getPrivilegeById($Id);
         return self::$PrivilegeByIdCache[$Id];
     }
 
@@ -229,7 +207,7 @@ class Service extends Extension implements IServiceInterface
     public function getPrivilegeByName($Name)
     {
 
-        return (new Data($this->Binding))->getPrivilegeByName($Name);
+        return (new Data($this->getBinding()))->getPrivilegeByName($Name);
     }
 
     /**
@@ -238,7 +216,7 @@ class Service extends Extension implements IServiceInterface
     public function getPrivilegeAll()
     {
 
-        return (new Data($this->Binding))->getPrivilegeAll();
+        return (new Data($this->getBinding()))->getPrivilegeAll();
     }
 
     /**
@@ -255,7 +233,7 @@ class Service extends Extension implements IServiceInterface
         }
         if (!empty( $Name )) {
             $Form->setSuccess('Name', 'Das Zugriffslevel wurde hinzugefügt');
-            (new Data($this->Binding))->createLevel($Name);
+            (new Data($this->getBinding()))->createLevel($Name);
             return new Redirect('/Platform/Gatekeeper/Authorization/Access/Level', 0);
         }
         return $Form;
@@ -272,7 +250,7 @@ class Service extends Extension implements IServiceInterface
         if (array_key_exists($Id, self::$LevelByIdCache)) {
             return self::$LevelByIdCache[$Id];
         }
-        self::$LevelByIdCache[$Id] = (new Data($this->Binding))->getLevelById($Id);
+        self::$LevelByIdCache[$Id] = (new Data($this->getBinding()))->getLevelById($Id);
         return self::$LevelByIdCache[$Id];
     }
 
@@ -284,7 +262,7 @@ class Service extends Extension implements IServiceInterface
     public function getLevelByName($Name)
     {
 
-        return (new Data($this->Binding))->getLevelByName($Name);
+        return (new Data($this->getBinding()))->getLevelByName($Name);
     }
 
     /**
@@ -293,7 +271,7 @@ class Service extends Extension implements IServiceInterface
     public function getLevelAll()
     {
 
-        return (new Data($this->Binding))->getLevelAll();
+        return (new Data($this->getBinding()))->getLevelAll();
     }
 
     /**
@@ -310,7 +288,7 @@ class Service extends Extension implements IServiceInterface
         }
         if (!empty( $Name )) {
             $Form->setSuccess('Name', 'Die Rolle wurde hinzugefügt');
-            (new Data($this->Binding))->createRole($Name);
+            (new Data($this->getBinding()))->createRole($Name);
             return new Redirect('/Platform/Gatekeeper/Authorization/Access/Role', 0);
         }
         return $Form;
@@ -327,7 +305,7 @@ class Service extends Extension implements IServiceInterface
         if (array_key_exists($Id, self::$RoleByIdCache)) {
             return self::$RoleByIdCache[$Id];
         }
-        self::$RoleByIdCache[$Id] = (new Data($this->Binding))->getRoleById($Id);
+        self::$RoleByIdCache[$Id] = (new Data($this->getBinding()))->getRoleById($Id);
         return self::$RoleByIdCache[$Id];
     }
 
@@ -339,7 +317,7 @@ class Service extends Extension implements IServiceInterface
     public function getRoleByName($Name)
     {
 
-        return (new Data($this->Binding))->getRoleByName($Name);
+        return (new Data($this->getBinding()))->getRoleByName($Name);
     }
 
     /**
@@ -348,7 +326,7 @@ class Service extends Extension implements IServiceInterface
     public function getRoleAll()
     {
 
-        return (new Data($this->Binding))->getRoleAll();
+        return (new Data($this->getBinding()))->getRoleAll();
     }
 
     /**
@@ -360,7 +338,7 @@ class Service extends Extension implements IServiceInterface
     public function getLevelAllByRole(TblRole $tblRole)
     {
 
-        return (new Data($this->Binding))->getLevelAllByRole($tblRole);
+        return (new Data($this->getBinding()))->getLevelAllByRole($tblRole);
     }
 
     /**
@@ -372,7 +350,7 @@ class Service extends Extension implements IServiceInterface
     public function getRightAllByPrivilege(TblPrivilege $tblPrivilege)
     {
 
-        return (new Data($this->Binding))->getRightAllByPrivilege($tblPrivilege);
+        return (new Data($this->getBinding()))->getRightAllByPrivilege($tblPrivilege);
     }
 
     /**
@@ -384,7 +362,7 @@ class Service extends Extension implements IServiceInterface
     public function getPrivilegeAllByLevel(TblLevel $tblLevel)
     {
 
-        return (new Data($this->Binding))->getPrivilegeAllByLevel($tblLevel);
+        return (new Data($this->getBinding()))->getPrivilegeAllByLevel($tblLevel);
     }
 
     /**
@@ -396,7 +374,7 @@ class Service extends Extension implements IServiceInterface
     public function addRoleLevel(TblRole $tblRole, TblLevel $tblLevel)
     {
 
-        return (new Data($this->Binding))->addRoleLevel($tblRole, $tblLevel);
+        return (new Data($this->getBinding()))->addRoleLevel($tblRole, $tblLevel);
     }
 
     /**
@@ -408,7 +386,7 @@ class Service extends Extension implements IServiceInterface
     public function removeRoleLevel(TblRole $tblRole, TblLevel $tblLevel)
     {
 
-        return (new Data($this->Binding))->removeRoleLevel($tblRole, $tblLevel);
+        return (new Data($this->getBinding()))->removeRoleLevel($tblRole, $tblLevel);
     }
 
     /**
@@ -420,7 +398,7 @@ class Service extends Extension implements IServiceInterface
     public function removeLevelPrivilege(TblLevel $tblLevel, TblPrivilege $tblPrivilege)
     {
 
-        return (new Data($this->Binding))->removeLevelPrivilege($tblLevel, $tblPrivilege);
+        return (new Data($this->getBinding()))->removeLevelPrivilege($tblLevel, $tblPrivilege);
     }
 
     /**
@@ -432,7 +410,7 @@ class Service extends Extension implements IServiceInterface
     public function removePrivilegeRight(TblPrivilege $tblPrivilege, TblRight $tblRight)
     {
 
-        return (new Data($this->Binding))->removePrivilegeRight($tblPrivilege, $tblRight);
+        return (new Data($this->getBinding()))->removePrivilegeRight($tblPrivilege, $tblRight);
     }
 
     /**
@@ -444,7 +422,7 @@ class Service extends Extension implements IServiceInterface
     public function addPrivilegeRight(TblPrivilege $tblPrivilege, TblRight $tblRight)
     {
 
-        return (new Data($this->Binding))->addPrivilegeRight($tblPrivilege, $tblRight);
+        return (new Data($this->getBinding()))->addPrivilegeRight($tblPrivilege, $tblRight);
     }
 
     /**
@@ -456,6 +434,6 @@ class Service extends Extension implements IServiceInterface
     public function addLevelPrivilege(TblLevel $tblLevel, TblPrivilege $tblPrivilege)
     {
 
-        return (new Data($this->Binding))->addLevelPrivilege($tblLevel, $tblPrivilege);
+        return (new Data($this->getBinding()))->addLevelPrivilege($tblLevel, $tblPrivilege);
     }
 }

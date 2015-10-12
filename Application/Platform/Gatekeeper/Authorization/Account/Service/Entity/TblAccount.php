@@ -44,7 +44,7 @@ class TblAccount extends Element
     /**
      * @param string $Username
      */
-    function __construct($Username)
+    public function __construct($Username)
     {
 
         $this->Username = $Username;

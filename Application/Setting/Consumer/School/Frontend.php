@@ -81,7 +81,7 @@ class Frontend extends Extension implements IFrontendInterface
             )
         );
 
-        if ($tblSchoolAll = School::useService()->getSchoolAll()) {
+        if (( $tblSchoolAll = School::useService()->getSchoolAll() )) {
 
             $Form = null;
             foreach ($tblSchoolAll as $tblSchool) {
@@ -426,7 +426,7 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param $Id
+     * @param            $Id
      * @param bool|false $Confirm
      *
      * @return Stage

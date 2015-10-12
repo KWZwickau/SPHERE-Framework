@@ -3,27 +3,15 @@ namespace SPHERE\Application\Education\School\Type\Service;
 
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Education\School\Type\Service
  */
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -48,7 +36,7 @@ class Data
     public function createType($Name, $Description = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblType')
             ->findOneBy(array(TblType::ATTR_NAME => $Name));
@@ -58,7 +46,7 @@ class Data
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -71,7 +59,7 @@ class Data
     public function getTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -83,7 +71,7 @@ class Data
     public function getTypeByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblType')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblType')
             ->findOneBy(array(TblType::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -94,7 +82,7 @@ class Data
     public function getTypeAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblType')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 }

@@ -19,7 +19,7 @@ class Status extends Extension implements ITemplateInterface
     /**
      * @param ITypeInterface $Cache
      */
-    function __construct(ITypeInterface $Cache)
+    public function __construct(ITypeInterface $Cache)
     {
 
         $Rate = $this->getTemplate(__DIR__.'/Rate.twig');

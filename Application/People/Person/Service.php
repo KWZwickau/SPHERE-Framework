@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\People\Person;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Group\Service\Entity\TblGroup;
 use SPHERE\Application\People\Person\Service\Data;
@@ -12,36 +11,15 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\People\Person
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -52,9 +30,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -65,7 +43,7 @@ class Service implements IServiceInterface
     public function getSalutationAll()
     {
 
-        return (new Data($this->Binding))->getSalutationAll();
+        return (new Data($this->getBinding()))->getSalutationAll();
     }
 
     /**
@@ -74,7 +52,7 @@ class Service implements IServiceInterface
     public function countPersonAll()
     {
 
-        return (new Data($this->Binding))->countPersonAll();
+        return (new Data($this->getBinding()))->countPersonAll();
     }
 
     /**
@@ -83,7 +61,7 @@ class Service implements IServiceInterface
     public function getPersonAll()
     {
 
-        return (new Data($this->Binding))->getPersonAll();
+        return (new Data($this->getBinding()))->getPersonAll();
     }
 
     /**
@@ -126,7 +104,7 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            if (( $tblPerson = (new Data($this->Binding))->createPerson(
+            if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
                 $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
                 $Person['SecondName'], $Person['LastName']) )
             ) {
@@ -159,7 +137,25 @@ class Service implements IServiceInterface
     public function getSalutationById($Id)
     {
 
-        return (new Data($this->Binding))->getSalutationById($Id);
+        return (new Data($this->getBinding()))->getSalutationById($Id);
+    }
+
+    /**
+     * @param TblSalutation $tblSalutation
+     * @param               $Title
+     * @param               $FirstName
+     * @param               $SecondName
+     * @param               $LastName
+     *
+     * @return TblPerson
+     */
+    public function createPersonFromImport(TblSalutation $tblSalutation, $Title, $FirstName, $SecondName, $LastName)
+    {
+
+        $tblPerson = (new Data($this->getBinding()))->createPerson($tblSalutation, $Title, $FirstName, $SecondName,
+            $LastName);
+
+        return $tblPerson;
     }
 
     /**
@@ -170,7 +166,19 @@ class Service implements IServiceInterface
     public function getPersonById($Id)
     {
 
-        return (new Data($this->Binding))->getPersonById($Id);
+        return (new Data($this->getBinding()))->getPersonById($Id);
+    }
+
+    /**
+     * @param $FirstName
+     * @param $LastName
+     *
+     * @return bool|Service\Entity\TblPerson[]
+     */
+    public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
+    {
+
+        return (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
     }
 
     /**
@@ -203,7 +211,7 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            if ((new Data($this->Binding))->updatePerson($tblPerson,
+            if ((new Data($this->getBinding()))->updatePerson($tblPerson,
                 $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
                 $Person['SecondName'], $Person['LastName'])
             ) {

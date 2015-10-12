@@ -52,6 +52,7 @@ class School extends Extension implements IModuleInterface
      */
     public static function useService()
     {
+
         return new Service(
             new Identifier('Setting', 'Consumer', 'School', null, Consumer::useService()->getConsumerBySession()),
             __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
@@ -63,6 +64,7 @@ class School extends Extension implements IModuleInterface
      */
     public static function useFrontend()
     {
+
         return new Frontend();
     }
 }

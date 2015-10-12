@@ -2,7 +2,6 @@
 namespace SPHERE\Application\People\Meta\Prospect;
 
 use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Meta\Prospect\Service\Data;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
@@ -12,36 +11,15 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\People\Meta\Prospect
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -52,9 +30,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -78,7 +56,7 @@ class Service implements IServiceInterface
 
         $tblProspect = $this->getProspectByPerson($tblPerson);
         if ($tblProspect) {
-            (new Data($this->Binding))->updateProspectAppointment(
+            (new Data($this->getBinding()))->updateProspectAppointment(
                 $tblProspect->getTblProspectAppointment(),
                 $Meta['Appointment']['ReservationDate'],
                 $Meta['Appointment']['InterviewDate'],
@@ -86,32 +64,32 @@ class Service implements IServiceInterface
             );
             $OptionA = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionA']);
             $OptionB = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionB']);
-            (new Data($this->Binding))->updateProspectReservation(
+            (new Data($this->getBinding()))->updateProspectReservation(
                 $tblProspect->getTblProspectReservation(),
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
                 ( $OptionA ? $OptionA : null ),
                 ( $OptionB ? $OptionB : null )
             );
-            (new Data($this->Binding))->updateProspect(
+            (new Data($this->getBinding()))->updateProspect(
                 $tblProspect,
                 $Meta['Remark']
             );
         } else {
-            $tblProspectAppointment = (new Data($this->Binding))->createProspectAppointment(
+            $tblProspectAppointment = (new Data($this->getBinding()))->createProspectAppointment(
                 $Meta['Appointment']['ReservationDate'],
                 $Meta['Appointment']['InterviewDate'],
                 $Meta['Appointment']['TrialDate']
             );
             $OptionA = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionA']);
             $OptionB = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionB']);
-            $tblProspectReservation = (new Data($this->Binding))->createProspectReservation(
+            $tblProspectReservation = (new Data($this->getBinding()))->createProspectReservation(
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
                 ( $OptionA ? $OptionA : null ),
                 ( $OptionB ? $OptionB : null )
             );
-            (new Data($this->Binding))->createProspect(
+            (new Data($this->getBinding()))->createProspect(
                 $tblPerson,
                 $tblProspectAppointment,
                 $tblProspectReservation,
@@ -131,7 +109,7 @@ class Service implements IServiceInterface
     public function getProspectByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getProspectByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getProspectByPerson($tblPerson);
     }
 
     /**
@@ -142,7 +120,7 @@ class Service implements IServiceInterface
     public function getProspectById($Id)
     {
 
-        return (new Data($this->Binding))->getProspectById($Id);
+        return (new Data($this->getBinding()))->getProspectById($Id);
     }
 
     /**
@@ -153,7 +131,7 @@ class Service implements IServiceInterface
     public function getProspectAppointmentById($Id)
     {
 
-        return (new Data($this->Binding))->getProspectAppointmentById($Id);
+        return (new Data($this->getBinding()))->getProspectAppointmentById($Id);
     }
 
     /**
@@ -164,6 +142,6 @@ class Service implements IServiceInterface
     public function getProspectReservationById($Id)
     {
 
-        return (new Data($this->Binding))->getProspectReservationById($Id);
+        return (new Data($this->getBinding()))->getProspectReservationById($Id);
     }
 }

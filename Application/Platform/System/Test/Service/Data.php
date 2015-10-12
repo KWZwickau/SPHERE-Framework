@@ -3,28 +3,15 @@ namespace SPHERE\Application\Platform\System\Test\Service;
 
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Platform\System\Test\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -47,7 +34,7 @@ class Data extends Cacheable
     public function createTestPicture($Name, $FileName, $Extension, $File, $Type, $Size, $Width, $Height)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = null;
 //        $Entity = $Manager->getEntity( 'TblTestPicture' )->findOneBy( array(
 //            TblTestPicture::ATTR_IMG_DATA => $File
@@ -64,7 +51,7 @@ class Data extends Cacheable
             $Entity->setWidth($Width);
             $Entity->setHeight($Height);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
 
         return $Entity;
@@ -78,12 +65,12 @@ class Data extends Cacheable
     public function removeTestPicture(TblTestPicture $tblTestPicture)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntityById('TblTestPicture', $tblTestPicture->getId());
 
         if (null !== $Entity) {
 
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
 
             return true;
@@ -100,7 +87,7 @@ class Data extends Cacheable
     public function getTestPictureById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblTestPicture', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTestPicture', $Id);
 
         return ( null === $Entity ? false : $Entity );
     }
@@ -112,7 +99,7 @@ class Data extends Cacheable
     public function getTestPictureAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblTestPicture')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblTestPicture')->findAll();
 
         return ( empty( $EntityList ) ? false : $EntityList );
     }

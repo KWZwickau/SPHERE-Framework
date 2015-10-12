@@ -25,7 +25,7 @@ class TblState extends Element
     /**
      * @param $Name
      */
-    function __construct($Name)
+    public function __construct($Name)
     {
 
         $this->setName($Name);

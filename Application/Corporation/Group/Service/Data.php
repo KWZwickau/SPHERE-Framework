@@ -6,27 +6,15 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblMember;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Corporation\Group\Service
  */
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -47,7 +35,7 @@ class Data
     public function createGroup($Name, $Description, $Remark, $IsLocked = false, $MetaTable = '')
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
@@ -67,7 +55,7 @@ class Data
             $Entity->setIsLocked($IsLocked);
             $Entity->setMetaTable($MetaTable);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
 
         return $Entity;
@@ -84,7 +72,7 @@ class Data
     public function updateGroup(TblGroup $tblGroup, $Name, $Description, $Remark)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblGroup $Entity */
         $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
         if (null !== $Entity) {
@@ -93,7 +81,7 @@ class Data
             $Entity->setDescription($Description);
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -105,7 +93,7 @@ class Data
     public function getGroupAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')->findAll();
         return ( empty( $Entity ) ? false : $Entity );
     }
 
@@ -117,7 +105,7 @@ class Data
     public function getGroupById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblGroup', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGroup', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -129,7 +117,7 @@ class Data
     public function getGroupByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(TblGroup::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -142,7 +130,7 @@ class Data
     public function getGroupByMetaTable($MetaTable)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblGroup')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblGroup')
             ->findOneBy(array(
                 TblGroup::ATTR_META_TABLE => $MetaTable,
                 TblGroup::ATTR_IS_LOCKED  => true
@@ -159,7 +147,7 @@ class Data
     public function countCompanyAllByGroup(TblGroup $tblGroup)
     {
 
-        $Count = $this->Connection->getEntityManager()->getEntity('TblMember')->countBy(array(
+        $Count = $this->getConnection()->getEntityManager()->getEntity('TblMember')->countBy(array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
         return $Count;
@@ -174,7 +162,7 @@ class Data
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblMember')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblMember')->findBy(array(
             TblMember::ATTR_TBL_GROUP => $tblGroup->getId()
         ));
         array_walk($EntityList, function (TblMember &$V) {
@@ -190,7 +178,7 @@ class Data
     public function getCompanyAllHavingNoGroup()
     {
 
-        $Exclude = $this->Connection->getEntityManager()->getQueryBuilder()
+        $Exclude = $this->getConnection()->getEntityManager()->getQueryBuilder()
             ->select('M.serviceTblCompany')
             ->from('\SPHERE\Application\Corporation\Group\Service\Entity\TblMember', 'M')
             ->distinct()
@@ -223,7 +211,7 @@ class Data
     {
 
         /** @var TblMember[] $EntityList */
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblMember')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblMember')->findBy(array(
             TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
         ));
         array_walk($EntityList, function (TblMember &$V) {
@@ -242,7 +230,7 @@ class Data
     public function addGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
                 TblMember::ATTR_TBL_GROUP      => $tblGroup->getId(),
@@ -253,7 +241,7 @@ class Data
             $Entity->setTblGroup($tblGroup);
             $Entity->setServiceTblCompany($tblCompany);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -267,7 +255,7 @@ class Data
     public function removeGroupCompany(TblGroup $tblGroup, TblCompany $tblCompany)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntity('TblMember')
             ->findOneBy(array(
@@ -275,7 +263,7 @@ class Data
                 TblMember::SERVICE_TBL_COMPANY => $tblCompany->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -290,11 +278,11 @@ class Data
     public function destroyGroup(TblGroup $tblGroup)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblMember $Entity */
         $Entity = $Manager->getEntityById('TblGroup', $tblGroup->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }

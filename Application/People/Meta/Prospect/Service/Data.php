@@ -7,28 +7,15 @@ use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointmen
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Meta\Prospect\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -45,7 +32,7 @@ class Data extends Cacheable
     public function getProspectByPerson(TblPerson $tblPerson)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblProspect', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblProspect', array(
             TblProspect::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
@@ -63,14 +50,14 @@ class Data extends Cacheable
         $TrialDate
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblProspectAppointment();
         $Entity->setReservationDate(( $ReservationDate ? new \DateTime($ReservationDate) : null ));
         $Entity->setInterviewDate(( $InterviewDate ? new \DateTime($InterviewDate) : null ));
         $Entity->setTrialDate(( $TrialDate ? new \DateTime($TrialDate) : null ));
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -90,7 +77,7 @@ class Data extends Cacheable
         TblCompany $tblCompanyOptionB = null
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblProspectReservation();
         $Entity->setReservationYear($ReservationYear);
@@ -98,7 +85,7 @@ class Data extends Cacheable
         $Entity->setServiceTblCompanyOptionA($tblCompanyOptionA);
         $Entity->setServiceTblCompanyOptionB($tblCompanyOptionB);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -118,7 +105,7 @@ class Data extends Cacheable
         $Remark
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblProspect();
         $Entity->setServiceTblPerson($tblPerson);
@@ -126,7 +113,7 @@ class Data extends Cacheable
         $Entity->setTblProspectReservation($tblProspectReservation);
         $Entity->setRemark($Remark);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -139,7 +126,7 @@ class Data extends Cacheable
     public function getProspectById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblProspect', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblProspect', $Id);
     }
 
     /**
@@ -150,7 +137,8 @@ class Data extends Cacheable
     public function getProspectAppointmentById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblProspectAppointment',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblProspectAppointment',
             $Id);
     }
 
@@ -162,7 +150,8 @@ class Data extends Cacheable
     public function getProspectReservationById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblProspectReservation',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblProspectReservation',
             $Id);
     }
 
@@ -181,7 +170,7 @@ class Data extends Cacheable
         $TrialDate
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblProspectAppointment $Entity */
         $Entity = $Manager->getEntityById('TblProspectAppointment', $tblProspectAppointment->getId());
         if (null !== $Entity) {
@@ -190,7 +179,7 @@ class Data extends Cacheable
             $Entity->setInterviewDate(( $InterviewDate ? new \DateTime($InterviewDate) : null ));
             $Entity->setTrialDate(( $TrialDate ? new \DateTime($TrialDate) : null ));
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -213,7 +202,7 @@ class Data extends Cacheable
         TblCompany $tblCompanyOptionB = null
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblProspectReservation $Entity */
         $Entity = $Manager->getEntityById('TblProspectReservation', $tblProspectReservation->getId());
         if (null !== $Entity) {
@@ -223,7 +212,7 @@ class Data extends Cacheable
             $Entity->setServiceTblCompanyOptionA($tblCompanyOptionA);
             $Entity->setServiceTblCompanyOptionB($tblCompanyOptionB);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -240,14 +229,14 @@ class Data extends Cacheable
         $Remark
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblProspect $Entity */
         $Entity = $Manager->getEntityById('TblProspect', $tblProspect->getId());
         if (null !== $Entity) {
             $Protocol = clone $Entity;
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;

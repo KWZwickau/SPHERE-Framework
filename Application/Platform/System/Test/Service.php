@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Platform\System\Test;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\System\Test\Service\Data;
 use SPHERE\Application\Platform\System\Test\Service\Entity\TblTestPicture;
 use SPHERE\Application\Platform\System\Test\Service\Setup;
@@ -10,10 +9,7 @@ use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
-use SPHERE\System\Extension\Extension;
+use SPHERE\System\Database\Binding\AbstractService;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 /**
@@ -21,27 +17,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  *
  * @package SPHERE\Application\Platform\System\Test
  */
-class Service extends Extension implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -52,7 +29,7 @@ class Service extends Extension implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        return (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        return (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
     }
 
     /**
@@ -90,7 +67,7 @@ class Service extends Extension implements IServiceInterface
 
                 $Dimension = $Upload->getDimensions();
 
-                if (!(new Data($this->Binding))->createTestPicture(
+                if (!(new Data($this->getBinding()))->createTestPicture(
                     $Upload->getName(),
                     $Upload->getFilename(),
                     $Upload->getExtension(),
@@ -128,7 +105,7 @@ class Service extends Extension implements IServiceInterface
     public function getTestPictureAll()
     {
 
-        return (new Data($this->Binding))->getTestPictureAll();
+        return (new Data($this->getBinding()))->getTestPictureAll();
     }
 
     /**
@@ -139,7 +116,7 @@ class Service extends Extension implements IServiceInterface
     public function getTestPictureById($Id)
     {
 
-        return (new Data($this->Binding))->getTestPictureById($Id);
+        return (new Data($this->getBinding()))->getTestPictureById($Id);
     }
 
     /**
@@ -154,7 +131,7 @@ class Service extends Extension implements IServiceInterface
             return '';
         }
 
-        if ((new Data($this->Binding))->removeTestPicture($tblTestPicture)) {
+        if ((new Data($this->getBinding()))->removeTestPicture($tblTestPicture)) {
             return new Success('Das Bild wurde erfolgreich gelöscht')
             .new Redirect('/Platform/System/Test/Upload', 1);
         } else {

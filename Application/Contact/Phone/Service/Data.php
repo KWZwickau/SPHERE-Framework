@@ -8,27 +8,15 @@ use SPHERE\Application\Contact\Phone\Service\Entity\TblType;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\Contact\Phone\Service
  */
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -54,7 +42,7 @@ class Data
         $Description = ''
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblType')->findOneBy(array(
             TblType::ATTR_NAME        => $Name,
             TblType::ATTR_DESCRIPTION => $Description
@@ -64,7 +52,7 @@ class Data
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -77,7 +65,7 @@ class Data
     public function getTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblType', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -87,7 +75,7 @@ class Data
     public function getTypeAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblType')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblType')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -99,7 +87,7 @@ class Data
     public function getPhoneById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblPhone', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblPhone', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -111,7 +99,7 @@ class Data
     public function getPhoneToPersonById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToPerson', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToPerson', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -123,7 +111,7 @@ class Data
     public function getPhoneToCompanyById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblToCompany', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblToCompany', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -133,7 +121,7 @@ class Data
     public function getPhoneAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblPhone')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPhone')->findAll();
         return ( empty ( $EntityList ) ? false : $EntityList );
     }
 
@@ -145,7 +133,7 @@ class Data
     public function createPhone($Number)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPhone')->findOneBy(array(
             TblPhone::ATTR_NUMBER => $Number
         ));
@@ -153,7 +141,7 @@ class Data
             $Entity = new TblPhone();
             $Entity->setNumber($Number);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -166,7 +154,7 @@ class Data
     public function getPhoneAllByPerson(TblPerson $tblPerson)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToPerson')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToPerson')->findBy(array(
             TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
         return ( empty( $EntityList ) ? false : $EntityList );
@@ -180,7 +168,7 @@ class Data
     public function getPhoneAllByCompany(TblCompany $tblCompany)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblToCompany')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblToCompany')->findBy(array(
             TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId()
         ));
         return ( empty( $EntityList ) ? false : $EntityList );
@@ -197,7 +185,7 @@ class Data
     public function addPhoneToPerson(TblPerson $tblPerson, TblPhone $tblPhone, TblType $tblType, $Remark)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblToPerson')
             ->findOneBy(array(
                 TblToPerson::SERVICE_TBL_PERSON => $tblPerson->getId(),
@@ -211,7 +199,7 @@ class Data
             $Entity->setTblType($tblType);
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }
@@ -224,11 +212,11 @@ class Data
     public function removePhoneToPerson(TblToPerson $tblToPerson)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblToPerson $Entity */
         $Entity = $Manager->getEntityById('TblToPerson', $tblToPerson->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -243,11 +231,11 @@ class Data
     public function removePhoneToCompany(TblToCompany $tblToCompany)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblToCompany $Entity */
         $Entity = $Manager->getEntityById('TblToCompany', $tblToCompany->getId());
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(), $Entity);
             $Manager->killEntity($Entity);
             return true;
         }
@@ -265,7 +253,7 @@ class Data
     public function addPhoneToCompany(TblCompany $tblCompany, TblPhone $tblPhone, TblType $tblType, $Remark)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblToCompany')
             ->findOneBy(array(
                 TblToCompany::SERVICE_TBL_COMPANY => $tblCompany->getId(),
@@ -279,7 +267,7 @@ class Data
             $Entity->setTblType($tblType);
             $Entity->setRemark($Remark);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
     }

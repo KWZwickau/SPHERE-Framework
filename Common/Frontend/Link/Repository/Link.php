@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 use SPHERE\Common\Frontend\Link\ILinkInterface;
+use SPHERE\Common\Window\Navigation\Link\Route;
 use SPHERE\System\Authenticator\Authenticator;
 use SPHERE\System\Authenticator\Type\Get;
 use SPHERE\System\Extension\Extension;
@@ -35,7 +36,11 @@ class Link extends Extension implements ILinkInterface
     {
 
         $this->Name = $Name;
-        $this->Path = $Path;
+        if (false !== strpos($Path, '\\')) {
+            $this->Path = new Route($Path);
+        } else {
+            $this->Path = $Path;
+        }
         $this->Template = $this->getTemplate(__DIR__.'/Link.twig');
         $this->Template->setVariable('ElementName', $Name);
         $this->Template->setVariable('ElementType', 'italic');

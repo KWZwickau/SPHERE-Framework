@@ -10,28 +10,15 @@ use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferLeav
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferProcess;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Cacheable;
+use SPHERE\System\Database\Binding\AbstractData;
 
 /**
  * Class Data
  *
  * @package SPHERE\Application\People\Meta\Student\Service
  */
-class Data extends Cacheable
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -49,13 +36,13 @@ class Data extends Cacheable
         TblStudentMedicalRecord $tblStudentMedicalRecord
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblStudent();
         $Entity->setServiceTblPerson($tblPerson);
         $Entity->setTblStudentMedicalRecord($tblStudentMedicalRecord);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -68,7 +55,7 @@ class Data extends Cacheable
     public function getStudentById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudent', $Id);
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', $Id);
     }
 
     /**
@@ -79,7 +66,7 @@ class Data extends Cacheable
     public function getStudentByPerson(TblPerson $tblPerson)
     {
 
-        return $this->getCachedEntityBy(__METHOD__, $this->Connection->getEntityManager(), 'TblStudent', array(
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudent', array(
             TblStudent::SERVICE_TBL_PERSON => $tblPerson->getId()
         ));
     }
@@ -101,7 +88,7 @@ class Data extends Cacheable
         $Insurance
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblStudentMedicalRecord();
         $Entity->setDisease($Disease);
@@ -110,7 +97,7 @@ class Data extends Cacheable
         $Entity->setInsuranceState($InsuranceState);
         $Entity->setInsurance($Insurance);
         $Manager->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(), $Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
         return $Entity;
     }
@@ -134,7 +121,7 @@ class Data extends Cacheable
         $Insurance
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var null|TblStudentMedicalRecord $Entity */
         $Entity = $Manager->getEntityById('TblStudentMedicalRecord', $tblStudentMedicalRecord->getId());
         if (null !== $Entity) {
@@ -145,7 +132,7 @@ class Data extends Cacheable
             $Entity->setInsuranceState($InsuranceState);
             $Entity->setInsurance($Insurance);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(), $Protocol, $Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
@@ -159,7 +146,8 @@ class Data extends Cacheable
     public function getStudentMedicalRecordById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentMedicalRecord',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentMedicalRecord',
             $Id);
     }
 
@@ -171,7 +159,7 @@ class Data extends Cacheable
     public function getStudentTransferById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentTransfer',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblStudentTransfer',
             $Id);
     }
 
@@ -183,7 +171,8 @@ class Data extends Cacheable
     public function getStudentTransferArriveById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentTransferArrive',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentTransferArrive',
             $Id);
     }
 
@@ -195,7 +184,7 @@ class Data extends Cacheable
     public function getStudentTransferEnrollmentById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(),
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentTransferEnrollment',
             $Id);
     }
@@ -208,7 +197,8 @@ class Data extends Cacheable
     public function getStudentTransferLeaveById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(), 'TblStudentTransferLeave',
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
+            'TblStudentTransferLeave',
             $Id);
     }
 
@@ -220,7 +210,7 @@ class Data extends Cacheable
     public function getStudentTransferProcessById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->Connection->getEntityManager(),
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(),
             'TblStudentTransferProcess',
             $Id);
     }

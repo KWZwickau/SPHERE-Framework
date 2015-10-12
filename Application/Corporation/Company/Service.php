@@ -6,41 +6,19 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\Corporation\Company\Service\Setup;
 use SPHERE\Application\Corporation\Group\Group;
 use SPHERE\Application\Corporation\Group\Service\Entity\TblGroup;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Corporation\Company
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -51,9 +29,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -64,7 +42,7 @@ class Service implements IServiceInterface
     public function countCompanyAll()
     {
 
-        return (new Data($this->Binding))->countCompanyAll();
+        return (new Data($this->getBinding()))->countCompanyAll();
     }
 
     /**
@@ -73,7 +51,7 @@ class Service implements IServiceInterface
     public function getCompanyAll()
     {
 
-        return (new Data($this->Binding))->getCompanyAll();
+        return (new Data($this->getBinding()))->getCompanyAll();
     }
 
     /**
@@ -112,7 +90,7 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            if (( $tblCompany = (new Data($this->Binding))->createCompany($Company['Name'],
+            if (( $tblCompany = (new Data($this->getBinding()))->createCompany($Company['Name'],
                 $Company['Description']) )
             ) {
                 // Add to Group
@@ -144,7 +122,7 @@ class Service implements IServiceInterface
     public function getCompanyById($Id)
     {
 
-        return (new Data($this->Binding))->getCompanyById($Id);
+        return (new Data($this->getBinding()))->getCompanyById($Id);
     }
 
     /**
@@ -173,7 +151,9 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            if ((new Data($this->Binding))->updateCompany($tblCompany, $Company['Name'], $Company['Description'])) {
+            if ((new Data($this->getBinding()))->updateCompany($tblCompany, $Company['Name'],
+                $Company['Description'])
+            ) {
                 // Change Groups
                 if (isset( $Company['Group'] )) {
                     // Remove all Groups

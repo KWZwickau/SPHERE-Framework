@@ -1,46 +1,25 @@
 <?php
 namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer;
 
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Data;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\System\Gatekeeper\Authorization\Consumer
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
 
     /** @var TblConsumer[] $ConsumerByIdCache */
     private static $ConsumerByIdCache = array();
     /** @var TblConsumer[] $ConsumerByAcronymCache */
     private static $ConsumerByAcronymCache = array();
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -51,9 +30,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -70,7 +49,7 @@ class Service implements IServiceInterface
             if (array_key_exists($Id, self::$ConsumerByIdCache)) {
                 return self::$ConsumerByIdCache[$Id];
             }
-            self::$ConsumerByIdCache[$Id] = (new Data($this->Binding))->getConsumerById($Id);
+            self::$ConsumerByIdCache[$Id] = (new Data($this->getBinding()))->getConsumerById($Id);
             return self::$ConsumerByIdCache[$Id];
         } else {
             return false;
@@ -85,7 +64,7 @@ class Service implements IServiceInterface
     public function getConsumerByName($Name)
     {
 
-        return (new Data($this->Binding))->getConsumerByName($Name);
+        return (new Data($this->getBinding()))->getConsumerByName($Name);
     }
 
     /**
@@ -96,11 +75,11 @@ class Service implements IServiceInterface
     public function getConsumerBySession($Session = null)
     {
 
-        $tblConsumer = (new Data($this->Binding))->getConsumerBySession($Session);
+        $tblConsumer = (new Data($this->getBinding()))->getConsumerBySession($Session);
         if ($tblConsumer) {
             return $tblConsumer;
         } else {
-            return (new Data($this->Binding))->getConsumerById(1);
+            return (new Data($this->getBinding()))->getConsumerById(1);
         }
     }
 
@@ -110,7 +89,7 @@ class Service implements IServiceInterface
     public function getConsumerAll()
     {
 
-        return (new Data($this->Binding))->getConsumerAll();
+        return (new Data($this->getBinding()))->getConsumerAll();
     }
 
     /**
@@ -149,7 +128,7 @@ class Service implements IServiceInterface
         if ($Error) {
             return $Form;
         } else {
-            (new Data($this->Binding))->createConsumer($ConsumerAcronym, $ConsumerName);
+            (new Data($this->getBinding()))->createConsumer($ConsumerAcronym, $ConsumerName);
             return new Redirect('/Platform/Gatekeeper/Authorization/Consumer/Create', 0);
         }
     }
@@ -165,7 +144,7 @@ class Service implements IServiceInterface
         if (array_key_exists($Acronym, self::$ConsumerByAcronymCache)) {
             return self::$ConsumerByAcronymCache[$Acronym];
         }
-        self::$ConsumerByAcronymCache[$Acronym] = (new Data($this->Binding))->getConsumerByAcronym($Acronym);
+        self::$ConsumerByAcronymCache[$Acronym] = (new Data($this->getBinding()))->getConsumerByAcronym($Acronym);
         return self::$ConsumerByAcronymCache[$Acronym];
     }
 }

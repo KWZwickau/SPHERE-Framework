@@ -3,6 +3,7 @@ namespace SPHERE\Application\Education\Lesson;
 
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
@@ -20,6 +21,7 @@ class Lesson implements IApplicationInterface
     {
 
         Subject::registerModule();
+        Term::registerModule();
         Division::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(

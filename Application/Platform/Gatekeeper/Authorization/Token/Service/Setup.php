@@ -4,27 +4,15 @@ namespace SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaException;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Platform\Gatekeeper\Authorization\Token\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -37,14 +25,14 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $this->setTableToken($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -59,23 +47,23 @@ class Setup
         /**
          * Install
          */
-        $Table = $this->Connection->createTable($Schema, 'tblToken');
+        $Table = $this->getConnection()->createTable($Schema, 'tblToken');
         /**
          * Upgrade
          */
-        if (!$this->Connection->hasColumn('tblToken', 'Identifier')) {
+        if (!$this->getConnection()->hasColumn('tblToken', 'Identifier')) {
             $Table->addColumn('Identifier', 'string');
         }
-        if (!$this->Connection->hasIndex($Table, array('Identifier'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Identifier'))) {
             $Table->addUniqueIndex(array('Identifier'));
         }
-        if (!$this->Connection->hasColumn('tblToken', 'Serial')) {
+        if (!$this->getConnection()->hasColumn('tblToken', 'Serial')) {
             $Table->addColumn('Serial', 'string', array('notnull' => false));
         }
-        if (!$this->Connection->hasIndex($Table, array('Serial'))) {
+        if (!$this->getConnection()->hasIndex($Table, array('Serial'))) {
             $Table->addUniqueIndex(array('Serial'));
         }
-        if (!$this->Connection->hasColumn('tblToken', 'serviceTblConsumer')) {
+        if (!$this->getConnection()->hasColumn('tblToken', 'serviceTblConsumer')) {
             $Table->addColumn('serviceTblConsumer', 'bigint', array('notnull' => false));
         }
 
@@ -89,6 +77,6 @@ class Setup
     public function getTableToken()
     {
 
-        return $this->Connection->getSchema()->getTable('tblToken');
+        return $this->getConnection()->getSchema()->getTable('tblToken');
     }
 }

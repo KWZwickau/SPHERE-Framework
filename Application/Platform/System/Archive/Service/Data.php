@@ -4,7 +4,7 @@ namespace SPHERE\Application\Platform\System\Archive\Service;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAccount;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Application\Platform\System\Archive\Service\Entity\TblArchive;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -12,19 +12,15 @@ use SPHERE\System\Database\Fitting\Element;
  *
  * @package SPHERE\Application\Platform\System\Archive\Service
  */
-class Data
+class Data extends AbstractData
 {
 
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
     /**
-     * @param Binding $Connection
+     * @return void
      */
-    function __construct(Binding $Connection)
+    public function setupDatabaseContent()
     {
-
-        $this->Connection = $Connection;
+        // TODO: Implement setupDatabaseContent() method.
     }
 
     /**
@@ -33,7 +29,7 @@ class Data
     public function getArchiveAll()
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblArchive')->findAll();
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblArchive')->findAll();
         return ( empty( $EntityList ) ? false : $EntityList );
     }
 
@@ -45,7 +41,7 @@ class Data
     public function getArchiveAllByConsumer(TblConsumer $tblConsumer)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblArchive')->findBy(array(
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblArchive')->findBy(array(
             TblArchive::SERVICE_TBL_CONSUMER => $tblConsumer->getId()
         ));
         return ( empty( $EntityList ) ? false : $EntityList );
@@ -68,7 +64,7 @@ class Data
         $Type = TblArchive::ARCHIVE_TYPE_CREATE
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = ( $Entity ? serialize($this->persistData($Entity)) : null );
 

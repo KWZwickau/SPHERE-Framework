@@ -3,27 +3,15 @@ namespace SPHERE\Application\Corporation\Company\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Corporation\Company\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -36,14 +24,14 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $this->setTableCompany($Schema);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -54,11 +42,11 @@ class Setup
     private function setTableCompany(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblCompany');
-        if (!$this->Connection->hasColumn('tblCompany', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblCompany');
+        if (!$this->getConnection()->hasColumn('tblCompany', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblCompany', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblCompany', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         return $Table;

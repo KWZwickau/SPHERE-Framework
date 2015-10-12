@@ -8,42 +8,20 @@ use SPHERE\Application\Contact\Mail\Service\Entity\TblToPerson;
 use SPHERE\Application\Contact\Mail\Service\Entity\TblType;
 use SPHERE\Application\Contact\Mail\Service\Setup;
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
 /**
  * Class Service
  *
  * @package SPHERE\Application\Contact\Mail
  */
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
-
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
-    /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
 
     /**
      * @param bool $doSimulation
@@ -54,9 +32,9 @@ class Service implements IServiceInterface
     public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($doSimulation);
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
         if (!$doSimulation && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
         return $Protocol;
     }
@@ -69,7 +47,7 @@ class Service implements IServiceInterface
     public function getMailById($Id)
     {
 
-        return (new Data($this->Binding))->getMailById($Id);
+        return (new Data($this->getBinding()))->getMailById($Id);
     }
 
     /**
@@ -78,7 +56,7 @@ class Service implements IServiceInterface
     public function getMailAll()
     {
 
-        return (new Data($this->Binding))->getMailAll();
+        return (new Data($this->getBinding()))->getMailAll();
     }
 
     /**
@@ -87,7 +65,7 @@ class Service implements IServiceInterface
     public function getTypeAll()
     {
 
-        return (new Data($this->Binding))->getTypeAll();
+        return (new Data($this->getBinding()))->getTypeAll();
     }
 
     /**
@@ -98,7 +76,7 @@ class Service implements IServiceInterface
     public function getMailAllByPerson(TblPerson $tblPerson)
     {
 
-        return (new Data($this->Binding))->getMailAllByPerson($tblPerson);
+        return (new Data($this->getBinding()))->getMailAllByPerson($tblPerson);
     }
 
     /**
@@ -109,7 +87,7 @@ class Service implements IServiceInterface
     public function getMailAllByCompany(TblCompany $tblCompany)
     {
 
-        return (new Data($this->Binding))->getMailAllByCompany($tblCompany);
+        return (new Data($this->getBinding()))->getMailAllByCompany($tblCompany);
     }
 
     /**
@@ -146,9 +124,9 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblMail = (new Data($this->Binding))->createMail($Address);
+            $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
-            if ((new Data($this->Binding))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
+            if ((new Data($this->getBinding()))->addMailToPerson($tblPerson, $tblMail, $tblType, $Type['Remark'])
             ) {
                 return new Success('Die E-Mail Adresse wurde erfolgreich hinzugefügt')
                 .new Redirect('/People/Person', 1, array('Id' => $tblPerson->getId()));
@@ -168,7 +146,7 @@ class Service implements IServiceInterface
     public function getTypeById($Id)
     {
 
-        return (new Data($this->Binding))->getTypeById($Id);
+        return (new Data($this->getBinding()))->getTypeById($Id);
     }
 
     /**
@@ -205,9 +183,9 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblMail = (new Data($this->Binding))->createMail($Address);
+            $tblMail = (new Data($this->getBinding()))->createMail($Address);
 
-            if ((new Data($this->Binding))->addMailToCompany($tblCompany, $tblMail, $tblType, $Type['Remark'])
+            if ((new Data($this->getBinding()))->addMailToCompany($tblCompany, $tblMail, $tblType, $Type['Remark'])
             ) {
                 return new Success('Die E-Mail Adresse wurde erfolgreich hinzugefügt')
                 .new Redirect('/Corporation/Company', 1, array('Id' => $tblCompany->getId()));
@@ -253,11 +231,11 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblMail = (new Data($this->Binding))->createMail($Address);
+            $tblMail = (new Data($this->getBinding()))->createMail($Address);
             // Remove current
-            (new Data($this->Binding))->removeMailToPerson($tblToPerson);
+            (new Data($this->getBinding()))->removeMailToPerson($tblToPerson);
             // Add new
-            if ((new Data($this->Binding))->addMailToPerson($tblToPerson->getServiceTblPerson(), $tblMail,
+            if ((new Data($this->getBinding()))->addMailToPerson($tblToPerson->getServiceTblPerson(), $tblMail,
                 $tblType, $Type['Remark'])
             ) {
                 return new Success('Die E-Mail Adresse wurde erfolgreich geändert')
@@ -306,11 +284,11 @@ class Service implements IServiceInterface
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblMail = (new Data($this->Binding))->createMail($Address);
+            $tblMail = (new Data($this->getBinding()))->createMail($Address);
             // Remove current
-            (new Data($this->Binding))->removeMailToCompany($tblToCompany);
+            (new Data($this->getBinding()))->removeMailToCompany($tblToCompany);
             // Add new
-            if ((new Data($this->Binding))->addMailToCompany($tblToCompany->getServiceTblCompany(), $tblMail,
+            if ((new Data($this->getBinding()))->addMailToCompany($tblToCompany->getServiceTblCompany(), $tblMail,
                 $tblType, $Type['Remark'])
             ) {
                 return new Success('Die E-Mail Adresse wurde erfolgreich geändert')
@@ -333,7 +311,7 @@ class Service implements IServiceInterface
     public function getMailToPersonById($Id)
     {
 
-        return (new Data($this->Binding))->getMailToPersonById($Id);
+        return (new Data($this->getBinding()))->getMailToPersonById($Id);
     }
 
 
@@ -345,7 +323,7 @@ class Service implements IServiceInterface
     public function getMailToCompanyById($Id)
     {
 
-        return (new Data($this->Binding))->getMailToCompanyById($Id);
+        return (new Data($this->getBinding()))->getMailToCompanyById($Id);
     }
 
     /**
@@ -356,7 +334,7 @@ class Service implements IServiceInterface
     public function removeMailToPerson(TblToPerson $tblToPerson)
     {
 
-        return (new Data($this->Binding))->removeMailToPerson($tblToPerson);
+        return (new Data($this->getBinding()))->removeMailToPerson($tblToPerson);
     }
 
     /**
@@ -367,6 +345,6 @@ class Service implements IServiceInterface
     public function removeMailToCompany(TblToCompany $tblToCompany)
     {
 
-        return (new Data($this->Binding))->removeMailToCompany($tblToCompany);
+        return (new Data($this->getBinding()))->removeMailToCompany($tblToCompany);
     }
 }
