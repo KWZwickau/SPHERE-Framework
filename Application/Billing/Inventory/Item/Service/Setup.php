@@ -1,25 +1,17 @@
 <?php
-
 namespace SPHERE\Application\Billing\Inventory\Item\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
-class Setup
+/**
+ * Class Setup
+ * 
+ * @package SPHERE\Application\Billing\Inventory\Item\Service
+ */
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -32,16 +24,16 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblItem = $this->setTableItem($Schema);
         $this->setTableItemAccount($Schema, $tblItem);
 
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -52,23 +44,23 @@ class Setup
     private function setTableItem(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblItem');
-        if (!$this->Connection->hasColumn('tblItem', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblItem');
+        if (!$this->getConnection()->hasColumn('tblItem', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblItem', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblItem', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->Connection->hasColumn('tblItem', 'Price')) {
+        if (!$this->getConnection()->hasColumn('tblItem', 'Price')) {
             $Table->addColumn('Price', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->Connection->hasColumn('tblItem', 'CostUnit')) {
+        if (!$this->getConnection()->hasColumn('tblItem', 'CostUnit')) {
             $Table->addColumn('CostUnit', 'string');
         }
-        if (!$this->Connection->hasColumn('tblItem', 'serviceManagement_Student_ChildRank')) {
+        if (!$this->getConnection()->hasColumn('tblItem', 'serviceManagement_Student_ChildRank')) {
             $Table->addColumn('serviceManagement_Student_ChildRank', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblItem', 'serviceManagement_Course')) {
+        if (!$this->getConnection()->hasColumn('tblItem', 'serviceManagement_Course')) {
             $Table->addColumn('serviceManagement_Course', 'bigint', array('notnull' => false));
         }
 
@@ -84,13 +76,13 @@ class Setup
     private function setTableItemAccount(Schema &$Schema, Table $tblItem)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblItemAccount');
+        $Table = $this->getConnection()->createTable($Schema, 'tblItemAccount');
 
-        if (!$this->Connection->hasColumn('tblItemAccount', 'serviceBilling_Account')) {
+        if (!$this->getConnection()->hasColumn('tblItemAccount', 'serviceBilling_Account')) {
             $Table->addColumn('serviceBilling_Account', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblItem);
+        $this->getConnection()->addForeignKey($Table, $tblItem);
 
         return $Table;
     }

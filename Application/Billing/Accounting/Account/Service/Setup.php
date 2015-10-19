@@ -1,25 +1,17 @@
 <?php
-
 namespace SPHERE\Application\Billing\Accounting\Account\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
-class Setup
+/**
+ * Class Setup
+ *
+ * @package SPHERE\Application\Billing\Accounting\Account\Service
+ */
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -32,7 +24,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblAccountKeyType = $this->setTableAccountKeyType($Schema);
         $tblAccountType = $this->setTableAccountType($Schema);
         $tblAccountKey = $this->setTableAccountKey($Schema, $tblAccountKeyType);
@@ -41,9 +33,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -56,11 +48,11 @@ class Setup
     private function setTableAccountKeyType(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAccountKeyType');
-        if (!$this->Connection->hasColumn('tblAccountKeyType', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAccountKeyType');
+        if (!$this->getConnection()->hasColumn('tblAccountKeyType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAccountKeyType', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblAccountKeyType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         return $Table;
@@ -74,11 +66,11 @@ class Setup
     private function setTableAccountType(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAccountType');
-        if (!$this->Connection->hasColumn('tblAccountType', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAccountType');
+        if (!$this->getConnection()->hasColumn('tblAccountType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAccountType', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblAccountType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         return $Table;
@@ -93,23 +85,23 @@ class Setup
     private function setTableAccountKey(Schema &$Schema, Table $tblAccountKeyType)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAccountKey');
-        if (!$this->Connection->hasColumn('tblAccountKey', 'ValidFrom')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAccountKey');
+        if (!$this->getConnection()->hasColumn('tblAccountKey', 'ValidFrom')) {
             $Table->addColumn('ValidFrom', 'date');
         }
-        if (!$this->Connection->hasColumn('tblAccountKey', 'Value')) {
+        if (!$this->getConnection()->hasColumn('tblAccountKey', 'Value')) {
             $Table->addColumn('Value', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAccountKey', 'ValidTo')) {
+        if (!$this->getConnection()->hasColumn('tblAccountKey', 'ValidTo')) {
             $Table->addColumn('ValidTo', 'date');
         }
-        if (!$this->Connection->hasColumn('tblAccountKey', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblAccountKey', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAccountKey', 'Code')) {
+        if (!$this->getConnection()->hasColumn('tblAccountKey', 'Code')) {
             $Table->addColumn('Code', 'integer');
         }
-        $this->Connection->addForeignKey($Table, $tblAccountKeyType);
+        $this->getConnection()->addForeignKey($Table, $tblAccountKeyType);
         return $Table;
     }
 
@@ -123,18 +115,18 @@ class Setup
     private function setTableAccount(Schema &$Schema, Table $tblAccountType, Table $tblAccountKey)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblAccount');
-        if (!$this->Connection->hasColumn('tblAccount', 'Number')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblAccount');
+        if (!$this->getConnection()->hasColumn('tblAccount', 'Number')) {
             $Table->addColumn('Number', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAccount', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblAccount', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->Connection->hasColumn('tblAccount', 'IsActive')) {
+        if (!$this->getConnection()->hasColumn('tblAccount', 'IsActive')) {
             $Table->addColumn('IsActive', 'boolean');
         }
-        $this->Connection->addForeignKey($Table, $tblAccountType);
-        $this->Connection->addForeignKey($Table, $tblAccountKey);
+        $this->getConnection()->addForeignKey($Table, $tblAccountType);
+        $this->getConnection()->addForeignKey($Table, $tblAccountKey);
         return $Table;
     }
 }

@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
@@ -54,7 +55,7 @@ class TblBalance extends Element
         if (null === $this->serviceBilling_Banking) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById($this->serviceBilling_Banking);
+            return Banking::useService()->getDebtorById($this->serviceBilling_Banking);
         }
     }
 
@@ -76,7 +77,7 @@ class TblBalance extends Element
         if (null === $this->serviceBilling_Invoice) {
             return false;
         } else {
-            return Invoice::useService()->entityInvoiceById($this->serviceBilling_Invoice);
+            return Invoice::useService()->getInvoiceById($this->serviceBilling_Invoice);
         }
     }
 

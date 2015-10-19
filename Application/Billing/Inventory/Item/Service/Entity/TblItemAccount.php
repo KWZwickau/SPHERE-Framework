@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Inventory\Item\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
@@ -39,7 +40,7 @@ class TblItemAccount extends Element
         if (null === $this->tblItem) {
             return false;
         } else {
-            return Item::useService()->entityItemById($this->tblItem);
+            return Item::useService()->getItemById($this->tblItem);
         }
     }
 
@@ -61,7 +62,7 @@ class TblItemAccount extends Element
         if (null === $this->serviceBilling_Account) {
             return false;
         } else {
-            return Account::useService()->entityAccountById($this->serviceBilling_Account);
+            return Account::useService()->getAccountById($this->serviceBilling_Account);
         }
     }
 

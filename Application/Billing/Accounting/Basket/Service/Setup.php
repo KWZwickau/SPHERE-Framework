@@ -4,23 +4,16 @@ namespace SPHERE\Application\Billing\Accounting\Basket\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
-class Setup
+/**
+ * Class Setup
+ * 
+ * @package SPHERE\Application\Billing\Accounting\Basket\Service
+ */
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
-
+    
     /**
      * @param bool $Simulate
      *
@@ -32,7 +25,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblBasket = $this->setTableBasket($Schema);
         $this->setTableBasketPerson($Schema, $tblBasket);
         $this->setTableBasketItem($Schema, $tblBasket);
@@ -42,9 +35,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -55,12 +48,12 @@ class Setup
     private function setTableBasket(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblBasket');
+        $Table = $this->getConnection()->createTable($Schema, 'tblBasket');
 
-        if (!$this->Connection->hasColumn('tblBasket', 'CreateDate')) {
+        if (!$this->getConnection()->hasColumn('tblBasket', 'CreateDate')) {
             $Table->addColumn('CreateDate', 'datetime');
         }
-        if (!$this->Connection->hasColumn('tblBasket', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblBasket', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
 
@@ -76,13 +69,13 @@ class Setup
     private function setTableBasketPerson(Schema &$Schema, Table $tblBasket)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblBasketPerson');
+        $Table = $this->getConnection()->createTable($Schema, 'tblBasketPerson');
 
-        if (!$this->Connection->hasColumn('tblBasketPerson', 'serviceManagement_Person')) {
+        if (!$this->getConnection()->hasColumn('tblBasketPerson', 'serviceManagement_Person')) {
             $Table->addColumn('serviceManagement_Person', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblBasket);
+        $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;
     }
@@ -96,19 +89,19 @@ class Setup
     private function setTableBasketItem(Schema &$Schema, Table $tblBasket)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblBasketItem');
+        $Table = $this->getConnection()->createTable($Schema, 'tblBasketItem');
 
-        if (!$this->Connection->hasColumn('tblBasketItem', 'serviceBilling_CommodityItem')) {
+        if (!$this->getConnection()->hasColumn('tblBasketItem', 'serviceBilling_CommodityItem')) {
             $Table->addColumn('serviceBilling_CommodityItem', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblBasketItem', 'Price')) {
+        if (!$this->getConnection()->hasColumn('tblBasketItem', 'Price')) {
             $Table->addColumn('Price', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->Connection->hasColumn('tblBasketItem', 'Quantity')) {
+        if (!$this->getConnection()->hasColumn('tblBasketItem', 'Quantity')) {
             $Table->addColumn('Quantity', 'decimal', array('precision' => 14, 'scale' => 4));
         }
 
-        $this->Connection->addForeignKey($Table, $tblBasket);
+        $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;
     }
@@ -122,16 +115,16 @@ class Setup
     private function setTableBasketCommodity(Schema &$Schema, Table $tblBasket)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblBasketCommodity');
+        $Table = $this->getConnection()->createTable($Schema, 'tblBasketCommodity');
 
-        if (!$this->Connection->hasColumn('tblBasketCommodity', 'serviceManagement_Person')) {
+        if (!$this->getConnection()->hasColumn('tblBasketCommodity', 'serviceManagement_Person')) {
             $Table->addColumn('serviceManagement_Person', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblBasketCommodity', 'serviceBilling_Commodity')) {
+        if (!$this->getConnection()->hasColumn('tblBasketCommodity', 'serviceBilling_Commodity')) {
             $Table->addColumn('serviceBilling_Commodity', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblBasket);
+        $this->getConnection()->addForeignKey($Table, $tblBasket);
 
         return $Table;
     }
@@ -145,13 +138,13 @@ class Setup
     private function setTableBasketCommodityDebtor(Schema &$Schema, Table $tblBasketCommodity)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblBasketCommodityDebtor');
+        $Table = $this->getConnection()->createTable($Schema, 'tblBasketCommodityDebtor');
 
-        if (!$this->Connection->hasColumn('tblBasketCommodityDebtor', 'serviceBilling_Debtor')) {
+        if (!$this->getConnection()->hasColumn('tblBasketCommodityDebtor', 'serviceBilling_Debtor')) {
             $Table->addColumn('serviceBilling_Debtor', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblBasketCommodity);
+        $this->getConnection()->addForeignKey($Table, $tblBasketCommodity);
 
         return $Table;
     }

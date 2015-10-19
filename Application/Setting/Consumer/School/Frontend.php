@@ -291,28 +291,32 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Schule', 'anlegen');
-
-        $Stage->setContent(
-            new Form(
-                new FormGroup(
-                    new FormRow(
-                        new FormColumn(
-                            new Panel(new Standard(new ChevronLeft(),
-                                    '/Setting/Consumer/School').'Zurück zur Übersicht',
-                                array(),
-                                Panel::PANEL_TYPE_SUCCESS)
-                            , 6)
+        $tblCompanyAll = Company::useService()->getCompanyAll();
+        if (!empty( $tblCompanyAll )) {
+            $Stage->setContent(
+                new Form(
+                    new FormGroup(
+                        new FormRow(
+                            new FormColumn(
+                                new Panel(new Standard(new ChevronLeft(),
+                                        '/Setting/Consumer/School').'Zurück zur Übersicht',
+                                    array(),
+                                    Panel::PANEL_TYPE_SUCCESS)
+                                , 6)
+                        )
                     )
                 )
-            )
-            .
-            School::useService()->createSchool(
-                $this->formSchoolCompanyCreate()
-                    ->appendFormButton(new Primary('Schule hinzufügen'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $Type, $School
-            )
-        );
+                .
+                School::useService()->createSchool(
+                    $this->formSchoolCompanyCreate()
+                        ->appendFormButton(new Primary('Schule hinzufügen'))
+                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                    $Type, $School
+                )
+            );
+        } else {
+            $Stage->setContent( new Warning( 'Es gibt noch keine Firmen die als Schule eingetragen werden kann.' ) );
+        }
 
         return $Stage;
     }

@@ -3,11 +3,14 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasket;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -46,7 +49,7 @@ class TblTempInvoice extends Element
         if (null === $this->serviceBilling_Basket) {
             return false;
         } else {
-            return Basket::useService()->entityBasketById($this->serviceBilling_Basket);
+            return Basket::useService()->getBasketById($this->serviceBilling_Basket);
         }
     }
 
@@ -68,7 +71,7 @@ class TblTempInvoice extends Element
         if (null === $this->serviceManagement_Person) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById($this->serviceManagement_Person);
+            return Person::useService()->getPersonById($this->serviceManagement_Person);
         }
     }
 
@@ -90,7 +93,7 @@ class TblTempInvoice extends Element
         if (null === $this->serviceBilling_Debtor) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById($this->serviceBilling_Debtor);
+            return Banking::useService()->getDebtorById($this->serviceBilling_Debtor);
         }
     }
 

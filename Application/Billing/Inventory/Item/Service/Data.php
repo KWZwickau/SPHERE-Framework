@@ -7,42 +7,26 @@ use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
-class Data
+class Data extends AbstractData
 {
 
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
-
     public function setupDatabaseContent()
-    {
+{
 
-        /**
-         * CommodityType
-         */
-//        $this->actionCreateCommodityType( 'Einzelleistung' );
-    }
+}
 
     /**
      * @param integer $Id
      *
      * @return bool|TblItem
      */
-    public function entityItemById($Id)
+    public function getItemById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblItem', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItem', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -51,10 +35,10 @@ class Data
      *
      * @return bool|null|TblItem
      */
-    public function entityItemByName($Name)
+    public function getItemByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblItem')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')
             ->findOneBy(array(TblItem::ATTR_NAME => $Name));
         return ( null === $Entity ? false : $Entity );
     }
@@ -62,10 +46,10 @@ class Data
     /**
      * @return bool|TblItem[]
      */
-    public function entityItemAll()
+    public function getItemAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblItem')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblItem')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -74,10 +58,10 @@ class Data
      *
      * @return bool|TblItemAccount
      */
-    public function entityItemAccountById($Id)
+    public function getItemAccountById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblItemAccount', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblItemAccount', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -86,10 +70,10 @@ class Data
      *
      * @return TblItemAccount[]|bool
      */
-    public function entityItemAccountAllByItem(TblItem $tblItem)
+    public function getItemAccountAllByItem(TblItem $tblItem)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblItemAccount')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblItemAccount')
             ->findBy(array(TblItemAccount::ATTR_TBL_Item => $tblItem->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -100,11 +84,11 @@ class Data
      * @param $Price
      * @param $CostUnit
     //     * @param $Course
-     * //     * @param $ChildRank
+    //     * @param $ChildRank
      *
      * @return TblItem
      */
-    public function actionCreateItem(
+    public function createItem(
         $Name,
         $Description,
         $Price,
@@ -114,7 +98,7 @@ class Data
     )
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblItem();
         $Entity->setName($Name);
@@ -131,7 +115,7 @@ class Data
 //        }
         $Manager->saveEntity($Entity);
 
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
 
         return $Entity;
@@ -143,22 +127,22 @@ class Data
      * @param         $Description
      * @param         $Price
      * @param         $CostUnit
-     * @param         $Course
-     * @param         $ChildRank
+//     * @param         $Course
+//     * @param         $ChildRank
      *
      * @return bool
-     */
-    public function actionEditItem(
+     */                         //ToDO
+    public function updateItem(
         TblItem $tblItem,
         $Name,
         $Description,
         $Price,
-        $CostUnit,
-        $Course,
-        $ChildRank
+        $CostUnit //,
+//        $Course,
+//        $ChildRank
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblItem $Entity */
         $Entity = $Manager->getEntityById('TblItem', $tblItem->getId());
@@ -186,7 +170,7 @@ class Data
 //            }
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -199,20 +183,20 @@ class Data
      *
      * @return bool
      */
-    public function actionDestroyItem(
+    public function destroyItem(
         TblItem $tblItem
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
 //        $EntityList = $Manager->getEntity( 'TblCommodityItem' )->findBy( array( TblCommodityItem::ATTR_TBL_ITEM => $tblItem->getId() ) ); //todo
-        $EntityList = Commodity::useService()->entityCommodityItemAllByItem($tblItem);
+        $EntityList = Commodity::useService()->getCommodityItemAllByItem($tblItem);
         if (empty( $EntityList )) {
             $EntityItems = $Manager->getEntity('TblItemAccount')
                 ->findBy(array(TblItemAccount::ATTR_TBL_Item => $tblItem->getId()));
             if (null !== $EntityItems) {
                 foreach ($EntityItems as $Entity) {
-                    Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                         $Entity);
                     $Manager->killEntity($Entity);
                 }
@@ -221,7 +205,7 @@ class Data
             $Entity = $Manager->getEntity('TblItem')->findOneBy(array('Id' => $tblItem->getId()));
             if (null !== $Entity) {
                 /** @var Element $Entity */
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->killEntity($Entity);
                 return true;
@@ -236,12 +220,12 @@ class Data
      *
      * @return TblItemAccount|null
      */
-    public function actionAddItemAccount(
+    public function addItemAccount(
         TblItem $tblItem,
         TblAccount $tblAccount
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblItemAccount')->findOneBy(
             array(
@@ -255,7 +239,7 @@ class Data
 
             $Manager->saveEntity($Entity);
 
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
 
@@ -267,11 +251,11 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveItemAccount(
+    public function removeItemAccount(
         TblItemAccount $tblItemAccount
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblItemAccount')->findOneBy(
             array(
@@ -279,7 +263,7 @@ class Data
             ));
         if (null !== $Entity) {
             /** @var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;

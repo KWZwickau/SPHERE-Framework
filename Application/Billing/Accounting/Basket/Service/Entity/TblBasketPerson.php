@@ -3,8 +3,11 @@ namespace SPHERE\Application\Billing\Accounting\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -46,7 +49,7 @@ class TblBasketPerson extends Element
         if (null === $this->tblBasket) {
             return false;
         } else {
-            return Basket::useService()->entityBasketById($this->tblBasket);
+            return Basket::useService()->getBasketById($this->tblBasket);
         }
     }
 
@@ -68,7 +71,7 @@ class TblBasketPerson extends Element
         if (null === $this->serviceManagement_Person) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById($this->serviceManagement_Person);
+            return Person::useService()->getPersonById($this->serviceManagement_Person);
         }
     }
 }

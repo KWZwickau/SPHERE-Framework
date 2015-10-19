@@ -155,7 +155,8 @@ class Data extends AbstractData
     public function getPersonById($Id)
     {
 
-        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
+//        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
+        return $this->getConnection()->getEntityManager()->getEntityById( 'TblPerson', $Id );
     }
 
     /**

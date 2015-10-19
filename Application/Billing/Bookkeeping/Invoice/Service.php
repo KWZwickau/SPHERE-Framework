@@ -13,51 +13,32 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Setup;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
-use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
 
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
     /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
-
-    /**
-     * @param bool $Simulate
+     * @param bool $doSimulation
      * @param bool $withData
      *
      * @return string
      */
-    public function setupService($Simulate, $withData)
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($Simulate);
-        if (!$Simulate && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        if (!$doSimulation && $withData) {
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
+
         return $Protocol;
     }
 
@@ -69,7 +50,7 @@ class Service implements IServiceInterface
     public function checkInvoiceFromDebtorIsPaidByDebtor(TblDebtor $tblDebtor)
     {
 
-        return (new Data($this->Binding))->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor);
+        return (new Data($this->getBinding()))->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor);
     }
 
     /**
@@ -80,7 +61,7 @@ class Service implements IServiceInterface
     public function sumPriceItemAllStringByInvoice(TblInvoice $tblInvoice)
     {
 
-        return (new Data($this->Binding))->sumPriceItemAllStringByInvoice($tblInvoice);
+        return (new Data($this->getBinding()))->sumPriceItemAllStringByInvoice($tblInvoice);
     }
 
     /**
@@ -91,7 +72,7 @@ class Service implements IServiceInterface
     public function sumPriceItemAllByInvoice(TblInvoice $tblInvoice)
     {
 
-        return (new Data($this->Binding))->sumPriceItemAllByInvoice($tblInvoice);
+        return (new Data($this->getBinding()))->sumPriceItemAllByInvoice($tblInvoice);
     }
 
     /**
@@ -99,10 +80,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblInvoice[]
      */
-    public function entityInvoiceAllByIsVoidState($IsVoid)
+    public function getInvoiceAllByIsVoidState($IsVoid)
     {
 
-        return (new Data($this->Binding))->entityInvoiceAllByIsVoidState($IsVoid);
+        return (new Data($this->getBinding()))->getInvoiceAllByIsVoidState($IsVoid);
     }
 
     /**
@@ -110,10 +91,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblInvoice
      */
-    public function entityInvoiceById($Id)
+    public function getInvoiceById($Id)
     {
 
-        return (new Data($this->Binding))->entityInvoiceById($Id);
+        return (new Data($this->getBinding()))->getInvoiceById($Id);
     }
 
     /**
@@ -121,10 +102,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblInvoiceItem[]
      */
-    public function entityInvoiceItemAllByInvoice(TblInvoice $tblInvoice)
+    public function getInvoiceItemAllByInvoice(TblInvoice $tblInvoice)
     {
 
-        return (new Data($this->Binding))->entityInvoiceItemAllByInvoice($tblInvoice);
+        return (new Data($this->getBinding()))->getInvoiceItemAllByInvoice($tblInvoice);
     }
 
     /**
@@ -132,10 +113,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblInvoiceItem
      */
-    public function entityInvoiceItemById($Id)
+    public function getInvoiceItemById($Id)
     {
 
-        return (new Data($this->Binding))->entityInvoiceItemById($Id);
+        return (new Data($this->getBinding()))->getInvoiceItemById($Id);
     }
 
     /**
@@ -143,10 +124,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblInvoice[]
      */
-    public function entityInvoiceAllByIsPaidState($IsPaid)
+    public function getInvoiceAllByIsPaidState($IsPaid)
     {
 
-        return (new Data($this->Binding))->entityInvoiceAllByIsPaidState($IsPaid);
+        return (new Data($this->getBinding()))->getInvoiceAllByIsPaidState($IsPaid);
     }
 
     /**
@@ -154,10 +135,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function executeDestroyTempInvoice(TblBasket $tblBasket)
+    public function destroyTempInvoice(TblBasket $tblBasket)
     {
 
-        return (new Data($this->Binding))->actionDestroyTempInvoice($tblBasket);
+        return (new Data($this->getBinding()))->destroyTempInvoice($tblBasket);
     }
 
     /**
@@ -166,10 +147,10 @@ class Service implements IServiceInterface
      *
      * @return bool
      */
-    public function executeCreateInvoiceListFromBasket(TblBasket $tblBasket, $Date)
+    public function createInvoiceListFromBasket(TblBasket $tblBasket, $Date)
     {
 
-        return (new Data($this->Binding))->actionCreateInvoiceListFromBasket($tblBasket, $Date);
+        return (new Data($this->getBinding()))->createInvoiceListFromBasket($tblBasket, $Date);
     }
 
     /**
@@ -177,10 +158,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblTempInvoice
      */
-    public function entityTempInvoiceById($Id)
+    public function getTempInvoiceById($Id)
     {
 
-        return (new Data($this->Binding))->entityTempInvoiceById($Id);
+        return (new Data($this->getBinding()))->getTempInvoiceById($Id);
     }
 
     /**
@@ -188,12 +169,12 @@ class Service implements IServiceInterface
      *
      * @return array|bool
      */
-    public function entityInvoiceAllByIsConfirmedState($isConfirmed)
+    public function getInvoiceAllByIsConfirmedState($isConfirmed)
     {
 
         $invoiceAllByConfirmed = array();
         $invoiceAllByNotConfirmed = array();
-        $tblInvoiceAll = $this->entityInvoiceAll();
+        $tblInvoiceAll = $this->getInvoiceAll();
 
         if ($tblInvoiceAll) {
             foreach ($tblInvoiceAll as $tblInvoice) {
@@ -223,10 +204,10 @@ class Service implements IServiceInterface
     /**
      * @return bool|TblInvoice[]
      */
-    public function entityInvoiceAll()
+    public function getInvoiceAll()
     {
 
-        return (new Data($this->Binding))->entityInvoiceAll();
+        return (new Data($this->getBinding()))->getInvoiceAll();
     }
 
     /**
@@ -235,11 +216,11 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeConfirmInvoice(TblInvoice $tblInvoice, $Data)
+    public function confirmInvoice(TblInvoice $tblInvoice, $Data)
     {
 
-        if (Balance::useService()->actionCreateBalance(
-            Banking::useService()->entityDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+        if (Balance::useService()->createBalance(
+            Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
             $tblInvoice,
             null
         )
@@ -257,12 +238,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeCancelInvoice(
+    public function cancelInvoice(
         TblInvoice $tblInvoice
     ) {
 
         if (!$tblInvoice->getIsConfirmed()) {
-            if ((new Data($this->Binding))->actionCancelInvoice($tblInvoice)) {
+            if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
                 return new Success('Die Rechnung wurde erfolgreich storniert')
                 .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
             } else {
@@ -272,7 +253,7 @@ class Service implements IServiceInterface
             }
         } else {
             //TODO cancel confirmed invoice
-            if ((new Data($this->Binding))->actionCancelInvoice($tblInvoice)) {
+            if ((new Data($this->getBinding()))->cancelInvoice($tblInvoice)) {
                 return new Success('Die Rechnung wurde erfolgreich storniert')
                 .new Redirect('/Billing/Bookkeeping/Invoice', 0);
             } else {
@@ -288,12 +269,12 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeChangeInvoiceAddress(
+    public function changeInvoiceAddress(
         TblInvoice $tblInvoice,
         TblAddress $tblAddress
     ) {
 
-        if ((new Data($this->Binding))->actionChangeInvoiceAddress($tblInvoice, $tblAddress)) {
+        if ((new Data($this->getBinding()))->updateInvoiceAddress($tblInvoice, $tblAddress)) {
             return new Success('Die Rechnungsadresse wurde erfolgreich geändert')
             .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 0, array('Id' => $tblInvoice->getId()));
         } else {
@@ -308,10 +289,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeChangeInvoicePaymentType(TblInvoice $tblInvoice, TblPaymentType $tblPaymentType)
+    public function changeInvoicePaymentType(TblInvoice $tblInvoice, TblPaymentType $tblPaymentType)
     {
 
-        if ((new Data($this->Binding))->actionChangeInvoicePaymentType($tblInvoice, $tblPaymentType)) {
+        if ((new Data($this->getBinding()))->changeInvoicePaymentType($tblInvoice, $tblPaymentType)) {
             return new Success('Die Zahlungsart wurde erfolgreich geändert')
             .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 0, array('Id' => $tblInvoice->getId()));
         } else {
@@ -325,11 +306,11 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executePayInvoice(
+    public function createPayInvoice(
         TblInvoice $tblInvoice
     ) {
 
-        if ((new Data($this->Binding))->actionPayInvoice($tblInvoice)) {
+        if ((new Data($this->getBinding()))->createPayInvoice($tblInvoice)) {
             return new Success('Die Rechnung wurde erfolgreich bezahlt')
             .new Redirect('/Billing/Bookkeeping/Balance', 0);
         } else {
@@ -345,7 +326,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeEditInvoiceItem(IFormInterface &$Stage = null, TblInvoiceItem $tblInvoiceItem, $InvoiceItem)
+    public function changeInvoiceItem(IFormInterface &$Stage = null, TblInvoiceItem $tblInvoiceItem, $InvoiceItem)
     {
 
         /**
@@ -368,7 +349,7 @@ class Service implements IServiceInterface
         }
 
         if (!$Error) {
-            if ((new Data($this->Binding))->actionEditInvoiceItem(
+            if ((new Data($this->getBinding()))->updateInvoiceItem(
                 $tblInvoiceItem,
                 $InvoiceItem['Price'],
                 $InvoiceItem['Quantity']
@@ -391,11 +372,11 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeRemoveInvoiceItem(
+    public function removeInvoiceItem(
         TblInvoiceItem $tblInvoiceItem
     ) {
 
-        if ((new Data($this->Binding))->actionRemoveInvoiceItem($tblInvoiceItem)) {
+        if ((new Data($this->getBinding()))->destroyInvoiceItem($tblInvoiceItem)) {
             return new Success('Der Artikel '.$tblInvoiceItem->getItemName().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 0,
                 array('Id' => $tblInvoiceItem->getTblInvoice()->getId()));
@@ -413,13 +394,13 @@ class Service implements IServiceInterface
      *
      * @return null|TblTempInvoice
      */
-    public function executeCreateTempInvoice(
+    public function createTempInvoice(
         TblBasket $tblBasket,
         TblPerson $tblPerson,
         TblDebtor $tblDebtor
     ) {
 
-        return (new Data($this->Binding))->actionCreateTempInvoice($tblBasket, $tblPerson, $tblDebtor);
+        return (new Data($this->getBinding()))->createTempInvoice($tblBasket, $tblPerson, $tblDebtor);
     }
 
     /**
@@ -428,11 +409,11 @@ class Service implements IServiceInterface
      *
      * @return null|Service\Entity\TblTempInvoiceCommodity
      */
-    public function executeCreateTempInvoiceCommodity(
+    public function createTempInvoiceCommodity(
         TblTempInvoice $tblTempInvoice,
         TblCommodity $tblCommodity
     ) {
 
-        return (new Data($this->Binding))->actionCreateTempInvoiceCommodity($tblTempInvoice, $tblCommodity);
+        return (new Data($this->getBinding()))->createTempInvoiceCommodity($tblTempInvoice, $tblCommodity);
     }
 }

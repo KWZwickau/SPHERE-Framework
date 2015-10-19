@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Inventory\Commodity\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Item\Item;
@@ -60,7 +61,7 @@ class TblCommodityItem extends Element
         if (null === $this->tblItem) {
             return false;
         } else {
-            return Item::useService()->entityItemById($this->tblItem);
+            return Item::useService()->getItemById($this->tblItem);
         }
     }
 
@@ -100,7 +101,7 @@ class TblCommodityItem extends Element
         if (null === $this->tblCommodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById($this->tblCommodity);
+            return Commodity::useService()->getCommodityById($this->tblCommodity);
         }
     }
 

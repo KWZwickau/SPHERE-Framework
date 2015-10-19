@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Banking\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
@@ -115,7 +116,7 @@ class TblReference extends Element
         if (null === $this->tblDebtor) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById($this->tblDebtor);
+            return Banking::useService()->getDebtorById($this->tblDebtor);
         }
     }
 
@@ -137,7 +138,7 @@ class TblReference extends Element
         if (null === $this->serviceBilling_Commodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById($this->serviceBilling_Commodity);
+            return Commodity::useService()->getCommodityById($this->serviceBilling_Commodity);
         }
     }
 

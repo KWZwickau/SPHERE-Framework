@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
@@ -48,7 +49,7 @@ class TblBasketCommodityDebtor extends Element
         if (null === $this->tblBasketCommodity) {
             return false;
         } else {
-            return Basket::useService()->entityBasketCommodityById($this->tblBasketCommodity);
+            return Basket::useService()->getBasketCommodityById($this->tblBasketCommodity);
         }
     }
 
@@ -70,7 +71,7 @@ class TblBasketCommodityDebtor extends Element
         if (null === $this->serviceBilling_Debtor) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById($this->serviceBilling_Debtor);
+            return Banking::useService()->getDebtorById($this->serviceBilling_Debtor);
         }
     }
 }

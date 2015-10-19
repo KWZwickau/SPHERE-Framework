@@ -1,25 +1,17 @@
 <?php
-
 namespace SPHERE\Application\Billing\Accounting\Banking\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
-class Setup
+/**
+ * Class Setup
+ *
+ * @package SPHERE\Application\Billing\Accounting\Banking\Service
+ */
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -32,7 +24,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
 
         $tblPaymentType = $this->setTablePaymentType($Schema);
         $tblDebtor = $this->setTableDebtor($Schema, $tblPaymentType);
@@ -42,9 +34,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -55,9 +47,9 @@ class Setup
     private function setTablePaymentType(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblPaymentType');
+        $Table = $this->getConnection()->createTable($Schema, 'tblPaymentType');
 
-        if (!$this->Connection->hasColumn('tblPaymentType', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblPaymentType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
 
@@ -73,39 +65,39 @@ class Setup
     private function setTableDebtor(Schema &$Schema, Table $tblPaymentType)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblDebtor');
-        if (!$this->Connection->hasColumn('tblDebtor', 'DebtorNumber')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblDebtor');
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'DebtorNumber')) {
             $Table->addColumn('DebtorNumber', 'string');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'LeadTimeFirst')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'LeadTimeFirst')) {
             $Table->addColumn('LeadTimeFirst', 'integer');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'LeadTimeFollow')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'LeadTimeFollow')) {
             $Table->addColumn('LeadTimeFollow', 'integer');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'BankName')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'BankName')) {
             $Table->addColumn('BankName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'IBAN')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'IBAN')) {
             $Table->addColumn('IBAN', 'string');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'BIC')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'BIC')) {
             $Table->addColumn('BIC', 'string');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'Owner')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'Owner')) {
             $Table->addColumn('Owner', 'string');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'CashSign')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'CashSign')) {
             $Table->addColumn('CashSign', 'string');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->Connection->hasColumn('tblDebtor', 'ServiceManagementPerson')) {
+        if (!$this->getConnection()->hasColumn('tblDebtor', 'ServiceManagementPerson')) {
             $Table->addColumn('ServiceManagementPerson', 'bigint', array('notnull' => false));
         }
 
-        $this->Connection->addForeignKey($Table, $tblPaymentType);
+        $this->getConnection()->addForeignKey($Table, $tblPaymentType);
 
         return $Table;
     }
@@ -119,13 +111,13 @@ class Setup
     private function setTableDebtorCommodity(Schema &$Schema, Table $tblDebtor)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblDebtorCommodity');
+        $Table = $this->getConnection()->createTable($Schema, 'tblDebtorCommodity');
 
-        if (!$this->Connection->hasColumn('tblDebtorCommodity', 'serviceBilling_Commodity')) {
+        if (!$this->getConnection()->hasColumn('tblDebtorCommodity', 'serviceBilling_Commodity')) {
             $Table->addColumn('serviceBilling_Commodity', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblDebtor);
+        $this->getConnection()->addForeignKey($Table, $tblDebtor);
         return $Table;
     }
 
@@ -138,22 +130,22 @@ class Setup
     private function setTableReference(Schema &$Schema, Table $tblDebtor)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblReference');
+        $Table = $this->getConnection()->createTable($Schema, 'tblReference');
 
-        if (!$this->Connection->hasColumn('tblReference', 'Reference')) {
+        if (!$this->getConnection()->hasColumn('tblReference', 'Reference')) {
             $Table->addColumn('Reference', 'string');
         }
-        if (!$this->Connection->hasColumn('tblReference', 'isVoid')) {
+        if (!$this->getConnection()->hasColumn('tblReference', 'isVoid')) {
             $Table->addColumn('isVoid', 'boolean');
         }
-        if (!$this->Connection->hasColumn('tblReference', 'ReferenceDate')) {
+        if (!$this->getConnection()->hasColumn('tblReference', 'ReferenceDate')) {
             $Table->addColumn('ReferenceDate', 'date', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblReference', 'serviceBilling_Commodity')) {
+        if (!$this->getConnection()->hasColumn('tblReference', 'serviceBilling_Commodity')) {
             $Table->addColumn('serviceBilling_Commodity', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblDebtor);
+        $this->getConnection()->addForeignKey($Table, $tblDebtor);
         return $Table;
     }
 }

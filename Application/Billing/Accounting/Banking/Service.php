@@ -1,5 +1,4 @@
 <?php
-
 namespace SPHERE\Application\Billing\Accounting\Banking;
 
 use SPHERE\Application\Billing\Accounting\Banking\Service\Data;
@@ -12,61 +11,42 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
-use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
 
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
     /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
-
-    /**
-     * @param bool $Simulate
+     * @param bool $doSimulation
      * @param bool $withData
      *
      * @return string
      */
-    public function setupService($Simulate, $withData)
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($Simulate);
-        if (!$Simulate && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        if (!$doSimulation && $withData) {
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
+
         return $Protocol;
     }
 
     /**
      * @return bool|TblDebtor[]
      */
-    public function entityDebtorAll()
+    public function getDebtorAll()
     {
 
-        return (new Data($this->Binding))->entityDebtorAll();
+        return (new Data($this->getBinding()))->getDebtorAll();
     }
 
     /**
@@ -74,10 +54,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblReference[]
      */
-    public function entityReferenceByDebtor(TblDebtor $tblDebtor)
+    public function getReferenceByDebtor(TblDebtor $tblDebtor)
     {
 
-        return (new Data($this->Binding))->entityReferenceByDebtor($tblDebtor);
+        return (new Data($this->getBinding()))->getReferenceByDebtor($tblDebtor);
     }
 
     /**
@@ -85,10 +65,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblDebtor
      */
-    public function entityDebtorById($Id)
+    public function getDebtorById($Id)
     {
 
-        return (new Data($this->Binding))->entityDebtorById($Id);
+        return (new Data($this->getBinding()))->getDebtorById($Id);
     }
 
     /**
@@ -97,10 +77,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblReference
      */
-    public function entityReferenceByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
+    public function getReferenceByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
     {
 
-        return (new Data($this->Binding))->entityReferenceByDebtorAndCommodity($tblDebtor, $tblCommodity);
+        return (new Data($this->getBinding()))->getReferenceByDebtorAndCommodity($tblDebtor, $tblCommodity);
     }
 
     /**
@@ -108,10 +88,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblPaymentType
      */
-    public function entityPaymentTypeById($Id)
+    public function getPaymentTypeById($Id)
     {
 
-        return (new Data($this->Binding))->entityPaymentTypeById($Id);
+        return (new Data($this->getBinding()))->getPaymentTypeById($Id);
     }
 
     /**
@@ -119,10 +99,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblDebtorCommodity
      */
-    public function entityDebtorCommodityById($Id)
+    public function getDebtorCommodityById($Id)
     {
 
-        return (new Data($this->Binding))->entityDebtorCommodityById($Id);
+        return (new Data($this->getBinding()))->getDebtorCommodityById($Id);
     }
 
     /**
@@ -130,19 +110,19 @@ class Service implements IServiceInterface
      *
      * @return bool|TblReference
      */
-    public function entityReferenceById($Id)
+    public function getReferenceById($Id)
     {
 
-        return (new Data($this->Binding))->entityReferenceById($Id);
+        return (new Data($this->getBinding()))->getReferenceById($Id);
     }
 
     /**
      * @return bool|TblPaymentType[]
      */
-    public function entityPaymentTypeAll()
+    public function getPaymentTypeAll()
     {
 
-        return (new Data($this->Binding))->entityPaymentTypeAll();
+        return (new Data($this->getBinding()))->getPaymentTypeAll();
     }
 
     /**
@@ -150,10 +130,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblDebtor[]
      */
-    public function entityDebtorAllByPerson(TblPerson $Person)    //todo
+    public function getDebtorAllByPerson(TblPerson $Person)
     {
 
-        return (new Data($this->Binding))->entityDebtorAllByPerson($Person);
+        return (new Data($this->getBinding()))->getDebtorAllByPerson($Person);
     }
 
     /**
@@ -162,10 +142,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblDebtor[]
      */
-    public function entityDebtorCommodityAllByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
+    public function getDebtorCommodityAllByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
     {
 
-        return (new Data($this->Binding))->entityDebtorAllByPerson($tblDebtor, $tblCommodity);
+        return (new Data($this->getBinding()))->getDebtorCommodityAllByDebtorAndCommodity($tblDebtor, $tblCommodity);
     }
 
     /**
@@ -173,10 +153,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblDebtor[]
      */
-    public function entityDebtorByServiceManagementPerson($ServiceManagement_Person)
+    public function getDebtorByServiceManagementPerson($ServiceManagement_Person)
     {
 
-        return (new Data($this->Binding))->entityDebtorByServiceManagementPerson($ServiceManagement_Person);
+        return (new Data($this->getBinding()))->getDebtorByServiceManagementPerson($ServiceManagement_Person);
     }
 
     /**
@@ -184,10 +164,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblPaymentType
      */
-    public function entityPaymentTypeByName($PaymentType)
+    public function getPaymentTypeByName($PaymentType)
     {
 
-        return (new Data($this->Binding))->entityPaymentTypeByName($PaymentType);
+        return (new Data($this->getBinding()))->getPaymentTypeByName($PaymentType);
     }
 
     /**
@@ -195,10 +175,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCommodity[]
      */
-    public function entityCommodityAllByDebtor(TblDebtor $tblDebtor)
+    public function getCommodityAllByDebtor(TblDebtor $tblDebtor)
     {
 
-        $tblDebtorCommodityList = $this->entityCommodityDebtorAllByDebtor($tblDebtor);
+        $tblDebtorCommodityList = $this->getCommodityDebtorAllByDebtor($tblDebtor);
         $tblCommodity = array();
         foreach ($tblDebtorCommodityList as $tblDebtorCommodity) {
             array_push($tblCommodity, $tblDebtorCommodity->getServiceBillingCommodity());
@@ -211,10 +191,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblDebtorCommodity[]
      */
-    public function entityCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
+    public function getCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
     {
 
-        return (new Data($this->Binding))->entityCommodityDebtorAllByDebtor($tblDebtor);
+        return (new Data($this->getBinding()))->getCommodityDebtorAllByDebtor($tblDebtor);
     }
 
     /**
@@ -222,7 +202,7 @@ class Service implements IServiceInterface
      *
      * @return int
      */
-    public function entityLeadTimeByDebtor(TblDebtor $tblDebtor)
+    public function getLeadTimeByDebtor(TblDebtor $tblDebtor)
     {
 
         if (Invoice::useService()->checkInvoiceFromDebtorIsPaidByDebtor($tblDebtor) || Balance::useService()->checkPaymentFromDebtorExistsByDebtor($tblDebtor)) {
@@ -237,14 +217,14 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeBankingDelete(TblDebtor $tblDebtor)
+    public function destroyBanking(TblDebtor $tblDebtor)
     {
 
         if (null === $tblDebtor) {
             return '';
         }
 
-        if ((new Data($this->Binding))->actionRemoveBanking($tblDebtor)) {
+        if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
             return new Success('Die Leistung wurde erfolgreich gelöscht')
             .new Redirect('/Billing/Accounting/Banking', 1);
         } else {
@@ -258,10 +238,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeRemoveDebtorCommodity(TblDebtorCommodity $tblDebtorCommodity)
+    public function removeCommodityToDebtor(TblDebtorCommodity $tblDebtorCommodity)
     {
 
-        if ((new Data($this->Binding))->actionRemoveDebtorCommodity($tblDebtorCommodity)) {
+        if ((new Data($this->getBinding()))->removeCommodityToDebtor($tblDebtorCommodity)) {
             return new Success('Die Leistung '.$tblDebtorCommodity->getServiceBillingCommodity()->getName().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Accounting/Banking/Commodity/Select', 0,
                 array('Id' => $tblDebtorCommodity->getTblDebtor()->getId()));
@@ -278,10 +258,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeAddDebtorCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
+    public function addCommodityToDebtor(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
     {
 
-        if ((new Data($this->Binding))->actionAddDebtorCommodity($tblDebtor, $tblCommodity)) {
+        if ((new Data($this->getBinding()))->addCommodityToDebtor($tblDebtor, $tblCommodity)) {
             return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
             .new Redirect('/Billing/Accounting/Banking/Commodity/Select', 0, array('Id' => $tblDebtor->getId()));
         } else {
@@ -295,13 +275,13 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function setBankingReferenceDeactivate(TblReference $tblReference)
+    public function deactivateBankingReference(TblReference $tblReference)
     {
 
         if (null === $tblReference) {
             return '';
         }
-        if ((new Data($this->Binding))->actionDeactivateReference($tblReference)) {
+        if ((new Data($this->getBinding()))->deactivateReference($tblReference)) {
             return new Success('Die Deaktivierung ist erfasst worden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1,
                 array('Id' => $tblReference->getServiceBillingBanking()->getId()));
@@ -319,7 +299,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeEditDebtor(IFormInterface &$Stage = null, TblDebtor $tblDebtor, $Debtor)
+    public function changeDebtor(IFormInterface &$Stage = null, TblDebtor $tblDebtor, $Debtor) //ToDO
     {
 
         /**
@@ -341,7 +321,7 @@ class Service implements IServiceInterface
         }
 
         if (!$Error) {
-            if ((new Data($this->Binding))->actionEditDebtor(
+            if ((new Data($this->getBinding()))->updateDebtor(
                 $tblDebtor,
                 $Debtor['Description'],
                 $Debtor['PaymentType'],
@@ -372,7 +352,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeAddReference(IFormInterface &$Stage = null, TblDebtor $Debtor, $Reference)
+    public function createReference(IFormInterface &$Stage = null, TblDebtor $Debtor, $Reference)
     {
 
         /**
@@ -387,7 +367,7 @@ class Service implements IServiceInterface
             $Stage->setError('Reference[Reference]', 'Bitte geben sie eine Mandatsreferenz an');
             $Error = true;
         }
-        if (isset( $Reference['Reference'] ) && Banking::useService()->entityReferenceByReferenceActive($Reference['Reference'])) {
+        if (isset( $Reference['Reference'] ) && Banking::useService()->getReferenceByReferenceActive($Reference['Reference'])) {
             $Stage->setError('Reference[Reference]',
                 'Die Mandatsreferenz exisitiert bereits. Bitte geben Sie eine andere an');
             $Error = true;
@@ -395,10 +375,10 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            (new Data($this->Binding))->actionAddReference($Reference['Reference'],
+            (new Data($this->getBinding()))->createReference($Reference['Reference'],
                 $Debtor->getDebtorNumber(),
                 $Reference['ReferenceDate'],
-                Commodity::useService()->entityCommodityById($Reference['Commodity']));
+                Commodity::useService()->getCommodityById($Reference['Commodity']));
 
             return new Success('Die Referenz ist erfasst worden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array('Id' => $Debtor->getId()));
@@ -412,10 +392,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblReference
      */
-    public function entityReferenceByReferenceActive($Reference)
+    public function getReferenceByReferenceActive($Reference)
     {
 
-        return (new Data($this->Binding))->entityReferenceByReferenceActive($Reference);
+        return (new Data($this->getBinding()))->getReferenceByReferenceActive($Reference);
     }
 
     /**
@@ -425,7 +405,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeAddDebtor(IFormInterface &$Stage = null, $Debtor, $Id)
+    public function createDebtor(IFormInterface &$Stage = null, $Debtor, $Id)
     {
 
         /**
@@ -440,7 +420,7 @@ class Service implements IServiceInterface
             $Stage->setError('Debtor[DebtorNumber]', 'Bitte geben sie die Debitorennummer an');
             $Error = true;
         }
-        if (isset( $Debtor['DebtorNumber'] ) && Banking::useService()->entityDebtorByDebtorNumber($Debtor['DebtorNumber'])) {
+        if (isset( $Debtor['DebtorNumber'] ) && Banking::useService()->getDebtorByDebtorNumber($Debtor['DebtorNumber'])) {
             $Stage->setError('Debtor[DebtorNumber]',
                 'Die Debitorennummer exisitiert bereits. Bitte geben Sie eine andere Debitorennummer an');
             $Error = true;
@@ -461,7 +441,7 @@ class Service implements IServiceInterface
             $Stage->setError('Debtor[LeadTimeFollow]', 'Bitte geben sie eine Zahl an.');
             $Error = true;
         }
-        if (isset( $Debtor['Reference'] ) && Banking::useService()->entityReferenceByReference($Debtor['Reference'])) {
+        if (isset( $Debtor['Reference'] ) && Banking::useService()->getReferenceByReference($Debtor['Reference'])) {
             $Stage->setError('Debtor[Reference]',
                 'Die Mandatsreferenz exisitiert bereits. Bitte geben Sie eine andere an');
             $Error = true;
@@ -469,7 +449,7 @@ class Service implements IServiceInterface
 
         if (!$Error) {
 
-            (new Data($this->Binding))->actionAddDebtor($Debtor['DebtorNumber'],
+            (new Data($this->getBinding()))->createDebtor($Debtor['DebtorNumber'],
                 $Debtor['LeadTimeFirst'],
                 $Debtor['LeadTimeFollow'],
                 $Debtor['BankName'],
@@ -479,12 +459,12 @@ class Service implements IServiceInterface
                 $Debtor['BIC'],
                 $Debtor['Description'],
                 $Debtor['PaymentType'],
-                Management::servicePerson()->entityPersonById($Id)); //todo
+                Person::useService()->getPersonById($Id));
             if (!empty( $Debtor['Reference'] )) {
-                (new Data ($this->Binding))->actionAddReference($Debtor['Reference'],
+                (new Data ($this->getBinding()))->createReference($Debtor['Reference'],
                     $Debtor['DebtorNumber'],
                     $Debtor['ReferenceDate'],
-                    Commodity::useService()->entityCommodityById($Debtor['Commodity']));
+                    Commodity::useService()->getCommodityById($Debtor['Commodity']));
             }
             return new Success('Der Debitor ist erfasst worden')
             .new Redirect('/Billing/Accounting/Banking', 2);
@@ -497,10 +477,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblDebtor
      */
-    public function entityDebtorByDebtorNumber($DebtorNumber)
+    public function getDebtorByDebtorNumber($DebtorNumber)
     {
 
-        return (new Data($this->Binding))->entityDebtorByDebtorNumber($DebtorNumber);
+        return (new Data($this->getBinding()))->getDebtorByDebtorNumber($DebtorNumber);
     }
 
     /**
@@ -508,10 +488,9 @@ class Service implements IServiceInterface
      *
      * @return bool|TblReference
      */
-    public function entityReferenceByReference($Reference)
+    public function getReferenceByReference($Reference)
     {
 
-        return (new Data($this->Binding))->entityReferenceByReference($Reference);
+        return (new Data($this->getBinding()))->getReferenceByReference($Reference);
     }
-
 }

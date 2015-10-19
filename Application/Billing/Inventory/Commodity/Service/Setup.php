@@ -1,30 +1,17 @@
 <?php
-
 namespace SPHERE\Application\Billing\Inventory\Commodity\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
  *
  * @package SPHERE\Application\Billing\Inventory\Commodity\Service
  */
-class Setup
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -37,7 +24,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblCommodityType = $this->setTableCommodityType($Schema);
         $this->setTableCommodity($Schema, $tblCommodityType);
         $this->setTableCommodityItem($Schema);
@@ -48,9 +35,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -61,8 +48,8 @@ class Setup
     private function setTableCommodityType(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblCommodityType');
-        if (!$this->Connection->hasColumn('tblCommodityType', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblCommodityType');
+        if (!$this->getConnection()->hasColumn('tblCommodityType', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
         return $Table;
@@ -77,16 +64,16 @@ class Setup
     private function setTableCommodity(Schema &$Schema, Table $tblCommodityType)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblCommodity');
+        $Table = $this->getConnection()->createTable($Schema, 'tblCommodity');
 
-        if (!$this->Connection->hasColumn('tblCommodity', 'Name')) {
+        if (!$this->getConnection()->hasColumn('tblCommodity', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->Connection->hasColumn('tblCommodity', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblCommodity', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
 
-        $this->Connection->addForeignKey($Table, $tblCommodityType);
+        $this->getConnection()->addForeignKey($Table, $tblCommodityType);
 
         return $Table;
     }
@@ -99,15 +86,15 @@ class Setup
     private function setTableCommodityItem(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblCommodityItem');
+        $Table = $this->getConnection()->createTable($Schema, 'tblCommodityItem');
 
-        if (!$this->Connection->hasColumn('tblCommodityItem', 'Quantity')) {
+        if (!$this->getConnection()->hasColumn('tblCommodityItem', 'Quantity')) {
             $Table->addColumn('Quantity', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->Connection->hasColumn('tblCommodityItem', 'tblItem')) {
+        if (!$this->getConnection()->hasColumn('tblCommodityItem', 'tblItem')) {
             $Table->addColumn('tblItem', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblCommodityItem', 'tblCommodity')) {
+        if (!$this->getConnection()->hasColumn('tblCommodityItem', 'tblCommodity')) {
             $Table->addColumn('tblCommodity', 'bigint');
         }
 
@@ -122,23 +109,23 @@ class Setup
 //    private function setTableItem( Schema &$Schema )
 //    {
 //
-//        $Table = $this->Connection->createTable( $Schema, 'tblItem' );
-//        if ( !$this->Connection->hasColumn( 'tblItem', 'Name' ) ) {
+//        $Table = $this->getConnection()->createTable( $Schema, 'tblItem' );
+//        if ( !$this->getConnection()->hasColumn( 'tblItem', 'Name' ) ) {
 //            $Table->addColumn( 'Name', 'string' );
 //        }
-//        if ( !$this->Connection->hasColumn( 'tblItem', 'Description' ) ) {
+//        if ( !$this->getConnection()->hasColumn( 'tblItem', 'Description' ) ) {
 //            $Table->addColumn( 'Description', 'string' );
 //        }
-//        if ( !$this->Connection->hasColumn( 'tblItem', 'Price' ) ) {
+//        if ( !$this->getConnection()->hasColumn( 'tblItem', 'Price' ) ) {
 //            $Table->addColumn( 'Price', 'decimal', array( 'precision' => 14, 'scale' => 4 ) );
 //        }
-//        if ( !$this->Connection->hasColumn( 'tblItem', 'CostUnit' ) ) {
+//        if ( !$this->getConnection()->hasColumn( 'tblItem', 'CostUnit' ) ) {
 //            $Table->addColumn( 'CostUnit', 'string' );
 //        }
-//        if ( !$this->Connection->hasColumn( 'tblItem', 'serviceManagement_Student_ChildRank' ) ) {
+//        if ( !$this->getConnection()->hasColumn( 'tblItem', 'serviceManagement_Student_ChildRank' ) ) {
 //            $Table->addColumn( 'serviceManagement_Student_ChildRank', 'bigint', array( 'notnull' => false ) );
 //        }
-//        if ( !$this->Connection->hasColumn( 'tblItem', 'serviceManagement_Course' ) ) {
+//        if ( !$this->getConnection()->hasColumn( 'tblItem', 'serviceManagement_Course' ) ) {
 //            $Table->addColumn( 'serviceManagement_Course', 'bigint', array( 'notnull' => false ) );
 //        }
 //
@@ -154,13 +141,13 @@ class Setup
 //    private function setTableItemAccount( Schema &$Schema, Table $tblItem )
 //    {
 //
-//        $Table = $this->Connection->createTable( $Schema, 'tblItemAccount' );
+//        $Table = $this->getConnection()->createTable( $Schema, 'tblItemAccount' );
 //
-//        if ( !$this->Connection->hasColumn( 'tblItemAccount', 'serviceBilling_Account' ) ) {
+//        if ( !$this->getConnection()->hasColumn( 'tblItemAccount', 'serviceBilling_Account' ) ) {
 //            $Table->addColumn( 'serviceBilling_Account', 'bigint' );
 //        }
 //
-//        $this->Connection->addForeignKey( $Table, $tblItem );
+//        $this->getConnection()->addForeignKey( $Table, $tblItem );
 //
 //        return $Table;
 //    }

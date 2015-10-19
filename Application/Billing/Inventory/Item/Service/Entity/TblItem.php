@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Inventory\Item\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -131,7 +132,7 @@ class TblItem extends Element
     }
 
     /**
-     * @return bool|TblCourse
+     * @return bool|TblCourse   // todo
      */
     public function getServiceManagementCourse()
     {
@@ -139,7 +140,7 @@ class TblItem extends Element
         if (null === $this->serviceManagement_Course) {
             return false;
         } else {
-            return Management::serviceCourse()->entityCourseById($this->serviceManagement_Course);    // todo
+            return Management::serviceCourse()->entityCourseById($this->serviceManagement_Course);
         }
     }
 
@@ -153,7 +154,7 @@ class TblItem extends Element
     }
 
     /**
-     * @return bool|TblChildRank
+     * @return bool|TblChildRank    // todo
      */
     public function getServiceManagementStudentChildRank()
     {
@@ -161,7 +162,7 @@ class TblItem extends Element
         if (null === $this->serviceManagement_Student_ChildRank) {
             return false;
         } else {
-            return Management::serviceStudent()->entityChildRankById($this->serviceManagement_Student_ChildRank); // todo
+            return Management::serviceStudent()->entityChildRankById($this->serviceManagement_Student_ChildRank);
         }
     }
 

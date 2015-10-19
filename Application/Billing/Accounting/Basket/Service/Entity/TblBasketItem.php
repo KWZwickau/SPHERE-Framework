@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
@@ -46,13 +47,22 @@ class TblBasketItem extends Element
     public function getTotalPriceString()
     {
 
+//        $result = 0.00;       // ToDo erasable?
+//        $tblCommodityItem = $this->getServiceBillingCommodityItem();
+//        if ($tblCommodityItem) {
+//            $tblItem = $this->getServiceBillingCommodityItem()->getTblItem();
+//            $quantity = $this->getQuantity();
+//            if ($tblItem && $tblItem->getPrice() > 0 && $quantity > 0) {
+//                $result = sprintf("%01.4f", $tblItem->getPrice() * $quantity);
+//            }
+//        }
+//        return str_replace('.', ',', $result)." €";
         $result = 0.00;
-        $tblCommodityItem = $this->getServiceBillingCommodityItem();
-        if ($tblCommodityItem) {
-            $tblItem = $this->getServiceBillingCommodityItem()->getTblItem();
+        $ItemPrice = $this->getPrice();
+        if ($ItemPrice) {
             $quantity = $this->getQuantity();
-            if ($tblItem && $tblItem->getPrice() > 0 && $quantity > 0) {
-                $result = sprintf("%01.4f", $tblItem->getPrice() * $quantity);
+            if ($ItemPrice > 0 && $quantity > 0) {
+                $result = sprintf("%01.4f", $ItemPrice * $quantity);
             }
         }
         return str_replace('.', ',', $result)." €";
@@ -86,7 +96,7 @@ class TblBasketItem extends Element
         if (null === $this->tblBasket) {
             return false;
         } else {
-            return Basket::useService()->entityBasketById($this->tblBasket);
+            return Basket::useService()->getBasketById($this->tblBasket);
         }
     }
 
@@ -108,7 +118,7 @@ class TblBasketItem extends Element
         if (null === $this->serviceBilling_CommodityItem) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityItemById($this->serviceBilling_CommodityItem);
+            return Commodity::useService()->getCommodityItemById($this->serviceBilling_CommodityItem);
         }
     }
 

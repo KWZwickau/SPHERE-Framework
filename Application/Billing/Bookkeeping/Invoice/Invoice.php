@@ -45,7 +45,6 @@ class Invoice implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Edit',
                 __NAMESPACE__.'\Frontend::frontendInvoiceEdit'
             )->setParameterDefault('Id', null)
-                ->setParameterDefault('Data', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Show',
@@ -69,9 +68,10 @@ class Invoice implements IModuleInterface
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Item/Edit',
-                __NAMESPACE__.'\Frontend::frontendInvoiceItemEdit'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Item/Change',
+                __NAMESPACE__.'\Frontend::frontendInvoiceItemChange'
             )->setParameterDefault('Id', null)
+                ->setParameterDefault('IdItem', null)
                 ->setParameterDefault('InvoiceItem', null)
         );
         Main::getDispatcher()->registerRoute(
@@ -120,7 +120,7 @@ class Invoice implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        return new Frontend();
     }
 
 }

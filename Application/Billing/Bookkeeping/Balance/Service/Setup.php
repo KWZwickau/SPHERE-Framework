@@ -4,22 +4,15 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
-class Setup
+/**
+ * Class Setup
+ * 
+ * @package SPHERE\Application\Billing\Bookkeeping\Balance\Service
+ */
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -32,16 +25,16 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
 
         $tblBalance = $this->setTableBalance($Schema);
         $this->setTablePayment($Schema, $tblBalance);
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -52,15 +45,15 @@ class Setup
     private function setTableBalance(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblBalance');
+        $Table = $this->getConnection()->createTable($Schema, 'tblBalance');
 
-        if (!$this->Connection->hasColumn('tblBalance', 'serviceBilling_Banking')) {
+        if (!$this->getConnection()->hasColumn('tblBalance', 'serviceBilling_Banking')) {
             $Table->addColumn('serviceBilling_Banking', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblBalance', 'serviceBilling_Invoice')) {
+        if (!$this->getConnection()->hasColumn('tblBalance', 'serviceBilling_Invoice')) {
             $Table->addColumn('serviceBilling_Invoice', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblBalance', 'ExportDate')) {
+        if (!$this->getConnection()->hasColumn('tblBalance', 'ExportDate')) {
             $Table->addColumn('ExportDate', 'date', array('notnull' => false));
         }
 
@@ -76,16 +69,16 @@ class Setup
     private function setTablePayment(Schema &$Schema, Table $tblBalance)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblPayment');
+        $Table = $this->getConnection()->createTable($Schema, 'tblPayment');
 
-        if (!$this->Connection->hasColumn('tblPayment', 'Value')) {
+        if (!$this->getConnection()->hasColumn('tblPayment', 'Value')) {
             $Table->addColumn('Value', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->Connection->hasColumn('tblPayment', 'Date')) {
+        if (!$this->getConnection()->hasColumn('tblPayment', 'Date')) {
             $Table->addColumn('Date', 'date');
         }
 
-        $this->Connection->addForeignKey($Table, $tblBalance);
+        $this->getConnection()->addForeignKey($Table, $tblBalance);
 
         return $Table;
     }

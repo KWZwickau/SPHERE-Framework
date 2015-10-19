@@ -3,8 +3,11 @@ namespace SPHERE\Application\Billing\Accounting\Banking\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -126,7 +129,7 @@ class TblDebtor extends Element
         if (null === $this->ServiceManagementPerson) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById($this->ServiceManagementPerson); //todo
+            return Person::useService()->getPersonById( $this->ServiceManagementPerson );
         }
     }
 
@@ -256,7 +259,7 @@ class TblDebtor extends Element
         if (null === $this->tblPaymentType) {
             return false;
         } else {
-            return Banking::useService()->entityPaymentTypeById($this->tblPaymentType);
+            return Banking::useService()->getPaymentTypeById($this->tblPaymentType);
         }
     }
 

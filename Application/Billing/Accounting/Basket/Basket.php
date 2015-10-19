@@ -14,17 +14,6 @@ class Basket implements IModuleInterface
 
     public static function registerModule()
     {
-
-        /**
-         * Register Module
-         */
-//        Error::registerModule();
-        /**
-         * Register Navigation
-         */
-//        Main::getDisplay()->addApplicationNavigation(
-//            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Warenkorb' ), new Link\Icon( new \SPHERE\Common\Frontend\Icon\Repository\Basket() ) )
-//        );
         /**
          * Register Route
          */
@@ -39,15 +28,16 @@ class Basket implements IModuleInterface
             )->setParameterDefault('Basket', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit',
-                __NAMESPACE__.'\Frontend::frontendBasketEdit'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
+                __NAMESPACE__.'\Frontend::frontendBasketChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Basket', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
-                __NAMESPACE__.'\Frontend::frontendBasketDelete'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'\Frontend::frontendBasketDestroy'
             )->setParameterDefault('Id', null)
+            ->setParameterDefault('Confirm', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Commodity/Select',
@@ -77,8 +67,8 @@ class Basket implements IModuleInterface
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Edit',
-                __NAMESPACE__.'\Frontend::frontendBasketItemEdit'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Item/Change',
+                __NAMESPACE__.'\Frontend::frontendBasketItemChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('BasketItem', null)
         );
@@ -132,7 +122,7 @@ class Basket implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        return new Frontend();
     }
 
 }

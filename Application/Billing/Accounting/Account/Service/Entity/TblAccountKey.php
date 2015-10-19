@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Account\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Account\Account;
 use SPHERE\System\Database\Fitting\Element;
@@ -141,7 +142,7 @@ class TblAccountKey extends Element
         if (null === $this->tblAccountKeyType) {
             return false;
         } else {
-            return Account::useService()->entityAccountKeyTypeById($this->tblAccountKeyType);
+            return Account::useService()->getAccountKeyTypeById($this->tblAccountKeyType);
         }
     }
 

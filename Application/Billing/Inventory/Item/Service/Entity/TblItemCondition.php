@@ -3,8 +3,9 @@ namespace SPHERE\Application\Billing\Inventory\Item\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -56,7 +57,7 @@ class TblItemCondition extends Element
         if (null === $this->tblItem) {
             return false;
         } else {
-            return Commodity::useService()->entityItemById($this->tblItem);
+            return Item::useService()->getItemById($this->tblItem);
         }
     }
 

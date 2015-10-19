@@ -37,7 +37,7 @@ class TblInvoiceAccount extends Element
         if (null === $this->tblInvoiceItem) {
             return false;
         } else {
-            return Basket::useService()->entityBasketItemById($this->tblInvoiceItem);
+            return Basket::useService()->getBasketItemById($this->tblInvoiceItem);
         }
     }
 
@@ -59,7 +59,7 @@ class TblInvoiceAccount extends Element
         if (null === $this->serviceBilling_Account) {
             return false;
         } else {
-            return Account::useService()->entityAccountById($this->serviceBilling_Account);
+            return Account::useService()->getAccountById($this->serviceBilling_Account);
         }
     }
 

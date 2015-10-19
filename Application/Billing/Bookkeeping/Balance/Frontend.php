@@ -25,10 +25,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Posten');
         $Stage->setDescription('Offen');
 
-        $invoiceAllByIsConfirmedState = Invoice::useService()->entityInvoiceAllByIsConfirmedState(true);
-        $invoiceAllByIsVoidState = Invoice::useService()->entityInvoiceAllByIsVoidState(true);
-        $invoiceAllByIsPaidState = Invoice::useService()->entityInvoiceAllByIsPaidState(true);
-        $invoiceHasFullPaymentAll = Balance::useService()->entityInvoiceHasFullPaymentAll();
+        $invoiceAllByIsConfirmedState = Invoice::useService()->getInvoiceAllByIsConfirmedState(true);
+        $invoiceAllByIsVoidState = Invoice::useService()->getInvoiceAllByIsVoidState(true);
+        $invoiceAllByIsPaidState = Invoice::useService()->getInvoiceAllByIsPaidState(true);
+        $invoiceHasFullPaymentAll = Balance::useService()->getInvoiceHasFullPaymentAll();
 
         if ($invoiceAllByIsConfirmedState && $invoiceAllByIsVoidState) {
             $invoiceAllByIsConfirmedState = array_udiff($invoiceAllByIsConfirmedState, $invoiceAllByIsVoidState,
@@ -54,7 +54,7 @@ class Frontend extends Extension implements IFrontendInterface
         if (!empty( $invoiceAllByIsConfirmedState )) {
             /** @var TblInvoice $invoiceByIsConfirmedState */
             foreach ($invoiceAllByIsConfirmedState as $invoiceByIsConfirmedState) {
-                $tblBalance = Balance::useService()->entityBalanceByInvoice($invoiceByIsConfirmedState);
+                $tblBalance = Balance::useService()->getBalanceByInvoice($invoiceByIsConfirmedState);
                 $AdditionInvoice = Invoice::useService()->sumPriceItemAllStringByInvoice($invoiceByIsConfirmedState);
                 $AdditionPayment = Balance::useService()->sumPriceItemStringByBalance($tblBalance);
 
@@ -96,7 +96,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Zahlungen');
         $Stage->setDescription('Importierte');
 
-        $paymentList = Balance::useService()->entityPaymentAll();
+        $paymentList = Balance::useService()->getPaymentAll();
         if ($paymentList) {
             array_walk($paymentList, function (TblPayment &$tblPayment) {
 

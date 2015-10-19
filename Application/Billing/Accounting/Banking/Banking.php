@@ -18,13 +18,13 @@ class Banking implements IModuleInterface
         /**
          * Register Module
          */
-//        Error::registerModule();
+        //        Error::registerModule();
         /**
          * Register Navigation
          */
-//        Main::getDisplay()->addApplicationNavigation(
-//            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Debitoren' ), new Link\Icon( new Money() ) )
-//        );
+        //        Main::getDisplay()->addApplicationNavigation(
+        //            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Debitoren' ), new Link\Icon( new Money() ) )
+        //        );
         /**
          * Register Route
          */
@@ -44,10 +44,16 @@ class Banking implements IModuleInterface
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Debtor', null)
         );
+//        Main::getDispatcher()->registerRoute(
+//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
+//                __NAMESPACE__.'\Frontend::frontendBankingDelete'
+//            )->setParameterDefault('Id', null)
+//        );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
-                __NAMESPACE__.'\Frontend::frontendBankingDelete'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'\Frontend::frontendBankingDestroy'
             )->setParameterDefault('Id', null)
+                ->setParameterDefault('Confirm', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Commodity/Select',
@@ -76,8 +82,8 @@ class Banking implements IModuleInterface
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Edit',
-                __NAMESPACE__.'\Frontend::frontendBankingDebtorEdit'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Change',
+                __NAMESPACE__.'\Frontend::frontendBankingDebtorChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Debtor', null)
         );

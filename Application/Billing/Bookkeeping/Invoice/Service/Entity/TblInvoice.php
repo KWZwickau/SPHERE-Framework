@@ -3,10 +3,15 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -122,7 +127,7 @@ class TblInvoice extends Element
     public function getIsConfirmed()
     {
 
-        return ( Balance::useService()->entityBalanceByInvoice($this) === false ? false : true );
+        return ( Balance::useService()->getBalanceByInvoice($this) === false ? false : true );
     }
 
     /**
@@ -359,7 +364,7 @@ class TblInvoice extends Element
         if (null === $this->serviceManagement_Address) {
             return false;
         } else {
-            return Management::serviceAddress()->entityAddressById($this->serviceManagement_Address);
+            return Address::useService()->getAddressById($this->serviceManagement_Address);
         }
     }
 
@@ -381,7 +386,7 @@ class TblInvoice extends Element
         if (null === $this->serviceManagement_Person) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById($this->serviceManagement_Person);
+            return Person::useService()->getPersonById($this->serviceManagement_Person);
         }
     }
 
@@ -403,7 +408,7 @@ class TblInvoice extends Element
         if (null === $this->serviceBilling_Banking_Payment_Type) {
             return false;
         } else {
-            return Banking::useService()->entityPaymentTypeById($this->serviceBilling_Banking_Payment_Type);
+            return Banking::useService()->getPaymentTypeById($this->serviceBilling_Banking_Payment_Type);
         }
     }
 

@@ -8,24 +8,13 @@ use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtorCommod
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblReference;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -33,9 +22,9 @@ class Data
         /**
          * TblPayment
          */
-        $this->actionCreatePaymentType('SEPA-Lastschrift');
-        $this->actionCreatePaymentType('SEPA-Überweisung');
-        $this->actionCreatePaymentType('Bar');
+        $this->createPaymentType('SEPA-Lastschrift');
+        $this->createPaymentType('SEPA-Überweisung');
+        $this->createPaymentType('Bar');
     }
 
     /**
@@ -43,16 +32,16 @@ class Data
      *
      * @return TblPaymentType|null|object
      */
-    public function actionCreatePaymentType($PaymentType)
+    public function createPaymentType($PaymentType)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPaymentType')->findOneBy(array(TblPaymentType::ATTR_NAME => $PaymentType));
         if (null === $Entity) {
             $Entity = new TblPaymentType();
             $Entity->setName($PaymentType);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
 
@@ -64,10 +53,10 @@ class Data
      *
      * @return bool|TblDebtor
      */
-    public function entityDebtorById($Id)
+    public function getDebtorById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblDebtor', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblDebtor', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -76,10 +65,10 @@ class Data
      *
      * @return TblDebtor|bool
      */
-    public function entityDebtorByDebtorNumber($DebtorNumber)
+    public function getDebtorByDebtorNumber($DebtorNumber)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblDebtor')->findOneBy(array(TblDebtor::ATTR_DEBTOR_NUMBER => $DebtorNumber));
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblDebtor')->findOneBy(array(TblDebtor::ATTR_DEBTOR_NUMBER => $DebtorNumber));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -88,10 +77,10 @@ class Data
      *
      * @return TblDebtor[]|bool
      */
-    public function entityDebtorByServiceManagementPerson($ServiceManagement_Person)
+    public function getDebtorByServiceManagementPerson($ServiceManagement_Person)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblDebtor')->findBy(array(TblDebtor::ATTR_SERVICE_MANAGEMENT_PERSON => $ServiceManagement_Person));
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblDebtor')->findBy(array(TblDebtor::ATTR_SERVICE_MANAGEMENT_PERSON => $ServiceManagement_Person));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -100,10 +89,10 @@ class Data
      *
      * @return TblDebtor[]|bool
      */
-    public function entityDebtorAllByPerson(TblPerson $tblPerson)     //todo
+    public function getDebtorAllByPerson(TblPerson $tblPerson)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblDebtor')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDebtor')
             ->findBy(array(TblDebtor::ATTR_SERVICE_MANAGEMENT_PERSON => $tblPerson->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -113,10 +102,10 @@ class Data
      *
      * @return bool|TblDebtorCommodity[]
      */
-    public function entityCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
+    public function getCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblDebtorCommodity')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDebtorCommodity')
             ->findBy(array(TblDebtorCommodity::ATTR_TBL_DEBTOR => $tblDebtor->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -126,10 +115,10 @@ class Data
      *
      * @return bool|TblDebtorCommodity
      */
-    public function entityDebtorCommodityById($Id)
+    public function getDebtorCommodityById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblDebtorCommodity', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblDebtorCommodity', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -138,11 +127,11 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveDebtorCommodity(
+    public function removeCommodityToDebtor(
         TblDebtorCommodity $tblDebtorCommodity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblDebtorCommodity')->findOneBy(
             array(
@@ -150,7 +139,7 @@ class Data
             ));
         if (null !== $Entity) {
             /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
@@ -164,12 +153,12 @@ class Data
      *
      * @return TblDebtorCommodity
      */
-    public function actionAddDebtorCommodity(
+    public function addCommodityToDebtor(
         TblDebtor $tblDebtor,
         TblCommodity $tblCommodity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDebtorCommodity')->findOneBy(
             array(
                 TblDebtorCommodity::ATTR_TBL_DEBTOR                => $tblDebtor->getId(),
@@ -181,7 +170,7 @@ class Data
             $Entity->setServiceBillingCommodity($tblCommodity);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
         return $Entity;
@@ -192,17 +181,17 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveBanking(
+    public function removeBanking(
         TblDebtor $tblDebtor
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $EntityReferenceList = $Manager->getEntity('TblReference')
             ->findBy(array(TblReference::ATTR_TBL_DEBTOR => $tblDebtor->getId()));
         if (null !== $EntityReferenceList) {
             foreach ($EntityReferenceList as $EntityReference) {
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $EntityReference);
                 $Manager->killEntity($EntityReference);
             }
@@ -212,7 +201,7 @@ class Data
             ->findBy(array(TblDebtorCommodity::ATTR_TBL_DEBTOR => $tblDebtor->getId()));
         if (null !== $EntityItemsDebtorCommodity) {
             foreach ($EntityItemsDebtorCommodity as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->killEntity($Entity);
             }
@@ -222,7 +211,7 @@ class Data
             ->findBy(array(TblDebtor::ATTR_DEBTOR_NUMBER => $tblDebtor->getId()));
         if (null !== $EntityItems) {
             foreach ($EntityItems as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->killEntity($Entity);
             }
@@ -231,7 +220,7 @@ class Data
         $Entity = $Manager->getEntity('TblDebtor')->findOneBy(array('Id' => $tblDebtor->getId()));
         if (null !== $Entity) {
             /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
@@ -244,15 +233,15 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveReference(TblDebtor $tblDebtor)
+    public function removeReference(TblDebtor $tblDebtor)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $EntityList = $Manager->getEntity('TblReference')->findBy(array(TblReference::ATTR_TBL_DEBTOR => $tblDebtor->getId()));
 
         if (null !== $EntityList) {
             foreach ($EntityList as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->killEntity($Entity);
             }
@@ -266,10 +255,10 @@ class Data
      *
      * @return bool
      */
-    public function actionDeactivateReference(TblReference $tblReference)
+    public function deactivateReference(TblReference $tblReference)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblReference $Entity */
         $Entity = $Manager->getEntityById('TblReference', $tblReference->getId());
@@ -278,7 +267,7 @@ class Data
             $Entity->setIsVoid(true);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -292,10 +281,10 @@ class Data
      *
      * @return TblDebtorCommodity[]|bool
      */
-    public function entityDebtorCommodityAllByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
+    public function getDebtorCommodityAllByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblDebtorCommodity')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDebtorCommodity')
             ->findBy(array(
                 TblDebtorCommodity::ATTR_TBL_DEBTOR                => $tblDebtor->getId(),
                 TblDebtorCommodity::ATTR_SERVICE_BILLING_COMMODITY => $tblCommodity->getId()
@@ -318,7 +307,7 @@ class Data
      *
      * @return TblDebtor
      */
-    public function actionAddDebtor(
+    public function createDebtor(
         $DebtorNumber,
         $LeadTimeFirst,
         $LeadTimeFollow,
@@ -332,7 +321,7 @@ class Data
         $ServiceManagement_Person
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblDebtor();
         $Entity->setLeadTimeFirst($LeadTimeFirst);
@@ -344,12 +333,12 @@ class Data
         $Entity->setIBAN($IBAN);
         $Entity->setBIC($BIC);
         $Entity->setDescription($Description);
-        $Entity->setPaymentType(Banking::useService()->entityPaymentTypeById($PaymentType));
+        $Entity->setPaymentType(Banking::useService()->getPaymentTypeById($PaymentType));
         $Entity->setServiceManagementPerson($ServiceManagement_Person);
 
         $Manager->saveEntity($Entity);
 
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
 
         return $Entity;
@@ -358,10 +347,10 @@ class Data
     /**
      * @return array|bool|TblDebtor[]
      */
-    public function entityDebtorAll()
+    public function getDebtorAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblDebtor')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblDebtor')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -373,15 +362,15 @@ class Data
      *
      * @return TblReference
      */
-    public function actionAddReference($Reference, $DebtorNumber, $ReferenceDate, TblCommodity $tblCommodity)
+    public function createReference($Reference, $DebtorNumber, $ReferenceDate, TblCommodity $tblCommodity)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblReference();
         $Entity->setReference($Reference);
         $Entity->setIsVoid(false);
-        $Entity->setServiceTblDebtor(Banking::useService()->entityDebtorByDebtorNumber($DebtorNumber));
+        $Entity->setServiceTblDebtor(Banking::useService()->getDebtorByDebtorNumber($DebtorNumber));
         $Entity->setServiceBillingCommodity($tblCommodity);
         if ($ReferenceDate) {
             $Entity->setReferenceDate(new \DateTime($ReferenceDate));
@@ -391,13 +380,13 @@ class Data
         }
         $Manager->saveEntity($Entity);
 
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
 
         return $Entity;
     }
 
-    public function actionEditDebtor(
+    public function updateDebtor(
         TblDebtor $tblDebtor,
         $Description,
         $PaymentType,
@@ -410,14 +399,14 @@ class Data
         $LeadTimeFollow
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblDebtor $Entity */
         $Entity = $Manager->getEntityById('TblDebtor', $tblDebtor->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
             $Entity->setDescription($Description);
-            $Entity->setPaymentType(Banking::useService()->entityPaymentTypeById($PaymentType));
+            $Entity->setPaymentType(Banking::useService()->getPaymentTypeById($PaymentType));
             $Entity->setOwner($Owner);
             $Entity->setIBAN($IBAN);
             $Entity->setBIC($BIC);
@@ -426,7 +415,7 @@ class Data
             $Entity->setLeadTimeFirst($LeadTimeFirst);
             $Entity->setLeadTimeFollow($LeadTimeFollow);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -439,10 +428,10 @@ class Data
      *
      * @return bool|TblReference[]
      */
-    public function entityReferenceByDebtor(TblDebtor $tblDebtor)
+    public function getReferenceByDebtor(TblDebtor $tblDebtor)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblReference')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblReference')
             ->findBy(array(TblReference::ATTR_TBL_DEBTOR => $tblDebtor->getId(), TblReference::ATTR_IS_VOID => false));
         return ( null === $Entity ? false : $Entity );
     }
@@ -452,10 +441,10 @@ class Data
      *
      * @return bool|TblReference
      */
-    public function entityReferenceById($tblReference)
+    public function getReferenceById($tblReference)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblReference', $tblReference);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblReference', $tblReference);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -465,10 +454,10 @@ class Data
      *
      * @return bool|TblReference
      */
-    public function entityReferenceByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
+    public function getReferenceByDebtorAndCommodity(TblDebtor $tblDebtor, TblCommodity $tblCommodity)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblReference')->findOneBy(array(
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblReference')->findOneBy(array(
             TblReference::ATTR_TBL_DEBTOR                => $tblDebtor->getId(),
             TblReference::ATTR_SERVICE_BILLING_COMMODITY => $tblCommodity->getId(),
             TblReference::ATTR_IS_VOID                   => false
@@ -481,10 +470,10 @@ class Data
      *
      * @return bool|TblReference
      */
-    public function entityReferenceByReference($Reference)
+    public function getReferenceByReference($Reference)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblReference')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblReference')
             ->findOneBy(array(TblReference::ATTR_REFERENCE => $Reference));
         return ( null === $Entity ? false : $Entity );
     }
@@ -494,10 +483,10 @@ class Data
      *
      * @return bool|TblReference
      */
-    public function entityReferenceByReferenceActive($Reference)
+    public function getReferenceByReferenceActive($Reference)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblReference')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblReference')
             ->findOneBy(array(
                 TblReference::ATTR_REFERENCE => $Reference,
                 TblReference::ATTR_IS_VOID   => false
@@ -508,10 +497,10 @@ class Data
     /**
      * @return bool|TblPaymentType[]
      */
-    public function entityPaymentTypeAll()
+    public function getPaymentTypeAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblPaymentType')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPaymentType')->findAll();
 
         return ( null === $Entity ? false : $Entity );
     }
@@ -521,10 +510,10 @@ class Data
      *
      * @return bool|null|$tblPaymentType
      */
-    public function entityPaymentTypeByName($PaymentType)
+    public function getPaymentTypeByName($PaymentType)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblPaymentType')->findOneBy(array(TblPaymentType::ATTR_NAME => $PaymentType));
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPaymentType')->findOneBy(array(TblPaymentType::ATTR_NAME => $PaymentType));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -533,10 +522,10 @@ class Data
      *
      * @return bool|TblPaymentType
      */
-    public function entityPaymentTypeById($Id)
+    public function getPaymentTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblPaymentType', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblPaymentType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 }
