@@ -15,7 +15,7 @@ class FileWriter
     /**
      * @param string $Location
      */
-    function __construct($Location)
+    public function __construct($Location)
     {
 
         $this->setLocation($Location);

@@ -4,13 +4,14 @@ namespace MOC\V\TestSuite\Tests\Component\Database;
 use MOC\V\Component\Database\Component\Parameter\Repository\DriverParameter;
 use MOC\V\Component\Database\Database;
 use MOC\V\Component\Database\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Database
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()

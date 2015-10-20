@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Document;
 
 use MOC\V\Component\Document\Document;
 use MOC\V\Component\Document\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Document
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     /**

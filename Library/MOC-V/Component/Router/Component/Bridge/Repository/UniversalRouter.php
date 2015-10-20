@@ -87,7 +87,7 @@ class UniversalRouter extends Bridge implements IBridgeInterface
     }
 
     /**
-     * @param callable       $Controller
+     * @param callable $Controller
      * @param RouteParameter $Route
      *
      * @throws MissingParameterException

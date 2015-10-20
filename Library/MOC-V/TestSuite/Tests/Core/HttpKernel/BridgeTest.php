@@ -2,13 +2,14 @@
 namespace MOC\V\TestSuite\Tests\Core\HttpKernel;
 
 use MOC\V\Core\HttpKernel\Component\Bridge\Repository\UniversalRequest;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Core\HttpKernel
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     public function testUniversalRequest()

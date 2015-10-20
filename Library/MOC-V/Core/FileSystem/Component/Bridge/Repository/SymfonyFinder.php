@@ -44,10 +44,14 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
     /**
      * @return string
      */
-    public function getLocation()
+    public function __toString()
     {
 
-        return $this->FileOption->getFile();
+        if ($this->getRealPath()) {
+            return (string)file_get_contents($this->getRealPath());
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -57,13 +61,30 @@ class SymfonyFinder extends Bridge implements IBridgeInterface
     {
 
         try {
+            $Result = array();
             /** @var SplFileInfo $File */
             foreach ($this->Instance as $File) {
-                return $File->getRealPath();
+                array_push($Result, $File->getRealPath());
+            }
+
+            if (count($Result) > 1) {
+                throw new \Exception(count($Result).' matches.');
+            } elseif (count($Result) == 1) {
+                return current($Result);
+            } else {
+                return '';
             }
         } catch (\Exception $Exception) {
             return '';
         }
-        return '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocation()
+    {
+
+        return $this->FileOption->getFile();
     }
 }

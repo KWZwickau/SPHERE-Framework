@@ -18,7 +18,7 @@ class Request
     /**
      *
      */
-    function __construct()
+    public function __construct()
     {
 
         AutoLoader::getNamespaceAutoLoader('Symfony\Component', __DIR__.'/../');

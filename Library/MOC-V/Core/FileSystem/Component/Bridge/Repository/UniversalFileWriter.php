@@ -5,6 +5,7 @@ use MOC\V\Core\FileSystem\Component\Bridge\Bridge;
 use MOC\V\Core\FileSystem\Component\IBridgeInterface;
 use MOC\V\Core\FileSystem\Component\Parameter\Repository\FileParameter;
 use MOC\V\Core\FileSystem\Vendor\Universal\FileWriter;
+use MOC\V\Core\GlobalsKernel\GlobalsKernel;
 
 /**
  * Class UniversalFileWriter
@@ -29,10 +30,14 @@ class UniversalFileWriter extends Bridge implements IBridgeInterface
     /**
      * @return string
      */
-    public function getLocation()
+    public function __toString()
     {
 
-        return $this->Instance->getLocation();
+        if ($this->getRealPath()) {
+            return (string)file_get_contents($this->getRealPath());
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -41,10 +46,20 @@ class UniversalFileWriter extends Bridge implements IBridgeInterface
     public function getRealPath()
     {
 
+        $SERVER = GlobalsKernel::getGlobals()->getSERVER();
         $SplFileInfo = (new \SplFileInfo($this->Instance->getLocation()));
         if (!$SplFileInfo->getRealPath()) {
-            $SplFileInfo = (new \SplFileInfo($_SERVER['DOCUMENT_ROOT'].$this->Instance->getLocation()));
+            $SplFileInfo = (new \SplFileInfo($SERVER['DOCUMENT_ROOT'].$this->Instance->getLocation()));
         }
         return $SplFileInfo->getRealPath() ? $SplFileInfo->getRealPath() : '';
+    }
+
+    /**
+     * @return string
+     */
+    public function getLocation()
+    {
+
+        return $this->Instance->getLocation();
     }
 }

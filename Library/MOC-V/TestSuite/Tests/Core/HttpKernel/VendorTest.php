@@ -2,13 +2,14 @@
 namespace MOC\V\TestSuite\Tests\Core\HttpKernel;
 
 use MOC\V\Core\HttpKernel\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class VendorTest
  *
  * @package MOC\V\TestSuite\Tests\Core\HttpKernel
  */
-class VendorTest extends \PHPUnit_Framework_TestCase
+class VendorTest extends AbstractTestCase
 {
 
     public function testVendor()

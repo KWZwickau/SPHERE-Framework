@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Core\SecureKernel;
 
 use MOC\V\Core\SecureKernel\Component\Exception\ComponentException;
 use MOC\V\Core\SecureKernel\Exception\SecureKernelException;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ExceptionTest
  *
  * @package MOC\V\TestSuite\Tests\Core\SecureKernel
  */
-class ExceptionTest extends \PHPUnit_Framework_TestCase
+class ExceptionTest extends AbstractTestCase
 {
 
     public function testSecureKernelException()

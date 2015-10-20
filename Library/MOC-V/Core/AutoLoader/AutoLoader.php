@@ -55,8 +55,8 @@ class AutoLoader implements IVendorInterface
     }
 
     /**
-     * @param string      $Namespace
-     * @param string      $Directory
+     * @param string $Namespace
+     * @param string $Directory
      * @param null|string $Prefix
      *
      * @return IBridgeInterface
@@ -68,8 +68,8 @@ class AutoLoader implements IVendorInterface
     }
 
     /**
-     * @param string      $Namespace
-     * @param string      $Directory
+     * @param string $Namespace
+     * @param string $Directory
      * @param null|string $Prefix
      *
      * @return IBridgeInterface

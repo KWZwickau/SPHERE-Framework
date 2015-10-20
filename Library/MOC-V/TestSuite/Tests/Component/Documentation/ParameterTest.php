@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Documentation;
 
 use MOC\V\Component\Documentation\Component\Parameter\Repository\DirectoryParameter;
 use MOC\V\Component\Documentation\Component\Parameter\Repository\ExcludeParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ParameterTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Documentation
  */
-class ParameterTest extends \PHPUnit_Framework_TestCase
+class ParameterTest extends AbstractTestCase
 {
 
     public function testAbstractParameter()

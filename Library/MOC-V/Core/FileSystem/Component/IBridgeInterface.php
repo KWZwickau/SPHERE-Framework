@@ -18,4 +18,9 @@ interface IBridgeInterface
      * @return string
      */
     public function getRealPath();
+
+    /**
+     * @return string
+     */
+    public function __toString();
 }

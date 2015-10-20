@@ -21,12 +21,13 @@ interface IBridgeInterface
 {
 
     /**
-     * @param \MOC\V\Component\Database\Component\Parameter\Repository\UsernameParameter $Username
-     * @param PasswordParameter                                                          $Password
-     * @param DatabaseParameter                                                          $Database
-     * @param \MOC\V\Component\Database\Component\Parameter\Repository\DriverParameter   $Driver
-     * @param HostParameter                                                              $Host
-     * @param \MOC\V\Component\Database\Component\Parameter\Repository\PortParameter     $Port
+     * @param UsernameParameter $Username
+     * @param PasswordParameter $Password
+     * @param DatabaseParameter $Database
+     * @param DriverParameter   $Driver
+     * @param HostParameter     $Host
+     * @param PortParameter     $Port
+     * @param int               $Timeout
      *
      * @return IBridgeInterface
      */
@@ -36,7 +37,8 @@ interface IBridgeInterface
         DatabaseParameter $Database,
         DriverParameter $Driver,
         HostParameter $Host,
-        PortParameter $Port
+        PortParameter $Port,
+        $Timeout = 5
     );
 
     /**
@@ -49,7 +51,7 @@ interface IBridgeInterface
     public function prepareStatement($Sql);
 
     /**
-     * @param mixed    $Value
+     * @param mixed $Value
      * @param null|int $Type
      *
      * @return IBridgeInterface

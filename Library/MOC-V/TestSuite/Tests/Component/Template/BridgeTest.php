@@ -4,13 +4,14 @@ namespace MOC\V\TestSuite\Tests\Component\Template;
 use MOC\V\Component\Template\Component\Bridge\Repository\SmartyTemplate;
 use MOC\V\Component\Template\Component\Bridge\Repository\TwigTemplate;
 use MOC\V\Component\Template\Component\Parameter\Repository\FileParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Template
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     /**

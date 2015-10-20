@@ -28,10 +28,10 @@ class Documentation implements IVendorInterface
     }
 
     /**
-     * @param string                $Project
-     * @param string                $Title
-     * @param DirectoryParameter    $Source
-     * @param DirectoryParameter    $Destination
+     * @param string             $Project
+     * @param string             $Title
+     * @param DirectoryParameter $Source
+     * @param DirectoryParameter $Destination
      * @param null|ExcludeParameter $Exclude
      *
      * @return IBridgeInterface
@@ -48,10 +48,10 @@ class Documentation implements IVendorInterface
     }
 
     /**
-     * @param string                $Project
-     * @param string                $Title
-     * @param DirectoryParameter    $Source
-     * @param DirectoryParameter    $Destination
+     * @param string             $Project
+     * @param string             $Title
+     * @param DirectoryParameter $Source
+     * @param DirectoryParameter $Destination
      * @param null|ExcludeParameter $Exclude
      *
      * @return IBridgeInterface

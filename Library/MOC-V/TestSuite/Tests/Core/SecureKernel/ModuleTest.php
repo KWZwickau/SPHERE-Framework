@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Core\SecureKernel;
 
 use MOC\V\Core\SecureKernel\SecureKernel;
 use MOC\V\Core\SecureKernel\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Core\SecureKernel
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()
@@ -34,7 +35,7 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     public function testStaticPhpSecLibSFTP()
     {
 
-        $SFTP = SecureKernel::getPhpSecLibSFTP();
+        $SFTP = $this->invokeClassMethod('MOC\V\Core\SecureKernel\SecureKernel', 'getPhpSecLibSFTP');
         $this->assertInstanceOf('MOC\V\Core\SecureKernel\Component\IBridgeInterface', $SFTP);
     }
 

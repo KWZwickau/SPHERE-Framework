@@ -14,7 +14,7 @@ class MailException extends Exception
     /**
      * @param string $Message
      * @param int    $Code
-     * @param null   $Previous
+     * @param Exception|null $Previous
      */
     public function __construct($Message = "", $Code = 0, \Exception $Previous = null)
     {

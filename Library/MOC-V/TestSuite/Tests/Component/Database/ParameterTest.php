@@ -1,12 +1,14 @@
 <?php
 namespace MOC\V\TestSuite\Tests\Component\Database;
 
+use MOC\V\TestSuite\AbstractTestCase;
+
 /**
  * Class ParameterTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Database
  */
-class ParameterTest extends \PHPUnit_Framework_TestCase
+class ParameterTest extends AbstractTestCase
 {
 
     public function testAbstractParameter()

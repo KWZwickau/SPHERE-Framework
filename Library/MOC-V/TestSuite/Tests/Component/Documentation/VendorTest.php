@@ -2,13 +2,14 @@
 namespace MOC\V\TestSuite\Tests\Component\Documentation;
 
 use MOC\V\Component\Documentation\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class VendorTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Documentation
  */
-class VendorTest extends \PHPUnit_Framework_TestCase
+class VendorTest extends AbstractTestCase
 {
 
     public function testVendor()

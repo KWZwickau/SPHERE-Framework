@@ -2,13 +2,14 @@
 namespace MOC\V\TestSuite\Tests\Component\Mail;
 
 use MOC\V\Component\Mail\Component\Parameter\Repository\FileParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ParameterTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Mail
  */
-class ParameterTest extends \PHPUnit_Framework_TestCase
+class ParameterTest extends AbstractTestCase
 {
 
     public function testAbstractParameter()

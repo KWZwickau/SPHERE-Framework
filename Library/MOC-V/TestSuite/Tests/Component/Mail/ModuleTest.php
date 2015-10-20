@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Mail;
 
 use MOC\V\Component\Mail\Mail;
 use MOC\V\Component\Mail\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Mail
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()

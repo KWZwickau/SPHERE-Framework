@@ -10,13 +10,14 @@ use MOC\V\Component\Database\Component\Parameter\Repository\HostParameter;
 use MOC\V\Component\Database\Component\Parameter\Repository\PasswordParameter;
 use MOC\V\Component\Database\Component\Parameter\Repository\PortParameter;
 use MOC\V\Component\Database\Component\Parameter\Repository\UsernameParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Database
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     public function testDoctrine2DBAL()

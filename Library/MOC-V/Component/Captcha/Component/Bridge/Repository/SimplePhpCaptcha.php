@@ -3,6 +3,7 @@ namespace MOC\V\Component\Captcha\Component\Bridge\Repository;
 
 use MOC\V\Component\Captcha\Component\Bridge\Bridge;
 use MOC\V\Component\Captcha\Component\IBridgeInterface;
+use MOC\V\Core\GlobalsKernel\GlobalsKernel;
 
 /**
  * Class SimplePhpCaptcha
@@ -12,6 +13,9 @@ use MOC\V\Component\Captcha\Component\IBridgeInterface;
 class SimplePhpCaptcha extends Bridge implements IBridgeInterface
 {
 
+    /** @var string $SessionKey */
+    private $SessionKey = '';
+
     /**
      *
      */
@@ -19,6 +23,7 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     {
 
         require_once( __DIR__.'/../../../Vendor/SimplePhpCaptcha/0.0-Master/simple-php-captcha.php' );
+        $this->SessionKey = sha1(__CLASS__);
     }
 
     /**
@@ -28,7 +33,9 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     public function createCaptcha()
     {
 
-        $_SESSION[sha1(__CLASS__)] = \simple_php_captcha();
+        $SESSION = GlobalsKernel::getGlobals()->getSESSION();
+        $SESSION[$this->SessionKey] = \simple_php_captcha();
+        GlobalsKernel::getGlobals()->setSESSION($SESSION);
         return $this;
     }
 
@@ -40,7 +47,8 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     public function verifyCaptcha($InputValue)
     {
 
-        return $_SESSION[sha1(__CLASS__)]['code'] == $InputValue;
+        $SESSION = GlobalsKernel::getGlobals()->getSESSION();
+        return $SESSION[$this->SessionKey]['code'] == $InputValue;
     }
 
     /**
@@ -49,7 +57,8 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     public function getCode()
     {
 
-        return $_SESSION[sha1(__CLASS__)]['code'];
+        $SESSION = GlobalsKernel::getGlobals()->getSESSION();
+        return $SESSION[$this->SessionKey]['code'];
     }
 
     /**
@@ -58,6 +67,7 @@ class SimplePhpCaptcha extends Bridge implements IBridgeInterface
     public function getCaptcha()
     {
 
-        return $_SESSION[sha1(__CLASS__)]['image_src'];
+        $SESSION = GlobalsKernel::getGlobals()->getSESSION();
+        return $SESSION[$this->SessionKey]['image_src'];
     }
 }

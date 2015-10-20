@@ -2,13 +2,14 @@
 namespace MOC\V\TestSuite\Tests\Component\Router;
 
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ParameterTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Router
  */
-class ParameterTest extends \PHPUnit_Framework_TestCase
+class ParameterTest extends AbstractTestCase
 {
 
     public function testAbstractParameter()

@@ -7,6 +7,7 @@ use MOC\V\Component\Documentation\Component\Parameter\Repository\DirectoryParame
 use MOC\V\Component\Documentation\Component\Parameter\Repository\ExcludeParameter;
 use MOC\V\Core\AutoLoader\AutoLoader;
 use MOC\V\Core\FileSystem\FileSystem;
+use MOC\V\Core\GlobalsKernel\GlobalsKernel;
 use Nette\Config\Adapters\NeonAdapter;
 
 /**
@@ -30,10 +31,10 @@ class ApiGen extends Bridge implements IBridgeInterface
 
 
     /**
-     * @param string                $Project
-     * @param string                $Title
-     * @param DirectoryParameter    $Source
-     * @param DirectoryParameter    $Destination
+     * @param string             $Project
+     * @param string             $Title
+     * @param DirectoryParameter $Source
+     * @param DirectoryParameter $Destination
      * @param null|ExcludeParameter $Exclude
      */
     public function __construct(
@@ -63,11 +64,13 @@ class ApiGen extends Bridge implements IBridgeInterface
         $File = FileSystem::getFileWriter(__DIR__.'/ApiGen.config');
         file_put_contents($File->getLocation(), $Neon->dump($Config));
 
-        $_SERVER['argv'] = array(
+        $SERVER = GlobalsKernel::getGlobals()->getSERVER();
+        $SERVER['argv'] = array(
             'DUMMY-SHELL-ARGS',
             '--config',
             $File->getLocation()
         );
+        GlobalsKernel::getGlobals()->setSERVER($SERVER);
 
         include( __DIR__.'/../../../Vendor/ApiGen/apigen.php' );
     }
@@ -82,7 +85,7 @@ class ApiGen extends Bridge implements IBridgeInterface
             // Directory where to save the generated documentation
             'destination'    => $this->Destination->getDirectory(),
             // List of allowed file extensions
-            'extensions'   => array('php'),
+            'extensions'     => array('php'),
             // Mask to exclude file or directory from processing
             // 'exclude'        => "'".$this->Exclude->getGlobList()."'",
             // Don't generate documentation for classes from file or directory with this mask
@@ -108,7 +111,7 @@ class ApiGen extends Bridge implements IBridgeInterface
             // Grouping of classes
             'groups'         => 'auto',
             // List of allowed HTML tags in documentation
-            'allowedHtml'  => array('b', 'i', 'a', 'ul', 'ol', 'li', 'p', 'br', 'var', 'samp', 'kbd', 'tt'),
+            'allowedHtml'    => array('b', 'i', 'a', 'ul', 'ol', 'li', 'p', 'br', 'var', 'samp', 'kbd', 'tt'),
             // Element types for search input autocomplete
             'autocomplete' => array('classes', 'constants', 'functions'),
             // Generate documentation for methods and properties with given access level
@@ -126,13 +129,13 @@ class ApiGen extends Bridge implements IBridgeInterface
             // Generate highlighted source code files
             'sourceCode'     => true,
             // Add a link to download documentation as a ZIP archive
-            'download'     => false,
+            'download'       => false,
             // Save a check style report of poorly documented elements into a file
-            'report'       => $this->Destination->getDirectory().DIRECTORY_SEPARATOR.'_improve.xml',
+            'report'         => $this->Destination->getDirectory().DIRECTORY_SEPARATOR.'_improve.xml',
             // Wipe out the destination directory first
-            'wipeout'      => false,
+            'wipeout'        => false,
             // Don't display scanning and generating messages
-            'quiet'        => false,
+            'quiet'          => false,
             // Display progressbar
             'progressbar'    => false,
             // Use colors

@@ -38,7 +38,7 @@ class SecureKernel implements IVendorInterface
     /**
      * @return IBridgeInterface
      */
-    public static function getPhpSecLibSFTP()
+    private static function getPhpSecLibSFTP()
     {
 
         $SFTP = new SecureKernel(

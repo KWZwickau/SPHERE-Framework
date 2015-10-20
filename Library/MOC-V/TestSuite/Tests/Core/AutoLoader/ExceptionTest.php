@@ -6,8 +6,9 @@ use MOC\V\Core\AutoLoader\Component\Exception\Repository\DirectoryNotFoundExcept
 use MOC\V\Core\AutoLoader\Component\Exception\Repository\EmptyDirectoryException;
 use MOC\V\Core\AutoLoader\Component\Exception\Repository\EmptyNamespaceException;
 use MOC\V\Core\AutoLoader\Exception\AutoLoaderException;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class ExceptionTest extends \PHPUnit_Framework_TestCase
+class ExceptionTest extends AbstractTestCase
 {
 
     public function testAutoLoaderException()

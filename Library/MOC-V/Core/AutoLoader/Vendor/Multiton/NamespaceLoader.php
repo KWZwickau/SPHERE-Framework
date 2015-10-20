@@ -21,11 +21,11 @@ class NamespaceLoader
     private $Prefix = 'MOC\V';
 
     /**
-     * @param string      $Namespace
-     * @param string      $Path
+     * @param string $Namespace
+     * @param string $Path
      * @param string|null $Prefix
      */
-    function __construct($Namespace, $Path, $Prefix = null)
+    public function __construct($Namespace, $Path, $Prefix = null)
     {
 
         $this->Namespace = $Namespace;

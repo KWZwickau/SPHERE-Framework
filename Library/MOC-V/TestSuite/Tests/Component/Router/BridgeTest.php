@@ -4,13 +4,14 @@ namespace MOC\V\TestSuite\Tests\Component\Router;
 use MOC\V\Component\Router\Component\Bridge\Repository\SymfonyRouter;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Router
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     public function testUniversalRouter()
