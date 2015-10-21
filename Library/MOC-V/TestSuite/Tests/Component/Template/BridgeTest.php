@@ -56,26 +56,30 @@ class BridgeTest extends AbstractTestCase
     {
 
         $Bridge = new TwigTemplate();
-
-        $Bridge->loadFile(new FileParameter(__FILE__), true);
-
+        $Bridge->loadFile(new FileParameter(__DIR__.'/ExceptionTest.php'), true);
         $Bridge->setVariable('Foo', 'Bar');
         $Bridge->setVariable('Foo', array('Bar'));
-
         $Bridge->getContent();
+
+        $Bridge = new TwigTemplate();
+        $Bridge->loadString('{{ Foo }}', true);
+        $Bridge->setVariable('Foo', array('Bar'));
+        $this->assertEquals('Array', $Bridge->getContent());
+
+        $Bridge = new TwigTemplate();
+        $Bridge->loadString('{{ String }}', true);
+        $Bridge->setVariable('String', 'Foo');
+        $this->assertEquals('Foo', $Bridge->getContent());
     }
 
     public function testSmartyTemplate()
     {
 
         $Bridge = new SmartyTemplate();
-
-        $Bridge->loadFile(new FileParameter(__FILE__), true);
-
+        $Bridge->loadFile(new FileParameter(__DIR__.'/ExceptionTest.php'), true);
         $Bridge->setVariable('Foo', 'Bar');
         $Bridge->setVariable('Foo', array('Bar'));
-
-        $Bridge->getContent();
+        $this->assertStringEqualsFile(__DIR__.'/ExceptionTest.php', $Bridge->getContent());
     }
 
 }
