@@ -31,6 +31,8 @@ class Panel extends Extension implements ITemplateInterface
     private $Footer = '';
     /** @var bool|int $Filter */
     private $Filter = false;
+    /** @var string $FormName */
+    private $FormName = '';
 
     /**
      * @param string       $Title
@@ -50,6 +52,20 @@ class Panel extends Extension implements ITemplateInterface
         $this->Footer = ( is_array($Footer) ? array_filter($Footer) : $Footer );
         $this->Template->setVariable('Filter', $Filter);
         $this->Template->setVariable('Type', $Type);
+        $this->FormName = $this->getName();
+    }
+
+    /**
+     * @return string
+     */
+    public function getName()
+    {
+
+        if (empty( $this->FormName )) {
+            return sha1(serialize($this->Content));
+        } else {
+            return $this->FormName;
+        }
     }
 
     /**
@@ -135,14 +151,5 @@ class Panel extends Extension implements ITemplateInterface
             $this->Hash = sha1(json_encode($Content));
         }
         return $this->Hash;
-    }
-
-    /**
-     * @return string
-     */
-    public function getName()
-    {
-
-        return sha1(print_r($this->Content, true));
     }
 }
