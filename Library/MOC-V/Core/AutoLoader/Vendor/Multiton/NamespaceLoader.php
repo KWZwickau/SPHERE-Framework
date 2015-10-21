@@ -19,6 +19,8 @@ class NamespaceLoader
     private $Extension = '.php';
     /** @var string $Prefix */
     private $Prefix = 'MOC\V';
+    /** @var string $Hash */
+    private $Hash = '';
 
     /**
      * @param string $Namespace
@@ -32,6 +34,24 @@ class NamespaceLoader
         $this->Path = $Path;
         if (null !== $Prefix) {
             $this->Prefix = $Prefix;
+        }
+        $this->Hash = $this->getLoaderHash();
+    }
+
+    /**
+     * @return string
+     */
+    public function getLoaderHash()
+    {
+
+        if (empty( $this->Hash )) {
+            return sha1(
+                serialize(
+                    get_object_vars($this)
+                )
+            );
+        } else {
+            return $this->Hash;
         }
     }
 
@@ -109,19 +129,6 @@ class NamespaceLoader
         // @codeCoverageIgnoreStart
         return false;
         // @codeCoverageIgnoreEnd
-    }
-
-    /**
-     * @return string
-     */
-    public function getLoaderHash()
-    {
-
-        return sha1(
-            serialize(
-                get_object_vars($this)
-            )
-        );
     }
 }
 
