@@ -6,14 +6,17 @@ use Doctrine\DBAL\Exception\InvalidFieldNameException;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use MOC\V\Component\Router\Component\Bridge\Repository\UniversalRouter;
 use SPHERE\Application\Api\Api;
+use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Education\Education;
 use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\People\People;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Platform;
 use SPHERE\Application\Platform\System;
+use SPHERE\Application\Reporting\Reporting;
 use SPHERE\Application\Setting\Setting;
 use SPHERE\Application\Transfer\Transfer;
 use SPHERE\Common\Window\Display;
@@ -97,9 +100,18 @@ class Main extends Extension
                 Api::registerCluster();
 
                 if ($this->runAuthenticator()) {
-                    echo self::getDispatcher()->fetchRoute(
-                        $this->getRequest()->getPathInfo()
-                    );
+                    if (Access::useService()->getRightByName($this->getRequest()->getPathInfo())) {
+                        echo self::getDispatcher()->fetchRoute(
+                            $this->getRequest()->getPathInfo()
+                        );
+                    } else {
+                        self::getDisplay()->setContent(
+                            self::getDispatcher()->fetchRoute(
+                                $this->getRequest()->getPathInfo()
+                            )
+                        );
+                        echo self::getDisplay()->getContent();
+                    }
                 } else {
                     header('HTTP/1.0 400 Bad Request');
                 }
@@ -120,15 +132,17 @@ class Main extends Extension
              * Register Cluster
              */
             Platform::registerCluster();
+            Api::registerCluster();
             People::registerCluster();
             Corporation::registerCluster();
             Education::registerCluster();
-//            Billing::registerCluster();
+            Billing::registerCluster();
             Transfer::registerCluster();
             Contact::registerCluster();
             Setting::registerCluster();
 //            Generator::registerCluster();
             Manual::registerCluster();
+            Reporting::registerCluster();
             /**
              * Execute Request
              */
