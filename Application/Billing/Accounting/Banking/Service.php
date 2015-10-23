@@ -263,6 +263,15 @@ class Service extends AbstractService
             return '';
         }
 
+        if( Banking::useService()->getAccountAllByDebtor($tblDebtor) )
+        {
+            $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
+            foreach($tblAccountList as $tblAccount)
+            {
+                Banking::useService()->destroyAccount( $tblAccount );
+            }
+        }
+
         if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
             return new Success('Die Leistung wurde erfolgreich gelöscht')
             .new Redirect('/Billing/Accounting/Banking', 1);
