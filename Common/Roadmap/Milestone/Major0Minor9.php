@@ -61,7 +61,7 @@ class Major0Minor9
             ->createDuty('Fach bearbeiten', false)
             ->createDuty('Fach löschen', false);
         $Feature->createTask('Fach-Kategorie')
-            ->createDuty('Kategorie hinzufügen', false)
+            ->createDuty('Kategorie hinzufügen', true)
             ->createDuty('Kategorie bearbeiten', false)
             ->createDuty('Kategorie löschen', false);
         $Feature->createTask('Fach-Kategorie zuweisen')
