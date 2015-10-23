@@ -239,8 +239,6 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendLinkCategory($Id, $Category = null)
     {
 
-        $this->getDebugger()->screenDump($Category);
-
         $Stage = new Stage('Kategorien', 'Verknüpfung');
 
         $tblGroup = Subject::useService()->getGroupById($Id);
@@ -334,8 +332,6 @@ class Frontend extends Extension implements IFrontendInterface
      */
     public function frontendLinkSubject($Id, $Subject = null)
     {
-
-        $this->getDebugger()->screenDump($Subject);
 
         $Stage = new Stage('Fächer', 'Verknüpfung');
 
