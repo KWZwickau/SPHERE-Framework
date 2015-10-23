@@ -181,4 +181,15 @@ class Data extends AbstractData
             TblPeriod::ATTR_NAME => $Name
         ));
     }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblYear
+     */
+    public function getYearById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', $Id);
+    }
 }

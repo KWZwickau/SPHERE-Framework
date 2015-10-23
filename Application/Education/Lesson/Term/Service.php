@@ -183,4 +183,15 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPeriodByName($Name);
     }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblYear
+     */
+    public function getYearById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getYearById($Id);
+    }
 }
