@@ -303,6 +303,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblCategory[]
+     */
+    public function getCategoryAll()
+    {
+
+        return (new Data($this->getBinding()))->getCategoryAll();
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param null|array     $Subject
      *
@@ -380,5 +389,62 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCategoryAllHavingNoGroup();
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param null|array     $Category
+     *
+     * @return IFormInterface|string
+     */
+    public function createCategory(
+        IFormInterface $Form,
+        $Category
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Category) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Category['Name'] ) && empty( $Category['Name'] )) {
+            $Form->setError('Category[Name]', 'Bitte geben Sie einen eineindeutigen Namen an');
+            $Error = true;
+        } else {
+            if ($this->getCategoryByName($Category['Name'])) {
+                $Form->setError('Category[Name]', 'Dieser Namen wird bereits verwendet');
+                $Error = true;
+            }
+        }
+
+        if (!$Error) {
+
+            if ((new Data($this->getBinding()))->createCategory(
+                $Category['Name'], $Category['Description']
+            )
+            ) {
+                return new Success('Die Kategorie wurde erfolgreich hinzugefügt')
+                .new Redirect($this->getRequest()->getUrl(), 3);
+            } else {
+                return new Danger('Die Kategorie konnte nicht hinzugefügt werden')
+                .new Redirect($this->getRequest()->getUrl());
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblCategory
+     */
+    public function getCategoryByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getCategoryByName($Name);
     }
 }

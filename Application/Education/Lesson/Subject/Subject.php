@@ -42,7 +42,10 @@ class Subject implements IModuleInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Create', __NAMESPACE__.'\Frontend::frontendCreateSubject'
+            __NAMESPACE__.'/Create/Subject', __NAMESPACE__.'\Frontend::frontendCreateSubject'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Create/Category', __NAMESPACE__.'\Frontend::frontendCreateCategory'
         ));
     }
 
@@ -63,7 +66,8 @@ class Subject implements IModuleInterface
 
         $Stage = new Stage('Dashboard', 'Fächer');
 
-        $Stage->addButton(new Standard('Fächer bearbeiten', __NAMESPACE__.'\Create'));
+        $Stage->addButton(new Standard('Fächer bearbeiten', __NAMESPACE__.'\Create\Subject'));
+        $Stage->addButton(new Standard('Kategorien bearbeiten', __NAMESPACE__.'\Create\Category'));
 
         $tblGroupAll = $this->useService()->getGroupAll();
         $Content = array();

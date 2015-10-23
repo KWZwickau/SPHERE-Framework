@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Subject;
 
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -130,5 +131,97 @@ class Frontend extends Extension implements IFrontendInterface
         );
     }
 
+    /**
+     * @param null|array $Category
+     *
+     * @return Stage
+     */
+    public function frontendCreateCategory($Category = null)
+    {
 
+        $Stage = new Stage('Kategorien', 'Bearbeiten');
+
+        $tblCategoryAll = Subject::useService()->getCategoryAll();
+        array_walk($tblCategoryAll, function (TblCategory &$tblCategory) {
+
+            $tblCategory->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
+                .( $tblCategory->getIsLocked() ? '' : new Standard('', '', new Remove(), array(), 'Löschen') );
+        });
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($tblCategoryAll, null, array(
+                                'Name'        => 'Name',
+                                'Description' => 'Beschreibung',
+                                'Option'      => 'Optionen',
+                            ))
+                        )
+                    ), new Title('Bestehende Kategorien')
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Subject::useService()->createCategory(
+                                $this->formCategory()
+                                    ->appendFormButton(new Primary('Kategorie hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $Category
+                            )
+                        )
+                    ), new Title('Kategorie hinzufügen')
+                )
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null|TblCategory $tblCategory
+     *
+     * @return Form
+     */
+    public function formCategory(TblCategory $tblCategory = null)
+    {
+
+        $tblCategoryAll = Subject::useService()->getCategoryAll();
+        $acAcronymAll = array();
+        $acNameAll = array();
+        array_walk($tblCategoryAll, function (TblCategory $tblCategory) use (&$acAcronymAll, &$acNameAll) {
+
+            if (!in_array($tblCategory->getName(), $acNameAll)) {
+                array_push($acNameAll, $tblCategory->getName());
+            }
+        });
+
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Category'] ) && $tblCategory) {
+            $Global->POST['Category']['Name'] = $tblCategory->getName();
+            $Global->POST['Category']['Description'] = $tblCategory->getDescription();
+            $Global->savePost();
+        }
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Kategorie',
+                            array(
+                                new AutoCompleter('Category[Name]', 'Name',
+                                    'z.B: Soziales und gesellschaftliches Handeln', $acNameAll),
+                            ), Panel::PANEL_TYPE_INFO
+                        ), 6),
+                    new FormColumn(
+                        new Panel('Sonstiges',
+                            new TextField('Category[Description]', 'zb: enthält nur Vertiefungskurse', 'Beschreibung',
+                                new Pencil())
+                            , Panel::PANEL_TYPE_INFO
+                        ), 6),
+                )),
+            ))
+        );
+    }
 }
