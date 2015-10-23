@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -21,6 +22,10 @@ class TblYear extends Element
      * @Column(type="string")
      */
     protected $Name;
+    /**
+     * @Column(type="string")
+     */
+    protected $Description;
 
     /**
      * @return string
@@ -38,5 +43,32 @@ class TblYear extends Element
     {
 
         $this->Name = $Name;
+    }
+
+    /**
+     * @return bool|TblPeriod[]
+     */
+    public function getTblPeriodAll()
+    {
+
+        return Term::useService()->getPeriodAllByYear($this);
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
     }
 }
