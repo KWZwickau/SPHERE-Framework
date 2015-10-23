@@ -614,9 +614,6 @@ class Data extends AbstractData
      * @param            $BIC
      * @param            $CashSign
      * @param            $BankName
-     * @param            $LeadTimeFirst
-     * @param            $LeadTimeFollow
-     * @param            $PaymentType
      * @param            $DebtorId
      *
      * @return bool
@@ -628,8 +625,6 @@ class Data extends AbstractData
         $BIC,
         $CashSign,
         $BankName,
-        $LeadTimeFirst,
-        $LeadTimeFollow,
         $DebtorId
     ) {
 
@@ -644,8 +639,6 @@ class Data extends AbstractData
             $Entity->setBIC($BIC);
             $Entity->setCashSign($CashSign);
             $Entity->setBankName($BankName);
-//            $Entity->setLeadTimeFirst($LeadTimeFirst);
-//            $Entity->setLeadTimeFollow($LeadTimeFollow);
             $Entity->setTblDebtor(Banking::useService()->getDebtorById($DebtorId));
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),

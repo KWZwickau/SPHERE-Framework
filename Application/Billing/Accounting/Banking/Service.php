@@ -460,8 +460,6 @@ class Service extends AbstractService
                 $Account['BIC'],
                 $Account['CashSign'],
                 $Account['BankName'],
-                $Account['LeadTimeFirst'],
-                $Account['LeadTimeFollow'],
                 $DebtorId
             )
             ) {

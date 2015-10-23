@@ -12,7 +12,6 @@ use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\People\Group\Group;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
-use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
@@ -544,7 +543,6 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblReference = new LayoutColumn(array(
                     new Panel($Reference, array($tblReference->getReference()), Panel::PANEL_TYPE_SUCCESS)
-                    //                    new TextField($Reference, $tblReference->getReference(), $Reference)
                 ), 3);
             }
         } else {
@@ -631,7 +629,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendAccountActivate($Id, $Account, $Path, $IdBack) //ToDO
+    public function frontendAccountActivate($Id, $Account, $Path, $IdBack)
     {
 
         $Stage = new Stage('Aktivierung');
@@ -790,18 +788,6 @@ class Frontend extends Extension implements IFrontendInterface
                             new FormColumn(array(
                                 new TextField('Account[BankName]', 'Bankname', 'Bankname')
                             ), 3),
-//                            new FormColumn(array(
-//                                new TextField('Account[LeadTimeFirst]', 'Ersteinzug', 'Ersteinzug')
-//                            ), 3),
-//                            new FormColumn(array(
-//                                new TextField('Account[LeadTimeFollow]', 'Folgeeinzug', 'Folgeeinzug')
-//                            ), 3),
-
-//                            ( !Banking::useService()->getActiveAccountByDebtor($tblDebtor) ) ?
-//                                new FormColumn(array(
-//                                    new CheckBox('Account[Active]', 'aktives Konto', true)
-//                                ))
-//                                : null
                         ))
                     ))
                 ), new Primary('Hinzufügen'))
@@ -823,22 +809,18 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Konto', 'Bearbeiten');
-        $tblDebtor = Banking::useService()->getDebtorById($Id);
-        $tblPaymentType = Banking::useService()->getPaymentTypeAll();
+//        $tblDebtor = Banking::useService()->getDebtorById($Id);
         $tblAccount = Banking::useService()->getAccountById($AccountId);
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/Debtor/View', new ChevronLeft(),
             array('Id' => $Id)));
 
         $Global = $this->getGlobal();
         if (empty( $Global->POST['Account'] )) {
-//            $Global->POST['Account']['PaymentType'] = $tblAccount->getPaymentType()->getId();   //todo Selectbox doesn't match the POST
             $Global->POST['Account']['Owner'] = $tblAccount->getOwner();
             $Global->POST['Account']['IBAN'] = $tblAccount->getIBAN();
             $Global->POST['Account']['BIC'] = $tblAccount->getBIC();
             $Global->POST['Account']['CashSign'] = $tblAccount->getCashSign();
             $Global->POST['Account']['BankName'] = $tblAccount->getBankName();
-//            $Global->POST['Account']['LeadTimeFirst'] = $tblAccount->getLeadTimeFirst();
-//            $Global->POST['Account']['LeadTimeFollow'] = $tblAccount->getLeadTimeFollow();
             $Global->POST['Account']['Active'] = $tblAccount->getActive();
             $Global->savePost();
         }
@@ -849,36 +831,22 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormGroup(array(
                         new FormRow(array(
                             new FormColumn(array(
-                                new SelectBox('Account[PaymentType]', 'Bezahlart',
-                                    array(TblPaymentType::ATTR_NAME => $tblPaymentType), new Money())
-                            ), 3),
-                            new FormColumn(array(
                                 new TextField('Account[Owner]', 'Besitzer', 'Besitzer')
-                            ), 3),
+                            ), 4),
                             new FormColumn(array(
                                 new TextField('Account[IBAN]', 'IBAN', 'IBAN')
-                            ), 3),
+                            ), 4),
                             new FormColumn(array(
                                 new TextField('Account[BIC]', 'BIC', 'BIC')
-                            ), 3),
+                            ), 4),
+                        )),
+                        new FormRow(array(
+                            new FormColumn(array(
+                                new TextField('Account[BankName]', 'Bankname', 'Bankname')
+                            ), 6),
                             new FormColumn(array(
                                 new TextField('Account[CashSign]', 'Kassenzeichen', 'Kassenzeichen')
                             ), 3),
-                            new FormColumn(array(
-                                new TextField('Account[BankName]', 'Bankname', 'Bankname')
-                            ), 3),
-                            new FormColumn(array(
-                                new TextField('Account[LeadTimeFirst]', 'Ersteinzug', 'Ersteinzug')
-                            ), 3),
-                            new FormColumn(array(
-                                new TextField('Account[LeadTimeFollow]', 'Folgeeinzug', 'Folgeeinzug')
-                            ), 3),
-
-                            ( !Banking::useService()->getActiveAccountByDebtor($tblDebtor) ) ?
-                                new FormColumn(array(
-                                    new CheckBox('Account[Active]', 'aktives Konto', true)
-                                ))
-                                : null
                         ))
                     ))
                 ), new Primary('Änderungen Speichern'))

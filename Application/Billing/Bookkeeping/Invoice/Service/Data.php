@@ -563,7 +563,7 @@ class Data extends AbstractData
      * @param TblPaymentType $tblPaymentType
      *
      * @return bool
-     */                             //ToDO Change PaymentType
+     */
     public function changeInvoicePaymentType(
         TblInvoice $tblInvoice,
         TblPaymentType $tblPaymentType

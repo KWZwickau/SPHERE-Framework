@@ -338,7 +338,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )),
                         new LayoutRow(array(
                             new LayoutColumn(
-                                ( $tblInvoice->getServiceManagementAddress()    //ToDo To_String Method?
+                                ( $tblInvoice->getServiceManagementAddress()
                                     ? new Panel(
                                         new MapMarker().' Rechnungsadresse', array(
                                         $tblInvoice->getServiceManagementAddress()->getStreetName().' '.$tblInvoice->getServiceManagementAddress()->getStreetNumber().'<br/>'.
@@ -576,7 +576,7 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                     new LayoutRow(array(
                         new LayoutColumn(
-                            ( $tblInvoice->getServiceManagementAddress()    //ToDo To_String Method?
+                            ( $tblInvoice->getServiceManagementAddress()
                                 ? new Panel(
                                     new MapMarker().' Rechnungsadresse', array(
                                     $tblInvoice->getServiceManagementAddress()->getStreetName().' '.$tblInvoice->getServiceManagementAddress()->getStreetNumber().'<br/>'.
