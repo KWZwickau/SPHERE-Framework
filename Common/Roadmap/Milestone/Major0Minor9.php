@@ -71,9 +71,9 @@ class Major0Minor9
             ->createDuty('Verknüpfung hinzufügen', true)
             ->createDuty('Verknüpfung löschen', true);
         $Feature->createTask('Schuljahr')
-            ->createDuty('Schuljahr hinzufügen')
-            ->createDuty('Zeitraum hinzufügen')
-            ->createDuty('Abschnitt verknüpfen');
+            ->createDuty('Schuljahr hinzufügen', true)
+            ->createDuty('Zeitraum hinzufügen', false)
+            ->createDuty('Abschnitt verknüpfen', false);
         $Feature->createTask('Klassenstufe')
             ->createDuty('Klassenstufe hinzufügen')
             ->createDuty('Klassenstufe löschen')
