@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice;
 
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblAccount;
+use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
@@ -29,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -294,6 +297,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )))->__toString();
                     }, $tblInvoice);
             }
+            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
 
             $Stage->setContent(
                 new Layout(array(
@@ -375,6 +379,13 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 3
                             ),
                         )),
+                        (( $tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
+                            new LayoutRow(
+                                new LayoutColumn(
+                                    self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',$tblInvoice->getId())
+                                )
+                            ):null
+                        ),
                         new LayoutRow(
                             new LayoutColumn(
                                 new Aspect('Betrag')
@@ -410,6 +421,58 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         return $Stage;
+    }
+
+    public function layoutAccount(TblDebtor $tblDebtor, $Path, $IdBack)
+    {
+
+        $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
+        if (!empty( $tblAccountList )) {
+            $mainAccount = false;
+            foreach ($tblAccountList as $Account) {
+                if ($Account->getActive()) {
+                    $mainAccount = true;
+                }
+            }
+            if ($mainAccount === false) {
+                $Warning = new LayoutRow(new LayoutColumn(
+                    new Warning('Bitte legen sie ein aktives Konto fest (mit '.new Ok().')')));
+            } else {
+                $Warning = null;
+            }
+
+            /** @var TblAccount $tblAccount */
+            foreach ($tblAccountList as $Key => &$tblAccount) {
+                $tblAccountList[$Key] = new LayoutColumn(
+                    new Panel(( $tblAccount->getActive() ?
+                            'aktives Konto '
+                            : null ).'&nbsp', array(
+                        new Panel('', array(
+                            'Besitzer'.new PullRight($tblAccount->getOwner()),
+                            'IBAN'.new PullRight($tblAccount->getIBAN()),
+                            'BIC'.new PullRight($tblAccount->getBIC()),
+                            'Kassenzeichen'.new PullRight($tblAccount->getCashSign()),
+                            'Bankname'.new PullRight($tblAccount->getBankName()),
+                        ), null, ( $tblAccount->getActive() === false ?
+                            new Standard('', '/Billing/Accounting/Banking/Account/Activate', new Ok(),
+                                array('Id'      => $tblDebtor->getId(),
+                                      'Account' => $tblAccount->getId(),
+                                      'Path' => $Path,
+                                      'IdBack'  => $IdBack)) : null )
+                        )), ( $tblAccount->getActive() ?
+                        Panel::PANEL_TYPE_SUCCESS
+                        : Panel::PANEL_TYPE_DEFAULT )), 4
+                );
+            }
+        } else {
+            $tblAccountList = new LayoutColumn('');
+        }
+        if (!isset( $Warning ))
+            $Warning = null;
+
+        return new Layout(
+            new LayoutGroup(array(new LayoutRow($tblAccountList), $Warning), new Title('Kontodaten'))
+        );
     }
 
     /**
@@ -730,26 +793,23 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
         $tblPaymentTypeList = Banking::useService()->getPaymentTypeAll();
-
-        if ($tblPaymentTypeList) {
-            foreach ($tblPaymentTypeList as &$tblPaymentType) {
-                $tblPaymentType = new LayoutColumn(
-                    new Panel(
-                        'Zahlungsart',
-                        $tblPaymentType->getName(),
-                        $tblPaymentType->getId() === $tblInvoice->getServiceBillingBankingPaymentType()->getId() ?
-                            Panel::PANEL_TYPE_SUCCESS :
-                            Panel::PANEL_TYPE_DEFAULT,
-                        new Standard('Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Payment/Type/Change',
-                            new Ok(),
-                            array(
-                                'Id'            => $tblInvoice->getId(),
-                                'PaymentTypeId' => $tblPaymentType->getId()
-                            )
+        foreach ($tblPaymentTypeList as &$tblPaymentType) {
+            $tblPaymentType = new LayoutColumn(
+                new Panel(
+                    'Zahlungsart: '.new PullRight($tblPaymentType->getName()),
+                    array(),
+                    ($tblInvoice->getServiceBillingBankingPaymentType()->getId() === $tblPaymentType->getId())?
+                        Panel::PANEL_TYPE_SUCCESS:
+                        Panel::PANEL_TYPE_DEFAULT,
+                    new Standard('Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/PaymentType/Change',
+                        new Ok(),
+                        array(
+                            'Id'          => $tblInvoice->getId(),
+                            'PaymentType' => $tblPaymentType->getId(),
                         )
-                    ), 3
-                );
-            }
+                    )
+                ), 4
+            );
         }
         /** @var LayoutColumn $tblPaymentTypeList */
         $Stage->setContent(
@@ -797,11 +857,11 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $Id
-     * @param $PaymentTypeId
+     * @param $PaymentType
      *
      * @return Stage
      */
-    public function frontendInvoicePaymentTypeChange($Id, $PaymentTypeId)
+    public function frontendInvoicePaymentTypeChange($Id, $PaymentType)
     {
 
         $Stage = new Stage();
@@ -809,7 +869,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setDescription('Zahlungsart Ändern');
 
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
-        $tblPaymentType = Banking::useService()->getPaymentTypeById($PaymentTypeId);
+        $tblPaymentType = Banking::useService()->getPaymentTypeById($PaymentType);
         $Stage->setContent(Invoice::useService()->changeInvoicePaymentType($tblInvoice, $tblPaymentType));
 
         return $Stage;

@@ -95,11 +95,11 @@ class Invoice implements IModuleInterface
                 __NAMESPACE__.'\Frontend::frontendInvoicePaymentTypeSelect'
             )->setParameterDefault('Id', null)
         );
-        Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/Payment/Type/Change',
+        Main::getDispatcher()->registerRoute(                               // ToDo Change Account! not PaymentType
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/IsNotConfirmed/PaymentType/Change',
                 __NAMESPACE__.'\Frontend::frontendInvoicePaymentTypeChange'
             )->setParameterDefault('Id', null)
-                ->setParameterDefault('PaymentTypeId', null)
+                ->setParameterDefault('PaymentType', null)
         );
     }
 

@@ -28,6 +28,7 @@ class Setup extends AbstractSetup
 
         $tblPaymentType = $this->setTablePaymentType($Schema);
         $tblDebtor = $this->setTableDebtor($Schema, $tblPaymentType);
+        $this->setTableAccount($Schema, $tblDebtor);
         $this->setTableDebtorCommodity($Schema, $tblDebtor);
         $this->setTableReference($Schema, $tblDebtor);
 
@@ -60,7 +61,7 @@ class Setup extends AbstractSetup
      * @param Schema $Schema
      * @param Table  $tblPaymentType
      *
-     * @return Table tblDebtorCommodity
+     * @return Table
      */
     private function setTableDebtor(Schema &$Schema, Table $tblPaymentType)
     {
@@ -69,35 +70,53 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblDebtor', 'DebtorNumber')) {
             $Table->addColumn('DebtorNumber', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'LeadTimeFirst')) {
-            $Table->addColumn('LeadTimeFirst', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'LeadTimeFollow')) {
-            $Table->addColumn('LeadTimeFollow', 'integer');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'BankName')) {
-            $Table->addColumn('BankName', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'IBAN')) {
-            $Table->addColumn('IBAN', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'BIC')) {
-            $Table->addColumn('BIC', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'Owner')) {
-            $Table->addColumn('Owner', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDebtor', 'CashSign')) {
-            $Table->addColumn('CashSign', 'string');
-        }
         if (!$this->getConnection()->hasColumn('tblDebtor', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblDebtor', 'ServiceManagementPerson')) {
             $Table->addColumn('ServiceManagementPerson', 'bigint', array('notnull' => false));
         }
-
         $this->getConnection()->addForeignKey($Table, $tblPaymentType);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDebtor
+     *
+     * @return Table
+     */
+    private function setTableAccount(Schema &$Schema, Table $tblDebtor)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblAccount');
+//        if (!$this->getConnection()->hasColumn('tblAccount', 'LeadTimeFirst')) {
+//            $Table->addColumn('LeadTimeFirst', 'integer');
+//        }
+//        if (!$this->getConnection()->hasColumn('tblAccount', 'LeadTimeFollow')) {
+//            $Table->addColumn('LeadTimeFollow', 'integer');
+//        }
+        if (!$this->getConnection()->hasColumn('tblAccount', 'BankName')) {
+            $Table->addColumn('BankName', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblAccount', 'IBAN')) {
+            $Table->addColumn('IBAN', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblAccount', 'BIC')) {
+            $Table->addColumn('BIC', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblAccount', 'Owner')) {
+            $Table->addColumn('Owner', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblAccount', 'CashSign')) {
+            $Table->addColumn('CashSign', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblAccount', 'Active')) {
+            $Table->addColumn('Active', 'boolean');
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblDebtor);
 
         return $Table;
     }

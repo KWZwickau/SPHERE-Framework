@@ -44,15 +44,50 @@ class Banking implements IModuleInterface
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Debtor', null)
         );
-//        Main::getDispatcher()->registerRoute(
-//            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
-//                __NAMESPACE__.'\Frontend::frontendBankingDelete'
-//            )->setParameterDefault('Id', null)
-//        );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
                 __NAMESPACE__.'\Frontend::frontendBankingDestroy'
             )->setParameterDefault('Id', null)
+                ->setParameterDefault('Confirm', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Payment/View',
+                __NAMESPACE__.'\Frontend::frontendDebtorPaymentView'
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('PaymentType', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Payment/Change',
+                __NAMESPACE__.'\Frontend::frontendDebtorPaymentTypeChange'
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('PaymentType', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Account/Create',
+                __NAMESPACE__.'\Frontend::frontendAccountCreate'
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('Account', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Account/Activate',
+                __NAMESPACE__.'\Frontend::frontendAccountActivate'
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('Account', null)
+                ->setParameterDefault('Path', null)
+                ->setParameterDefault('IdBack', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Account/Change',
+                __NAMESPACE__.'\Frontend::frontendAccountChange'
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('AccountId', null)
+                ->setParameterDefault('Account', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Account/Destroy',
+                __NAMESPACE__.'\Frontend::frontendAccountDestroy'
+            )->setParameterDefault('Id', null)
+                ->setParameterDefault('Account', null)
                 ->setParameterDefault('Confirm', null)
         );
         Main::getDispatcher()->registerRoute(
@@ -72,11 +107,6 @@ class Banking implements IModuleInterface
                 ->setParameterDefault('CommodityId', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Reference/Deactivate',
-                __NAMESPACE__.'\Frontend::frontendBankingReferenceDeactivate'
-            )->setParameterDefault('Id', null)
-        );
-        Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/View',
                 __NAMESPACE__.'\Frontend::frontendBankingDebtorView'
             )->setParameterDefault('Id', null)
@@ -88,10 +118,23 @@ class Banking implements IModuleInterface
                 ->setParameterDefault('Debtor', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Reference',
-                __NAMESPACE__.'\Frontend::frontendBankingDebtorReference'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Reference/Change',
+                __NAMESPACE__.'\Frontend::frontendBankingDebtorReferenceChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Reference', null)
+        );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Reference',
+                __NAMESPACE__.'\Frontend::frontendBankingDebtorReference'
+            )->setParameterDefault('DebtorId', null)
+                ->setParameterDefault('ReferenceId', null)
+                ->setParameterDefault('Reference', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Reference/Deactivate',
+                __NAMESPACE__.'\Frontend::frontendBankingDebtorReferenceDeactivate'
+            )->setParameterDefault('Id', null)
         );
     }
 
@@ -108,11 +151,11 @@ class Banking implements IModuleInterface
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        return new Frontend();
     }
 
 }

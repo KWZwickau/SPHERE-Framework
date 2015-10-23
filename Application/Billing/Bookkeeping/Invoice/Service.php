@@ -165,6 +165,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblBasket $tblBasket
+     *
+     * @return bool|TblTempInvoice[]
+     */
+    public function getTempInvoiceAllByBasket(TblBasket $tblBasket)
+    {
+
+        return (new Data($this->getBinding()))->getTempInvoiceAllByBasket($tblBasket);
+    }
+
+    /**
      * @param $isConfirmed
      *
      * @return array|bool

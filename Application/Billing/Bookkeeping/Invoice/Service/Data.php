@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service;
 
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
@@ -199,9 +198,14 @@ class Data extends AbstractData
             $Entity->setIsVoid(false);
             $Entity->setNumber("40000000");
             $Entity->setBasketName($tblBasket->getName());
-            $Entity->setServiceBillingBankingPaymentType($tblDebtor->getPaymentType());
+            $PaymentType = $tblDebtor->getPaymentType();
+            $Entity->setServiceBillingBankingPaymentType($PaymentType);
 
-            $leadTimeByDebtor = Banking::useService()->getLeadTimeByDebtor($tblDebtor);
+            $leadTimeByDebtor = false;//Banking::useService()->getLeadTimeByDebtor($tblDebtor); //ToDO Leadtime from School?
+            if ($leadTimeByDebtor === false) {
+                $leadTimeByDebtor = 5;      //ToDO LeadFirstTime 5 Day's
+            }
+
             $invoiceDate = (new \DateTime($Date))->sub(new \DateInterval('P'.$leadTimeByDebtor.'D'));
             $now = new \DateTime();
             if (( $invoiceDate->format('y.m.d') ) >= ( $now->format('y.m.d') )) {
@@ -223,9 +227,8 @@ class Data extends AbstractData
             if (( $tblToPerson = Address::useService()->getAddressAllByPerson($tblPersonDebtor) )) {
                 // TODO address type invoice
                 $tblAddress = array();
-                /**@var TblToPerson $singleAddress*/
-                foreach ($tblToPerson as $singleAddress)
-                {
+                /**@var TblToPerson $singleAddress */
+                foreach ($tblToPerson as $singleAddress) {
                     $tblAddress[] = $singleAddress->getTblAddress();
                 }
                 $Entity->setServiceManagementAddress($tblAddress[0]);
@@ -283,7 +286,6 @@ class Data extends AbstractData
                 }
             }
         }
-
         return true;
     }
 
@@ -561,7 +563,7 @@ class Data extends AbstractData
      * @param TblPaymentType $tblPaymentType
      *
      * @return bool
-     */
+     */                             //ToDO Change PaymentType
     public function changeInvoicePaymentType(
         TblInvoice $tblInvoice,
         TblPaymentType $tblPaymentType

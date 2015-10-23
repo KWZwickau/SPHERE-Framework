@@ -26,81 +26,17 @@ class TblDebtor extends Element
      */
     protected $DebtorNumber;
     /**
-     * @Column(type="integer")
-     */
-    protected $LeadTimeFirst;
-    /**
-     * @Column(type="integer")
-     */
-    protected $LeadTimeFollow;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $ServiceManagementPerson;
-    /**
-     * @Column(type="string")
-     */
-    protected $BankName;
-    /**
-     * @Column(type="string")
-     */
-    protected $IBAN;
-    /**
-     * @Column(type="string")
-     */
-    protected $BIC;
-    /**
-     * @Column(type="string")
-     */
-    protected $Owner;
-    /**
-     * @Column(type="string")
-     */
-    protected $CashSign;
-    /**
      * @Column(type="string")
      */
     protected $Description;
     /**
      * @Column(type="bigint")
      */
+    protected $ServiceManagementPerson;
+    /**
+     * @Column(type="bigint")
+     */
     protected $tblPaymentType;
-
-    /**
-     * @return integer $LeadTimeFirst
-     */
-    public function getLeadTimeFirst()
-    {
-
-        return $this->LeadTimeFirst;
-    }
-
-    /**
-     * @param integer $LeadTimeFirst
-     */
-    public function setLeadTimeFirst($LeadTimeFirst)
-    {
-
-        $this->LeadTimeFirst = $LeadTimeFirst;
-    }
-
-    /**
-     * @return integer $LeadTimeFollow
-     */
-    public function getLeadTimeFollow()
-    {
-
-        return $this->LeadTimeFollow;
-    }
-
-    /**
-     * @param integer $LeadTimeFollow
-     */
-    public function setLeadTimeFollow($LeadTimeFollow)
-    {
-
-        $this->LeadTimeFollow = $LeadTimeFollow;
-    }
 
     /**
      * @return string $DebtorNumber
@@ -118,6 +54,24 @@ class TblDebtor extends Element
     {
 
         $this->DebtorNumber = $DebtorNumber;
+    }
+
+    /**
+     * @return string $Description
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
     }
 
     /**
@@ -140,114 +94,6 @@ class TblDebtor extends Element
     {
 
         $this->ServiceManagementPerson = ( null === $ServiceManagementPerson ? null : $ServiceManagementPerson->getId() );//todo
-    }
-
-    /**
-     * @return string $BankName
-     */
-    public function getBankName()
-    {
-
-        return $this->BankName;
-    }
-
-    /**
-     * @param string $BankName
-     */
-    public function setBankName($BankName)
-    {
-
-        $this->BankName = $BankName;
-    }
-
-    /**
-     * @return string $IBAN
-     */
-    public function getIBAN()
-    {
-
-        return $this->IBAN;
-    }
-
-    /**
-     * @param string $IBAN
-     */
-    public function setIBAN($IBAN)
-    {
-
-        $this->IBAN = strtoupper(substr(str_replace(' ', '', $IBAN), 0, 34));
-    }
-
-    /**
-     * @return string $BIC
-     */
-    public function getBIC()
-    {
-
-        return $this->BIC;
-    }
-
-    /**
-     * @param string $BIC
-     */
-    public function setBIC($BIC)
-    {
-
-        $this->BIC = strtoupper(substr(str_replace(' ', '', $BIC), 0, 11));
-    }
-
-    /**
-     * @return string $Owner
-     */
-    public function getOwner()
-    {
-
-        return $this->Owner;
-    }
-
-    /**
-     * @param string $Owner
-     */
-    public function setOwner($Owner)
-    {
-
-        $this->Owner = $Owner;
-    }
-
-    /**
-     * @return string $CashSign
-     */
-    public function getCashSign()
-    {
-
-        return $this->CashSign;
-    }
-
-    /**
-     * @param string $CashSign
-     */
-    public function setCashSign($CashSign)
-    {
-
-        $this->CashSign = $CashSign;
-    }
-
-    /**
-     * @return string $Description
-     */
-    public function getDescription()
-    {
-
-        return $this->Description;
-    }
-
-    /**
-     * @param string $Description
-     */
-    public function setDescription($Description)
-    {
-
-        $this->Description = $Description;
     }
 
     /**
