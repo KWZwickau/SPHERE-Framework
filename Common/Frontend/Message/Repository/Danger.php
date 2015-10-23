@@ -20,8 +20,9 @@ class Danger extends Extension implements IMessageInterface
     /**
      * @param string         $Content
      * @param IIconInterface $Icon
+     * @param bool           $Toggle
      */
-    public function __construct($Content, IIconInterface $Icon = null)
+    public function __construct($Content, IIconInterface $Icon = null, $Toggle = false)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Message.twig');
@@ -30,6 +31,8 @@ class Danger extends Extension implements IMessageInterface
         if (null !== $Icon) {
             $this->Template->setVariable('Icon', $Icon);
         }
+        $this->Template->setVariable('Hash', sha1(uniqid(__METHOD__, true)));
+        $this->Template->setVariable('Toggle', $Toggle);
     }
 
     /**
