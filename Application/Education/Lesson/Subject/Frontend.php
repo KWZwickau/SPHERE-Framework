@@ -121,8 +121,8 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Fach',
                             array(
-                                new AutoCompleter('Subject[Acronym]', 'Kürzel', 'z.B: DE', $acAcronymAll),
-                                new AutoCompleter('Subject[Name]', 'Name', 'z.B: Deutsch', $acNameAll),
+                                new AutoCompleter('Subject[Acronym]', 'Kürzel', 'z.B: DE', $acAcronymAll, new Pencil()),
+                                new AutoCompleter('Subject[Name]', 'Name', 'z.B: Deutsch', $acNameAll, new Pencil()),
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(
@@ -216,7 +216,7 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Kategorie',
                             array(
                                 new AutoCompleter('Category[Name]', 'Name',
-                                    'z.B: Soziales und gesellschaftliches Handeln', $acNameAll),
+                                    'z.B: Soziales und gesellschaftliches Handeln', $acNameAll, new Pencil()),
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(

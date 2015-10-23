@@ -57,6 +57,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return bool|TblPeriod[]
+     */
+    public function getPeriodAll()
+    {
+
+        return (new Data($this->getBinding()))->getPeriodAll();
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param null|array     $Year
      *
@@ -108,5 +117,70 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getYearByName($Name);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param null|array     $Period
+     *
+     * @return IFormInterface|string
+     */
+    public function createPeriod(
+        IFormInterface $Form,
+        $Period
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Period) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Period['Name'] ) && empty( $Period['Name'] )) {
+            $Form->setError('Period[Name]', 'Bitte geben Sie einen eineindeutigen Namen an');
+            $Error = true;
+        } else {
+            if ($this->getPeriodByName($Period['Name'])) {
+                $Form->setError('Period[Name]', 'Dieser Name wird bereits verwendet');
+                $Error = true;
+            }
+        }
+
+        if (isset( $Period['From'] ) && empty( $Period['From'] )) {
+            $Form->setError('Period[From]', 'Bitte geben Sie Start-Datum an');
+            $Error = true;
+        }
+        if (isset( $Period['To'] ) && empty( $Period['To'] )) {
+            $Form->setError('Period[To]', 'Bitte geben Sie Ende-Datum an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+
+            if ((new Data($this->getBinding()))->createPeriod(
+                $Period['Name'], $Period['From'], $Period['To'], $Period['Description'])
+            ) {
+                return new Success('Der Zeitraum wurde erfolgreich hinzugefügt')
+                .new Redirect($this->getRequest()->getUrl(), 3);
+            } else {
+                return new Danger('Der Zeitraum konnte nicht hinzugefügt werden')
+                .new Redirect($this->getRequest()->getUrl());
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblPeriod
+     */
+    public function getPeriodByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getPeriodByName($Name);
     }
 }

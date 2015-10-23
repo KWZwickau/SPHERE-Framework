@@ -65,6 +65,7 @@ class Term implements IModuleInterface
         $Stage = new Stage('Dashboard', 'Schuljahr');
 
         $Stage->addButton(new Standard('Schuljahr hinzufügen', __NAMESPACE__.'\Create\Year'));
+        $Stage->addButton(new Standard('Zeitraum hinzufügen', __NAMESPACE__.'\Create\Period'));
 
         $tblYearAll = Term::useService()->getYearAll();
         $Year = array();

@@ -148,6 +148,15 @@ class Data extends AbstractData
     }
 
     /**
+     * @return bool|TblPeriod[]
+     */
+    public function getPeriodAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPeriod');
+    }
+
+    /**
      * @param string $Name
      *
      * @return bool|TblYear
@@ -157,6 +166,19 @@ class Data extends AbstractData
 
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
             TblYear::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblPeriod
+     */
+    public function getPeriodByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPeriod', array(
+            TblPeriod::ATTR_NAME => $Name
         ));
     }
 }
