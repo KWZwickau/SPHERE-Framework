@@ -253,11 +253,12 @@ class Frontend extends Extension implements IFrontendInterface
                             new Bold('Aktuelle Klasse 10b'),
                             '2016/2017 Klasse 9b',
                             '2015/2016 Klasse 8a',
-                        ))
-                        .new Warning(
+                        )),
+                    ), Panel::PANEL_TYPE_DEFAULT,
+                        new \SPHERE\Common\Frontend\Message\Repository\Info(
                             'Vom System erkannte Besuche.<br/>Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
-                        ),
-                    ), Panel::PANEL_TYPE_DEFAULT),
+                            , null, true)
+                    ),
                 ), 3),
                 new FormColumn(array(
                     // TODO:
@@ -265,11 +266,12 @@ class Frontend extends Extension implements IFrontendInterface
                         new Listing(array(
                             '2015/2016 Klassenstufe 8',
                             '2017/2018 Klassenstufe 10'
-                        ))
-                        .new Warning(
+                        )),
+                    ), Panel::PANEL_TYPE_DEFAULT,
+                        new \SPHERE\Common\Frontend\Message\Repository\Info(
                             'Vom System erkannte Schuljahr&shy;wiederholungen.<br/>Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
-                        ),
-                    ), Panel::PANEL_TYPE_DEFAULT),
+                            , null, true)
+                    ),
                 ), 3),
             )),
         ), new Title('Schülertransfer',
