@@ -278,7 +278,7 @@
               <y:Geometry height="340.0" width="870.0" x="1180.0" y="-840.0"/>
               <y:Fill color="#FFFFFFE6" transparent="false"/>
               <y:BorderStyle color="#000000" type="dotted" width="1.0"/>
-              <y:NodeLabel alignment="left" autoSizePolicy="content" borderDistance="2.0" bottomInset="2" fontFamily="Dialog" fontSize="15" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="35.0" horizontalTextPosition="right" iconData="2" iconTextGap="4" leftInset="2" modelName="internal" modelPosition="tl" rightInset="2" textColor="#000000" topInset="2" verticalTextPosition="center" visible="true" width="123.8837890625" x="2.0" y="2.0">Klassenstufe</y:NodeLabel>
+              <y:NodeLabel alignment="left" autoSizePolicy="content" borderDistance="2.0" bottomInset="2" fontFamily="Dialog" fontSize="15" fontStyle="plain" hasBackgroundColor="false" hasLineColor="false" height="35.0" horizontalTextPosition="right" iconData="1" iconTextGap="4" leftInset="2" modelName="internal" modelPosition="tl" rightInset="2" textColor="#000000" topInset="2" verticalTextPosition="center" visible="true" width="123.8837890625" x="2.0" y="2.0">Klassenstufe</y:NodeLabel>
               <y:StyleProperties>
                 <y:Property class="java.awt.Color" name="com.yworks.bpmn.icon.line.color" value="#000000"/>
                 <y:Property class="java.awt.Color" name="com.yworks.bpmn.icon.fill2" value="#d4d4d4"/>
