@@ -2,14 +2,17 @@
 namespace SPHERE\Application\Education\Lesson\Subject;
 
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
+use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -21,6 +24,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -220,6 +225,187 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Pencil())
                             , Panel::PANEL_TYPE_INFO
                         ), 6),
+                )),
+            ))
+        );
+    }
+
+    /**
+     * @param int        $Id
+     * @param null|array $Category
+     *
+     * @return Stage
+     */
+    public function frontendLinkCategory($Id, $Category = null)
+    {
+
+        $this->getDebugger()->screenDump($Category);
+
+        $Stage = new Stage('Kategorien', 'Verknüpfung');
+
+        $tblGroup = Subject::useService()->getGroupById($Id);
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Gruppe',
+                                $tblGroup->getName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard('Zurück zum Dashboard', '/Education/Lesson/Subject', new ChevronLeft())
+                            )
+                        )
+                    ),
+                )),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Subject::useService()->changeGroupCategory(
+                                $this->formLinkCategory($tblGroup)
+                                    ->appendFormButton(new Primary('Zusammensetzung speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblGroup, $Category
+                            )
+                        )
+                    ), new Title($tblGroup->getName().' enthält')
+                )
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null|TblGroup $tblGroup
+     *
+     * @return Form
+     */
+    public function formLinkCategory(TblGroup $tblGroup = null)
+    {
+
+        $tblCategoryAllSelected = $tblGroup->getTblCategoryAll();
+        if ($tblCategoryAllSelected) {
+            $Global = $this->getGlobal();
+            array_walk($tblCategoryAllSelected, function (TblCategory &$tblCategory) use (&$Global) {
+
+                $Global->POST['Category'][$tblCategory->getId()] = $tblCategory->getId();
+            });
+            $Global->savePost();
+        }
+
+        $tblCategoryAllAvailable = Subject::useService()->getCategoryAll();
+        array_walk($tblCategoryAllAvailable, function (TblCategory &$tblCategory) {
+
+            $tblSubjectAll = $tblCategory->getTblSubjectAll();
+            if ($tblSubjectAll) {
+                array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
+
+                    $tblSubject = $tblSubject->getAcronym();
+                });
+                $tblSubjectAll = '('.implode(', ', $tblSubjectAll).')';
+            } else {
+                $tblSubjectAll = '';
+            }
+
+            $tblCategory = new CheckBox(
+                'Category['.$tblCategory->getId().']',
+                $tblCategory->getName().' '.new Muted($tblCategory->getDescription().' '.new Small($tblSubjectAll)),
+                $tblCategory->getId()
+            );
+        });
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Kategorien', $tblCategoryAllAvailable, Panel::PANEL_TYPE_INFO)
+                    ),
+                )),
+            ))
+        );
+    }
+
+    /**
+     * @param int        $Id
+     * @param null|array $Subject
+     *
+     * @return Stage
+     */
+    public function frontendLinkSubject($Id, $Subject = null)
+    {
+
+        $this->getDebugger()->screenDump($Subject);
+
+        $Stage = new Stage('Fächer', 'Verknüpfung');
+
+        $tblCategory = Subject::useService()->getCategoryById($Id);
+
+        $Stage->setContent(
+            new Layout(array(
+                new LayoutGroup(array(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new Panel('Kategorie',
+                                $tblCategory->getName(),
+                                Panel::PANEL_TYPE_SUCCESS,
+                                new Standard('Zurück zum Dashboard', '/Education/Lesson/Subject', new ChevronLeft())
+                            )
+                        )
+                    ),
+                )),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            Subject::useService()->changeCategorySubject(
+                                $this->formLinkSubject($tblCategory)
+                                    ->appendFormButton(new Primary('Zusammensetzung speichern'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $tblCategory, $Subject
+                            )
+                        )
+                    ), new Title($tblCategory->getName().' enthält')
+                )
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param null|TblCategory $tblCategory
+     *
+     * @return Form
+     */
+    public function formLinkSubject(TblCategory $tblCategory = null)
+    {
+
+        $tblSubjectAllSelected = $tblCategory->getTblSubjectAll();
+        if ($tblSubjectAllSelected) {
+            $Global = $this->getGlobal();
+            array_walk($tblSubjectAllSelected, function (TblSubject &$tblSubject) use (&$Global) {
+
+                $Global->POST['Subject'][$tblSubject->getId()] = $tblSubject->getId();
+            });
+            $Global->savePost();
+        }
+
+        $tblSubjectAllAvailable = Subject::useService()->getSubjectAll();
+        array_walk($tblSubjectAllAvailable, function (TblSubject &$tblSubject) {
+
+            $tblSubject = new CheckBox(
+                'Subject['.$tblSubject->getId().']',
+                $tblSubject->getName().' '.new Muted($tblSubject->getDescription()),
+                $tblSubject->getId()
+            );
+        });
+
+        return new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Fächer', $tblSubjectAllAvailable, Panel::PANEL_TYPE_INFO)
+                    ),
                 )),
             ))
         );

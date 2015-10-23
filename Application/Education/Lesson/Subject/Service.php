@@ -5,6 +5,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Data;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblCategorySubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroup;
+use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
@@ -202,30 +203,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblCategory $tblCategory
-     * @param TblSubject  $tblSubject
-     *
-     * @return bool
-     */
-    public function removeCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
-    {
-
-        return (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
-    }
-
-    /**
-     * @param TblCategory $tblCategory
-     * @param TblSubject  $tblSubject
-     *
-     * @return TblCategorySubject
-     */
-    public function addCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
-    {
-
-        return (new Data($this->getBinding()))->addCategorySubject($tblCategory, $tblSubject);
-    }
-
-    /**
      *
      * @param TblGroup $tblGroup
      *
@@ -261,17 +238,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param int $Id
-     *
-     * @return bool|TblCategory
-     */
-    public function getCategoryById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getCategoryById($Id);
-    }
-
-    /**
      * @param string $Identifier
      *
      * @return bool|TblCategory
@@ -280,17 +246,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCategoryByIdentifier($Identifier);
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblSubject
-     */
-    public function getSubjectById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getSubjectById($Id);
     }
 
     /**
@@ -446,5 +401,177 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCategoryByName($Name);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblGroup       $tblGroup
+     * @param null|array     $Category
+     *
+     * @return IFormInterface|string
+     */
+    public function changeGroupCategory(
+        IFormInterface $Form,
+        TblGroup $tblGroup,
+        $Category
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Category) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!$Error) {
+
+            // Remove old Link
+            $tblCategoryAll = $tblGroup->getTblCategoryAll();
+            array_walk($tblCategoryAll, function (TblCategory $tblCategory) use ($tblGroup, &$Error) {
+
+                if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
+                    $Error = false;
+                }
+            });
+            // Add new Link
+            array_walk($Category, function ($Category) use ($tblGroup, &$Error) {
+
+                if (!$this->addGroupCategory($tblGroup, $this->getCategoryById($Category))) {
+                    $Error = false;
+                }
+            });
+
+            if (!$Error) {
+                return new Success('Die Kategorien wurden erfolgreich geändert')
+                .new Redirect($this->getRequest()->getUrl(), 3);
+            } else {
+                return new Danger('Einige Kategorien konnte nicht geändert werden')
+                .new Redirect($this->getRequest()->getUrl());
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param TblGroup    $tblGroup
+     * @param TblCategory $tblCategory
+     *
+     * @return bool
+     */
+    public function removeGroupCategory(TblGroup $tblGroup, TblCategory $tblCategory)
+    {
+
+        return (new Data($this->getBinding()))->removeGroupCategory($tblGroup, $tblCategory);
+    }
+
+    /**
+     * @param TblGroup    $tblGroup
+     * @param TblCategory $tblCategory
+     *
+     * @return TblGroupCategory
+     */
+    public function addGroupCategory(TblGroup $tblGroup, TblCategory $tblCategory)
+    {
+
+        return (new Data($this->getBinding()))->addGroupCategory($tblGroup, $tblCategory);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblCategory
+     */
+    public function getCategoryById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getCategoryById($Id);
+    }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblCategory    $tblCategory
+     * @param null|array     $Subject
+     *
+     * @return IFormInterface|string
+     */
+    public function changeCategorySubject(
+        IFormInterface $Form,
+        TblCategory $tblCategory,
+        $Subject
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Subject) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (!$Error) {
+
+            // Remove old Link
+            $tblSubjectAll = $tblCategory->getTblSubjectAll();
+            array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
+
+                if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
+                    $Error = false;
+                }
+            });
+            // Add new Link
+            array_walk($Subject, function ($Subject) use ($tblCategory, &$Error) {
+
+                if (!$this->addCategorySubject($tblCategory, $this->getSubjectById($Subject))) {
+                    $Error = false;
+                }
+            });
+
+            if (!$Error) {
+                return new Success('Die Fächer wurden erfolgreich geändert')
+                .new Redirect($this->getRequest()->getUrl(), 3);
+            } else {
+                return new Danger('Einige Fächer konnte nicht geändert werden')
+                .new Redirect($this->getRequest()->getUrl());
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     * @param TblSubject  $tblSubject
+     *
+     * @return bool
+     */
+    public function removeCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     * @param TblSubject  $tblSubject
+     *
+     * @return TblCategorySubject
+     */
+    public function addCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->addCategorySubject($tblCategory, $tblSubject);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectById($Id);
     }
 }

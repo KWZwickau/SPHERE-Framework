@@ -42,10 +42,16 @@ class Subject implements IModuleInterface
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Create/Category', __NAMESPACE__.'\Frontend::frontendCreateCategory'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Link/Category', __NAMESPACE__.'\Frontend::frontendLinkCategory'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Subject', __NAMESPACE__.'\Frontend::frontendCreateSubject'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Create/Category', __NAMESPACE__.'\Frontend::frontendCreateCategory'
+            __NAMESPACE__.'/Link/Subject', __NAMESPACE__.'\Frontend::frontendLinkSubject'
         ));
     }
 
@@ -111,7 +117,9 @@ class Subject implements IModuleInterface
             array_push($Content, new LayoutRow(array(
                 new LayoutColumn(array(
                     new Title('Gruppe: '.new Bold($tblGroup->getName()), $tblGroup->getDescription()),
-                    new Standard('Zuweisen von Kategoriern', '', new Transfer(), array())
+                    new Standard('Zuweisen von Kategorien', __NAMESPACE__.'\Link\Category', new Transfer(),
+                        array('Id' => $tblGroup->getId())
+                    )
                 ))
             )));
             $tblCategoryAll = $this->useService()->getCategoryAllByGroup($tblGroup);
@@ -131,7 +139,9 @@ class Subject implements IModuleInterface
                         $tblCategory->getName().' '.$tblCategory->getDescription(),
                         $tblSubjectAll,
                         ( $tblCategory->getIsLocked() ? Panel::PANEL_TYPE_INFO : Panel::PANEL_TYPE_DEFAULT ),
-                        new Standard('Zuweisen von Fächern', '', new Transfer(), array())
+                        new Standard('Zuweisen von Fächern', __NAMESPACE__.'\Link\Subject', new Transfer(),
+                            array('Id' => $tblCategory->getId())
+                        )
                     )
                     , 2, ( $Height ? $Height : $Height + 2 ));
             });
