@@ -6,6 +6,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -82,10 +83,19 @@ class Term implements IModuleInterface
                 }
                 array_push($Year, array(
                     'Schuljahr' => $tblYear->getName().' '.$tblYear->getDescription(),
-                    'Zeiträume' => new Panel('', $tblPeriodAll,
+                    'Zeiträume' => new Panel(
+                        ( empty( $tblPeriodAll ) ? 'Keine Zeiträume hinterlegt' : count($tblPeriodAll).' Zeiträume' ),
+                        $tblPeriodAll,
                         ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )),
-                    'Optionen'  => new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
-                        array('Id' => $tblYear->getId()))
+                    'Optionen'  =>
+                        new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
+                            array('Id' => $tblYear->getId()), 'Bearbeiten'
+                        ).
+                        ( empty( $tblPeriodAll )
+                            ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
+                                array('Id' => $tblYear->getId()), 'Löschen'
+                            ) : ''
+                        )
                 ));
             });
         }

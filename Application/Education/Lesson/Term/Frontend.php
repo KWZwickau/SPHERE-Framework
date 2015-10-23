@@ -46,10 +46,14 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblYearAll, function (TblYear &$tblYear) {
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
-                $tblYear->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
-                    .( empty( $tblPeriodAll )
-                        ? new Standard('', '', new Remove(), array(), 'Löschen')
-                        : ''
+                $tblYear->Option =
+                    new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
+                        array('Id' => $tblYear->getId()), 'Bearbeiten'
+                    ).
+                    ( empty( $tblPeriodAll )
+                        ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
+                            array('Id' => $tblYear->getId()), 'Löschen'
+                        ) : ''
                     );
             });
         }
