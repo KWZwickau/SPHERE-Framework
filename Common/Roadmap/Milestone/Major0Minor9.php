@@ -65,11 +65,11 @@ class Major0Minor9
             ->createDuty('Kategorie bearbeiten', false)
             ->createDuty('Kategorie löschen', false);
         $Feature->createTask('Fach-Kategorie zuweisen')
-            ->createDuty('Verknüpfung hinzufügen')
-            ->createDuty('Verknüpfung löschen');
+            ->createDuty('Verknüpfung hinzufügen', true)
+            ->createDuty('Verknüpfung löschen', true);
         $Feature->createTask('Kategorie-Gruppe zuweisen')
-            ->createDuty('Verknüpfung hinzufügen')
-            ->createDuty('Verknüpfung löschen');
+            ->createDuty('Verknüpfung hinzufügen', true)
+            ->createDuty('Verknüpfung löschen', true);
         $Feature->createTask('Schuljahr')
             ->createDuty('Schuljahr hinzufügen')
             ->createDuty('Zeitraum hinzufügen')
