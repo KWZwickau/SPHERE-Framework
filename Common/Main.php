@@ -10,6 +10,7 @@ use SPHERE\Application\Billing\Billing;
 use SPHERE\Application\Contact\Contact;
 use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
+use SPHERE\Application\Document\Document;
 use SPHERE\Application\Education\Education;
 use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\People\People;
@@ -143,6 +144,7 @@ class Main extends Extension
 //            Generator::registerCluster();
             Manual::registerCluster();
             Reporting::registerCluster();
+            Document::registerCluster();
             /**
              * Execute Request
              */
