@@ -228,18 +228,33 @@ class Frontend extends Extension implements IFrontendInterface
             <b>Hinweis:</b> Freigegebene Rechnung sind nicht mehr bearbeitbar.'
         );
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new ChevronLeft()));
-        $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
-            new Ok(), array(
-                'Id' => $Id
-            )
-        ));
+
+        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+
+        if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+            if ($tblDebtor) {
+                if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
+                    $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+                        new Ok(), array(
+                            'Id' => $Id
+                        )
+                    ));
+                }
+            }
+        } else {
+            $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+                new Ok(), array(
+                    'Id' => $Id
+                )
+            ));
+        }
+
         $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
             new Remove(), array(
                 'Id' => $Id
             )
         ));
-
-        $tblInvoice = Invoice::useService()->getInvoiceById($Id);
         if ($tblInvoice->getIsConfirmed()) {
             $Stage->setContent(new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
                 .new Redirect('/Billing/Bookkeeping/Invoice', 2));
@@ -379,12 +394,12 @@ class Frontend extends Extension implements IFrontendInterface
                                 ), 3
                             ),
                         )),
-                        (( $tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
+                        ( ( $tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
                             new LayoutRow(
                                 new LayoutColumn(
-                                    self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',$tblInvoice->getId())
+                                    self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
                                 )
-                            ):null
+                            ) : null
                         ),
                         new LayoutRow(
                             new LayoutColumn(
@@ -457,15 +472,15 @@ class Frontend extends Extension implements IFrontendInterface
                             new Standard('', '/Billing/Accounting/Banking/Account/Activate', new Ok(),
                                 array('Id'      => $tblDebtor->getId(),
                                       'Account' => $tblAccount->getId(),
-                                      'Path' => $Path,
+                                      'Path'    => $Path,
                                       'IdBack'  => $IdBack)) : null )
                         )), ( $tblAccount->getActive() ?
                         Panel::PANEL_TYPE_SUCCESS
-                        : Panel::PANEL_TYPE_DEFAULT )), 4
-                );
+                        : Panel::PANEL_TYPE_DEFAULT ))
+                , 4);
             }
         } else {
-            $tblAccountList = new LayoutColumn('');
+            $tblAccountList = new LayoutColumn(new Warning('Es ist kein Konto für diesen Debitor angelegt'));
         }
         if (!isset( $Warning ))
             $Warning = null;
@@ -658,9 +673,16 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Rechnung');
         $Stage->setDescription('Freigeben');
+        $Account = false;
 
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
-        $Stage->setContent(Invoice::useService()->confirmInvoice($tblInvoice, $Data));
+        if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+            if ($tblDebtor) {
+                $Account = Banking::useService()->getActiveAccountByDebtor($tblDebtor)->getId();
+            }
+        }
+        $Stage->setContent(Invoice::useService()->confirmInvoice($tblInvoice, $Data, $Account));
 
         return $Stage;
     }
@@ -798,8 +820,8 @@ class Frontend extends Extension implements IFrontendInterface
                 new Panel(
                     'Zahlungsart: '.new PullRight($tblPaymentType->getName()),
                     array(),
-                    ($tblInvoice->getServiceBillingBankingPaymentType()->getId() === $tblPaymentType->getId())?
-                        Panel::PANEL_TYPE_SUCCESS:
+                    ( $tblInvoice->getServiceBillingBankingPaymentType()->getId() === $tblPaymentType->getId() ) ?
+                        Panel::PANEL_TYPE_SUCCESS :
                         Panel::PANEL_TYPE_DEFAULT,
                     new Standard('Auswählen', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/PaymentType/Change',
                         new Ok(),

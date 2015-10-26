@@ -316,7 +316,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     new BarCode()
                                                 ), 6),
                                             new FormColumn(
-                                                new SelectBox('Debtor[PaymentType]', 'Zahlungsart', array(TblPaymentType::ATTR_NAME => $tblPaymentTypeList), //ToDO PaymentType
+                                                new SelectBox('Debtor[PaymentType]', 'Zahlungsart', array(TblPaymentType::ATTR_NAME => $tblPaymentTypeList),
                                                     new Money()
                                                 ), 6),
                                             new FormColumn(
@@ -712,9 +712,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
                             ( Banking::useService()->destroyBanking($tblDebtor)
-                                ? new Success('Der Debitor wurde gelöscht')
+                                ? new \SPHERE\Common\Frontend\Message\Repository\Success('Der Debitor wurde gelöscht')
                                 .new Redirect('/Billing/Accounting/Banking', 0)
-                                : new Danger('Der Debitor konnte nicht gelöscht werden')
+                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Debitor konnte nicht gelöscht werden')
                                 .new Redirect('/Billing/Accounting/Banking', 10)
                             )
                         )))
@@ -725,7 +725,7 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(array(
-                        new Danger('Der Debitor konnte nicht gefunden werden'),
+                        new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Debitor konnte nicht gefunden werden'),
                         new Redirect('/Billing/Accounting/Banking', 10)
                     )))
                 )))
@@ -809,7 +809,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Konto', 'Bearbeiten');
-//        $tblDebtor = Banking::useService()->getDebtorById($Id);
+        $tblDebtor = Banking::useService()->getDebtorById($Id);
         $tblAccount = Banking::useService()->getAccountById($AccountId);
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/Debtor/View', new ChevronLeft(),
             array('Id' => $Id)));
@@ -826,7 +826,22 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-            Banking::useService()->changeAccount(
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Panel('Debitor', $tblDebtor->getServiceManagementPerson()->getFullName(),
+                                Panel::PANEL_TYPE_INFO),
+                        ), 6),
+                        new LayoutColumn(array(
+                            new Panel('Debitornummer', $tblDebtor->getDebtorNumber(),
+                                Panel::PANEL_TYPE_INFO),
+
+                        ), 6),
+                    ))
+                )
+            )
+            .Banking::useService()->changeAccount(
                 new Form(array(
                     new FormGroup(array(
                         new FormRow(array(

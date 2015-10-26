@@ -56,6 +56,21 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblBalance', 'ExportDate')) {
             $Table->addColumn('ExportDate', 'date', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblBalance', 'BankName')) {
+            $Table->addColumn('BankName', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblBalance', 'IBAN')) {
+            $Table->addColumn('IBAN', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblBalance', 'BIC')) {
+            $Table->addColumn('BIC', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblBalance', 'Owner')) {
+            $Table->addColumn('Owner', 'string', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblBalance', 'CashSign')) {
+            $Table->addColumn('CashSign', 'string', array('notnull' => false));
+        }
 
         return $Table;
     }

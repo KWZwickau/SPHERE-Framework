@@ -49,10 +49,10 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setTitle('Artikel');
         $Stage->setDescription('Übersicht');
         $Stage->setMessage(
-            'Zeigt alle verfügbaren Artikel an. <br>
-            Artikel sind Preise für erbrachte Dienste, die Abhängigkeiten zugewiesen bekommen können. <br />
-            Somit werden bei Rechnungen nur die Artikel berechnet, <br />
-            die <b>keine</b> oder die <b>zutreffenden</b> Abhängigkeiten für die einzelne Person besitzen.');
+            'Zeigt alle verfügbaren Artikel an. <br>');
+//            Artikel sind Preise für erbrachte Dienste, die Abhängigkeiten zugewiesen bekommen können. <br />
+//            Somit werden bei Rechnungen nur die Artikel berechnet, <br />
+//            die <b>keine</b> oder die <b>zutreffenden</b> Abhängigkeiten für die einzelne Person besitzen.');
         $Stage->addButton(
             new Standard('Artikel anlegen', '/Billing/Inventory/Item/Create', new Plus())
         );
@@ -116,15 +116,15 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('Hinzufügen');
-        $Stage->setMessage(
-            '<b>Hinweis:</b> <br>
-            Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
-            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
-            Ist eine Kind-Reihenfolge unter der <i>Bedingung Kind-Reihenfolge</i> ausgewählt, wird der Artikel nur für
-            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
-            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
-            <b>Und</b> verknüpft.
-        ');
+//        $Stage->setMessage(
+//            '<b>Hinweis:</b> <br>
+//            Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
+//            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
+//            Ist eine Kind-Reihenfolge unter der <i>Bedingung Kind-Reihenfolge</i> ausgewählt, wird der Artikel nur für
+//            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
+//            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
+//            <b>Und</b> verknüpft.
+//        ');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
             new ChevronLeft()
         ));
@@ -246,15 +246,15 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('Bearbeiten');
-        $Stage->setMessage(
-            '<b>Hinweis:</b> <br>
-            Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
-            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
-            Ist eine Kind-Reihenfolge unter der <i>Bedingung Kind-Reihenfolge</i> ausgewählt, wird der Artikel nur für
-            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
-            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
-            <b>Und</b> verknüpft.
-        ');
+//        $Stage->setMessage(
+//            '<b>Hinweis:</b> <br>
+//            Ist ein Bildungsgang unter der <i>Bedingung Bildungsgang</i> ausgewählt, wird der Artikel nur für
+//            Personen (Schüler) berechnet welche diesem Bildungsgang angehören. <br>
+//            Ist eine Kind-Reihenfolge unter der <i>Bedingung Kind-Reihenfolge</i> ausgewählt, wird der Artikel nur für
+//            Personen (Schüler) berechnet welche dieser Kind-Reihenfolge entsprechen. <br>
+//            Beide Bedingungen können einzeln ausgewählt werden, bei der Wahl beider Bedingungen werden diese
+//            <b>Und</b> verknüpft.
+//        ');
         $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
             new ChevronLeft()
         ));

@@ -78,17 +78,32 @@ class Service extends AbstractService
      * @param TblDebtor  $serviceBilling_Banking
      * @param TblInvoice $serviceBilling_Invoice
      * @param            $ExportDate
+     * @param            $BankName
+     * @param            $IBAN
+     * @param            $BIC
+     * @param            $Owner
+     * @param            $CashSign
      *
      * @return bool
      */
     public function createBalance(
         TblDebtor $serviceBilling_Banking,
         TblInvoice $serviceBilling_Invoice,
-        $ExportDate
+        $ExportDate = null,
+        $BankName = null,
+        $IBAN = null,
+        $BIC = null,
+        $Owner = null,
+        $CashSign = null
     ) {
 
         return (new Data($this->getBinding()))->createBalance($serviceBilling_Banking, $serviceBilling_Invoice,
-            $ExportDate);
+            $ExportDate,
+            $BankName,
+            $IBAN,
+            $BIC,
+            $Owner,
+            $CashSign);
     }
 
     /**

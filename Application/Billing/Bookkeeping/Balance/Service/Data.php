@@ -195,13 +195,23 @@ class Data extends AbstractData
      * @param TblDebtor  $serviceBilling_Banking
      * @param TblInvoice $serviceBilling_Invoice
      * @param            $ExportDate
+     * @param null       $BankName
+     * @param null       $IBAN
+     * @param null       $BIC
+     * @param null       $Owner
+     * @param null       $CashSign
      *
      * @return bool
      */
     public function createBalance(
         TblDebtor $serviceBilling_Banking,
         TblInvoice $serviceBilling_Invoice,
-        $ExportDate
+        $ExportDate = null,
+        $BankName = null,
+        $IBAN = null,
+        $BIC = null,
+        $Owner = null,
+        $CashSign = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -216,6 +226,21 @@ class Data extends AbstractData
             $Entity->setServiceBillingInvoice($serviceBilling_Invoice);
             if ($ExportDate !== null) {
                 $Entity->setExportDate($ExportDate);
+            }
+            if ($BankName !== null) {
+                $Entity->setBankName($BankName);
+            }
+            if ($IBAN !== null) {
+                $Entity->setIBAN($IBAN);
+            }
+            if ($BIC !== null) {
+                $Entity->setBIC($BIC);
+            }
+            if ($Owner !== null) {
+                $Entity->setOwner($Owner);
+            }
+            if ($CashSign !== null) {
+                $Entity->setCashSign($CashSign);
             }
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),

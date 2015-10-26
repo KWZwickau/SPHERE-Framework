@@ -224,23 +224,45 @@ class Service extends AbstractService
     /**
      * @param TblInvoice $tblInvoice
      * @param            $Data
+     * @param            $Account
      *
      * @return string
      */
-    public function confirmInvoice(TblInvoice $tblInvoice, $Data)
+    public function confirmInvoice(TblInvoice $tblInvoice, $Data, $Account)
     {
-
-        if (Balance::useService()->createBalance(
-            Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
-            $tblInvoice,
-            null
-        )
-        ) {
-            return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
-        } else {
-            return new Warning('Die Rechnung wurde konnte nicht bestätigt und freigegeben werden')
-            .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2, array('Id' => $tblInvoice->getId()));
+        If( $Account !== false )
+        {
+            $tblAccount = Banking::useService()->getAccountById( $Account );
+            if (Balance::useService()->createBalance(
+                Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+                $tblInvoice,
+                null,
+                $tblAccount->getBankName(),
+                $tblAccount->getIBAN(),
+                $tblAccount->getBIC(),
+                $tblAccount->getOwner(),
+                $tblAccount->getCashSign()
+            ))
+            {
+                return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
+            } else {
+                return new Warning('Die Rechnung wurde konnte nicht bestätigt und freigegeben werden')
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2, array('Id' => $tblInvoice->getId()));
+            }
+        }
+        else{
+            if (Balance::useService()->createBalance(
+                Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
+                $tblInvoice
+            ))
+            {
+                return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
+            } else {
+                return new Warning('Die Rechnung wurde konnte nicht bestätigt und freigegeben werden')
+                .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2, array('Id' => $tblInvoice->getId()));
+            }
         }
     }
 

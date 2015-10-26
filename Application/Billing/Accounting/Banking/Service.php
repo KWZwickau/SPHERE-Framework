@@ -236,7 +236,7 @@ class Service extends AbstractService
      *
      * @return int
      */
-    public function getLeadTimeByDebtor(TblDebtor $tblDebtor)   //ToDO Find active Account for tblDebtor
+    public function getLeadTimeByDebtor(TblDebtor $tblDebtor)   //ToDO get first/followLeadTime from School
     {
 
         if ($tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
@@ -248,7 +248,7 @@ class Service extends AbstractService
                 return $tblAccount->getLeadTimeFirst();
             }
         }
-        return false; //ToDO patch without active Account
+        return false;
     }
 
     /**
@@ -453,8 +453,24 @@ class Service extends AbstractService
         }
 
         $Error = false;
-//        if (isset( $Debtor['Description'] ) && empty( $Debtor['Description'] )) {
-//            $Stage->setError('Debtor[Description]', 'Bitte geben sie eine Beschreibung an');
+        if (isset( $Account['Owner'] ) && empty( $Account['Owner'] )) {
+            $Stage->setError('Account[Owner]', 'Bitte geben sie einen Besitzer an');
+            $Error = true;
+        }
+        if (isset( $Account['IBAN'] ) && empty( $Account['IBAN'] )) {
+            $Stage->setError('Account[IBAN]', 'Bitte geben sie eine IBAN an');
+            $Error = true;
+        }
+//        if (isset( $Account['BIC'] ) && empty( $Account['BIC'] )) {
+//            $Stage->setError('Account[BIC]', 'Bitte geben sie einen Besitzer an');
+//            $Error = true;
+//        }
+        if (isset( $Account['BankName'] ) && empty( $Account['BankName'] )) {
+            $Stage->setError('Account[BankName]', 'Bitte geben sie einen Besitzer an');
+            $Error = true;
+        }
+//        if (isset( $Account['CashSign'] ) && empty( $Account['CashSign'] )) {
+//            $Stage->setError('Account[CashSign]', 'Bitte geben sie einen Besitzer an');
 //            $Error = true;
 //        }
 
