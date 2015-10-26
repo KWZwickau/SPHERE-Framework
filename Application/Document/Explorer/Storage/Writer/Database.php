@@ -6,10 +6,12 @@ use SPHERE\Application\Document\Explorer\Storage\Storage;
 
 /**
  * Class Database
+ *
  * @package SPHERE\Application\Document\Explorer\Storage\Writer
  */
 class Database extends AbstractWriter
 {
+
     /** @var false|TblFile $tblFile */
     private $tblFile = false;
     /** @var null|Temporary $Container */
@@ -20,6 +22,7 @@ class Database extends AbstractWriter
      */
     public function __construct($Id = null)
     {
+
         if ($Id) {
             $this->tblFile = Storage::useService()->getFileById($Id);
         }
@@ -31,6 +34,7 @@ class Database extends AbstractWriter
      */
     public function loadFile()
     {
+
         if ($this->tblFile) {
             $this->setName($this->tblFile->getName());
             $this->setDescription($this->tblFile->getDescription());
@@ -40,7 +44,7 @@ class Database extends AbstractWriter
             $this->setFileExtension($this->tblFile->getFileExtension());
             $this->setFileContent($this->tblFile->getFileContent());
 
-            $this->Container = new Temporary();
+            $this->Container = new Temporary('SPHERE-Database', $this->getFileExtension());
             $this->Container->setName($this->getName());
             $this->Container->setDescription($this->getDescription());
             $this->Container->setFileName($this->getFileName());
@@ -66,6 +70,7 @@ class Database extends AbstractWriter
      */
     public function getFile()
     {
+
         return $this->Container;
     }
 }
