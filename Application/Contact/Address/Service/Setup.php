@@ -99,7 +99,7 @@ class Setup extends AbstractSetup
             $Table->addColumn('PostOfficeBox', 'string');
         }
         $this->getConnection()->addForeignKey($Table, $tblCity);
-        $this->getConnection()->addForeignKey($Table, $tblState);
+        $this->getConnection()->addForeignKey($Table, $tblState, true);
         return $Table;
     }
 
