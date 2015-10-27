@@ -17,7 +17,6 @@ class Standard implements IModuleInterface
     public static function registerModule()
     {
 
-        //Debugger::screenDump(__NAMESPACE__.'/Person/ClassList/Download');
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Person/ClassList/Download', __NAMESPACE__.'\PersonList::downloadClassList'
         ));

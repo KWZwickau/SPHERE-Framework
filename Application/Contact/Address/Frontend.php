@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Contact\Address;
 
+use SPHERE\Application\Contact\Address\Service\Entity\TblState;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToCompany;
 use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
 use SPHERE\Application\Corporation\Company\Company;
@@ -111,6 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAddress = Address::useService()->getAddressAll();
         $tblCity = Address::useService()->getCityAll();
         $tblState = Address::useService()->getStateAll();
+        array_push($tblState, new TblState(''));
         $tblType = Address::useService()->getTypeAll();
 
         return new Form(

@@ -159,7 +159,11 @@ class Service extends AbstractService
         if (!$Error) {
 
             $tblType = $this->getTypeById($Type['Type']);
-            $tblState = $this->getStateById($State);
+            if ($State) {
+                $tblState = $this->getStateById($State);
+            } else {
+                $tblState = null;
+            }
             $tblCity = (new Data($this->getBinding()))->createCity(
                 $City['Code'], $City['Name'], $City['District']
             );
@@ -210,26 +214,34 @@ class Service extends AbstractService
      * @param           $StreetNumber
      * @param           $CityCode
      * @param           $CityName
+     * @param           $CityDistrict
+     * @param           $PostOfficeBox
+     * @param TblState  $tblState
+     *
+     * @return TblToPerson
      */
-    public function createAddressToPersonFromImport(
+    public function insertAddressToPerson(
         TblPerson $tblPerson,
         $StreetName,
         $StreetNumber,
         $CityCode,
-        $CityName
+        $CityName,
+        $CityDistrict,
+        $PostOfficeBox,
+        TblState $tblState
     ) {
 
-        $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, '');
-        // TODO tblState
+        $tblCity = (new Data($this->getBinding()))->createCity($CityCode, $CityName, $CityDistrict);
+
         $tblAddress = (new Data($this->getBinding()))->createAddress(
-            Address::useService()->getStateById(1),
+            $tblState,
             $tblCity,
             $StreetName,
             $StreetNumber,
-            ''
+            $PostOfficeBox
         );
 
-        (new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress,
+        return (new Data($this->getBinding()))->addAddressToPerson($tblPerson, $tblAddress,
             Address::useService()->getTypeById(1), '');
     }
 

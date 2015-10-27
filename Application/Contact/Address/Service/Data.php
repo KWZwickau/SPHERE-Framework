@@ -27,6 +27,7 @@ class Data extends AbstractData
     {
 
         $this->createType('Hauptadresse');
+        $this->createType('Zweit-/Nebenadresse');
         $this->createType('Rechnungsadresse');
         $this->createType('Lieferadresse');
 
@@ -207,13 +208,19 @@ class Data extends AbstractData
      *
      * @return TblAddress
      */
-    public function createAddress(TblState $tblState, TblCity $tblCity, $StreetName, $StreetNumber, $PostOfficeBox)
+    public function createAddress(
+        TblState $tblState = null,
+        TblCity $tblCity,
+        $StreetName,
+        $StreetNumber,
+        $PostOfficeBox
+    )
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblAddress')
             ->findOneBy(array(
-                TblAddress::ATTR_TBL_STATE       => $tblState->getId(),
+                TblAddress::ATTR_TBL_STATE => ( $tblState ? $tblState->getId() : null ),
                 TblAddress::ATTR_TBL_CITY        => $tblCity->getId(),
                 TblAddress::ATTR_STREET_NAME     => $StreetName,
                 TblAddress::ATTR_STREET_NUMBER   => $StreetNumber,

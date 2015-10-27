@@ -66,14 +66,20 @@ class Structure
     /**
      * @param DBALTable $KeyTarget Foreign Key (Column: KeySource Name)
      * @param DBALTable $KeySource Foreign Data (Column: Id)
+     * @param bool $AllowNull
      */
-    public function addForeignKey(DBALTable &$KeyTarget, DBALTable $KeySource)
+    public function addForeignKey(DBALTable &$KeyTarget, DBALTable $KeySource, $AllowNull = false)
     {
 
         if (!$this->Database->hasColumn($KeyTarget->getName(), $KeySource->getName())) {
             $KeyTarget->addColumn($KeySource->getName(), 'bigint');
             if ($this->Database->getPlatform()->supportsForeignKeyConstraints()) {
-                $KeyTarget->addForeignKeyConstraint($KeySource, array($KeySource->getName()), array('Id'));
+                if ($AllowNull) {
+                    $KeyTarget->addForeignKeyConstraint($KeySource, array($KeySource->getName()), array('Id'),
+                        array('notnull' => false));
+                } else {
+                    $KeyTarget->addForeignKeyConstraint($KeySource, array($KeySource->getName()), array('Id'));
+                }
             }
         }
     }
