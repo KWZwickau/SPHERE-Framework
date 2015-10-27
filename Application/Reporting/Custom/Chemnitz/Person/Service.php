@@ -2,10 +2,13 @@
 namespace SPHERE\Application\Reporting\Custom\Chemnitz\Person;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
+use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Document\Explorer\Storage\Writer\Temporary;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Relationship\Relationship;
@@ -63,8 +66,14 @@ class Service
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getCode()
                         .' '.$address->getTblAddress()->getTblCity()->getName();
+
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->City = '';
+                    $tblPerson->Address = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -83,18 +92,19 @@ class Service
 
     /**
      * @param $studentList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createClassListExcel($studentList, $fileLocation)
+    public function createClassListExcel($studentList)
     {
 
         if (!empty( $studentList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
             $export->setValue($export->getCell("1", "0"), "Vorname V.");
             $export->setValue($export->getCell("2", "0"), "Vorname M.");
@@ -125,7 +135,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 
@@ -159,8 +171,14 @@ class Service
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
                 } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->City = $tblPerson->Code = '';
+                    $tblPerson->Address = '';
                 }
 
                 // Todo JohK Unterbereich ermitteln über Gruppen
@@ -188,18 +206,19 @@ class Service
 
     /**
      * @param $staffList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createStaffListExcel($staffList, $fileLocation)
+    public function createStaffListExcel($staffList)
     {
 
         if (!empty( $staffList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Name");
@@ -232,7 +251,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 
@@ -265,8 +286,13 @@ class Service
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
                 } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->City = $tblPerson->Code = '';
+                    $tblPerson->Address = '';
                 }
             }
         }
@@ -276,18 +302,19 @@ class Service
 
     /**
      * @param $studentList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createMedicListExcel($studentList, $fileLocation)
+    public function createMedicListExcel($studentList)
     {
 
         if (!empty( $studentList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Name");
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Geburtsdatum");
@@ -310,7 +337,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 
@@ -334,18 +363,19 @@ class Service
 
     /**
      * @param $studentList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createParentTeacherConferenceListExcel($studentList, $fileLocation)
+    public function createParentTeacherConferenceListExcel($studentList)
     {
 
         if (!empty( $studentList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Name");
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Anwesenheit");
@@ -359,7 +389,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 
@@ -387,8 +419,14 @@ class Service
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                    $tblPerson->Address = '';
                 }
 
                 $tblPerson->Phone = $tblPerson->Mail = '';
@@ -410,18 +448,19 @@ class Service
 
     /**
      * @param $clubMemberList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createClubMemberListExcel($clubMemberList, $fileLocation)
+    public function createClubMemberListExcel($clubMemberList)
     {
 
         if (!empty( $clubMemberList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Name");
@@ -450,7 +489,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 
@@ -476,8 +517,14 @@ class Service
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                    $tblPerson->Address = '';
                 }
 
                 $tblProspect = Prospect::useService()->getProspectByPerson($tblPerson);
@@ -564,15 +611,19 @@ class Service
                     $tblPerson->FatherSalutation = $father->getSalutation();
                     $tblPerson->FatherLastName = $father->getLastName();
                     $tblPerson->FatherFirstName = $father->getFirstName();
+                    $tblPerson->Father = $father->getFullName();
                 } else {
                     $tblPerson->FatherSalutation = $tblPerson->FatherLastName = $tblPerson->FatherFirstName = '';
+                    $tblPerson->Father = '';
                 }
                 if ($mother !== null) {
                     $tblPerson->MotherSalutation = $mother->getSalutation();
                     $tblPerson->MotherLastName = $mother->getLastName();
                     $tblPerson->MotherFirstName = $mother->getFirstName();
+                    $tblPerson->Mother = $mother->getFullName();
                 } else {
                     $tblPerson->MotherSalutation = $tblPerson->MotherLastName = $tblPerson->MotherFirstName = '';
+                    $tblPerson->Mother = '';
                 }
             }
         }
@@ -582,18 +633,19 @@ class Service
 
     /**
      * @param $interestedPersonList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createInterestedPersonListExcel($interestedPersonList, $fileLocation)
+    public function createInterestedPersonListExcel($interestedPersonList)
     {
 
         if (!empty( $interestedPersonList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anmeldedatum");
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Name");
@@ -646,7 +698,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 
@@ -675,8 +729,14 @@ class Service
                     $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
                     $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
                     $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
                 } else {
                     $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                    $tblPerson->Address = '';
                 }
 
                 $father = null;
@@ -700,15 +760,19 @@ class Service
                     $tblPerson->FatherSalutation = $father->getSalutation();
                     $tblPerson->FatherLastName = $father->getLastName();
                     $tblPerson->FatherFirstName = $father->getFirstName();
+                    $tblPerson->Father = $father->getFullName();
                 } else {
                     $tblPerson->FatherSalutation = $tblPerson->FatherLastName = $tblPerson->FatherFirstName = '';
+                    $tblPerson->Father = '';
                 }
                 if ($mother !== null) {
                     $tblPerson->MotherSalutation = $mother->getSalutation();
                     $tblPerson->MotherLastName = $mother->getLastName();
                     $tblPerson->MotherFirstName = $mother->getFirstName();
+                    $tblPerson->Mother = $mother->getFullName();
                 } else {
                     $tblPerson->MotherSalutation = $tblPerson->MotherLastName = $tblPerson->MotherFirstName = '';
+                    $tblPerson->Mother = '';
                 }
 
                 $tblPerson->Reply = $tblPerson->Records = $tblPerson->LastSchoolFee = $tblPerson->Remarks = '';
@@ -720,18 +784,19 @@ class Service
 
     /**
      * @param $studentList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createSchoolFeeListExcel($studentList, $fileLocation)
+    public function createSchoolFeeListExcel($studentList)
     {
 
         if (!empty( $studentList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Deb.-Nr.");
             $export->setValue($export->getCell("1", "0"), "Bescheid geschickt");
             $export->setValue($export->getCell("2", "0"), "Anrede V");
@@ -780,7 +845,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 }

@@ -2,7 +2,9 @@
 namespace SPHERE\Application\Reporting;
 
 use SPHERE\Application\IClusterInterface;
-use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Application\Reporting\Custom\Custom;
+use SPHERE\Application\Reporting\Standard\Standard;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -18,13 +20,14 @@ class Reporting implements IClusterInterface
     public static function registerCluster()
     {
 
-        Person::registerModule();
+        if (Consumer::useService()->getConsumerBySession()->getAcronym() == 'ESZC') {
+            Custom::registerApplication();
+        } else {
+            Standard::registerApplication();
+        }
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Auswertung'))
-        );
-        Main::getDisplay()->addApplicationNavigation(
-            new Link(new Link\Route(__NAMESPACE__.'\Custom\Chemnitz\Person'), new Link\Name('Personen'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__, __CLASS__.'::frontendDashboard'
