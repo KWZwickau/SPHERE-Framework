@@ -20,6 +20,28 @@ class Custom implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Chemnitz/Common/ClassList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadClassList'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Chemnitz/Common/StaffList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadStaffList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Chemnitz/Common/SchoolFeeList/Download',
+            __NAMESPACE__.'\Chemnitz\Common::downloadSchoolFeeList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Chemnitz/Common/MedicList/Download', __NAMESPACE__.'\Chemnitz\Common::downloadMedicList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Chemnitz/Common/InterestedPersonList/Download',
+            __NAMESPACE__.'\Chemnitz\Common::downloadInterestedPersonList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Chemnitz/Common/ParentTeacherConferenceList/Download',
+            __NAMESPACE__.'\Chemnitz\Common::downloadParentTeacherConferenceList'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Chemnitz/Common/ClubMemberList/Download',
+            __NAMESPACE__.'\Chemnitz\Common::downloadClubMemberList'
+        ));
     }
 
     /**

@@ -45,46 +45,23 @@ class Person implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/ClassList', __NAMESPACE__.'\Frontend::frontendClassList'
         ));
-//        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-//            __NAMESPACE__ . '/ClassList/Download',   __NAMESPACE__.'\Frontend::frontendClassListDownload'
-//        ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/StaffList', __NAMESPACE__.'\Frontend::frontendStaffList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/StaffList/Download', __NAMESPACE__.'\Frontend::frontendStaffListDownload'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/SchoolFeeList', __NAMESPACE__.'\Frontend::frontendSchoolFeeList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/SchoolFeeList/Download', __NAMESPACE__.'\Frontend::frontendSchoolFeeListDownload'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/MedicList', __NAMESPACE__.'\Frontend::frontendMedicList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/MedicList/Download', __NAMESPACE__.'\Frontend::frontendMedicListDownload'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/InterestedPersonList', __NAMESPACE__.'\Frontend::frontendInterestedPersonList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/InterestedPersonList/Download',
-            __NAMESPACE__.'\Frontend::frontendInterestedPersonListDownload'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/ParentTeacherConferenceList', __NAMESPACE__.'\Frontend::frontendParentTeacherConferenceList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/ParentTeacherConferenceList/Download',
-            __NAMESPACE__.'\Frontend::frontendParentTeacherConferenceListDownload'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/ClubMemberList', __NAMESPACE__.'\Frontend::frontendClubMemberList'
-        ));
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/ClubMemberList/Download', __NAMESPACE__.'\Frontend::frontendClubMemberListDownload'
         ));
     }
 
