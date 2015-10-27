@@ -3,8 +3,7 @@ namespace SPHERE\Application\Document;
 
 use SPHERE\Application\Document\Designer\Designer;
 use SPHERE\Application\Document\Explorer\Explorer;
-use SPHERE\Application\Document\Explorer\Storage\Writer\Database;
-use SPHERE\Application\Document\Explorer\Storage\Writer\Temporary;
+use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Document\Search\Search;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Common\Main;
@@ -40,8 +39,8 @@ class Document implements IClusterInterface
 
         $Stage = new Stage('Dashboard', 'Dokumente');
 
-        $T = new Temporary();
-        $D = new Database();
+        $T = Storage::useWriter()->getTemporary();
+        $D = Storage::useWriter()->getDatabase();
 
         Debugger::screenDump($T, $D);
         return $Stage;

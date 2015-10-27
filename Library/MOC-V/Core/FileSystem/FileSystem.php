@@ -95,29 +95,32 @@ class FileSystem implements IVendorInterface
     }
 
     /**
-     * @param string $Location
+     * @param string      $Location
+     * @param null|string $Filename
      *
      * @return IBridgeInterface
      * @throws FileSystemException
      */
-    public static function getDownload($Location)
+    public static function getDownload($Location, $Filename = null)
     {
 
-        return self::getUniversalDownload($Location);
+        return self::getUniversalDownload($Location, $Filename);
     }
 
     /**
-     * @param string $Location
+     * @param string      $Location
+     * @param null|string $Filename
      *
      * @return IBridgeInterface
      */
-    private static function getUniversalDownload($Location)
+    private static function getUniversalDownload($Location, $Filename = null)
     {
 
         $Loader = new FileSystem(
             new Vendor(
                 new UniversalDownload(
-                    new FileParameter($Location)
+                    new FileParameter($Location),
+                    new FileParameter($Filename)
                 )
             )
         );

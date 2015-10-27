@@ -14,6 +14,9 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblFile extends Element
 {
+
+    const ATTR_NAME = 'Name';
+
     /**
      * @Column(type="string")
      */
@@ -48,6 +51,7 @@ class TblFile extends Element
      */
     public function getName()
     {
+
         return $this->Name;
     }
 
@@ -56,6 +60,7 @@ class TblFile extends Element
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -64,6 +69,7 @@ class TblFile extends Element
      */
     public function getDescription()
     {
+
         return $this->Description;
     }
 
@@ -72,6 +78,7 @@ class TblFile extends Element
      */
     public function setDescription($Description)
     {
+
         $this->Description = $Description;
     }
 
@@ -80,6 +87,7 @@ class TblFile extends Element
      */
     public function getFileName()
     {
+
         return $this->FileName;
     }
 
@@ -88,6 +96,7 @@ class TblFile extends Element
      */
     public function setFileName($FileName)
     {
+
         $this->FileName = $FileName;
     }
 
@@ -96,6 +105,7 @@ class TblFile extends Element
      */
     public function getFileExtension()
     {
+
         return $this->FileExtension;
     }
 
@@ -104,6 +114,7 @@ class TblFile extends Element
      */
     public function setFileExtension($FileExtension)
     {
+
         $this->FileExtension = $FileExtension;
     }
 
@@ -112,6 +123,7 @@ class TblFile extends Element
      */
     public function getFileContent()
     {
+
         return $this->FileContent;
     }
 
@@ -120,6 +132,7 @@ class TblFile extends Element
      */
     public function setFileContent($FileContent)
     {
+
         $this->FileContent = $FileContent;
     }
 
@@ -128,6 +141,7 @@ class TblFile extends Element
      */
     public function getFileType()
     {
+
         return $this->FileType;
     }
 
@@ -136,6 +150,7 @@ class TblFile extends Element
      */
     public function setFileType($FileType)
     {
+
         $this->FileType = $FileType;
     }
 
@@ -144,6 +159,7 @@ class TblFile extends Element
      */
     public function getFileSize()
     {
+
         return $this->FileSize;
     }
 
@@ -152,6 +168,7 @@ class TblFile extends Element
      */
     public function setFileSize($FileSize)
     {
+
         $this->FileSize = $FileSize;
     }
 }

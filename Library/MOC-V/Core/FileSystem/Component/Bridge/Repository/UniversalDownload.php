@@ -19,12 +19,13 @@ class UniversalDownload extends Bridge implements IBridgeInterface
     private $Instance = null;
 
     /**
-     * @param FileParameter $FileOption
+     * @param FileParameter $FileLocation
+     * @param FileParameter $FileName
      */
-    public function __construct(FileParameter $FileOption)
+    public function __construct(FileParameter $FileLocation, FileParameter $FileName = null)
     {
 
-        $this->Instance = new Download($FileOption->getFile());
+        $this->Instance = new Download($FileLocation->getFile(), ( $FileName ? $FileName->getFile() : null ));
     }
 
     /**

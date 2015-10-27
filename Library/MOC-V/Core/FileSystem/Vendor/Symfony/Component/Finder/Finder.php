@@ -159,7 +159,7 @@ class Finder implements \IteratorAggregate, \Countable
     {
 
         $this->adapters[$adapter->getName()] = array(
-            'adapter' => $adapter,
+            'adapter'  => $adapter,
             'priority' => $priority,
             'selected' => false,
         );

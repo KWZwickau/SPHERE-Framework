@@ -1,10 +1,12 @@
 <?php
-namespace SPHERE\Application\Document\Explorer\Storage\Writer;
+namespace SPHERE\Application\Document\Explorer\Storage\Writer\Type;
+
+use SPHERE\Application\Document\Explorer\Storage\Writer\AbstractWriter;
 
 /**
  * Class Temporary
  *
- * @package SPHERE\Application\Document\Explorer\Storage\Writer
+ * @package SPHERE\Application\Document\Explorer\Storage\Writer\Type
  */
 class Temporary extends AbstractWriter
 {
@@ -17,7 +19,6 @@ class Temporary extends AbstractWriter
     {
 
         $Location = sys_get_temp_dir().DIRECTORY_SEPARATOR.$Prefix.'-'.sha1(uniqid($Prefix, true)).'.'.$Extension;
-        file_put_contents($Location, '');
         $this->setFileLocation($Location);
     }
 

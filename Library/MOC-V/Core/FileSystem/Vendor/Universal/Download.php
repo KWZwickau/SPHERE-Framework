@@ -13,14 +13,18 @@ class Download
 
     /** @var \MOC\V\Core\FileSystem\Component\IBridgeInterface $Location */
     private $Location = null;
+    /** @var null|string $Name */
+    private $Name = null;
 
     /**
-     * @param string $Location
+     * @param string      $Location
+     * @param null|string $Name
      */
-    public function __construct($Location)
+    public function __construct($Location, $Name = null)
     {
 
         $this->setLocation($Location);
+        $this->Name = $Name;
     }
 
     /**
@@ -45,7 +49,7 @@ class Download
             // Set headers.
             header('Content-Description: Download');
             header('Content-Type: '.$Type);
-            header('Content-Disposition: attachment; filename="'.basename($this->getRealPath()).'"');
+            header('Content-Disposition: attachment; filename="'.( $this->Name ? $this->Name : basename($this->getRealPath()) ).'"');
             header('Content-Transfer-Encoding: binary');
             header('Expires: 0');
             header('Cache-Control: public, must-revalidate, post-check=0, pre-check=0');
@@ -61,6 +65,15 @@ class Download
 
             return file_get_contents($this->getRealPath());
         } else {
+            // Set headers.
+            header('HTTP/1.0 404 Not Found');
+
+            // Erase and flush the output buffer
+            if (ob_get_level()) {
+                ob_clean();
+                flush();
+            }
+
             return '';
         }
     }

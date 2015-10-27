@@ -263,7 +263,7 @@ abstract class AbstractFindAdapter extends AbstractAdapter
                     break;
                 case '<':
                 default:
-                $command->add('-size -'.$size->getTarget().'c');
+                    $command->add('-size -'.$size->getTarget().'c');
             }
         }
     }
@@ -302,7 +302,7 @@ abstract class AbstractFindAdapter extends AbstractAdapter
                     break;
                 case '<':
                 default:
-                $command->add('-mmin +'.$mins);
+                    $command->add('-mmin +'.$mins);
             }
         }
     }

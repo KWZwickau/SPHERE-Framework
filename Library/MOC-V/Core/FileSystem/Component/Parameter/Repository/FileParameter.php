@@ -14,11 +14,11 @@ use MOC\V\Core\FileSystem\Component\Parameter\Parameter;
 class FileParameter extends Parameter implements IParameterInterface
 {
 
-    /** @var string $File */
+    /** @var string|null $File */
     private $File = null;
 
     /**
-     * @param string $File
+     * @param string|null $File
      */
     public function __construct($File)
     {
@@ -27,7 +27,7 @@ class FileParameter extends Parameter implements IParameterInterface
     }
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getFile()
     {
@@ -36,7 +36,7 @@ class FileParameter extends Parameter implements IParameterInterface
     }
 
     /**
-     * @param string $File
+     * @param string|null $File
      *
      * @throws EmptyFileException
      * @throws \MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException
@@ -44,7 +44,7 @@ class FileParameter extends Parameter implements IParameterInterface
     public function setFile($File)
     {
 
-        if (empty( $File )) {
+        if (empty( $File ) && null !== $File) {
             throw new EmptyFileException();
         } else {
             if (!is_dir($File)) {

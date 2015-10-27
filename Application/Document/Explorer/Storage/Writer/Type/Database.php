@@ -1,13 +1,14 @@
 <?php
-namespace SPHERE\Application\Document\Explorer\Storage\Writer;
+namespace SPHERE\Application\Document\Explorer\Storage\Writer\Type;
 
 use SPHERE\Application\Document\Explorer\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Document\Explorer\Storage\Writer\AbstractWriter;
 
 /**
  * Class Database
  *
- * @package SPHERE\Application\Document\Explorer\Storage\Writer
+ * @package SPHERE\Application\Document\Explorer\Storage\Writer\Type
  */
 class Database extends AbstractWriter
 {
@@ -63,6 +64,21 @@ class Database extends AbstractWriter
     public function saveFile()
     {
 
+        // TODO: Save & Update
+
+        if ($this->tblFile) {
+
+        } else {
+            $Entity = Storage::useService()->insertFile(
+                $this->getName(),
+                $this->getDescription(),
+                $this->getFileName(),
+                $this->getFileExtension(),
+                $this->getFileContent(),
+                $this->getFileType(),
+                $this->getFileSize()
+            );
+        }
     }
 
     /**
