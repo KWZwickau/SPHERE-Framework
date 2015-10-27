@@ -230,6 +230,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->addButton(new Standard('Zurück', '/Billing/Bookkeeping/Invoice/IsNotConfirmed', new ChevronLeft()));
 
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
+        $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
 
         if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
             $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
@@ -263,6 +264,8 @@ class Frontend extends Extension implements IFrontendInterface
             if (!empty( $tblInvoiceItemAll )) {
                 array_walk($tblInvoiceItemAll,
                     function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
+                        $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                        $tblAccount = Banking::useService()->getActiveAccountByDebtor( $tblDebtor );
 
                         if ($tblInvoice->getServiceBillingBankingPaymentType()->getId() == 1) //SEPA-Lastschrift
                         {
@@ -271,9 +274,10 @@ class Frontend extends Extension implements IFrontendInterface
 
                                 $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
                                 if ($tblDebtor) {
-                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
-                                        $tblCommodity)
-                                    ) {
+//                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
+//                                        $tblCommodity)) {
+                                    if (Banking::useService()->getReferenceByAccountAndCommodity( $tblAccount, $tblCommodity ))
+                                    {
                                         $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
                                             'Mandatsreferenz'.' '.new Ok()
                                         );
@@ -312,7 +316,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 )))->__toString();
                     }, $tblInvoice);
             }
-            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+
 
             $Stage->setContent(
                 new Layout(array(

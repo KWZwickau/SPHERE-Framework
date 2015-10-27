@@ -133,9 +133,8 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblDebtorCommodity');
 
         if (!$this->getConnection()->hasColumn('tblDebtorCommodity', 'serviceBilling_Commodity')) {
-            $Table->addColumn('serviceBilling_Commodity', 'bigint');
+            $Table->addColumn('serviceBilling_Commodity', 'bigint', array('notnull' => false));
         }
-
         $this->getConnection()->addForeignKey($Table, $tblDebtor);
         return $Table;
     }
@@ -162,6 +161,9 @@ class Setup extends AbstractSetup
         }
         if (!$this->getConnection()->hasColumn('tblReference', 'serviceBilling_Commodity')) {
             $Table->addColumn('serviceBilling_Commodity', 'bigint');
+        }
+        if (!$this->getConnection()->hasColumn('tblReference', 'tblAccount')) {
+            $Table->addColumn('tblAccount', 'bigint', array('notnull' => false));
         }
 
         $this->getConnection()->addForeignKey($Table, $tblDebtor);

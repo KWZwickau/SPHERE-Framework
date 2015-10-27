@@ -120,7 +120,9 @@ class Banking implements IModuleInterface
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Reference/Change',
                 __NAMESPACE__.'\Frontend::frontendBankingDebtorReferenceChange'
-            )->setParameterDefault('Id', null)
+            )->setParameterDefault('DebtorId', null)
+                ->setParameterDefault('ReferenceId', null)
+                ->setParameterDefault('AccountId', null)
                 ->setParameterDefault('Reference', null)
         );
 
@@ -128,13 +130,14 @@ class Banking implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Reference',
                 __NAMESPACE__.'\Frontend::frontendBankingDebtorReference'
             )->setParameterDefault('DebtorId', null)
-                ->setParameterDefault('ReferenceId', null)
+                ->setParameterDefault('AccountId', null)
                 ->setParameterDefault('Reference', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Debtor/Reference/Deactivate',
                 __NAMESPACE__.'\Frontend::frontendBankingDebtorReferenceDeactivate'
-            )->setParameterDefault('Id', null)
+            )->setParameterDefault('ReferenceId', null)
+                ->setParameterDefault('AccountId', null)
         );
     }
 
@@ -155,6 +158,7 @@ class Banking implements IModuleInterface
      */
     public static function useFrontend()
     {
+
         return new Frontend();
     }
 

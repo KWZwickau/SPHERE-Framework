@@ -22,6 +22,7 @@ class TblReference extends Element
     const ATTR_SERVICE_BILLING_COMMODITY = "serviceBilling_Commodity";
     const ATTR_IS_VOID = "IsVoid";
     const ATTR_REFERENCE = "Reference";
+    const ATTR_TBL_ACCOUNT = "tblAccount";
 
     /**
      * @Column(type="string")
@@ -43,6 +44,10 @@ class TblReference extends Element
      * @Column(type="bigint")
      */
     protected $serviceBilling_Commodity;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblAccount;
 
     /**
      * @return string $Reference
@@ -110,7 +115,7 @@ class TblReference extends Element
     /**
      * @return bool|TblDebtor
      */
-    public function getServiceBillingBanking()
+    public function getServiceTblDebtor()
     {
 
         if (null === $this->tblDebtor) {
@@ -149,5 +154,27 @@ class TblReference extends Element
     {
 
         $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
+    }
+
+    /**
+     * @return bool|TblAccount
+     */
+    public function getServiceTblAccount()
+    {
+
+        if (null === $this->tblAccount) {
+            return false;
+        } else {
+            return Banking::useService()->getAccountById($this->tblAccount);
+        }
+    }
+
+    /**
+     * @param null|TblAccount $serviceTblAccount
+     */
+    public function setServiceTblAccount(TblAccount $serviceTblAccount)
+    {
+
+        $this->tblAccount = ( null === $serviceTblAccount ? null : $serviceTblAccount->getId() );
     }
 }

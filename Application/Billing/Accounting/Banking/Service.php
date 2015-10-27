@@ -85,6 +85,18 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblAccount   $tblAccount
+     * @param TblCommodity $tblCommodity
+     *
+     * @return bool|TblReference
+     */
+    public function getReferenceByAccountAndCommodity(TblAccount $tblAccount, TblCommodity $tblCommodity)
+    {
+
+        return (new Data($this->getBinding()))->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
+    }
+
+    /**
      * @param $Id
      *
      * @return bool|TblPaymentType
@@ -232,6 +244,28 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool|TblReference[]
+     */
+    public function getReferenceByAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->getBinding()))->getReferenceByAccount($tblAccount);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return TblReference[]
+     */
+    public function getReferenceActiveByAccount( TblAccount $tblAccount )
+    {
+
+        return (new Data($this->getBinding()))->getReferenceActiveByAccount($tblAccount);
+    }
+
+    /**
      * @param TblDebtor $tblDebtor
      *
      * @return int
@@ -263,12 +297,10 @@ class Service extends AbstractService
             return '';
         }
 
-        if( Banking::useService()->getAccountAllByDebtor($tblDebtor) )
-        {
+        if (Banking::useService()->getAccountAllByDebtor($tblDebtor)) {
             $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
-            foreach($tblAccountList as $tblAccount)
-            {
-                Banking::useService()->destroyAccount( $tblAccount );
+            foreach ($tblAccountList as $tblAccount) {
+                Banking::useService()->destroyAccount($tblAccount);
             }
         }
 
@@ -323,7 +355,7 @@ class Service extends AbstractService
      *
      * @return string
      */
-    public function deactivateBankingReference(TblReference $tblReference)
+    public function deactivateBankingReference(TblReference $tblReference, $AccountId)
     {
 
         if (null === $tblReference) {
@@ -332,11 +364,13 @@ class Service extends AbstractService
         if ((new Data($this->getBinding()))->deactivateReference($tblReference)) {
             return new Success('Die Deaktivierung ist erfasst worden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1,
-                array('Id' => $tblReference->getServiceBillingBanking()->getId()));
+                array('DebtorId' => $tblReference->getServiceTblDebtor()->getId(),
+                    'AccountId'=> $AccountId));
         } else {
             return new Danger('Die Referenz konnte nicht deaktiviert werden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 3,
-                array('Id' => $tblReference->getServiceBillingBanking()->getId()));
+                array('DebtorId' => $tblReference->getServiceTblDebtor()->getId(),
+                      'AccountId'=> $AccountId));
         }
     }
 
@@ -503,6 +537,7 @@ class Service extends AbstractService
         IFormInterface &$Stage = null,
         TblReference $tblReference,
         $DebtorId,
+        $AccountId,
         $Reference
     ) {
 
@@ -527,10 +562,12 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1, array('Id' => $DebtorId));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1, array('DebtorId'  => $DebtorId,
+                                                                                           'AccountId' => $AccountId));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 10, array('Id' => $DebtorId));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 10, array('Id'        => $DebtorId,
+                                                                                            'AccountId' => $AccountId));
             }
             return $Stage;
         }
@@ -538,13 +575,14 @@ class Service extends AbstractService
     }
 
     /**
-     * @param IFormInterface $Stage
-     * @param TblDebtor      $Debtor
-     * @param                $Reference
+     * @param IFormInterface|null $Stage
+     * @param TblDebtor           $tblDebtor
+     * @param TblAccount          $tblAccount
+     * @param                     $Reference
      *
      * @return IFormInterface|string
      */
-    public function createReference(IFormInterface &$Stage = null, TblDebtor $Debtor, $Reference)
+    public function createReference(IFormInterface &$Stage = null, TblDebtor $tblDebtor, TblAccount $tblAccount, $Reference)
     {
 
         /**
@@ -568,12 +606,14 @@ class Service extends AbstractService
         if (!$Error) {
 
             (new Data($this->getBinding()))->createReference($Reference['Reference'],
-                $Debtor->getDebtorNumber(),
+                $tblDebtor->getDebtorNumber(),
                 $Reference['ReferenceDate'],
-                Commodity::useService()->getCommodityById($Reference['Commodity']));
+                Commodity::useService()->getCommodityById($Reference['Commodity']),
+                $tblAccount);
 
             return new Success('Die Referenz ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array('Id' => $Debtor->getId()));
+            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array('DebtorId'  => $tblDebtor->getId(),
+                                                                                   'AccountId' => $tblAccount->getId()));
         }
 
         return $Stage;
@@ -673,7 +713,7 @@ class Service extends AbstractService
         if (!$Error) {
             if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
                 $Account['Active'] = false;
-            } else{
+            } else {
                 $Account['Active'] = true;
             }
             if ((new Data ($this->getBinding()))->createAccount(

@@ -173,6 +173,32 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool| TblReference
+     */
+    public function getReferenceByAccount(TblAccount $tblAccount)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblReference')
+            ->findBy(array(TblReference::ATTR_TBL_ACCOUNT => $tblAccount->getId()));
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return array|bool
+     */
+    public function getReferenceActiveByAccount(TblAccount $tblAccount)
+    {
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblReference')
+            ->findBy(array(TblReference::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                TblReference::ATTR_IS_VOID => false));
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
      * @param TblDebtorCommodity $tblDebtorCommodity
      *
      * @return bool
@@ -287,6 +313,16 @@ class Data extends AbstractData
     {
 
         $Manager = $this->getConnection()->getEntityManager();
+
+        if(Banking::useService()->getReferenceActiveByAccount($tblAccount))
+        {
+            $tblReferenceList = Banking::useService()->getReferenceActiveByAccount($tblAccount);
+            foreach($tblReferenceList as $tblReference)
+            {
+                $this->deactivateReference($tblReference);
+            }
+        }
+
         $Entity = $Manager->getEntityById('TblAccount', $tblAccount->getId());
         if (null !== $Entity) {
             /**@var Element $Entity */
@@ -401,7 +437,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function changePaymentType( TblDebtor $tblDebtor , TblPaymentType $paymentType)
+    public function changePaymentType(TblDebtor $tblDebtor, TblPaymentType $paymentType)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -524,15 +560,21 @@ class Data extends AbstractData
     }
 
     /**
-     * @param $Reference
-     * @param $DebtorNumber
-     * @param $ReferenceDate
-     * @param $tblCommodity
+     * @param              $Reference
+     * @param              $DebtorNumber
+     * @param              $ReferenceDate
+     * @param TblCommodity $tblCommodity
+     * @param TblAccount   $tblAccount
      *
      * @return TblReference
      */
-    public function createReference($Reference, $DebtorNumber, $ReferenceDate, TblCommodity $tblCommodity)
-    {
+    public function createReference(
+        $Reference,
+        $DebtorNumber,
+        $ReferenceDate,
+        TblCommodity $tblCommodity,
+        TblAccount $tblAccount
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -547,6 +589,7 @@ class Data extends AbstractData
             date_default_timezone_set('Europe/Berlin');
             $Entity->setReferenceDate(new \DateTime('now'));
         }
+        $Entity->setServiceTblAccount($tblAccount);
         $Manager->saveEntity($Entity);
 
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
@@ -685,6 +728,22 @@ class Data extends AbstractData
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblReference')->findOneBy(array(
             TblReference::ATTR_TBL_DEBTOR                => $tblDebtor->getId(),
+            TblReference::ATTR_SERVICE_BILLING_COMMODITY => $tblCommodity->getId(),
+            TblReference::ATTR_IS_VOID                   => false
+        ));
+        return ( null === $Entity ? false : $Entity );
+    }
+
+    /**
+     * @param TblAccount   $tblAccount
+     * @param TblCommodity $tblCommodity
+     *
+     * @return bool|TblReference
+     */
+    public function getReferenceByAccountAndCommodity(TblAccount $tblAccount, TblCommodity $tblCommodity)
+    {
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblReference')->findOneBy(array(
+            TblReference::ATTR_TBL_ACCOUNT                => $tblAccount->getId(),
             TblReference::ATTR_SERVICE_BILLING_COMMODITY => $tblCommodity->getId(),
             TblReference::ATTR_IS_VOID                   => false
         ));
