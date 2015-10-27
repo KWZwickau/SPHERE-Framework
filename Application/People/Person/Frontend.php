@@ -31,6 +31,7 @@ use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -91,6 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Person'] )) {
+                $ShowMask = false;
                 $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
                 $Global->POST['Person']['Title'] = $tblPerson->getTitle();
                 $Global->POST['Person']['FirstName'] = $tblPerson->getFirstName();
@@ -104,13 +106,21 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $Global->savePost();
+            } else {
+                $ShowMask = true;
             }
 
-            $BasicTable = Person::useService()->updatePerson(
-                $this->formPerson()
-                    ->appendFormButton(new Primary('Grunddaten speichern'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $tblPerson, $Person);
+            $BasicTable = new Accordion('<span class="glyphicons glyphicons-pencil"></span>&nbsp;'
+                .'Grunddaten & Gruppenzugehörigkeit ändern&nbsp;'
+                .new Muted(new Small('Klicken Sie hier um die Maske zu öffen/zu schließen'))
+            );
+            $BasicTable->addItem(
+                Person::useService()->updatePerson(
+                    $this->formPerson()
+                        ->appendFormButton(new Primary('Grunddaten speichern'))
+                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                    $tblPerson, $Person),
+                $ShowMask);
 
             $MetaTabs = Group::useService()->getGroupAllByPerson($tblPerson);
             // Sort by Name

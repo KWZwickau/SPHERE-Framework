@@ -16,6 +16,9 @@ use SPHERE\System\Database\Fitting\Element;
 class TblPerson extends Element
 {
 
+    const ATTR_FIRST_NAME = 'FirstName';
+    const ATTR_LAST_NAME = 'LastName';
+
     /**
      * @Column(type="bigint")
      */
@@ -56,7 +59,11 @@ class TblPerson extends Element
     public function getSalutation()
     {
 
-        return $this->getTblSalutation()->getSalutation();
+        if (!$this->getTblSalutation()) {
+            return '';
+        } else {
+            return $this->getTblSalutation()->getSalutation();
+        }
     }
 
     /**
