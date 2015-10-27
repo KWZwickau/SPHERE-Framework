@@ -6,6 +6,8 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Window\Redirect;
+use SPHERE\System\Cache\Cache;
+use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Binding\AbstractService;
 
 /**
@@ -75,11 +77,18 @@ class Service extends AbstractService
     public function getConsumerBySession($Session = null)
     {
 
-        $tblConsumer = (new Data($this->getBinding()))->getConsumerBySession($Session);
-        if ($tblConsumer) {
+        $Cache = (new Cache(new Memory(__METHOD__)))->getCache();
+        if (false === ( $tblConsumer = $Cache->getValue($Session) )) {
+            $tblConsumer = (new Data($this->getBinding()))->getConsumerBySession($Session);
+            if ($tblConsumer) {
+                $Cache->setValue($Session, $tblConsumer);
+            } else {
+                $tblConsumer = (new Data($this->getBinding()))->getConsumerById(1);
+                $Cache->setValue($Session, $tblConsumer);
+            }
             return $tblConsumer;
         } else {
-            return (new Data($this->getBinding()))->getConsumerById(1);
+            return $tblConsumer;
         }
     }
 

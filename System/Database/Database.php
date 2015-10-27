@@ -25,6 +25,7 @@ use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\System\Cache\Cache;
 use SPHERE\System\Cache\Type\Apcu;
 use SPHERE\System\Cache\Type\Memcached;
+use SPHERE\System\Cache\Type\Memory;
 use SPHERE\System\Database\Fitting\Logger;
 use SPHERE\System\Database\Fitting\Manager;
 use SPHERE\System\Database\Link\Connection;
@@ -125,52 +126,61 @@ class Database extends Extension
         // Sanitize Namespace
         $EntityNamespace = trim(str_replace(array('/', '\\'), '\\', $EntityNamespace), '\\').'\\';
 
-        // System Cache
-        /** @var Memcached $SystemMemcached */
-        $SystemMemcached = (new Cache(new Memcached(), true))->getCache();
-        /** @var Apcu $SystemApc */
-        $SystemApc = (new Cache(new Apcu(), true))->getCache();
+        $Memory = (new Cache(new Memory(__METHOD__)))->getCache();
 
-        $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
-        $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
-        $MetadataConfiguration->addCustomHydrationMode(
-            'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator'
-        );
-        $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
+        if (false === ( $Manager = $Memory->getValue($EntityPath.$EntityNamespace) )) {
 
-        if ($this->UseCache) {
-            if ($SystemMemcached->isAvailable()) {
-                $Cache = new MemcachedCache();
-                $Cache->setMemcached($SystemMemcached->getServer());
-                $Cache->setNamespace($EntityPath);
-                $ConnectionConfig->setResultCacheImpl($Cache);
-                $MetadataConfiguration->setHydrationCacheImpl($Cache);
-                if ($SystemApc->isAvailable()) {
-                    $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
-                    $MetadataConfiguration->setQueryCacheImpl(new ApcCache());
+            // System Cache
+            /** @var Memcached $SystemMemcached */
+            $SystemMemcached = (new Cache(new Memcached(), true))->getCache();
+            /** @var Apcu $SystemApc */
+            $SystemApc = (new Cache(new Apcu(), true))->getCache();
+
+            $MetadataConfiguration = Setup::createAnnotationMetadataConfiguration(array($EntityPath));
+            $MetadataConfiguration->setDefaultRepositoryClassName('\SPHERE\System\Database\Fitting\Repository');
+            $MetadataConfiguration->addCustomHydrationMode(
+                'COLUMN_HYDRATOR', '\SPHERE\System\Database\Fitting\ColumnHydrator'
+            );
+            $ConnectionConfig = $this->getConnection()->getConnection()->getConfiguration();
+
+            if ($this->UseCache) {
+                if ($SystemMemcached->isAvailable()) {
+                    $Cache = new MemcachedCache();
+                    $Cache->setMemcached($SystemMemcached->getServer());
+                    $Cache->setNamespace($EntityPath);
+                    $ConnectionConfig->setResultCacheImpl($Cache);
+                    $MetadataConfiguration->setHydrationCacheImpl($Cache);
+                    if ($SystemApc->isAvailable()) {
+                        $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
+                        $MetadataConfiguration->setQueryCacheImpl(new ApcCache());
+                    } else {
+                        $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
+                        $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
+                    }
                 } else {
-                    $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
+                    if ($SystemApc->isAvailable()) {
+                        $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
+                    } else {
+                        $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
+                    }
                     $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
+                    $MetadataConfiguration->setHydrationCacheImpl(new ArrayCache());
+                    $ConnectionConfig->setResultCacheImpl(new ArrayCache());
                 }
-            } else {
-                if ($SystemApc->isAvailable()) {
-                    $MetadataConfiguration->setMetadataCacheImpl(new ApcCache());
-                } else {
-                    $MetadataConfiguration->setMetadataCacheImpl(new ArrayCache());
-                }
-                $MetadataConfiguration->setQueryCacheImpl(new ArrayCache());
-                $MetadataConfiguration->setHydrationCacheImpl(new ArrayCache());
-                $ConnectionConfig->setResultCacheImpl(new ArrayCache());
             }
-        }
 
-        if ($this->getDebugger()->isActive()) {
-            $ConnectionConfig->setSQLLogger(new Logger());
-        }
+            if ($this->getDebugger()->isActive()) {
+                $ConnectionConfig->setSQLLogger(new Logger());
+            }
 
-        return new Manager(
-            EntityManager::create($this->getConnection()->getConnection(), $MetadataConfiguration), $EntityNamespace
-        );
+            $Manager = new Manager(
+                EntityManager::create($this->getConnection()->getConnection(), $MetadataConfiguration), $EntityNamespace
+            );
+            $Memory->setValue($EntityPath.$EntityNamespace, $Manager);
+            return $Manager;
+        } else {
+            return $Manager;
+        }
     }
 
     /**
