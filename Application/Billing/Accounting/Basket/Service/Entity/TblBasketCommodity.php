@@ -3,10 +3,13 @@ namespace SPHERE\Application\Billing\Accounting\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -37,15 +40,6 @@ class TblBasketCommodity extends Element
     protected $serviceBilling_Commodity;
 
     /**
-     * @param null|TblBasket $tblBasket
-     */
-    public function setTblBasket($tblBasket = null)
-    {
-
-        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
-    }
-
-    /**
      * @return bool|TblBasket
      */
     public function getTblBasket()
@@ -54,8 +48,17 @@ class TblBasketCommodity extends Element
         if (null === $this->tblBasket) {
             return false;
         } else {
-            return Basket::useService()->entityBasketById($this->tblBasket);
+            return Basket::useService()->getBasketById($this->tblBasket);
         }
+    }
+
+    /**
+     * @param null|TblBasket $tblBasket
+     */
+    public function setTblBasket($tblBasket = null)
+    {
+
+        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
     }
 
     /**
@@ -67,7 +70,7 @@ class TblBasketCommodity extends Element
         if (null === $this->serviceManagement_Person) {
             return false;
         } else {
-            return Management::servicePerson()->entityPersonById($this->serviceManagement_Person);
+            return Person::useService()->getPersonById($this->serviceManagement_Person);
         }
     }
 
@@ -81,15 +84,6 @@ class TblBasketCommodity extends Element
     }
 
     /**
-     * @param null|TblCommodity $tblCommodity
-     */
-    public function setServiceBillingCommodity($tblCommodity = null)
-    {
-
-        $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
-    }
-
-    /**
      * @return bool|TblCommodity
      */
     public function getServiceBillingCommodity()
@@ -98,7 +92,16 @@ class TblBasketCommodity extends Element
         if (null === $this->serviceBilling_Commodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById($this->serviceBilling_Commodity);
+            return Commodity::useService()->getCommodityById($this->serviceBilling_Commodity);
         }
+    }
+
+    /**
+     * @param null|TblCommodity $tblCommodity
+     */
+    public function setServiceBillingCommodity($tblCommodity = null)
+    {
+
+        $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
     }
 }

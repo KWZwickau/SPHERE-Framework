@@ -8,31 +8,15 @@ use SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity\TblPayment;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoice;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
 
-        /**
-         * TblPayment
-         */
-//        $this->actionCreatePaymentType('SEPA-Lastschrift');
     }
 
     /**
@@ -40,10 +24,10 @@ class Data
      *
      * @return bool|TblBalance
      */
-    public function entityBalanceById($Id)
+    public function getBalanceById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblBalance', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBalance', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -52,10 +36,10 @@ class Data
      *
      * @return bool|TblBalance
      */
-    public function entityBalanceByInvoice(TblInvoice $tblInvoice)
+    public function getBalanceByInvoice(TblInvoice $tblInvoice)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblBalance')->findOneBy(
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblBalance')->findOneBy(
             array(TblBalance::ATTR_SERVICE_BILLING_INVOICE => $tblInvoice->getId())
         );
         return ( null === $Entity ? false : $Entity );
@@ -66,31 +50,31 @@ class Data
      *
      * @return bool|TblPayment
      */
-    public function entityPaymentById($Id)
+    public function getPaymentById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblPayment', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblPayment', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @return bool|TblPayment[]
      */
-    public function entityPaymentAll()
+    public function getPaymentAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblPayment')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPayment')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @return bool|TblInvoice[]
      */
-    public function entityInvoiceHasFullPaymentAll()
+    public function getInvoiceHasFullPaymentAll()
     {
 
         $invoiceHasFullPaymentAll = array();
-        $balanceAll = $this->entityBalanceAll();
+        $balanceAll = $this->getBalanceAll();
         if ($balanceAll) {
             foreach ($balanceAll as $balance) {
                 $invoice = $balance->getServiceBillingInvoice();
@@ -112,10 +96,10 @@ class Data
     /**
      * @return bool|TblBalance[]
      */
-    public function entityBalanceAll()
+    public function getBalanceAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblBalance')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblBalance')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -128,7 +112,7 @@ class Data
     {
 
         $sum = 0.00;
-        $tblPaymentList = $this->entityPaymentByBalance($tblBalance);
+        $tblPaymentList = $this->getPaymentByBalance($tblBalance);
         foreach ($tblPaymentList as $tblPayment) {
             $sum += $tblPayment->getValue();
         }
@@ -141,10 +125,10 @@ class Data
      *
      * @return bool|TblPayment[]
      */
-    public function entityPaymentByBalance(TblBalance $tblBalance)
+    public function getPaymentByBalance(TblBalance $tblBalance)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblPayment')->findBy(
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPayment')->findBy(
             array(TblPayment::ATTR_TBL_BALANCE => $tblBalance->getId())
         );
         return ( null === $Entity ? false : $Entity );
@@ -153,11 +137,11 @@ class Data
     /**
      * @return bool|TblInvoice[]
      */
-    public function entityInvoiceHasExportDateAll()
+    public function getInvoiceHasExportDateAll()
     {
 
         $invoiceHasExportDateAll = array();
-        $balanceAll = $this->entityBalanceAll();
+        $balanceAll = $this->getBalanceAll();
         if ($balanceAll) {
             foreach ($balanceAll as $balance) {
                 $invoice = $balance->getServiceBillingInvoice();
@@ -192,11 +176,11 @@ class Data
     {
 
         /** @var TblBalance[] $balanceAllByDebtor */
-        $balanceAllByDebtor = $this->Connection->getEntityManager()->getEntity('TblBalance')->findBy(
+        $balanceAllByDebtor = $this->getConnection()->getEntityManager()->getEntity('TblBalance')->findBy(
             array(TblBalance::ATTR_SERVICE_BILLING_BANKING => $tblDebtor->getId())
         );
         foreach ($balanceAllByDebtor as $balance) {
-            $Entity = $this->Connection->getEntityManager()->getEntity('TblPayment')->findOneBy(
+            $Entity = $this->getConnection()->getEntityManager()->getEntity('TblPayment')->findOneBy(
                 array(TblPayment::ATTR_TBL_BALANCE => $balance->getId())
             );
             if ($Entity !== null) {
@@ -211,16 +195,26 @@ class Data
      * @param TblDebtor  $serviceBilling_Banking
      * @param TblInvoice $serviceBilling_Invoice
      * @param            $ExportDate
+     * @param null       $BankName
+     * @param null       $IBAN
+     * @param null       $BIC
+     * @param null       $Owner
+     * @param null       $CashSign
      *
      * @return bool
      */
-    public function actionCreateBalance(
+    public function createBalance(
         TblDebtor $serviceBilling_Banking,
         TblInvoice $serviceBilling_Invoice,
-        $ExportDate
+        $ExportDate = null,
+        $BankName = null,
+        $IBAN = null,
+        $BIC = null,
+        $Owner = null,
+        $CashSign = null
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblBalance')->findOneBy(array(
             TblBalance::ATTR_SERVICE_BILLING_BANKING => $serviceBilling_Banking->getId(),
             TblBalance::ATTR_SERVICE_BILLING_INVOICE => $serviceBilling_Invoice->getId()
@@ -233,8 +227,23 @@ class Data
             if ($ExportDate !== null) {
                 $Entity->setExportDate($ExportDate);
             }
+            if ($BankName !== null) {
+                $Entity->setBankName($BankName);
+            }
+            if ($IBAN !== null) {
+                $Entity->setIBAN($IBAN);
+            }
+            if ($BIC !== null) {
+                $Entity->setBIC($BIC);
+            }
+            if ($Owner !== null) {
+                $Entity->setOwner($Owner);
+            }
+            if ($CashSign !== null) {
+                $Entity->setCashSign($CashSign);
+            }
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
 
             return true;
@@ -248,10 +257,10 @@ class Data
      *
      * @return bool
      */
-    public function actionSetExportDateBalance(TblBalance $tblBalance)
+    public function createSetExportDateBalance(TblBalance $tblBalance)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         /** @var TblBalance $Entity */
         $Entity = $Manager->getEntityById('TblInvoice', $tblBalance->getId());
         $Protocol = clone $Entity;
@@ -259,7 +268,7 @@ class Data
         if (null !== $Entity) {
             $Entity->setExportDate(new \DateTime('now'));
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
 
@@ -274,17 +283,17 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveBalance(TblBalance $tblBalance)
+    public function removeBalance(TblBalance $tblBalance)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblBalance')->findOneBy(
             array('Id' => $tblBalance->getId())
         );
 
         if (null !== $Entity) {
             /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
 
@@ -301,10 +310,10 @@ class Data
      *
      * @return TblPayment|null|object
      */
-    public function actionCreatePayment(TblBalance $tblBalance, $Value, \DateTime $Date)
+    public function createPayment(TblBalance $tblBalance, $Value, \DateTime $Date)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPayment')->findOneBy(array(
             'tblBalance' => $tblBalance->getId(),
             'Value'      => $Value,
@@ -318,7 +327,7 @@ class Data
             $Entity->setDate($Date);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
 
@@ -330,17 +339,17 @@ class Data
      *
      * @return bool
      */
-    public function actionRemovePayment(TblPayment $tblPayment)
+    public function removePayment(TblPayment $tblPayment)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPayment')->findOneBy(
             array('Id' => $tblPayment->getId())
         );
 
         if (null !== $Entity) {
             /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
 

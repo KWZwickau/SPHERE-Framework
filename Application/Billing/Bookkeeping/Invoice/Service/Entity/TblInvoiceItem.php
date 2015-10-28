@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\System\Database\Fitting\Element;
@@ -193,7 +194,7 @@ class TblInvoiceItem extends Element
         if (null === $this->tblInvoice) {
             return false;
         } else {
-            return Invoice::useService()->entityInvoiceById($this->tblInvoice);
+            return Invoice::useService()->getInvoiceById($this->tblInvoice);
         }
     }
 

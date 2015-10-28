@@ -1,25 +1,17 @@
 <?php
-
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service;
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
-use SPHERE\System\Database\Fitting\Structure;
+use SPHERE\System\Database\Binding\AbstractSetup;
 
-class Setup
+/**
+ * Class Setup
+ *
+ * @package SPHERE\Application\Billing\Bookkeeping\Invoice\Service
+ */
+class Setup extends AbstractSetup
 {
-
-    /** @var null|Structure $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Structure $Connection
-     */
-    function __construct(Structure $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     /**
      * @param bool $Simulate
@@ -32,7 +24,7 @@ class Setup
         /**
          * Table
          */
-        $Schema = clone $this->Connection->getSchema();
+        $Schema = clone $this->getConnection()->getSchema();
         $tblInvoice = $this->setTableInvoice($Schema);
         $tblInvoiceItem = $this->setTableInvoiceItem($Schema, $tblInvoice);
         $this->setTableInvoiceAccount($Schema, $tblInvoiceItem);
@@ -43,9 +35,9 @@ class Setup
         /**
          * Migration & Protocol
          */
-        $this->Connection->addProtocol(__CLASS__);
-        $this->Connection->setMigration($Schema, $Simulate);
-        return $this->Connection->getProtocol($Simulate);
+        $this->getConnection()->addProtocol(__CLASS__);
+        $this->getConnection()->setMigration($Schema, $Simulate);
+        return $this->getConnection()->getProtocol($Simulate);
     }
 
     /**
@@ -56,50 +48,50 @@ class Setup
     private function setTableInvoice(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblInvoice');
-        if (!$this->Connection->hasColumn('tblInvoice', 'IsPaid')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblInvoice');
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'IsPaid')) {
             $Table->addColumn('IsPaid', 'boolean');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'Number')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'Number')) {
             $Table->addColumn('Number', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'BasketName')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'BasketName')) {
             $Table->addColumn('BasketName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'IsVoid')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'IsVoid')) {
             $Table->addColumn('IsVoid', 'boolean');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'InvoiceDate')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'InvoiceDate')) {
             $Table->addColumn('InvoiceDate', 'date');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'PaymentDate')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'PaymentDate')) {
             $Table->addColumn('PaymentDate', 'date');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'Discount')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'Discount')) {
             $Table->addColumn('Discount', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'DebtorFirstName')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorFirstName')) {
             $Table->addColumn('DebtorFirstName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'DebtorLastName')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorLastName')) {
             $Table->addColumn('DebtorLastName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'DebtorSalutation')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorSalutation')) {
             $Table->addColumn('DebtorSalutation', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'DebtorNumber')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'DebtorNumber')) {
             $Table->addColumn('DebtorNumber', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'serviceManagement_Address')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceManagement_Address')) {
             $Table->addColumn('serviceManagement_Address', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'serviceManagement_Person')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceManagement_Person')) {
             $Table->addColumn('serviceManagement_Person', 'bigint', array('notnull' => false));
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'serviceBilling_Banking_Payment_Type')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'serviceBilling_Banking_Payment_Type')) {
             $Table->addColumn('serviceBilling_Banking_Payment_Type', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblInvoice', 'IsPaymentDateModified')) {
+        if (!$this->getConnection()->hasColumn('tblInvoice', 'IsPaymentDateModified')) {
             $Table->addColumn('IsPaymentDateModified', 'boolean');
         }
 
@@ -115,28 +107,28 @@ class Setup
     private function setTableInvoiceItem(Schema &$Schema, Table $tblInvoice)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblInvoiceItem');
+        $Table = $this->getConnection()->createTable($Schema, 'tblInvoiceItem');
 
-        if (!$this->Connection->hasColumn('tblInvoiceItem', 'CommodityDescription')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceItem', 'CommodityDescription')) {
             $Table->addColumn('CommodityDescription', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoiceItem', 'CommodityName')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceItem', 'CommodityName')) {
             $Table->addColumn('CommodityName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoiceItem', 'ItemDescription')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceItem', 'ItemDescription')) {
             $Table->addColumn('ItemDescription', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoiceItem', 'ItemName')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceItem', 'ItemName')) {
             $Table->addColumn('ItemName', 'string');
         }
-        if (!$this->Connection->hasColumn('tblInvoiceItem', 'ItemPrice')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceItem', 'ItemPrice')) {
             $Table->addColumn('ItemPrice', 'decimal', array('precision' => 14, 'scale' => 4));
         }
-        if (!$this->Connection->hasColumn('tblInvoiceItem', 'ItemQuantity')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceItem', 'ItemQuantity')) {
             $Table->addColumn('ItemQuantity', 'decimal', array('precision' => 14, 'scale' => 4));
         }
 
-        $this->Connection->addForeignKey($Table, $tblInvoice);
+        $this->getConnection()->addForeignKey($Table, $tblInvoice);
 
         return $Table;
     }
@@ -150,13 +142,13 @@ class Setup
     private function setTableInvoiceAccount(Schema &$Schema, Table $tblInvoiceItem)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblInvoiceAccount');
+        $Table = $this->getConnection()->createTable($Schema, 'tblInvoiceAccount');
 
-        if (!$this->Connection->hasColumn('tblInvoiceAccount', 'serviceBilling_Account')) {
+        if (!$this->getConnection()->hasColumn('tblInvoiceAccount', 'serviceBilling_Account')) {
             $Table->addColumn('serviceBilling_Account', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblInvoiceItem);
+        $this->getConnection()->addForeignKey($Table, $tblInvoiceItem);
 
         return $Table;
     }
@@ -169,15 +161,15 @@ class Setup
     private function setTableTempInvoice(Schema &$Schema)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblTempInvoice');
+        $Table = $this->getConnection()->createTable($Schema, 'tblTempInvoice');
 
-        if (!$this->Connection->hasColumn('tblTempInvoice', 'serviceBilling_Basket')) {
+        if (!$this->getConnection()->hasColumn('tblTempInvoice', 'serviceBilling_Basket')) {
             $Table->addColumn('serviceBilling_Basket', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblTempInvoice', 'serviceManagement_Person')) {
+        if (!$this->getConnection()->hasColumn('tblTempInvoice', 'serviceManagement_Person')) {
             $Table->addColumn('serviceManagement_Person', 'bigint');
         }
-        if (!$this->Connection->hasColumn('tblTempInvoice', 'serviceBilling_Debtor')) {
+        if (!$this->getConnection()->hasColumn('tblTempInvoice', 'serviceBilling_Debtor')) {
             $Table->addColumn('serviceBilling_Debtor', 'bigint');
         }
 
@@ -193,13 +185,13 @@ class Setup
     private function setTableTempInvoiceCommodity(Schema &$Schema, Table $tblTempInvoice)
     {
 
-        $Table = $this->Connection->createTable($Schema, 'tblTempInvoiceCommodity');
+        $Table = $this->getConnection()->createTable($Schema, 'tblTempInvoiceCommodity');
 
-        if (!$this->Connection->hasColumn('tblTempInvoiceCommodity', 'serviceBilling_Commodity')) {
+        if (!$this->getConnection()->hasColumn('tblTempInvoiceCommodity', 'serviceBilling_Commodity')) {
             $Table->addColumn('serviceBilling_Commodity', 'bigint');
         }
 
-        $this->Connection->addForeignKey($Table, $tblTempInvoice);
+        $this->getConnection()->addForeignKey($Table, $tblTempInvoice);
 
         return $Table;
     }

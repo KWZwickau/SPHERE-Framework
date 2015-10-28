@@ -11,51 +11,31 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
-use SPHERE\Application\IServiceInterface;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
-use SPHERE\System\Database\Fitting\Binding;
-use SPHERE\System\Database\Fitting\Structure;
-use SPHERE\System\Database\Link\Identifier;
+use SPHERE\System\Database\Binding\AbstractService;
 
-class Service implements IServiceInterface
+class Service extends AbstractService
 {
 
-    /** @var null|Binding */
-    private $Binding = null;
-    /** @var null|Structure */
-    private $Structure = null;
-
     /**
-     * Define Database Connection
-     *
-     * @param Identifier $Identifier
-     * @param string     $EntityPath
-     * @param string     $EntityNamespace
-     */
-    public function __construct(Identifier $Identifier, $EntityPath, $EntityNamespace)
-    {
-
-        $this->Binding = new Binding($Identifier, $EntityPath, $EntityNamespace);
-        $this->Structure = new Structure($Identifier);
-    }
-
-    /**
-     * @param bool $Simulate
+     * @param bool $doSimulation
      * @param bool $withData
      *
      * @return string
      */
-    public function setupService($Simulate, $withData)
+    public function setupService($doSimulation, $withData)
     {
 
-        $Protocol = (new Setup($this->Structure))->setupDatabaseSchema($Simulate);
-        if (!$Simulate && $withData) {
-            (new Data($this->Binding))->setupDatabaseContent();
+        $Protocol = (new Setup($this->getStructure()))->setupDatabaseSchema($doSimulation);
+        if (!$doSimulation && $withData) {
+            (new Data($this->getBinding()))->setupDatabaseContent();
         }
+
         return $Protocol;
     }
 
@@ -64,19 +44,19 @@ class Service implements IServiceInterface
      *
      * @return bool|TblCommodity[]
      */
-    public function entityCommodityAllByBasket(TblBasket $tblBasket)
+    public function getCommodityAllByBasket(TblBasket $tblBasket)
     {
 
-        return (new Data($this->Binding))->entityCommodityAllByBasket($tblBasket);
+        return (new Data($this->getBinding()))->getCommodityAllByBasket($tblBasket);
     }
 
     /**
      * @return bool|TblBasket[]
      */
-    public function entityBasketAll()
+    public function getBasketAll()
     {
 
-        return (new Data($this->Binding))->entityBasketAll();
+        return (new Data($this->getBinding()))->getBasketAll();
     }
 
     /**
@@ -84,10 +64,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketItem
      */
-    public function entityBasketItemById($Id)
+    public function getBasketItemById($Id)
     {
 
-        return (new Data($this->Binding))->entityBasketItemById($Id);
+        return (new Data($this->getBinding()))->getBasketItemById($Id);
     }
 
     /**
@@ -95,10 +75,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketPerson
      */
-    public function entityBasketPersonById($Id)
+    public function getBasketPersonById($Id)
     {
 
-        return (new Data($this->Binding))->entityBasketPersonById($Id);
+        return (new Data($this->getBinding()))->getBasketPersonById($Id);
     }
 
     /**
@@ -106,10 +86,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketCommodityDebtor[]
      */
-    public function entityBasketCommodityDebtorAllByBasketCommodity(TblBasketCommodity $tblBasketCommodity)
+    public function getBasketCommodityDebtorAllByBasketCommodity(TblBasketCommodity $tblBasketCommodity)
     {
 
-        return (new Data($this->Binding))->entityBasketCommodityDebtorAllByBasketCommodity($tblBasketCommodity);
+        return (new Data($this->getBinding()))->getBasketCommodityDebtorAllByBasketCommodity($tblBasketCommodity);
     }
 
     /**
@@ -117,10 +97,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketCommodity
      */
-    public function entityBasketCommodityById($Id)
+    public function getBasketCommodityById($Id)
     {
 
-        return (new Data($this->Binding))->entityBasketCommodityById($Id);
+        return (new Data($this->getBinding()))->getBasketCommodityById($Id);
     }
 
     /**
@@ -129,10 +109,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketItem[]
      */
-    public function entityBasketItemAllByBasketAndCommodity(TblBasket $tblBasket, TblCommodity $tblCommodity)
+    public function getBasketItemAllByBasketAndCommodity(TblBasket $tblBasket, TblCommodity $tblCommodity)
     {
 
-        return (new Data($this->Binding))->entityBasketItemAllByBasketAndCommodity($tblBasket, $tblCommodity);
+        return (new Data($this->getBinding()))->getBasketItemAllByBasketAndCommodity($tblBasket, $tblCommodity);
     }
 
     /**
@@ -143,7 +123,7 @@ class Service implements IServiceInterface
     public function countPersonByBasket(TblBasket $tblBasket)
     {
 
-        return (new Data($this->Binding))->countPersonByBasket($tblBasket);
+        return (new Data($this->getBinding()))->countPersonByBasket($tblBasket);
     }
 
     /**
@@ -151,10 +131,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketCommodity[]
      */
-    public function entityBasketCommodityAllByBasket(TblBasket $tblBasket)
+    public function getBasketCommodityAllByBasket(TblBasket $tblBasket)
     {
 
-        return (new Data($this->Binding))->entityBasketCommodityAllByBasket($tblBasket);
+        return (new Data($this->getBinding()))->getBasketCommodityAllByBasket($tblBasket);
     }
 
     /**
@@ -162,10 +142,10 @@ class Service implements IServiceInterface
      *
      * @return array
      */
-    public function entityPersonAllByBasket(TblBasket $tblBasket)
+    public function getPersonAllByBasket(TblBasket $tblBasket)
     {
 
-        $tblBasketPersonList = $this->entityBasketPersonAllByBasket($tblBasket);
+        $tblBasketPersonList = $this->getBasketPersonAllByBasket($tblBasket);
         $tblPerson = array();
         foreach ($tblBasketPersonList as $tblBasketPerson) {
             array_push($tblPerson, $tblBasketPerson->getServiceManagementPerson());
@@ -179,10 +159,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketPerson[]
      */
-    public function entityBasketPersonAllByBasket(TblBasket $tblBasket)
+    public function getBasketPersonAllByBasket(TblBasket $tblBasket)
     {
 
-        return (new Data($this->Binding))->entityBasketPersonAllByBasket($tblBasket);
+        return (new Data($this->getBinding()))->getBasketPersonAllByBasket($tblBasket);
     }
 
     /**
@@ -191,7 +171,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeCreateBasket(IFormInterface &$Stage = null, $Basket)
+    public function createBasket(IFormInterface &$Stage = null, $Basket)
     {
 
         /**
@@ -210,7 +190,7 @@ class Service implements IServiceInterface
         }
 
         if (!$Error) {
-            $tblBasket = (new Data($this->Binding))->actionCreateBasket(
+            $tblBasket = (new Data($this->getBinding()))->createBasket(
                 $Basket['Name']
             );
             return new Success('Der Warenkorb wurde erfolgreich erstellt')
@@ -227,7 +207,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeEditBasket(IFormInterface &$Stage = null, TblBasket $tblBasket, $Basket)
+    public function changeBasket(IFormInterface &$Stage = null, TblBasket $tblBasket, $Basket)
     {
 
         /**
@@ -246,7 +226,7 @@ class Service implements IServiceInterface
         }
 
         if (!$Error) {
-            if ((new Data($this->Binding))->actionEditBasket(
+            if ((new Data($this->getBinding()))->updateBasket(
                 $tblBasket,
                 $Basket['Name']
             )
@@ -265,10 +245,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeDestroyBasket(TblBasket $tblBasket)
+    public function destroyBasket(TblBasket $tblBasket)
     {
 
-        $tblBasket = (new Data($this->Binding))->actionDestroyBasket($tblBasket);
+        $tblBasket = (new Data($this->getBinding()))->destroyBasket($tblBasket);
         if ($tblBasket) {
             return new Success('Der Warenkorb wurde erfolgreich gelöscht')
             .new Redirect('/Billing/Accounting/Basket', 1);
@@ -284,10 +264,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeAddBasketCommodity(TblBasket $tblBasket, TblCommodity $tblCommodity)
+    public function addCommodityToBasket(TblBasket $tblBasket, TblCommodity $tblCommodity)
     {
 
-        if ((new Data($this->Binding))->actionCreateBasketItemsByCommodity($tblBasket, $tblCommodity)) {
+        if ((new Data($this->getBinding()))->addBasketItemsByCommodity($tblBasket, $tblCommodity)) {
             return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich hinzugefügt')
             .new Redirect('/Billing/Accounting/Basket/Commodity/Select', 0, array('Id' => $tblBasket->getId()));
         } else {
@@ -302,10 +282,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeRemoveBasketCommodity(TblBasket $tblBasket, TblCommodity $tblCommodity)
+    public function removeCommodityToBasket(TblBasket $tblBasket, TblCommodity $tblCommodity)
     {
 
-        if ((new Data($this->Binding))->actionDestroyBasketItemsByCommodity($tblBasket, $tblCommodity)) {
+        if ((new Data($this->getBinding()))->removeBasketItemsByCommodity($tblBasket, $tblCommodity)) {
             return new Success('Die Leistung '.$tblCommodity->getName().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Accounting/Basket/Commodity/Select', 0, array('Id' => $tblBasket->getId()));
         } else {
@@ -319,10 +299,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeRemoveBasketItem(TblBasketItem $tblBasketItem)
+    public function removeBasketItem(TblBasketItem $tblBasketItem)
     {
 
-        if ((new Data($this->Binding))->actionRemoveBasketItem($tblBasketItem)) {
+        if ((new Data($this->getBinding()))->removeBasketItem($tblBasketItem)) {
             return new Success('Der Artikel '.$tblBasketItem->getServiceBillingCommodityItem()->getTblItem()->getName().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Accounting/Basket/Item', 0, array('Id' => $tblBasketItem->getTblBasket()->getId()));
         } else {
@@ -338,7 +318,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeEditBasketItem(IFormInterface &$Stage = null, TblBasketItem $tblBasketItem, $BasketItem)
+    public function changeBasketItem(IFormInterface &$Stage = null, TblBasketItem $tblBasketItem, $BasketItem)
     {
 
         /**
@@ -361,7 +341,7 @@ class Service implements IServiceInterface
         }
 
         if (!$Error) {
-            if ((new Data($this->Binding))->actionEditBasketItem(
+            if ((new Data($this->getBinding()))->updateBasketItem(
                 $tblBasketItem,
                 $BasketItem['Price'],
                 $BasketItem['Quantity']
@@ -385,10 +365,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeAddBasketPerson(TblBasket $tblBasket, TblPerson $tblPerson)
+    public function addBasketPerson(TblBasket $tblBasket, TblPerson $tblPerson)
     {
 
-        if ((new Data($this->Binding))->actionAddBasketPerson($tblBasket, $tblPerson)) {
+        if ((new Data($this->getBinding()))->addBasketPerson($tblBasket, $tblPerson)) {
             return new Success('Die Person '.$tblPerson->getFullName().' wurde erfolgreich hinzugefügt')
             .new Redirect('/Billing/Accounting/Basket/Person/Select', 0, array('Id' => $tblBasket->getId()));
         } else {
@@ -402,10 +382,10 @@ class Service implements IServiceInterface
      *
      * @return string
      */
-    public function executeRemoveBasketPerson(TblBasketPerson $tblBasketPerson)
+    public function removeBasketPerson(TblBasketPerson $tblBasketPerson)
     {
 
-        if ((new Data($this->Binding))->actionRemoveBasketPerson($tblBasketPerson)) {
+        if ((new Data($this->getBinding()))->removeBasketPerson($tblBasketPerson)) {
             return new Success('Die Person '.$tblBasketPerson->getServiceManagementPerson()->getFullName().' wurde erfolgreich entfernt')
             .new Redirect('/Billing/Accounting/Basket/Person/Select', 0,
                 array('Id' => $tblBasketPerson->getTblBasket()->getId()));
@@ -423,7 +403,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeCheckBasket(IFormInterface &$Stage = null, TblBasket $tblBasket, $Basket)
+    public function checkBasket(IFormInterface &$Stage = null, TblBasket $tblBasket, $Basket)
     {
 
         /**
@@ -442,19 +422,19 @@ class Service implements IServiceInterface
         }
 
         $ErrorMissing = false;
-        if (!$this->entityBasketItemAllByBasket($tblBasket)) {
+        if (!$this->getBasketItemAllByBasket($tblBasket)) {
             $Stage .= new Danger("Im Warenkorb befinden sich keine Artikel. Bitte gehen Sie zurück und wählen welche aus");
             $ErrorMissing = true;
         }
 
-        $tblBasketPersonAllByBasket = $this->entityBasketPersonAllByBasket($tblBasket);
+        $tblBasketPersonAllByBasket = $this->getBasketPersonAllByBasket($tblBasket);
         if (!$tblBasketPersonAllByBasket) {
             $Stage .= new Danger("Im Warenkorb befinden sich keine Schüler. Bitte gehen Sie zurück und wählen welche aus");
             $ErrorMissing = true;
         } else {
             foreach ($tblBasketPersonAllByBasket as $tblBasketPerson) {
-                if (!(new Data($this->Binding))->checkDebtorExistsByPerson($tblBasketPerson->getServiceManagementPerson())) {
-                    $Stage .= new Danger("Für den Schüler ".$tblBasketPerson->getServiceManagementPerson()->getFullName()
+                if (!(new Data($this->getBinding()))->checkDebtorExistsByPerson($tblBasketPerson->getServiceManagementPerson())) {
+                    $Stage .= new Danger("Für die Person ".$tblBasketPerson->getServiceManagementPerson()->getFullName()
                         ." gibt es noch keinen relevanten Debitoren. Bitte legen Sie diese zunächst einen an");
                     $ErrorMissing = true;
                 }
@@ -467,11 +447,11 @@ class Service implements IServiceInterface
 
         if (!$Error) {
             //destroy TempTables
-            (new Data($this->Binding))->actionDestroyBasketCommodity($tblBasket);
-            Invoice::useService()->executeDestroyTempInvoice($tblBasket);
+            (new Data($this->getBinding()))->destroyBasketCommodity($tblBasket);
+            Invoice::useService()->destroyTempInvoice($tblBasket);
 
-            if ((new Data($this->Binding))->checkDebtors($tblBasket, null)) {
-                if (Invoice::useService()->executeCreateInvoiceListFromBasket($tblBasket, $Basket['Date'])) {
+            if ((new Data($this->getBinding()))->checkDebtors($tblBasket, null)) {
+                if (Invoice::useService()->createInvoiceListFromBasket($tblBasket, $Basket['Date'])) {
                     $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
                         .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 2);
                 } else {
@@ -495,10 +475,10 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasketItem[]
      */
-    public function entityBasketItemAllByBasket(TblBasket $tblBasket)
+    public function getBasketItemAllByBasket(TblBasket $tblBasket)
     {
 
-        return (new Data($this->Binding))->entityBasketItemAllByBasket($tblBasket);
+        return (new Data($this->getBinding()))->getBasketItemAllByBasket($tblBasket);
     }
 
     /**
@@ -510,7 +490,7 @@ class Service implements IServiceInterface
      *
      * @return IFormInterface|string
      */
-    public function executeCheckDebtors(
+    public function checkDebtors(
         IFormInterface &$Stage = null,
         $Id,
         $Date,
@@ -527,10 +507,10 @@ class Service implements IServiceInterface
         }
 
         $isSave = $Save == 2;
-        $tblBasket = Basket::useService()->entityBasketById($Id);
+        $tblBasket = Basket::useService()->getBasketById($Id);
 
-        if ((new Data($this->Binding))->checkDebtors($tblBasket, $Data, $isSave)) {
-            if (Invoice::useService()->executeCreateInvoiceListFromBasket($tblBasket, $Date)) {
+        if ((new Data($this->getBinding()))->checkDebtors($tblBasket, $Data, $isSave)) {
+            if (Invoice::useService()->createInvoiceListFromBasket($tblBasket, $Date)) {
                 $Stage .= new Success('Die Rechnungen wurden erfolgreich erstellt')
                     .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 2);
             } else {
@@ -547,9 +527,9 @@ class Service implements IServiceInterface
      *
      * @return bool|TblBasket
      */
-    public function entityBasketById($Id)
+    public function getBasketById($Id)
     {
 
-        return (new Data($this->Binding))->entityBasketById($Id);
+        return (new Data($this->getBinding()))->getBasketById($Id);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace SPHERE\Application\Billing\Bookkeeping\Invoice\Service;
 
-use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblDebtor;
 use SPHERE\Application\Billing\Accounting\Banking\Service\Entity\TblPaymentType;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
@@ -13,34 +12,24 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceAcco
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblInvoiceItem;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoice;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Service\Entity\TblTempInvoiceCommodity;
-use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
+use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Address\Service\Entity\TblAddress;
+use SPHERE\Application\Contact\Address\Service\Entity\TblToPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Application\Platform\System\Protocol\Protocol;
+use SPHERE\System\Database\Binding\AbstractData;
 
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
 
-        /**
-         * CommodityType
-         */
-//        $this->actionCreateCommodityType( 'Einzelleistung' );
     }
 
     /**
@@ -48,10 +37,10 @@ class Data
      *
      * @return bool|TblInvoice
      */
-    public function entityInvoiceById($Id)
+    public function getInvoiceById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblInvoice', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblInvoice', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -60,20 +49,20 @@ class Data
      *
      * @return bool|TblTempInvoice
      */
-    public function entityTempInvoiceById($Id)
+    public function getTempInvoiceById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblTempInvoice', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTempInvoice', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @return bool|TblInvoice[]
      */
-    public function entityInvoiceAll()
+    public function getInvoiceAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblInvoice')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -82,10 +71,10 @@ class Data
      *
      * @return TblInvoice[]|bool
      */
-    public function entityInvoiceAllByIsPaidState($IsPaid)
+    public function getInvoiceAllByIsPaidState($IsPaid)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblInvoice')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')
             ->findBy(array(TblInvoice::ATTR_IS_PAID => $IsPaid));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -95,10 +84,10 @@ class Data
      *
      * @return TblInvoice[]|bool
      */
-    public function entityInvoiceAllByIsVoidState($IsVoid)
+    public function getInvoiceAllByIsVoidState($IsVoid)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblInvoice')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')
             ->findBy(array(TblInvoice::ATTR_IS_VOID => $IsVoid));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -108,10 +97,10 @@ class Data
      *
      * @return bool|TblInvoiceItem
      */
-    public function entityInvoiceItemById($Id)
+    public function getInvoiceItemById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblInvoiceItem', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblInvoiceItem', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -120,10 +109,10 @@ class Data
      *
      * @return TblInvoice|bool
      */
-    public function entityInvoiceByNumber($Number)
+    public function getInvoiceByNumber($Number)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblInvoice')
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')
             ->findOneBy(array(TblInvoice::ATTR_NUMBER => $Number));
         return ( null === $Entity ? false : $Entity );
     }
@@ -149,7 +138,7 @@ class Data
     {
 
         $sum = 0.00;
-        $tblInvoiceItemByInvoice = $this->entityInvoiceItemAllByInvoice($tblInvoice);
+        $tblInvoiceItemByInvoice = $this->getInvoiceItemAllByInvoice($tblInvoice);
         /** @var TblInvoiceItem $tblInvoiceItem */
         foreach ($tblInvoiceItemByInvoice as $tblInvoiceItem) {
             $sum += $tblInvoiceItem->getItemPrice() * $tblInvoiceItem->getItemQuantity();
@@ -163,10 +152,10 @@ class Data
      *
      * @return TblInvoiceItem[]|bool
      */
-    public function entityInvoiceItemAllByInvoice(TblInvoice $tblInvoice)
+    public function getInvoiceItemAllByInvoice(TblInvoice $tblInvoice)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblInvoiceItem')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblInvoiceItem')
             ->findBy(array(TblInvoiceItem::ATTR_TBL_INVOICE => $tblInvoice->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -179,7 +168,7 @@ class Data
     public function checkInvoiceFromDebtorIsPaidByDebtor(TblDebtor $tblDebtor)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblInvoice')->findOneBy(array(
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblInvoice')->findOneBy(array(
             TblInvoice::ATTR_IS_PAID       => true,
             TblInvoice::ATTR_DEBTOR_NUMBER => $tblDebtor->getDebtorNumber()
         ));
@@ -192,26 +181,31 @@ class Data
      *
      * @return bool
      */
-    public function actionCreateInvoiceListFromBasket(
+    public function createInvoiceListFromBasket(
         TblBasket $tblBasket,
         $Date
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
-        $tblTempInvoiceList = $this->entityTempInvoiceAllByBasket($tblBasket);
+        $Manager = $this->getConnection()->getEntityManager();
+        $tblTempInvoiceList = $this->getTempInvoiceAllByBasket($tblBasket);
         /**@var TblTempInvoice $tblTempInvoice */
         foreach ($tblTempInvoiceList as $tblTempInvoice) {
             $tblDebtor = $tblTempInvoice->getServiceBillingDebtor();
-            $tblPersonDebtor = Management::servicePerson()->entityPersonById($tblDebtor->getServiceManagementPerson());
+            $tblPersonDebtor = $tblDebtor->getServiceManagementPerson();
             $tblPerson = $tblTempInvoice->getServiceManagementPerson();
             $Entity = new TblInvoice();
             $Entity->setIsPaid(false);
             $Entity->setIsVoid(false);
             $Entity->setNumber("40000000");
             $Entity->setBasketName($tblBasket->getName());
-            $Entity->setServiceBillingBankingPaymentType($tblDebtor->getPaymentType());
+            $PaymentType = $tblDebtor->getPaymentType();
+            $Entity->setServiceBillingBankingPaymentType($PaymentType);
 
-            $leadTimeByDebtor = Banking::useService()->entityLeadTimeByDebtor($tblDebtor);
+            $leadTimeByDebtor = false;//Banking::useService()->getLeadTimeByDebtor($tblDebtor); //ToDO Leadtime from School?
+            if ($leadTimeByDebtor === false) {
+                $leadTimeByDebtor = 5;      //ToDO LeadFirstTime 5 Day's
+            }
+
             $invoiceDate = (new \DateTime($Date))->sub(new \DateInterval('P'.$leadTimeByDebtor.'D'));
             $now = new \DateTime();
             if (( $invoiceDate->format('y.m.d') ) >= ( $now->format('y.m.d') )) {
@@ -227,12 +221,17 @@ class Data
             $Entity->setDiscount(0);
             $Entity->setDebtorFirstName($tblPersonDebtor->getFirstName());
             $Entity->setDebtorLastName($tblPersonDebtor->getLastName());
-            $Entity->setDebtorSalutation($tblPersonDebtor->getTblPersonSalutation()->getName());
+            $Entity->setDebtorSalutation($tblPersonDebtor->getTblSalutation()->getSalutation());
             $Entity->setDebtorNumber($tblDebtor->getDebtorNumber());
             $Entity->setServiceManagementPerson($tblPerson);
-            if (( $address = Management::servicePerson()->entityAddressAllByPerson($tblPersonDebtor) )) {
+            if (( $tblToPerson = Address::useService()->getAddressAllByPerson($tblPersonDebtor) )) {
                 // TODO address type invoice
-                $Entity->setServiceManagementAddress($address[0]);
+                $tblAddress = array();
+                /**@var TblToPerson $singleAddress */
+                foreach ($tblToPerson as $singleAddress) {
+                    $tblAddress[] = $singleAddress->getTblAddress();
+                }
+                $Entity->setServiceManagementAddress($tblAddress[0]);
             }
 
             $Manager->saveEntity($Entity);
@@ -240,53 +239,53 @@ class Data
             $Entity->setNumber((int)$Entity->getNumber() + $Entity->getId());
             $Manager->saveEntity($Entity);
 
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
 
-            $tblTempInvoiceCommodityList = $this->entityTempInvoiceCommodityAllByTempInvoice($tblTempInvoice);
+            $tblTempInvoiceCommodityList = $this->getTempInvoiceCommodityAllByTempInvoice($tblTempInvoice);
             foreach ($tblTempInvoiceCommodityList as $tblTempInvoiceCommodity) {
                 $tblCommodity = $tblTempInvoiceCommodity->getServiceBillingCommodity();
-                $tblBasketItemAllByBasketAndCommodity = Basket::useService()->entityBasketItemAllByBasketAndCommodity($tblBasket,
+                $tblBasketItemAllByBasketAndCommodity = Basket::useService()->getBasketItemAllByBasketAndCommodity($tblBasket,
                     $tblCommodity);
                 /**@var TblBasketItem $tblBasketItem */
                 foreach ($tblBasketItemAllByBasketAndCommodity as $tblBasketItem) {
                     $tblItem = $tblBasketItem->getServiceBillingCommodityItem()->getTblItem();
 
                     if (!( $tblItem->getServiceManagementCourse() ) && !( $tblItem->getServiceManagementStudentChildRank() )) {
-                        $this->actionCreateInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem, $Entity);
+                        $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem, $Entity);
                     } else {
                         if ($tblItem->getServiceManagementCourse() && !( $tblItem->getServiceManagementStudentChildRank() )) {
-                            if (( $tblStudent = Management::serviceStudent()->entityStudentByPerson($tblPerson) )
-                                && $tblItem->getServiceManagementCourse()->getId() == $tblStudent->getServiceManagementCourse()->getId()
+                            $tblGroup = \SPHERE\Application\People\Group\Group::useService()->getGroupByMetaTable('STUDENT');
+                            if (( $tblStudent = Group::useService()->getPersonAllByGroup($tblGroup) )
+//                                && $tblItem->getServiceManagementCourse()->getId() == $tblStudent->getServiceManagementCourse()->getId()      //ToDo Course
                             ) {
-                                $this->actionCreateInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
+                                $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
                                     $Entity);
                             }
                         } else {
-                            if (!( $tblItem->getServiceManagementCourse() ) && $tblItem->getServiceManagementStudentChildRank()) {
-                                if (( $tblStudent = Management::serviceStudent()->entityStudentByPerson($tblPerson) )
-                                    && $tblItem->getServiceManagementStudentChildRank()->getId() == $tblStudent->getTblChildRank()->getId()
-                                ) {
-                                    $this->actionCreateInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
-                                        $Entity);
-                                }
-                            } else {
-                                if ($tblItem->getServiceManagementCourse() && $tblItem->getServiceManagementStudentChildRank()) {
-                                    if (( $tblStudent = Management::serviceStudent()->entityStudentByPerson($tblPerson) )
-                                        && $tblItem->getServiceManagementCourse()->getId() == $tblStudent->getServiceManagementCourse()->getId()
-                                        && $tblItem->getServiceManagementStudentChildRank()->getId() == $tblStudent->getTblChildRank()->getId()
-                                    ) {
-                                        $this->actionCreateInvoiceItem($tblCommodity, $tblItem, $tblBasket,
-                                            $tblBasketItem, $Entity);
-                                    }
-                                }
-                            }
+//                            if (!( $tblItem->getServiceManagementCourse() ) && $tblItem->getServiceManagementStudentChildRank()) {            //ToDo Course
+//                                if (( $tblStudent = Management::serviceStudent()->entityStudentByPerson($tblPerson) )
+//                                    && $tblItem->getServiceManagementStudentChildRank()->getId() == $tblStudent->getTblChildRank()->getId()
+//                                ) {
+//                                    $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket, $tblBasketItem,
+//                                        $Entity);
+//                                }
+//                            } else {
+//                                if ($tblItem->getServiceManagementCourse() && $tblItem->getServiceManagementStudentChildRank()) {
+//                                    if (( $tblStudent = Management::serviceStudent()->entityStudentByPerson($tblPerson) )
+//                                        && $tblItem->getServiceManagementCourse()->getId() == $tblStudent->getServiceManagementCourse()->getId()
+//                                        && $tblItem->getServiceManagementStudentChildRank()->getId() == $tblStudent->getTblChildRank()->getId()
+//                                    ) {
+//                                        $this->createInvoiceItem($tblCommodity, $tblItem, $tblBasket,
+//                                            $tblBasketItem, $Entity);
+//                                    }
+//                                }
+//                            }
                         }
                     }
                 }
             }
         }
-
         return true;
     }
 
@@ -295,10 +294,10 @@ class Data
      *
      * @return TblTempInvoice[]|bool
      */
-    public function entityTempInvoiceAllByBasket(TblBasket $tblBasket)
+    public function getTempInvoiceAllByBasket(TblBasket $tblBasket)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblTempInvoice')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblTempInvoice')
             ->findBy(array(TblTempInvoice::ATTR_SERVICE_BILLING_BASKET => $tblBasket->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -308,10 +307,10 @@ class Data
      *
      * @return TblTempInvoiceCommodity[]|bool
      */
-    public function entityTempInvoiceCommodityAllByTempInvoice(TblTempInvoice $tblTempInvoice)
+    public function getTempInvoiceCommodityAllByTempInvoice(TblTempInvoice $tblTempInvoice)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblTempInvoiceCommodity')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblTempInvoiceCommodity')
             ->findBy(array(TblTempInvoiceCommodity::ATTR_TBL_TEMP_INVOICE => $tblTempInvoice->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -323,7 +322,7 @@ class Data
      * @param TblBasketItem $tblBasketItem
      * @param TblInvoice    $tblInvoice
      */
-    private function actionCreateInvoiceItem(
+    private function createInvoiceItem(
         TblCommodity $tblCommodity,
         TblItem $tblItem,
         TblBasket $tblBasket,
@@ -344,19 +343,19 @@ class Data
         $Entity->setItemQuantity($tblBasketItem->getQuantity());
         $Entity->setTblInvoice($tblInvoice);
 
-        $this->Connection->getEntityManager()->saveEntity($Entity);
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+        $this->getConnection()->getEntityManager()->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
 
-        $tblItemAccountList = Commodity::useService()->entityItemAccountAllByItem($tblItem);
+        $tblItemAccountList = Item::useService()->getItemAccountAllByItem($tblItem);
         /** @var TblItemAccount $tblItemAccount */
         foreach ($tblItemAccountList as $tblItemAccount) {
             $EntityItemAccount = new TblInvoiceAccount();
             $EntityItemAccount->setTblInvoiceItem($Entity);
             $EntityItemAccount->setServiceBilling_Account($tblItemAccount->getServiceBilling_Account());
 
-            $this->Connection->getEntityManager()->saveEntity($EntityItemAccount);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            $this->getConnection()->getEntityManager()->saveEntity($EntityItemAccount);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $EntityItemAccount);
         }
     }
@@ -366,11 +365,11 @@ class Data
      *
      * @return bool
      */
-    public function actionCancelInvoice(
+    public function cancelInvoice(
         TblInvoice $tblInvoice
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblInvoice $Entity */
         $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
@@ -378,7 +377,7 @@ class Data
         if (null !== $Entity) {
             $Entity->setIsVoid(true);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -391,11 +390,11 @@ class Data
      *
      * @return bool
      */
-    public function actionPayInvoice(
+    public function createPayInvoice(
         TblInvoice $tblInvoice
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblInvoice $Entity */
         $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
@@ -403,7 +402,7 @@ class Data
         if (null !== $Entity) {
             $Entity->setIsPaid(true);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -418,13 +417,13 @@ class Data
      *
      * @return bool
      */
-    public function actionEditInvoiceItem(
+    public function updateInvoiceItem(
         TblInvoiceItem $tblInvoiceItem,
         $Price,
         $Quantity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblInvoiceItem $Entity */
         $Entity = $Manager->getEntityById('TblInvoiceItem', $tblInvoiceItem->getId());
@@ -434,7 +433,7 @@ class Data
             $Entity->setItemQuantity(str_replace(',', '.', $Quantity));
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -447,18 +446,18 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveInvoiceItem(
+    public function destroyInvoiceItem(
         TblInvoiceItem $tblInvoiceItem
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblInvoiceItem')->findOneBy(
             array(
                 'Id' => $tblInvoiceItem->getId()
             ));
         if (null !== $Entity) {
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
@@ -473,13 +472,13 @@ class Data
      *
      * @return TblTempInvoice|null
      */
-    public function actionCreateTempInvoice(
+    public function createTempInvoice(
         TblBasket $tblBasket,
         TblPerson $tblPerson,
         TblDebtor $tblDebtor
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblTempInvoice')->findOneBy(array(
             TblTempInvoice::ATTR_SERVICE_BILLING_BASKET    => $tblBasket->getId(),
@@ -493,7 +492,7 @@ class Data
             $Entity->setServiceBillingDebtor($tblDebtor);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
 
@@ -506,12 +505,12 @@ class Data
      *
      * @return TblTempInvoiceCommodity|null
      */
-    public function actionCreateTempInvoiceCommodity(
+    public function createTempInvoiceCommodity(
         TblTempInvoice $tblTempInvoice,
         TblCommodity $tblCommodity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblTempInvoiceCommodity')->findOneBy(array(
             TblTempInvoiceCommodity::ATTR_TBL_TEMP_INVOICE          => $tblTempInvoice->getId(),
@@ -523,7 +522,7 @@ class Data
             $Entity->setServiceBillingCommodity($tblCommodity);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
 
@@ -536,12 +535,12 @@ class Data
      *
      * @return bool
      */
-    public function actionChangeInvoiceAddress(
+    public function updateInvoiceAddress(
         TblInvoice $tblInvoice,
         TblAddress $tblAddress
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblInvoice $Entity */
         $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
@@ -550,7 +549,7 @@ class Data
             $Entity->setServiceManagementAddress($tblAddress);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -565,12 +564,12 @@ class Data
      *
      * @return bool
      */
-    public function actionChangeInvoicePaymentType(
+    public function changeInvoicePaymentType(
         TblInvoice $tblInvoice,
         TblPaymentType $tblPaymentType
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblInvoice $Entity */
         $Entity = $Manager->getEntityById('TblInvoice', $tblInvoice->getId());
@@ -579,7 +578,7 @@ class Data
             $Entity->setServiceBillingBankingPaymentType($tblPaymentType);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -593,12 +592,12 @@ class Data
      *
      * @return bool
      */
-    public function actionDestroyTempInvoice(
+    public function destroyTempInvoice(
         TblBasket $tblBasket
     ) {
 
         if ($tblBasket !== null) {
-            $Manager = $this->Connection->getEntityManager();
+            $Manager = $this->getConnection()->getEntityManager();
 
             /** @var  TblTempInvoice[] $EntityList */
             $EntityList = $Manager->getEntity('TblTempInvoice')->findBy(array(
@@ -609,11 +608,11 @@ class Data
                     TblTempInvoiceCommodity::ATTR_TBL_TEMP_INVOICE => $Entity->getId()
                 ));
                 foreach ($EntitySubList as $SubEntity) {
-                    Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                         $SubEntity);
                     $Manager->bulkKillEntity($SubEntity);
                 }
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->bulkKillEntity($Entity);
             }

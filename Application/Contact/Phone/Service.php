@@ -151,15 +151,18 @@ class Service extends AbstractService
      * @param TblPerson $tblPerson
      * @param           $Number
      * @param TblType   $tblType
+     *
+     * @param           $Remark
      */
-    public function createPhoneToPersonFromImport(
+    public function insertPhoneToPerson(
         TblPerson $tblPerson,
         $Number,
-        TblType $tblType
+        TblType $tblType,
+        $Remark
     ) {
 
         $tblPhone = (new Data($this->getBinding()))->createPhone($Number);
-        (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, '');
+        (new Data($this->getBinding()))->addPhoneToPerson($tblPerson, $tblPhone, $tblType, $Remark);
     }
 
     /**

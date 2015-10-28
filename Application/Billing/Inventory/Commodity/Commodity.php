@@ -15,17 +15,6 @@ class Commodity implements IModuleInterface
     {
 
         /**
-         * Register Module
-         */
-//        Support::registerModule();
-        /**
-         * Register Navigation
-         */
-//        Main::getDisplay()->addApplicationNavigation(
-//            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'Leistungen' ), new Link\Icon( new \SPHERE\Common\Frontend\Icon\Repository\Commodity() ) ),
-//            new Link\Route( '/BillingSystem/Billing' )
-//        );
-        /**
          * Register Route
          */
 
@@ -40,13 +29,13 @@ class Commodity implements IModuleInterface
             )->setParameterDefault('Commodity', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
-                __NAMESPACE__.'\Frontend::frontendDelete'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'\Frontend::frontendDestroy'
             )->setParameterDefault('Id', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit',
-                __NAMESPACE__.'\Frontend::frontendEdit'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
+                __NAMESPACE__.'\Frontend::frontendChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Commodity', null)
         );

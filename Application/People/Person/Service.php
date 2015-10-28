@@ -141,21 +141,33 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblSalutation $tblSalutation
-     * @param               $Title
-     * @param               $FirstName
-     * @param               $SecondName
-     * @param               $LastName
+     * @param $Salutation
+     * @param $Title
+     * @param $FirstName
+     * @param $SecondName
+     * @param $LastName
+     * @param $GroupList
      *
-     * @return TblPerson
+     * @return bool|TblPerson
      */
-    public function createPersonFromImport(TblSalutation $tblSalutation, $Title, $FirstName, $SecondName, $LastName)
+    public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList)
     {
 
-        $tblPerson = (new Data($this->getBinding()))->createPerson($tblSalutation, $Title, $FirstName, $SecondName,
-            $LastName);
-
-        return $tblPerson;
+        if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
+            $this->getSalutationById($Salutation), $Title, $FirstName, $SecondName, $LastName) )
+        ) {
+            // Add to Group
+            if (!empty( $GroupList )) {
+                foreach ($GroupList as $tblGroup) {
+                    Group::useService()->addGroupPerson(
+                        Group::useService()->getGroupById($tblGroup), $tblPerson
+                    );
+                }
+            }
+            return $tblPerson;
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -167,18 +179,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPersonById($Id);
-    }
-
-    /**
-     * @param $FirstName
-     * @param $LastName
-     *
-     * @return bool|Service\Entity\TblPerson[]
-     */
-    public function getPersonAllByFirstNameAndLastName($FirstName, $LastName)
-    {
-
-        return (new Data($this->getBinding()))->getPersonAllByFirstNameAndLastName($FirstName, $LastName);
     }
 
     /**
@@ -246,5 +246,14 @@ class Service extends AbstractService
         }
 
         return $Form;
+    }
+
+    /**
+     * @return \Doctrine\ORM\QueryBuilder
+     */
+    public function getQueryBuilder()
+    {
+
+        return (new Data($this->getBinding()))->getQueryBuilder();
     }
 }
