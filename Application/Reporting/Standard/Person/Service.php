@@ -2,8 +2,10 @@
 namespace SPHERE\Application\Reporting\Standard\Person;
 
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
+use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Group\Group;
@@ -84,18 +86,19 @@ class Service
 
     /**
      * @param $studentList
-     * @param $fileLocation
      *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createClassListExcel($studentList, $fileLocation)
+    public function createClassListExcel($studentList)
     {
 
         if (!empty( $studentList )) {
 
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
-            $export = Document::getDocument($fileLocation);
+            $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Anrede");
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Name");
@@ -123,7 +126,9 @@ class Service
                 $Row++;
             }
 
-            $export->saveFile();
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
         }
     }
 }

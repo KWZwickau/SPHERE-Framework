@@ -1,27 +1,26 @@
 <?php
-namespace SPHERE\Application\Api\Reporting\Standard;
+namespace SPHERE\Application\Api\Reporting\Standard\Person;
 
 use MOC\V\Core\FileSystem\FileSystem;
-use SPHERE\Application\Reporting\Standard\Person\Person;
+use SPHERE\Application\Reporting\Standard\Person\Person as ReportingPerson;
 
 /**
- * Class Common
+ * Class Person
  *
- * @package SPHERE\Application\Api\Reporting\Standard
+ * @package SPHERE\Application\Api\Reporting\Standard\Person
  */
-class PersonList
+class Person
 {
 
     /**
-     * @return \MOC\V\Core\FileSystem\Component\IBridgeInterface
+     * @return string
      */
     public function downloadClassList()
     {
 
-        $fileLocation = "Klassenliste.xls";
-        $studentList = Person::useService()->createClassList();
-        Person::useService()->createClassListExcel($studentList, $fileLocation);
+        $studentList = ReportingPerson::useService()->createClassList();
+        $fileLocation = ReportingPerson::useService()->createClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation);
+        return FileSystem::getDownload($fileLocation->getRealPath(),"Klassenliste.xls")->__toString();
     }
 }
