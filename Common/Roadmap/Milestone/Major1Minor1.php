@@ -25,7 +25,6 @@ class Major1Minor1
         // Bildung
         $Category = $Release->createCategory('Bildung');
         $Feature = $Category->createFeature('Zensuren');
-        $Feature->createTask('Elektronisches Notenbuch');
         $Feature->createTask('Zeugnisdruck (vorerst feste Zeugnislayouts)');
     }
 }

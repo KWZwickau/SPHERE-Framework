@@ -118,4 +118,11 @@ class Roadmap extends Extension
 
         return $this->Roadmap->getStage();
     }
+
+    public function pdfMap()
+    {
+
+        $this->getDebugger()->screenDump(__METHOD__);
+        $this->Roadmap->getPdf();
+    }
 }

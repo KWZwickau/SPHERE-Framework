@@ -29,7 +29,7 @@ class Major0Minor8
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Speichern)')
-            ->createDuty('Personendaten (Vorbelegtes Autocomplete, Konfession)', false);
+            ->createDuty('Personendaten (Vorbelegtes Autocomplete, Konfession)', true);
 
         // Plattform
         $Category = $Release->createCategory('Plattform');
