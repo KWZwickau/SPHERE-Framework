@@ -110,17 +110,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $ShowMask = true;
             }
 
-            $BasicTable = new Accordion('<span class="glyphicons glyphicons-pencil"></span>&nbsp;'
+            $BasicTable = new Accordion();
+            $BasicTable->addItem(
+                '<span class="glyphicons glyphicons-pencil"></span>&nbsp;'
                 .'Grunddaten & Gruppenzugehörigkeit ändern&nbsp;'
                 .new Muted(new Small('Klicken Sie hier um die Maske zu öffen/zu schließen'))
-            );
-            $BasicTable->addItem(
-                Person::useService()->updatePerson(
-                    $this->formPerson()
-                        ->appendFormButton(new Primary('Grunddaten speichern'))
-                        ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                    $tblPerson, $Person),
-                $ShowMask);
+                , Person::useService()->updatePerson(
+                $this->formPerson()
+                    ->appendFormButton(new Primary('Grunddaten speichern'))
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                $tblPerson, $Person), $ShowMask);
 
             $MetaTabs = Group::useService()->getGroupAllByPerson($tblPerson);
             // Sort by Name

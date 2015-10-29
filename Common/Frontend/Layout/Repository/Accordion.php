@@ -20,9 +20,9 @@ class Accordion extends Extension implements IFrontendInterface
     private $ContentList = array();
 
     /**
-     * @param string $Title
+     * @param bool|string $Title
      */
-    public function __construct($Title)
+    public function __construct($Title = false)
     {
 
         $this->Template = $this->getTemplate(__DIR__.'/Accordion.twig');
@@ -30,15 +30,22 @@ class Accordion extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param bool   $Header
+     *
      * @param string $Content
      * @param bool   $Toggle
      *
      * @return $this
      */
-    public function addItem($Content, $Toggle = false)
+    public function addItem($Header, $Content, $Toggle = false)
     {
 
-        $this->ContentList[] = array('Content' => $Content, 'Toggle' => $Toggle);
+        $this->ContentList[] = array(
+            'Content' => $Content,
+            'Toggle'  => $Toggle,
+            'Header'  => $Header,
+            'Hash'    => sha1(serialize(func_get_args()))
+        );
         return $this;
     }
 

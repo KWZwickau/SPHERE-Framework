@@ -1,18 +1,18 @@
 <div class="panel-group" id="Accordion-{{ Hash }}">
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h4 class="panel-title">
-                <a data-toggle="collapse" data-parent="#Accordion-{{ Hash }}" href="#Element-{{ Hash }}">
-                    {{ Title }}
-                </a>
-            </h4>
-        </div>
-        {% for Index, Element in ContentList %}
-            <div id="Element-{{ Hash }}" class="panel-collapse collapse {% if(Element.Toggle) %}in{% endif %}">
+    {% for Index, Element in ContentList %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#Accordion-{{ Hash }}" href="#Element-{{ Element.Hash }}">
+                        {{ Element.Header }}
+                    </a>
+                </h4>
+            </div>
+            <div id="Element-{{ Element.Hash }}" class="panel-collapse collapse {% if(Element.Toggle) %}in{% endif %}">
                 <div class="panel-body">
                     {{ Element.Content }}
                 </div>
             </div>
-        {% endfor %}
-    </div>
+        </div>
+    {% endfor %}
 </div>
