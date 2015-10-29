@@ -107,32 +107,47 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getCommonByPerson($tblPerson);
     }
 
-    /***
+    /**
      * @param TblPerson $tblPerson
      * @param           $Birthday
      * @param           $Birthplace
-     *
+     * @param           $Gender
+     * @param           $Nationality
      * @param           $Denomination
+     * @param           $IsAssistance
+     * @param           $AssistanceActivity
+     *
+     * @param           $Remark
      */
-    public function createMetaFromImport(TblPerson $tblPerson, $Birthday, $Birthplace, $Denomination)
+    public function insertMeta(
+        TblPerson $tblPerson,
+        $Birthday,
+        $Birthplace,
+        $Gender,
+        $Nationality,
+        $Denomination,
+        $IsAssistance,
+        $AssistanceActivity,
+        $Remark
+    )
     {
 
         $tblCommonBirthDates = (new Data($this->getBinding()))->createCommonBirthDates(
             $Birthday,
             $Birthplace,
-            0
+            $Gender
         );
         $tblCommonInformation = (new Data($this->getBinding()))->createCommonInformation(
-            '',
+            $Nationality,
             $Denomination,
-            0,
-            ''
+            $IsAssistance,
+            $AssistanceActivity
         );
         (new Data($this->getBinding()))->createCommon(
             $tblPerson,
             $tblCommonBirthDates,
             $tblCommonInformation,
-            ''
+            $Remark
         );
     }
 

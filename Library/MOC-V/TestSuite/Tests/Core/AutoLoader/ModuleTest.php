@@ -3,8 +3,9 @@ namespace MOC\V\TestSuite\Tests\Core\AutoLoader;
 
 use MOC\V\Core\AutoLoader\AutoLoader;
 use MOC\V\Core\AutoLoader\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()

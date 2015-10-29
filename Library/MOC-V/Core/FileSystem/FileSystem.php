@@ -2,6 +2,7 @@
 namespace MOC\V\Core\FileSystem;
 
 use MOC\V\Core\FileSystem\Component\Bridge\Repository\SymfonyFinder;
+use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalDownload;
 use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalFileLoader;
 use MOC\V\Core\FileSystem\Component\Bridge\Repository\UniversalFileWriter;
 use MOC\V\Core\FileSystem\Component\IBridgeInterface;
@@ -39,7 +40,11 @@ class FileSystem implements IVendorInterface
     public static function getFileLoader($Location)
     {
 
-        return self::getUniversalFileLoader($Location);
+        $Result = self::getUniversalFileLoader($Location);
+        if (!$Result->getRealPath()) {
+            return self::getSymfonyFinder($Location);
+        }
+        return $Result;
     }
 
     /**
@@ -47,7 +52,7 @@ class FileSystem implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getUniversalFileLoader($Location)
+    private static function getUniversalFileLoader($Location)
     {
 
         $Loader = new FileSystem(
@@ -75,13 +80,47 @@ class FileSystem implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getSymfonyFinder($Location)
+    private static function getSymfonyFinder($Location)
     {
 
         $Loader = new FileSystem(
             new Vendor(
                 new SymfonyFinder(
                     new FileParameter($Location)
+                )
+            )
+        );
+
+        return $Loader->getBridgeInterface();
+    }
+
+    /**
+     * @param string      $Location
+     * @param null|string $Filename
+     *
+     * @return IBridgeInterface
+     * @throws FileSystemException
+     */
+    public static function getDownload($Location, $Filename = null)
+    {
+
+        return self::getUniversalDownload($Location, $Filename);
+    }
+
+    /**
+     * @param string      $Location
+     * @param null|string $Filename
+     *
+     * @return IBridgeInterface
+     */
+    private static function getUniversalDownload($Location, $Filename = null)
+    {
+
+        $Loader = new FileSystem(
+            new Vendor(
+                new UniversalDownload(
+                    new FileParameter($Location),
+                    new FileParameter($Filename)
                 )
             )
         );
@@ -106,7 +145,7 @@ class FileSystem implements IVendorInterface
      *
      * @return IBridgeInterface
      */
-    public static function getUniversalFileWriter($Location)
+    private static function getUniversalFileWriter($Location)
     {
 
         $Loader = new FileSystem(

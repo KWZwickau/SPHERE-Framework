@@ -3,21 +3,25 @@
          verbose="true" backupGlobals="true" backupStaticAttributes="false" stopOnError="false" stopOnFailure="false"
          stopOnIncomplete="false" stopOnSkipped="false" timeoutForLargeTests="120" timeoutForMediumTests="30"
          timeoutForSmallTests="10" xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.2/phpunit.xsd"
-         processIsolation="false">
+         processIsolation="false" stderr="false">
     <testsuites>
         <testsuite name="MOC\V">
             <directory suffix=".php">./Tests/Core/AutoLoader</directory>
             <directory suffix=".php">./Tests/Core/FileSystem</directory>
+            <directory suffix=".php">./Tests/Core/GlobalsKernel</directory>
             <directory suffix=".php">./Tests/Core/HttpKernel</directory>
             <directory suffix=".php">./Tests/Core/SecureKernel</directory>
             <directory suffix=".php">./Tests/Component/Captcha</directory>
             <directory suffix=".php">./Tests/Component/Database</directory>
             <directory suffix=".php">./Tests/Component/Document</directory>
-            <directory suffix=".php" phpVersion="5.3.0" phpVersionOperator="&lt;=">./Tests/Component/Documentation
-            </directory>
             <directory suffix=".php">./Tests/Component/Mail</directory>
             <directory suffix=".php">./Tests/Component/Router</directory>
             <directory suffix=".php">./Tests/Component/Template</directory>
+            <file phpVersion="5.3.0" phpVersionOperator="&lt;=">./Tests/Component/Documentation/BridgeTest.php</file>
+            <file>./Tests/Component/Documentation/ExceptionTest.php</file>
+            <file phpVersion="5.3.0" phpVersionOperator="&lt;=">./Tests/Component/Documentation/ModuleTest.php</file>
+            <file>./Tests/Component/Documentation/ParameterTest.php</file>
+            <file>./Tests/Component/Documentation/VendorTest.php</file>
         </testsuite>
     </testsuites>
     <filter>
@@ -31,8 +35,13 @@
                 <directory>./../Core/HttpKernel/Vendor/Symfony</directory>
                 <directory>./../Core/SecureKernel/Vendor/PhpSecLib</directory>
                 <directory>./../Component/Captcha/Vendor/SimplePhpCaptcha</directory>
+                <directory>./../Component/Database/Vendor/Doctrine2Annotations</directory>
+                <directory>./../Component/Database/Vendor/Doctrine2Cache</directory>
+                <directory>./../Component/Database/Vendor/Doctrine2Collections</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2Common</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2DBAL</directory>
+                <directory>./../Component/Database/Vendor/Doctrine2Instantiator</directory>
+                <directory>./../Component/Database/Vendor/Doctrine2Lexer</directory>
                 <directory>./../Component/Database/Vendor/Doctrine2ORM</directory>
                 <directory>./../Component/Document/Vendor/PhpExcel</directory>
                 <directory>./../Component/Document/Vendor/DomPdf</directory>
@@ -42,6 +51,7 @@
                 <directory>./../Component/Mail/Vendor/EdenPhpMail</directory>
                 <directory>./../Component/Router/Vendor/Symfony</directory>
                 <directory>./../Component/Template/Vendor/Twig</directory>
+                <directory>./../Component/Template/Vendor/TwigExtension</directory>
                 <directory>./../Component/Template/Vendor/Smarty</directory>
             </exclude>
         </whitelist>

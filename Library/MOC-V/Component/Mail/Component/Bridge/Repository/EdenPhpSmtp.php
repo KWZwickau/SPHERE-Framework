@@ -133,7 +133,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     }
 
     /**
-     * @param string      $Address
+     * @param string $Address
      * @param null|string $Name
      *
      * @return EdenPhpSmtp
@@ -151,7 +151,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     }
 
     /**
-     * @param string      $Address
+     * @param string $Address
      * @param null|string $Name
      *
      * @return EdenPhpSmtp
@@ -169,7 +169,7 @@ class EdenPhpSmtp extends Bridge implements IBridgeInterface
     }
 
     /**
-     * @param string      $Address
+     * @param string $Address
      * @param null|string $Name
      *
      * @return EdenPhpSmtp

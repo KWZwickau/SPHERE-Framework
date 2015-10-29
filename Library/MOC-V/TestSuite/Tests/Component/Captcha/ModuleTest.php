@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Captcha;
 
 use MOC\V\Component\Captcha\Captcha;
 use MOC\V\Component\Captcha\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Captcha
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()

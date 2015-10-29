@@ -23,7 +23,15 @@ class NamespaceParameter extends Parameter implements IParameterInterface
     {
 
         $this->setNamespace($Namespace);
+    }
 
+    /**
+     * @return string
+     */
+    public function __toString()
+    {
+
+        return (string)$this->getNamespace();
     }
 
     /**
@@ -54,5 +62,4 @@ class NamespaceParameter extends Parameter implements IParameterInterface
             }
         }
     }
-
 }

@@ -22,6 +22,19 @@ class Major1Minor0
 
         $Release = $Roadmap->createRelease('1.0.0', 'KREDA (Ziel November)');
 
+        // Bildung
+        $Category = $Release->createCategory('Bildung');
+        $Feature = $Category->createFeature('Zensuren');
+        $Task = $Feature->createTask('Elektronisches Notenbuch')
+            ->createDuty('Basisfunktionalitäten')
+            ->createDuty('Eingabe/Ausgabe von Zensuren')
+            ->createDuty('Anlegen & Auswahl von Leistungsüberprüfungen');
+
+        // Auswertungen
+        $Release->createCategory('Auswertungen')
+            ->createFeature('Festdefinierte Auswertungen')
+            ->createTask('für ESZC', '', true);
+
         // Personenverwaltung
         $Category = $Release->createCategory('Personenverwaltung');
         $Category->createFeature('Person löschen');
@@ -45,10 +58,5 @@ class Major1Minor0
         $Feature = $Category->createFeature('Code Style');
         $Feature->createTask('PSR-1/PSR2');
         $Category->createFeature('Code Performance');
-
-        // Auswertungen
-        $Release->createCategory('Auswertungen')
-            ->createFeature('Festdefinierte Auswertungen')
-            ->createTask('für ESZC');
     }
 }

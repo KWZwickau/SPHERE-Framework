@@ -2,8 +2,9 @@
 namespace MOC\V\TestSuite\Tests\Core\AutoLoader;
 
 use MOC\V\Core\AutoLoader\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class VendorTest extends \PHPUnit_Framework_TestCase
+class VendorTest extends AbstractTestCase
 {
 
     public function testVendor()

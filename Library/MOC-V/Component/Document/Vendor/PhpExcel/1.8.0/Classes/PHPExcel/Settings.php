@@ -382,7 +382,8 @@ class PHPExcel_Settings
         if (is_null(self::$_libXmlLoaderOptions)) {
             self::setLibXmlLoaderOptions(LIBXML_DTDLOAD | LIBXML_DTDATTR);
         }
-        @libxml_disable_entity_loader($options == ( LIBXML_DTDLOAD | LIBXML_DTDATTR ));
+        @libxml_disable_entity_loader(false);
+        //@libxml_disable_entity_loader(self::$_libXmlLoaderOptions == ( LIBXML_DTDLOAD | LIBXML_DTDATTR ));
         return self::$_libXmlLoaderOptions;
     } // function setLibXmlLoaderOptions
 

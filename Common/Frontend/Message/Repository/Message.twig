@@ -1,4 +1,18 @@
-<div class="alert alert-{{ Type }} text-left">
-    {% if( Icon is not empty ) %}{{ Icon }}{% endif %}
-    {{ Content }}
-</div>
+{% if(Toggle is not empty) %}
+    <button id="Toggle-{{ Hash }}" type="button" class="btn btn-info in" data-toggle="collapse"
+            data-target="#Message-{{ Hash }},#Toggle-{{ Hash }}">
+        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+    </button>
+    <div id="Message-{{ Hash }}" class="alert alert-{{ Type }} text-left collapse" role="alert">
+        <button type="button" class="close" data-toggle="collapse" data-target="#Message-{{ Hash }},#Toggle-{{ Hash }}">
+            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        </button>
+        {% if( Icon is not empty ) %}{{ Icon }}{% endif %}
+        {{ Content }}
+    </div>
+{% else %}
+    <div class="alert alert-{{ Type }} text-left" role="alert">
+        {% if( Icon is not empty ) %}{{ Icon }}{% endif %}
+        {{ Content }}
+    </div>
+{% endif %}

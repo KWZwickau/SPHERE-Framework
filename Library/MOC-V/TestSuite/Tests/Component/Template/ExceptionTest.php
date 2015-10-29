@@ -6,13 +6,14 @@ use MOC\V\Component\Template\Component\Exception\Repository\EmptyFileException;
 use MOC\V\Component\Template\Component\Exception\Repository\TypeFileException;
 use MOC\V\Component\Template\Exception\TemplateException;
 use MOC\V\Component\Template\Exception\TemplateTypeException;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ExceptionTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Template
  */
-class ExceptionTest extends \PHPUnit_Framework_TestCase
+class ExceptionTest extends AbstractTestCase
 {
 
     public function testTemplateException()

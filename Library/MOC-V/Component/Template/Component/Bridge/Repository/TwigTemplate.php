@@ -44,11 +44,15 @@ class TwigTemplate extends Bridge implements IBridgeInterface
     public function loadString($String, $Reload = false)
     {
 
-        $TemplateName = 'Source'.sha1($String).'.twig';
-        if (!file_exists(__DIR__.'/TwigTemplate/'.$TemplateName)) {
-            file_put_contents(__DIR__.'/TwigTemplate/'.$TemplateName, $String);
-        }
-        return $this->loadFile(new FileParameter(__DIR__.'/TwigTemplate/'.$TemplateName), $Reload);
+        $this->Instance = new \Twig_Environment(
+            new \Twig_Loader_String(),
+            array('auto_reload' => $Reload, 'autoescape' => false, 'cache' => realpath(__DIR__.'/TwigTemplate'))
+        );
+        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_encode', 'utf8_encode'));
+        $this->Instance->addFilter(new \Twig_SimpleFilter('utf8_decode', 'utf8_decode'));
+        $this->Instance->addExtension(new PhpFunctionExtension());
+        $this->Template = $this->Instance->loadTemplate($String);
+        return $this;
     }
 
     /**

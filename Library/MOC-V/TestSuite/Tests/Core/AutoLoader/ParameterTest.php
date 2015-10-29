@@ -3,8 +3,9 @@ namespace MOC\V\TestSuite\Tests\Core\AutoLoader;
 
 use MOC\V\Core\AutoLoader\Component\Parameter\Repository\DirectoryParameter;
 use MOC\V\Core\AutoLoader\Component\Parameter\Repository\NamespaceParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class ParameterTest extends \PHPUnit_Framework_TestCase
+class ParameterTest extends AbstractTestCase
 {
 
     public function testAbstractParameter()

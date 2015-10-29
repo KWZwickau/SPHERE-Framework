@@ -22,13 +22,17 @@ class TblPeriod extends Element
      */
     protected $Name;
     /**
-     * @Column(type="datetime")
+     * @Column(type="string")
      */
-    protected $From;
+    protected $Description;
     /**
      * @Column(type="datetime")
      */
-    protected $To;
+    protected $FromDate;
+    /**
+     * @Column(type="datetime")
+     */
+    protected $ToDate;
 
     /**
      * @return string
@@ -51,14 +55,14 @@ class TblPeriod extends Element
     /**
      * @return string
      */
-    public function getFrom()
+    public function getFromDate()
     {
 
-        if (null === $this->From) {
+        if (null === $this->FromDate) {
             return false;
         }
         /** @var \DateTime $From */
-        $From = $this->From;
+        $From = $this->FromDate;
         if ($From instanceof \DateTime) {
             return $From->format('d.m.Y');
         } else {
@@ -67,25 +71,25 @@ class TblPeriod extends Element
     }
 
     /**
-     * @param null|\DateTime $From
+     * @param null|\DateTime $FromDate
      */
-    public function setFrom(\DateTime $From = null)
+    public function setFromDate(\DateTime $FromDate = null)
     {
 
-        $this->From = $From;
+        $this->FromDate = $FromDate;
     }
 
     /**
      * @return string
      */
-    public function getTo()
+    public function getToDate()
     {
 
-        if (null === $this->To) {
+        if (null === $this->ToDate) {
             return false;
         }
         /** @var \DateTime $To */
-        $To = $this->To;
+        $To = $this->ToDate;
         if ($To instanceof \DateTime) {
             return $To->format('d.m.Y');
         } else {
@@ -94,11 +98,29 @@ class TblPeriod extends Element
     }
 
     /**
-     * @param null|\DateTime $To
+     * @param null|\DateTime $ToDate
      */
-    public function setTo(\DateTime $To = null)
+    public function setToDate(\DateTime $ToDate = null)
     {
 
-        $this->To = $To;
+        $this->ToDate = $ToDate;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+
+        $this->Description = $Description;
     }
 }

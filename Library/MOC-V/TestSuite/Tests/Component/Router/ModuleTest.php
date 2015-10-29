@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Router;
 
 use MOC\V\Component\Router\Router;
 use MOC\V\Component\Router\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Router
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()

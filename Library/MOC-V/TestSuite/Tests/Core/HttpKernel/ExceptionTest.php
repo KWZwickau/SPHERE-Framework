@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Core\HttpKernel;
 
 use MOC\V\Core\HttpKernel\Component\Exception\ComponentException;
 use MOC\V\Core\HttpKernel\Exception\HttpKernelException;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ExceptionTest
  *
  * @package MOC\V\TestSuite\Tests\Core\HttpKernel
  */
-class ExceptionTest extends \PHPUnit_Framework_TestCase
+class ExceptionTest extends AbstractTestCase
 {
 
     public function testHttpKernelException()

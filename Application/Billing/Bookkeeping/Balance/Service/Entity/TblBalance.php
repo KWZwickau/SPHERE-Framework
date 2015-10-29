@@ -81,15 +81,6 @@ class TblBalance extends Element
     }
 
     /**
-     * @param null|TblInvoice $serviceBilling_Invoice
-     */
-    public function setServiceBillingInvoice(TblInvoice $serviceBilling_Invoice = null)
-    {
-
-        $this->serviceBilling_Invoice = ( null === $serviceBilling_Invoice ? null : $serviceBilling_Invoice->getId() );
-    }
-
-    /**
      * @return bool|TblInvoice
      */
     public function getServiceBillingInvoice()
@@ -100,6 +91,15 @@ class TblBalance extends Element
         } else {
             return Invoice::useService()->getInvoiceById($this->serviceBilling_Invoice);
         }
+    }
+
+    /**
+     * @param null|TblInvoice $serviceBilling_Invoice
+     */
+    public function setServiceBillingInvoice(TblInvoice $serviceBilling_Invoice = null)
+    {
+
+        $this->serviceBilling_Invoice = ( null === $serviceBilling_Invoice ? null : $serviceBilling_Invoice->getId() );
     }
 
     /**

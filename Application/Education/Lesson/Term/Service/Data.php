@@ -22,10 +22,11 @@ class Data extends AbstractData
 
     /**
      * @param string $Name
+     * @param string $Description
      *
      * @return TblYear
      */
-    public function createYear($Name)
+    public function createYear($Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -35,6 +36,7 @@ class Data extends AbstractData
         if (null === $Entity) {
             $Entity = new TblYear();
             $Entity->setName($Name);
+            $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -45,10 +47,11 @@ class Data extends AbstractData
      * @param string $Name
      * @param string $From
      * @param string $To
+     * @param string $Description
      *
      * @return TblPeriod
      */
-    public function createPeriod($Name, $From, $To)
+    public function createPeriod($Name, $From, $To, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -58,8 +61,9 @@ class Data extends AbstractData
         if (null === $Entity) {
             $Entity = new TblPeriod();
             $Entity->setName($Name);
-            $Entity->setFrom(new \DateTime($From));
-            $Entity->setTo(new \DateTime($To));
+            $Entity->setDescription($Description);
+            $Entity->setFromDate(new \DateTime($From));
+            $Entity->setToDate(new \DateTime($To));
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
@@ -113,5 +117,79 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return bool|TblPeriod[]
+     */
+    public function getPeriodAllByYear(TblYear $tblYear)
+    {
+
+        /** @var TblYearPeriod[] $EntityList */
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblYearPeriod')->findBy(array(
+            TblYearPeriod::ATTR_TBL_YEAR => $tblYear->getId()
+        ));
+        array_walk($EntityList, function (TblYearPeriod &$V) {
+
+            $V = $V->getTblPeriod();
+        });
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @return bool|TblYear[]
+     */
+    public function getYearAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear');
+    }
+
+    /**
+     * @return bool|TblPeriod[]
+     */
+    public function getPeriodAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPeriod');
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblYear
+     */
+    public function getYearByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', array(
+            TblYear::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblPeriod
+     */
+    public function getPeriodByName($Name)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPeriod', array(
+            TblPeriod::ATTR_NAME => $Name
+        ));
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblYear
+     */
+    public function getYearById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblYear', $Id);
     }
 }

@@ -315,7 +315,7 @@ class Frontend extends Extension implements IFrontendInterface
                 )
             );
         } else {
-            $Stage->setContent( new Warning( 'Es gibt noch keine Firmen die als Schule eingetragen werden kann.' ) );
+            $Stage->setContent(new Warning('Es gibt noch keine Firmen die als Schule eingetragen werden kann.'));
         }
 
         return $Stage;

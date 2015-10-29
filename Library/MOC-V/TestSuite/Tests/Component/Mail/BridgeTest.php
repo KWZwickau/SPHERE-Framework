@@ -1,12 +1,14 @@
 <?php
 namespace MOC\V\TestSuite\Tests\Component\Mail;
 
+use MOC\V\TestSuite\AbstractTestCase;
+
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Mail
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     public function testEmpty()

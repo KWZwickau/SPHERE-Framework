@@ -40,15 +40,6 @@ class TblBasketCommodity extends Element
     protected $serviceBilling_Commodity;
 
     /**
-     * @param null|TblBasket $tblBasket
-     */
-    public function setTblBasket($tblBasket = null)
-    {
-
-        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
-    }
-
-    /**
      * @return bool|TblBasket
      */
     public function getTblBasket()
@@ -59,6 +50,15 @@ class TblBasketCommodity extends Element
         } else {
             return Basket::useService()->getBasketById($this->tblBasket);
         }
+    }
+
+    /**
+     * @param null|TblBasket $tblBasket
+     */
+    public function setTblBasket($tblBasket = null)
+    {
+
+        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
     }
 
     /**
@@ -84,15 +84,6 @@ class TblBasketCommodity extends Element
     }
 
     /**
-     * @param null|TblCommodity $tblCommodity
-     */
-    public function setServiceBillingCommodity($tblCommodity = null)
-    {
-
-        $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
-    }
-
-    /**
      * @return bool|TblCommodity
      */
     public function getServiceBillingCommodity()
@@ -103,5 +94,14 @@ class TblBasketCommodity extends Element
         } else {
             return Commodity::useService()->getCommodityById($this->serviceBilling_Commodity);
         }
+    }
+
+    /**
+     * @param null|TblCommodity $tblCommodity
+     */
+    public function setServiceBillingCommodity($tblCommodity = null)
+    {
+
+        $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
     }
 }

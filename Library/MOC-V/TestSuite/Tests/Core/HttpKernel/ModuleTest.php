@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Core\HttpKernel;
 
 use MOC\V\Core\HttpKernel\HttpKernel;
 use MOC\V\Core\HttpKernel\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Core\HttpKernel
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()
@@ -34,7 +35,7 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
     public function testStaticUniversalRequest()
     {
 
-        $Request = HttpKernel::getUniversalRequest();
+        $Request = $this->invokeClassMethod('MOC\V\Core\HttpKernel\HttpKernel', 'getUniversalRequest');
         $this->assertInstanceOf('MOC\V\Core\HttpKernel\Component\IBridgeInterface', $Request);
     }
 

@@ -32,15 +32,6 @@ class TblBasketPerson extends Element
     protected $tblBasket;
 
     /**
-     * @param null|TblBasket $tblBasket
-     */
-    public function setTblBasket($tblBasket = null)
-    {
-
-        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
-    }
-
-    /**
      * @return bool|TblBasket
      */
     public function getTblBasket()
@@ -54,12 +45,12 @@ class TblBasketPerson extends Element
     }
 
     /**
-     * @param null|TblPerson $serviceManagement_Person
+     * @param null|TblBasket $tblBasket
      */
-    public function setServiceManagementPerson($serviceManagement_Person = null)
+    public function setTblBasket($tblBasket = null)
     {
 
-        $this->serviceManagement_Person = ( null === $serviceManagement_Person ? null : $serviceManagement_Person->getId() );
+        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
     }
 
     /**
@@ -73,5 +64,14 @@ class TblBasketPerson extends Element
         } else {
             return Person::useService()->getPersonById($this->serviceManagement_Person);
         }
+    }
+
+    /**
+     * @param null|TblPerson $serviceManagement_Person
+     */
+    public function setServiceManagementPerson($serviceManagement_Person = null)
+    {
+
+        $this->serviceManagement_Person = ( null === $serviceManagement_Person ? null : $serviceManagement_Person->getId() );
     }
 }

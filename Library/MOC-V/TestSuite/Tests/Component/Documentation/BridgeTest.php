@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Documentation;
 
 use MOC\V\Component\Documentation\Component\Bridge\Repository\ApiGen;
 use MOC\V\Component\Documentation\Component\Parameter\Repository\DirectoryParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Documentation
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     /**

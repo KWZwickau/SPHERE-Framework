@@ -26,7 +26,7 @@ class File
     private $Connection = null;
 
     /**
-     * @param SFTP  $Connection
+     * @param SFTP $Connection
      * @param array $Attributes
      */
     public function __construct(SFTP $Connection, $Attributes)

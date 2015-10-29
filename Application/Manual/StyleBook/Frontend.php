@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Manual\StyleBook;
 
-use SPHERE\Common\Documentation\Content\StyleBook;
+use SPHERE\Common\Documentation\Content\StyleBook as Book;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Window\Stage;
 
@@ -26,7 +26,7 @@ class Frontend implements IFrontendInterface
         $Stage = new Stage();
 
         $Stage->setContent(
-            new StyleBook($Chapter, $Page, $Search)
+            new Book($Chapter, $Page, $Search)
         );
 
         return $Stage;

@@ -1,26 +1,28 @@
 <?php
 namespace Bar;
 
-use MOC\V\Component\Captcha\Captcha;
 use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Core\AutoLoader\AutoLoader;
+use MOC\V\Core\FileSystem\FileSystem;
 
 /**
  * Setup: Php
  */
-header( 'Content-type: text/html; charset=utf-8' );
-error_reporting( E_ALL );
-ini_set( 'display_errors', 1 );
+header('Content-type: text/html; charset=utf-8');
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 session_start();
 session_write_close();
-date_default_timezone_set( 'Europe/Berlin' );
+date_default_timezone_set('Europe/Berlin');
 /**
  * Setup: Loader
  */
 require_once( __DIR__.'/../../Core/AutoLoader/AutoLoader.php' );
-AutoLoader::getNamespaceAutoLoader( '\MOC\V', __DIR__.'/../../' );
+AutoLoader::getNamespaceAutoLoader('\MOC\V', __DIR__.'/../../');
 
-var_dump( Captcha::getCaptcha()->createCaptcha()->getCaptcha() );
+print FileSystem::getDownload(__FILE__);
+
+//var_dump( Captcha::getCaptcha()->createCaptcha()->getCaptcha() );
 
 /*
 $File = FileSystem::getUniversalFileLoader( __FILE__ );

@@ -65,12 +65,12 @@ class Doctrine2DBAL extends Bridge implements IBridgeInterface
 
         try {
             $Connection = DriverManager::getConnection(array(
-                'driver'        => $Driver->getDriver(),
-                'user'          => $Username->getUsername(),
-                'password'      => $Password->getPassword(),
-                'host'          => $Host->getHost(),
-                'dbname'        => $Database->getDatabase(),
-                'port'          => $Port->getPort(),
+                'driver'   => $Driver->getDriver(),
+                'user'     => $Username->getUsername(),
+                'password' => $Password->getPassword(),
+                'host'     => $Host->getHost(),
+                'dbname'   => $Database->getDatabase(),
+                'port'     => $Port->getPort(),
                 'driverOptions' => array(
                     \PDO::ATTR_TIMEOUT => $Timeout,
                     \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION

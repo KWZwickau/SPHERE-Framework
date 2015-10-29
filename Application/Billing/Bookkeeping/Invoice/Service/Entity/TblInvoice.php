@@ -104,21 +104,21 @@ class TblInvoice extends Element
     protected $IsPaymentDateModified;
 
     /**
-     * @param boolean $IsPaymentDateModified
-     */
-    public function setIsPaymentDateModified($IsPaymentDateModified)
-    {
-
-        $this->IsPaymentDateModified = $IsPaymentDateModified;
-    }
-
-    /**
      * @return boolean
      */
     public function getIsPaymentDateModified()
     {
 
         return $this->IsPaymentDateModified;
+    }
+
+    /**
+     * @param boolean $IsPaymentDateModified
+     */
+    public function setIsPaymentDateModified($IsPaymentDateModified)
+    {
+
+        $this->IsPaymentDateModified = $IsPaymentDateModified;
     }
 
     /**
@@ -167,21 +167,21 @@ class TblInvoice extends Element
     }
 
     /**
-     * @param string $BasketName
-     */
-    public function setBasketName($BasketName)
-    {
-
-        $this->BasketName = $BasketName;
-    }
-
-    /**
      * @return string
      */
     public function getBasketName()
     {
 
         return $this->BasketName;
+    }
+
+    /**
+     * @param string $BasketName
+     */
+    public function setBasketName($BasketName)
+    {
+
+        $this->BasketName = $BasketName;
     }
 
     /**
@@ -329,21 +329,21 @@ class TblInvoice extends Element
     }
 
     /**
-     * @param string $DebtorNumber
-     */
-    public function setDebtorNumber($DebtorNumber)
-    {
-
-        $this->DebtorNumber = $DebtorNumber;
-    }
-
-    /**
      * @return string
      */
     public function getDebtorNumber()
     {
 
         return $this->DebtorNumber;
+    }
+
+    /**
+     * @param string $DebtorNumber
+     */
+    public function setDebtorNumber($DebtorNumber)
+    {
+
+        $this->DebtorNumber = $DebtorNumber;
     }
 
     /**

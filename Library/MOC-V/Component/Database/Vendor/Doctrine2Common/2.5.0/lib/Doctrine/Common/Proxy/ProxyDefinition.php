@@ -53,9 +53,9 @@ class ProxyDefinition
     public $cloner;
 
     /**
-     * @param string   $proxyClassName
-     * @param array    $identifierFields
-     * @param array    $reflectionFields
+     * @param string $proxyClassName
+     * @param array  $identifierFields
+     * @param array  $reflectionFields
      * @param callable $initializer
      * @param callable $cloner
      */

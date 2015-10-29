@@ -32,15 +32,6 @@ class TblBasketCommodityDebtor extends Element
     protected $serviceBilling_Debtor;
 
     /**
-     * @param TblBasketCommodity $tblBasketCommodity
-     */
-    public function setTblBasketCommodity(TblBasketCommodity $tblBasketCommodity = null)
-    {
-
-        $this->tblBasketCommodity = ( null === $tblBasketCommodity ? null : $tblBasketCommodity->getId() );
-    }
-
-    /**
      * @return bool|TblBasketCommodity
      */
     public function getTblBasketCommodity()
@@ -54,12 +45,12 @@ class TblBasketCommodityDebtor extends Element
     }
 
     /**
-     * @param null|TblDebtor $tblDebtor
+     * @param TblBasketCommodity $tblBasketCommodity
      */
-    public function setServiceBillingDebtor(TblDebtor $tblDebtor = null)
+    public function setTblBasketCommodity(TblBasketCommodity $tblBasketCommodity = null)
     {
 
-        $this->serviceBilling_Debtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
+        $this->tblBasketCommodity = ( null === $tblBasketCommodity ? null : $tblBasketCommodity->getId() );
     }
 
     /**
@@ -73,5 +64,14 @@ class TblBasketCommodityDebtor extends Element
         } else {
             return Banking::useService()->getDebtorById($this->serviceBilling_Debtor);
         }
+    }
+
+    /**
+     * @param null|TblDebtor $tblDebtor
+     */
+    public function setServiceBillingDebtor(TblDebtor $tblDebtor = null)
+    {
+
+        $this->serviceBilling_Debtor = ( null === $tblDebtor ? null : $tblDebtor->getId() );
     }
 }

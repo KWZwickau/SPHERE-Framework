@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Mail;
 
 use MOC\V\Component\Mail\Component\Exception\ComponentException;
 use MOC\V\Component\Mail\Exception\MailException;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ExceptionTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Mail
  */
-class ExceptionTest extends \PHPUnit_Framework_TestCase
+class ExceptionTest extends AbstractTestCase
 {
 
     public function testMailException()

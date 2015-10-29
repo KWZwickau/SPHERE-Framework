@@ -35,6 +35,9 @@ class SymfonyRouter extends Bridge implements IBridgeInterface
     /** @var null|HttpKernel $SymfonyHttpKernel */
     private $SymfonyHttpKernel = null;
 
+    /**
+     * @param string $BaseUrl
+     */
     public function __construct($BaseUrl = '')
     {
 
@@ -90,6 +93,7 @@ class SymfonyRouter extends Bridge implements IBridgeInterface
     public function getRoute($Path = null)
     {
 
+        $Path = null;
         try {
             return $this->SymfonyHttpKernel->handle(Request::createFromGlobals())->getContent();
         } catch (\Exception $E) {

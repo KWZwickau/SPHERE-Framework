@@ -1,6 +1,9 @@
 <?php
 namespace SPHERE\System\Extension\Repository;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\DomPdf;
+use MOC\V\Component\Document\Document;
+use MOC\V\Component\Template\Template;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Repository\Roadmap\Release;
 
@@ -30,6 +33,19 @@ class Roadmap
 
     public function getPdf()
     {
+
+        Debugger::screenDump(__METHOD__);
+
+        /** @var DomPdf $Document */
+        $Document = Document::getDocument('Roadmap.pdf');
+        $Document->setContent(
+            Template::getTwigTemplateString(implode($this->Release))
+        );
+        Debugger::screenDump(__METHOD__);
+
+        $Document->saveFile(new \MOC\V\Component\Document\Component\Parameter\Repository\FileParameter('Roadmap.pdf'));
+
+        Debugger::screenDump(__METHOD__);
 
     }
 

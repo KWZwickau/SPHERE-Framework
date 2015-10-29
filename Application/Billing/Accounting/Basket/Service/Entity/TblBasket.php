@@ -26,21 +26,21 @@ class TblBasket extends Element
     protected $Name;
 
     /**
-     * @param string $Name
-     */
-    public function setName($Name)
-    {
-
-        $this->Name = $Name;
-    }
-
-    /**
      * @return string
      */
     public function getName()
     {
 
         return $this->Name;
+    }
+
+    /**
+     * @param string $Name
+     */
+    public function setName($Name)
+    {
+
+        $this->Name = $Name;
     }
 
     /**

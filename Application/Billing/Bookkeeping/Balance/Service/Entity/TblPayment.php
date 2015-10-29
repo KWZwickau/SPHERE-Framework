@@ -34,15 +34,6 @@ class TblPayment extends Element
     protected $Date;
 
     /**
-     * @param null|TblBalance $tblBalance
-     */
-    public function setTblBalance($tblBalance = null)
-    {
-
-        $this->tblBalance = ( null === $tblBalance ? null : $tblBalance->getId() );
-    }
-
-    /**
      * @return bool|TblBalance
      */
     public function getTblBalance()
@@ -53,6 +44,15 @@ class TblPayment extends Element
         } else {
             return Balance::useService()->getBalanceById($this->tblBalance);
         }
+    }
+
+    /**
+     * @param null|TblBalance $tblBalance
+     */
+    public function setTblBalance($tblBalance = null)
+    {
+
+        $this->tblBalance = ( null === $tblBalance ? null : $tblBalance->getId() );
     }
 
     /**
@@ -83,21 +83,21 @@ class TblPayment extends Element
     }
 
     /**
-     * @param $Value
-     */
-    public function setValue($Value)
-    {
-
-        $this->Value = $Value;
-    }
-
-    /**
      * @return (type="decimal", precision=14, scale=4)
      */
     public function getValue()
     {
 
         return $this->Value;
+    }
+
+    /**
+     * @param $Value
+     */
+    public function setValue($Value)
+    {
+
+        $this->Value = $Value;
     }
 
     /**

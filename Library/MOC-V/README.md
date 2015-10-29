@@ -7,7 +7,7 @@ Don't use them in production environments.
 
 Be also aware that current interfaces may change rapidly
 
-![Minimal PHP Version](https://img.shields.io/badge/php-5.4-ff69b4.svg)
+![PHP Version](https://img.shields.io/badge/php-5.4-ff69b4.svg)
 
 [![Latest Stable Version](https://poser.pugx.org/moc-framework/mark-v/v/stable)](https://packagist.org/packages/moc-framework/mark-v) 
 [![Total Downloads](https://poser.pugx.org/moc-framework/mark-v/downloads)](https://packagist.org/packages/moc-framework/mark-v) 

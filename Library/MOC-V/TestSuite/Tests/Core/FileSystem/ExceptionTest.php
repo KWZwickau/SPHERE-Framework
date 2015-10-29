@@ -9,8 +9,9 @@ use MOC\V\Core\FileSystem\Component\Exception\Repository\MissingFileException;
 use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeDirectoryException;
 use MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException;
 use MOC\V\Core\FileSystem\Exception\FileSystemException;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class ExceptionTest extends \PHPUnit_Framework_TestCase
+class ExceptionTest extends AbstractTestCase
 {
 
     public function testFileSystemException()

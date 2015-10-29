@@ -48,6 +48,7 @@
         "php": ">=5.4.3"
     },
     "require-dev": {
-        "codeclimate/php-test-reporter": "dev-master"
+        "codeclimate/php-test-reporter": "dev-master",
+        "codacy/coverage": "dev-master"
     }
 }
