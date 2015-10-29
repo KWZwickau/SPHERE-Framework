@@ -18,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblItemAccount extends Element
 {
 
-    const ATTR_TBL_Item = 'tblItem';
+    const ATTR_TBL_ITEM = 'tblItem';
     const ATTR_SERVICE_BILLING_ACCOUNT = 'serviceBilling_Account';
 
     /**

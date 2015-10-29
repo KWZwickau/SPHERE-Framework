@@ -74,7 +74,7 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblItemAccount')
-            ->findBy(array(TblItemAccount::ATTR_TBL_Item => $tblItem->getId()));
+            ->findBy(array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -193,7 +193,7 @@ class Data extends AbstractData
         $EntityList = Commodity::useService()->getCommodityItemAllByItem($tblItem);
         if (empty( $EntityList )) {
             $EntityItems = $Manager->getEntity('TblItemAccount')
-                ->findBy(array(TblItemAccount::ATTR_TBL_Item => $tblItem->getId()));
+                ->findBy(array(TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId()));
             if (null !== $EntityItems) {
                 foreach ($EntityItems as $Entity) {
                     Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
@@ -229,7 +229,7 @@ class Data extends AbstractData
 
         $Entity = $Manager->getEntity('TblItemAccount')->findOneBy(
             array(
-                TblItemAccount::ATTR_TBL_Item                => $tblItem->getId(),
+                TblItemAccount::ATTR_TBL_ITEM                => $tblItem->getId(),
                 TblItemAccount::ATTR_SERVICE_BILLING_ACCOUNT => $tblAccount->getId()
             ));
         if (null === $Entity) {

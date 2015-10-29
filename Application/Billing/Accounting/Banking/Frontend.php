@@ -107,7 +107,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $tblDebtor->DebtorCommodity = $debtorCommodity;
 
-                $tblPerson = $tblDebtor->getServiceManagementPerson(); //todo
+                $tblPerson = $tblDebtor->getServiceManagementPerson();
                 if (!empty( $tblPerson )) {
                     $tblDebtor->FullName = $tblPerson->getFullName();
                 } else {
@@ -554,16 +554,18 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblCommodity $tblCommodity */
             foreach ($tblCommodityList as $Key => &$tblCommodity) {
 
-                $tblReference = Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor, $tblCommodity);
+                if ($tblCommodity) {
+                    $tblReference = Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor, $tblCommodity);
 
-                if ($tblReference) {
-                    $tblCommodity = new LayoutColumn(array(
-                        new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_SUCCESS)
-                    ), 3);
-                } else {
-                    $tblCommodity = new LayoutColumn(array(
-                        new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_DANGER)
-                    ), 3);
+                    if ($tblReference) {
+                        $tblCommodity = new LayoutColumn(array(
+                            new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_SUCCESS)
+                        ), 3);
+                    } else {
+                        $tblCommodity = new LayoutColumn(array(
+                            new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_DANGER)
+                        ), 3);
+                    }
                 }
             }
         } else {
@@ -702,7 +704,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCommodityAll = Banking::useService()->getCommodityAllByDebtor($tblDebtor);
                 if ($tblCommodityAll) {
                     foreach ($tblCommodityAll as $tblCommodity) {
-                        $Commodity[] = $tblCommodity->getName();
+                        if ($tblCommodity) {
+                            $Commodity[] = $tblCommodity->getName();
+                        }
                     }
                 }
                 if (empty( $Commodity )) {
@@ -758,12 +762,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Banking::useService()->destroyBanking($tblDebtor)
-                                ? new \SPHERE\Common\Frontend\Message\Repository\Success('Der Debitor wurde gelöscht')
-                                .new Redirect('/Billing/Accounting/Banking', 0)
-                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Debitor konnte nicht gelöscht werden')
-                                .new Redirect('/Billing/Accounting/Banking', 10)
-                            )
+                            Banking::useService()->destroyBanking($tblDebtor)
+//                                ? new \SPHERE\Common\Frontend\Message\Repository\Success('Der Debitor wurde gelöscht')
+//                                .new Redirect('/Billing/Accounting/Banking', 0)
+//                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Debitor konnte nicht gelöscht werden')
+//                                .new Redirect('/Billing/Accounting/Banking', 10)
                         )))
                     )))
                 );
@@ -1310,7 +1313,7 @@ class Frontend extends Extension implements IFrontendInterface
                     .(new Standard('Deaktivieren', '/Billing/Accounting/Banking/Debtor/Reference/Deactivate',
                         new Remove(), array(
                             'ReferenceId' => $ReferenceEntity->getId(),
-                            'AccountId' => $tblAccount->getId(),
+                            'AccountId'   => $tblAccount->getId(),
                         )))->__toString();
             }
         }
@@ -1361,8 +1364,8 @@ class Frontend extends Extension implements IFrontendInterface
                                                         new BarCode()
                                                     ), 4),
                                                 new FormColumn(
-                                                    new DatePicker('Reference[ReferenceDate]', 'Datum',
-                                                        'Erstellungsdatum', new Time()
+                                                    new DatePicker('Reference[ReferenceDate]', 'Signaturdatum',
+                                                        'Signaturdatum', new Time()
                                                     ), 4),
                                                 new FormColumn(
                                                     new SelectBox('Reference[Commodity]', 'Leistung',
@@ -1382,7 +1385,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 new TableData($ReferenceEntityList, null,
                                     array(
                                         'Reference'     => 'Mandatsreferenz',
-                                        'ReferenceDate' => 'Datum',
+                                        'ReferenceDate' => 'Signaturdatum',
                                         'Commodity'     => 'Leistung',
                                         'Usage'         => 'Benutzung',
                                         'Option'        => 'Option'
@@ -1448,7 +1451,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new Panel('Debitorennummer: '.$tblReference->getReference(), '', Panel::PANEL_TYPE_INFO)
+                            new Panel('Referenznummer: '.$tblReference->getReference(), '', Panel::PANEL_TYPE_INFO)
                             , 6)
                     )
                 )
@@ -1458,7 +1461,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormGroup(
                         new FormRow(
                             new FormColumn(
-                                new DatePicker('Reference[Date]', 'Datum', 'Datum')
+                                new DatePicker('Reference[Date]', 'Signaturdatum', 'Signaturdatum')
                             )
                         )
                     ), new Primary('Ändern')

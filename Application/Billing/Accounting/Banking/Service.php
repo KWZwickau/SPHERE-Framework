@@ -259,7 +259,7 @@ class Service extends AbstractService
      *
      * @return TblReference[]
      */
-    public function getReferenceActiveByAccount( TblAccount $tblAccount )
+    public function getReferenceActiveByAccount(TblAccount $tblAccount)
     {
 
         return (new Data($this->getBinding()))->getReferenceActiveByAccount($tblAccount);
@@ -296,21 +296,40 @@ class Service extends AbstractService
         if (null === $tblDebtor) {
             return '';
         }
+        $Error = false;
 
-        if (Banking::useService()->getAccountAllByDebtor($tblDebtor)) {
-            $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
-            foreach ($tblAccountList as $tblAccount) {
-                Banking::useService()->destroyAccount($tblAccount);
+        $tblInvoiceList = Invoice::useService()->getInvoiceAll();
+        foreach ($tblInvoiceList as $tblInvoice) {
+            if (!$tblInvoice->getIsVoid()) {
+                if (!$tblInvoice->getIsPaid()) {
+                    if (!$tblInvoice->getIsConfirmed()) {
+                        $tblDebtorInvoice = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                        if ($tblDebtorInvoice->getId() === $tblDebtor->getId()) {
+                            $Error = true;
+                        }
+                    }
+                }
             }
         }
 
-        if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
-            return new Success('Die Leistung wurde erfolgreich gelöscht')
-            .new Redirect('/Billing/Accounting/Banking', 1);
-        } else {
-            return new Danger('Die Leistung konnte nicht gelöscht werden')
-            .new Redirect('/Billing/Accounting/Banking', 3);
+        if (!$Error) {
+            if (Banking::useService()->getAccountAllByDebtor($tblDebtor)) {
+                $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
+                foreach ($tblAccountList as $tblAccount) {
+                    Banking::useService()->destroyAccount($tblAccount);
+                }
+            }
+
+            if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
+                return new Success('Der Debitor wurde erfolgreich gelöscht')
+                .new Redirect('/Billing/Accounting/Banking', 1);
+            } else {
+                return new Danger('Der Debitor konnte nicht gelöscht werden')
+                .new Redirect('/Billing/Accounting/Banking', 3);
+            }
         }
+        return new Danger('Es bestehen noch offene Rechnungen mit diesem Debitor')
+        .new Redirect('/Billing/Accounting/Banking', 3);
     }
 
     /**
@@ -352,6 +371,7 @@ class Service extends AbstractService
 
     /**
      * @param TblReference $tblReference
+     * @param              $AccountId
      *
      * @return string
      */
@@ -364,13 +384,13 @@ class Service extends AbstractService
         if ((new Data($this->getBinding()))->deactivateReference($tblReference)) {
             return new Success('Die Deaktivierung ist erfasst worden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1,
-                array('DebtorId' => $tblReference->getServiceTblDebtor()->getId(),
-                    'AccountId'=> $AccountId));
+                array('DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
+                      'AccountId' => $AccountId));
         } else {
             return new Danger('Die Referenz konnte nicht deaktiviert werden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 3,
-                array('DebtorId' => $tblReference->getServiceTblDebtor()->getId(),
-                      'AccountId'=> $AccountId));
+                array('DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
+                      'AccountId' => $AccountId));
         }
     }
 

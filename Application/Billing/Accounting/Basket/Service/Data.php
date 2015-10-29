@@ -80,7 +80,20 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketItem')
-            ->findBy(array(TblBasketItem::ATTR_TBL_Basket => $tblBasket->getId()));
+            ->findBy(array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
+        return ( null === $EntityList ? false : $EntityList );
+    }
+
+    /**
+     * @param TblCommodityItem $tblCommodityItem
+     *
+     * @return array|bool
+     */
+    public function getBasketItemAllByCommodityItem(TblCommodityItem $tblCommodityItem)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketItem')
+            ->findBy(array(TblBasketItem::ATTR_SERVICE_BILLING_COMMODITY_ITEM => $tblCommodityItem->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -150,7 +163,7 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketPerson')
-            ->findBy(array(TblBasketItem::ATTR_TBL_Basket => $tblBasket->getId()));
+            ->findBy(array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -163,7 +176,7 @@ class Data extends AbstractData
     {
 
         return (int)$this->getConnection()->getEntityManager()->getEntity('TblBasketPerson')->countBy(array(
-            TblBasketPerson::ATTR_TBL_Basket => $tblBasket->getId()
+            TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()
         ));
     }
 
@@ -503,7 +516,7 @@ class Data extends AbstractData
         /** @var TblCommodityItem $tblCommodityItem */
         foreach ($tblCommodityItemList as $tblCommodityItem) {
             $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(array(
-                TblBasketItem::ATTR_TBL_Basket                     => $tblBasket->getId(),
+                TblBasketItem::ATTR_TBL_BASKET                     => $tblBasket->getId(),
                 TblBasketItem::ATTR_SERVICE_BILLING_COMMODITY_ITEM => $tblCommodityItem->getId()
             ));
             if (null === $Entity) {
@@ -622,7 +635,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(array(
-            TblBasketPerson::ATTR_TBL_Basket                => $tblBasket->getId(),
+            TblBasketPerson::ATTR_TBL_BASKET                => $tblBasket->getId(),
             TblBasketPerson::ATTR_SERVICE_MANAGEMENT_PERSON => $tblPerson->getId()
         ));
         if (null === $Entity) {
@@ -674,14 +687,14 @@ class Data extends AbstractData
         if ($tblBasket !== null) {
             $Manager = $this->getConnection()->getEntityManager();
 
-            $EntityList = $Manager->getEntity('TblBasketPerson')->findBy(array(TblBasketPerson::ATTR_TBL_Basket => $tblBasket->getId()));
+            $EntityList = $Manager->getEntity('TblBasketPerson')->findBy(array(TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()));
             foreach ($EntityList as $Entity) {
                 Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->bulkKillEntity($Entity);
             }
 
-            $EntityList = $Manager->getEntity('TblBasketItem')->findBy(array(TblBasketItem::ATTR_TBL_Basket => $tblBasket->getId()));
+            $EntityList = $Manager->getEntity('TblBasketItem')->findBy(array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
             foreach ($EntityList as $Entity) {
                 Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);

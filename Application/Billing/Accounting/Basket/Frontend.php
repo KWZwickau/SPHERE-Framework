@@ -304,20 +304,31 @@ class Frontend extends Extension implements IFrontendInterface
                 }, $tblBasket);
         }
 
+        $Options = true;
         if (!empty( $tblCommodityAll )) {
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($tblCommodityAll, function (TblCommodity $tblCommodity, $Index, TblBasket $tblBasket) {
+            if(empty( Basket::useService()->getCommodityAllByBasket($tblBasket))) {
+                /** @noinspection PhpUnusedParameterInspection */
+                array_walk($tblCommodityAll, function (TblCommodity $tblCommodity, $Index, TblBasket $tblBasket) {
 
-                $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
-                $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
-                $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
-                $tblCommodity->Option =
-                    (new Success('Hinzufügen', '/Billing/Accounting/Basket/Commodity/Add',
-                        new Plus(), array(
-                            'Id'          => $tblBasket->getId(),
-                            'CommodityId' => $tblCommodity->getId()
-                        )))->__toString();
-            }, $tblBasket);
+                    $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
+                    $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+                    $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
+                    $tblCommodity->Option =
+                        (new Success('Hinzufügen', '/Billing/Accounting/Basket/Commodity/Add',
+                            new Plus(), array(
+                                'Id'          => $tblBasket->getId(),
+                                'CommodityId' => $tblCommodity->getId()
+                            )))->__toString();
+                }, $tblBasket);
+            } else{
+                array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) {
+
+                    $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
+                    $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
+                    $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
+                }, $tblBasket);
+                $Options = false;
+            }
         }
 
         $Stage->setContent(
@@ -355,6 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )),
                 ), new Title('zugewiesene Leistungen')),
+                ($Options)?
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -366,6 +378,23 @@ class Frontend extends Extension implements IFrontendInterface
                                         'ItemCount'    => 'Artikelanzahl',
                                         'SumPriceItem' => 'Gesamtpreis',
                                         'Option'       => 'Option'
+                                    )
+                                )
+                            )
+                        )
+                    )),
+                ), new Title('mögliche Leistungen'))
+                    :
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                                new TableData($tblCommodityAll, null,
+                                    array(
+                                        'Name'         => 'Name',
+                                        'Description'  => 'Beschreibung',
+                                        'Type'         => 'Leistungsart',
+                                        'ItemCount'    => 'Artikelanzahl',
+                                        'SumPriceItem' => 'Gesamtpreis',
                                     )
                                 )
                             )

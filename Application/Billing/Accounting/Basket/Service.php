@@ -11,6 +11,7 @@ use SPHERE\Application\Billing\Accounting\Basket\Service\Entity\TblBasketPerson;
 use SPHERE\Application\Billing\Accounting\Basket\Service\Setup;
 use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
+use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
@@ -113,6 +114,17 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getBasketItemAllByBasketAndCommodity($tblBasket, $tblCommodity);
+    }
+
+    /**
+     * @param TblCommodityItem $tblCommodityItem
+     *
+     * @return bool|TblBasketItem[]
+     */
+    public function getBasketItemAllByCommodityItem(TblCommodityItem $tblCommodityItem)
+    {
+
+        return (new Data($this->getBinding()))->getBasketItemAllByCommodityItem( $tblCommodityItem);
     }
 
     /**
@@ -434,7 +446,7 @@ class Service extends AbstractService
         } else {
             foreach ($tblBasketPersonAllByBasket as $tblBasketPerson) {
                 if (!(new Data($this->getBinding()))->checkDebtorExistsByPerson($tblBasketPerson->getServiceManagementPerson())) {
-                    $Stage .= new Danger("Für den Schüler ".$tblBasketPerson->getServiceManagementPerson()->getFullName()
+                    $Stage .= new Danger("Für die Person ".$tblBasketPerson->getServiceManagementPerson()->getFullName()
                         ." gibt es noch keinen relevanten Debitoren. Bitte legen Sie diese zunächst einen an");
                     $ErrorMissing = true;
                 }

@@ -264,41 +264,51 @@ class Frontend extends Extension implements IFrontendInterface
             if (!empty( $tblInvoiceItemAll )) {
                 array_walk($tblInvoiceItemAll,
                     function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
+
                         $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                        $tblAccount = Banking::useService()->getActiveAccountByDebtor( $tblDebtor );
-
-                        if ($tblInvoice->getServiceBillingBankingPaymentType()->getId() == 1) //SEPA-Lastschrift
+                        if($tblDebtor)
                         {
-                            $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItem->getCommodityName());
-                            if ($tblCommodity) {
+                            $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
+                        }else{
+                            $tblAccount = false;
+                        }
 
-                                $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                                if ($tblDebtor) {
+
+                        if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+                            if ($tblAccount) {
+                                $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItem->getCommodityName());
+                                if ($tblCommodity) {
+
+                                    $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                                    if ($tblDebtor) {
 //                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
 //                                        $tblCommodity)) {
-                                    if (Banking::useService()->getReferenceByAccountAndCommodity( $tblAccount, $tblCommodity ))
-                                    {
-                                        $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
-                                            'Mandatsreferenz'.' '.new Ok()
-                                        );
+                                        if (Banking::useService()->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity)) {
+                                            $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
+                                                'Mandatsreferenz'.' '.new Ok()
+                                            );
+                                        } else {
+                                            $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                                'keine Mandatsreferenz'.' '.new Disable()
+                                            );
+                                        }
                                     } else {
-                                        $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                                            'keine Mandatsreferenz'.' '.new Disable()
+                                        $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Message\Repository\Danger(
+                                            'Debitor nicht gefunden'.' '.new Disable()
                                         );
                                     }
                                 } else {
                                     $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Message\Repository\Danger(
-                                        'Debitor nicht gefunden'.' '.new Disable()
+                                        'Leistung nicht gefunden'.' '.new Disable()
                                     );
                                 }
                             } else {
-                                $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Message\Repository\Danger(
-                                    'Leistung nicht gefunden'.' '.new Disable()
-                                );
+                                $tblInvoiceItem->Status = "";
                             }
                         } else {
                             $tblInvoiceItem->Status = "";
                         }
+
 
                         $tblInvoiceItem->TotalPriceString = $tblInvoiceItem->getTotalPriceString();
                         $tblInvoiceItem->QuantityString = str_replace('.', ',', $tblInvoiceItem->getItemQuantity());
@@ -399,11 +409,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                         )),
                         ( ( $tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
-                            new LayoutRow(
-                                new LayoutColumn(
-                                    self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
-                                )
-                            ) : null
+                            ($tblDebtor)?
+                                new LayoutRow(
+                                    new LayoutColumn(
+                                        self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
+                                    )
+                                ) : null
+                                : null
                         ),
                         new LayoutRow(
                             new LayoutColumn(
@@ -481,7 +493,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )), ( $tblAccount->getActive() ?
                         Panel::PANEL_TYPE_SUCCESS
                         : Panel::PANEL_TYPE_DEFAULT ))
-                , 4);
+                    , 4);
             }
         } else {
             $tblAccountList = new LayoutColumn(new Warning('Es ist kein Konto für diesen Debitor angelegt'));
@@ -518,33 +530,44 @@ class Frontend extends Extension implements IFrontendInterface
             array_walk($tblInvoiceItemAll,
                 function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
 
-                    if ($tblInvoice->getServiceBillingBankingPaymentType()->getId() == 1) //SEPA-Lastschrift
+                    $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                    if($tblDebtor)
                     {
-                        $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItem->getCommodityName());
-                        if ($tblCommodity) {
+                        $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
+                    } else{
+                        $tblAccount = false;
+                    }
 
-                            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                            if ($tblDebtor) {
-                                if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
-                                    $tblCommodity)
-                                ) {
-                                    $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
-                                        'Mandatsreferenz '.new Ok()
-                                    );
+                    if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+                        if ($tblAccount) {
+                            $tblCommodity = Commodity::useService()->getCommodityByName($tblInvoiceItem->getCommodityName());
+                            if ($tblCommodity) {
+
+                                $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                                if ($tblDebtor) {
+                                    if (Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor,
+                                        $tblCommodity)
+                                    ) {
+                                        $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Success(
+                                            'Mandatsreferenz '.new Ok()
+                                        );
+                                    } else {
+                                        $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Warning(
+                                            'keine Mandatsreferenz '.new Disable()
+                                        );
+                                    }
                                 } else {
-                                    $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Warning(
-                                        'keine Mandatsreferenz '.new Disable()
+                                    $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Danger(
+                                        'Debitor nicht gefunden '.new Disable()
                                     );
                                 }
                             } else {
                                 $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Danger(
-                                    'Debitor nicht gefunden '.new Disable()
+                                    'Leistung nicht gefunden '.new Disable()
                                 );
                             }
                         } else {
-                            $tblInvoiceItem->Status = new \SPHERE\Common\Frontend\Text\Repository\Danger(
-                                'Leistung nicht gefunden '.new Disable()
-                            );
+                            $tblInvoiceItem->Status = "";
                         }
                     } else {
                         $tblInvoiceItem->Status = "";
@@ -945,7 +968,7 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
 
                 $Global = $this->getGlobal();
-                if (!isset( $Global->POST['InvoiceItems'] )) {
+                if (!isset( $Global->POST['InvoiceItem'])) {
                     $Global->POST['InvoiceItem']['Price'] = str_replace('.', ',', $tblInvoiceItem->getItemPrice());
                     $Global->POST['InvoiceItem']['Quantity'] = str_replace('.', ',',
                         $tblInvoiceItem->getItemQuantity());

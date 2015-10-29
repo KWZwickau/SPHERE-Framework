@@ -18,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBasketPerson extends Element
 {
 
-    const ATTR_TBL_Basket = 'tblBasket';
+    const ATTR_TBL_BASKET = 'tblBasket';
     const ATTR_SERVICE_MANAGEMENT_PERSON = 'serviceManagement_Person';
 
     /**
