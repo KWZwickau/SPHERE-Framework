@@ -23,7 +23,8 @@ class Setup extends AbstractSetup
 
         $Schema = clone $this->getConnection()->getSchema();
         $tblLevel = $this->setTableLevel($Schema);
-        $tblGroup = $this->setTableGroup($Schema, $tblLevel);
+        $tblDivision = $this->setTableDivision($Schema, $tblLevel);
+        $tblDivisionSubject = $this->setTableDivisionSubject($Schema, $tblDivision);
         /**
          * Migration & Protocol
          */
@@ -47,6 +48,9 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblLevel', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
+        if (!$this->getConnection()->hasColumn('tblLevel', 'serviceTblType')) {
+            $Table->addColumn('serviceTblType', 'bigint', array('notnull' => false));
+        }
         return $Table;
     }
 
@@ -56,20 +60,37 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableGroup(Schema &$Schema, Table $tblLevel)
+    private function setTableDivision(Schema &$Schema, Table $tblLevel)
     {
 
-        $Table = $this->getConnection()->createTable($Schema, 'tblGroup');
-        if (!$this->getConnection()->hasColumn('tblGroup', 'Name')) {
+        $Table = $this->getConnection()->createTable($Schema, 'tblDivision');
+        if (!$this->getConnection()->hasColumn('tblDivision', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblGroup', 'Description')) {
+        if (!$this->getConnection()->hasColumn('tblDivision', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblGroup', 'serviceTblYear')) {
+        if (!$this->getConnection()->hasColumn('tblDivision', 'serviceTblYear')) {
             $Table->addColumn('serviceTblYear', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblLevel);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDivision
+     *
+     * @return Table
+     */
+    private function setTableDivisionSubject(Schema &$Schema, Table $tblDivision)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblDivisionSubject');
+        if (!$this->getConnection()->hasColumn('tblDivisionSubject', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblDivision);
         return $Table;
     }
 }

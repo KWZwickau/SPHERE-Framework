@@ -11,11 +11,13 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * School Class (Group: 6 Alpha)
+ *
  * @Entity
- * @Table(name="tblGroup")
+ * @Table(name="tblDivision")
  * @Cache(usage="READ_ONLY")
  */
-class TblGroup extends Element
+class TblDivision extends Element
 {
 
     const ATTR_NAME = 'Name';

@@ -5,9 +5,13 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
+ * Class Level (6, School-Type)
+ *
  * @Entity
  * @Table(name="tblLevel")
  * @Cache(usage="READ_ONLY")
@@ -16,6 +20,7 @@ class TblLevel extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const SERVICE_TBL_TYPE = 'serviceTblType';
 
     /**
      * @Column(type="string")
@@ -25,6 +30,10 @@ class TblLevel extends Element
      * @Column(type="string")
      */
     protected $Description;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $serviceTblType;
 
     /**
      * @return string
@@ -60,5 +69,27 @@ class TblLevel extends Element
     {
 
         $this->Description = $Description;
+    }
+
+    /**
+     * @return bool|TblType
+     */
+    public function getServiceTblType()
+    {
+
+        if (null === $this->serviceTblType) {
+            return false;
+        } else {
+            return Type::useService()->getTypeById($this->serviceTblType);
+        }
+    }
+
+    /**
+     * @param TblType|null $tblType
+     */
+    public function setServiceTblType(TblType $tblType = null)
+    {
+
+        $this->serviceTblType = ( null === $tblType ? null : $tblType->getId() );
     }
 }
