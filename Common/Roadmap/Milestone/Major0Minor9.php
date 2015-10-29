@@ -29,15 +29,14 @@ class Major0Minor9
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Ersteinschulung: Abgebende Kita)');
         $Feature->createTask('Beziehungen')
-            ->createDuty('Anzeige von Adress- und Kontaktdaten')
-            ->createDuty('Trennung von Beziehungstypen (Personenbeziehungen)')
+            ->createDuty('Trennung von Beziehungstypen (Personenbeziehungen)', true)
             ->createDuty('Frei definierbare Beziehungstypen');
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
         $Feature = $Category->createFeature('Firma');
         $Feature->createTask('Beziehungen')
-            ->createDuty('Trennung von Beziehungstypen (Firmenbeziehungen)')
+            ->createDuty('Trennung von Beziehungstypen (Firmenbeziehungen)', true)
             ->createDuty('Frei definierbare Beziehungstypen');
     }
 

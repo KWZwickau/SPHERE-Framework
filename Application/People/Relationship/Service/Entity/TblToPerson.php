@@ -18,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblToPerson extends Element
 {
 
-    const ATT_TBL_TYPE = 'tblType';
+    const ATTR_TBL_TYPE = 'tblType';
     const SERVICE_TBL_PERSON_FROM = 'serviceTblPersonFrom';
     const SERVICE_TBL_PERSON_TO = 'serviceTblPersonTo';
 

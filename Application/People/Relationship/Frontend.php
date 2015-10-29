@@ -132,7 +132,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblTypeAll = Relationship::useService()->getTypeAll();
+        $tblGroup = Relationship::useService()->getGroupByIdentifier('PERSON');
+        $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
         $tblPersonAll = Person::useService()->getPersonAll();
 
         array_walk($tblPersonAll, function (TblPerson &$tblPerson) {
@@ -253,7 +254,8 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
-        $tblTypeAll = Relationship::useService()->getTypeAll();
+        $tblGroup = Relationship::useService()->getGroupByIdentifier('COMPANY');
+        $tblTypeAll = Relationship::useService()->getTypeAllByGroup($tblGroup);
         $tblCompanyAll = Company::useService()->getCompanyAll();
 
         array_walk($tblCompanyAll, function (TblCompany &$tblCompany) {
