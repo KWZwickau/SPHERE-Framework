@@ -6,6 +6,7 @@ use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\People\Relationship\Service\Data;
+use SPHERE\Application\People\Relationship\Service\Entity\TblGroup;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
@@ -137,6 +138,39 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getTypeById($Id);
+    }
+
+    /**
+     * @param TblGroup|null $tblGroup
+     *
+     * @return bool|TblType[]
+     */
+    public function getTypeAllByGroup(TblGroup $tblGroup = null)
+    {
+
+        return (new Data($this->getBinding()))->getTypeAllByGroup($tblGroup);
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getGroupById($Id);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByIdentifier($Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getGroupByIdentifier($Identifier);
     }
 
     /**
@@ -348,5 +382,29 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getRelationshipToCompanyById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPersonFrom
+     * @param TblPerson $tblPersonTo
+     * @param TblType   $tblType
+     * @param string    $Remark
+     *
+     * @return bool
+     */
+    public function insertRelationshipToPerson(
+        TblPerson $tblPersonFrom,
+        TblPerson $tblPersonTo,
+        TblType $tblType,
+        $Remark
+    ) {
+
+        if ((new Data($this->getBinding()))->addPersonRelationshipToPerson($tblPersonFrom, $tblPersonTo, $tblType,
+            $Remark)
+        ) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }

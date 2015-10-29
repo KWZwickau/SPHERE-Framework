@@ -9,6 +9,7 @@ use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityIt
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItemAccount;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -17,9 +18,9 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
-use SPHERE\Common\Frontend\Icon\Repository\Edit;
 use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Minus;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
@@ -31,7 +32,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Danger;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
@@ -55,10 +56,10 @@ class Frontend extends Extension implements IFrontendInterface
                             die unter einem Punkt für den Debitor abgerechnet werden. <br />
                             Beispielsweise: Schulgeld, Hortgeld, Klassenfahrt usw.');
         $Stage->addButton(
-            new Primary('Leistung anlegen', '/Billing/Inventory/Commodity/Create', new Plus())
+            new Standard('Leistung anlegen', '/Billing/Inventory/Commodity/Create', new Plus())
         );
 
-        $tblCommodityAll = Commodity::useService()->entityCommodityAll();
+        $tblCommodityAll = Commodity::useService()->getCommodityAll();
 
         if (!empty( $tblCommodityAll )) {
             array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) {
@@ -67,15 +68,15 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCommodity->ItemCount = Commodity::useService()->countItemAllByCommodity($tblCommodity);
                 $tblCommodity->SumPriceItem = Commodity::useService()->sumPriceItemAllByCommodity($tblCommodity);
                 $tblCommodity->Option =
-                    (new Primary('Bearbeiten', '/Billing/Inventory/Commodity/Edit',
-                        new Edit(), array(
+                    (new Standard('Bearbeiten', '/Billing/Inventory/Commodity/Change',
+                        new Pencil(), array(
                             'Id' => $tblCommodity->getId()
                         )))->__toString().
-                    (new Primary('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
+                    (new Standard('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
                         new Listing(), array(
                             'Id' => $tblCommodity->getId()
                         )))->__toString().
-                    (new Danger('Löschen', '/Billing/Inventory/Commodity/Delete',
+                    (new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',
                         new Remove(), array(
                             'Id' => $tblCommodity->getId()
                         )))->__toString();
@@ -116,11 +117,11 @@ class Frontend extends Extension implements IFrontendInterface
             Personenanzahl. <br>
             (z.B.: für Klassenfahrten)
         ');
-        $Stage->addButton(new Primary('Zurück', '/Billing/Inventory/Commodity',
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
             new ChevronLeft()
         ));
 
-        $Stage->setContent(Commodity::useService()->executeCreateCommodity(
+        $Stage->setContent(Commodity::useService()->createCommodity(
             new Form(array(
                 new FormGroup(array(
                     new FormRow(array(
@@ -129,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 6),
                         new FormColumn(
                             new SelectBox('Commodity[Type]', 'Leistungsart', array(
-                                'Name' => Commodity::useService()->entityCommodityTypeAll()
+                                'Name' => Commodity::useService()->getCommodityTypeAll()
                             ))
                             , 6)
                     )),
@@ -139,7 +140,7 @@ class Frontend extends Extension implements IFrontendInterface
                             ), 12)
                     ))
                 ))
-            ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen')), $Commodity));
+            ), new Primary('Hinzufügen')), $Commodity));
 
         return $Stage;
     }
@@ -149,15 +150,15 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendDelete($Id)
+    public function frontendDestroy($Id)
     {
 
         $Stage = new Stage();
         $Stage->setTitle('Leistung');
         $Stage->setDescription('Entfernen');
 
-        $tblCommodity = Commodity::useService()->entityCommodityById($Id);
-        $Stage->setContent(Commodity::useService()->executeRemoveCommodity($tblCommodity));
+        $tblCommodity = Commodity::useService()->getCommodityById($Id);
+        $Stage->setContent(Commodity::useService()->destroyCommodity($tblCommodity));
 
         return $Stage;
     }
@@ -169,7 +170,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendEdit($Id, $Commodity)
+    public function frontendChange($Id, $Commodity)
     {
 
         $Stage = new Stage();
@@ -182,14 +183,14 @@ class Frontend extends Extension implements IFrontendInterface
             Personenanzahl. <br>
             (z.B.: für Klassenfahrten)
         ');
-        $Stage->addButton(new Primary('Zurück', '/Billing/Inventory/Commodity',
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
             new ChevronLeft()
         ));
 
         if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
-            $tblCommodity = Commodity::useService()->entityCommodityById($Id);
+            $tblCommodity = Commodity::useService()->getCommodityById($Id);
             if (empty( $tblCommodity )) {
                 $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
             } else {
@@ -202,7 +203,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
-                $Stage->setContent(Commodity::useService()->executeEditCommodity(
+                $Stage->setContent(Commodity::useService()->changeCommodity(
                     new Form(array(
                         new FormGroup(array(
                             new FormRow(array(
@@ -211,7 +212,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ), 6),
                                 new FormColumn(
                                     new SelectBox('Commodity[Type]', 'Leistungsart', array(
-                                        'Name' => Commodity::useService()->entityCommodityTypeAll()
+                                        'Name' => Commodity::useService()->getCommodityTypeAll()
                                     ))
                                     , 6)
                             )),
@@ -222,7 +223,7 @@ class Frontend extends Extension implements IFrontendInterface
                                     ), 12)
                             ))
                         ))
-                    ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern')
+                    ), new Primary('Änderungen speichern')
                     ), $tblCommodity, $Commodity));
             }
         }
@@ -243,11 +244,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistung');
         $Stage->setDescription('Artikel Hinzufügen');
-        $tblCommodity = Commodity::useService()->entityCommodityById($tblCommodityId);
-        $tblItem = Item::useService()->entityItemById($tblItemId);
+        $tblCommodity = Commodity::useService()->getCommodityById($tblCommodityId);
+        $tblItem = Item::useService()->getItemById($tblItemId);
 
         if (!empty( $tblCommodityId ) && !empty( $tblItemId )) {
-            $Stage->setContent(Commodity::useService()->executeAddCommodityItem($tblCommodity, $tblItem, $Item));
+            $Stage->setContent(Commodity::useService()->addItemToCommodity($tblCommodity, $tblItem, $Item));
         }
 
         return $Stage;
@@ -264,20 +265,20 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('FIBU-Konten auswählen');
-        $Stage->addButton(new Primary('Zurück', '/Billing/Inventory/Commodity/Item',
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Item',
             new ChevronLeft()
         ));
 
         if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
-            $tblItem = Item::useService()->entityItemById($Id);
+            $tblItem = Item::useService()->getItemById($Id);
             if (empty( $tblItem )) {
                 $Stage->setContent(new Warning('Der Artikel konnte nicht abgerufen werden'));
             } else {
-                $tblItemAccountByItem = Commodity::useService()->entityItemAccountAllByItem($tblItem);
-                $tblAccountByItem = Commodity::useService()->entityAccountAllByItem($tblItem);
-                $tblAccountAllByActiveState = Account::useService()->entityAccountAllByActiveState();
+                $tblItemAccountByItem = Item::useService()->getItemAccountAllByItem($tblItem);
+                $tblAccountByItem = Commodity::useService()->getAccountAllByItem($tblItem);
+                $tblAccountAllByActiveState = Account::useService()->getAccountAllByActiveState();
 
                 if (!empty( $tblAccountAllByActiveState )) {
                     $tblAccountAllByActiveState = array_udiff($tblAccountAllByActiveState, $tblAccountByItem,
@@ -294,7 +295,7 @@ class Frontend extends Extension implements IFrontendInterface
                         $tblItemAccountByItem->Number = $tblItemAccountByItem->getServiceBilling_Account()->getNumber();
                         $tblItemAccountByItem->Description = $tblItemAccountByItem->getServiceBilling_Account()->getDescription();
                         $tblItemAccountByItem->Option =
-                            new Danger('Entfernen', '/Billing/Inventory/Commodity/Item/Account/Remove',
+                            new Standard('Entfernen', '/Billing/Inventory/Commodity/Item/Account/Remove',
                                 new Minus(), array(
                                     'Id' => $tblItemAccountByItem->getId()
                                 ));
@@ -307,7 +308,7 @@ class Frontend extends Extension implements IFrontendInterface
                         function (TblAccount $tblAccountAllByActiveState, $Index, TblItem $tblItem) {
 
                             $tblAccountAllByActiveState->Option =
-                                new Primary('Hinzufügen', '/Billing/Inventory/Commodity/Item/Account/Add',
+                                new Standard('Hinzufügen', '/Billing/Inventory/Commodity/Item/Account/Add',
                                     new Plus(), array(
                                         'tblAccountId' => $tblAccountAllByActiveState->getId(),
                                         'tblItemId'    => $tblItem->getId()
@@ -374,20 +375,20 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistung');
         $Stage->setDescription('Artikel auswählen');
-        $Stage->addButton(new Primary('Zurück', '/Billing/Inventory/Item',
+        $Stage->addButton(new Standard('Zurück', '/Billing/Inventory/Commodity',
             new ChevronLeft()
         ));
 
         if (empty( $Id )) {
             $Stage->setContent(new Warning('Die Daten konnten nicht abgerufen werden'));
         } else {
-            $tblCommodity = Commodity::useService()->entityCommodityById($Id);
+            $tblCommodity = Commodity::useService()->getCommodityById($Id);
             if (empty( $tblCommodity )) {
                 $Stage->setContent(new Warning('Die Leistung konnte nicht abgerufen werden'));
             } else {
-                $tblCommodityItem = Commodity::useService()->entityCommodityItemAllByCommodity($tblCommodity);
-                $tblItemAllByCommodity = Commodity::useService()->entityItemAllByCommodity($tblCommodity);
-                $tblItemAll = Item::useService()->entityItemAll();
+                $tblCommodityItem = Commodity::useService()->getCommodityItemAllByCommodity($tblCommodity);
+                $tblItemAllByCommodity = Commodity::useService()->getItemAllByCommodity($tblCommodity);
+                $tblItemAll = Item::useService()->getItemAll();
 
                 if (!empty( $tblItemAllByCommodity )) {
                     $tblItemAll = array_udiff($tblItemAll, $tblItemAllByCommodity,
@@ -430,7 +431,7 @@ class Frontend extends Extension implements IFrontendInterface
                                             )
                                             , 7),
                                         new FormColumn(
-                                            new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen',
+                                            new Primary('Hinzufügen',
                                                 new Plus())
                                             , 5)
                                     ))
@@ -509,9 +510,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Leistung');
         $Stage->setDescription('Artikel Entfernen');
-        $tblCommodityItem = Commodity::useService()->entityCommodityItemById($Id);
+        $tblCommodityItem = Commodity::useService()->getCommodityItemById($Id);
         if (!empty( $tblCommodityItem )) {
-            $Stage->setContent(Commodity::useService()->executeRemoveCommodityItem($tblCommodityItem));
+            $Stage->setContent(Commodity::useService()->removeItemToCommodity($tblCommodityItem));
         }
 
         return $Stage;
@@ -528,9 +529,9 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('FIBU-Konto Entfernen');
-        $tblItemAccount = Item::useService()->entityItemAccountById($Id);
+        $tblItemAccount = Item::useService()->getItemAccountById($Id);
         if (!empty( $tblItemAccount )) {
-            $Stage->setContent(Item::useService()->executeRemoveItemAccount($tblItemAccount));
+            $Stage->setContent(Item::useService()->removeItemAccount($tblItemAccount));
         }
 
         return $Stage;
@@ -548,11 +549,11 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Artikel');
         $Stage->setDescription('FIBU-Konto Hinzufügen');
-        $tblItem = Item::useService()->entityItemById($tblItemId);
-        $tblAccount = Account::useService()->entityAccountById($tblAccountId);
+        $tblItem = Item::useService()->getItemById($tblItemId);
+        $tblAccount = Account::useService()->getAccountById($tblAccountId);
 
         if (!empty( $tblItemId ) && !empty( $tblAccountId )) {
-            $Stage->setContent(Item::useService()->executeAddItemAccount($tblItem, $tblAccount));
+            $Stage->setContent(Item::useService()->addItemToAccount($tblItem, $tblAccount));
         }
 
         return $Stage;

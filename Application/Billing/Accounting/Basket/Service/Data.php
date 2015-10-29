@@ -15,32 +15,18 @@ use SPHERE\Application\Billing\Bookkeeping\Invoice\Invoice;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
 
-        /**
-         * TblPaymentType
-         */
-//        $this->actionCreatePaymentType('SEPA-Lastschrift');
     }
 
     /**
@@ -48,20 +34,20 @@ class Data
      *
      * @return bool|TblBasket
      */
-    public function entityBasketById($Id)
+    public function getBasketById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblBasket', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasket', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @return bool|TblBasket[]
      */
-    public function entityBasketAll()
+    public function getBasketAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblBasket')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblBasket')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -70,10 +56,10 @@ class Data
      *
      * @return bool|TblCommodity[]
      */
-    public function entityCommodityAllByBasket(TblBasket $tblBasket)
+    public function getCommodityAllByBasket(TblBasket $tblBasket)
     {
 
-        $tblBasketItemAllByBasket = $this->entityBasketItemAllByBasket($tblBasket);
+        $tblBasketItemAllByBasket = $this->getBasketItemAllByBasket($tblBasket);
         $EntityList = array();
         /** @var TblBasketItem $tblBasketItem */
         foreach ($tblBasketItemAllByBasket as $tblBasketItem) {
@@ -90,11 +76,11 @@ class Data
      *
      * @return bool|TblBasketItem[]
      */
-    public function entityBasketItemAllByBasket(TblBasket $tblBasket)
+    public function getBasketItemAllByBasket(TblBasket $tblBasket)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblBasketItem')
-            ->findBy(array(TblBasketItem::ATTR_TBL_Basket => $tblBasket->getId()));
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketItem')
+            ->findBy(array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -104,10 +90,10 @@ class Data
      *
      * @return TblBasketItem[]|bool
      */
-    public function entityBasketItemAllByBasketAndCommodity(TblBasket $tblBasket, TblCommodity $tblCommodity)
+    public function getBasketItemAllByBasketAndCommodity(TblBasket $tblBasket, TblCommodity $tblCommodity)
     {
 
-        $tblBasketItemAllByBasket = $this->entityBasketItemAllByBasket($tblBasket);
+        $tblBasketItemAllByBasket = $this->getBasketItemAllByBasket($tblBasket);
         $EntityList = array();
         /** @var TblBasketItem $tblBasketItem */
         foreach ($tblBasketItemAllByBasket as $tblBasketItem) {
@@ -123,10 +109,10 @@ class Data
      *
      * @return bool|TblBasketItem
      */
-    public function entityBasketItemById($Id)
+    public function getBasketItemById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblBasketItem', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasketItem', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -135,10 +121,10 @@ class Data
      *
      * @return bool|TblBasketPerson
      */
-    public function entityBasketPersonById($Id)
+    public function getBasketPersonById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblBasketPerson', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasketPerson', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -147,10 +133,10 @@ class Data
      *
      * @return TblBasketCommodityDebtor[]|bool
      */
-    public function entityBasketCommodityDebtorAllByBasketCommodity(TblBasketCommodity $tblBasketCommodity)
+    public function getBasketCommodityDebtorAllByBasketCommodity(TblBasketCommodity $tblBasketCommodity)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblBasketCommodityDebtor')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketCommodityDebtor')
             ->findBy(array(TblBasketCommodityDebtor::ATTR_TBL_BASKET_COMMODITY => $tblBasketCommodity->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -160,11 +146,11 @@ class Data
      *
      * @return bool|TblBasketPerson[]
      */
-    public function entityBasketPersonAllByBasket(TblBasket $tblBasket)
+    public function getBasketPersonAllByBasket(TblBasket $tblBasket)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblBasketPerson')
-            ->findBy(array(TblBasketItem::ATTR_TBL_Basket => $tblBasket->getId()));
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketPerson')
+            ->findBy(array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
 
@@ -176,8 +162,8 @@ class Data
     public function countPersonByBasket(TblBasket $tblBasket)
     {
 
-        return (int)$this->Connection->getEntityManager()->getEntity('TblBasketPerson')->countBy(array(
-            TblBasketPerson::ATTR_TBL_Basket => $tblBasket->getId()
+        return (int)$this->getConnection()->getEntityManager()->getEntity('TblBasketPerson')->countBy(array(
+            TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()
         ));
     }
 
@@ -196,17 +182,17 @@ class Data
 
         if ($Data !== null) {
             foreach ($Data as $Key => $Value) {
-                $tblBasketCommodity = $this->entityBasketCommodityById($Key);
-                $tblBasketCommodityDebtor = $this->entityBasketCommodityDebtorById($Value);
-                $tblTempInvoice = Invoice::useService()->executeCreateTempInvoice(
+                $tblBasketCommodity = $this->getBasketCommodityById($Key);
+                $tblBasketCommodityDebtor = $this->getBasketCommodityDebtorById($Value);
+                $tblTempInvoice = Invoice::useService()->createTempInvoice(
                     $tblBasket, $tblBasketCommodity->getServiceManagementPerson(),
                     $tblBasketCommodityDebtor->getServiceBillingDebtor());
-                Invoice::useService()->executeCreateTempInvoiceCommodity($tblTempInvoice,
+                Invoice::useService()->createTempInvoiceCommodity($tblTempInvoice,
                     $tblBasketCommodity->getServiceBillingCommodity());
 
                 // auto add DebtorCommodity
                 if ($IsSave) {
-                    Banking::useService()->executeAddDebtorCommodity(
+                    Banking::useService()->addCommodityToDebtor(
                         $tblBasketCommodityDebtor->getServiceBillingDebtor(),
                         $tblBasketCommodity->getServiceBillingCommodity()
                     );
@@ -216,8 +202,8 @@ class Data
             return true;
         }
 
-        $tblCommodityAllByBasket = Basket::useService()->entityCommodityAllByBasket($tblBasket);
-        $tblBasketPersonAllByBasket = Basket::useService()->entityBasketPersonAllByBasket($tblBasket);
+        $tblCommodityAllByBasket = Basket::useService()->getCommodityAllByBasket($tblBasket);
+        $tblBasketPersonAllByBasket = Basket::useService()->getBasketPersonAllByBasket($tblBasket);
 
         if (!empty( $tblBasketPersonAllByBasket )) {
             /** @var TblBasketPerson $tblBasketPerson */
@@ -228,11 +214,10 @@ class Data
                     $tblDebtorCommodityListByPersonAndCommodity = array();
                     /** @var TblDebtor[] $tblDebtorListByPerson */
                     $tblDebtorListByPerson = array();
-
-                    $debtorPersonAll = Banking::useService()->entityDebtorAllByPerson($tblPerson);
+                    $debtorPersonAll = Banking::useService()->getDebtorAllByPerson($tblPerson);
                     if (!empty( $debtorPersonAll )) {
                         foreach ($debtorPersonAll as $tblDebtor) {
-                            $tblDebtorCommodityList = Banking::useService()->entityDebtorCommodityAllByDebtorAndCommodity($tblDebtor,
+                            $tblDebtorCommodityList = Banking::useService()->getDebtorCommodityAllByDebtorAndCommodity($tblDebtor,
                                 $tblCommodity);
                             if (!empty( $tblDebtorCommodityList )) {
                                 foreach ($tblDebtorCommodityList as $tblDebtorCommodity) {
@@ -243,54 +228,55 @@ class Data
                         }
                     }
 
-                    $tblPersonRelationshipList = Management::servicePerson()->entityPersonRelationshipAllByPerson($tblPerson);
+                    $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                     if (!empty( $tblPersonRelationshipList )) {
                         foreach ($tblPersonRelationshipList as $tblPersonRelationship) {
-                            if ($tblPerson->getId() === $tblPersonRelationship->getTblPersonA()->getId()) {
-                                $tblDebtorList = Banking::useService()->entityDebtorAllByPerson($tblPersonRelationship->getTblPersonB());
+                            if ($tblPerson->getId() === $tblPersonRelationship->getServiceTblPersonFrom()->getId()) {
+                                $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonTo());
                             } else {
-                                $tblDebtorList = Banking::useService()->entityDebtorAllByPerson($tblPersonRelationship->getTblPersonA());
+                                $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonFrom());
                             }
-
                             if (!empty( $tblDebtorList )) {
                                 foreach ($tblDebtorList as $tblDebtor) {
-                                    $tblDebtorCommodityList = Banking::useService()->entityDebtorCommodityAllByDebtorAndCommodity($tblDebtor,
-                                        $tblCommodity);
-                                    if (!empty( $tblDebtorCommodityList )) {
-                                        foreach ($tblDebtorCommodityList as $tblDebtorCommodity) {
-                                            $tblDebtorCommodityListByPersonAndCommodity[] = $tblDebtorCommodity;
+                                    if (!in_array($tblDebtor, $tblDebtorListByPerson)) {
+                                        $tblDebtorCommodityList = Banking::useService()->getDebtorCommodityAllByDebtorAndCommodity($tblDebtor,
+                                            $tblCommodity);
+                                        if (!empty( $tblDebtorCommodityList )) {
+                                            foreach ($tblDebtorCommodityList as $tblDebtorCommodity) {
+                                                $tblDebtorCommodityListByPersonAndCommodity[] = $tblDebtorCommodity;
+                                            }
                                         }
+                                        $tblDebtorListByPerson[] = $tblDebtor;
                                     }
-                                    $tblDebtorListByPerson[] = $tblDebtor;
                                 }
                             }
                         }
                     }
 
                     if (count($tblDebtorListByPerson) == 1) {
-                        $tblDebtor = Banking::useService()->entityDebtorById($tblDebtorListByPerson[0]->getId());
-                        $tblTempInvoice = Invoice::useService()->executeCreateTempInvoice($tblBasket, $tblPerson,
+                        $tblDebtor = Banking::useService()->getDebtorById($tblDebtorListByPerson[0]->getId());
+                        $tblTempInvoice = Invoice::useService()->createTempInvoice($tblBasket, $tblPerson,
                             $tblDebtor);
-                        Invoice::useService()->executeCreateTempInvoiceCommodity($tblTempInvoice, $tblCommodity);
+                        Invoice::useService()->createTempInvoiceCommodity($tblTempInvoice, $tblCommodity);
                     } else {
                         if (empty( $tblDebtorCommodityListByPersonAndCommodity )) {
-                            $tblBasketCommodity = $this->actionCreateBasketCommodity($tblBasket, $tblPerson,
+                            $tblBasketCommodity = $this->createBasketCommodity($tblBasket, $tblPerson,
                                 $tblCommodity);
                             foreach ($tblDebtorListByPerson as $tblDebtor) {
-                                $this->actionCreateBasketCommodityDebtor($tblBasketCommodity, $tblDebtor);
+                                $this->createBasketCommodityDebtor($tblBasketCommodity, $tblDebtor);
                             }
                         } else {
                             if (count($tblDebtorCommodityListByPersonAndCommodity) == 1) {
-                                $tblDebtor = Banking::useService()->entityDebtorById($tblDebtorCommodityListByPersonAndCommodity[0]->getId());
-                                $tblTempInvoice = Invoice::useService()->executeCreateTempInvoice($tblBasket,
+                                $tblDebtor = $tblDebtorCommodityListByPersonAndCommodity[0]->getTblDebtor();
+                                $tblTempInvoice = Invoice::useService()->createTempInvoice($tblBasket,
                                     $tblPerson, $tblDebtor);
-                                Invoice::useService()->executeCreateTempInvoiceCommodity($tblTempInvoice,
+                                Invoice::useService()->createTempInvoiceCommodity($tblTempInvoice,
                                     $tblCommodity);
                             } else {
-                                $tblBasketCommodity = $this->actionCreateBasketCommodity($tblBasket, $tblPerson,
+                                $tblBasketCommodity = $this->createBasketCommodity($tblBasket, $tblPerson,
                                     $tblCommodity);
                                 foreach ($tblDebtorCommodityListByPersonAndCommodity as $tblDebtorCommodity) {
-                                    $this->actionCreateBasketCommodityDebtor($tblBasketCommodity,
+                                    $this->createBasketCommodityDebtor($tblBasketCommodity,
                                         $tblDebtorCommodity->getTblDebtor());
                                 }
                             }
@@ -300,7 +286,7 @@ class Data
             }
         }
 
-        $tblBasketCommodity = $this->entityBasketCommodityAllByBasket($tblBasket);
+        $tblBasketCommodity = $this->getBasketCommodityAllByBasket($tblBasket);
         return empty( $tblBasketCommodity );
     }
 
@@ -309,10 +295,10 @@ class Data
      *
      * @return bool|TblBasketCommodity
      */
-    public function entityBasketCommodityById($Id)
+    public function getBasketCommodityById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblBasketCommodity', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasketCommodity', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -321,10 +307,10 @@ class Data
      *
      * @return bool|TblBasketCommodityDebtor
      */
-    public function entityBasketCommodityDebtorById($Id)
+    public function getBasketCommodityDebtorById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblBasketCommodityDebtor', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblBasketCommodityDebtor', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -335,13 +321,13 @@ class Data
      *
      * @return TblBasketCommodity|null
      */
-    public function actionCreateBasketCommodity(
+    public function createBasketCommodity(
         TblBasket $tblBasket,
         TblPerson $tblPerson,
         TblCommodity $tblCommodity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblBasketCommodity')->findOneBy(array(
             TblBasketCommodity::ATTR_TBL_BASKET                => $tblBasket->getId(),
@@ -355,7 +341,7 @@ class Data
             $Entity->setServiceBillingCommodity($tblCommodity);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
 
@@ -368,12 +354,12 @@ class Data
      *
      * @return TblBasketCommodityDebtor|null
      */
-    public function actionCreateBasketCommodityDebtor(
+    public function createBasketCommodityDebtor(
         TblBasketCommodity $tblBasketCommodity,
         TblDebtor $tblDebtor
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblBasketCommodityDebtor')->findOneBy(array(
             TblBasketCommodityDebtor::ATTR_TBL_BASKET_COMMODITY   => $tblBasketCommodity->getId(),
@@ -385,7 +371,7 @@ class Data
             $Entity->setServiceBillingDebtor($tblDebtor);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
 
@@ -397,10 +383,10 @@ class Data
      *
      * @return TblBasketCommodity[]|bool
      */
-    public function entityBasketCommodityAllByBasket(TblBasket $tblBasket)
+    public function getBasketCommodityAllByBasket(TblBasket $tblBasket)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblBasketCommodity')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblBasketCommodity')
             ->findBy(array(TblBasketCommodity::ATTR_TBL_BASKET => $tblBasket->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -416,20 +402,20 @@ class Data
 
         $tblDebtorAllList = array();
 
-        $debtorPersonAll = Banking::useService()->entityDebtorAllByPerson($tblPerson);
+        $debtorPersonAll = Banking::useService()->getDebtorAllByPerson($tblPerson);
         if (!empty( $debtorPersonAll )) {
             foreach ($debtorPersonAll as $debtor) {
                 array_push($tblDebtorAllList, $debtor);
             }
         }
 
-        $tblPersonRelationshipList = Management::servicePerson()->entityPersonRelationshipAllByPerson($tblPerson);
+        $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
         if (!empty( $tblPersonRelationshipList )) {
             foreach ($tblPersonRelationshipList as $tblPersonRelationship) {
-                if ($tblPerson->getId() === $tblPersonRelationship->getTblPersonA()) {
-                    $tblDebtorList = Banking::useService()->entityDebtorAllByPerson($tblPersonRelationship->getTblPersonB());
+                if ($tblPerson->getId() === $tblPersonRelationship->getServiceTblPersonFrom()) {
+                    $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonTo());
                 } else {
-                    $tblDebtorList = Banking::useService()->entityDebtorAllByPerson($tblPersonRelationship->getTblPersonA());
+                    $tblDebtorList = Banking::useService()->getDebtorAllByPerson($tblPersonRelationship->getServiceTblPersonFrom());
                 }
 
                 if (!empty( $tblDebtorList )) {
@@ -452,11 +438,11 @@ class Data
      *
      * @return TblBasket
      */
-    public function actionCreateBasket(
+    public function createBasket(
         $Name
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblBasket();
         date_default_timezone_set('Europe/Berlin');
@@ -465,7 +451,7 @@ class Data
 
         $Manager->saveEntity($Entity);
 
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
 
         return $Entity;
@@ -477,12 +463,12 @@ class Data
      *
      * @return bool
      */
-    public function actionEditBasket(
+    public function updateBasket(
         TblBasket $tblBasket,
         $Name
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblBasket $Entity */
         $Entity = $Manager->getEntityById('TblBasket', $tblBasket->getId());
@@ -491,7 +477,7 @@ class Data
             $Entity->setName($Name);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -505,19 +491,19 @@ class Data
      *
      * @return TblBasket
      */
-    public function actionCreateBasketItemsByCommodity(
+    public function addBasketItemsByCommodity(
         TblBasket $tblBasket,
         TblCommodity $tblCommodity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
-        $tblCommodityItemList = Commodity::useService()->entityCommodityItemAllByCommodity($tblCommodity);
+        $tblCommodityItemList = Commodity::useService()->getCommodityItemAllByCommodity($tblCommodity);
 
         /** @var TblCommodityItem $tblCommodityItem */
         foreach ($tblCommodityItemList as $tblCommodityItem) {
             $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(array(
-                TblBasketItem::ATTR_TBL_Basket                     => $tblBasket->getId(),
+                TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId(),
                 TblBasketItem::ATTR_SERVICE_BILLING_COMMODITY_ITEM => $tblCommodityItem->getId()
             ));
             if (null === $Entity) {
@@ -528,7 +514,7 @@ class Data
                 $Entity->setTblBasket($tblBasket);
 
                 $Manager->bulkSaveEntity($Entity);
-                Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                     $Entity);
             }
         }
@@ -543,21 +529,21 @@ class Data
      *
      * @return TblBasket
      */
-    public function actionDestroyBasketItemsByCommodity(
+    public function removeBasketItemsByCommodity(
         TblBasket $tblBasket,
         TblCommodity $tblCommodity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
-        $tblBasketItemAllByBasket = Basket::useService()->entityBasketItemAllByBasket($tblBasket);
+        $tblBasketItemAllByBasket = Basket::useService()->getBasketItemAllByBasket($tblBasket);
 
         /** @var TblBasketItem $tblBasketItem */
         foreach ($tblBasketItemAllByBasket as $tblBasketItem) {
             if ($tblBasketItem->getServiceBillingCommodityItem()->getTblCommodity()->getId() == $tblCommodity->getId()) {
                 $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(array('Id' => $tblBasketItem->getId()));
                 /**@var Element $Entity */
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->bulkKillEntity($Entity);
             }
@@ -572,11 +558,11 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveBasketItem(
+    public function removeBasketItem(
         TblBasketItem $tblBasketItem
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblBasketItem')->findOneBy(
             array(
@@ -584,7 +570,7 @@ class Data
             ));
         if (null !== $Entity) {
             /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
@@ -599,13 +585,13 @@ class Data
      *
      * @return bool
      */
-    public function actionEditBasketItem(
+    public function updateBasketItem(
         TblBasketItem $tblBasketItem,
         $Price,
         $Quantity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblBasketItem $Entity */
         $Entity = $Manager->getEntityById('TblBasketItem', $tblBasketItem->getId());
@@ -615,7 +601,7 @@ class Data
             $Entity->setQuantity(str_replace(',', '.', $Quantity));
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -629,14 +615,14 @@ class Data
      *
      * @return TblBasketPerson
      */
-    public function actionAddBasketPerson(
+    public function addBasketPerson(
         TblBasket $tblBasket,
         TblPerson $tblPerson
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(array(
-            TblBasketPerson::ATTR_TBL_Basket                => $tblBasket->getId(),
+            TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId(),
             TblBasketPerson::ATTR_SERVICE_MANAGEMENT_PERSON => $tblPerson->getId()
         ));
         if (null === $Entity) {
@@ -645,7 +631,7 @@ class Data
             $Entity->setServiceManagementPerson($tblPerson);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
         return $Entity;
@@ -656,11 +642,11 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveBasketPerson(
+    public function removeBasketPerson(
         TblBasketPerson $tblBasketPerson
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblBasketPerson')->findOneBy(
             array(
@@ -668,7 +654,7 @@ class Data
             ));
         if (null !== $Entity) {
             /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
@@ -681,23 +667,23 @@ class Data
      *
      * @return bool
      */
-    public function actionDestroyBasket(
+    public function destroyBasket(
         TblBasket $tblBasket
     ) {
 
         if ($tblBasket !== null) {
-            $Manager = $this->Connection->getEntityManager();
+            $Manager = $this->getConnection()->getEntityManager();
 
-            $EntityList = $Manager->getEntity('TblBasketPerson')->findBy(array(TblBasketPerson::ATTR_TBL_Basket => $tblBasket->getId()));
+            $EntityList = $Manager->getEntity('TblBasketPerson')->findBy(array(TblBasketPerson::ATTR_TBL_BASKET => $tblBasket->getId()));
             foreach ($EntityList as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->bulkKillEntity($Entity);
             }
 
-            $EntityList = $Manager->getEntity('TblBasketItem')->findBy(array(TblBasketItem::ATTR_TBL_Basket => $tblBasket->getId()));
+            $EntityList = $Manager->getEntity('TblBasketItem')->findBy(array(TblBasketItem::ATTR_TBL_BASKET => $tblBasket->getId()));
             foreach ($EntityList as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->bulkKillEntity($Entity);
             }
@@ -709,18 +695,18 @@ class Data
                     TblBasketCommodityDebtor::ATTR_TBL_BASKET_COMMODITY => $Entity->getId()
                 ));
                 foreach ($EntitySubList as $SubEntity) {
-                    Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                         $SubEntity);
                     $Manager->bulkKillEntity($SubEntity);
                 }
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->bulkKillEntity($Entity);
             }
 
             $Entity = $Manager->getEntity('TblBasket')->findOneBy(array('Id' => $tblBasket->getId()));
             /**@var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->bulkKillEntity($Entity);
 
@@ -737,12 +723,12 @@ class Data
      *
      * @return bool
      */
-    public function actionDestroyBasketCommodity(
+    public function destroyBasketCommodity(
         TblBasket $tblBasket
     ) {
 
         if ($tblBasket !== null) {
-            $Manager = $this->Connection->getEntityManager();
+            $Manager = $this->getConnection()->getEntityManager();
 
             /** @var  TblBasketCommodity[] $EntityList */
             $EntityList = $Manager->getEntity('TblBasketCommodity')->findBy(array(TblBasketCommodity::ATTR_TBL_BASKET => $tblBasket->getId()));
@@ -751,11 +737,11 @@ class Data
                     TblBasketCommodityDebtor::ATTR_TBL_BASKET_COMMODITY => $Entity->getId()
                 ));
                 foreach ($EntitySubList as $SubEntity) {
-                    Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                    Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                         $SubEntity);
                     $Manager->bulkKillEntity($SubEntity);
                 }
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->bulkKillEntity($Entity);
             }

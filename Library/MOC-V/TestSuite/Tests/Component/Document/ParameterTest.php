@@ -4,13 +4,14 @@ namespace MOC\V\TestSuite\Tests\Component\Document;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ParameterTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Document
  */
-class ParameterTest extends \PHPUnit_Framework_TestCase
+class ParameterTest extends AbstractTestCase
 {
 
     public function testAbstractParameter()

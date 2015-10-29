@@ -2,11 +2,11 @@
 namespace SPHERE\Application\Education\Lesson\Division;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Division
@@ -28,19 +28,24 @@ class Division implements IModuleInterface
     }
 
     /**
-     * @return IServiceInterface
+     * @return Service
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+
+        return new Service(
+            new Identifier('Education', 'Lesson', 'Division', null, Consumer::useService()->getConsumerBySession()),
+            __DIR__.'/Service/Entity', __NAMESPACE__.'\Service\Entity'
+        );
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 
     /**

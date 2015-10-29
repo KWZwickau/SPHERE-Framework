@@ -112,6 +112,24 @@ class Frontend extends Extension implements IFrontendInterface
                         }
                     }
                 });
+            $DefaultDenomination = array(
+                'Altkatholisch',
+                'Evangelisch',
+                'Evangelisch-lutherisch',
+                'Evangelisch-reformiert',
+                'Französisch-reformiert',
+                'Freireligiöse Landesgemeinde Baden',
+                'Freireligiöse Landesgemeinde Pfalz',
+                'Israelitische Religionsgemeinschaft Baden',
+                'Römisch-katholisch',
+                'Saarland: israelitisch'
+            );
+            array_walk($DefaultDenomination, function ($Denomination) use (&$tblDenominationAll) {
+
+                if (!in_array($Denomination, $tblDenominationAll)) {
+                    array_push($tblDenominationAll, $Denomination);
+                }
+            });
         }
 
         $Stage->setContent(

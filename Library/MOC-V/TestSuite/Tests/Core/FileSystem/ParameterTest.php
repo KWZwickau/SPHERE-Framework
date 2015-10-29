@@ -3,8 +3,9 @@ namespace MOC\V\TestSuite\Tests\Core\FileSystem;
 
 use MOC\V\Core\FileSystem\Component\Parameter\Repository\DirectoryParameter;
 use MOC\V\Core\FileSystem\Component\Parameter\Repository\FileParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class ParameterTest extends \PHPUnit_Framework_TestCase
+class ParameterTest extends AbstractTestCase
 {
 
     public function testAbstractParameter()

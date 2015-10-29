@@ -2,13 +2,14 @@
 namespace MOC\V\TestSuite\Tests\Component\Captcha;
 
 use MOC\V\Component\Captcha\Component\Bridge\Repository\SimplePhpCaptcha;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Captcha
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     public function testSimplePhpCaptcha()
@@ -26,6 +27,9 @@ class BridgeTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(true, $Captcha->verifyCaptcha($Code));
     }
 
+    /**
+     * @codeCoverageIgnore
+     */
     protected function setUp()
     {
 

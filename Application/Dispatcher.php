@@ -50,7 +50,19 @@ class Dispatcher
                 if (in_array($Route->getPath(), self::$Router->getRouteList())) {
                     throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
                 } else {
-                    self::$Router->addRoute($Route);
+                    if (!preg_match('!^/?Api/!is', $Route->getPath())) {
+                        self::$Router->addRoute($Route);
+                    } else {
+                        if (Access::useService()->getRightByName('/'.$Route->getPath())) {
+                            self::$Router->addRoute($Route);
+                        } else {
+                            $Route = Main::getDispatcher()->createRoute(
+                                $Route->getPath(),
+                                'SPHERE\Application\Platform\Assistance\Error\Frontend::frontendRoute'
+                            );
+                            self::$Router->addRoute($Route);
+                        }
+                    }
                 }
             }
             if (!Access::useService()->getRightByName('/'.$Route->getPath())) {

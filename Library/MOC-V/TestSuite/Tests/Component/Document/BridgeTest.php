@@ -8,13 +8,14 @@ use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperOrientationParameter;
 use MOC\V\Component\Document\Component\Parameter\Repository\PaperSizeParameter;
 use MOC\V\Component\Template\Template;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class BridgeTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Document
  */
-class BridgeTest extends \PHPUnit_Framework_TestCase
+class BridgeTest extends AbstractTestCase
 {
 
     /**

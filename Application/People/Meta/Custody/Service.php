@@ -86,11 +86,13 @@ class Service extends AbstractService
     /**
      * @param TblPerson $tblPerson
      * @param           $Occupation
+     * @param           $Employment
+     * @param           $Remark
      */
-    public function createMetaFromImport(TblPerson $tblPerson, $Occupation)
+    public function insertMeta(TblPerson $tblPerson, $Occupation, $Employment, $Remark)
     {
 
-        (new Data($this->getBinding()))->createCustody($tblPerson, '', $Occupation, '');
+        (new Data($this->getBinding()))->createCustody($tblPerson, $Remark, $Occupation, $Employment);
     }
 
     /**

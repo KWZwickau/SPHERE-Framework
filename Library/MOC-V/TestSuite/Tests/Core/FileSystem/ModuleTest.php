@@ -3,8 +3,9 @@ namespace MOC\V\TestSuite\Tests\Core\FileSystem;
 
 use MOC\V\Core\FileSystem\FileSystem;
 use MOC\V\Core\FileSystem\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     public function testModule()
@@ -27,52 +28,130 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testStaticUniversalFileLoader()
+    public function testStaticUniversalDownload()
     {
 
         try {
-            FileSystem::getUniversalFileLoader(__DIR__);
+            $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalDownload', array(__DIR__));
         } catch (\Exception $E) {
             $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException', $E);
         }
 
-        $Loader = FileSystem::getUniversalFileLoader(__FILE__);
+        $Loader = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalDownload',
+            array(__FILE__)
+        );
+        $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Loader);
 
         $this->assertEquals(__FILE__, $Loader->getLocation());
+        $this->assertEquals(__FILE__, $Loader->getRealPath());
 
+        $this->assertInternalType('string', (string)$Loader);
+        $this->assertStringEqualsFile(__FILE__, (string)$Loader);
+
+        $Loader = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalDownload',
+            array(basename(__FILE__))
+        );
         $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Loader);
+
+        $this->assertEquals(basename(__FILE__), $Loader->getLocation());
+        $this->assertEquals('', $Loader->getRealPath());
+
+        $this->assertInternalType('string', (string)$Loader);
+        $this->assertEquals('', (string)$Loader);
+    }
+
+    public function testStaticUniversalFileLoader()
+    {
+
+        try {
+            $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalFileLoader', array(__DIR__));
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException', $E);
+        }
+
+        $Loader = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalFileLoader',
+            array(__FILE__)
+        );
+        $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Loader);
+
+        $this->assertEquals(__FILE__, $Loader->getLocation());
+        $this->assertEquals(__FILE__, $Loader->getRealPath());
+
+        $this->assertInternalType('string', (string)$Loader);
+        $this->assertStringEqualsFile(__FILE__, (string)$Loader);
+
+        $Loader = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalFileLoader',
+            array(basename(__FILE__))
+        );
+        $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Loader);
+
+        $this->assertEquals(basename(__FILE__), $Loader->getLocation());
+        $this->assertEquals('', $Loader->getRealPath());
+
+        $this->assertInternalType('string', (string)$Loader);
+        $this->assertEquals('', (string)$Loader);
     }
 
     public function testStaticSymfonyFinder()
     {
 
         try {
-            FileSystem::getSymfonyFinder(__DIR__);
+            $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getSymfonyFinder', array(__DIR__));
         } catch (\Exception $E) {
             $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException', $E);
         }
 
-        $Loader = FileSystem::getSymfonyFinder(__FILE__);
+        $Loader = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getSymfonyFinder', array(__FILE__));
+        $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Loader);
 
         $this->assertEquals(__FILE__, $Loader->getLocation());
+        $this->assertEquals(__FILE__, $Loader->getRealPath());
 
+        $this->assertInternalType('string', (string)$Loader);
+        $this->assertStringEqualsFile(__FILE__, (string)$Loader);
+
+        $Loader = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getSymfonyFinder',
+            array(basename(__FILE__))
+        );
         $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Loader);
+
+        $this->assertEquals(basename(__FILE__), $Loader->getLocation());
+        $this->assertEquals('', $Loader->getRealPath());
+
+        $this->assertInternalType('string', (string)$Loader);
+        $this->assertEquals('', (string)$Loader);
     }
 
     public function testStaticUniversalFileWriter()
     {
 
         try {
-            FileSystem::getUniversalFileWriter(__DIR__);
+            $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalFileWriter', array(__DIR__));
         } catch (\Exception $E) {
             $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException', $E);
         }
 
-        $Writer = FileSystem::getUniversalFileWriter(__FILE__);
+        $Writer = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalFileWriter',
+            array(__FILE__)
+        );
+        $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Writer);
 
         $this->assertEquals(__FILE__, $Writer->getLocation());
+        $this->assertEquals(__FILE__, $Writer->getRealPath());
 
+        $this->assertInternalType('string', (string)$Writer);
+        $this->assertStringEqualsFile(__FILE__, (string)$Writer);
+
+        $Writer = $this->invokeClassMethod('MOC\V\Core\FileSystem\FileSystem', 'getUniversalFileWriter',
+            array(basename(__FILE__))
+        );
         $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\IBridgeInterface', $Writer);
+
+        $this->assertEquals(basename(__FILE__), $Writer->getLocation());
+        $this->assertEquals('', $Writer->getRealPath());
+
+        $this->assertInternalType('string', (string)$Writer);
+        $this->assertEquals('', (string)$Writer);
     }
 
     public function testStaticFileWriter()
@@ -100,6 +179,21 @@ class ModuleTest extends \PHPUnit_Framework_TestCase
         }
         try {
             FileSystem::getFileLoader(__FILE__);
+        } catch (\Exception $E) {
+
+        }
+    }
+
+    public function testStaticDownload()
+    {
+
+        try {
+            FileSystem::getDownload(__DIR__);
+        } catch (\Exception $E) {
+            $this->assertInstanceOf('MOC\V\Core\FileSystem\Component\Exception\Repository\TypeFileException', $E);
+        }
+        try {
+            FileSystem::getDownload(__FILE__);
         } catch (\Exception $E) {
 
         }

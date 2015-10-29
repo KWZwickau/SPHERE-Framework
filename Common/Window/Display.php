@@ -5,6 +5,7 @@ use MOC\V\Component\Template\Component\IBridgeInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\ITemplateInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Script;
 use SPHERE\Common\Style;
 use SPHERE\Common\Window\Navigation\Link;
@@ -281,9 +282,13 @@ class Display extends Extension implements ITemplateInterface
         $this->Template->setVariable('NavigationService', implode('', $this->ServiceNavigation));
 
         $Debug = $this->getDebugger();
-        $this->Template->setVariable('DebuggerProtocol', $Debug->getProtocol());
+        $Runtime = $Debug->getRuntime();
+        $this->Template->setVariable('DebuggerProtocol',
+            (new Accordion())->addItem('Debug Protocol '.$Runtime, $Debug->getProtocol())
+        );
+
         $this->Template->setVariable('DebuggerHost', gethostname());
-        $this->Template->setVariable('DebuggerRuntime', $Debug->getRuntime());
+        $this->Template->setVariable('DebuggerRuntime', $Runtime);
 
         $this->Template->setVariable('Content', implode('', $this->Content));
         $this->Template->setVariable('PathBase', $this->getRequest()->getPathBase());

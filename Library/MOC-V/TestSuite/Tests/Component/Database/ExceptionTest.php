@@ -4,13 +4,14 @@ namespace MOC\V\TestSuite\Tests\Component\Database;
 use MOC\V\Component\Database\Component\Exception\ComponentException;
 use MOC\V\Component\Database\Component\Exception\Repository\NoConnectionException;
 use MOC\V\Component\Database\Exception\DatabaseException;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ExceptionTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Database
  */
-class ExceptionTest extends \PHPUnit_Framework_TestCase
+class ExceptionTest extends AbstractTestCase
 {
 
     public function testDatabaseException()

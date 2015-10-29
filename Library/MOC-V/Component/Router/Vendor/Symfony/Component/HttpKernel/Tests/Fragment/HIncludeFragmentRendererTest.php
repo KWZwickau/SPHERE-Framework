@@ -90,7 +90,7 @@ class HIncludeFragmentRendererTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('<hx:include src="/foo" p1="v1" p2="v2" id="bar">default</hx:include>',
             $strategy->render('/foo', Request::create('/'), array(
                 'default' => 'default',
-                'id'      => 'bar',
+                'id' => 'bar',
                 'attributes' => array('p1' => 'v1', 'p2' => 'v2')
             ))->getContent());
     }

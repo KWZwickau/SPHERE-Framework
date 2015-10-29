@@ -26,6 +26,8 @@ after_script:
  - php vendor/bin/coveralls -v
  - CODECLIMATE_REPO_TOKEN="66db97ed4e54d528ec942e58f9ece9e8858cea9ee4c41f2a1e10256416695631" ./vendor/bin/test-reporter --stdout > codeclimate.json
  - "curl -X POST -d @codeclimate.json -H 'Content-Type: application/json' -H 'User-Agent: Code Climate (PHP Test Reporter v0.1.1)' https://codeclimate.com/test_reports"
+ - export CODACY_PROJECT_TOKEN=b873417db95f47da9960433ee0008050
+ - php vendor/bin/codacycoverage clover build/logs/clover.xml
 
 notifications:
   email: false

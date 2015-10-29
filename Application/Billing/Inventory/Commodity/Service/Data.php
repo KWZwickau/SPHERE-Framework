@@ -9,23 +9,11 @@ use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityTy
 use SPHERE\Application\Billing\Inventory\Item\Item;
 use SPHERE\Application\Billing\Inventory\Item\Service\Entity\TblItem;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
-use SPHERE\System\Database\Fitting\Binding;
+use SPHERE\System\Database\Binding\AbstractData;
 use SPHERE\System\Database\Fitting\Element;
 
-class Data
+class Data extends AbstractData
 {
-
-    /** @var null|Binding $Connection */
-    private $Connection = null;
-
-    /**
-     * @param Binding $Connection
-     */
-    function __construct(Binding $Connection)
-    {
-
-        $this->Connection = $Connection;
-    }
 
     public function setupDatabaseContent()
     {
@@ -33,8 +21,8 @@ class Data
         /**
          * CommodityType
          */
-        $this->actionCreateCommodityType('Einzelleistung');
-        $this->actionCreateCommodityType('Sammelleistung');
+        $this->createCommodityType('Einzelleistung');
+        $this->createCommodityType('Sammelleistung');
     }
 
     /**
@@ -42,16 +30,16 @@ class Data
      *
      * @return TblCommodityType
      */
-    public function actionCreateCommodityType($Name)
+    public function createCommodityType($Name)
     {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCommodityType')->findOneBy(array('Name' => $Name,));
         if (null === $Entity) {
             $Entity = new TblCommodityType();
             $Entity->setName($Name);
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
         return $Entity;
@@ -62,10 +50,10 @@ class Data
      *
      * @return bool|TblCommodity
      */
-    public function entityCommodityById($Id)
+    public function getCommodityById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblCommodity', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCommodity', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -74,10 +62,10 @@ class Data
      *
      * @return bool|TblCommodity
      */
-    public function entityCommodityByName($Name)
+    public function getCommodityByName($Name)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblCommodity')->findOneBy(
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblCommodity')->findOneBy(
             array(TblCommodity::ATTR_NAME => $Name)
         );
         return ( null === $Entity ? false : $Entity );
@@ -86,10 +74,11 @@ class Data
     /**
      * @return bool|TblCommodity[]
      */
-    public function entityCommodityAll()
+    public function getCommodityAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblCommodity')->findAll();
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommodity');
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblCommodity')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -98,20 +87,20 @@ class Data
      *
      * @return bool|TblCommodityType
      */
-    public function entityCommodityTypeById($Id)
+    public function getCommodityTypeById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblCommodityType', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCommodityType', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
     /**
      * @return bool|TblCommodityType[]
      */
-    public function entityCommodityTypeAll()
+    public function getCommodityTypeAll()
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntity('TblCommodityType')->findAll();
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblCommodityType')->findAll();
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -120,10 +109,10 @@ class Data
      *
      * @return bool|TblCommodityItem
      */
-    public function entityCommodityItemById($Id)
+    public function getCommodityItemById($Id)
     {
 
-        $Entity = $this->Connection->getEntityManager()->getEntityById('TblCommodityItem', $Id);
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblCommodityItem', $Id);
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -132,10 +121,10 @@ class Data
      *
      * @return TblAccount[]
      */
-    public function entityAccountAllByItem(TblItem $tblItem)
+    public function getAccountAllByItem(TblItem $tblItem)
     {
 
-        $tblItemAccountAllByItem = Item::useService()->entityItemAccountAllByItem($tblItem);
+        $tblItemAccountAllByItem = Item::useService()->getItemAccountAllByItem($tblItem);
         $tblAccount = array();
         foreach ($tblItemAccountAllByItem as $tblItemAccount) {
             array_push($tblAccount, $tblItemAccount->getServiceBilling_Account());
@@ -149,10 +138,10 @@ class Data
      *
      * @return bool|TblItem[]
      */
-    public function entityCommodityItemAllByItem(TblItem $tblItem)
+    public function getCommodityItemAllByItem(TblItem $tblItem)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblCommodityItem')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblCommodityItem')
             ->findBy(array(TblCommodityItem::ATTR_TBL_ITEM => $tblItem->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -165,7 +154,7 @@ class Data
     public function countItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
-        return (int)$this->Connection->getEntityManager()->getEntity('TblCommodityItem')->countBy(array(
+        return (int)$this->getConnection()->getEntityManager()->getEntity('TblCommodityItem')->countBy(array(
             TblCommodityItem::ATTR_TBL_COMMODITY => $tblCommodity->getId()
         ));
     }
@@ -179,7 +168,7 @@ class Data
     {
 
         $sum = 0.00;
-        $tblCommodityItemByCommodity = $this->entityCommodityItemAllByCommodity($tblCommodity);
+        $tblCommodityItemByCommodity = $this->getCommodityItemAllByCommodity($tblCommodity);
         /** @var TblCommodityItem $tblCommodityItem */
         foreach ($tblCommodityItemByCommodity as $tblCommodityItem) {
             $sum += $tblCommodityItem->getTblItem()->getPrice() * $tblCommodityItem->getQuantity();
@@ -195,10 +184,10 @@ class Data
      *
      * @return bool|TblItem[]
      */
-    public function entityCommodityItemAllByCommodity(TblCommodity $tblCommodity)
+    public function getCommodityItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblCommodityItem')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblCommodityItem')
             ->findBy(array(TblCommodityItem::ATTR_TBL_COMMODITY => $tblCommodity->getId()));
         return ( null === $EntityList ? false : $EntityList );
     }
@@ -210,13 +199,13 @@ class Data
      *
      * @return TblCommodity
      */
-    public function actionCreateCommodity(
+    public function createCommodity(
         $Name,
         $Description,
         TblCommodityType $tblCommodityType
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = new TblCommodity();
         $Entity->setName($Name);
@@ -225,7 +214,7 @@ class Data
 
         $Manager->saveEntity($Entity);
 
-        Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
             $Entity);
 
         return $Entity;
@@ -239,14 +228,14 @@ class Data
      *
      * @return bool
      */
-    public function actionEditCommodity(
+    public function updateCommodity(
         TblCommodity $tblCommodity,
         $Name,
         $Description,
         TblCommodityType $tblCommodityType
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         /** @var TblCommodity $Entity */
         $Entity = $Manager->getEntityById('TblCommodity', $tblCommodity->getId());
@@ -257,7 +246,7 @@ class Data
             $Entity->setTblCommodityType($tblCommodityType);
 
             $Manager->saveEntity($Entity);
-            Protocol::useService()->createUpdateEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
             return true;
@@ -270,10 +259,10 @@ class Data
      *
      * @return bool|TblItem[]
      */
-    public function entityItemAllByCommodity(TblCommodity $tblCommodity)
+    public function getItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
-        $EntityList = $this->Connection->getEntityManager()->getEntity('TblCommodityItem')
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblCommodityItem')
             ->findBy(array(TblCommodityItem::ATTR_TBL_COMMODITY => $tblCommodity->getId()));
         if (!empty( $EntityList )) {
             array_walk($EntityList, function (TblCommodityItem &$tblCommodityItem) {
@@ -291,13 +280,13 @@ class Data
      *
      * @return bool
      */
-    public function actionAddCommodityItem(
+    public function addItemToCommodity(
         TblCommodity $tblCommodity,
         TblItem $tblItem,
         $Quantity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblCommodityItem')->findOneBy(array(
             TblCommodityItem::ATTR_TBL_COMMODITY => $tblCommodity->getId(),
             TblCommodityItem::ATTR_TBL_ITEM      => $tblItem->getId()
@@ -310,7 +299,7 @@ class Data
 
             $Manager->saveEntity($Entity);
 
-            Protocol::useService()->createInsertEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(),
                 $Entity);
         }
         return $Entity;
@@ -321,16 +310,16 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveCommodityItem(
+    public function removeItemToCommodity(
         TblCommodityItem $tblCommodityItem
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblCommodityItem')->findOneBy(array('Id' => $tblCommodityItem->getId()));
         if (null !== $Entity) {
             /** @var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;
@@ -343,17 +332,17 @@ class Data
      *
      * @return bool
      */
-    public function actionRemoveCommodity(
+    public function destroyCommodity(
         TblCommodity $tblCommodity
     ) {
 
-        $Manager = $this->Connection->getEntityManager();
+        $Manager = $this->getConnection()->getEntityManager();
 
         $EntityItems = $Manager->getEntity('TblCommodityItem')
             ->findBy(array(TblCommodityItem::ATTR_TBL_COMMODITY => $tblCommodity->getId()));
         if (null !== $EntityItems) {
             foreach ($EntityItems as $Entity) {
-                Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+                Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                     $Entity);
                 $Manager->killEntity($Entity);
             }
@@ -362,7 +351,7 @@ class Data
         $Entity = $Manager->getEntity('TblCommodity')->findOneBy(array('Id' => $tblCommodity->getId()));
         if (null !== $Entity) {
             /** @var Element $Entity */
-            Protocol::useService()->createDeleteEntry($this->Connection->getDatabase(),
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
                 $Entity);
             $Manager->killEntity($Entity);
             return true;

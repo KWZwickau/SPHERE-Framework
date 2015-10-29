@@ -16,16 +16,6 @@ class Account implements IModuleInterface
     {
 
         /**
-         * Register Module
-         */
-//        Error::registerModule();
-        /**
-         * Register Navigation
-         */
-//        Main::getDisplay()->addApplicationNavigation(
-//            new Link( new Link\Route( __NAMESPACE__ ), new Link\Name( 'FIBU-Konten' ), new Link\Icon( new FolderOpen() ) )
-//        );
-        /**
          * Register Route
          */
         Main::getDispatcher()->registerRoute(
@@ -67,6 +57,7 @@ class Account implements IModuleInterface
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+
+        return new Frontend();
     }
 }

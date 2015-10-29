@@ -3,6 +3,7 @@ namespace SPHERE\Application\People\Relationship\Service;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Relationship\Service\Entity\TblGroup;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToCompany;
 use SPHERE\Application\People\Relationship\Service\Entity\TblToPerson;
 use SPHERE\Application\People\Relationship\Service\Entity\TblType;
@@ -20,34 +21,67 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
-        $this->createType('Sorgeberechtigt');
-        $this->createType('Vormund');
-        $this->createType('Bevollmächtigt');
-        $this->createType('Geschwisterkind');
-        $this->createType('Arzt');
-        $this->createType('Ehepartner');
-        $this->createType('Lebensabschnittsgefährte');
+        $tblGroupPerson = $this->createGroup('PERSON', 'Personenbeziehung', 'Person zu Person');
+        $tblGroupCompany = $this->createGroup('COMPANY', 'Firmenbeziehungen', 'Person zu Firma');
+
+        $this->createType('Sorgeberechtigt', '', $tblGroupPerson);
+        $this->createType('Vormund', '', $tblGroupPerson);
+        $this->createType('Bevollmächtigt', '', $tblGroupPerson);
+        $this->createType('Geschwisterkind', '', $tblGroupPerson);
+        $this->createType('Arzt', '', $tblGroupPerson);
+        $this->createType('Ehepartner', '', $tblGroupPerson);
+        $this->createType('Lebensabschnittsgefährte', '', $tblGroupPerson);
+
+        $this->createType('Geschäftsführer', '', $tblGroupCompany);
     }
 
     /**
+     * @param string $Identifier
      * @param string $Name
      * @param string $Description
-     * @param bool   $IsLocked
+     *
+     * @return TblGroup
+     */
+    public function createGroup($Identifier, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblGroup')->findOneBy(array(
+            TblGroup::ATTR_IDENTIFIER => $Identifier
+        ));
+        if (null === $Entity) {
+            $Entity = new TblGroup();
+            $Entity->setIdentifier($Identifier);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param string        $Name
+     * @param string        $Description
+     * @param null|TblGroup $tblGroup
+     * @param bool          $IsLocked
      *
      * @return TblType
      */
-    public function createType($Name, $Description = '', $IsLocked = false)
+    public function createType($Name, $Description = '', TblGroup $tblGroup = null, $IsLocked = false)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         if ($IsLocked) {
             $Entity = $Manager->getEntity('TblType')->findOneBy(array(
                 TblType::ATTR_NAME      => $Name,
+                TblType::ATTR_TBL_GROUP => ( $tblGroup ? $tblGroup->getId() : null ),
                 TblType::ATTR_IS_LOCKED => $IsLocked
             ));
         } else {
             $Entity = $Manager->getEntity('TblType')->findOneBy(array(
-                TblType::ATTR_NAME => $Name
+                TblType::ATTR_NAME      => $Name,
+                TblType::ATTR_TBL_GROUP => ( $tblGroup ? $tblGroup->getId() : null )
             ));
         }
 
@@ -56,10 +90,44 @@ class Data extends AbstractData
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Entity->setIsLocked($IsLocked);
+            $Entity->setTblGroup($tblGroup);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param integer $Id
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', $Id);
+    }
+
+    /**
+     * @param string $Identifier
+     *
+     * @return bool|TblGroup
+     */
+    public function getGroupByIdentifier($Identifier)
+    {
+
+        return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', array(
+            TblGroup::ATTR_IDENTIFIER => $Identifier
+        ));
+    }
+
+    /**
+     * @return bool|TblGroup[]
+     */
+    public function getGroupAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup');
     }
 
     /**
@@ -70,8 +138,7 @@ class Data extends AbstractData
     public function getTypeById($Id)
     {
 
-        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblType', $Id);
-        return ( null === $Entity ? false : $Entity );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', $Id);
     }
 
     /**
@@ -80,8 +147,20 @@ class Data extends AbstractData
     public function getTypeAll()
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblType')->findAll();
-        return ( empty ( $EntityList ) ? false : $EntityList );
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType');
+    }
+
+    /**
+     * @param TblGroup|null $tblGroup
+     *
+     * @return bool|TblType[]
+     */
+    public function getTypeAllByGroup(TblGroup $tblGroup = null)
+    {
+
+        return $this->getCachedEntityListBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblType', array(
+            TblType::ATTR_TBL_GROUP => ( $tblGroup ? $tblGroup->getId() : null )
+        ));
     }
 
     /**

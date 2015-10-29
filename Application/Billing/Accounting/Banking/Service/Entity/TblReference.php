@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Banking\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Banking\Banking;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
@@ -21,6 +22,7 @@ class TblReference extends Element
     const ATTR_SERVICE_BILLING_COMMODITY = "serviceBilling_Commodity";
     const ATTR_IS_VOID = "IsVoid";
     const ATTR_REFERENCE = "Reference";
+    const ATTR_TBL_ACCOUNT = "tblAccount";
 
     /**
      * @Column(type="string")
@@ -42,6 +44,10 @@ class TblReference extends Element
      * @Column(type="bigint")
      */
     protected $serviceBilling_Commodity;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblAccount;
 
     /**
      * @return string $Reference
@@ -109,13 +115,13 @@ class TblReference extends Element
     /**
      * @return bool|TblDebtor
      */
-    public function getServiceBillingBanking()
+    public function getServiceTblDebtor()
     {
 
         if (null === $this->tblDebtor) {
             return false;
         } else {
-            return Banking::useService()->entityDebtorById($this->tblDebtor);
+            return Banking::useService()->getDebtorById($this->tblDebtor);
         }
     }
 
@@ -137,7 +143,7 @@ class TblReference extends Element
         if (null === $this->serviceBilling_Commodity) {
             return false;
         } else {
-            return Commodity::useService()->entityCommodityById($this->serviceBilling_Commodity);
+            return Commodity::useService()->getCommodityById($this->serviceBilling_Commodity);
         }
     }
 
@@ -148,5 +154,27 @@ class TblReference extends Element
     {
 
         $this->serviceBilling_Commodity = ( null === $tblCommodity ? null : $tblCommodity->getId() );
+    }
+
+    /**
+     * @return bool|TblAccount
+     */
+    public function getServiceTblAccount()
+    {
+
+        if (null === $this->tblAccount) {
+            return false;
+        } else {
+            return Banking::useService()->getAccountById($this->tblAccount);
+        }
+    }
+
+    /**
+     * @param null|TblAccount $serviceTblAccount
+     */
+    public function setServiceTblAccount(TblAccount $serviceTblAccount)
+    {
+
+        $this->tblAccount = ( null === $serviceTblAccount ? null : $serviceTblAccount->getId() );
     }
 }

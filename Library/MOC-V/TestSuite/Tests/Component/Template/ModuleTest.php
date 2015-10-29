@@ -3,13 +3,14 @@ namespace MOC\V\TestSuite\Tests\Component\Template;
 
 use MOC\V\Component\Template\Template;
 use MOC\V\Component\Template\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Template
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     /**

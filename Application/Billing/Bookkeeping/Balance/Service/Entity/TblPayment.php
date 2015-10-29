@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Bookkeeping\Balance\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Bookkeeping\Balance\Balance;
 use SPHERE\System\Database\Fitting\Element;
@@ -33,15 +34,6 @@ class TblPayment extends Element
     protected $Date;
 
     /**
-     * @param null|TblBalance $tblBalance
-     */
-    public function setTblBalance($tblBalance = null)
-    {
-
-        $this->tblBalance = ( null === $tblBalance ? null : $tblBalance->getId() );
-    }
-
-    /**
      * @return bool|TblBalance
      */
     public function getTblBalance()
@@ -50,8 +42,17 @@ class TblPayment extends Element
         if (null === $this->tblBalance) {
             return false;
         } else {
-            return Balance::useService()->entityBalanceById($this->tblBalance);
+            return Balance::useService()->getBalanceById($this->tblBalance);
         }
+    }
+
+    /**
+     * @param null|TblBalance $tblBalance
+     */
+    public function setTblBalance($tblBalance = null)
+    {
+
+        $this->tblBalance = ( null === $tblBalance ? null : $tblBalance->getId() );
     }
 
     /**
@@ -82,21 +83,21 @@ class TblPayment extends Element
     }
 
     /**
-     * @param $Value
-     */
-    public function setValue($Value)
-    {
-
-        $this->Value = $Value;
-    }
-
-    /**
      * @return (type="decimal", precision=14, scale=4)
      */
     public function getValue()
     {
 
         return $this->Value;
+    }
+
+    /**
+     * @param $Value
+     */
+    public function setValue($Value)
+    {
+
+        $this->Value = $Value;
     }
 
     /**

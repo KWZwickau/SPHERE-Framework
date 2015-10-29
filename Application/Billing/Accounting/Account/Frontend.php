@@ -3,6 +3,7 @@
 namespace SPHERE\Application\Billing\Accounting\Account;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
+use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
@@ -12,12 +13,11 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\BarCode;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
-use SPHERE\Common\Frontend\Icon\Repository\Disable;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Link\Repository\Danger;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
+use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Redirect;
@@ -38,7 +38,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setDescription('Übersicht');
         $Stage->setMessage('Zeigt die verfügbaren Finanzbuchhaltungskonten an');
         $Stage->addButton(
-            new Primary('FIBU-Konto anlegen', '/Billing/Accounting/Account/Create', new Plus())
+            new Standard('FIBU-Konto anlegen', '/Billing/Accounting/Account/Create', new Plus())
         );
 
         $tblAccountAll = Account::useService()->getAccountAll();
@@ -51,13 +51,13 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAccount->Typ = $tblAccount->getTblAccountType()->getName();
                 if ($tblAccount->getIsActive() === true) {
                     $tblAccount->Option =
-                        (new Danger('Deaktivieren', '/Billing/Accounting/Account/Deactivate',
-                            new Disable(), array(
+                        (new Standard('Deaktivieren', '/Billing/Accounting/Account/Deactivate',
+                            new Remove(), array(
                                 'Id' => $tblAccount->getId()
                             )))->__toString();
                 } else {
                     $tblAccount->Option =
-                        (new Primary('Aktivieren', '/Billing/Accounting/Account/Activate',
+                        (new Standard('Aktivieren', '/Billing/Accounting/Account/Activate',
                             new Ok(), array(
                                 'Id' => $tblAccount->getId()
                             )))->__toString();
@@ -91,7 +91,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Aktivierung');
 
-        if (Account::useService()->setFibuActivate($Id)) {
+        if (Account::useService()->changeFibuActivate($Id)) {
 
             $Stage->setContent(new Redirect('/Billing/Accounting/Account', 0));
 
@@ -114,7 +114,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('Deaktivierung');
 
-        if (Account::useService()->setFibuDeactivate($Id)) {
+        if (Account::useService()->changeFibuDeactivate($Id)) {
             $Stage->setContent(new Redirect('/Billing/Accounting/Account', 0));
         } else {
             $Stage->setContent(new Warning('Ihr Konto konnte nicht Deaktiviert werden'));
@@ -134,12 +134,12 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage = new Stage();
         $Stage->setTitle('FIBU-Konto');
         $Stage->setDescription('Hinzufügen');
-        $Stage->addButton(new Primary('Zurück', '/Billing/Accounting/Account', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Account', new ChevronLeft()));
 
-        $tblAccountKey = Account::useService()->entityKeyValueAll();
-        $tblAccountType = Account::useService()->entityTypeValueAll();
+        $tblAccountKey = Account::useService()->getKeyValueAll();
+        $tblAccountType = Account::useService()->getTypeValueAll();
 
-        $Stage->setContent(Account::useService()->executeAddAccount(
+        $Stage->setContent(Account::useService()->createAccount(
             new Form(array(
                 new FormGroup(array(
                     new FormRow(array(
@@ -164,7 +164,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     ))
                 ))
-            ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen')), $Account)
+            ), new Primary('Hinzufügen')), $Account)
         );
 
         return $Stage;

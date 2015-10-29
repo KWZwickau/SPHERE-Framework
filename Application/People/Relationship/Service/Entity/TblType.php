@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -18,6 +19,8 @@ class TblType extends Element
     const ATTR_NAME = 'Name';
     const ATTR_DESCRIPTION = 'Description';
     const ATTR_IS_LOCKED = 'IsLocked';
+    const ATTR_TBL_GROUP = 'tblGroup';
+
     /**
      * @Column(type="string")
      */
@@ -30,6 +33,10 @@ class TblType extends Element
      * @Column(type="boolean")
      */
     protected $IsLocked;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblGroup;
 
     /**
      * @return string
@@ -83,5 +90,27 @@ class TblType extends Element
     {
 
         $this->IsLocked = (bool)$IsLocked;
+    }
+
+    /**
+     * @return bool|TblGroup
+     */
+    public function getTblGroup()
+    {
+
+        if (null === $this->tblGroup) {
+            return false;
+        } else {
+            return Relationship::useService()->getGroupById($this->tblGroup);
+        }
+    }
+
+    /**
+     * @param null|TblGroup $tblGroup
+     */
+    public function setTblGroup(TblGroup $tblGroup = null)
+    {
+
+        $this->tblGroup = ( null === $tblGroup ? null : $tblGroup->getId() );
     }
 }

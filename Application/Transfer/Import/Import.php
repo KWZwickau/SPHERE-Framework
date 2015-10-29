@@ -1,8 +1,10 @@
 <?php
 namespace SPHERE\Application\Transfer\Import;
 
+use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\IApplicationInterface;
+use SPHERE\Application\Transfer\Import\Chemnitz\Chemnitz;
 use SPHERE\Application\Transfer\Import\FuxMedia\FuxSchool;
 use SPHERE\Common\Frontend\Icon\Repository\Upload;
 use SPHERE\Common\Frontend\Layout\Repository\Thumbnail;
@@ -23,6 +25,7 @@ class Import implements IApplicationInterface
     {
 
         FuxSchool::registerModule();
+        Chemnitz::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Daten importieren'))
@@ -59,12 +62,27 @@ class Import implements IApplicationInterface
                 new Standard('', '/Sphere/Transfer/Import/FuxSchool/Division', new Upload(), array(), 'Upload')
             ), 2, 2
         );
+
+        Main::getDispatcher()->registerWidget('Import',
+            new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+                'Chemntiz', 'Schülerdaten',
+                new Standard('', '/Transfer/Import/Chemnitz/Student', new Upload(), array(), 'Upload')
+            ), 2, 2
+        );
+        Main::getDispatcher()->registerWidget('Import',
+            new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+                'Chemntiz', 'Personendaten',
+                new Standard('', '/Transfer/Import/Chemnitz/Person', new Upload(), array(), 'Upload')
+            ), 2, 2
+        );
     }
 
     /**
      * @return Stage
      */
-    public function frontendDashboard()
+    public function frontendDashboard($File = null)
     {
 
         $Stage = new Stage('Dashboard', 'Import');

@@ -5,8 +5,14 @@ use MOC\V\Core\AutoLoader\Component\Bridge\Repository\MultitonNamespace;
 use MOC\V\Core\AutoLoader\Component\Bridge\Repository\UniversalNamespace;
 use MOC\V\Core\AutoLoader\Component\Parameter\Repository\DirectoryParameter;
 use MOC\V\Core\AutoLoader\Component\Parameter\Repository\NamespaceParameter;
+use MOC\V\TestSuite\AbstractTestCase;
 
-class BridgeTest extends \PHPUnit_Framework_TestCase
+/**
+ * Class BridgeTest
+ *
+ * @package MOC\V\TestSuite\Tests\Core\AutoLoader
+ */
+class BridgeTest extends AbstractTestCase
 {
 
     public function testUniversalNamespace()

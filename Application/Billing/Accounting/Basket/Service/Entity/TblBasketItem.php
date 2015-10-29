@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Commodity\Commodity;
@@ -17,7 +18,7 @@ use SPHERE\System\Database\Fitting\Element;
 class TblBasketItem extends Element
 {
 
-    const ATTR_TBL_Basket = 'tblBasket';
+    const ATTR_TBL_BASKET = 'tblBasket';
     const ATTR_SERVICE_BILLING_COMMODITY_ITEM = 'serviceBilling_CommodityItem';
 
     /**
@@ -46,70 +47,43 @@ class TblBasketItem extends Element
     public function getTotalPriceString()
     {
 
+//        $result = 0.00;       // ToDo erasable?
+//        $tblCommodityItem = $this->getServiceBillingCommodityItem();
+//        if ($tblCommodityItem) {
+//            $tblItem = $this->getServiceBillingCommodityItem()->getTblItem();
+//            $quantity = $this->getQuantity();
+//            if ($tblItem && $tblItem->getPrice() > 0 && $quantity > 0) {
+//                $result = sprintf("%01.4f", $tblItem->getPrice() * $quantity);
+//            }
+//        }
+//        return str_replace('.', ',', $result)." €";
         $result = 0.00;
-        $tblCommodityItem = $this->getServiceBillingCommodityItem();
-        if ($tblCommodityItem) {
-            $tblItem = $this->getServiceBillingCommodityItem()->getTblItem();
+        $ItemPrice = $this->getPrice();
+        if ($ItemPrice) {
             $quantity = $this->getQuantity();
-            if ($tblItem && $tblItem->getPrice() > 0 && $quantity > 0) {
-                $result = sprintf("%01.4f", $tblItem->getPrice() * $quantity);
+            if ($ItemPrice > 0 && $quantity > 0) {
+                $result = sprintf("%01.4f", $ItemPrice * $quantity);
             }
         }
         return str_replace('.', ',', $result)." €";
     }
 
     /**
-     * @return string
+     * @return (type="decimal", precision=14, scale=4)
      */
-    public function getPriceString()
+    public function getPrice()
     {
 
-        $result = sprintf("%01.4f", $this->Price);
-        return str_replace('.', ',', $result)." €";
+        return $this->Price;
     }
 
     /**
-     * @param null|TblBasket $tblBasket
+     * @param (type="decimal", precision=14, scale=4) $Price
      */
-    public function setTblBasket($tblBasket = null)
+    public function setPrice($Price)
     {
 
-        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
-    }
-
-    /**
-     * @return bool|TblBasket
-     */
-    public function getTblBasket()
-    {
-
-        if (null === $this->tblBasket) {
-            return false;
-        } else {
-            return Basket::useService()->entityBasketById($this->tblBasket);
-        }
-    }
-
-    /**
-     * @param null|TblCommodityItem $serviceBilling_CommodityItem
-     */
-    public function setServiceBillingCommodityItem($serviceBilling_CommodityItem = null)
-    {
-
-        $this->serviceBilling_CommodityItem = ( null === $serviceBilling_CommodityItem ? null : $serviceBilling_CommodityItem->getId() );
-    }
-
-    /**
-     * @return bool|TblCommodityItem
-     */
-    public function getServiceBillingCommodityItem()
-    {
-
-        if (null === $this->serviceBilling_CommodityItem) {
-            return false;
-        } else {
-            return Commodity::useService()->entityCommodityItemById($this->serviceBilling_CommodityItem);
-        }
+        $this->Price = $Price;
     }
 
     /**
@@ -131,20 +105,56 @@ class TblBasketItem extends Element
     }
 
     /**
-     * @return (type="decimal", precision=14, scale=4)
+     * @return string
      */
-    public function getPrice()
+    public function getPriceString()
     {
 
-        return $this->Price;
+        $result = sprintf("%01.4f", $this->Price);
+        return str_replace('.', ',', $result)." €";
     }
 
     /**
-     * @param (type="decimal", precision=14, scale=4) $Price
+     * @return bool|TblBasket
      */
-    public function setPrice($Price)
+    public function getTblBasket()
     {
 
-        $this->Price = $Price;
+        if (null === $this->tblBasket) {
+            return false;
+        } else {
+            return Basket::useService()->getBasketById($this->tblBasket);
+        }
+    }
+
+    /**
+     * @param null|TblBasket $tblBasket
+     */
+    public function setTblBasket($tblBasket = null)
+    {
+
+        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
+    }
+
+    /**
+     * @return bool|TblCommodityItem
+     */
+    public function getServiceBillingCommodityItem()
+    {
+
+        if (null === $this->serviceBilling_CommodityItem) {
+            return false;
+        } else {
+            return Commodity::useService()->getCommodityItemById($this->serviceBilling_CommodityItem);
+        }
+    }
+
+    /**
+     * @param null|TblCommodityItem $serviceBilling_CommodityItem
+     */
+    public function setServiceBillingCommodityItem($serviceBilling_CommodityItem = null)
+    {
+
+        $this->serviceBilling_CommodityItem = ( null === $serviceBilling_CommodityItem ? null : $serviceBilling_CommodityItem->getId() );
     }
 }

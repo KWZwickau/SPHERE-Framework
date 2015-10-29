@@ -29,15 +29,14 @@ class Major0Minor9
         $Feature->createTask('Informationen (Metadaten)')
             ->createDuty('Schülerakte (Ersteinschulung: Abgebende Kita)');
         $Feature->createTask('Beziehungen')
-            ->createDuty('Anzeige von Adress- und Kontaktdaten')
-            ->createDuty('Trennung von Beziehungstypen (Personenbeziehungen)')
+            ->createDuty('Trennung von Beziehungstypen (Personenbeziehungen)', true)
             ->createDuty('Frei definierbare Beziehungstypen');
 
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
         $Feature = $Category->createFeature('Firma');
         $Feature->createTask('Beziehungen')
-            ->createDuty('Trennung von Beziehungstypen (Firmenbeziehungen)')
+            ->createDuty('Trennung von Beziehungstypen (Firmenbeziehungen)', true)
             ->createDuty('Frei definierbare Beziehungstypen');
     }
 
@@ -61,19 +60,19 @@ class Major0Minor9
             ->createDuty('Fach bearbeiten', false)
             ->createDuty('Fach löschen', false);
         $Feature->createTask('Fach-Kategorie')
-            ->createDuty('Kategorie hinzufügen', false)
+            ->createDuty('Kategorie hinzufügen', true)
             ->createDuty('Kategorie bearbeiten', false)
             ->createDuty('Kategorie löschen', false);
         $Feature->createTask('Fach-Kategorie zuweisen')
-            ->createDuty('Verknüpfung hinzufügen')
-            ->createDuty('Verknüpfung löschen');
+            ->createDuty('Verknüpfung hinzufügen', true)
+            ->createDuty('Verknüpfung löschen', true);
         $Feature->createTask('Kategorie-Gruppe zuweisen')
-            ->createDuty('Verknüpfung hinzufügen')
-            ->createDuty('Verknüpfung löschen');
+            ->createDuty('Verknüpfung hinzufügen', true)
+            ->createDuty('Verknüpfung löschen', true);
         $Feature->createTask('Schuljahr')
-            ->createDuty('Schuljahr hinzufügen')
-            ->createDuty('Zeitraum hinzufügen')
-            ->createDuty('Abschnitt verknüpfen');
+            ->createDuty('Schuljahr hinzufügen', true)
+            ->createDuty('Zeitraum hinzufügen', true)
+            ->createDuty('Abschnitt verknüpfen', false);
         $Feature->createTask('Klassenstufe')
             ->createDuty('Klassenstufe hinzufügen')
             ->createDuty('Klassenstufe löschen')

@@ -37,13 +37,14 @@ class Item implements IModuleInterface
             )->setParameterDefault('Item', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Delete',
-                __NAMESPACE__.'\Frontend::frontendItemDelete'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
+                __NAMESPACE__.'\Frontend::frontendItemDestroy'
             )->setParameterDefault('Id', null)
+                ->setParameterDefault('Confirm', null)
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Edit',
-                __NAMESPACE__.'\Frontend::frontendItemEdit'
+            Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',
+                __NAMESPACE__.'\Frontend::frontendItemChange'
             )->setParameterDefault('Id', null)
                 ->setParameterDefault('Item', null)
         );

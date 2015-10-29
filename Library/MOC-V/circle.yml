@@ -1,8 +1,7 @@
 ## Customize the test machine
 machine:
 
-  timezone:
-    Europe/Berlin # Set the timezone
+  timezone: Europe/Berlin # Set the timezone
 
   php:
     version: 5.4.4

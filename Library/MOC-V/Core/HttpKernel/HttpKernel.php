@@ -37,7 +37,7 @@ class HttpKernel implements IVendorInterface
     /**
      * @return IBridgeInterface
      */
-    public static function getUniversalRequest()
+    private static function getUniversalRequest()
     {
 
         return new UniversalRequest();

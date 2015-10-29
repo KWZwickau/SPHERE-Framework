@@ -3,6 +3,7 @@ namespace SPHERE\Application\Billing\Accounting\Basket\Service\Entity;
 
 use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
+use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\System\Database\Fitting\Element;
 
@@ -25,21 +26,21 @@ class TblBasket extends Element
     protected $Name;
 
     /**
-     * @param string $Name
-     */
-    public function setName($Name)
-    {
-
-        $this->Name = $Name;
-    }
-
-    /**
      * @return string
      */
     public function getName()
     {
 
         return $this->Name;
+    }
+
+    /**
+     * @param string $Name
+     */
+    public function setName($Name)
+    {
+
+        $this->Name = $Name;
     }
 
     /**

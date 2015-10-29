@@ -50,7 +50,7 @@ class DBALException extends \Exception
     /**
      * Returns a new instance for an invalid specified platform version.
      *
-     * @param string $version        The invalid platform version given.
+     * @param string $version The invalid platform version given.
      * @param string $expectedFormat The expected platform version format.
      *
      * @return DBALException

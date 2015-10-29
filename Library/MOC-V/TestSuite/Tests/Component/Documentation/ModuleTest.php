@@ -4,13 +4,14 @@ namespace MOC\V\TestSuite\Tests\Component\Documentation;
 use MOC\V\Component\Documentation\Component\Parameter\Repository\DirectoryParameter;
 use MOC\V\Component\Documentation\Documentation;
 use MOC\V\Component\Documentation\Vendor\Vendor;
+use MOC\V\TestSuite\AbstractTestCase;
 
 /**
  * Class ModuleTest
  *
  * @package MOC\V\TestSuite\Tests\Component\Documentation
  */
-class ModuleTest extends \PHPUnit_Framework_TestCase
+class ModuleTest extends AbstractTestCase
 {
 
     /**

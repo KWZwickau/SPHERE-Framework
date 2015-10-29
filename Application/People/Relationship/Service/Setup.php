@@ -25,7 +25,8 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblType = $this->setTableType($Schema);
+        $tblGroup = $this->setTableGroup($Schema);
+        $tblType = $this->setTableType($Schema, $tblGroup);
         $this->setTableToPerson($Schema, $tblType);
         $this->setTableToCompany($Schema, $tblType);
         /**
@@ -41,7 +42,29 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableType(Schema &$Schema)
+    private function setTableGroup(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblGroup');
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblGroup', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblGroup
+     *
+     * @return Table
+     */
+    private function setTableType(Schema &$Schema, Table $tblGroup)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblType');
@@ -54,6 +77,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblType', 'IsLocked')) {
             $Table->addColumn('IsLocked', 'boolean');
         }
+        $this->getConnection()->addForeignKey($Table, $tblGroup, true);
         return $Table;
     }
 
@@ -76,7 +100,7 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblToPerson', 'serviceTblPersonTo')) {
             $Table->addColumn('serviceTblPersonTo', 'bigint', array('notnull' => false));
         }
-        $this->getConnection()->addForeignKey($Table, $tblType);
+        $this->getConnection()->addForeignKey($Table, $tblType, true);
         return $Table;
     }
 
