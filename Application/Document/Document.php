@@ -3,13 +3,11 @@ namespace SPHERE\Application\Document;
 
 use SPHERE\Application\Document\Designer\Designer;
 use SPHERE\Application\Document\Explorer\Explorer;
-use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\Document\Search\Search;
 use SPHERE\Application\IClusterInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
-use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Document
@@ -39,10 +37,6 @@ class Document implements IClusterInterface
 
         $Stage = new Stage('Dashboard', 'Dokumente');
 
-        $T = Storage::useWriter()->getTemporary();
-        $D = Storage::useWriter()->getDatabase();
-
-        Debugger::screenDump($T, $D);
         return $Stage;
     }
 }
