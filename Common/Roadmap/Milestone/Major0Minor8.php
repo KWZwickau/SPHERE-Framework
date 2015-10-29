@@ -36,13 +36,6 @@ class Major0Minor8
         $Feature = $Category->createFeature('Archiv');
         $Feature->createTask('Allowed memory size')
             ->createDuty('Speicherverbrauch minimieren');
-
-        // Demoversion
-        $Category = $Release->createCategory('Demoversion');
-        $Feature = $Category->createFeature('Veröffentlichen');
-        $Feature->createTask('Programmcode')
-            ->createDuty('Programmcode veröffentlichen 0.8.2');
-
     }
 
     /**
@@ -61,7 +54,7 @@ class Major0Minor8
 
         $Feature = $Category->createFeature('Person');
         $Feature->createTask('Informationen (Metadaten)')
-            ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)');
+            ->createDuty('Schülerakte (Anpassungen: Feedback von 0.8.0)', true);
 
         // Einstellungen
         $Category = $Release->createCategory('Einstellungen');
@@ -88,13 +81,6 @@ class Major0Minor8
             ->createDuty('Eigenen Verein aus Firmen wählen', true)
             ->createDuty('Kontaktdaten und Adressen kommen aus Firmen', true)
             ->createDuty('Mitarbeiter und Beziehungen kommen aus Personen', true);
-
-        // Demoversion
-        $Category = $Release->createCategory('Demoversion');
-        $Feature = $Category->createFeature('Veröffentlichen');
-        $Feature->createTask('Programmcode')
-            ->createDuty('Programmcode veröffentlichen 0.8.1');
-
     }
 
     /**
@@ -131,13 +117,6 @@ class Major0Minor8
         $Feature = $Category->createFeature('Benutzer');
         $Feature->createTask('Mein Benutzerkonto')
             ->createDuty('Passwort ändern', true);
-
-        // Demoversion
-        $Category = $Release->createCategory('Demoversion');
-        $Feature = $Category->createFeature('Veröffentlichen');
-        $Feature->createTask('Programmcode')
-            ->createDuty('Programmcode veröffentlichen 0.8.0.1', true);
-
     }
 
     /**
@@ -274,8 +253,5 @@ class Major0Minor8
         $Feature->createTask('Datenbank')
             ->createDuty('Berechtigungskonzept erstellen / übernehmen', true)
             ->createDuty('Benutzerzugänge übernehmen', true);
-        $Feature->createTask('Programmcode')
-            ->createDuty('Programmcode veröffentlichen', true);
-
     }
 }
