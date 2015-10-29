@@ -72,11 +72,18 @@ class Structure
     {
 
         if (!$this->Database->hasColumn($KeyTarget->getName(), $KeySource->getName())) {
-            $KeyTarget->addColumn($KeySource->getName(), 'bigint');
+            if ($AllowNull) {
+                $KeyTarget->addColumn($KeySource->getName(), 'bigint', array(
+                    'notnull' => false
+                ));
+            } else {
+                $KeyTarget->addColumn($KeySource->getName(), 'bigint');
+            }
             if ($this->Database->getPlatform()->supportsForeignKeyConstraints()) {
                 if ($AllowNull) {
-                    $KeyTarget->addForeignKeyConstraint($KeySource, array($KeySource->getName()), array('Id'),
-                        array('notnull' => false));
+                    $KeyTarget->addForeignKeyConstraint($KeySource, array($KeySource->getName()), array('Id'), array(
+                        'notnull' => false
+                    ));
                 } else {
                     $KeyTarget->addForeignKeyConstraint($KeySource, array($KeySource->getName()), array('Id'));
                 }
