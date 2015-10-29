@@ -25,6 +25,10 @@ class Setup extends AbstractSetup
         $tblLevel = $this->setTableLevel($Schema);
         $tblDivision = $this->setTableDivision($Schema, $tblLevel);
         $tblDivisionSubject = $this->setTableDivisionSubject($Schema, $tblDivision);
+        $this->setTableDivisionStudent($Schema, $tblDivision);
+        $this->setTableDivisionTeacher($Schema, $tblDivision);
+        $this->setTableSubjectStudent($Schema, $tblDivisionSubject);
+        $this->setTableSubjectTeacher($Schema, $tblDivisionSubject);
         /**
          * Migration & Protocol
          */
@@ -91,6 +95,74 @@ class Setup extends AbstractSetup
             $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
         }
         $this->getConnection()->addForeignKey($Table, $tblDivision);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDivision
+     *
+     * @return Table
+     */
+    private function setTableDivisionStudent(Schema &$Schema, Table $tblDivision)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblDivisionStudent');
+        if (!$this->getConnection()->hasColumn('tblDivisionStudent', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblDivision);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDivision
+     *
+     * @return Table
+     */
+    private function setTableDivisionTeacher(Schema &$Schema, Table $tblDivision)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblDivisionTeacher');
+        if (!$this->getConnection()->hasColumn('tblDivisionTeacher', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblDivision);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDivisionSubject
+     *
+     * @return Table
+     */
+    private function setTableSubjectStudent(Schema &$Schema, Table $tblDivisionSubject)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblSubjectStudent');
+        if (!$this->getConnection()->hasColumn('tblSubjectStudent', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDivisionSubject
+     *
+     * @return Table
+     */
+    private function setTableSubjectTeacher(Schema &$Schema, Table $tblDivisionSubject)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblSubjectTeacher');
+        if (!$this->getConnection()->hasColumn('tblSubjectTeacher', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblDivisionSubject);
         return $Table;
     }
 }

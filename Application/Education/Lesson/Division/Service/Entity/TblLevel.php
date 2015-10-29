@@ -10,7 +10,7 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * Class Level (6, School-Type)
+ * e.g. 6
  *
  * @Entity
  * @Table(name="tblLevel")

@@ -11,7 +11,7 @@ use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * School Class (Group: 6 Alpha)
+ * e.g. 6 Alpha
  *
  * @Entity
  * @Table(name="tblDivision")

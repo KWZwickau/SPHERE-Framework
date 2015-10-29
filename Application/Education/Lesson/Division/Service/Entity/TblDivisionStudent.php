@@ -6,18 +6,18 @@ use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Division\Division;
-use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
-use SPHERE\Application\Education\Lesson\Subject\Subject;
+use SPHERE\Application\People\Person\Person;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
- * e.g. 6 Alpha - Math
+ * e.g. 6 Alpha - Student
  *
  * @Entity
- * @Table(name="tblDivisionSubject")
+ * @Table(name="tblDivisionStudent")
  * @Cache(usage="READ_ONLY")
  */
-class TblDivisionSubject extends Element
+class TblDivisionStudent extends Element
 {
 
     /**
@@ -27,7 +27,7 @@ class TblDivisionSubject extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblSubject;
+    protected $serviceTblPerson;
 
     /**
      * @return bool|TblDivision
@@ -52,24 +52,24 @@ class TblDivisionSubject extends Element
     }
 
     /**
-     * @return bool|TblSubject
+     * @return bool|TblPerson
      */
-    public function getServiceTblSubject()
+    public function getServiceTblPerson()
     {
 
-        if (null === $this->serviceTblSubject) {
+        if (null === $this->serviceTblPerson) {
             return false;
         } else {
-            return Subject::useService()->getSubjectById($this->serviceTblSubject);
+            return Person::useService()->getPersonById($this->serviceTblPerson);
         }
     }
 
     /**
-     * @param TblSubject|null $tblSubject
+     * @param TblPerson|null $tblPerson
      */
-    public function setServiceTblSubject(TblSubject $tblSubject = null)
+    public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
+        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
     }
 }
