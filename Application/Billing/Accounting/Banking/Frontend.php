@@ -107,7 +107,7 @@ class Frontend extends Extension implements IFrontendInterface
                 }
                 $tblDebtor->DebtorCommodity = $debtorCommodity;
 
-                $tblPerson = $tblDebtor->getServiceManagementPerson(); //todo
+                $tblPerson = $tblDebtor->getServiceManagementPerson();
                 if (!empty( $tblPerson )) {
                     $tblDebtor->FullName = $tblPerson->getFullName();
                 } else {
@@ -145,7 +145,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblDebtorAll, null,
                                 array(
                                     'DebtorNumber'       => 'Debitoren-Nr',
-                                    'FullName' => 'Name',
+                                    'FullName'           => 'Name',
                                     'ReferenceCommodity' => 'Mandatsreferenzen',
                                     'DebtorCommodity'    => 'Leistungszuordnung',
 //                                    'BankInformation'    => 'Bankdaten',
@@ -317,8 +317,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     new BarCode()
                                                 ), 6),
                                             new FormColumn(
-                                                new SelectBox('Debtor[PaymentType]', 'Zahlungsart',
-                                                    array(TblPaymentType::ATTR_NAME => $tblPaymentTypeList),
+                                                new SelectBox('Debtor[PaymentType]', 'Zahlungsart', array(TblPaymentType::ATTR_NAME => $tblPaymentTypeList),
                                                     new Money()
                                                 ), 6),
                                             new FormColumn(
@@ -392,17 +391,13 @@ class Frontend extends Extension implements IFrontendInterface
                     ))
                 ))
             ))
-            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Change', null, array('Id' => $Id),
-                'Beschreibung ändern')
+            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Change', null, array('Id' => $Id), 'Beschreibung ändern')
             .self::layoutPaymentType($tblDebtor)
-            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Payment/View', null, array('Id' => $Id),
-                'Zahlungsart ändern')
+            .new Standard('Ändern', '/Billing/Accounting/Banking/Debtor/Payment/View', null, array('Id' => $Id), 'Zahlungsart ändern')
             .self::layoutAccount($tblDebtor, '/Billing/Accounting/Banking/Debtor/View', $Id)
-            .new Standard('Anlegen', '/Billing/Accounting/Banking/Account/Create', null, array('Id' => $Id),
-                'Kontodaten anlegen')
+            .new Standard('Anlegen', '/Billing/Accounting/Banking/Account/Create', null, array('Id' => $Id), 'Kontodaten anlegen')
             .self::layoutCommodityDebtor($tblDebtor)
-            .new Standard('Bearbeiten', '/Billing/Accounting/Banking/Commodity/Select', null, array('Id' => $Id),
-                'Leistungen bearbeiten')
+            .new Standard('Bearbeiten', '/Billing/Accounting/Banking/Commodity/Select', null, array('Id' => $Id), 'Leistungen bearbeiten')
 //            .self::layoutReference($tblDebtor)
 //            .new Standard('Bearbeiten', '/Billing/Accounting/Banking/Debtor/Reference', null, array('Id' => $Id))
         );
@@ -425,8 +420,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutColumn(
                         new Panel($tblPayment->getName(), '', Panel::PANEL_TYPE_PRIMARY)
                         , 3)
-                )
-            ), new Title('Zahlungsart'))
+                )), new Title('Zahlungsart'))
         );
     }
 
@@ -470,29 +464,20 @@ class Frontend extends Extension implements IFrontendInterface
                             $this->layoutReference($tblAccount)
                         ), null, ( $tblAccount->getActive() === false ?
                                 new Standard('', '/Billing/Accounting/Banking/Account/Activate', new Ok(),
-                                    array(
-                                        'Id'      => $tblDebtor->getId(),
-                                        'Account' => $tblAccount->getId(),
-                                        'Path'    => $Path,
-                                        'IdBack'  => $IdBack
-                                    ), 'Konto aktiv setzen') : null )
+                                    array('Id'      => $tblDebtor->getId(),
+                                          'Account' => $tblAccount->getId(),
+                                          'Path'    => $Path,
+                                          'IdBack'  => $IdBack), 'Konto aktiv setzen') : null )
                             .new Standard('', '/Billing/Accounting/Banking/Account/Change', new Pencil(),
-                                array(
-                                    'Id'        => $tblDebtor->getId(),
-                                    'AccountId' => $tblAccount->getId()
-                                ), 'Konto bearbeiten')
+                                array('Id'        => $tblDebtor->getId(),
+                                      'AccountId' => $tblAccount->getId()), 'Konto bearbeiten')
                             .new Standard('', '/Billing/Accounting/Banking/Debtor/Reference', new Listing(),
-                                array(
-                                    'DebtorId'  => $IdBack,
-                                    'AccountId' => $tblAccount->getId()
-                                ), 'Referenz bearbeiten')
+                                array('DebtorId'  => $IdBack,
+                                      'AccountId' => $tblAccount->getId()), 'Referenz bearbeiten')
                             .new Standard('', '/Billing/Accounting/Banking/Account/Destroy', new Remove(),
-                                array(
-                                    'Id'      => $tblDebtor->getId(),
-                                    'Account' => $tblAccount->getId()
-                                ), 'Konto löschen')
-                        )
-                    ), ( $tblAccount->getActive() ?
+                                array('Id'      => $tblDebtor->getId(),
+                                      'Account' => $tblAccount->getId()), 'Konto löschen')
+                        )), ( $tblAccount->getActive() ?
                         Panel::PANEL_TYPE_SUCCESS
                         : Panel::PANEL_TYPE_DEFAULT )), 4
                 );
@@ -505,13 +490,30 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAccountList = new LayoutColumn('');
             }
         }
-        if (!isset( $Warning )) {
+        if (!isset( $Warning ))
             $Warning = null;
-        }
 
         return new Layout(
             new LayoutGroup(array(new LayoutRow($tblAccountList), $Warning), new Title('Kontodaten'))
         );
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return Layout
+     */
+    private function layoutSingleAccount(TblAccount $tblAccount)
+    {
+
+        $Account = new LayoutColumn(new Panel('Besitzer'.new PullRight($tblAccount->getOwner()), array(
+            'BankName'.new PullRight($tblAccount->getBankName()),
+            'Iban'.new PullRight($tblAccount->getIBAN()),
+            'BIC'.new PullRight($tblAccount->getBIC()),
+            'Kassenzeichen'.new PullRight($tblAccount->getCashSign()),
+
+        )), 6);
+        return new Layout(new LayoutGroup(new LayoutRow($Account)));
     }
 
     /**
@@ -536,6 +538,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
         return $String;
 
+
     }
 
     /**
@@ -551,16 +554,18 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var TblCommodity $tblCommodity */
             foreach ($tblCommodityList as $Key => &$tblCommodity) {
 
-                $tblReference = Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor, $tblCommodity);
+                if ($tblCommodity) {
+                    $tblReference = Banking::useService()->getReferenceByDebtorAndCommodity($tblDebtor, $tblCommodity);
 
-                if ($tblReference) {
-                    $tblCommodity = new LayoutColumn(array(
-                        new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_SUCCESS)
-                    ), 3);
-                } else {
-                    $tblCommodity = new LayoutColumn(array(
-                        new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_DANGER)
-                    ), 3);
+                    if ($tblReference) {
+                        $tblCommodity = new LayoutColumn(array(
+                            new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_SUCCESS)
+                        ), 3);
+                    } else {
+                        $tblCommodity = new LayoutColumn(array(
+                            new Panel($tblCommodity->getName(), null, Panel::PANEL_TYPE_DANGER)
+                        ), 3);
+                    }
                 }
             }
         } else {
@@ -570,6 +575,32 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutGroup(new LayoutRow($tblCommodityList), new Title('Leistungen'))
         );
     }
+
+//    /**
+//     * @param TblDebtor $tblDebtor
+//     *
+//     * @return Layout
+//     */
+//    public function layoutReference(TblDebtor $tblDebtor)
+//    {
+//
+//        $tblReferenceList = Banking::useService()->getReferenceByDebtor($tblDebtor);
+//        if (!empty( $tblReferenceList )) {
+//            /** @var TblReference $tblReference */
+//            foreach ($tblReferenceList as $Key => &$tblReference) {
+//                $Reference = $tblReference->getServiceBillingCommodity()->getName();
+//
+//                $tblReference = new LayoutColumn(array(
+//                    new Panel($Reference, array($tblReference->getReference()), Panel::PANEL_TYPE_SUCCESS)
+//                ), 3);
+//            }
+//        } else {
+//            $tblReferenceList = new LayoutColumn('');
+//        }
+//        return new Layout(
+//            new LayoutGroup(new LayoutRow($tblReferenceList), new Title('Referenzen'))
+//        );
+//    }
 
     /**
      * @param $Id
@@ -631,32 +662,6 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-//    /**
-//     * @param TblDebtor $tblDebtor
-//     *
-//     * @return Layout
-//     */
-//    public function layoutReference(TblDebtor $tblDebtor)
-//    {
-//
-//        $tblReferenceList = Banking::useService()->getReferenceByDebtor($tblDebtor);
-//        if (!empty( $tblReferenceList )) {
-//            /** @var TblReference $tblReference */
-//            foreach ($tblReferenceList as $Key => &$tblReference) {
-//                $Reference = $tblReference->getServiceBillingCommodity()->getName();
-//
-//                $tblReference = new LayoutColumn(array(
-//                    new Panel($Reference, array($tblReference->getReference()), Panel::PANEL_TYPE_SUCCESS)
-//                ), 3);
-//            }
-//        } else {
-//            $tblReferenceList = new LayoutColumn('');
-//        }
-//        return new Layout(
-//            new LayoutGroup(new LayoutRow($tblReferenceList), new Title('Referenzen'))
-//        );
-//    }
-
     public function frontendDebtorPaymentTypeChange($Id, $PaymentType)
     {
 
@@ -699,7 +704,9 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblCommodityAll = Banking::useService()->getCommodityAllByDebtor($tblDebtor);
                 if ($tblCommodityAll) {
                     foreach ($tblCommodityAll as $tblCommodity) {
-                        $Commodity[] = $tblCommodity->getName();
+                        if ($tblCommodity) {
+                            $Commodity[] = $tblCommodity->getName();
+                        }
                     }
                 }
                 if (empty( $Commodity )) {
@@ -755,12 +762,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $Stage->setContent(
                     new Layout(new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(array(
-                            ( Banking::useService()->destroyBanking($tblDebtor)
-                                ? new \SPHERE\Common\Frontend\Message\Repository\Success('Der Debitor wurde gelöscht')
-                                .new Redirect('/Billing/Accounting/Banking', 0)
-                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Debitor konnte nicht gelöscht werden')
-                                .new Redirect('/Billing/Accounting/Banking', 10)
-                            )
+                            Banking::useService()->destroyBanking($tblDebtor)
+//                                ? new \SPHERE\Common\Frontend\Message\Repository\Success('Der Debitor wurde gelöscht')
+//                                .new Redirect('/Billing/Accounting/Banking', 0)
+//                                : new \SPHERE\Common\Frontend\Message\Repository\Danger('Der Debitor konnte nicht gelöscht werden')
+//                                .new Redirect('/Billing/Accounting/Banking', 10)
                         )))
                     )))
                 );
@@ -1418,24 +1424,6 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
-     * @param TblAccount $tblAccount
-     *
-     * @return Layout
-     */
-    private function layoutSingleAccount(TblAccount $tblAccount)
-    {
-
-        $Account = new LayoutColumn(new Panel('Besitzer'.new PullRight($tblAccount->getOwner()), array(
-            'BankName'.new PullRight($tblAccount->getBankName()),
-            'Iban'.new PullRight($tblAccount->getIBAN()),
-            'BIC'.new PullRight($tblAccount->getBIC()),
-            'Kassenzeichen'.new PullRight($tblAccount->getCashSign()),
-
-        )), 6);
-        return new Layout(new LayoutGroup(new LayoutRow($Account)));
-    }
-
-    /**
      * @param $DebtorId
      * @param $ReferenceId
      * @param $AccountId
@@ -1449,10 +1437,8 @@ class Frontend extends Extension implements IFrontendInterface
         $tblReference = Banking::useService()->getReferenceById($ReferenceId);
         $Stage = new Stage('Reference', 'bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Billing/Accounting/Banking/Debtor/Reference',
-            new ChevronLeft(), array(
-                'DebtorId'  => $DebtorId,
-                'AccountId' => $AccountId
-            )));
+            new ChevronLeft(), array('DebtorId'  => $DebtorId,
+                                     'AccountId' => $AccountId)));
 
         $Global = $this->getGlobal();
         if (!isset( $Global->POST['Reference'] )) {

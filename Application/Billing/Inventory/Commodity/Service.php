@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Billing\Inventory\Commodity;
 
 use SPHERE\Application\Billing\Accounting\Account\Service\Entity\TblAccount;
+use SPHERE\Application\Billing\Accounting\Basket\Basket;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Data;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodity;
 use SPHERE\Application\Billing\Inventory\Commodity\Service\Entity\TblCommodityItem;
@@ -158,6 +159,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Id
+     *
+     * @return bool|TblCommodityType
+     */
+    public function getCommodityTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getCommodityTypeById($Id);
+    }
+
+    /**
      * @param IFormInterface $Stage
      * @param                $Commodity
      *
@@ -197,17 +209,6 @@ class Service extends AbstractService
             .new Redirect('/Billing/Inventory/Commodity', 1);
         }
         return $Stage;
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblCommodityType
-     */
-    public function getCommodityTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getCommodityTypeById($Id);
     }
 
     /**
@@ -271,6 +272,14 @@ class Service extends AbstractService
         if (null === $tblCommodity) {
             return '';
         }
+        $tblCommodityItemList = Commodity::useService()->getCommodityItemAllByCommodity($tblCommodity);
+        /** @var TblCommodityItem $tblCommodityItem */
+        foreach ($tblCommodityItemList as $tblCommodityItem) {
+            $tblBasketItemList = Basket::useService()->getBasketItemAllByCommodityItem($tblCommodityItem);
+            foreach ($tblBasketItemList as $tblBasketItem) {
+                Basket::useService()->removeBasketItem($tblBasketItem);
+            }
+        }
 
         if ((new Data($this->getBinding()))->destroyCommodity($tblCommodity)) {
             return new Success('Die Leistung wurde erfolgreich gelöscht')
@@ -312,14 +321,30 @@ class Service extends AbstractService
     public function removeItemToCommodity(TblCommodityItem $tblCommodityItem)
     {
 
-        if ((new Data($this->getBinding()))->removeItemToCommodity($tblCommodityItem)) {
-            return new Success('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' wurde erfolgreich entfernt')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 1,
-                array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
-        } else {
-            return new Warning('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' konnte nicht entfernt werden')
-            .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3,
-                array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
+        $Error = false;
+        $tblBasketList = Basket::useService()->getBasketAll();
+        foreach ($tblBasketList as $tblBasket) {
+            $tblBasketItemList = Basket::useService()->getBasketItemAllByBasket($tblBasket);
+            foreach ($tblBasketItemList as $tblBasketItem) {
+                if ($tblBasketItem->getServiceBillingCommodityItem()->getId() === $tblCommodityItem->getId()) {
+                    $Error = true;
+                }
+            }
         }
+
+        if (!$Error) {
+            if ((new Data($this->getBinding()))->removeItemToCommodity($tblCommodityItem)) {
+                return new Success('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' wurde erfolgreich entfernt')
+                .new Redirect('/Billing/Inventory/Commodity/Item/Select', 1,
+                    array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
+            } else {
+                return new Warning('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' konnte nicht entfernt werden')
+                .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3,
+                    array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
+            }
+        }
+        return new Warning('Der Artikel '.$tblCommodityItem->getTblItem()->getName().' konnte nicht entfernt werden da er im Warenkorb benutzt wird')
+        .new Redirect('/Billing/Inventory/Commodity/Item/Select', 3,
+            array('Id' => $tblCommodityItem->getTblCommodity()->getId()));
     }
 }

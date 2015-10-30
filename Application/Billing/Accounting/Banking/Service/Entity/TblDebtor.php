@@ -83,7 +83,7 @@ class TblDebtor extends Element
         if (null === $this->ServiceManagementPerson) {
             return false;
         } else {
-            return Person::useService()->getPersonById($this->ServiceManagementPerson);
+            return Person::useService()->getPersonById( $this->ServiceManagementPerson );
         }
     }
 

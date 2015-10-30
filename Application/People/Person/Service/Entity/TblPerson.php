@@ -15,6 +15,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblPerson extends Element
 {
+    const ATTR_FIRST_NAME = 'FirstName';
+    const ATTR_LAST_NAME = 'LastName';
 
     const ATTR_FIRST_NAME = 'FirstName';
     const ATTR_LAST_NAME = 'LastName';

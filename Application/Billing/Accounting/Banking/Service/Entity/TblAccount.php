@@ -209,16 +209,14 @@ class TblAccount extends Element
      */
     public function getActive()
     {
-
         return $this->Active;
     }
 
     /**
-     * @param $Active |bool
+     * @param $Active|bool
      */
-    public function setActive($Active)
+    public function setActive( $Active )
     {
-
         $this->Active = $Active;
     }
 

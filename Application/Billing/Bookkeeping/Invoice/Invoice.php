@@ -120,7 +120,6 @@ class Invoice implements IModuleInterface
      */
     public static function useFrontend()
     {
-
         return new Frontend();
     }
 

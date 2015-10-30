@@ -14,9 +14,9 @@ class Data extends AbstractData
 {
 
     public function setupDatabaseContent()
-    {
+{
 
-    }
+}
 
     /**
      * @param integer $Id
@@ -84,7 +84,7 @@ class Data extends AbstractData
      * @param $Price
      * @param $CostUnit
     //     * @param $Course
-     * //     * @param $ChildRank
+    //     * @param $ChildRank
      *
      * @return TblItem
      */
@@ -127,8 +127,8 @@ class Data extends AbstractData
      * @param         $Description
      * @param         $Price
      * @param         $CostUnit
-    //     * @param         $Course
-     * //     * @param         $ChildRank
+//     * @param         $Course
+//     * @param         $ChildRank
      *
      * @return bool
      */                         //ToDO
@@ -140,8 +140,7 @@ class Data extends AbstractData
         $CostUnit //,
 //        $Course,
 //        $ChildRank
-    )
-    {
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
@@ -224,14 +223,13 @@ class Data extends AbstractData
     public function addItemAccount(
         TblItem $tblItem,
         TblAccount $tblAccount
-    )
-    {
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblItemAccount')->findOneBy(
             array(
-                TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId(),
+                TblItemAccount::ATTR_TBL_ITEM                => $tblItem->getId(),
                 TblItemAccount::ATTR_SERVICE_BILLING_ACCOUNT => $tblAccount->getId()
             ));
         if (null === $Entity) {
