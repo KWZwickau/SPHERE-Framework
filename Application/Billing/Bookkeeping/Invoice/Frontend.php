@@ -242,10 +242,9 @@ class Frontend extends Extension implements IFrontendInterface
                     function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
 
                         $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                        if($tblDebtor)
-                        {
+                        if ($tblDebtor) {
                             $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
-                        }else{
+                        } else {
                             $tblAccount = false;
                         }
 
@@ -306,10 +305,8 @@ class Frontend extends Extension implements IFrontendInterface
             if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
 
                 $ReferenceOk = true;
-                foreach($tblInvoiceItemAll as $tblInvoiceItem)
-                {
-                    if($tblInvoiceItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok()) )
-                    {
+                foreach ($tblInvoiceItemAll as $tblInvoiceItem) {
+                    if ($tblInvoiceItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok())) {
                         $ReferenceOk = false;
                     }
                 }
@@ -317,15 +314,18 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
                 if ($tblDebtor) {
                     if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
-                        if($ReferenceOk)
-                        {
+                        if ($ReferenceOk) {
                             $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
                                 new Ok(), array(
                                     'Id' => $Id
                                 )
                             ));
-                        }else{
-                            $Stage->setMessage(new Warning('Mandatsreferenz für Leistung nicht vorhanden'));
+                        } else {
+                            $Stage->addButton(new Standard('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit',
+                                new Ok(), array(
+                                    'Id' => $Id
+                                ), 'Fehlende Mandatsreferenz'
+                            ));
                         }
                     }
                 }
@@ -425,13 +425,13 @@ class Frontend extends Extension implements IFrontendInterface
                             ),
                         )),
                         ( ( $tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift' ) ?
-                            ($tblDebtor)?
+                            ( $tblDebtor ) ?
                                 new LayoutRow(
                                     new LayoutColumn(
                                         self::layoutAccount($tblDebtor, '/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', $tblInvoice->getId())
                                     )
                                 ) : null
-                                : null
+                            : null
                         ),
                         new LayoutRow(
                             new LayoutColumn(
@@ -547,10 +547,9 @@ class Frontend extends Extension implements IFrontendInterface
                 function (TblInvoiceItem &$tblInvoiceItem, $index, TblInvoice $tblInvoice) {
 
                     $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-                    if($tblDebtor)
-                    {
+                    if ($tblDebtor) {
                         $tblAccount = Banking::useService()->getActiveAccountByDebtor($tblDebtor);
-                    } else{
+                    } else {
                         $tblAccount = false;
                     }
 
@@ -984,7 +983,7 @@ class Frontend extends Extension implements IFrontendInterface
             } else {
 
                 $Global = $this->getGlobal();
-                if (!isset( $Global->POST['InvoiceItem'])) {
+                if (!isset( $Global->POST['InvoiceItem'] )) {
                     $Global->POST['InvoiceItem']['Price'] = str_replace('.', ',', $tblInvoiceItem->getItemPrice());
                     $Global->POST['InvoiceItem']['Quantity'] = str_replace('.', ',',
                         $tblInvoiceItem->getItemQuantity());
