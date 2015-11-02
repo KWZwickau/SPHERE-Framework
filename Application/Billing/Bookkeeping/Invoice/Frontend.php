@@ -232,30 +232,6 @@ class Frontend extends Extension implements IFrontendInterface
         $tblInvoice = Invoice::useService()->getInvoiceById($Id);
         $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
 
-        if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
-            $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
-            if ($tblDebtor) {
-                if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
-                    $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
-                        new Ok(), array(
-                            'Id' => $Id
-                        )
-                    ));
-                }
-            }
-        } else {
-            $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
-                new Ok(), array(
-                    'Id' => $Id
-                )
-            ));
-        }
-
-        $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
-            new Remove(), array(
-                'Id' => $Id
-            )
-        ));
         if ($tblInvoice->getIsConfirmed()) {
             $Stage->setContent(new Warning('Die Rechnung wurde bereits bestätigt und freigegeben und kann nicht mehr bearbeitet werden')
                 .new Redirect('/Billing/Bookkeeping/Invoice', 2));
@@ -326,6 +302,46 @@ class Frontend extends Extension implements IFrontendInterface
                                 )))->__toString();
                     }, $tblInvoice);
             }
+
+            if ($tblInvoice->getServiceBillingBankingPaymentType()->getName() === 'SEPA-Lastschrift') {
+
+                $ReferenceOk = true;
+                foreach($tblInvoiceItemAll as $tblInvoiceItem)
+                {
+                    if($tblInvoiceItem->Status != new \SPHERE\Common\Frontend\Text\Repository\Success('Mandatsreferenz'.' '.new Ok()) )
+                    {
+                        $ReferenceOk = false;
+                    }
+                }
+
+                $tblDebtor = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                if ($tblDebtor) {
+                    if (Banking::useService()->getActiveAccountByDebtor($tblDebtor)) {
+                        if($ReferenceOk)
+                        {
+                            $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+                                new Ok(), array(
+                                    'Id' => $Id
+                                )
+                            ));
+                        }else{
+                            $Stage->setMessage(new Warning('Mandatsreferenz für Leistung nicht vorhanden'));
+                        }
+                    }
+                }
+            } else {
+                $Stage->addButton(new Primary('Geprüft und Freigeben', '/Billing/Bookkeeping/Invoice/Confirm',
+                    new Ok(), array(
+                        'Id' => $Id
+                    )
+                ));
+            }
+
+            $Stage->addButton(new Danger('Stornieren', '/Billing/Bookkeeping/Invoice/Cancel',
+                new Remove(), array(
+                    'Id' => $Id
+                )
+            ));
 
 
             $Stage->setContent(
