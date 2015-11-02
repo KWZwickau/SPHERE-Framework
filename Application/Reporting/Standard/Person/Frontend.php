@@ -74,12 +74,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswertung', 'erweiterte Klassenliste');
 
-//        $Stage->addButton(
-//            new Primary('Herunterladen',
-//                '/Api/Reporting/Standard/Person/ClassList/Download', new Download())
-//        );
+        $Stage->addButton(
+            new Primary('Herunterladen',
+                '/Api/Reporting/Standard/Person/FuxClassList/Download', new Download())
+        );
 
-        $studentList = Person::useService()->createClassListFux();
+        $studentList = Person::useService()->createFuxClassList();
         $Count = count($studentList);
 
         $Man = $studentList[$Count - 1]->Man;
@@ -125,12 +125,12 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage('Auswertung', 'Klassenliste Geburtstage');
 
-//        $Stage->addButton(
-//            new Primary('Herunterladen',
-//                '/Api/Reporting/Standard/Person/ClassList/Download', new Download())
-//        );
+        $Stage->addButton(
+            new Primary('Herunterladen',
+                '/Api/Reporting/Standard/Person/BirthdayClassList/Download', new Download())
+        );
 
-        $studentList = Person::useService()->createClassListFux();
+        $studentList = Person::useService()->createBirthdayClassList();
         $Count = count($studentList);
 
         $Man = $studentList[$Count - 1]->Man;
