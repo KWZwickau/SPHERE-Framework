@@ -36,6 +36,18 @@ class TblStudent extends Element
      * @Column(type="bigint")
      */
     protected $tblStudentTransfer;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentBilling;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentBaptism;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentAgreement;
 
     /**
      * @return bool|TblStudentMedicalRecord
@@ -123,5 +135,71 @@ class TblStudent extends Element
     {
 
         $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentBilling
+     */
+    public function getTblStudentBilling()
+    {
+
+        if (null === $this->tblStudentBilling) {
+            return false;
+        } else {
+            return Student::useService()->getStudentBillingById($this->tblStudentBilling);
+        }
+    }
+
+    /**
+     * @param null|TblStudentBilling $tblStudentBilling
+     */
+    public function setTblStudentBilling(TblStudentBilling $tblStudentBilling = null)
+    {
+
+        $this->tblStudentBilling = ( null === $tblStudentBilling ? null : $tblStudentBilling->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentBaptism
+     */
+    public function getTblStudentBaptism()
+    {
+
+        if (null === $this->tblStudentBaptism) {
+            return false;
+        } else {
+            return Student::useService()->getStudentBaptismById($this->tblStudentBaptism);
+        }
+    }
+
+    /**
+     * @param null|TblStudentBaptism $tblStudentBaptism
+     */
+    public function setTblStudentBaptism(TblStudentBaptism $tblStudentBaptism = null)
+    {
+
+        $this->tblStudentBaptism = ( null === $tblStudentBaptism ? null : $tblStudentBaptism->getId() );
+    }
+
+    /**
+     * @return bool|TblStudentAgreement
+     */
+    public function getTblStudentAgreement()
+    {
+
+        if (null === $this->tblStudentAgreement) {
+            return false;
+        } else {
+            return Student::useService()->getStudentAgreementById($this->tblStudentAgreement);
+        }
+    }
+
+    /**
+     * @param null|TblStudentAgreement $tblStudentAgreement
+     */
+    public function setTblStudentAgreement(TblStudentAgreement $tblStudentAgreement = null)
+    {
+
+        $this->tblStudentAgreement = ( null === $tblStudentAgreement ? null : $tblStudentAgreement->getId() );
     }
 }
