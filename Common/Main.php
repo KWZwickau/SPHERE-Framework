@@ -12,6 +12,7 @@ use SPHERE\Application\Corporation\Corporation;
 use SPHERE\Application\Dispatcher;
 use SPHERE\Application\Document\Document;
 use SPHERE\Application\Education\Education;
+use SPHERE\Application\Grade\Grade;
 use SPHERE\Application\Manual\Manual;
 use SPHERE\Application\People\People;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
@@ -144,6 +145,7 @@ class Main extends Extension
             Manual::registerCluster();
             Reporting::registerCluster();
             Document::registerCluster();
+            Grade::registerCluster();
             /**
              * Execute Request
              */
