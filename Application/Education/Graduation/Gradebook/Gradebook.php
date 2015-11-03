@@ -2,9 +2,7 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
-use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -28,14 +26,14 @@ class Gradebook implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendGradeType')
         );
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Create',
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType\Create',
                 __NAMESPACE__ . '\Frontend::frontendCreateGradeType')
                 ->setParameterDefault('GradeType', null)
         );
     }
 
     /**
-     * @return IServiceInterface
+     * @return Service
      */
     public static function useService()
     {
@@ -46,7 +44,7 @@ class Gradebook implements IModuleInterface
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {

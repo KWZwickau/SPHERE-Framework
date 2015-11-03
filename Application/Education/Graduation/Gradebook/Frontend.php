@@ -28,9 +28,9 @@ class Frontend
     public function frontendGradeType()
     {
 
-        $Stage = new Stage('Noten Administration', 'Zensuren-Typen');
+        $Stage = new Stage('Notenbuch', 'Zensuren-Typen');
         $Stage->addButton(
-            new Standard('Zensuren-Typ anlegen', '/Grade/Administration/GradeType/Create', new Plus())
+            new Standard('Zensuren-Typ anlegen', '/Education/Graduation/Gradebook/GradeType/Create', new Plus())
         );
 
         $tblGradeType = Gradebook::useService()->getGradeTypeAll();
@@ -44,7 +44,7 @@ class Frontend
                                 'Name' => 'Name',
                                 'Code' => 'Abk&uuml;rzung',
                                 'Description' => 'Beschreibung',
-                                'Option' => 'Option'
+                                //'Option' => 'Option'
                             ))
                         ))
                     ))
@@ -63,7 +63,7 @@ class Frontend
     {
         $Stage = new Stage('Noten Administration', 'Zensuren-Typ anlegen');
         $Stage->addButton(
-            new Standard('Zur&uuml;ck', '/Grade/Administration/GradeType', new ChevronLeft())
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook', new ChevronLeft())
         );
 
         $Form = $this->formGradeType()
@@ -79,23 +79,18 @@ class Frontend
         return new Form(new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new TextField('GradeType[Name]', 'Name', 'Name'), 8
+                    new TextField('GradeType[Name]', 'Leistungskontrolle', 'Name'), 9
                 ),
                 new FormColumn(
-                    new TextField('GradeType[Code]', 'Abk&uuml;rzung', 'Abk&uuml;rzung'), 4
+                    new TextField('GradeType[Code]', 'LK', 'Abk&uuml;rzung'), 3
                 )
             )),
             new FormRow(array(
                 new FormColumn(
-                    new TextField('GradeType[Description]', 'Name', 'Name')
-                )
-            )),
-            new FormRow(array(
-                new FormColumn(
-                    new CheckBox('GradeType[IsActive]', 'Aktiv', true), 6
+                    new TextField('GradeType[Description]', '', 'Beschreibung'), 9
                 ),
                 new FormColumn(
-                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 0), 6
+                    new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 3
                 )
             ))
         )));

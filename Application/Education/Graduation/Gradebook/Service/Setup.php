@@ -60,9 +60,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'Description')) {
             $Table->addColumn('Description', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblGradeType', 'IsActive')) {
-            $Table->addColumn('IsActive', 'boolean');
-        }
         if (!$this->getConnection()->hasColumn('tblGradeType', 'IsHighlighted')) {
             $Table->addColumn('IsHighlighted', 'boolean');
         }

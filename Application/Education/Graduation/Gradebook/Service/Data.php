@@ -29,11 +29,10 @@ class Data extends AbstractData
      * @param $Name
      * @param $Code
      * @param $Description
-     * @param $IsActive
      * @param $IsHighlighted
      * @return null|TblGradeType
      */
-    public function createGradeType($Name, $Code, $Description, $IsActive, $IsHighlighted)
+    public function createGradeType($Name, $Code, $Description, $IsHighlighted)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -45,9 +44,8 @@ class Data extends AbstractData
             $Entity = new TblGradeType();
             $Entity->setName($Name);
             $Entity->setDescription($Description);
-            $Entity->setDescription($Code);
-            $Entity->setDescription($IsActive);
-            $Entity->setDescription($IsHighlighted);
+            $Entity->setCode($Code);
+            $Entity->setIsHighlighted($IsHighlighted);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);

@@ -61,11 +61,10 @@ class Service extends AbstractService
                 $GradeType['Name'],
                 $GradeType['Code'],
                 $GradeType['Description'],
-                $GradeType['IsActive'],
-                $GradeType['IsHighlighted']
+                isset($GradeType['IsHighlighted'])?true:false
             );
-            return new Stage('Das Konto ist erfasst worden')
-            . new Redirect('/Grade/Administration/GradeType', 0);
+            return new Stage('Der Zensuren-Typ ist erfasst worden')
+            . new Redirect('/Education/Graduation/Gradebook', 0);
         }
 
         return $Stage;
