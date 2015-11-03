@@ -19,16 +19,25 @@ class Gradebook implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Notenbuch'))
+            new Link(new Link\Route(__NAMESPACE__ . '\GradeType'), new Link\Name('Zensuren-Typen'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Select'), new Link\Name('Notenbuch'))
         );
 
         Main::getDispatcher()->registerRoute(
-            Main::getDispatcher()->createRoute(__NAMESPACE__, __NAMESPACE__ . '\Frontend::frontendGradeType')
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType',
+                __NAMESPACE__ . '\Frontend::frontendGradeType')
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType\Create',
                 __NAMESPACE__ . '\Frontend::frontendCreateGradeType')
                 ->setParameterDefault('GradeType', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Select',
+                __NAMESPACE__ . '\Frontend::frontendGradebook')
+                ->setParameterDefault('Select', null)
         );
     }
 

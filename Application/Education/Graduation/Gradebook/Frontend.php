@@ -2,8 +2,11 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
@@ -28,7 +31,7 @@ class Frontend
     public function frontendGradeType()
     {
 
-        $Stage = new Stage('Notenbuch', 'Zensuren-Typen');
+        $Stage = new Stage('Zensuren', 'Zensuren-Typen');
         $Stage->addButton(
             new Standard('Zensuren-Typ anlegen', '/Education/Graduation/Gradebook/GradeType/Create', new Plus())
         );
@@ -61,9 +64,9 @@ class Frontend
      */
     public function frontendCreateGradeType($GradeType)
     {
-        $Stage = new Stage('Noten Administration', 'Zensuren-Typ anlegen');
+        $Stage = new Stage('Zensuren', 'Zensuren-Typ anlegen');
         $Stage->addButton(
-            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook', new ChevronLeft())
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/GradeType', new ChevronLeft())
         );
 
         $Form = $this->formGradeType()
@@ -94,5 +97,41 @@ class Frontend
                 )
             ))
         )));
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendGradeBook($Select)
+    {
+
+        $Stage = new Stage('Zensuren', 'Notenbuch');
+
+        $tblDivisionAll = Division::useService()->getDivisionAll();
+        //$tblSubjectAll = Subject::useService()->getSubjectAll();
+        $tblTermAll = Term::useService()->getPeriodAllByYear(Term::useService()->getYearById(1));
+
+
+        $Stage->setContent(
+            new Form(new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll))
+                    )
+                )),
+//                new FormRow(array(
+//                    new FormColumn(
+//                        new SelectBox('Select[Subject]', 'Fach', array('Name' => $tblSubjectAll))
+//                    )
+//                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Select[Period]', 'Zeitraum', array('Name' => $tblTermAll))
+                    )
+                )),
+            )), new Primary('Ausw&auml;hlen'))
+        );
+
+        return $Stage;
     }
 }

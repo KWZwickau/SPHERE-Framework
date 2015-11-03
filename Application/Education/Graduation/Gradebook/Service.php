@@ -64,7 +64,7 @@ class Service extends AbstractService
                 isset($GradeType['IsHighlighted'])?true:false
             );
             return new Stage('Der Zensuren-Typ ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook', 0);
+            . new Redirect('/Education/Graduation/Gradebook/GradeType', 0);
         }
 
         return $Stage;

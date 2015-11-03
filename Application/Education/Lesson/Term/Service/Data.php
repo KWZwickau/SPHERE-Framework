@@ -183,6 +183,16 @@ class Data extends AbstractData
     }
 
     /**
+     * @param $Id
+     * @return bool|TblPeriod
+     */
+    public function getPeriodById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPeriod', $Id);
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblYear
