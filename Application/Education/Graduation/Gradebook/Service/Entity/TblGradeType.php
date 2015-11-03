@@ -6,7 +6,7 @@
  * Time: 10:32
  */
 
-namespace SPHERE\Application\Grade\Administration\GradeType\Service\Entity;
+namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
 
 
 use Doctrine\ORM\Mapping\Cache;
@@ -17,7 +17,7 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblScoreType")
+ * @Table(name="tblGradeType")
  * @Cache(usage="NONSTRICT_READ_WRITE")
  */
 class TblGradeType extends Element
@@ -40,11 +40,6 @@ class TblGradeType extends Element
      * @Column(type="string")
      */
     protected $Description;
-
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsActive;
 
     /**
      * @Column(type="boolean")
@@ -97,22 +92,6 @@ class TblGradeType extends Element
     public function setDescription($Description)
     {
         $this->Description = $Description;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function getIsActive()
-    {
-        return $this->IsActive;
-    }
-
-    /**
-     * @param boolean $IsActive
-     */
-    public function setIsActive($IsActive)
-    {
-        $this->IsActive = $IsActive;
     }
 
     /**

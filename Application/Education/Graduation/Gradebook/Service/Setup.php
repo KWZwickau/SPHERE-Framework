@@ -6,7 +6,7 @@
  * Time: 10:32
  */
 
-namespace SPHERE\Application\Grade\Administration\GradeType\Service;
+namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 
 use Doctrine\DBAL\Schema\Schema;
@@ -15,7 +15,7 @@ use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
- * @package SPHERE\Application\Grade\Administration\GradeType\Service
+ * @package SPHERE\Application\Education\Graduation\Gradebook\Service
  */
 class Setup extends AbstractSetup
 {
