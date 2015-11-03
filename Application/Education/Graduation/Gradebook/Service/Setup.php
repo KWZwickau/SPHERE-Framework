@@ -10,7 +10,7 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\ORM\Mapping\Table;
+use Doctrine\DBAL\Schema\Table;
 use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
@@ -32,7 +32,9 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableGradeTypes($Schema);
+        $tblGradeType = $this->setTableGradeType($Schema);
+        $this->setTableGradeStudentSubjectLink($Schema, $tblGradeType);
+
         /**
          * Migration & Protocol
          */
@@ -47,7 +49,7 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableGradeTypes(Schema &$Schema)
+    private function setTableGradeType(Schema &$Schema)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGradeType');
@@ -63,6 +65,37 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeType', 'IsHighlighted')) {
             $Table->addColumn('IsHighlighted', 'boolean');
         }
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblGradeType
+     *
+     * @return Table
+     */
+    private function setTableGradeStudentSubjectLink(Schema &$Schema, Table $tblGradeType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblGradeStudentSubjectLink');
+        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'Grade')) {
+            $Table->addColumn('Grade', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'Comment')) {
+            $Table->addColumn('Comment', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblPerson')) {
+            $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblPeriod')) {
+            $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
 
         return $Table;
     }
