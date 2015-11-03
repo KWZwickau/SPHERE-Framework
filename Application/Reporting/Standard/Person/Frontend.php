@@ -69,6 +69,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendFuxClassList()
     {
 
@@ -120,6 +123,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendBirthdayClassList()
     {
 
@@ -145,6 +151,56 @@ class Frontend extends Extension implements IFrontendInterface
                     'Address'    => 'Anschrift',
                     'Birthplace' => 'Geburtsort',
                     'Birthday'   => 'Geburtsdatum',
+                ),
+                false
+            ).
+            new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Alle'.new PullRight($All), '', Panel::PANEL_TYPE_SUCCESS), 2
+                        ),
+                        new LayoutColumn(
+                            new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_SUCCESS), 2
+                        ),
+                        new LayoutColumn(
+                            new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_SUCCESS), 2
+                        ),
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
+    }
+
+    public function frontendMedicalInsuranceClassList()
+    {
+
+        $Stage = new Stage('Auswertung', 'Klassenliste Krankenkasse');
+
+        $Stage->addButton(
+            new Primary('Herunterladen',
+                '/Api/Reporting/Standard/Person/MedicalInsuranceClassList/Download', new Download())
+        );
+
+        $studentList = Person::useService()->createMedicalInsuranceClassList();
+        $Count = count($studentList);
+
+        $Man = $studentList[$Count - 1]->Man;
+        $Woman = $studentList[$Count - 1]->Woman;
+        $All = $studentList[$Count - 1]->All;
+
+        $Stage->setContent(
+            new TableData($studentList, null,
+                array(
+                    'Name'                => 'Name,<br/>Vorname',
+                    'Address'             => 'Anschrift',
+                    'Birthday'            => 'Geburtsdatum<br/>Geburtsort',
+                    'KK'                  => 'Krankenkasse',
+                    'Guardian'            => '1. Sorgeberechtigter<br/>2. Sorgeberechtigter',
+                    'PhoneNumber'         => 'Telefon<br/>Schüler',
+                    'PhoneGuardianNumber' => 'Telefon<br/>Sorgeberechtigte',
                 ),
                 false
             ).

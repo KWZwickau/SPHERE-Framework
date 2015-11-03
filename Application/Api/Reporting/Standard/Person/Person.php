@@ -47,4 +47,16 @@ class Person
 
         return FileSystem::getDownload($fileLocation->getRealPath(), "Birthday_Klassenliste.xls")->__toString();
     }
+
+    /**
+     * @return string
+     */
+    public function downloadMedicalInsuranceClassList()
+    {
+
+        $studentList = ReportingPerson::useService()->createMedicalInsuranceClassList();
+        $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($studentList);
+
+        return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste.xls")->__toString();
+    }
 }
