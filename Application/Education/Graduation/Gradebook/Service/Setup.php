@@ -85,9 +85,6 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'Comment')) {
             $Table->addColumn('Comment', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'Date')) {
-            $Table->addColumn('Date', 'datetime', array('notnull' => false));
-        }
         if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
         }

@@ -15,6 +15,7 @@ use Doctrine\ORM\Mapping\Table;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
+use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Application\People\Person\Person;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
@@ -27,11 +28,11 @@ use SPHERE\System\Database\Fitting\Element;
 class TblGradeStudentSubjectLink extends Element
 {
 
-    const ATT_DATE = 'Date';
-    const ATT_TBL_GRADE_TYPE= 'tblGradeType';
-    const SERVICE_TBL_PERSON = 'serviceTblPerson';
-    const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
-    const SERVICE_TBL_PERIOD = 'serviceTblPeriod';
+    const ATTR_DATE = 'Date';
+    const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
+    const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
+    const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
+    const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
 
     /**
      * @Column(type="string")
@@ -42,11 +43,6 @@ class TblGradeStudentSubjectLink extends Element
      * @Column(type="string")
      */
     protected $Comment;
-
-    /**
-     * @Column(type="datetime")
-     */
-    protected $Date;
 
     /**
      * @Column(type="bigint")
@@ -85,21 +81,19 @@ class TblGradeStudentSubjectLink extends Element
     }
 
     /**
-     * @return string
+     * @return mixed
      */
-    public function getDate()
+    public function getComment()
     {
+        return $this->Comment;
+    }
 
-        if (null === $this->Date) {
-            return false;
-        }
-        /** @var \DateTime $Date */
-        $Date = $this->Date;
-        if ($Date instanceof \DateTime) {
-            return $Date->format('d.m.Y');
-        } else {
-            return (string)$Date;
-        }
+    /**
+     * @param mixed $Comment
+     */
+    public function setComment($Comment)
+    {
+        $this->Comment = $Comment;
     }
 
     /**
@@ -146,7 +140,7 @@ class TblGradeStudentSubjectLink extends Element
     public function setServiceTblPerson(TblPerson $tblPerson = null)
     {
 
-        $this->serviceTblPerson = ( null === $tblPerson ? null : $tblPerson->getId() );
+        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
     }
 
     /**
@@ -168,7 +162,7 @@ class TblGradeStudentSubjectLink extends Element
     public function setServiceTblSubject(TblSubject $tblSubject = null)
     {
 
-        $this->serviceTblSubject = ( null === $tblSubject ? null : $tblSubject->getId() );
+        $this->serviceTblSubject = (null === $tblSubject ? null : $tblSubject->getId());
     }
 
     /**
@@ -180,10 +174,8 @@ class TblGradeStudentSubjectLink extends Element
         if (null === $this->serviceTblPeriod) {
             return false;
         } else {
-            return Period::useService()->getPeriodById($this->serviceTblPeriod);
+            return Term::useService()->getPeriodById($this->serviceTblPeriod);
         }
-
-        // TODO service for period
     }
 
     /**
@@ -192,6 +184,6 @@ class TblGradeStudentSubjectLink extends Element
     public function setServiceTblPeriod(TblPeriod $tblPeriod = null)
     {
 
-        $this->serviceTblPeriod = ( null === $tblPeriod ? null : $tblPeriod->getId() );
+        $this->serviceTblPeriod = (null === $tblPeriod ? null : $tblPeriod->getId());
     }
 }
