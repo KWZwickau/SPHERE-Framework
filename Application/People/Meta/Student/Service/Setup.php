@@ -25,48 +25,48 @@ class Setup extends AbstractSetup
          * Table
          */
         $Schema = clone $this->getConnection()->getSchema();
-        $tblStudentMedicalRecord = $this->setTableStudentMedicalRecord($Schema);
-        $tblStudentTransport = $this->setTableStudentTransport($Schema);
-        $tblStudentBilling = $this->setTableStudentBilling($Schema);
-        $tblStudentLocker = $this->setTableStudentLocker($Schema);
-        $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
+//        $tblStudentMedicalRecord = $this->setTableStudentMedicalRecord($Schema);
+//        $tblStudentTransport = $this->setTableStudentTransport($Schema);
+//        $tblStudentBilling = $this->setTableStudentBilling($Schema);
+//        $tblStudentLocker = $this->setTableStudentLocker($Schema);
+//        $tblStudentBaptism = $this->setTableStudentBaptism($Schema);
+//
+//        $tblStudentTransferEnrollment = $this->setTableStudentTransferEnrollment($Schema);
+//        $tblStudentTransferArrive = $this->setTableStudentTransferArrive($Schema);
+//        $tblStudentTransferProcess = $this->setTableStudentTransferProcess($Schema);
+//        $tblStudentTransferLeave = $this->setTableStudentTransferLeave($Schema);
+//        $tblStudentTransfer = $this->setTableStudentTransfer($Schema,
+//            $tblStudentTransferEnrollment, $tblStudentTransferArrive, $tblStudentTransferProcess,
+//            $tblStudentTransferLeave
+//        );
+//
+//        $tblStudentAgreementCategory = $this->setTableStudentAgreementCategory($Schema);
+//        $tblStudentAgreementType = $this->setTableStudentAgreementType($Schema);
+//        $tblStudentAgreement = $this->setTableStudentAgreement($Schema,
+//            $tblStudentAgreementCategory, $tblStudentAgreementType
+//        );
+//
+//        $tblStudentSubjectProfile = $this->setTableStudentSubjectProfile($Schema);
+//        $tblStudentSubjectForeignLanguage = $this->setTableStudentSubjectForeignLanguage($Schema);
+//        $tblStudentSubjectElective = $this->setTableStudentSubjectElective($Schema);
+//        $tblStudentSubjectTeam = $this->setTableStudentSubjectTeam($Schema);
+//        $tblStudentSubjectTrack = $this->setTableStudentSubjectTrack($Schema);
+//        $tblStudentSubject = $this->setTableStudentSubject($Schema,
+//            $tblStudentSubjectProfile, $tblStudentSubjectForeignLanguage, $tblStudentSubjectElective,
+//            $tblStudentSubjectTeam, $tblStudentSubjectTrack
+//        );
 
-        $tblStudentTransferEnrollment = $this->setTableStudentTransferEnrollment($Schema);
-        $tblStudentTransferArrive = $this->setTableStudentTransferArrive($Schema);
-        $tblStudentTransferProcess = $this->setTableStudentTransferProcess($Schema);
-        $tblStudentTransferLeave = $this->setTableStudentTransferLeave($Schema);
-        $tblStudentTransfer = $this->setTableStudentTransfer($Schema,
-            $tblStudentTransferEnrollment, $tblStudentTransferArrive, $tblStudentTransferProcess,
-            $tblStudentTransferLeave
-        );
-
-        $tblStudentAgreementCategory = $this->setTableStudentAgreementCategory($Schema);
-        $tblStudentAgreementType = $this->setTableStudentAgreementType($Schema);
-        $tblStudentAgreement = $this->setTableStudentAgreement($Schema,
-            $tblStudentAgreementCategory, $tblStudentAgreementType
-        );
-
-        $tblStudentSubjectProfile = $this->setTableStudentSubjectProfile($Schema);
-        $tblStudentSubjectForeignLanguage = $this->setTableStudentSubjectForeignLanguage($Schema);
-        $tblStudentSubjectElective = $this->setTableStudentSubjectElective($Schema);
-        $tblStudentSubjectTeam = $this->setTableStudentSubjectTeam($Schema);
-        $tblStudentSubjectTrack = $this->setTableStudentSubjectTrack($Schema);
-        $tblStudentSubject = $this->setTableStudentSubject($Schema,
-            $tblStudentSubjectProfile, $tblStudentSubjectForeignLanguage, $tblStudentSubjectElective,
-            $tblStudentSubjectTeam, $tblStudentSubjectTrack
-        );
-
-        $this->setTableStudent(
-            $Schema,
-            $tblStudentMedicalRecord,
-            $tblStudentTransport,
-            $tblStudentTransfer,
-            $tblStudentBilling,
-            $tblStudentLocker,
-            $tblStudentBaptism,
-            $tblStudentAgreement,
-            $tblStudentSubject
-        );
+//        $this->setTableStudent(
+//            $Schema,
+//            $tblStudentMedicalRecord,
+//            $tblStudentTransport,
+//            $tblStudentTransfer,
+//            $tblStudentBilling,
+//            $tblStudentLocker,
+//            $tblStudentBaptism,
+//            $tblStudentAgreement,
+//            $tblStudentSubject
+//        );
         /**
          * Migration & Protocol
          */
