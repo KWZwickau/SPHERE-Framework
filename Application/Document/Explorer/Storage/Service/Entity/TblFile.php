@@ -119,7 +119,7 @@ class TblFile extends Element
     }
 
     /**
-     * @return string
+     * @return string|resource
      */
     public function getFileContent()
     {

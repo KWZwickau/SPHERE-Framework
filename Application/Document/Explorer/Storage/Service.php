@@ -38,6 +38,15 @@ class Service extends AbstractService
     }
 
     /**
+     * @return false|TblFile[]
+     */
+    public function getFileAll()
+    {
+
+        return (new Data($this->getBinding()))->getFileAll();
+    }
+
+    /**
      * @param string $Name
      * @param string $Description
      * @param string $FileName
@@ -53,6 +62,34 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->createFile(
             $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize
+        );
+    }
+
+    /**
+     * @param TblFile $tblFile
+     * @param string  $Name
+     * @param string  $Description
+     * @param string  $FileName
+     * @param string  $FileExtension
+     * @param string  $FileContent
+     * @param string  $FileType
+     * @param int     $FileSize
+     *
+     * @return bool
+     */
+    public function changeFile(
+        TblFile $tblFile,
+        $Name,
+        $Description,
+        $FileName,
+        $FileExtension,
+        $FileContent,
+        $FileType,
+        $FileSize
+    ) {
+
+        return (new Data($this->getBinding()))->updateFile(
+            $tblFile, $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize
         );
     }
 }

@@ -7,10 +7,12 @@ use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
+ *
  * @package SPHERE\Application\Document\Explorer\Storage\Service
  */
 class Setup extends AbstractSetup
 {
+
     /**
      * @param bool $Simulate
      *
@@ -20,7 +22,9 @@ class Setup extends AbstractSetup
     {
 
         $Schema = clone $this->getConnection()->getSchema();
-        $this->setTableFile($Schema);
+        $tblDirectory = $this->setTableDirectory($Schema);
+        $this->setTableDirectoryRecursive($tblDirectory, $tblDirectory);
+        $this->setTableFile($Schema, $tblDirectory);
         /**
          * Migration & Protocol
          */
@@ -35,10 +39,45 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableFile(Schema &$Schema)
+    private function setTableDirectory(Schema &$Schema)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblDirectory');
+        if (!$this->getConnection()->hasColumn('tblDirectory', 'Name')) {
+            $Table->addColumn('Name', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDirectory', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDirectory', 'IsLocked')) {
+            $Table->addColumn('IsLocked', 'boolean');
+        }
+        return $Table;
+    }
+
+    /**
+     * @param Table $tblDirectoryParent
+     * @param Table $tblDirectoryChild
+     *
+     * @return Table
+     */
+    private function setTableDirectoryRecursive(Table $tblDirectoryParent, Table $tblDirectoryChild)
+    {
+
+        $this->getConnection()->addForeignKey($tblDirectoryParent, $tblDirectoryChild, true);
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblDirectory
+     *
+     * @return Table
+     */
+    private function setTableFile(Schema &$Schema, Table $tblDirectory)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblFile');
+        $this->getConnection()->addForeignKey($Table, $tblDirectory, true);
         if (!$this->getConnection()->hasColumn('tblFile', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
