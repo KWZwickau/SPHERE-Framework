@@ -7,6 +7,7 @@ use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\Lesson\Division\Service\Setup;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
@@ -135,5 +136,15 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->checkLevelExists($tblType, $Name);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @return bool|TblPerson[]
+     */
+    public function getStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        return (new Data($this->getBinding()))->getStudentAllByDivision($tblDivision);
     }
 }

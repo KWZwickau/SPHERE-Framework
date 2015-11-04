@@ -2,8 +2,10 @@
 namespace SPHERE\Application\Education\Lesson\Division\Service;
 
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivisionStudent;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -100,5 +102,19 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision');
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @return bool|TblPerson[]
+     */
+    public function getStudentAllByDivision(TblDivision $tblDivision)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionStudent')->findBy(array(
+            TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
+        ));
+
+        return empty( $EntityList ) ? false : $EntityList;
     }
 }
