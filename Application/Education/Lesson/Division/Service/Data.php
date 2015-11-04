@@ -24,8 +24,8 @@ class Data extends AbstractData
 
     /**
      * @param TblType $tblType
-     * @param string  $Name
-     * @param string  $Description
+     * @param string $Name
+     * @param string $Description
      *
      * @return TblLevel
      */
@@ -34,7 +34,7 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(
-            TblLevel::ATTR_NAME        => $Name,
+            TblLevel::ATTR_NAME => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
         if (null === $Entity) {
@@ -72,7 +72,7 @@ class Data extends AbstractData
 
     /**
      * @param TblType $tblType
-     * @param string  $Name
+     * @param string $Name
      *
      * @return bool
      */
@@ -80,10 +80,10 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
-            TblLevel::ATTR_NAME        => $Name,
+            TblLevel::ATTR_NAME => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
-        return ( $Entity ? true : false );
+        return ($Entity ? true : false);
     }
 
     /**
@@ -111,10 +111,18 @@ class Data extends AbstractData
     public function getStudentAllByDivision(TblDivision $tblDivision)
     {
 
-        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionStudent')->findBy(array(
+        $TempList = $this->getConnection()->getEntityManager()->getEntity('TblDivisionStudent')->findBy(array(
             TblDivisionStudent::ATTR_TBL_DIVISION => $tblDivision->getId()
         ));
 
-        return empty( $EntityList ) ? false : $EntityList;
+        $EntityList = array();
+
+        if (!empty ($TempList)) {
+            /** @var TblDivisionStudent $tblDivisionStudent */
+            foreach ($TempList as $tblDivisionStudent) {
+                array_push($EntityList, $tblDivisionStudent->getServiceTblPerson());
+            }
+        }
+        return empty($EntityList) ? false : $EntityList;
     }
 }
