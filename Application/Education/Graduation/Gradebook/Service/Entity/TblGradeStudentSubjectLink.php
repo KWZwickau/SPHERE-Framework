@@ -26,6 +26,8 @@ use SPHERE\System\Database\Fitting\Element;
  */
 class TblGradeStudentSubjectLink extends Element
 {
+
+    const ATT_DATE = 'Date';
     const ATT_TBL_GRADE_TYPE= 'tblGradeType';
     const SERVICE_TBL_PERSON = 'serviceTblPerson';
     const SERVICE_TBL_SUBJECT = 'serviceTblSubject';
@@ -40,6 +42,11 @@ class TblGradeStudentSubjectLink extends Element
      * @Column(type="string")
      */
     protected $Comment;
+
+    /**
+     * @Column(type="datetime")
+     */
+    protected $Date;
 
     /**
      * @Column(type="bigint")
@@ -75,6 +82,33 @@ class TblGradeStudentSubjectLink extends Element
     public function setGrade($Grade)
     {
         $this->Grade = $Grade;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDate()
+    {
+
+        if (null === $this->Date) {
+            return false;
+        }
+        /** @var \DateTime $Date */
+        $Date = $this->Date;
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
+    }
+
+    /**
+     * @param null|\DateTime $Date
+     */
+    public function setDate(\DateTime $Date = null)
+    {
+
+        $this->Date = $Date;
     }
 
     /**
