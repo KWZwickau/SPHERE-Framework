@@ -5,6 +5,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -16,7 +17,12 @@ class TblFile extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_TBL_DIRECTORY = 'tblDirectory';
 
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblDirectory;
     /**
      * @Column(type="string")
      */
@@ -45,6 +51,28 @@ class TblFile extends Element
      * @Column(type="integer")
      */
     protected $FileSize;
+
+    /**
+     * @return bool|TblDirectory
+     */
+    public function getTblDirectory()
+    {
+
+        if (null === $this->tblDirectory) {
+            return false;
+        } else {
+            return Storage::useService()->getDirectoryById($this->tblDirectory);
+        }
+    }
+
+    /**
+     * @param null|TblDirectory $tblDirectory
+     */
+    public function setTblDirectory(TblDirectory $tblDirectory = null)
+    {
+
+        $this->tblDirectory = ( null === $tblDirectory ? null : $tblDirectory->getId() );
+    }
 
     /**
      * @return string

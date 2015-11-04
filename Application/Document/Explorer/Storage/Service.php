@@ -2,6 +2,7 @@
 namespace SPHERE\Application\Document\Explorer\Storage;
 
 use SPHERE\Application\Document\Explorer\Storage\Service\Data;
+use SPHERE\Application\Document\Explorer\Storage\Service\Entity\TblDirectory;
 use SPHERE\Application\Document\Explorer\Storage\Service\Entity\TblFile;
 use SPHERE\Application\Document\Explorer\Storage\Service\Setup;
 use SPHERE\System\Database\Binding\AbstractService;
@@ -47,33 +48,43 @@ class Service extends AbstractService
     }
 
     /**
-     * @param string $Name
-     * @param string $Description
-     * @param string $FileName
-     * @param string $FileExtension
-     * @param string $FileContent
-     * @param string $FileType
-     * @param int    $FileSize
+     * @param string       $Name
+     * @param string       $Description
+     * @param string       $FileName
+     * @param string       $FileExtension
+     * @param string       $FileContent
+     * @param string       $FileType
+     * @param int          $FileSize
+     * @param TblDirectory $tblDirectory
      *
      * @return TblFile
      */
-    public function insertFile($Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize)
-    {
+    public function insertFile(
+        $Name,
+        $Description,
+        $FileName,
+        $FileExtension,
+        $FileContent,
+        $FileType,
+        $FileSize,
+        TblDirectory $tblDirectory = null
+    ) {
 
         return (new Data($this->getBinding()))->createFile(
-            $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize
+            $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize, $tblDirectory
         );
     }
 
     /**
-     * @param TblFile $tblFile
-     * @param string  $Name
-     * @param string  $Description
-     * @param string  $FileName
-     * @param string  $FileExtension
-     * @param string  $FileContent
-     * @param string  $FileType
-     * @param int     $FileSize
+     * @param TblFile      $tblFile
+     * @param string       $Name
+     * @param string       $Description
+     * @param string       $FileName
+     * @param string       $FileExtension
+     * @param string       $FileContent
+     * @param string       $FileType
+     * @param int          $FileSize
+     * @param TblDirectory $tblDirectory
      *
      * @return bool
      */
@@ -85,11 +96,89 @@ class Service extends AbstractService
         $FileExtension,
         $FileContent,
         $FileType,
-        $FileSize
+        $FileSize,
+        TblDirectory $tblDirectory = null
     ) {
 
         return (new Data($this->getBinding()))->updateFile(
-            $tblFile, $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize
+            $tblFile, $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize, $tblDirectory
+        );
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return false|TblDirectory
+     */
+    public function getDirectoryById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getDirectoryById($Id);
+    }
+
+    /**
+     * @param null|TblDirectory $tblDirectory
+     *
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAllByParent(TblDirectory $tblDirectory = null)
+    {
+
+        return (new Data($this->getBinding()))->getDirectoryAllByParent($tblDirectory);
+    }
+
+    /**
+     * @return false|TblDirectory[]
+     */
+    public function getDirectoryAll()
+    {
+
+        return (new Data($this->getBinding()))->getDirectoryAll();
+    }
+
+    /**
+     * @param string       $Name
+     * @param string       $Description
+     * @param TblDirectory $tblDirectoryParent
+     * @param bool         $IsLocked
+     * @param string       $Identifier
+     *
+     * @return TblFile
+     */
+    public function insertDirectory(
+        $Name,
+        $Description,
+        TblDirectory $tblDirectoryParent = null,
+        $IsLocked = false,
+        $Identifier = ''
+    ) {
+
+        return (new Data($this->getBinding()))->createDirectory(
+            $Name, $Description, $tblDirectoryParent, $IsLocked, $Identifier
+        );
+    }
+
+    /**
+     * @param TblDirectory $tblDirectory
+     * @param string       $Name
+     * @param string       $Description
+     * @param TblDirectory $tblDirectoryParent
+     * @param bool         $IsLocked
+     * @param string       $Identifier
+     *
+     * @return bool
+     */
+    public function changeDirectory(
+        TblDirectory $tblDirectory,
+        $Name,
+        $Description,
+        TblDirectory $tblDirectoryParent = null,
+        $IsLocked = false,
+        $Identifier = ''
+    ) {
+
+        return (new Data($this->getBinding()))->updateDirectory(
+            $tblDirectory, $Name, $Description, $tblDirectoryParent, $IsLocked, $Identifier
         );
     }
 }

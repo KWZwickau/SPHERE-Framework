@@ -10,16 +10,25 @@ use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblFile")
+ * @Table(name="tblDirectory")
  * @Cache(usage="READ_ONLY")
  */
 class TblDirectory extends Element
 {
 
-    const ATTR_NAME = 'Name';
-    const ATTR_TBL_DIRECTORY = 'tblDirectory';
+    const ATTR_IDENTIFIER = 'Identifier';
     const ATTR_IS_LOCKED = 'IsLocked';
+    const ATTR_TBL_DIRECTORY = 'tblDirectory';
+    const ATTR_NAME = 'Name';
 
+    /**
+     * @Column(type="string")
+     */
+    protected $Identifier;
+    /**
+     * @Column(type="boolean")
+     */
+    protected $IsLocked;
     /**
      * @Column(type="bigint")
      */
@@ -32,15 +41,49 @@ class TblDirectory extends Element
      * @Column(type="string")
      */
     protected $Description;
-    /**
-     * @Column(type="boolean")
-     */
-    protected $IsLocked;
 
     /**
+     * @return string
+     */
+    public function getIdentifier()
+    {
+
+        return $this->Identifier;
+    }
+
+    /**
+     * @param string $Identifier
+     */
+    public function setIdentifier($Identifier)
+    {
+
+        $this->Identifier = $Identifier;
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsLocked()
+    {
+
+        return (bool)$this->IsLocked;
+    }
+
+    /**
+     * @param bool $IsLocked
+     */
+    public function setIsLocked($IsLocked)
+    {
+
+        $this->IsLocked = (bool)$IsLocked;
+    }
+
+    /**
+     * Parent Directory
+     *
      * @return bool|TblDirectory
      */
-    public function getTblGroup()
+    public function getTblDirectory()
     {
 
         if (null === $this->tblDirectory) {
@@ -53,7 +96,7 @@ class TblDirectory extends Element
     /**
      * @param null|TblDirectory $tblDirectory
      */
-    public function setTblGroup(TblDirectory $tblDirectory = null)
+    public function setTblDirectory(TblDirectory $tblDirectory = null)
     {
 
         $this->tblDirectory = ( null === $tblDirectory ? null : $tblDirectory->getId() );
@@ -95,21 +138,5 @@ class TblDirectory extends Element
         $this->Description = $Description;
     }
 
-    /**
-     * @return bool
-     */
-    public function getIsLocked()
-    {
 
-        return (bool)$this->IsLocked;
-    }
-
-    /**
-     * @param bool $IsLocked
-     */
-    public function setIsLocked($IsLocked)
-    {
-
-        $this->IsLocked = (bool)$IsLocked;
-    }
 }

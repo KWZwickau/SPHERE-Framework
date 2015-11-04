@@ -4,15 +4,15 @@ namespace SPHERE\Common\Frontend\Icon\Repository;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
- * Class FolderOpen
+ * Class FolderClosed
  *
  * @package SPHERE\Common\Frontend\Icon\Repository
  */
-class FolderOpen implements IIconInterface
+class FolderClosed implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-folder-open';
+    private $Value = 'glyphicons glyphicons-folder-closed';
 
     /**
      * @return string

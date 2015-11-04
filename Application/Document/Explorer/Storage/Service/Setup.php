@@ -43,14 +43,17 @@ class Setup extends AbstractSetup
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblDirectory');
+        if (!$this->getConnection()->hasColumn('tblDirectory', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblDirectory', 'IsLocked')) {
+            $Table->addColumn('IsLocked', 'boolean');
+        }
         if (!$this->getConnection()->hasColumn('tblDirectory', 'Name')) {
             $Table->addColumn('Name', 'string');
         }
         if (!$this->getConnection()->hasColumn('tblDirectory', 'Description')) {
             $Table->addColumn('Description', 'string');
-        }
-        if (!$this->getConnection()->hasColumn('tblDirectory', 'IsLocked')) {
-            $Table->addColumn('IsLocked', 'boolean');
         }
         return $Table;
     }
