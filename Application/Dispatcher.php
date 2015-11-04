@@ -5,7 +5,11 @@ use MOC\V\Component\Router\Component\IBridgeInterface;
 use MOC\V\Component\Router\Component\Parameter\Repository\RouteParameter;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Access\Access;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Main;
+use SPHERE\Common\Window\Redirect;
+use SPHERE\Common\Window\Stage;
 
 /**
  * Class Dispatcher
@@ -123,7 +127,16 @@ class Dispatcher
             if (Account::useService()->getAccountBySession()) {
                 return self::$Router->getRoute('Platform/Assistance/Error/Authorization');
             } else {
-                return self::$Router->getRoute('Platform/Gatekeeper/Authentication');
+                $Stage = new Stage('Berechtigung', 'Prüfung der Anfrage');
+                $Stage->setMessage('<strong>Problem:</strong> Die Anwendung darf die Anfrage nicht verarbeiten');
+                $Stage->setContent(
+                    '<h2><small>Mögliche Ursachen</small></h2>'
+                    .new Danger('Sie sind nicht angemeldet')
+                    .'<h2><small>Mögliche Lösungen</small></h2>'
+                    .new Success('Bitte melden Sie sich an der Plattform an')
+                    .new Redirect( 'Platform/Gatekeeper/Authentication', 5 )
+                );
+                return $Stage;
             }
         }
     }
