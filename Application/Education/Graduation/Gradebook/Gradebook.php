@@ -39,6 +39,13 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendGradebook')
                 ->setParameterDefault('Select', null)
         );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Selected',
+                __NAMESPACE__ . '\Frontend::frontendSelectedGradebook')
+                ->setParameterDefault('DivisionId', null)
+                ->setParameterDefault('SubjectId', null)
+                ->setParameterDefault('Data', null)
+        );
     }
 
     /**

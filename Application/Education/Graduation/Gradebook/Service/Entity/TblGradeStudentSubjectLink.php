@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
+use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
@@ -106,19 +107,23 @@ class TblGradeStudentSubjectLink extends Element
     }
 
     /**
-     * @return string
+     * @return bool|TblGradeType
      */
     public function getTblGradeType()
     {
-        return $this->tblGradeType;
+        if (null === $this->tblGradeType) {
+            return false;
+        } else {
+            return Gradebook::useService()->getGradeTypeById($this->tblGradeType);
+        }
     }
 
     /**
-     * @param string $tblGradeType
+     * @param TblGradeType|null $tblGradeType
      */
     public function setTblGradeType($tblGradeType)
     {
-        $this->tblGradeType = $tblGradeType;
+        $this->tblGradeType = (null === $tblGradeType ? null : $tblGradeType->getId());
     }
 
     /**
