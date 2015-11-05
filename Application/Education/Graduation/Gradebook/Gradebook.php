@@ -24,6 +24,9 @@ class Gradebook implements IModuleInterface
         Main::getDisplay()->addModuleNavigation(
             new Link(new Link\Route(__NAMESPACE__ . '\Select'), new Link\Name('Notenbuch'))
         );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'))
+        );
 
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType',
@@ -34,6 +37,7 @@ class Gradebook implements IModuleInterface
                 __NAMESPACE__ . '\Frontend::frontendCreateGradeType')
                 ->setParameterDefault('GradeType', null)
         );
+
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Select',
                 __NAMESPACE__ . '\Frontend::frontendGradebook')
@@ -45,6 +49,24 @@ class Gradebook implements IModuleInterface
                 ->setParameterDefault('DivisionId', null)
                 ->setParameterDefault('SubjectId', null)
                 ->setParameterDefault('Data', null)
+                ->setParameterDefault('EditId', null)
+                ->setParameterDefault('GradeData', null)
+        );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test',
+                __NAMESPACE__ . '\Frontend::frontendTest')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Create',
+                __NAMESPACE__ . '\Frontend::frontendCreateTest')
+                ->setParameterDefault('Test', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Edit',
+                __NAMESPACE__ . '\Frontend::frontendUpdateTest')
+                ->setParameterDefault('Id', null)
+                ->setParameterDefault('Test', null)
         );
     }
 

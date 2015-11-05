@@ -10,6 +10,8 @@ namespace SPHERE\Application\Education\Graduation\Gradebook\Service;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeStudentSubjectLink;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeType;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
@@ -158,5 +160,154 @@ class Data extends AbstractData
             );
 
         return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param TblGradeStudentSubjectLink $tblGradeStudentSubjectLink
+     * @param $Grade
+     * @param string $Comment
+     * @return bool
+     */
+    public function updateGrade(
+        TblGradeStudentSubjectLink $tblGradeStudentSubjectLink,
+        $Grade,
+        $Comment = ''
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblGradeStudentSubjectLink $Entity */
+        $Entity = $Manager->getEntityById('TblGradeStudentSubjectLink', $tblGradeStudentSubjectLink->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setGrade($Grade);
+            $Entity->setComment($Comment);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblGradeStudentSubjectLink
+     */
+    public function getGradeById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblGradeStudentSubjectLink', $Id);
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @param $Id
+     * @return bool|TblTest
+     */
+    public function getTestById($Id)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntityById('TblTest', $Id);
+        return (null === $Entity ? false : $Entity);
+    }
+
+    /**
+     * @return bool|TblTest[]
+     */
+    public function getTestAll()
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblTest')->findAll();
+        return (empty($EntityList) ? false : $EntityList);
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblPeriod $tblPeriod
+     * @param TblGradeType $tblGradeType
+     * @param string $Description
+     * @param null $Date
+     * @param null $CorrectionDate
+     * @param null $ReturnDate
+     *
+     * @return TblTest
+     */
+    public function createTest(
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod,
+        TblGradeType $tblGradeType,
+        $Description = '',
+        $Date = null,
+        $CorrectionDate = null,
+        $ReturnDate = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = new TblTest();
+        $Entity->setServiceTblDivision($tblDivision);
+        $Entity->setServiceTblSubject($tblSubject);
+        $Entity->setServiceTblPeriod($tblPeriod);
+        $Entity->setTblGradeType($tblGradeType);
+        $Entity->setDescription($Description);
+        $Entity->setDate($Date? new \DateTime($Date) : null);
+        $Entity->setCorrectionDate($CorrectionDate? new \DateTime($CorrectionDate) : null);
+        $Entity->setReturnDate($ReturnDate? new \DateTime($ReturnDate) : null);
+
+        $Manager->saveEntity($Entity);
+        Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblDivision $tblDivision
+     * @param TblSubject $tblSubject
+     * @param TblPeriod $tblPeriod
+     * @param TblGradeType $tblGradeType
+     * @param string $Description
+     * @param null $Date
+     * @param null $CorrectionDate
+     * @param null $ReturnDate
+     * @return bool
+     */
+    public function updateTest(
+        TblTest $tblTest,
+        TblDivision $tblDivision,
+        TblSubject $tblSubject,
+        TblPeriod $tblPeriod,
+        TblGradeType $tblGradeType,
+        $Description = '',
+        $Date = null,
+        $CorrectionDate = null,
+        $ReturnDate = null
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblTest $Entity */
+        $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblDivision($tblDivision);
+            $Entity->setServiceTblSubject($tblSubject);
+            $Entity->setServiceTblPeriod($tblPeriod);
+            $Entity->setTblGradeType($tblGradeType);
+            $Entity->setDescription($Description);
+            $Entity->setDate($Date? new \DateTime($Date) : null);
+            $Entity->setCorrectionDate($CorrectionDate? new \DateTime($CorrectionDate) : null);
+            $Entity->setReturnDate($ReturnDate? new \DateTime($ReturnDate) : null);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+
+            return true;
+        }
+
+        return false;
     }
 }

@@ -2,19 +2,24 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Term;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\CheckBox;
+use SPHERE\Common\Frontend\Form\Repository\Field\DatePicker;
 use SPHERE\Common\Frontend\Form\Repository\Field\SelectBox;
 use SPHERE\Common\Frontend\Form\Repository\Field\TextField;
 use SPHERE\Common\Frontend\Form\Structure\Form;
 use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
+use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
@@ -24,15 +29,18 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Frontend
  * @package SPHERE\Application\Education\Graduation\Gradebook
  */
-class Frontend
+class Frontend extends Extension implements IFrontendInterface
 {
 
     /**
@@ -143,9 +151,10 @@ class Frontend
      * @param $DivisionId
      * @param $SubjectId
      * @param $Data
+     * @param $EditId
      * @return string
      */
-    public function frontendSelectedGradeBook($DivisionId, $SubjectId, $Data)
+    public function frontendSelectedGradeBook($DivisionId, $SubjectId, $EditId, $Data, $GradeData)
     {
         $Stage = new Stage('Zensuren', 'Notenbuch');
 
@@ -160,6 +169,8 @@ class Frontend
         $columnList[] = new LayoutColumn(new Title(new Bold('Sch&uuml;ler')), 2);
         if ($tblPeriodList) {
             $width = floor(10 / count($tblPeriodList));
+            $editColumn = 0;
+            $count = 1;
             foreach ($tblPeriodList as $tblPeriod) {
                 $columnList[] = new LayoutColumn(
                     new Title(new Bold($tblPeriod->getName()))
@@ -180,24 +191,39 @@ class Frontend
                     if ($gradeList) {
                         $columnSubList = array();
                         foreach ($gradeList as $grade) {
+                            if ($EditId == $grade->getId()) {
+                                $editColumn = $count;
+                            }
                             $columnSubList[] = new LayoutColumn(
-                                new Header($grade->getTblGradeType()->getIsHighlighted()
-                                    ? new Bold($grade->getTblGradeType()->getCode()) : $grade->getTblGradeType()->getCode()),
-                                1);
+                                $editColumn != $count
+                                    ? new \SPHERE\Common\Frontend\Link\Repository\Primary(
+                                    $grade->getTblGradeType()->getCode(),
+                                    '/Education/Graduation/Gradebook/Selected',
+                                    null,
+                                    array(
+                                        'DivisionId' => $tblDivision->getId(),
+                                        'SubjectId' => $tblSubject->getId(),
+                                        'EditId' => $grade->getId()
+                                    )
+                                )
+                                    : new Header(
+                                    $grade->getTblGradeType()->getIsHighlighted()
+                                        ? new Bold($grade->getTblGradeType()->getCode()) : $grade->getTblGradeType()->getCode())
+                                , 1);
+                            $count++;
                         }
                         $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                             $width);
                     } else {
                         $columnList[] = new LayoutColumn(new Header(' '), $width);
                     }
-
-
                 }
             }
             $rowList[] = new LayoutRow($columnList);
 
             if ($tblStudentList) {
                 foreach ($tblStudentList as $tblPerson) {
+                    $count = 1;
                     $columnList = array();
                     $columnList[] = new LayoutColumn(new Container($tblPerson->getFullName()), 2);
                     foreach ($tblPeriodList as $tblPeriod) {
@@ -207,9 +233,17 @@ class Frontend
                             $columnSubList = array();
                             foreach ($gradeList as $grade) {
                                 $columnSubList[] = new LayoutColumn(
-                                    new Container($grade->getTblGradeType()->getIsHighlighted()
-                                        ? new Bold($grade->getGrade()) : $grade->getGrade()),
-                                    1);
+                                    $editColumn == $count
+                                        ? Gradebook::useService()->updateGrade(
+                                        new Form(new FormGroup(new FormRow(new FormColumn(
+                                            new TextField('GradeData[' . $grade->getId() . ']', $grade->getGrade())
+                                        )))), $grade->getId(), $GradeData
+                                    )
+                                        : new Container($grade->getTblGradeType()->getIsHighlighted()
+                                        ? new Bold($grade->getGrade()) : $grade->getGrade())
+                                    , 1);
+
+                                $count++;
                             }
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
                                 $width);
@@ -245,8 +279,159 @@ class Frontend
                         new Primary('Hinzuf&uuml;gen', new Plus()), 2
                     )
                 )))
-            ), $Data, $tblStudentList, $tblSubject)
+            ), $Data, $tblStudentList, $tblSubject, $tblDivision)
         )), new Title('Neue Zensur hinzuf&uuml;gen')))
         . new Layout(new LayoutGroup($rowList));
+    }
+
+    /**
+     * @return Stage
+     */
+    public function frontendTest()
+    {
+
+        $Stage = new Stage('Zensuren', 'Test');
+        $Stage->addButton(
+            new Standard('Test anlegen', '/Education/Graduation/Gradebook/Test/Create', new Plus())
+        );
+
+        $tblTestList = Gradebook::useService()->getTestAll();
+        if ($tblTestList) {
+            array_walk($tblTestList, function (TblTest &$tblTest) {
+                $tblTest->Division = $tblTest->getServiceTblDivision()->getName();
+                $tblTest->Subject = $tblTest->getServiceTblSubject()->getName();
+                $tblTest->Period = $tblTest->getServiceTblPeriod()->getName();
+                $tblTest->GradeType = $tblTest->getTblGradeType()->getName();
+                $tblTest->Option = new Standard('', '/Education/Graduation/Gradebook/Test/Edit', new Pencil(),
+                    array('Id' => $tblTest->getId()), 'Bearbeiten');
+            });
+        }
+
+        $Stage->setContent(
+            new Form(array(
+                new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(array(
+                            new TableData($tblTestList, null, array(
+                                'Division' => 'Klasse',
+                                'Subject' => 'Fach',
+                                'Period' => 'Zeitraum',
+                                'GradeType' => 'Zensuren-Typ',
+                                'Description' => 'Beschreibung',
+                                'Date' => 'Datum',
+                                'CorrectionDate' => 'Korrekturdatum',
+                                'ReturnDate' => 'R&uuml;ckgabedatum',
+                                'Option' => 'Option'
+                            ))
+                        ))
+                    ))
+                ))
+            ))
+        );
+
+        return $Stage;
+    }
+
+    /**
+     * @param $Test
+     * @return Stage
+     */
+    public function frontendCreateTest($Test)
+    {
+        $Stage = new Stage('Zensuren', 'Test anlegen');
+        $Stage->addButton(
+            new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test', new ChevronLeft())
+        );
+
+        $Form = $this->formTest()
+            ->appendFormButton(new Primary('Anlegen'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+        $Stage->setContent(Gradebook::useService()->createTest($Form, $Test));
+
+        return $Stage;
+    }
+
+    private function formTest()
+    {
+        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAll();
+        $tblDivisionAll = Division::useService()->getDivisionAll();
+        $tblSubjectAll = Subject::useService()->getSubjectAll();
+        $tblPeriodList = Term::useService()->getPeriodAll();
+
+        return new Form(new FormGroup(array(
+            new FormRow(array(
+                new FormColumn(
+                    new SelectBox('Test[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 6
+                ),
+                new FormColumn(
+                    new SelectBox('Test[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
+                )
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new SelectBox('Test[Period]', 'Zeitraum', array('Name' => $tblPeriodList)), 6
+                ),
+                new FormColumn(
+                    new SelectBox('Test[GradeType]', 'Zensuren-Typ', array('Name' => $tblGradeTypeList)), 6
+                )
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new TextField('Test[Description]', '1. Klassenarbeit', 'Beschreibung'), 12
+                ),
+            )),
+            new FormRow(array(
+                new FormColumn(
+                    new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
+                ),
+                new FormColumn(
+                    new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                ),
+            ))
+        )));
+    }
+
+    /**
+     * @param $Id
+     * @param $Test
+     *
+     * @return Stage|string
+     */
+    public function frontendUpdateTest($Id, $Test)
+    {
+        $Stage = new Stage('Zensuren', 'Zensuren-Typ anlegen');
+
+        $tblTest = Gradebook::useService()->getTestById($Id);
+        if ($tblTest) {
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Test']['Division'] = $tblTest->getServiceTblDivision()->getId();
+                $Global->POST['Test']['Subject'] = $tblTest->getServiceTblSubject()->getId();
+                $Global->POST['Test']['Period'] = $tblTest->getServiceTblPeriod()->getId();
+                $Global->POST['Test']['GradeType'] = $tblTest->getTblGradeType()->getId();
+                $Global->POST['Test']['Description'] = $tblTest->getDescription();
+                $Global->POST['Test']['Date'] = $tblTest->getDate();
+                $Global->POST['Test']['CorrectionDate'] = $tblTest->getCorrectionDate();
+                $Global->POST['Test']['ReturnDate'] = $tblTest->getReturnDate();
+                $Global->savePost();
+            }
+
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test', new ChevronLeft())
+            );
+
+            $Form = $this->formTest()
+                ->appendFormButton(new Primary('Speichern'))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            $Stage->setContent(Gradebook::useService()->updateTest($Form, $tblTest->getId(), $Test));
+
+            return $Stage;
+        } else {
+            return new Warning('Test nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Test', 2);
+        }
     }
 }
