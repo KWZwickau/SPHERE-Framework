@@ -2,10 +2,10 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\IModuleInterface;
-use SPHERE\Application\IServiceInterface;
-use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
+use SPHERE\System\Database\Link\Identifier;
 
 /**
  * Class Gradebook
@@ -19,28 +19,51 @@ class Gradebook implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__), new Link\Name('Notenbuch'))
+            new Link(new Link\Route(__NAMESPACE__ . '\GradeType'), new Link\Name('Zensuren-Typen'))
+        );
+        Main::getDisplay()->addModuleNavigation(
+            new Link(new Link\Route(__NAMESPACE__ . '\Select'), new Link\Name('Notenbuch'))
         );
 
-        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__.'::frontendDashboard'
-        ));
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType',
+                __NAMESPACE__ . '\Frontend::frontendGradeType')
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\GradeType\Create',
+                __NAMESPACE__ . '\Frontend::frontendCreateGradeType')
+                ->setParameterDefault('GradeType', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Select',
+                __NAMESPACE__ . '\Frontend::frontendGradebook')
+                ->setParameterDefault('Select', null)
+        );
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Selected',
+                __NAMESPACE__ . '\Frontend::frontendSelectedGradebook')
+                ->setParameterDefault('DivisionId', null)
+                ->setParameterDefault('SubjectId', null)
+                ->setParameterDefault('Data', null)
+        );
     }
 
     /**
-     * @return IServiceInterface
+     * @return Service
      */
     public static function useService()
     {
-        // TODO: Implement useService() method.
+        return new Service(new Identifier('Education', 'Graduation', 'Gradebook', null,
+            Consumer::useService()->getConsumerBySession()),
+            __DIR__ . '/Service/Entity', __NAMESPACE__ . '\Service\Entity'
+        );
     }
 
     /**
-     * @return IFrontendInterface
+     * @return Frontend
      */
     public static function useFrontend()
     {
-        // TODO: Implement useFrontend() method.
+        return new Frontend();
     }
-
 }

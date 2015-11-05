@@ -36,7 +36,7 @@ AutoLoader::getNamespaceAutoLoader('SPHERE', __DIR__.'/', 'SPHERE');
 
 $Main = new Main();
 
-if (false) {
+if (true) {
     (new Cache(new ApcSma()))->getCache()->clearCache();
     (new Cache(new Apcu()))->getCache()->clearCache();
     (new Cache(new ApcUser()))->getCache()->clearCache();
