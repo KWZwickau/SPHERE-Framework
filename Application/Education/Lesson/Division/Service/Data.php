@@ -1,7 +1,9 @@
 <?php
 namespace SPHERE\Application\Education\Lesson\Division\Service;
 
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblLevel;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
 
@@ -19,20 +21,23 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string $Name
-     * @param string $Description
+     * @param TblType $tblType
+     * @param string  $Name
+     * @param string  $Description
      *
      * @return TblLevel
      */
-    public function createLevel($Name, $Description = '')
+    public function createLevel(TblType $tblType, $Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblLevel')->findOneBy(array(
-            TblLevel::ATTR_NAME => $Name
+            TblLevel::ATTR_NAME        => $Name,
+            TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
         if (null === $Entity) {
             $Entity = new TblLevel();
+            $Entity->setServiceTblType($tblType);
             $Entity->setName($Name);
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
@@ -53,11 +58,47 @@ class Data extends AbstractData
     }
 
     /**
+     * @param int $Id
+     *
+     * @return bool|TblDivision
+     */
+    public function getDivisionById($Id)
+    {
+
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', $Id);
+    }
+
+    /**
+     * @param TblType $tblType
+     * @param string  $Name
+     *
+     * @return bool
+     */
+    public function checkLevelExists(TblType $tblType, $Name)
+    {
+
+        $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel', array(
+            TblLevel::ATTR_NAME        => $Name,
+            TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
+        ));
+        return ( $Entity ? true : false );
+    }
+
+    /**
      * @return bool|TblLevel[]
      */
     public function getLevelAll()
     {
 
         return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblLevel');
+    }
+
+    /**
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionAll()
+    {
+
+        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision');
     }
 }
