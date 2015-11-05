@@ -1,6 +1,9 @@
+{% if( StageTitle is not empty or StageDescription is not empty ) %}
 <h3>{{ StageTitle }}
     <small>{{ StageDescription }}</small>
 </h3>
+{% endif %}
+
 {% if StageMessage is not empty %}
     <div class="row">
         <div class="col-xs-12">

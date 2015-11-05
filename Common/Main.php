@@ -141,7 +141,6 @@ class Main extends Extension
             Transfer::registerCluster();
             Contact::registerCluster();
             Setting::registerCluster();
-//            Generator::registerCluster();
             Manual::registerCluster();
             Reporting::registerCluster();
             Document::registerCluster();

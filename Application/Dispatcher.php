@@ -48,12 +48,12 @@ class Dispatcher
         try {
             if (Access::useService()->hasAuthorization($Route->getPath())) {
                 if (in_array($Route->getPath(), self::$Router->getRouteList())) {
-                    throw new \Exception(__CLASS__.' > Route already available! ('.$Route->getPath().')');
+                    throw new \Exception(__CLASS__ . ' > Route already available! (' . $Route->getPath() . ')');
                 } else {
                     if (!preg_match('!^/?Api/!is', $Route->getPath())) {
                         self::$Router->addRoute($Route);
                     } else {
-                        if (Access::useService()->getRightByName('/'.$Route->getPath())) {
+                        if (Access::useService()->getRightByName('/' . $Route->getPath())) {
                             self::$Router->addRoute($Route);
                         } else {
                             $Route = Main::getDispatcher()->createRoute(
@@ -65,9 +65,9 @@ class Dispatcher
                     }
                 }
             }
-            if (!Access::useService()->getRightByName('/'.$Route->getPath())) {
+            if (!Access::useService()->getRightByName('/' . $Route->getPath())) {
                 if (!in_array($Route->getPath(), self::$PublicRoutes)) {
-                    array_push(self::$PublicRoutes, '/'.$Route->getPath());
+                    array_push(self::$PublicRoutes, '/' . $Route->getPath());
                 }
             }
         } catch (\Exception $Exception) {
@@ -86,7 +86,7 @@ class Dispatcher
 
         // Map Controller Class to FQN
         if (false === strpos($Controller, 'SPHERE')) {
-            $Controller = '\\'.$Path.'\\'.$Controller;
+            $Controller = '\\' . $Path . '\\' . $Controller;
         }
         // Map Controller to Syntax
         $Controller = str_replace(array('/', '//', '\\', '\\\\'), '\\', $Controller);
@@ -131,8 +131,8 @@ class Dispatcher
     /**
      * @param string $Location
      * @param string $Content
-     * @param int    $Width
-     * @param int    $Height
+     * @param int $Width
+     * @param int $Height
      */
     public static function registerWidget($Location, $Content, $Width = 2, $Height = 2)
     {
@@ -148,17 +148,17 @@ class Dispatcher
     public static function fetchDashboard($Location)
     {
 
-        $Dashboard = '<div class="Location-'.$Location.' gridster"><ul style="list-style: none; display: none;">';
-        if (isset( self::$Widget[$Location] )) {
+        $Dashboard = '<div class="Location-' . $Location . ' gridster"><ul style="list-style: none; display: none;">';
+        if (isset(self::$Widget[$Location])) {
             $Row = 1;
             $Column = 1;
             foreach ((array)self::$Widget[$Location] as $Index => $Widget) {
-                $Dashboard .= '<li id="Widget-'.$Location.'-'.$Index.'" '
-                    .'data-row="'.$Row.'" '
-                    .'data-col="'.$Column.'" '
-                    .'data-sizex="'.$Widget[1].'" '
-                    .'data-sizey="'.$Widget[2].'" '
-                    .'class="Widget"><div class="Widget-Payload">'.$Widget[0].'</div></li>';
+                $Dashboard .= '<li id="Widget-' . $Location . '-' . $Index . '" '
+                    . 'data-row="' . $Row . '" '
+                    . 'data-col="' . $Column . '" '
+                    . 'data-sizex="' . $Widget[1] . '" '
+                    . 'data-sizey="' . $Widget[2] . '" '
+                    . 'class="Widget"><div class="Widget-Payload">' . $Widget[0] . '</div></li>';
                 if ($Column >= 8) {
                     $Column = 1;
                     $Row++;
@@ -166,6 +166,6 @@ class Dispatcher
                 $Column++;
             }
         }
-        return $Dashboard.'</div><script>Client.Use( "ModGrid", function() { jQuery( "div.Location-'.$Location.'.gridster ul" ).ModGrid({ storage: "Widget-'.$Location.'" }); } );</script>';
+        return $Dashboard . '</div><script>Client.Use( "ModGrid", function() { jQuery( "div.Location-' . $Location . '.gridster ul" ).ModGrid({ storage: "Widget-' . $Location . '" }); } );</script>';
     }
 }
