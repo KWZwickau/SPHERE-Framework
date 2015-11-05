@@ -62,17 +62,6 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $Id
-     *
-     * @return bool|TblDebtor
-     */
-    public function getDebtorById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorById($Id);
-    }
-
-    /**
      * @param TblDebtor    $tblDebtor
      * @param TblCommodity $tblCommodity
      *
@@ -94,17 +83,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getReferenceByAccountAndCommodity($tblAccount, $tblCommodity);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblPaymentType
-     */
-    public function getPaymentTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getPaymentTypeById($Id);
     }
 
     /**
@@ -202,39 +180,6 @@ class Service extends AbstractService
     /**
      * @param TblDebtor $tblDebtor
      *
-     * @return bool|TblAccount[]
-     */
-    public function getAccountAllByDebtor(TblDebtor $tblDebtor)
-    {
-
-        return (new Data($this->getBinding()))->getAccountByDebtor($tblDebtor);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|Service\Entity\TblAccount
-     */
-    public function getAccountById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getAccountById($Id);
-    }
-
-    /**
-     * @param TblDebtor $tblDebtor
-     *
-     * @return bool|Service\Entity\TblAccount
-     */
-    public function getActiveAccountByDebtor(TblDebtor $tblDebtor)
-    {
-
-        return (new Data($this->getBinding()))->getActiveAccountByDebtor($tblDebtor);
-    }
-
-    /**
-     * @param TblDebtor $tblDebtor
-     *
      * @return bool|TblDebtorCommodity[]
      */
     public function getCommodityDebtorAllByDebtor(TblDebtor $tblDebtor)
@@ -288,6 +233,17 @@ class Service extends AbstractService
     /**
      * @param TblDebtor $tblDebtor
      *
+     * @return bool|Service\Entity\TblAccount
+     */
+    public function getActiveAccountByDebtor(TblDebtor $tblDebtor)
+    {
+
+        return (new Data($this->getBinding()))->getActiveAccountByDebtor($tblDebtor);
+    }
+
+    /**
+     * @param TblDebtor $tblDebtor
+     *
      * @return string
      */
     public function destroyBanking(TblDebtor $tblDebtor)
@@ -330,6 +286,39 @@ class Service extends AbstractService
         }
         return new Danger('Es bestehen noch offene Rechnungen mit diesem Debitor')
         .new Redirect('/Billing/Accounting/Banking', 3);
+    }
+
+    /**
+     * @param $DebtorNumber
+     *
+     * @return bool|TblDebtor
+     */
+    public function getDebtorByDebtorNumber($DebtorNumber)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorByDebtorNumber($DebtorNumber);
+    }
+
+    /**
+     * @param TblDebtor $tblDebtor
+     *
+     * @return bool|TblAccount[]
+     */
+    public function getAccountAllByDebtor(TblDebtor $tblDebtor)
+    {
+
+        return (new Data($this->getBinding()))->getAccountByDebtor($tblDebtor);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return bool
+     */
+    public function destroyAccount(TblAccount $tblAccount)
+    {
+
+        return (new Data($this->getBinding()))->destroyAccount($tblAccount);
     }
 
     /**
@@ -423,14 +412,25 @@ class Service extends AbstractService
     }
 
     /**
-     * @param TblAccount $tblAccount
+     * @param $Id
      *
-     * @return bool
+     * @return bool|TblDebtor
      */
-    public function destroyAccount(TblAccount $tblAccount)
+    public function getDebtorById($Id)
     {
 
-        return (new Data($this->getBinding()))->destroyAccount($tblAccount);
+        return (new Data($this->getBinding()))->getDebtorById($Id);
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|Service\Entity\TblAccount
+     */
+    public function getAccountById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getAccountById($Id);
     }
 
     /**
@@ -495,6 +495,25 @@ class Service extends AbstractService
         }
     }
 
+    /**
+     * @param $Id
+     *
+     * @return bool|TblPaymentType
+     */
+    public function getPaymentTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getPaymentTypeById($Id);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param                     $DebtorId
+     * @param                     $AccountId
+     * @param                     $Account
+     *
+     * @return IFormInterface|string
+     */
     public function changeAccount(IFormInterface &$Stage = null, $DebtorId, $AccountId, $Account)
     {
 
@@ -553,6 +572,15 @@ class Service extends AbstractService
         return $Stage;
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblReference        $tblReference
+     * @param                     $DebtorId
+     * @param                     $AccountId
+     * @param                     $Reference
+     *
+     * @return IFormInterface|string
+     */
     public function changeReference(
         IFormInterface &$Stage = null,
         TblReference $tblReference,
@@ -702,6 +730,13 @@ class Service extends AbstractService
         return $Stage;
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param                     $Account
+     * @param TblDebtor           $tblDebtor
+     *
+     * @return IFormInterface|string
+     */
     public function createAccount(IFormInterface &$Stage = null, $Account, TblDebtor $tblDebtor)
     {
 
@@ -756,17 +791,6 @@ class Service extends AbstractService
 
         }
         return $Stage;
-    }
-
-    /**
-     * @param $DebtorNumber
-     *
-     * @return bool|TblDebtor
-     */
-    public function getDebtorByDebtorNumber($DebtorNumber)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorByDebtorNumber($DebtorNumber);
     }
 
     /**

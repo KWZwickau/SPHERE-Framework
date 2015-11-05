@@ -108,17 +108,6 @@ class Service extends AbstractService
      *
      * @return bool|TblItem[]
      */
-    public function getCommodityItemAllByCommodity(TblCommodity $tblCommodity)
-    {
-
-        return (new Data($this->getBinding()))->getCommodityItemAllByCommodity($tblCommodity);
-    }
-
-    /**
-     * @param TblCommodity $tblCommodity
-     *
-     * @return bool|TblItem[]
-     */
     public function getItemAllByCommodity(TblCommodity $tblCommodity)
     {
 
@@ -156,17 +145,6 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getCommodityByName($Name);
-    }
-
-    /**
-     * @param $Id
-     *
-     * @return bool|TblCommodityType
-     */
-    public function getCommodityTypeById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getCommodityTypeById($Id);
     }
 
     /**
@@ -209,6 +187,17 @@ class Service extends AbstractService
             .new Redirect('/Billing/Inventory/Commodity', 1);
         }
         return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return bool|TblCommodityType
+     */
+    public function getCommodityTypeById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getCommodityTypeById($Id);
     }
 
     /**
@@ -288,6 +277,17 @@ class Service extends AbstractService
             return new Danger('Die Leistung konnte nicht gelöscht werden')
             .new Redirect('/Billing/Inventory/Commodity', 3);
         }
+    }
+
+    /**
+     * @param TblCommodity $tblCommodity
+     *
+     * @return bool|TblItem[]
+     */
+    public function getCommodityItemAllByCommodity(TblCommodity $tblCommodity)
+    {
+
+        return (new Data($this->getBinding()))->getCommodityItemAllByCommodity($tblCommodity);
     }
 
     /**

@@ -241,7 +241,7 @@ class Data extends AbstractData
                         }
                     }
 
-                    $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson( $tblPerson );
+                    $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
                     if (!empty( $tblPersonRelationshipList )) {
                         foreach ($tblPersonRelationshipList as $tblPersonRelationship) {
                             if ($tblPerson->getId() === $tblPersonRelationship->getServiceTblPersonFrom()->getId()) {
@@ -422,7 +422,7 @@ class Data extends AbstractData
             }
         }
 
-        $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson( $tblPerson );
+        $tblPersonRelationshipList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
         if (!empty( $tblPersonRelationshipList )) {
             foreach ($tblPersonRelationshipList as $tblPersonRelationship) {
                 if ($tblPerson->getId() === $tblPersonRelationship->getServiceTblPersonFrom()) {

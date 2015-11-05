@@ -22,12 +22,10 @@ class TblPayment extends Element
      * @Column(type="bigint")
      */
     protected $tblBalance;
-
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Value;
-
     /**
      * @Column(type="date")
      */

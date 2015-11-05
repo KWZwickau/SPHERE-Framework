@@ -19,7 +19,6 @@ class TblAccountKeyType extends Element
      * @Column(type="string")
      */
     protected $Name;
-
     /**
      * @Column(type="string")
      */

@@ -40,7 +40,7 @@ class Item implements IModuleInterface
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Destroy',
                 __NAMESPACE__.'\Frontend::frontendItemDestroy'
             )->setParameterDefault('Id', null)
-            ->setParameterDefault('Confirm', null)
+                ->setParameterDefault('Confirm', null)
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__.'/Change',

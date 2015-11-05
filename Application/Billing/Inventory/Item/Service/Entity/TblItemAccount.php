@@ -25,7 +25,6 @@ class TblItemAccount extends Element
      * @Column(type="bigint")
      */
     protected $tblItem;
-
     /**
      * @Column(type="bigint")
      */

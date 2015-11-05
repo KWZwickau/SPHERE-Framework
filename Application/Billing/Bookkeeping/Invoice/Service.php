@@ -230,9 +230,9 @@ class Service extends AbstractService
      */
     public function confirmInvoice(TblInvoice $tblInvoice, $Data, $Account)
     {
-        If( $Account !== false )
-        {
-            $tblAccount = Banking::useService()->getAccountById( $Account );
+
+        If ($Account !== false) {
+            $tblAccount = Banking::useService()->getAccountById($Account);
             if (Balance::useService()->createBalance(
                 Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
                 $tblInvoice,
@@ -242,21 +242,20 @@ class Service extends AbstractService
                 $tblAccount->getBIC(),
                 $tblAccount->getOwner(),
                 $tblAccount->getCashSign()
-            ))
-            {
+            )
+            ) {
                 return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
                 .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
             } else {
                 return new Warning('Die Rechnung wurde konnte nicht bestätigt und freigegeben werden')
                 .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed/Edit', 2, array('Id' => $tblInvoice->getId()));
             }
-        }
-        else{
+        } else {
             if (Balance::useService()->createBalance(
                 Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber()),
                 $tblInvoice
-            ))
-            {
+            )
+            ) {
                 return new Success('Die Rechnung wurde erfolgreich bestätigt und freigegeben')
                 .new Redirect('/Billing/Bookkeeping/Invoice/IsNotConfirmed', 0);
             } else {

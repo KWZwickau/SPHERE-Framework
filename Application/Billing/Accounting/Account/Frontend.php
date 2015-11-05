@@ -54,13 +54,13 @@ class Frontend extends Extension implements IFrontendInterface
                         (new Standard('', '/Billing/Accounting/Account/Deactivate',
                             new Remove(), array(
                                 'Id' => $tblAccount->getId()
-                            ),'Deaktivieren'))->__toString();
+                            ), 'Deaktivieren'))->__toString();
                 } else {
                     $tblAccount->Option =
                         (new Standard('', '/Billing/Accounting/Account/Activate',
                             new Ok(), array(
                                 'Id' => $tblAccount->getId()
-                            ),'Aktivieren'))->__toString();
+                            ), 'Aktivieren'))->__toString();
                 }
             });
         }

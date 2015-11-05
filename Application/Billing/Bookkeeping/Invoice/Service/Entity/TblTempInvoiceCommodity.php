@@ -25,7 +25,6 @@ class TblTempInvoiceCommodity extends Element
      * @Column(type="bigint")
      */
     protected $tblTempInvoice;
-
     /**
      * @Column(type="bigint")
      */

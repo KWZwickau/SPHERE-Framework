@@ -32,72 +32,58 @@ class TblInvoice extends Element
      * @Column(type="boolean")
      */
     protected $IsPaid;
-
     /**
      * @Column(type="string")
      */
     protected $Number;
-
     /**
      * @Column(type="string")
      */
     protected $BasketName;
-
     /**
      * @Column(type="boolean")
      */
     protected $IsVoid;
-
     /**
      * @Column(type="date")
      */
     protected $InvoiceDate;
-
     /**
      * @Column(type="date")
      */
     protected $PaymentDate;
-
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Discount;
-
     /**
      * @Column(type="string")
      */
     protected $DebtorFirstName;
-
     /**
      * @Column(type="string")
      */
     protected $DebtorLastName;
-
     /**
      * @Column(type="string")
      */
     protected $DebtorSalutation;
-
     /**
      * @Column(type="string")
      */
     protected $DebtorNumber;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceManagement_Address;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceManagement_Person;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceBilling_Banking_Payment_Type;
-
     /**
      * @Column(type="boolean")
      */

@@ -124,7 +124,7 @@ class Service extends AbstractService
     public function getBasketItemAllByCommodityItem(TblCommodityItem $tblCommodityItem)
     {
 
-        return (new Data($this->getBinding()))->getBasketItemAllByCommodityItem( $tblCommodityItem);
+        return (new Data($this->getBinding()))->getBasketItemAllByCommodityItem($tblCommodityItem);
     }
 
     /**

@@ -57,6 +57,7 @@ class Account implements IModuleInterface
      */
     public static function useFrontend()
     {
+
         return new Frontend();
     }
 }

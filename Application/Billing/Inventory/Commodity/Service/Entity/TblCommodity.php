@@ -22,12 +22,10 @@ class TblCommodity extends Element
      * @Column(type="bigint")
      */
     protected $tblCommodityType;
-
     /**
      * @Column(type="string")
      */
     protected $Name;
-
     /**
      * @Column(type="string")
      */

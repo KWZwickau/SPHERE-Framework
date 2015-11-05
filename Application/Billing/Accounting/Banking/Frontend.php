@@ -501,24 +501,6 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param TblAccount $tblAccount
      *
-     * @return Layout
-     */
-    private function layoutSingleAccount(TblAccount $tblAccount)
-    {
-
-        $Account = new LayoutColumn(new Panel('Besitzer'.new PullRight($tblAccount->getOwner()), array(
-            'BankName'.new PullRight($tblAccount->getBankName()),
-            'Iban'.new PullRight($tblAccount->getIBAN()),
-            'BIC'.new PullRight($tblAccount->getBIC()),
-            'Kassenzeichen'.new PullRight($tblAccount->getCashSign()),
-
-        )), 6);
-        return new Layout(new LayoutGroup(new LayoutRow($Account)));
-    }
-
-    /**
-     * @param TblAccount $tblAccount
-     *
      * @return bool|TblReference
      */
     private function layoutReference(TblAccount $tblAccount)
@@ -575,32 +557,6 @@ class Frontend extends Extension implements IFrontendInterface
             new LayoutGroup(new LayoutRow($tblCommodityList), new Title('Leistungen'))
         );
     }
-
-//    /**
-//     * @param TblDebtor $tblDebtor
-//     *
-//     * @return Layout
-//     */
-//    public function layoutReference(TblDebtor $tblDebtor)
-//    {
-//
-//        $tblReferenceList = Banking::useService()->getReferenceByDebtor($tblDebtor);
-//        if (!empty( $tblReferenceList )) {
-//            /** @var TblReference $tblReference */
-//            foreach ($tblReferenceList as $Key => &$tblReference) {
-//                $Reference = $tblReference->getServiceBillingCommodity()->getName();
-//
-//                $tblReference = new LayoutColumn(array(
-//                    new Panel($Reference, array($tblReference->getReference()), Panel::PANEL_TYPE_SUCCESS)
-//                ), 3);
-//            }
-//        } else {
-//            $tblReferenceList = new LayoutColumn('');
-//        }
-//        return new Layout(
-//            new LayoutGroup(new LayoutRow($tblReferenceList), new Title('Referenzen'))
-//        );
-//    }
 
     /**
      * @param $Id
@@ -662,6 +618,37 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+//    /**
+//     * @param TblDebtor $tblDebtor
+//     *
+//     * @return Layout
+//     */
+//    public function layoutReference(TblDebtor $tblDebtor)
+//    {
+//
+//        $tblReferenceList = Banking::useService()->getReferenceByDebtor($tblDebtor);
+//        if (!empty( $tblReferenceList )) {
+//            /** @var TblReference $tblReference */
+//            foreach ($tblReferenceList as $Key => &$tblReference) {
+//                $Reference = $tblReference->getServiceBillingCommodity()->getName();
+//
+//                $tblReference = new LayoutColumn(array(
+//                    new Panel($Reference, array($tblReference->getReference()), Panel::PANEL_TYPE_SUCCESS)
+//                ), 3);
+//            }
+//        } else {
+//            $tblReferenceList = new LayoutColumn('');
+//        }
+//        return new Layout(
+//            new LayoutGroup(new LayoutRow($tblReferenceList), new Title('Referenzen'))
+//        );
+//    }
+    /**
+     * @param $Id
+     * @param $PaymentType
+     *
+     * @return Stage
+     */
     public function frontendDebtorPaymentTypeChange($Id, $PaymentType)
     {
 
@@ -1421,6 +1408,24 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         return $Stage;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     *
+     * @return Layout
+     */
+    private function layoutSingleAccount(TblAccount $tblAccount)
+    {
+
+        $Account = new LayoutColumn(new Panel('Besitzer'.new PullRight($tblAccount->getOwner()), array(
+            'BankName'.new PullRight($tblAccount->getBankName()),
+            'Iban'.new PullRight($tblAccount->getIBAN()),
+            'BIC'.new PullRight($tblAccount->getBIC()),
+            'Kassenzeichen'.new PullRight($tblAccount->getCashSign()),
+
+        )), 6);
+        return new Layout(new LayoutGroup(new LayoutRow($Account)));
     }
 
     /**

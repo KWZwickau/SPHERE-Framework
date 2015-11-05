@@ -162,7 +162,6 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
-
     /**
      * @param $Id
      * @param $Commodity
