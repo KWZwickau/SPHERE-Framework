@@ -103,6 +103,8 @@ class Setup extends AbstractSetup
         }
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+
+        return $Table;
     }
 
     /**
