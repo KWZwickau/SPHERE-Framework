@@ -21,7 +21,7 @@ class Standard implements IModuleInterface
             __NAMESPACE__.'/Person/ClassList/Download', __NAMESPACE__.'\Person\Person::downloadClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Person/FuxClassList/Download', __NAMESPACE__.'\Person\Person::downloadFuxClassList'
+            __NAMESPACE__.'/Person/ExtendedClassList/Download', __NAMESPACE__.'\Person\Person::downloadExtendedClassList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Person/BirthdayClassList/Download', __NAMESPACE__.'\Person\Person::downloadBirthdayClassList'

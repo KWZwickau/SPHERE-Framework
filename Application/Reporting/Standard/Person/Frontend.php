@@ -41,10 +41,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendClassList()
     {
 
-        $Stage = new Stage();
-        $Stage->setTitle('Auswertung');
-        $Stage->setDescription('Klassenliste');
-
+        $Stage = new Stage('Auswertung', 'Klassenliste');
         $Stage->addButton(
             new Primary('Herunterladen',
                 '/Api/Reporting/Standard/Person/ClassList/Download', new Download())
@@ -72,17 +69,16 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @return Stage
      */
-    public function frontendFuxClassList()
+    public function frontendExtendedClassList()
     {
 
         $Stage = new Stage('Auswertung', 'erweiterte Klassenliste');
-
         $Stage->addButton(
             new Primary('Herunterladen',
-                '/Api/Reporting/Standard/Person/FuxClassList/Download', new Download())
+                '/Api/Reporting/Standard/Person/ExtendedClassList/Download', new Download())
         );
 
-        $studentList = Person::useService()->createFuxClassList();
+        $studentList = Person::useService()->createExtendedClassList();
         $Count = count($studentList);
 
         $Man = $studentList[$Count - 1]->Man;
@@ -94,12 +90,12 @@ class Frontend extends Extension implements IFrontendInterface
                 array(
                     'Name'          => 'Name, Vorname',
                     'Gender'        => 'Geschlecht',
+                    'Address'       => 'Adresse',
                     'Birthday'      => 'Geburtsdatum',
                     'Birthplace'    => 'Geburtsort',
                     'StudentNumber' => 'Schülernummer',
-                    'Father'        => 'Vater',
-                    'Mother'        => 'Mutter',
-
+                    'PhoneMother'   => 'Tel. Mutter',
+                    'PhoneFather'   => 'Tel. Vater',
                 ),
                 false
             ).
@@ -107,13 +103,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Alle'.new PullRight($All), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Schüler'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                         new LayoutColumn(
-                            new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                         new LayoutColumn(
-                            new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                     ))
                 )
@@ -130,7 +126,6 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Auswertung', 'Klassenliste Geburtstage');
-
         $Stage->addButton(
             new Primary('Herunterladen',
                 '/Api/Reporting/Standard/Person/BirthdayClassList/Download', new Download())
@@ -143,7 +138,6 @@ class Frontend extends Extension implements IFrontendInterface
         $Woman = $studentList[$Count - 1]->Woman;
         $All = $studentList[$Count - 1]->All;
 
-
         $Stage->setContent(
             new TableData($studentList, null,
                 array(
@@ -151,6 +145,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Address'    => 'Anschrift',
                     'Birthplace' => 'Geburtsort',
                     'Birthday'   => 'Geburtsdatum',
+                    'Age'        => 'Alter',
                 ),
                 false
             ).
@@ -158,13 +153,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Alle'.new PullRight($All), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Schüler'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                         new LayoutColumn(
-                            new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                         new LayoutColumn(
-                            new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                     ))
                 )
@@ -174,11 +169,13 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendMedicalInsuranceClassList()
     {
 
         $Stage = new Stage('Auswertung', 'Klassenliste Krankenkasse');
-
         $Stage->addButton(
             new Primary('Herunterladen',
                 '/Api/Reporting/Standard/Person/MedicalInsuranceClassList/Download', new Download())
@@ -197,7 +194,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'Name'                => 'Name,<br/>Vorname',
                     'Address'             => 'Anschrift',
                     'Birthday'            => 'Geburtsdatum<br/>Geburtsort',
-                    'KK'                  => 'Krankenkasse',
+                    'MedicalInsurance'    => 'Krankenkasse',
                     'Guardian'            => '1. Sorgeberechtigter<br/>2. Sorgeberechtigter',
                     'PhoneNumber'         => 'Telefon<br/>Schüler',
                     'PhoneGuardianNumber' => 'Telefon<br/>Sorgeberechtigte',
@@ -208,13 +205,13 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            new Panel('Alle'.new PullRight($All), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Schüler'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                         new LayoutColumn(
-                            new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Mädchen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                         new LayoutColumn(
-                            new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_SUCCESS), 2
+                            new Panel('Jungen'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
                         ),
                     ))
                 )

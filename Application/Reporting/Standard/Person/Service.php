@@ -31,23 +31,23 @@ class Service
 
         if (!empty( $studentList )) {
             foreach ($studentList as $tblPerson) {
-                $father = null;
-                $mother = null;
-                $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
-                if ($guardianList) {
-                    foreach ($guardianList as $guardian) {
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
-                        ) {
-                            $father = $guardian->getServiceTblPersonFrom();
-                        }
-                        if (( $guardian->getTblType()->getId() == 1 )
-                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
-                        ) {
-                            $mother = $guardian->getServiceTblPersonFrom();
-                        }
-                    }
-                }
+//                $father = null;
+//                $mother = null;
+//                $guardianList = Relationship::useService()->getPersonRelationshipAllByPerson($tblPerson);
+//                if ($guardianList) {
+//                    foreach ($guardianList as $guardian) {
+//                        if (( $guardian->getTblType()->getId() == 1 )
+//                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
+//                        ) {
+//                            $father = $guardian->getServiceTblPersonFrom();
+//                        }
+//                        if (( $guardian->getTblType()->getId() == 1 )
+//                            && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
+//                        ) {
+//                            $mother = $guardian->getServiceTblPersonFrom();
+//                        }
+//                    }
+//                }
 
                 if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
                     $address = $addressList[0];
@@ -142,7 +142,7 @@ class Service
     /**
      * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
      */
-    public function createFuxClassList()
+    public function createExtendedClassList()
     {
 
         // Todo JohK Klassen einbauen
@@ -167,6 +167,26 @@ class Service
                     }
                 } else {
                     $tblPerson->Gender = '';
+                }
+
+                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                    $address = $addressList[0];
+                } else {
+                    $address = null;
+                }
+                if ($address !== null) {
+                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
+                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
+                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
+                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
+                } else {
+                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                    $tblPerson->Address = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -196,15 +216,53 @@ class Service
                         }
                     }
                 }
-                if ($father) {
-                    $tblPerson->Father = $father->getFullName();    // ToDO Number
-                } else {
-                    $tblPerson->Father = '';
-                }
+
+                unset( $phoneListMother );
+                unset( $phoneListFather );
                 if ($mother) {
-                    $tblPerson->Mother = $mother->getFullName();    //ToDO Number
+                    $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
+                    if ($motherPhoneList) {
+                        foreach ($motherPhoneList as $motherPhone) {
+                            if ($motherPhone->getTblType()->getName() === 'Privat') {
+                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
+                            }
+                        }
+                    }
+                }
+                if ($father) {
+                    $fatherPhoneList = Phone::useService()->getPhoneAllByPerson($father);
+                    if ($fatherPhoneList) {
+                        foreach ($fatherPhoneList as $fatherPhone) {
+                            if ($fatherPhone->getTblType()->getName() === 'Privat') {
+                                $phoneListFather[] = $fatherPhone->getTblPhone()->getNumber();
+                            }
+                        }
+                    }
+                }
+                if (isset( $phoneListMother[0] )) {
+                    $tblPerson->PhoneMother = $phoneListMother[0];
+                    if (isset( $phoneListFather[0] )) {
+                        if ($phoneListFather[0] === $phoneListMother[0]) {
+                            if (isset( $phoneListFather[1] )) {
+                                $tblPerson->PhoneFather = $phoneListFather[1];
+                            } else {
+                                $tblPerson->PhoneFather = '';
+                            }
+                        } else {
+                            if (isset( $phoneListFather[0] )) {
+                                $tblPerson->PhoneFather = $phoneListFather[0];
+                            } else {
+                                $tblPerson->PhoneFather = '';
+                            }
+                        }
+                    }
                 } else {
-                    $tblPerson->Mother = '';
+                    $tblPerson->PhoneMother = '';
+                    if (isset( $phoneListFather[0] )) {
+                        $tblPerson->PhoneFather = $phoneListFather[0];
+                    } else {
+                        $tblPerson->PhoneFather = '';
+                    }
                 }
             }
             $Count = count($studentList);
@@ -223,7 +281,7 @@ class Service
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createFuxClassListExcel($studentList)
+    public function createExtendedClassListExcel($studentList)
     {
 
         if (!empty( $studentList )) {
@@ -233,11 +291,12 @@ class Service
             $export = Document::getDocument($fileLocation->getFileLocation());
             $export->setValue($export->getCell("0", "0"), "Name, Vorname");
             $export->setValue($export->getCell("1", "0"), "Geschlecht");
-            $export->setValue($export->getCell("2", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("3", "0"), "Geburtsort");
-            $export->setValue($export->getCell("4", "0"), "Schülernummer");
-            $export->setValue($export->getCell("5", "0"), "Vater");
-            $export->setValue($export->getCell("6", "0"), "Mutter");
+            $export->setValue($export->getCell("2", "0"), "Adresse");
+            $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("4", "0"), "Geburtsort");
+            $export->setValue($export->getCell("5", "0"), "Schülernummer");
+            $export->setValue($export->getCell("6", "0"), "Tel. Mutter");
+            $export->setValue($export->getCell("7", "0"), "Tel. Vater");
 
             $Row = 1;
 
@@ -245,18 +304,19 @@ class Service
 
                 $export->setValue($export->getCell("0", $Row), $tblPerson->Name);
                 $export->setValue($export->getCell("1", $Row), $tblPerson->Gender);
-                $export->setValue($export->getCell("2", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("3", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->StudentNumber);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->Father);
+                $export->setValue($export->getCell("2", $Row), $tblPerson->Address);
+                $export->setValue($export->getCell("3", $Row), $tblPerson->Birthday);
+                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthplace);
+                $export->setValue($export->getCell("5", $Row), $tblPerson->StudentNumber);
                 $export->setValue($export->getCell("6", $Row), $tblPerson->Mother);
+                $export->setValue($export->getCell("7", $Row), $tblPerson->Father);
 
                 $Row++;
             }
 
             $Count = count($studentList);
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Alle:');
+            $export->setValue($export->getCell("0", $Row), 'Schüler:');
             $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->All);
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Mädchen:');
@@ -329,8 +389,19 @@ class Service
                 if ($common) {
                     $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
                     $tblPerson->Birthplace = $common->getTblCommonBirthDates()->getBirthplace();
+                    $birthDate = (new \DateTime($common->getTblCommonBirthDates()->getBirthday()));
+                    $now = new \DateTime();
+                    if ($birthDate->format('y.m') != $now->format('y.m')) {
+                        if (( $birthDate->format('m.d') ) <= ( $now->format('m.d') )) {
+                            $tblPerson->Age = $now->format('y') - $birthDate->format('y');
+                        } else {
+                            $tblPerson->Age = ( $now->format('y') - 1 ) - $birthDate->format('y');
+                        }
+                    } else {
+                        $tblPerson->Age = '';
+                    }
                 } else {
-                    $tblPerson->Birthday = $tblPerson->Birthplace = '';
+                    $tblPerson->Birthday = $tblPerson->Birthplace = $tblPerson->Age = '';
                 }
             }
             $Count = count($studentList);
@@ -361,6 +432,7 @@ class Service
             $export->setValue($export->getCell("1", "0"), "Anschrift");
             $export->setValue($export->getCell("2", "0"), "Geburtsort");
             $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("4", "0"), "Alter");
 
             $Row = 1;
 
@@ -370,13 +442,14 @@ class Service
                 $export->setValue($export->getCell("1", $Row), $tblPerson->Address);
                 $export->setValue($export->getCell("2", $Row), $tblPerson->Birthplace);
                 $export->setValue($export->getCell("3", $Row), $tblPerson->Birthday);
+                $export->setValue($export->getCell("4", $Row), $tblPerson->Age);
 
                 $Row++;
             }
 
             $Count = count($studentList);
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Alle:');
+            $export->setValue($export->getCell("0", $Row), 'Schüler:');
             $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->All);
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Mädchen:');
@@ -450,7 +523,7 @@ class Service
                 } else {
                     $tblPerson->Birthday = $tblPerson->Birthplace = '';
                 }
-                $tblPerson->KK = $tblPerson->getId(); //ToDO Krankenkasse
+                $tblPerson->MedicalInsurance = $tblPerson->getId(); //ToDO Krankenkasse
 
                 $father = null;
                 $mother = null;
@@ -558,7 +631,7 @@ class Service
                 $Name = explode('<br/>', $tblPerson->Name);
                 $Address = explode('<br/>', $tblPerson->Address);
                 $Birthday = explode('<br/>', $tblPerson->Birthday);
-                $KK = explode('<br/>', $tblPerson->KK);
+                $KK = explode('<br/>', $tblPerson->MedicalInsurance);
                 $Guardian = explode('<br/>', $tblPerson->Guardian);
                 $PhoneNumber = explode('<br/>', $tblPerson->PhoneNumber);
                 $PhoneGuardianNumber = explode('<br/>', $tblPerson->PhoneGuardianNumber);
@@ -608,7 +681,7 @@ class Service
 
             $Count = count($studentList);
             $Row++;
-            $export->setValue($export->getCell("0", $Row), 'Alle:');
+            $export->setValue($export->getCell("0", $Row), 'Schüler:');
             $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->All);
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Mädchen:');

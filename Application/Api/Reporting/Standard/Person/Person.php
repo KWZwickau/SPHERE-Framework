@@ -21,19 +21,19 @@ class Person
         $studentList = ReportingPerson::useService()->createClassList();
         $fileLocation = ReportingPerson::useService()->createClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Klassenliste.xls")->__toString();
+        return FileSystem::getDownload($fileLocation->getRealPath(), "Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
     }
 
     /**
      * @return string
      */
-    public function downloadFuxClassList()
+    public function downloadExtendedClassList()
     {
 
-        $studentList = ReportingPerson::useService()->createFuxClassList();
-        $fileLocation = ReportingPerson::useService()->createFuxClassListExcel($studentList);
+        $studentList = ReportingPerson::useService()->createExtendedClassList();
+        $fileLocation = ReportingPerson::useService()->createExtendedClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Fux_Klassenliste.xls")->__toString();
+        return FileSystem::getDownload($fileLocation->getRealPath(), "Erweiterte_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
     }
 
     /**
@@ -45,7 +45,7 @@ class Person
         $studentList = ReportingPerson::useService()->createBirthdayClassList();
         $fileLocation = ReportingPerson::useService()->createBirthdayClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Birthday_Klassenliste.xls")->__toString();
+        return FileSystem::getDownload($fileLocation->getRealPath(), "Birthday_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
     }
 
     /**
@@ -57,6 +57,6 @@ class Person
         $studentList = ReportingPerson::useService()->createMedicalInsuranceClassList();
         $fileLocation = ReportingPerson::useService()->createMedicalInsuranceClassListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste.xls")->__toString();
+        return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
     }
 }
