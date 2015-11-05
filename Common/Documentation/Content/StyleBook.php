@@ -141,14 +141,26 @@ class StyleBook
             $Page->addHeadline('Methoden-Namen');
             $Page->addSeparator();
 
+            $Page->addHeadline('Auslesen von Daten');
+
             $Page->addCode(array(
-                'create[Methode]',
-                'update[Methode]',
-                'destroy[Methode]',
-                'add[Methode]',
-                'remove[Methode]',
-                'get[Methode]',
-                'count[Methode]',
+                'public function getEntityNameAll(){};',
+                'public function countEntityNameAll(){};',
+            ));
+
+            $Page->addHeadline('Manipulation von Daten');
+
+            $Page->addCode(array(
+                'public function createEntityName( ..Eigenschaften,.. ){};',
+                'public function updateEntityName( TblEntityName $tblEntityName, ..Eigenschaften,.. ){};',
+                'public function destroyEntityName( TblEntityName $tblEntityName ){};',
+            ));
+
+            $Page->addHeadline('Verknüpfen von Daten');
+
+            $Page->addCode(array(
+                'public function addEntityNameAToEntityNameB( TblEntityNameA $tblEntityNameA, TblEntityNameB $tblEntityNameB ){};',
+                'public function removeEntityNameAFromEntityNameB( TblEntityNameA $tblEntityNameA, TblEntityNameB $tblEntityNameB ){};',
             ));
 
             $Page = $Chapter->createPage('Service', 'Struktur/Methoden/Variablen', $Search);
@@ -188,8 +200,8 @@ class StyleBook
 
             $Page->addCode(array(
                 'public function insertEntityName( ..Eigenschaften,.. ){};',
-                'public function updateEntityName( EntityName $EntityName, ..Eigenschaften,.. ){};',
-                'public function deleteEntityName( EntityName $EntityName ){};',
+                'public function updateEntityName( TblEntityName $tblEntityName, ..Eigenschaften,.. ){};',
+                'public function deleteEntityName( TblEntityName $tblEntityName ){};',
             ));
         }
 
