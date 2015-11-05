@@ -81,6 +81,9 @@ class Setup extends AbstractSetup
 
         $Table = $this->getConnection()->createTable($Schema, 'tblFile');
         $this->getConnection()->addForeignKey($Table, $tblDirectory, true);
+        if (!$this->getConnection()->hasColumn('tblFile', 'IsLocked')) {
+            $Table->addColumn('IsLocked', 'boolean');
+        }
         if (!$this->getConnection()->hasColumn('tblFile', 'Name')) {
             $Table->addColumn('Name', 'string');
         }

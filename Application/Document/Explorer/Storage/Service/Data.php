@@ -19,7 +19,57 @@ class Data extends AbstractData
      */
     public function setupDatabaseContent()
     {
-        // TODO: Implement setupDatabaseContent() method.
+
+        $this->getDebugger()->screenDump($this->createDirectory(
+            'Zeugnisse', 'enthält (revisionssicher) alle erzeugten Zeugnisse',
+            null, true, 'GRADUATION_CERTIFICATE'
+        ));
+    }
+
+    /**
+     * @param string       $Name
+     * @param string       $Description
+     * @param TblDirectory $tblDirectoryParent
+     * @param bool         $IsLocked
+     * @param string       $Identifier
+     *
+     * @return TblDirectory
+     */
+    public function createDirectory(
+        $Name,
+        $Description,
+        TblDirectory $tblDirectoryParent = null,
+        $IsLocked = false,
+        $Identifier = ''
+    ) {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        if ($IsLocked) {
+            $Entity = $Manager->getEntity('TblDirectory')->findOneBy(array(
+                TblDirectory::ATTR_IS_LOCKED     => $IsLocked,
+                TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectoryParent ? $tblDirectoryParent->getId() : null ),
+                TblDirectory::ATTR_NAME          => $Name
+            ));
+        } else {
+            $Entity = $Manager->getEntity('TblDirectory')->findOneBy(array(
+                TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectoryParent ? $tblDirectoryParent->getId() : null ),
+                TblDirectory::ATTR_NAME          => $Name
+            ));
+        }
+
+        if (null === $Entity) {
+            $Entity = new TblDirectory();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Entity->setTblDirectory($tblDirectoryParent);
+            $Entity->setIsLocked($IsLocked);
+            $Entity->setIdentifier($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
     }
 
     /**
@@ -81,7 +131,6 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblDirectory $tblDirectory
      * @param string       $Name
      * @param string       $Description
      * @param string       $FileName
@@ -89,6 +138,8 @@ class Data extends AbstractData
      * @param string       $FileContent
      * @param string       $FileType
      * @param int          $FileSize
+     * @param TblDirectory $tblDirectory
+     * @param bool         $IsLocked
      *
      * @return TblFile
      */
@@ -100,7 +151,8 @@ class Data extends AbstractData
         $FileContent,
         $FileType,
         $FileSize,
-        TblDirectory $tblDirectory = null
+        TblDirectory $tblDirectory = null,
+        $IsLocked = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -114,6 +166,7 @@ class Data extends AbstractData
         $Entity->setFileContent($FileContent);
         $Entity->setFileType($FileType);
         $Entity->setFileSize($FileSize);
+        $Entity->setIsLocked($IsLocked);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -121,16 +174,16 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblFile      $tblFile
+     * @param TblFile             $tblFile
      * @param string       $Name
      * @param string       $Description
-     * @param string       $FileName
-     * @param string       $FileExtension
-     * @param string       $FileContent
-     * @param string       $FileType
-     * @param int          $FileSize
-     *
-     * @param TblDirectory $tblDirectory
+     * @param string              $FileName
+     * @param string              $FileExtension
+     * @param string              $FileContent
+     * @param string              $FileType
+     * @param int                 $FileSize
+     * @param TblDirectory        $tblDirectory
+     * @param bool         $IsLocked
      *
      * @return bool
      */
@@ -143,7 +196,8 @@ class Data extends AbstractData
         $FileContent,
         $FileType,
         $FileSize,
-        TblDirectory $tblDirectory = null
+        TblDirectory $tblDirectory = null,
+        $IsLocked = false
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -159,57 +213,12 @@ class Data extends AbstractData
             $Entity->setFileContent($FileContent);
             $Entity->setFileType($FileType);
             $Entity->setFileSize($FileSize);
+            $Entity->setIsLocked($IsLocked);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
         }
         return false;
-    }
-
-    /**
-     * @param string       $Name
-     * @param string       $Description
-     * @param TblDirectory $tblDirectoryParent
-     * @param bool         $IsLocked
-     * @param string       $Identifier
-     *
-     * @return TblDirectory
-     */
-    public function createDirectory(
-        $Name,
-        $Description,
-        TblDirectory $tblDirectoryParent = null,
-        $IsLocked = false,
-        $Identifier = ''
-    ) {
-
-        $Manager = $this->getConnection()->getEntityManager();
-
-        if ($IsLocked) {
-            $Entity = $Manager->getEntity('TblDirectory')->findOneBy(array(
-                TblDirectory::ATTR_IS_LOCKED     => $IsLocked,
-                TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectoryParent ? $tblDirectoryParent->getId() : null ),
-                TblDirectory::ATTR_NAME          => $Name
-            ));
-        } else {
-            $Entity = $Manager->getEntity('TblDirectory')->findOneBy(array(
-                TblDirectory::ATTR_TBL_DIRECTORY => ( $tblDirectoryParent ? $tblDirectoryParent->getId() : null ),
-                TblDirectory::ATTR_NAME          => $Name
-            ));
-        }
-
-        if (null === $Entity) {
-            $Entity = new TblDirectory();
-            $Entity->setName($Name);
-            $Entity->setDescription($Description);
-            $Entity->setTblDirectory($tblDirectoryParent);
-            $Entity->setIsLocked($IsLocked);
-            $Entity->setIdentifier($Identifier);
-            $Manager->saveEntity($Entity);
-            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
-        }
-
-        return $Entity;
     }
 
     /**

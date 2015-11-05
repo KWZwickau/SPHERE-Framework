@@ -32,6 +32,10 @@ class TblFile extends Element
      */
     protected $Description;
     /**
+     * @Column(type="boolean")
+     */
+    protected $IsLocked;
+    /**
      * @Column(type="string")
      */
     protected $FileName;
@@ -72,6 +76,24 @@ class TblFile extends Element
     {
 
         $this->tblDirectory = ( null === $tblDirectory ? null : $tblDirectory->getId() );
+    }
+
+    /**
+     * @return bool
+     */
+    public function getIsLocked()
+    {
+
+        return (bool)$this->IsLocked;
+    }
+
+    /**
+     * @param bool $IsLocked
+     */
+    public function setIsLocked($IsLocked)
+    {
+
+        $this->IsLocked = (bool)$IsLocked;
     }
 
     /**

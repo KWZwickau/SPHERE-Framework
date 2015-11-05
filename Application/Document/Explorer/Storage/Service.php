@@ -56,6 +56,7 @@ class Service extends AbstractService
      * @param string       $FileType
      * @param int          $FileSize
      * @param TblDirectory $tblDirectory
+     * @param bool         $IsLocked
      *
      * @return TblFile
      */
@@ -67,11 +68,12 @@ class Service extends AbstractService
         $FileContent,
         $FileType,
         $FileSize,
-        TblDirectory $tblDirectory = null
+        TblDirectory $tblDirectory = null,
+        $IsLocked = false
     ) {
 
         return (new Data($this->getBinding()))->createFile(
-            $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize, $tblDirectory
+            $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize, $tblDirectory, $IsLocked
         );
     }
 
@@ -85,6 +87,7 @@ class Service extends AbstractService
      * @param string       $FileType
      * @param int          $FileSize
      * @param TblDirectory $tblDirectory
+     * @param bool         $IsLocked
      *
      * @return bool
      */
@@ -97,11 +100,13 @@ class Service extends AbstractService
         $FileContent,
         $FileType,
         $FileSize,
-        TblDirectory $tblDirectory = null
+        TblDirectory $tblDirectory = null,
+        $IsLocked = false
     ) {
 
         return (new Data($this->getBinding()))->updateFile(
-            $tblFile, $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize, $tblDirectory
+            $tblFile, $Name, $Description, $FileName, $FileExtension, $FileContent, $FileType, $FileSize, $tblDirectory,
+            $IsLocked
         );
     }
 
