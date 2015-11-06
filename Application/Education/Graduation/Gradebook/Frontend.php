@@ -483,9 +483,29 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(
-                                    new Panel('Test', $tblTest->getId(),
-                                        Panel::PANEL_TYPE_SUCCESS), 3
+                                    new Panel('Klasse:', $tblTest->getServiceTblDivision()->getName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 6
                                 ),
+                                new LayoutColumn(
+                                    new Panel('Fach:', $tblTest->getServiceTblSubject()->getName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 6
+                                )
+                            )),
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Zeitraum:', $tblTest->getServiceTblPeriod()->getName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 6
+                                ),
+                                new LayoutColumn(
+                                    new Panel('Zensuren-Typ:', $tblTest->getTblGradeType()->getName(),
+                                        Panel::PANEL_TYPE_SUCCESS), 6
+                                )
+                            )),
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Beschreibung:', $tblTest->getDescription(),
+                                        Panel::PANEL_TYPE_SUCCESS), 12
+                                )
                             )),
                         )),
                         new LayoutGroup(array(
