@@ -20,9 +20,11 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
+use SPHERE\Common\Frontend\Icon\Repository\Listing;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
-use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
+use SPHERE\Common\Frontend\Icon\Repository\Save;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
 use SPHERE\Common\Frontend\Layout\Repository\Header;
@@ -69,7 +71,6 @@ class Frontend extends Extension implements IFrontendInterface
                                 'Name' => 'Name',
                                 'Code' => 'Abk&uuml;rzung',
                                 'Description' => 'Beschreibung',
-                                //'Option' => 'Option'
                             ))
                         ))
                     ))
@@ -92,7 +93,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $Form = $this->formGradeType()
-            ->appendFormButton(new Primary('Anlegen'))
+            ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         $Stage->setContent(Gradebook::useService()->createGradeType($Form, $GradeType));
 
@@ -112,7 +113,7 @@ class Frontend extends Extension implements IFrontendInterface
             )),
             new FormRow(array(
                 new FormColumn(
-                    new TextField('GradeType[Description]', '', 'Beschreibung'), 9
+                    new TextField('GradeType[Description]', '', 'Beschreibung'), 12
                 ),
                 new FormColumn(
                     new CheckBox('GradeType[IsHighlighted]', 'Fett markiert', 1), 3
@@ -228,7 +229,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new SelectBox('Select[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
                         )
                     )),
-                )), new Primary('Ausw&auml;hlen'))
+                )), new Primary('Auswählen', new Select()))
                 , $Select)
             .
             ($DivisionId !== null && $SubjectId !== null ?
@@ -268,7 +269,7 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTest->GradeType = $tblTest->getTblGradeType()->getName();
                 $tblTest->Option = (new Standard('', '/Education/Graduation/Gradebook/Test/Edit', new Pencil(),
                         array('Id' => $tblTest->getId()), 'Test bearbeiten'))
-                    . (new Standard('', '/Education/Graduation/Gradebook/Test/Grade/Edit', new PersonGroup(),
+                    . (new Standard('', '/Education/Graduation/Gradebook/Test/Grade/Edit', new Listing(),
                         array('Id' => $tblTest->getId()), 'Noten bearbeiten'));
             });
         }
@@ -310,7 +311,7 @@ class Frontend extends Extension implements IFrontendInterface
         );
 
         $Form = $this->formTest()
-            ->appendFormButton(new Primary('Anlegen'))
+            ->appendFormButton(new Primary('Speichern', new Save()))
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
         $Stage->setContent(Gradebook::useService()->createTest($Form, $Test));
 
@@ -407,7 +408,7 @@ class Frontend extends Extension implements IFrontendInterface
                 ))
             )));
             $Form
-                ->appendFormButton(new Primary('Anlegen'))
+                ->appendFormButton(new Primary('Speichern', new Save()))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
 
             $Stage->setContent(
@@ -525,7 +526,7 @@ class Frontend extends Extension implements IFrontendInterface
                                                     )
                                                 ),
                                             ))
-                                            , new Primary('Speichern'))
+                                            , new Primary('Speichern', new Save()))
                                         , $Grade
                                     )
                                 )

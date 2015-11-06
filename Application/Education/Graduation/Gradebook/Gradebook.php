@@ -3,6 +3,9 @@ namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Book;
+use SPHERE\Common\Frontend\Icon\Repository\Document;
+use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\System\Database\Link\Identifier;
@@ -19,13 +22,16 @@ class Gradebook implements IModuleInterface
     {
 
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\GradeType'), new Link\Name('Zensuren-Typen'))
+            new Link(new Link\Route(__NAMESPACE__ . '\GradeType'), new Link\Name('Zensuren-Typen'),
+                new Link\Icon(new Tag()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'))
+            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'),
+                new Link\Icon(new Document()))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Selected'), new Link\Name('Notenbuch'))
+            new Link(new Link\Route(__NAMESPACE__ . '\Selected'), new Link\Name('Notenbuch'),
+                new Link\Icon(new Book()))
         );
 
         Main::getDispatcher()->registerRoute(
