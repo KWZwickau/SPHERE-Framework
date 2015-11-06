@@ -265,10 +265,6 @@ class Data extends AbstractData
 
     /**
      * @param TblTest $tblTest
-     * @param TblDivision $tblDivision
-     * @param TblSubject $tblSubject
-     * @param TblPeriod $tblPeriod
-     * @param TblGradeType $tblGradeType
      * @param string $Description
      * @param null $Date
      * @param null $CorrectionDate
@@ -277,10 +273,6 @@ class Data extends AbstractData
      */
     public function updateTest(
         TblTest $tblTest,
-        TblDivision $tblDivision,
-        TblSubject $tblSubject,
-        TblPeriod $tblPeriod,
-        TblGradeType $tblGradeType,
         $Description = '',
         $Date = null,
         $CorrectionDate = null,
@@ -293,10 +285,6 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblTest', $tblTest->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setServiceTblDivision($tblDivision);
-            $Entity->setServiceTblSubject($tblSubject);
-            $Entity->setServiceTblPeriod($tblPeriod);
-            $Entity->setTblGradeType($tblGradeType);
             $Entity->setDescription($Description);
             $Entity->setDate($Date ? new \DateTime($Date) : null);
             $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);

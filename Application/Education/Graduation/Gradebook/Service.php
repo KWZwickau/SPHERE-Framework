@@ -293,10 +293,6 @@ class Service extends AbstractService
 
         (new Data($this->getBinding()))->updateTest(
             $this->getTestById($Id),
-            Division::useService()->getDivisionById($Test['Division']),
-            Subject::useService()->getSubjectById($Test['Subject']),
-            Term::useService()->getPeriodById($Test['Period']),
-            $this->getGradeTypeById($Test['GradeType']),
             $Test['Description'],
             $Test['Date'],
             $Test['CorrectionDate'],

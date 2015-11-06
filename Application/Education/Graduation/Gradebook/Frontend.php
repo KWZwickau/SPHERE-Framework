@@ -218,31 +218,31 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $Stage->setContent(
-        Gradebook::useService()->getGradeBook(
-            new Form(new FormGroup(array(
-                new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 6
+            Gradebook::useService()->getGradeBook(
+                new Form(new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 6
+                        ),
+                        new FormColumn(
+                            new SelectBox('Select[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
+                        )
+                    )),
+                )), new Primary('Ausw&auml;hlen'))
+                , $Select)
+            .
+            ($DivisionId !== null && $SubjectId !== null ?
+                (new Layout (new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Klasse:', $tblDivision->getName(),
+                            Panel::PANEL_TYPE_SUCCESS), 6
                     ),
-                    new FormColumn(
-                        new SelectBox('Select[Subject]', 'Fach', array('Name' => $tblSubjectAll)), 6
+                    new LayoutColumn(
+                        new Panel('Fach:', $tblSubject->getName(),
+                            Panel::PANEL_TYPE_SUCCESS), 6
                     )
-                )),
-            )), new Primary('Ausw&auml;hlen'))
-            , $Select)
-        .
-        ($DivisionId !== null && $SubjectId !== null ?
-            (new Layout (new LayoutGroup(new LayoutRow(array(
-                new LayoutColumn(
-                    new Panel('Klasse:', $tblDivision->getName(),
-                        Panel::PANEL_TYPE_SUCCESS), 6
-                ),
-                new LayoutColumn(
-                    new Panel('Fach:', $tblSubject->getName(),
-                        Panel::PANEL_TYPE_SUCCESS), 6
-                )
-            )))))
-            . new Layout(new LayoutGroup($rowList)) : '')
+                )))))
+                . new Layout(new LayoutGroup($rowList)) : '')
         );
 
         return $Stage;
@@ -377,10 +377,6 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblTest) {
             $Global = $this->getGlobal();
             if (!$Global->POST) {
-                $Global->POST['Test']['Division'] = $tblTest->getServiceTblDivision()->getId();
-                $Global->POST['Test']['Subject'] = $tblTest->getServiceTblSubject()->getId();
-                $Global->POST['Test']['Period'] = $tblTest->getServiceTblPeriod()->getId();
-                $Global->POST['Test']['GradeType'] = $tblTest->getTblGradeType()->getId();
                 $Global->POST['Test']['Description'] = $tblTest->getDescription();
                 $Global->POST['Test']['Date'] = $tblTest->getDate();
                 $Global->POST['Test']['CorrectionDate'] = $tblTest->getCorrectionDate();
@@ -392,10 +388,53 @@ class Frontend extends Extension implements IFrontendInterface
                 new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test', new ChevronLeft())
             );
 
-            $Form = $this->formTest()
-                ->appendFormButton(new Primary('Speichern'))
+            $Form = new Form(new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Test[Description]', '1. Klassenarbeit', 'Beschreibung'), 12
+                    ),
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new DatePicker('Test[Date]', '', 'Datum', new Calendar()), 4
+                    ),
+                    new FormColumn(
+                        new DatePicker('Test[CorrectionDate]', '', 'Korrekturdatum', new Calendar()), 4
+                    ),
+                    new FormColumn(
+                        new DatePicker('Test[ReturnDate]', '', 'R&uuml;ckgabedatum', new Calendar()), 4
+                    ),
+                ))
+            )));
+            $Form
+                ->appendFormButton(new Primary('Anlegen'))
                 ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
-            $Stage->setContent(Gradebook::useService()->updateTest($Form, $tblTest->getId(), $Test));
+
+            $Stage->setContent(
+                new Layout (new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Klasse:', $tblTest->getServiceTblDivision()->getName(),
+                                Panel::PANEL_TYPE_SUCCESS), 6
+                        ),
+                        new LayoutColumn(
+                            new Panel('Fach:', $tblTest->getServiceTblSubject()->getName(),
+                                Panel::PANEL_TYPE_SUCCESS), 6
+                        )
+                    )),
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Zeitraum:', $tblTest->getServiceTblPeriod()->getName(),
+                                Panel::PANEL_TYPE_SUCCESS), 6
+                        ),
+                        new LayoutColumn(
+                            new Panel('Zensuren-Typ:', $tblTest->getTblGradeType()->getName(),
+                                Panel::PANEL_TYPE_SUCCESS), 6
+                        )
+                    ))
+                )))
+                . Gradebook::useService()->updateTest($Form, $tblTest->getId(), $Test)
+            );
 
             return $Stage;
         } else {
