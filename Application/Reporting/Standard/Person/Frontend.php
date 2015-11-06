@@ -225,4 +225,56 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
+    public function frontendEmployeeList()
+    {
+
+        $Stage = new Stage('Mitarbeiter');
+        $Stage->addButton(
+            new Primary('Herunterladen',
+                '/Api/Reporting/Standard/Person/EmployeeList/Download', new Download())
+        );
+
+        $employeeList = Person::useService()->createEmployeeList();
+        $Count = count($employeeList);
+
+        $Man = $employeeList[$Count - 1]->Man;
+        $Woman = $employeeList[$Count - 1]->Woman;
+        $All = $employeeList[$Count - 1]->All;
+
+        $Stage->setContent(
+            new TableData($employeeList, null,
+                array(
+                    'Number'           => 'lfd. Nr.',
+                    'Salutation'       => 'Anrede',
+                    'FirstName'        => 'Vorname',
+                    'LastName'         => 'Nachname',
+                    'Birthday'         => 'Geburtstag',
+                    'Address'          => 'Anschrift',
+                    'PhoneNumber'      => 'Telefon Festnetz',
+                    'MobilPhoneNumber' => 'Telefon Mobil',
+                    'Mail'             => 'E-mail',
+                ),
+                false
+            )
+
+            .new Layout(
+                new LayoutGroup(
+                    new LayoutRow(array(
+                        new LayoutColumn(
+                            new Panel('Gesamt'.new PullRight($All), '', Panel::PANEL_TYPE_INFO), 2
+                        ),
+                        new LayoutColumn(
+                            new Panel('Frauen'.new PullRight($Woman), '', Panel::PANEL_TYPE_INFO), 2
+                        ),
+                        new LayoutColumn(
+                            new Panel('Männer'.new PullRight($Man), '', Panel::PANEL_TYPE_INFO), 2
+                        ),
+                    ))
+                )
+            )
+        );
+
+        return $Stage;
+    }
 }

@@ -59,4 +59,19 @@ class Person
 
         return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
     }
+
+    /**
+     * @return string
+     */
+    public function downloadEmployeeList()
+    {
+
+        $employeeList = ReportingPerson::useService()->createEmployeeList();
+        $fileLocation = ReportingPerson::useService()->createEmployeeListExcel($employeeList);
+
+        return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
+    }
+
+
+
 }

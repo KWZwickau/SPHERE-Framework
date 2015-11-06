@@ -5,6 +5,7 @@ use MOC\V\Component\Document\Component\Bridge\Repository\PhpExcel;
 use MOC\V\Component\Document\Component\Parameter\Repository\FileParameter;
 use MOC\V\Component\Document\Document;
 use SPHERE\Application\Contact\Address\Address;
+use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
 use SPHERE\Application\People\Meta\Common\Common;
@@ -753,6 +754,177 @@ class Service
             $Row++;
             $export->setValue($export->getCell("0", $Row), 'Jungen:');
             $export->setValue($export->getCell("1", $Row), $studentList[$Count - 1]->Man);
+
+            $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
+
+            return $fileLocation;
+        }
+        return false;
+    }
+
+    public function createEmployeeList()
+    {
+
+        $employeeList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Mitarbeiter'));
+
+        if (!empty( $employeeList )) {
+
+            foreach ($employeeList as $key => $row) {
+                $lastName[$key] = strtoupper($row->getLastName());
+                $firstName[$key] = strtoupper($row->getFirstName());
+                $id[$key] = $row->getId();
+            }
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $employeeList);
+
+            $Man = 0;
+            $Woman = 0;
+            $All = 0;
+
+            foreach ($employeeList as $tblPerson) {
+
+                $All++;
+                $tblPerson->Number = $All;
+                $tblPerson->Salutation = $tblPerson->getSalutation();
+                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                    $address = $addressList[0];
+                } else {
+                    $address = null;
+                }
+                $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
+                if ($tblCommon) {
+                    if ($tblCommon->getTblCommonBirthDates()->getGender() === 1) {
+                        $tblPerson->Gender = 'männlich';
+                        $Man++;
+                    } elseif ($tblCommon->getTblCommonBirthDates()->getGender() === 2) {
+                        $tblPerson->Gender = 'weiblich';
+                        $Woman++;
+                    } else {
+                        $tblPerson->Gender = '';
+                    }
+                } else {
+                    $tblPerson->Gender = '';
+                }
+                if ($address !== null) {
+                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
+                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
+                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
+                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                    $tblPerson->Address = $address->getTblAddress()->getStreetName().' '.
+                        $address->getTblAddress()->getStreetNumber().' '.
+                        $address->getTblAddress()->getTblCity()->getCode().' '.
+                        $address->getTblAddress()->getTblCity()->getName();
+                } else {
+                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                    $tblPerson->Address = '';
+                }
+
+                $common = Common::useService()->getCommonByPerson($tblPerson);
+                if ($common) {
+                    $tblPerson->Birthday = $common->getTblCommonBirthDates()->getBirthday();
+                } else {
+                    $tblPerson->Birthday = $tblPerson->Birthplace = '';
+                }
+                $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+
+                $phoneArray = array();
+                $mobilePhoneArray = array();
+                if ($phoneList) {
+                    foreach ($phoneList as $phone) {
+                        if ($phone->getTblType()->getDescription() === 'Festnetz') {
+                            $phoneArray[] = $phone->getTblPhone()->getNumber();
+                        }
+                        if ($phone->getTblType()->getDescription() === 'Mobil') {
+                            $mobilePhoneArray[] = $phone->getTblPhone()->getNumber();
+                        }
+                    }
+                }
+                if (count($phoneArray) >= 1) {
+                    $tblPerson->PhoneNumber = implode(', ', $phoneArray);
+                } else {
+                    $tblPerson->PhoneNumber = '';
+                }
+                if (count($mobilePhoneArray) >= 1) {
+                    $tblPerson->MobilPhoneNumber = implode(', ', $mobilePhoneArray);
+                } else {
+                    $tblPerson->MobilPhoneNumber = '';
+                }
+                $mailAddressList = Mail::useService()->getMailAllByPerson( $tblPerson );
+                $mailList = array();
+                foreach($mailAddressList as $mailAddress)
+                {
+                    $mailList[] = $mailAddress->getTblMail()->getAddress();
+                }
+                if(count($mailList) >= 1)
+                {
+                    $tblPerson->Mail = $mailList[0];
+                } else{
+                    $tblPerson->Mail = '';
+                }
+            }
+            $Count = count($employeeList);
+            $employeeList[$Count - 1]->Woman = $Woman;
+            $employeeList[$Count - 1]->Man = $Man;
+            $employeeList[$Count - 1]->All = $All;
+        }
+
+        return $employeeList;
+    }
+
+    /**
+     * @param $employeeList
+     *
+     * @return \SPHERE\Application\Document\Explorer\Storage\Writer\Type\Temporary
+     * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
+     * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
+     */
+    public function createEmployeeListExcel( $employeeList )
+    {
+
+        if (!empty( $employeeList )) {
+
+            $fileLocation = Storage::useWriter()->getTemporary('xls');
+            /** @var PhpExcel $export */
+            $export = Document::getDocument($fileLocation->getFileLocation());
+            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
+            $export->setValue($export->getCell("1", "0"), "Anrede");
+            $export->setValue($export->getCell("2", "0"), "Vorname");
+            $export->setValue($export->getCell("3", "0"), "Nachname");
+            $export->setValue($export->getCell("4", "0"), "Geburtstag");
+            $export->setValue($export->getCell("5", "0"), "Anschrift");
+            $export->setValue($export->getCell("6", "0"), "Telefon Festnetz");
+            $export->setValue($export->getCell("7", "0"), "Telefon Mobil");
+            $export->setValue($export->getCell("8", "0"), "E-mail");
+
+            $Row = 1;
+
+            foreach ($employeeList as $tblPerson) {
+
+                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
+                $export->setValue($export->getCell("1", $Row), $tblPerson->Salutation);
+                /** @var TblPerson $tblPerson */
+                $export->setValue($export->getCell("2", $Row), $tblPerson->getFirstName());
+                $export->setValue($export->getCell("3", $Row), $tblPerson->getLastName());
+                /** @var $tblPerson */
+                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
+                $export->setValue($export->getCell("5", $Row), $tblPerson->Address);
+                $export->setValue($export->getCell("6", $Row), $tblPerson->PhoneNumber);
+                $export->setValue($export->getCell("7", $Row), $tblPerson->MobilPhoneNumber);
+                $export->setValue($export->getCell("8", $Row), $tblPerson->Mail);
+
+                $Row++;
+            }
+
+            $Count = count($employeeList);
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Gesamt:');
+            $export->setValue($export->getCell("1", $Row), $employeeList[$Count - 1]->All);
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Frauen:');
+            $export->setValue($export->getCell("1", $Row), $employeeList[$Count - 1]->Woman);
+            $Row++;
+            $export->setValue($export->getCell("0", $Row), 'Männer:');
+            $export->setValue($export->getCell("1", $Row), $employeeList[$Count - 1]->Man);
 
             $export->saveFile(new FileParameter($fileLocation->getFileLocation()));
 
