@@ -148,11 +148,21 @@ class Service
         // Todo JohK Klassen einbauen
         $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
         if (!empty( $studentList )) {
+
+            foreach ($studentList as $key => $row) {
+                $lastName[$key] = strtoupper($row->getLastName());
+                $firstName[$key] = strtoupper($row->getFirstName());
+                $id[$key] = $row->getId();
+            }
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
+
             $Man = 0;
             $Woman = 0;
             $All = 0;
+
             foreach ($studentList as $tblPerson) {
                 $All++;
+                $tblPerson->Number = $All;
                 $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
@@ -197,7 +207,7 @@ class Service
                     $tblPerson->Birthday = $tblPerson->Birthplace = '';
                 }
 
-                $tblPerson->StudentNumber = $tblPerson->getId(); //ToDO StudentNumber
+                $tblPerson->StudentNumber = $tblPerson->getId() + 200000; //ToDO StudentNumber
 
                 $father = null;
                 $mother = null;
@@ -208,13 +218,29 @@ class Service
                             && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 1 )
                         ) {
                             $father = $guardian->getServiceTblPersonFrom();
+                            if ($father) {
+                                $tblPerson->Father = $father->getFullName();
+                            } else {
+                                $tblPerson->Father = '';
+                            }
                         }
                         if (( $guardian->getTblType()->getId() == 1 )
                             && ( $guardian->getServiceTblPersonFrom()->getTblSalutation()->getId() == 2 )
                         ) {
                             $mother = $guardian->getServiceTblPersonFrom();
+                            if ($mother) {
+                                $tblPerson->Mother = $mother->getFullName();
+                            } else {
+                                $tblPerson->Mother = '';
+                            }
                         }
                     }
+                }
+                if (!isset( $father )) {
+                    $tblPerson->Father = '';
+                }
+                if (!isset( $mother )) {
+                    $tblPerson->Mother = '';
                 }
 
                 unset( $phoneListMother );
@@ -223,9 +249,17 @@ class Service
                     $motherPhoneList = Phone::useService()->getPhoneAllByPerson($mother);
                     if ($motherPhoneList) {
                         foreach ($motherPhoneList as $motherPhone) {
+                            if ($motherPhone->getTblType()->getName() === 'Privat' && $motherPhone->getTblType()->getDescription() === 'Mobil') {
+                                $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
+                            }
+                        }
+                        foreach ($motherPhoneList as $motherPhone) {
                             if ($motherPhone->getTblType()->getName() === 'Privat') {
                                 $phoneListMother[] = $motherPhone->getTblPhone()->getNumber();
                             }
+                        }
+                        if (isset( $phoneListMother )) {
+                            $phoneListMother = array_unique($phoneListMother);
                         }
                     }
                 }
@@ -289,27 +323,33 @@ class Service
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Name, Vorname");
-            $export->setValue($export->getCell("1", "0"), "Geschlecht");
-            $export->setValue($export->getCell("2", "0"), "Adresse");
-            $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("4", "0"), "Geburtsort");
-            $export->setValue($export->getCell("5", "0"), "Schülernummer");
-            $export->setValue($export->getCell("6", "0"), "Tel. Mutter");
-            $export->setValue($export->getCell("7", "0"), "Tel. Vater");
+            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
+            $export->setValue($export->getCell("1", "0"), "Name, Vorname");
+            $export->setValue($export->getCell("2", "0"), "Geschlecht");
+            $export->setValue($export->getCell("3", "0"), "Adresse");
+            $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("5", "0"), "Geburtsort");
+            $export->setValue($export->getCell("6", "0"), "Schülernummer");
+            $export->setValue($export->getCell("7", "0"), "Sorgeberechtigte");
+            $export->setValue($export->getCell("8", "0"), "Tel. Sorgeber.");
+            $export->setValue($export->getCell("9", "0"), "Sorgeberechtigter");
+            $export->setValue($export->getCell("10", "0"), "Tel. Sorgeber.");
 
             $Row = 1;
 
             foreach ($studentList as $tblPerson) {
 
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Name);
-                $export->setValue($export->getCell("1", $Row), $tblPerson->Gender);
-                $export->setValue($export->getCell("2", $Row), $tblPerson->Address);
-                $export->setValue($export->getCell("3", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->StudentNumber);
-                $export->setValue($export->getCell("6", $Row), $tblPerson->Mother);
-                $export->setValue($export->getCell("7", $Row), $tblPerson->Father);
+                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
+                $export->setValue($export->getCell("1", $Row), $tblPerson->Name);
+                $export->setValue($export->getCell("2", $Row), $tblPerson->Gender);
+                $export->setValue($export->getCell("3", $Row), $tblPerson->Address);
+                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
+                $export->setValue($export->getCell("5", $Row), $tblPerson->Birthplace);
+                $export->setValue($export->getCell("6", $Row), $tblPerson->StudentNumber);
+                $export->setValue($export->getCell("7", $Row), $tblPerson->Mother);
+                $export->setValue($export->getCell("8", $Row), $tblPerson->PhoneMother);
+                $export->setValue($export->getCell("9", $Row), $tblPerson->Father);
+                $export->setValue($export->getCell("10", $Row), $tblPerson->PhoneFather);
 
                 $Row++;
             }
@@ -343,12 +383,20 @@ class Service
 
         if (!empty( $studentList )) {
 
+            foreach ($studentList as $key => $row) {
+                $lastName[$key] = strtoupper($row->getLastName());
+                $firstName[$key] = strtoupper($row->getFirstName());
+                $id[$key] = $row->getId();
+            }
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
+
             $Man = 0;
             $Woman = 0;
             $All = 0;
 
             foreach ($studentList as $tblPerson) {
                 $All++;
+                $tblPerson->Number = $All;
                 $tblPerson->Name = $tblPerson->getLastName().', '.$tblPerson->getFirstName();
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
@@ -428,21 +476,23 @@ class Service
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Name, Vorname");
-            $export->setValue($export->getCell("1", "0"), "Anschrift");
-            $export->setValue($export->getCell("2", "0"), "Geburtsort");
-            $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("4", "0"), "Alter");
+            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
+            $export->setValue($export->getCell("1", "0"), "Name, Vorname");
+            $export->setValue($export->getCell("2", "0"), "Anschrift");
+            $export->setValue($export->getCell("3", "0"), "Geburtsort");
+            $export->setValue($export->getCell("4", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("5", "0"), "Alter");
 
             $Row = 1;
 
             foreach ($studentList as $tblPerson) {
 
-                $export->setValue($export->getCell("0", $Row), $tblPerson->Name);
-                $export->setValue($export->getCell("1", $Row), $tblPerson->Address);
-                $export->setValue($export->getCell("2", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("3", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->Age);
+                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
+                $export->setValue($export->getCell("1", $Row), $tblPerson->Name);
+                $export->setValue($export->getCell("2", $Row), $tblPerson->Address);
+                $export->setValue($export->getCell("3", $Row), $tblPerson->Birthplace);
+                $export->setValue($export->getCell("4", $Row), $tblPerson->Birthday);
+                $export->setValue($export->getCell("5", $Row), $tblPerson->Age);
 
                 $Row++;
             }
@@ -476,12 +526,21 @@ class Service
 
         if (!empty( $studentList )) {
 
+            foreach ($studentList as $key => $row) {
+                $lastName[$key] = strtoupper($row->getLastName());
+                $firstName[$key] = strtoupper($row->getFirstName());
+                $id[$key] = $row->getId();
+            }
+            array_multisort($lastName, SORT_ASC, $firstName, SORT_ASC, $studentList);
+
             $Man = 0;
             $Woman = 0;
             $All = 0;
 
             foreach ($studentList as $tblPerson) {
+
                 $All++;
+                $tblPerson->Number = $All;
                 $tblCommon = Common::useService()->getCommonByPerson($tblPerson);
                 if ($tblCommon) {
                     if ($tblCommon->getTblCommonBirthDates()->getGender() === 1) {
@@ -523,7 +582,10 @@ class Service
                 } else {
                     $tblPerson->Birthday = $tblPerson->Birthplace = '';
                 }
-                $tblPerson->MedicalInsurance = $tblPerson->getId(); //ToDO Krankenkasse
+
+                $krankenkassen = array('AOK', 'BKK', 'Barmer', 'TKK', 'DAK', 'Signal-Iduna', 'LKK', 'IKK', 'KKH', 'TK');
+                shuffle($krankenkassen);
+                $tblPerson->MedicalInsurance = $krankenkassen[0]; //ToDO Krankenkasse
 
                 $father = null;
                 $mother = null;
@@ -613,17 +675,18 @@ class Service
             $fileLocation = Storage::useWriter()->getTemporary('xls');
             /** @var PhpExcel $export */
             $export = Document::getDocument($fileLocation->getFileLocation());
-            $export->setValue($export->getCell("0", "0"), "Name, Vorname");
-            $export->setValue($export->getCell("1", "0"), "Anschrift");
-            $export->setValue($export->getCell("2", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("2", "1"), "Geburtsort");
-            $export->setValue($export->getCell("3", "0"), "Krankenkasse");
-            $export->setValue($export->getCell("4", "0"), "1. Sorgeberechtigter");
-            $export->setValue($export->getCell("4", "1"), "2. Sorgeberechtigter");
-            $export->setValue($export->getCell("5", "0"), "Telefon");
-            $export->setValue($export->getCell("5", "1"), "Schüler");
+            $export->setValue($export->getCell("0", "0"), "lfd. Nr.");
+            $export->setValue($export->getCell("1", "0"), "Name, Vorname");
+            $export->setValue($export->getCell("2", "0"), "Anschrift");
+            $export->setValue($export->getCell("3", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("3", "1"), "Geburtsort");
+            $export->setValue($export->getCell("4", "0"), "Krankenkasse");
+            $export->setValue($export->getCell("5", "0"), "1. Sorgeberechtigter");
+            $export->setValue($export->getCell("5", "1"), "2. Sorgeberechtigter");
             $export->setValue($export->getCell("6", "0"), "Telefon");
-            $export->setValue($export->getCell("6", "1"), "Sorgeberechtigte");
+            $export->setValue($export->getCell("6", "1"), "Schüler");
+            $export->setValue($export->getCell("7", "0"), "Telefon");
+            $export->setValue($export->getCell("7", "1"), "Sorgeberechtigte");
 
             $Row = 2;
 
@@ -653,27 +716,28 @@ class Service
                     $count = count($PhoneGuardianNumber);
                 }
 
+                $export->setValue($export->getCell("0", $Row), $tblPerson->Number);
                 for ($i = 0; $i < $count; $i++) {
                     if (isset( $Name[$i] )) {
-                        $export->setValue($export->getCell("0", $Row), $Name[$i]);
+                        $export->setValue($export->getCell("1", $Row), $Name[$i]);
                     }
                     if (isset( $Address[$i] )) {
-                        $export->setValue($export->getCell("1", $Row), $Address[$i]);
+                        $export->setValue($export->getCell("2", $Row), $Address[$i]);
                     }
                     if (isset( $Birthday[$i] )) {
-                        $export->setValue($export->getCell("2", $Row), $Birthday[$i]);
+                        $export->setValue($export->getCell("3", $Row), $Birthday[$i]);
                     }
                     if (isset( $KK[$i] )) {
-                        $export->setValue($export->getCell("3", $Row), $KK[$i]);
+                        $export->setValue($export->getCell("4", $Row), $KK[$i]);
                     }
                     if (isset( $Guardian[$i] )) {
-                        $export->setValue($export->getCell("4", $Row), $Guardian[$i]);
+                        $export->setValue($export->getCell("5", $Row), $Guardian[$i]);
                     }
                     if (isset( $PhoneNumber[$i] )) {
-                        $export->setValue($export->getCell("5", $Row), $PhoneNumber[$i]);
+                        $export->setValue($export->getCell("6", $Row), $PhoneNumber[$i]);
                     }
                     if (isset( $PhoneGuardianNumber[$i] )) {
-                        $export->setValue($export->getCell("6", $Row), $PhoneGuardianNumber[$i]);
+                        $export->setValue($export->getCell("7", $Row), $PhoneGuardianNumber[$i]);
                     }
                     $Row++;
                 }

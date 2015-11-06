@@ -88,14 +88,17 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new TableData($studentList, null,
                 array(
+                    'Number'        => 'lfd. Nr.',
                     'Name'          => 'Name, Vorname',
                     'Gender'        => 'Geschlecht',
                     'Address'       => 'Adresse',
                     'Birthday'      => 'Geburtsdatum',
                     'Birthplace'    => 'Geburtsort',
                     'StudentNumber' => 'Schülernummer',
-                    'PhoneMother'   => 'Tel. Mutter',
-                    'PhoneFather'   => 'Tel. Vater',
+                    'Mother'        => 'Sorgeberechtigte',
+                    'PhoneMother'   => 'Tel. Sorgeber.',
+                    'Father'        => 'Sorgeberechtigter',
+                    'PhoneFather'   => 'Tel. Sorgeber.',
                 ),
                 false
             ).
@@ -141,6 +144,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new TableData($studentList, null,
                 array(
+                    'Number'     => 'lfd. Nr.',
                     'Name'       => 'Name, Vorname',
                     'Address'    => 'Anschrift',
                     'Birthplace' => 'Geburtsort',
@@ -191,6 +195,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Stage->setContent(
             new TableData($studentList, null,
                 array(
+                    'Number'              => 'lfd. Nr.',
                     'Name'                => 'Name,<br/>Vorname',
                     'Address'             => 'Anschrift',
                     'Birthday'            => 'Geburtsdatum<br/>Geburtsort',
