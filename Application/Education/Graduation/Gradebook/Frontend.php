@@ -152,11 +152,9 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param $DivisionId
      * @param $SubjectId
-     * @param $Data
-     * @param $EditId
      * @return string
      */
-    public function frontendSelectedGradeBook($DivisionId, $SubjectId, $EditId, $Data, $GradeData)
+    public function frontendSelectedGradeBook($DivisionId, $SubjectId)
     {
         $Stage = new Stage('Zensuren', 'Notenbuch');
 
@@ -165,21 +163,15 @@ class Frontend extends Extension implements IFrontendInterface
         $tblYear = $tblDivision->getServiceTblYear();
         $tblPeriodList = Term::useService()->getPeriodAllByYear($tblYear);
         $tblStudentList = Division::useService()->getStudentAllByDivision($tblDivision);
-        $tblGradeTypeList = Gradebook::useService()->getGradeTypeAll();
 
         $rowList = array();
         $columnList[] = new LayoutColumn(new Title(new Bold('Sch&uuml;ler')), 2);
         if ($tblPeriodList) {
             $width = floor(10 / count($tblPeriodList));
-            $editColumn = 0;
             $count = 1;
             foreach ($tblPeriodList as $tblPeriod) {
                 $columnList[] = new LayoutColumn(
                     new Title(new Bold($tblPeriod->getName()))
-//                    . Gradebook::useService()->createGrades(new Form(new FormGroup(new FormRow(new FormColumn(array(
-//                        new SelectBox('GradeType', '', array('Name' => $tblGradeTypeList))
-//                    )))), new Primary('Hinzuf&uuml;gen', new Plus())
-//                    ), $GradeType, $tblStudentList, $tblSubject, $tblPeriod)
                     , $width
                 );
             }
@@ -193,22 +185,8 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($gradeList) {
                         $columnSubList = array();
                         foreach ($gradeList as $grade) {
-                            if ($EditId == $grade->getId()) {
-                                $editColumn = $count;
-                            }
                             $columnSubList[] = new LayoutColumn(
-                                $editColumn != $count
-                                    ? new \SPHERE\Common\Frontend\Link\Repository\Primary(
-                                    $grade->getTblGradeType()->getCode(),
-                                    '/Education/Graduation/Gradebook/Selected',
-                                    null,
-                                    array(
-                                        'DivisionId' => $tblDivision->getId(),
-                                        'SubjectId' => $tblSubject->getId(),
-                                        'EditId' => $grade->getId()
-                                    )
-                                )
-                                    : new Header(
+                                new Header(
                                     $grade->getTblGradeType()->getIsHighlighted()
                                         ? new Bold($grade->getTblGradeType()->getCode()) : $grade->getTblGradeType()->getCode())
                                 , 1);
@@ -235,16 +213,9 @@ class Frontend extends Extension implements IFrontendInterface
                             $columnSubList = array();
                             foreach ($gradeList as $grade) {
                                 $columnSubList[] = new LayoutColumn(
-                                    $editColumn == $count
-                                        ? Gradebook::useService()->updateGrade(
-                                        new Form(new FormGroup(new FormRow(new FormColumn(
-                                            new TextField('GradeData[' . $grade->getId() . ']', $grade->getGrade())
-                                        )))), $grade->getId(), $GradeData
-                                    )
-                                        : new Container($grade->getTblGradeType()->getIsHighlighted()
+                                    new Container($grade->getTblGradeType()->getIsHighlighted()
                                         ? new Bold($grade->getGrade()) : $grade->getGrade())
                                     , 1);
-
                                 $count++;
                             }
                             $columnList[] = new LayoutColumn(new Layout(new LayoutGroup(new LayoutRow($columnSubList))),
@@ -269,20 +240,20 @@ class Frontend extends Extension implements IFrontendInterface
                     Panel::PANEL_TYPE_SUCCESS), 6
             )
         ))))
-        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
-            Gradebook::useService()->createGrades(new Form(new FormGroup(new FormRow(array(
-                    new FormColumn(
-                        new SelectBox('Data[Period]', '', array('Name' => $tblPeriodList)), 2
-                    ),
-                    new FormColumn(
-                        new SelectBox('Data[GradeType]', '', array('Name' => $tblGradeTypeList)), 2
-                    ),
-                    new FormColumn(
-                        new Primary('Hinzuf&uuml;gen', new Plus()), 2
-                    )
-                )))
-            ), $Data, $tblStudentList, $tblSubject, $tblDivision)
-        )), new Title('Neue Zensur hinzuf&uuml;gen')))
+//        . new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn(
+//            Gradebook::useService()->createGrades(new Form(new FormGroup(new FormRow(array(
+//                    new FormColumn(
+//                        new SelectBox('Data[Period]', '', array('Name' => $tblPeriodList)), 2
+//                    ),
+//                    new FormColumn(
+//                        new SelectBox('Data[GradeType]', '', array('Name' => $tblGradeTypeList)), 2
+//                    ),
+//                    new FormColumn(
+//                        new Primary('Hinzuf&uuml;gen', new Plus()), 2
+//                    )
+//                )))
+//            ), $Data, $tblStudentList, $tblSubject, $tblDivision)
+//        )), new Title('Neue Zensur hinzuf&uuml;gen')))
         . new Layout(new LayoutGroup($rowList));
     }
 
@@ -355,6 +326,9 @@ class Frontend extends Extension implements IFrontendInterface
         return $Stage;
     }
 
+    /**
+     * @return Form
+     */
     private function formTest()
     {
         $tblGradeTypeList = Gradebook::useService()->getGradeTypeAll();
