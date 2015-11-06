@@ -22,10 +22,10 @@ class Gradebook implements IModuleInterface
             new Link(new Link\Route(__NAMESPACE__ . '\GradeType'), new Link\Name('Zensuren-Typen'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Select'), new Link\Name('Notenbuch'))
+            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'))
         );
         Main::getDisplay()->addModuleNavigation(
-            new Link(new Link\Route(__NAMESPACE__ . '\Test'), new Link\Name('Test'))
+            new Link(new Link\Route(__NAMESPACE__ . '\Select'), new Link\Name('Notenbuch'))
         );
 
         Main::getDispatcher()->registerRoute(
@@ -64,9 +64,16 @@ class Gradebook implements IModuleInterface
         );
         Main::getDispatcher()->registerRoute(
             Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Edit',
-                __NAMESPACE__ . '\Frontend::frontendUpdateTest')
+                __NAMESPACE__ . '\Frontend::frontendEditTest')
                 ->setParameterDefault('Id', null)
                 ->setParameterDefault('Test', null)
+        );
+
+        Main::getDispatcher()->registerRoute(
+            Main::getDispatcher()->createRoute(__NAMESPACE__ . '\Test\Grade\Edit',
+                __NAMESPACE__ . '\Frontend::frontendEditTestGrade')
+                ->setParameterDefault('Id', null)
+                ->setParameterDefault('Grade', null)
         );
     }
 

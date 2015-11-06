@@ -253,9 +253,9 @@ class Data extends AbstractData
         $Entity->setServiceTblPeriod($tblPeriod);
         $Entity->setTblGradeType($tblGradeType);
         $Entity->setDescription($Description);
-        $Entity->setDate($Date? new \DateTime($Date) : null);
-        $Entity->setCorrectionDate($CorrectionDate? new \DateTime($CorrectionDate) : null);
-        $Entity->setReturnDate($ReturnDate? new \DateTime($ReturnDate) : null);
+        $Entity->setDate($Date ? new \DateTime($Date) : null);
+        $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
+        $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
 
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
@@ -298,9 +298,9 @@ class Data extends AbstractData
             $Entity->setServiceTblPeriod($tblPeriod);
             $Entity->setTblGradeType($tblGradeType);
             $Entity->setDescription($Description);
-            $Entity->setDate($Date? new \DateTime($Date) : null);
-            $Entity->setCorrectionDate($CorrectionDate? new \DateTime($CorrectionDate) : null);
-            $Entity->setReturnDate($ReturnDate? new \DateTime($ReturnDate) : null);
+            $Entity->setDate($Date ? new \DateTime($Date) : null);
+            $Entity->setCorrectionDate($CorrectionDate ? new \DateTime($CorrectionDate) : null);
+            $Entity->setReturnDate($ReturnDate ? new \DateTime($ReturnDate) : null);
 
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
@@ -310,4 +310,58 @@ class Data extends AbstractData
 
         return false;
     }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblPerson $tblPerson
+     * @param string $Grade
+     * @param string $Comment
+     * @return null|TblGradeStudentSubjectLink
+     */
+    public function createGradeToTest(
+        TblTest $tblTest,
+        TblPerson $tblPerson,
+        $Grade = '',
+        $Comment = ''
+    ) {
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblGradeStudentSubjectLink')
+            ->findOneBy(array(
+                TblGradeStudentSubjectLink::ATTR_TBL_TEST => $tblTest->getId(),
+                TblGradeStudentSubjectLink::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId(),
+            ));
+
+        if (null === $Entity) {
+            $Entity = new TblGradeStudentSubjectLink();
+            $Entity->setTblTest($tblTest);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Entity->setServiceTblDivision($tblTest->getServiceTblDivision());
+            $Entity->setServiceTblSubject($tblTest->getServiceTblSubject());
+            $Entity->setServiceTblPeriod($tblTest->getServiceTblPeriod());
+            $Entity->setTblGradeType($tblTest->getTblGradeType());
+            $Entity->setGrade($Grade);
+            $Entity->setComment($Comment);
+
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+
+        return $Entity;
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @return TblGradeStudentSubjectLink[]|bool
+     */
+    public function getGradeAllByTest(TblTest $tblTest)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGradeStudentSubjectLink')->findBy(array(
+            TblGradeStudentSubjectLink::ATTR_TBL_TEST => $tblTest->getId()
+        ));
+
+        return empty($EntityList) ? false : $EntityList;
+    }
+
 }

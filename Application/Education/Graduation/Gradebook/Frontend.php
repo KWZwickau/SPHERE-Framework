@@ -2,6 +2,7 @@
 
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeStudentSubjectLink;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
@@ -18,6 +19,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
+use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Container;
@@ -89,7 +91,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Form = $this->formGradeType()
             ->appendFormButton(new Primary('Anlegen'))
-            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            ->setConfirm('Eventuelle Ã„nderungen wurden noch nicht gespeichert');
         $Stage->setContent(Gradebook::useService()->createGradeType($Form, $GradeType));
 
         return $Stage;
@@ -290,7 +292,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendTest()
     {
 
-        $Stage = new Stage('Zensuren', 'Test');
+        $Stage = new Stage('Zensuren', 'Test-Ãœbersicht');
         $Stage->addButton(
             new Standard('Test anlegen', '/Education/Graduation/Gradebook/Test/Create', new Plus())
         );
@@ -302,8 +304,10 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblTest->Subject = $tblTest->getServiceTblSubject()->getName();
                 $tblTest->Period = $tblTest->getServiceTblPeriod()->getName();
                 $tblTest->GradeType = $tblTest->getTblGradeType()->getName();
-                $tblTest->Option = new Standard('', '/Education/Graduation/Gradebook/Test/Edit', new Pencil(),
-                    array('Id' => $tblTest->getId()), 'Bearbeiten');
+                $tblTest->Option = (new Standard('', '/Education/Graduation/Gradebook/Test/Edit', new Pencil(),
+                        array('Id' => $tblTest->getId()), 'Test bearbeiten'))
+                    . (new Standard('', '/Education/Graduation/Gradebook/Test/Grade/Edit', new PersonGroup(),
+                        array('Id' => $tblTest->getId()), 'Noten bearbeiten'));
             });
         }
 
@@ -345,7 +349,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Form = $this->formTest()
             ->appendFormButton(new Primary('Anlegen'))
-            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+            ->setConfirm('Eventuelle Ã„nderungen wurden noch nicht gespeichert');
         $Stage->setContent(Gradebook::useService()->createTest($Form, $Test));
 
         return $Stage;
@@ -400,9 +404,9 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage|string
      */
-    public function frontendUpdateTest($Id, $Test)
+    public function frontendEditTest($Id, $Test)
     {
-        $Stage = new Stage('Zensuren', 'Zensuren-Typ anlegen');
+        $Stage = new Stage('Zensuren', 'Test bearbeiten');
 
         $tblTest = Gradebook::useService()->getTestById($Id);
         if ($tblTest) {
@@ -425,13 +429,95 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Form = $this->formTest()
                 ->appendFormButton(new Primary('Speichern'))
-                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+                ->setConfirm('Eventuelle Ã„nderungen wurden noch nicht gespeichert');
             $Stage->setContent(Gradebook::useService()->updateTest($Form, $tblTest->getId(), $Test));
 
             return $Stage;
         } else {
+
             return new Warning('Test nicht gefunden')
             . new Redirect('/Education/Graduation/Gradebook/Test', 2);
         }
+    }
+
+    /**
+     * @param $Id
+     * @param $Grade
+     *
+     * @return Stage|string
+     */
+    public function frontendEditTestGrade($Id, $Grade)
+    {
+
+        $Stage = new Stage('Zensuren', 'Zensuren eines Tests bearbeiten');
+
+        $tblTest = Gradebook::useService()->getTestById($Id);
+        if ($tblTest) {
+
+            $Stage->addButton(
+                new Standard('Zur&uuml;ck', '/Education/Graduation/Gradebook/Test', new ChevronLeft())
+            );
+
+            $gradeList = Gradebook::useService()->getGradeAllByTest($tblTest);
+            if ($gradeList) {
+                $Global = $this->getGlobal();
+                /** @var TblGradeStudentSubjectLink $grade */
+                foreach ($gradeList as $grade) {
+                    $grade->Student = $grade->getServiceTblPerson()->getFullName();
+                    $grade->Grades = new TextField('Grade[' . $grade->getId() . '][Grade]', '', '');
+                    $grade->Comments = new TextField('Grade[' . $grade->getId() . '][Comment]', '', '');
+
+                    if (empty($Grade)) {
+                        $Global->POST['Grade'][$grade->getId()]['Grade'] = $grade->getGrade();
+                        $Global->POST['Grade'][$grade->getId()]['Comment'] = $grade->getComment();
+                    }
+                }
+                $Global->savePost();
+
+                $Stage->setContent(
+                    new Layout(array(
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    new Panel('Test', $tblTest->getId(),
+                                        Panel::PANEL_TYPE_SUCCESS), 3
+                                ),
+                            )),
+                        )),
+                        new LayoutGroup(array(
+                            new LayoutRow(array(
+                                new LayoutColumn(
+                                    Gradebook::useService()->updateGradeToTest(
+                                        new Form(
+                                            new FormGroup(array(
+                                                new FormRow(
+                                                    new FormColumn(
+                                                        new TableData(
+                                                            $gradeList, null, array(
+                                                            'Student' => 'SchÃ¼ler',
+                                                            'Grades' => 'Zensur',
+                                                            'Comments' => 'Kommentar'
+                                                        ), false)
+                                                    )
+                                                ),
+                                            ))
+                                            , new Primary('Speichern'))
+                                        , $Grade
+                                    )
+                                )
+                            ))
+                        )),
+                    ))
+                );
+
+                return $Stage;
+            }
+        } else {
+
+            return new Warning('Test nicht gefunden')
+            . new Redirect('/Education/Graduation/Gradebook/Test', 2);
+        }
+
+        return $Stage;
     }
 }

@@ -3,6 +3,8 @@
 namespace SPHERE\Application\Education\Graduation\Gradebook;
 
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Data;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblGradeStudentSubjectLink;
+use SPHERE\Application\Education\Graduation\Gradebook\Service\Entity\TblTest;
 use SPHERE\Application\Education\Graduation\Gradebook\Service\Setup;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
@@ -248,7 +250,7 @@ class Service extends AbstractService
             return $Stage;
         }
 
-        (new Data($this->getBinding()))->createTest(
+        $tblTest = (new Data($this->getBinding()))->createTest(
             Division::useService()->getDivisionById($Test['Division']),
             Subject::useService()->getSubjectById($Test['Subject']),
             Term::useService()->getPeriodById($Test['Period']),
@@ -257,15 +259,25 @@ class Service extends AbstractService
             $Test['Date'],
             $Test['CorrectionDate'],
             $Test['ReturnDate']
-            );
+        );
+
+        if ($tblTest) {
+            $studentList = Division::useService()->getStudentAllByDivision($tblTest->getServiceTblDivision());
+            if ($studentList) {
+                foreach ($studentList as $tblPerson) {
+                    $this->createGradeToTest($tblTest, $tblPerson);
+                }
+            }
+        }
 
         return new Stage('Der Test ist erfasst worden')
-            . new Redirect('/Education/Graduation/Gradebook/Test', 0);
+        . new Redirect('/Education/Graduation/Gradebook/Test', 0);
 
     }
 
     /**
      * @param IFormInterface|null $Stage
+     * @param $Id
      * @param $Test
      *
      * @return IFormInterface|Redirect
@@ -290,6 +302,53 @@ class Service extends AbstractService
             $Test['CorrectionDate'],
             $Test['ReturnDate']
         );
+
+        return new Redirect('/Education/Graduation/Gradebook/Test', 0);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @param TblPerson $tblPerson
+     * @param string $Grade
+     * @param string $Comment
+     *
+     * @return null|Service\Entity\TblGradeStudentSubjectLink
+     */
+    public function createGradeToTest(
+        TblTest $tblTest,
+        TblPerson $tblPerson,
+        $Grade = '',
+        $Comment = ''
+    ) {
+        return (new Data($this->getBinding()))->createGradeToTest($tblTest, $tblPerson, $Grade, $Comment);
+    }
+
+    /**
+     * @param TblTest $tblTest
+     * @return TblGradeStudentSubjectLink[]|bool
+     */
+    public function getGradeAllByTest(TblTest $tblTest)
+    {
+        return (new Data($this->getBinding()))->getGradeAllByTest($tblTest);
+    }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param $Grade
+     * @return IFormInterface|Redirect
+     */
+    public function updateGradeToTest(IFormInterface $Stage = null, $Grade)
+    {
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Grade) {
+            return $Stage;
+        }
+
+        foreach ($Grade as $key => $value) {
+            (new Data($this->getBinding()))->updateGrade($this->getGradeById($key), $value['Grade'], $value['Comment']);
+        }
 
         return new Redirect('/Education/Graduation/Gradebook/Test', 0);
     }
