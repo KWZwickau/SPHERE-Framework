@@ -849,16 +849,14 @@ class Service
                 } else {
                     $tblPerson->MobilPhoneNumber = '';
                 }
-                $mailAddressList = Mail::useService()->getMailAllByPerson( $tblPerson );
+                $mailAddressList = Mail::useService()->getMailAllByPerson($tblPerson);
                 $mailList = array();
-                foreach($mailAddressList as $mailAddress)
-                {
+                foreach ($mailAddressList as $mailAddress) {
                     $mailList[] = $mailAddress->getTblMail()->getAddress();
                 }
-                if(count($mailList) >= 1)
-                {
+                if (count($mailList) >= 1) {
                     $tblPerson->Mail = $mailList[0];
-                } else{
+                } else {
                     $tblPerson->Mail = '';
                 }
             }
@@ -878,7 +876,7 @@ class Service
      * @throws \MOC\V\Component\Document\Component\Exception\Repository\TypeFileException
      * @throws \MOC\V\Component\Document\Exception\DocumentTypeException
      */
-    public function createEmployeeListExcel( $employeeList )
+    public function createEmployeeListExcel($employeeList)
     {
 
         if (!empty( $employeeList )) {

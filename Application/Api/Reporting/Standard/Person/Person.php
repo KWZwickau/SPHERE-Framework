@@ -72,6 +72,4 @@ class Person
         return FileSystem::getDownload($fileLocation->getRealPath(), "Krankenkasse_Klassenliste ".date('Y-m-d H:i:s').".xls")->__toString();
     }
 
-
-
 }
