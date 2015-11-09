@@ -185,6 +185,17 @@ class Service extends AbstractService
     }
 
     /**
+     * @param string $Id
+     *
+     * @return bool|TblPeriod
+     */
+    public function getPeriodById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getPeriodById($Id);
+    }
+
+    /**
      * @param int $Id
      *
      * @return bool|TblYear

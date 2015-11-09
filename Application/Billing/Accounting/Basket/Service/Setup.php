@@ -8,12 +8,12 @@ use SPHERE\System\Database\Binding\AbstractSetup;
 
 /**
  * Class Setup
- *
+ * 
  * @package SPHERE\Application\Billing\Accounting\Basket\Service
  */
 class Setup extends AbstractSetup
 {
-
+    
     /**
      * @param bool $Simulate
      *

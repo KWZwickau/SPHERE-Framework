@@ -23,7 +23,6 @@ use SPHERE\Common\Frontend\Icon\Repository\Minus;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Plus;
 use SPHERE\Common\Frontend\Icon\Repository\Quantity;
-use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
@@ -75,11 +74,11 @@ class Frontend extends Extension implements IFrontendInterface
                     (new Standard('Artikel auswählen', '/Billing/Inventory/Commodity/Item/Select',
                         new Listing(), array(
                             'Id' => $tblCommodity->getId()
-                        )))->__toString().
-                    (new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',
-                        new Remove(), array(
-                            'Id' => $tblCommodity->getId()
                         )))->__toString();
+//                    .(new Standard('Löschen', '/Billing/Inventory/Commodity/Destroy',     //ToDo bad result for continue
+//                        new Remove(), array(
+//                            'Id' => $tblCommodity->getId()
+//                        )))->__toString();
             });
         }
 

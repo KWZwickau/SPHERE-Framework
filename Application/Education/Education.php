@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\Education;
 
+use SPHERE\Application\Education\Graduation\Graduation;
 use SPHERE\Application\Education\Lesson\Lesson;
 use SPHERE\Application\Education\School\School;
 use SPHERE\Application\IClusterInterface;
@@ -21,6 +22,7 @@ class Education implements IClusterInterface
 
         School::registerApplication();
         Lesson::registerApplication();
+        Graduation::registerApplication();
 
         Main::getDisplay()->addClusterNavigation(
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Bildung'))

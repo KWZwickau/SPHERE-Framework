@@ -69,21 +69,57 @@ class TblBasketItem extends Element
     }
 
     /**
-     * @return (type="decimal", precision=14, scale=4)
+     * @return string
      */
-    public function getPrice()
+    public function getPriceString()
     {
 
-        return $this->Price;
+        $result = sprintf("%01.4f", $this->Price);
+        return str_replace('.', ',', $result)." €";
     }
 
     /**
-     * @param (type="decimal", precision=14, scale=4) $Price
+     * @param null|TblBasket $tblBasket
      */
-    public function setPrice($Price)
+    public function setTblBasket($tblBasket = null)
     {
 
-        $this->Price = $Price;
+        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
+    }
+
+    /**
+     * @return bool|TblBasket
+     */
+    public function getTblBasket()
+    {
+
+        if (null === $this->tblBasket) {
+            return false;
+        } else {
+            return Basket::useService()->getBasketById($this->tblBasket);
+        }
+    }
+
+    /**
+     * @param null|TblCommodityItem $serviceBilling_CommodityItem
+     */
+    public function setServiceBillingCommodityItem($serviceBilling_CommodityItem = null)
+    {
+
+        $this->serviceBilling_CommodityItem = ( null === $serviceBilling_CommodityItem ? null : $serviceBilling_CommodityItem->getId() );
+    }
+
+    /**
+     * @return bool|TblCommodityItem
+     */
+    public function getServiceBillingCommodityItem()
+    {
+
+        if (null === $this->serviceBilling_CommodityItem) {
+            return false;
+        } else {
+            return Commodity::useService()->getCommodityItemById($this->serviceBilling_CommodityItem);
+        }
     }
 
     /**
@@ -105,56 +141,20 @@ class TblBasketItem extends Element
     }
 
     /**
-     * @return string
+     * @return (type="decimal", precision=14, scale=4)
      */
-    public function getPriceString()
+    public function getPrice()
     {
 
-        $result = sprintf("%01.4f", $this->Price);
-        return str_replace('.', ',', $result)." €";
+        return $this->Price;
     }
 
     /**
-     * @return bool|TblBasket
+     * @param (type="decimal", precision=14, scale=4) $Price
      */
-    public function getTblBasket()
+    public function setPrice($Price)
     {
 
-        if (null === $this->tblBasket) {
-            return false;
-        } else {
-            return Basket::useService()->getBasketById($this->tblBasket);
-        }
-    }
-
-    /**
-     * @param null|TblBasket $tblBasket
-     */
-    public function setTblBasket($tblBasket = null)
-    {
-
-        $this->tblBasket = ( null === $tblBasket ? null : $tblBasket->getId() );
-    }
-
-    /**
-     * @return bool|TblCommodityItem
-     */
-    public function getServiceBillingCommodityItem()
-    {
-
-        if (null === $this->serviceBilling_CommodityItem) {
-            return false;
-        } else {
-            return Commodity::useService()->getCommodityItemById($this->serviceBilling_CommodityItem);
-        }
-    }
-
-    /**
-     * @param null|TblCommodityItem $serviceBilling_CommodityItem
-     */
-    public function setServiceBillingCommodityItem($serviceBilling_CommodityItem = null)
-    {
-
-        $this->serviceBilling_CommodityItem = ( null === $serviceBilling_CommodityItem ? null : $serviceBilling_CommodityItem->getId() );
+        $this->Price = $Price;
     }
 }

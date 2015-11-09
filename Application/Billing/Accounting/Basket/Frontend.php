@@ -306,7 +306,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Options = true;
         if (!empty( $tblCommodityAll )) {
-            if (empty( Basket::useService()->getCommodityAllByBasket($tblBasket) )) {
+            if(empty( Basket::useService()->getCommodityAllByBasket($tblBasket))) {
                 /** @noinspection PhpUnusedParameterInspection */
                 array_walk($tblCommodityAll, function (TblCommodity $tblCommodity, $Index, TblBasket $tblBasket) {
 
@@ -320,7 +320,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 'CommodityId' => $tblCommodity->getId()
                             )))->__toString();
                 }, $tblBasket);
-            } else {
+            } else{
                 array_walk($tblCommodityAll, function (TblCommodity $tblCommodity) {
 
                     $tblCommodity->Type = $tblCommodity->getTblCommodityType()->getName();
@@ -366,7 +366,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )),
                 ), new Title('zugewiesene Leistungen')),
-                ( $Options ) ?
+                ($Options)?
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(array(
@@ -385,22 +385,22 @@ class Frontend extends Extension implements IFrontendInterface
                     )),
                 ), new Title('mögliche Leistungen'))
                     :
-                    new LayoutGroup(array(
-                        new LayoutRow(array(
-                            new LayoutColumn(array(
-                                    new TableData($tblCommodityAll, null,
-                                        array(
-                                            'Name'         => 'Name',
-                                            'Description'  => 'Beschreibung',
-                                            'Type'         => 'Leistungsart',
-                                            'ItemCount'    => 'Artikelanzahl',
-                                            'SumPriceItem' => 'Gesamtpreis',
-                                        )
+                new LayoutGroup(array(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                                new TableData($tblCommodityAll, null,
+                                    array(
+                                        'Name'         => 'Name',
+                                        'Description'  => 'Beschreibung',
+                                        'Type'         => 'Leistungsart',
+                                        'ItemCount'    => 'Artikelanzahl',
+                                        'SumPriceItem' => 'Gesamtpreis',
                                     )
                                 )
                             )
-                        )),
-                    ), new Title('mögliche Leistungen'))
+                        )
+                    )),
+                ), new Title('mögliche Leistungen'))
             ))
         );
 
@@ -826,7 +826,7 @@ class Frontend extends Extension implements IFrontendInterface
         $Result = 0.00;
         foreach ($tblBasketItemAll as $tblBasketItem) {
             if ($tblBasketItem->getServiceBillingCommodityItem()->getTblCommodity()->getTblCommodityType()->getName() === 'Sammelleistung') {
-                $Numerator = count($tblPersonByBasketList);
+                $Numerator = count( $tblPersonByBasketList );
 
                 $Result = ( ( $tblBasketItem->getPrice() * $tblBasketItem->getQuantity() ) / $Numerator ) + $Result;
             } else {
@@ -871,7 +871,8 @@ class Frontend extends Extension implements IFrontendInterface
                 ), new Title('Artikel')),
                 new LayoutGroup(array(
                     new LayoutRow(array(
-                        new LayoutColumn(array(), 8),
+                        new LayoutColumn(array(
+                        ),8),
                         new LayoutColumn(array(
                             new Panel('Preis pro Person: '.$Result.' €', '', Panel::PANEL_TYPE_PRIMARY)
                         ), 3)
