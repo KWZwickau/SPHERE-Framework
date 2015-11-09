@@ -6,7 +6,8 @@ use SPHERE\Application\Document\Designer\Repository\Element\Element;
 use SPHERE\Application\Document\Designer\Repository\Element\Page;
 use SPHERE\Application\Document\Designer\Repository\Repository;
 use SPHERE\Application\IApplicationInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Affix;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -49,11 +50,14 @@ class Designer implements IApplicationInterface
         Style::getManager()->setSource('/Application/Document/Designer/Designer.css');
         Script::getManager()->setSource('SDD.Document', '/Application/Document/Designer/Gui/Document.js',
             "'undefined' !== typeof jQuery.fn.SDDDocument");
+        Script::getManager()->setSource('SDD.Panel', '/Application/Document/Designer/Gui/Panel.js',
+            "'undefined' !== typeof jQuery.fn.SDDPanel");
         Script::getManager()->setSource('SDD.Page', '/Application/Document/Designer/Gui/Page.js',
             "'undefined' !== typeof jQuery.fn.SDDPage");
         Script::getManager()->setSource('SDD.Element', '/Application/Document/Designer/Gui/Element.js',
             "'undefined' !== typeof jQuery.fn.SDDElement");
-        Script::getManager()->setModule('ModSDDGui', array('SDD.Element', 'SDD.Page', 'SDD.Document', 'jQuery'));
+        Script::getManager()->setModule('ModSDDGui',
+            array('SDD.Element', 'SDD.Page', 'SDD.Panel', 'SDD.Document', 'jQuery'));
 
         $Stage->setContent(
             new Layout(
@@ -61,6 +65,15 @@ class Designer implements IApplicationInterface
                     new LayoutRow(array(
                         new LayoutColumn(array(
                             new Document(array(
+                                new \SPHERE\Application\Document\Designer\Repository\Panel\Repository(
+
+                                    new Panel('Elemente', array(
+                                        new PullClear(new Element(
+                                            'Element Z'
+                                        ))
+                                    ))
+
+                                ),
                                 new Page(array(
                                     new Element('Element A'),
                                     new Element('Element B')
@@ -69,7 +82,7 @@ class Designer implements IApplicationInterface
                                 new Page(
                                     new Element('Element C')
                                 )
-                            ))
+                            )),
                         )),
                     ))
                 )

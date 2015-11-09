@@ -2,6 +2,8 @@
 namespace SPHERE\Application\People\Meta\Student\Service;
 
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferArrive;
@@ -23,6 +25,63 @@ class Data extends AbstractData
     public function setupDatabaseContent()
     {
 
+        $this->createStudentAgreementCategory(
+            'Foto des Schülers',
+            'Sowohl Einzelaufnahmen als auch in Gruppen (z.B. zufällig)'
+        );
+        $this->createStudentAgreementType('in Schulschriften');
+        $this->createStudentAgreementType('in Veröffentlichungen');
+        $this->createStudentAgreementType('auf Internetpräsenz');
+        $this->createStudentAgreementType('auf Facebookseite');
+        $this->createStudentAgreementType('für Druckpresse');
+        $this->createStudentAgreementType('durch Ton/Video/Film');
+        $this->createStudentAgreementType('für Werbung in eigener Sache');
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblStudentAgreementCategory
+     */
+    public function createStudentAgreementCategory($Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentAgreementCategory')->findOneBy(array(
+            TblStudentAgreementCategory::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblStudentAgreementCategory();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
+
+    /**
+     * @param string $Name
+     * @param string $Description
+     *
+     * @return TblStudentAgreementType
+     */
+    public function createStudentAgreementType($Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblStudentAgreementType')->findOneBy(array(
+            TblStudentAgreementType::ATTR_NAME => $Name
+        ));
+        if (null === $Entity) {
+            $Entity = new TblStudentAgreementType();
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
     }
 
     /**

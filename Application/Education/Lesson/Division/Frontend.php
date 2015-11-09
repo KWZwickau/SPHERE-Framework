@@ -226,7 +226,15 @@ class Frontend extends Extension implements IFrontendInterface
             $Global->savePost();
         }
 
-        $tblSchoolYearAll = Term::useService()->getYearAll();
+        $tblYearAll = Term::useService()->getYearAll();
+
+        $tblLevelAll = Division::useService()->getLevelAll();
+        if ($tblLevelAll) {
+            array_push($tblLevelAll, new TblLevel());
+        } else {
+            $tblLevelAll = array();
+        }
+
         return new Form(
             new FormGroup(array(
                 new FormRow(array(
@@ -234,7 +242,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new Panel('Klassengruppe',
                             array(
                                 new SelectBox('Division[Year]', 'Schuljahr', array(
-                                    '{{ Name }} {{ Description }}' => $tblSchoolYearAll
+                                    '{{ Name }} {{ Description }}' => $tblYearAll
+                                ), new Education()),
+                                new SelectBox('Division[Level]', 'Klassenstufe', array(
+                                    'Stufe: {{ Name }} {{ Description }} Schulart: {{ serviceTblType.Name }} {{ serviceTblType.Description }}' => $tblLevelAll
                                 ), new Education()),
                                 new AutoCompleter('Division[Name]', 'Klassengruppe (Name)', 'z.B: Alpha', $acNameAll,
                                     new Pencil()),
