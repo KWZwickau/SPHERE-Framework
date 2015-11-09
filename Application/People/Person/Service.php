@@ -77,7 +77,7 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param array          $Person
+     * @param array $Person
      *
      * @return IFormInterface|Redirect
      */
@@ -93,23 +93,23 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Person['FirstName'] ) && empty( $Person['FirstName'] )) {
+        if (isset($Person['FirstName']) && empty($Person['FirstName'])) {
             $Form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
             $Error = true;
         }
-        if (isset( $Person['LastName'] ) && empty( $Person['LastName'] )) {
+        if (isset($Person['LastName']) && empty($Person['LastName'])) {
             $Form->setError('Person[LastName]', 'Bitte geben Sie einen Nachnamen an');
             $Error = true;
         }
 
         if (!$Error) {
 
-            if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
+            if (($tblPerson = (new Data($this->getBinding()))->createPerson(
                 $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
-                $Person['SecondName'], $Person['LastName']) )
+                $Person['SecondName'], $Person['LastName']))
             ) {
                 // Add to Group
-                if (isset( $Person['Group'] )) {
+                if (isset($Person['Group'])) {
                     foreach ((array)$Person['Group'] as $tblGroup) {
                         Group::useService()->addGroupPerson(
                             Group::useService()->getGroupById($tblGroup), $tblPerson
@@ -117,12 +117,12 @@ class Service extends AbstractService
                     }
                 }
                 return new Success('Die Person wurde erfolgreich erstellt')
-                .new Redirect('/People/Person', 1,
+                . new Redirect('/People/Person', 1,
                     array('Id' => $tblPerson->getId())
                 );
             } else {
                 return new Danger('Die Person konnte nicht erstellt werden')
-                .new Redirect('/People/Person', 10);
+                . new Redirect('/People/Person', 10);
             }
         }
 
@@ -153,11 +153,11 @@ class Service extends AbstractService
     public function insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList)
     {
 
-        if (( $tblPerson = (new Data($this->getBinding()))->createPerson(
-            $this->getSalutationById($Salutation), $Title, $FirstName, $SecondName, $LastName) )
+        if (($tblPerson = (new Data($this->getBinding()))->createPerson(
+            $Salutation, $Title, $FirstName, $SecondName, $LastName))
         ) {
             // Add to Group
-            if (!empty( $GroupList )) {
+            if (!empty($GroupList)) {
                 foreach ($GroupList as $tblGroup) {
                     Group::useService()->addGroupPerson(
                         Group::useService()->getGroupById($tblGroup), $tblPerson
@@ -183,8 +183,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Person
+     * @param TblPerson $tblPerson
+     * @param array $Person
      *
      * @return IFormInterface|Redirect
      */
@@ -200,11 +200,11 @@ class Service extends AbstractService
 
         $Error = false;
 
-        if (isset( $Person['FirstName'] ) && empty( $Person['FirstName'] )) {
+        if (isset($Person['FirstName']) && empty($Person['FirstName'])) {
             $Form->setError('Person[FirstName]', 'Bitte geben Sie einen Vornamen an');
             $Error = true;
         }
-        if (isset( $Person['LastName'] ) && empty( $Person['LastName'] )) {
+        if (isset($Person['LastName']) && empty($Person['LastName'])) {
             $Form->setError('Person[LastName]', 'Bitte geben Sie einen Nachnamen an');
             $Error = true;
         }
@@ -212,11 +212,11 @@ class Service extends AbstractService
         if (!$Error) {
 
             if ((new Data($this->getBinding()))->updatePerson($tblPerson,
-                $this->getSalutationById($Person['Salutation']), $Person['Title'], $Person['FirstName'],
+                $Person['Salutation'], $Person['Title'], $Person['FirstName'],
                 $Person['SecondName'], $Person['LastName'])
             ) {
                 // Change Groups
-                if (isset( $Person['Group'] )) {
+                if (isset($Person['Group'])) {
                     // Remove all Groups
                     $tblGroupList = Group::useService()->getGroupAllByPerson($tblPerson);
                     foreach ($tblGroupList as $tblGroup) {
@@ -236,24 +236,15 @@ class Service extends AbstractService
                     }
                 }
                 return new Success('Die Person wurde erfolgreich aktualisiert')
-                .new Redirect('/People/Person', 1,
+                . new Redirect('/People/Person', 1,
                     array('Id' => $tblPerson->getId())
                 );
             } else {
                 return new Danger('Die Person konnte nicht aktualisiert werden')
-                .new Redirect('/People/Person', 10);
+                . new Redirect('/People/Person', 10);
             }
         }
 
         return $Form;
-    }
-
-    /**
-     * @return \Doctrine\ORM\QueryBuilder
-     */
-    public function getQueryBuilder()
-    {
-
-        return (new Data($this->getBinding()))->getQueryBuilder();
     }
 }
