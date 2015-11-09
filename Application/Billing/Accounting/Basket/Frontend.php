@@ -119,16 +119,19 @@ class Frontend extends Extension implements IFrontendInterface
             new ChevronLeft()
         ));
 
-        $Stage->setContent(Basket::useService()->createBasket(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
-                            ), 6),
-                    )),
-                ))
-            ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen')), $Basket));
+        $Form = new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
+                        ), 6),
+                )),
+            ))
+        ));
+        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Hinzufügen'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(Basket::useService()->createBasket($Form, $Basket));
 
         return $Stage;
     }
@@ -164,17 +167,19 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
-                $Stage->setContent(Basket::useService()->changeBasket(
-                    new Form(array(
-                        new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
-                                    ), 6),
-                            ))
+                $Form = new Form(array(
+                    new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new TextField('Basket[Name]', 'Name', 'Name', new Conversation()
+                                ), 6),
                         ))
-                    ), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern')
-                    ), $tblBasket, $Basket));
+                    ))
+                ));
+                $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern'));
+                $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+                $Stage->setContent(Basket::useService()->changeBasket($Form, $tblBasket, $Basket));
             }
         }
 
@@ -833,6 +838,20 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        $Form = new Form(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new DatePicker('Basket[Date]', 'Zahlungsdatum (Fälligkeit)',
+                            'Zahlungsdatum (Fälligkeit)',
+                            new Time())
+                        , 3)
+                )),
+            ), new \SPHERE\Common\Frontend\Form\Repository\Title('Zahlungsdatum'))
+        );
+        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Warenkorb fakturieren (prüfen)'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -893,21 +912,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            Basket::useService()->checkBasket(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new DatePicker('Basket[Date]', 'Zahlungsdatum (Fälligkeit)',
-                                                    'Zahlungsdatum (Fälligkeit)',
-                                                    new Time())
-                                                , 3)
-                                        )),
-                                    ), new \SPHERE\Common\Frontend\Form\Repository\Title('Zahlungsdatum'))
-                                    ,
-                                    new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Warenkorb fakturieren (prüfen)')
-                                ), $tblBasket, $Basket
-                            )
+                            Basket::useService()->checkBasket($Form, $tblBasket, $Basket)
                         )
                     ))
                 ))
@@ -959,6 +964,31 @@ class Frontend extends Extension implements IFrontendInterface
             ));
         });
 
+        $Form = new Form(
+            new FormGroup(array(
+                new FormRow(
+                    new FormColumn(
+                        new TableData(
+                            $tblBasketCommodityList, null, array(
+                            'Name'      => 'Person',
+                            'Commodity' => 'Leistung',
+                            'Select'    => 'Debitorennummer - Debitor - Beschreibung'
+                        ), false)
+                    )
+                ),
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Save', '', array(
+                            1 => 'Nicht speichern',
+                            2 => 'Als Standard speichern'
+                        ))
+                        , 3),
+                ))
+            ))
+        );
+        $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Debitoren zuordnen (prüfen)'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
         $Stage->setContent(
             new Layout(array(
                 new LayoutGroup(array(
@@ -980,34 +1010,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(array(
                     new LayoutRow(array(
                         new LayoutColumn(
-                            Basket::useService()->checkDebtors(
-                                new Form(
-                                    new FormGroup(array(
-                                        new FormRow(
-                                            new FormColumn(
-                                                new TableData(
-                                                    $tblBasketCommodityList, null, array(
-                                                    'Name'      => 'Person',
-                                                    'Commodity' => 'Leistung',
-                                                    'Select'    => 'Debitorennummer - Debitor - Beschreibung'
-                                                ), false)
-                                            )
-                                        ),
-                                        new FormRow(array(
-                                            new FormColumn(
-                                                new SelectBox('Save', '', array(
-                                                    1 => 'Nicht speichern',
-                                                    2 => 'Als Standard speichern'
-                                                ))
-                                                , 3),
-                                            new FormColumn(
-                                                new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Debitoren zuordnen (prüfen)')
-                                                , 3),
-                                        ))
-                                    ))
-                                )
-                                , $Id, $Date, $Data, $Save
-                            )
+                            Basket::useService()->checkDebtors($Form, $Id, $Date, $Data, $Save)
                         )
                     ))
                 )),
