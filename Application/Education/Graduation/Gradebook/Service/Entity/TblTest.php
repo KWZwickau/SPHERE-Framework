@@ -2,8 +2,8 @@
 /**
  * Created by PhpStorm.
  * User: Kauschke
- * Date: 03.11.2015
- * Time: 14:35
+ * Date: 05.11.2015
+ * Time: 13:51
  */
 
 namespace SPHERE\Application\Education\Graduation\Gradebook\Service\Entity;
@@ -19,49 +19,48 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Education\Lesson\Subject\Subject;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Term;
-use SPHERE\Application\People\Person\Person;
-use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
  * @Entity()
- * @Table(name="tblGradeStudentSubjectLink")
+ * @Table(name="tblTest")
  * @Cache(usage="NONSTRICT_READ_WRITE")
  */
-class TblGradeStudentSubjectLink extends Element
+class TblTest extends Element
 {
-
+    const ATTR_DATE = 'Date';
+    const ATTR_CORRECTION_DATE = 'CorrectionDate';
+    const ATTR_RETURN_DATE = 'ReturnDate';
     const ATTR_TBL_GRADE_TYPE = 'tblGradeType';
-    const ATTR_TBL_TEST = 'tblTest';
     const ATTR_SERVICE_TBL_PERSON = 'serviceTblPerson';
     const ATTR_SERVICE_TBL_SUBJECT = 'serviceTblSubject';
     const ATTR_SERVICE_TBL_PERIOD = 'serviceTblPeriod';
     const ATTR_SERVICE_TBL_DIVISION = 'serviceTblDivision';
 
     /**
-     * @Column(type="string")
+     * @Column(type="datetime")
      */
-    protected $Grade;
+    protected $Date;
+
+    /**
+     * @Column(type="datetime")
+     */
+    protected $CorrectionDate;
+
+    /**
+     * @Column(type="datetime")
+     */
+    protected $ReturnDate;
 
     /**
      * @Column(type="string")
      */
-    protected $Comment;
+    protected $Description;
 
     /**
      * @Column(type="bigint")
      */
     protected $tblGradeType;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $tblTest;
-
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblPerson;
 
     /**
      * @Column(type="bigint")
@@ -81,33 +80,98 @@ class TblGradeStudentSubjectLink extends Element
     /**
      * @return string
      */
-    public function getGrade()
+    public function getDate()
     {
-        return $this->Grade;
+
+        if (null === $this->Date) {
+            return false;
+        }
+        /** @var \DateTime $Date */
+        $Date = $this->Date;
+        if ($Date instanceof \DateTime) {
+            return $Date->format('d.m.Y');
+        } else {
+            return (string)$Date;
+        }
     }
 
     /**
-     * @param string $Grade
+     * @param null|\DateTime $Date
      */
-    public function setGrade($Grade)
+    public function setDate(\DateTime $Date = null)
     {
-        $this->Grade = $Grade;
+
+        $this->Date = $Date;
     }
 
     /**
      * @return string
      */
-    public function getComment()
+    public function getCorrectionDate()
     {
-        return $this->Comment;
+
+        if (null === $this->CorrectionDate) {
+            return false;
+        }
+        /** @var \DateTime $CorrectionDate */
+        $CorrectionDate = $this->CorrectionDate;
+        if ($CorrectionDate instanceof \DateTime) {
+            return $CorrectionDate->format('d.m.Y');
+        } else {
+            return (string)$CorrectionDate;
+        }
     }
 
     /**
-     * @param string $Comment
+     * @param null|\DateTime $CorrectionDate
      */
-    public function setComment($Comment)
+    public function setCorrectionDate(\DateTime $CorrectionDate = null)
     {
-        $this->Comment = $Comment;
+
+        $this->CorrectionDate = $CorrectionDate;
+    }
+
+    /**
+     * @return string
+     */
+    public function getReturnDate()
+    {
+
+        if (null === $this->ReturnDate) {
+            return false;
+        }
+        /** @var \DateTime $ReturnDate */
+        $ReturnDate = $this->ReturnDate;
+        if ($ReturnDate instanceof \DateTime) {
+            return $ReturnDate->format('d.m.Y');
+        } else {
+            return (string)$ReturnDate;
+        }
+    }
+
+    /**
+     * @param null|\DateTime $ReturnDate
+     */
+    public function setReturnDate(\DateTime $ReturnDate = null)
+    {
+
+        $this->ReturnDate = $ReturnDate;
+    }
+
+    /**
+     * @return string
+     */
+    public function getDescription()
+    {
+        return $this->Description;
+    }
+
+    /**
+     * @param string $Description
+     */
+    public function setDescription($Description)
+    {
+        $this->Description = $Description;
     }
 
     /**
@@ -128,49 +192,6 @@ class TblGradeStudentSubjectLink extends Element
     public function setTblGradeType($tblGradeType)
     {
         $this->tblGradeType = (null === $tblGradeType ? null : $tblGradeType->getId());
-    }
-
-    /**
-     * @return bool|TblTest
-     */
-    public function getTblTest()
-    {
-        if (null === $this->tblTest) {
-            return false;
-        } else {
-            return Gradebook::useService()->getTestById($this->tblTest);
-        }
-    }
-
-    /**
-     * @param TblTest|null $tblTest
-     */
-    public function setTblTest($tblTest)
-    {
-        var_dump($tblTest->getId());
-        $this->tblTest = (null === $tblTest ? null : $tblTest->getId());
-    }
-
-    /**
-     * @return bool|TblPerson
-     */
-    public function getServiceTblPerson()
-    {
-
-        if (null === $this->serviceTblPerson) {
-            return false;
-        } else {
-            return Person::useService()->getPersonById($this->serviceTblPerson);
-        }
-    }
-
-    /**
-     * @param TblPerson|null $tblPerson
-     */
-    public function setServiceTblPerson(TblPerson $tblPerson = null)
-    {
-
-        $this->serviceTblPerson = (null === $tblPerson ? null : $tblPerson->getId());
     }
 
     /**

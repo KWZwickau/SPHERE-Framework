@@ -1,7 +1,6 @@
 <?php
 namespace SPHERE\Application\Education\Graduation;
 
-use SPHERE\Application\Education\Graduation\Certificate\Certificate;
 use SPHERE\Application\Education\Graduation\Gradebook\Gradebook;
 use SPHERE\Application\IApplicationInterface;
 use SPHERE\Common\Main;
@@ -20,7 +19,7 @@ class Graduation implements IApplicationInterface
     {
 
         Gradebook::registerModule();
-        Certificate::registerModule();
+//        Certificate::registerModule();
 //        ScoreType::registerModule();
 
         Main::getDisplay()->addApplicationNavigation(

@@ -33,7 +33,8 @@ class Setup extends AbstractSetup
          */
         $Schema = clone $this->getConnection()->getSchema();
         $tblGradeType = $this->setTableGradeType($Schema);
-        $this->setTableGradeStudentSubjectLink($Schema, $tblGradeType);
+        $tblTest = $this->setTableTest($Schema, $tblGradeType);
+        $this->setTableGradeStudentSubjectLink($Schema, $tblGradeType, $tblTest);
 
         /**
          * Migration & Protocol
@@ -75,7 +76,45 @@ class Setup extends AbstractSetup
      *
      * @return Table
      */
-    private function setTableGradeStudentSubjectLink(Schema &$Schema, Table $tblGradeType)
+    private function setTableTest(Schema &$Schema, Table $tblGradeType)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblTest');
+        if (!$this->getConnection()->hasColumn('tblTest', 'Date')) {
+            $Table->addColumn('Date', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTest', 'CorrectionDate')) {
+            $Table->addColumn('CorrectionDate', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTest', 'ReturnDate')) {
+            $Table->addColumn('ReturnDate', 'datetime', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTest', 'Description')) {
+            $Table->addColumn('Description', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblSubject')) {
+            $Table->addColumn('serviceTblSubject', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblPeriod')) {
+            $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
+        }
+        if (!$this->getConnection()->hasColumn('tblTest', 'serviceTblDivision')) {
+            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
+        }
+
+        $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table $tblGradeType
+     * @param Table $tblTest
+     *
+     * @return Table
+     */
+    private function setTableGradeStudentSubjectLink(Schema &$Schema, Table $tblGradeType, Table $tblTest)
     {
 
         $Table = $this->getConnection()->createTable($Schema, 'tblGradeStudentSubjectLink');
@@ -94,8 +133,12 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblPeriod')) {
             $Table->addColumn('serviceTblPeriod', 'bigint', array('notnull' => false));
         }
+        if (!$this->getConnection()->hasColumn('tblGradeStudentSubjectLink', 'serviceTblDivision')) {
+            $Table->addColumn('serviceTblDivision', 'bigint', array('notnull' => false));
+        }
 
         $this->getConnection()->addForeignKey($Table, $tblGradeType, true);
+        $this->getConnection()->addForeignKey($Table, $tblTest, true);
 
         return $Table;
     }
