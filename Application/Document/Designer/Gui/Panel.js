@@ -1,36 +1,44 @@
 (function($)
 {
     'use strict';
-    $.fn.SDDDocument = function(options)
+    $.fn.SDDPanel = function(options)
     {
         var _this = this;
-        console.log('SDDDocument', _this);
+        console.log('SDDPanel', _this);
 
         var RegisterContainer = [];
 
         // This is the easiest way to have default options.
         var settings = $.extend({
+            height: '400',
+            width: '200'
             // These are the defaults.
         }, options);
 
-        _this.find('.SDD-Panel').each(function(Event, Container)
-        {
-            $(Container).SDDPanel();
+        _this.css({
+            width: settings.width,
+            height: settings.height,
+            zIndex: 999
         });
 
-        _this.find('.SDD-Page').each(function(Event, Container)
+        _this.draggable({containment: "parent", stack: ".SDD-Document"});
+        _this.resizable({containment: "parent"});
+
+        _this.find('.SDD-Element').each(function(Event, Container)
         {
-            var SDDContainer = $(Container).SDDPage();
-            RegisterContainer[RegisterContainer.length] = SDDContainer;
-
-            SDDContainer.on('click', function(Event)
-            {
-                Event.stopPropagation();
-//                console.log(SDDContainer.getTargetPosition(Event));
-//                console.log(SDDContainer.getTargetSize(Event));
-                console.log(_this.getSerialize());
+            var SDDContainer = $(Container);
+            SDDContainer.draggable({
+                revert: 'invalid',
+                helper: 'clone',
+                start: function()
+                {
+                    $(this).hide();
+                },
+                stop: function()
+                {
+                    $(this).show();
+                }
             });
-
         });
 
         _this.on('resize', function(Event)
@@ -41,25 +49,6 @@
             settings.height = Size.height;
 
         });
-
-        _this.getTargetPosition = function(Event)
-        {
-            var Target = $(Event.target);
-            return {
-                'top': Target.offset().top - Target.parent().offset().top,
-                'left': Target.offset().left - Target.parent().offset().left
-            }
-        };
-
-        _this.getTargetSize = function(Event)
-        {
-
-            var Target = $(Event.target);
-            return {
-                'width': Target.outerWidth(),
-                'height': Target.outerHeight()
-            }
-        };
 
         _this.getPosition = function()
         {
@@ -79,11 +68,6 @@
             }
         };
 
-        _this.getContainerList = function()
-        {
-            return RegisterContainer;
-        };
-
         _this.getSerialize = function()
         {
             var List = _this.getContainerList();
@@ -99,7 +83,7 @@
             return settings;
         };
 
-        return _this;
+        return this;
     };
 
 }(jQuery));

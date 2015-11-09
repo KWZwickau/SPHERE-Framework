@@ -26,6 +26,9 @@ abstract class AbstractWriter extends AbstractStorage
     public function saveFile()
     {
 
+        if (!$this->getRealPath()) {
+            touch($this->getFileLocation());
+        }
         file_put_contents($this->getRealPath(), $this->getFileContent(), LOCK_EX);
     }
 

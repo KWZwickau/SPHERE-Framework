@@ -1,7 +1,7 @@
-(function ($)
+(function($)
 {
     'use strict';
-    $.fn.SDDPage = function (options)
+    $.fn.SDDPage = function(options)
     {
         var _this = this;
         console.log('SDDPage', _this);
@@ -17,12 +17,12 @@
 
         _this.css({width: settings.width, height: settings.height});
 
-        _this.find('.SDD-Element').each(function (Event, Container)
+        _this.find('.SDD-Element').each(function(Event, Container)
         {
             var SDDContainer = $(Container).SDDElement();
             RegisterContainer[RegisterContainer.length] = SDDContainer;
 
-            SDDContainer.on('click', function (Event)
+            SDDContainer.on('click', function(Event)
             {
                 Event.stopPropagation();
 //                console.log(SDDContainer.getTargetPosition(Event));
@@ -31,8 +31,18 @@
             });
         });
 
+        _this.droppable({
+            accept: ".SDD-Element",
+            drop: function(Event, Container)
+            {
+                Container.draggable.css({
+                    top: Container.position.top,
+                    left: Container.position.left
+                }).appendTo(_this).SDDElement();
+            }
+        });
 
-        _this.on('resize', function (Event)
+        _this.on('resize', function(Event)
         {
             Event.stopPropagation();
             var Size = _this.getSize();
@@ -41,7 +51,7 @@
 
         });
 
-        _this.getTargetPosition = function (Event)
+        _this.getTargetPosition = function(Event)
         {
 
             var Target = $(Event.target);
@@ -51,7 +61,7 @@
             }
         };
 
-        _this.getTargetSize = function (Event)
+        _this.getTargetSize = function(Event)
         {
 
             var Target = $(Event.target);
@@ -61,7 +71,7 @@
             }
         };
 
-        _this.getPosition = function ()
+        _this.getPosition = function()
         {
 
             return {
@@ -70,7 +80,7 @@
             }
         };
 
-        _this.getSize = function ()
+        _this.getSize = function()
         {
 
             return {
@@ -79,12 +89,12 @@
             }
         };
 
-        _this.getContainerList = function ()
+        _this.getContainerList = function()
         {
             return RegisterContainer;
         };
 
-        _this.getSerialize = function ()
+        _this.getSerialize = function()
         {
             var List = _this.getContainerList();
             var Container;
@@ -95,7 +105,7 @@
             }
         };
 
-        _this.getSettings = function ()
+        _this.getSettings = function()
         {
             return settings;
         };

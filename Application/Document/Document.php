@@ -8,15 +8,19 @@ use SPHERE\Application\IClusterInterface;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
+use SPHERE\System\Extension\Extension;
 
 /**
  * Class Document
+ *
  * @package SPHERE\Application\Document
  */
-class Document implements IClusterInterface
+class Document extends Extension implements IClusterInterface
 {
+
     public static function registerCluster()
     {
+
         Search::registerApplication();
         Explorer::registerApplication();
         Designer::registerApplication();
@@ -25,7 +29,7 @@ class Document implements IClusterInterface
             new Link(new Link\Route(__NAMESPACE__), new Link\Name('Dokumente'))
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__, __CLASS__ . '::frontendDashboard'
+            __NAMESPACE__, __CLASS__.'::frontendDashboard'
         ));
     }
 

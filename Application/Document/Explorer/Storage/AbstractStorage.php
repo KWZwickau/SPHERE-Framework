@@ -5,10 +5,12 @@ use MOC\V\Core\GlobalsKernel\GlobalsKernel;
 
 /**
  * Class AbstractStorage
+ *
  * @package SPHERE\Application\Document\Explorer\Storage
  */
 abstract class AbstractStorage
 {
+
     /** @var string $Name */
     private $Name = '';
     /** @var string $Description */
@@ -33,6 +35,10 @@ abstract class AbstractStorage
      */
     public function getName()
     {
+
+        if (empty( $this->Name )) {
+            $this->Name = preg_replace('![^0-9a-z\s]!is', '', $this->FileName);
+        }
         return $this->Name;
     }
 
@@ -41,6 +47,7 @@ abstract class AbstractStorage
      */
     public function setName($Name)
     {
+
         $this->Name = $Name;
     }
 
@@ -49,6 +56,7 @@ abstract class AbstractStorage
      */
     public function getDescription()
     {
+
         return $this->Description;
     }
 
@@ -57,6 +65,7 @@ abstract class AbstractStorage
      */
     public function setDescription($Description)
     {
+
         $this->Description = $Description;
     }
 
@@ -65,6 +74,10 @@ abstract class AbstractStorage
      */
     public function getFileName()
     {
+
+        if (empty( $this->FileName )) {
+            $this->FileName = preg_replace('![^0-9a-z]!is', '', $this->Name);
+        }
         return $this->FileName;
     }
 
@@ -73,6 +86,7 @@ abstract class AbstractStorage
      */
     public function setFileName($FileName)
     {
+
         $this->FileName = $FileName;
     }
 
@@ -81,6 +95,7 @@ abstract class AbstractStorage
      */
     public function getFileExtension()
     {
+
         return $this->FileExtension;
     }
 
@@ -89,6 +104,7 @@ abstract class AbstractStorage
      */
     public function setFileExtension($FileExtension)
     {
+
         $this->FileExtension = $FileExtension;
     }
 
@@ -97,6 +113,7 @@ abstract class AbstractStorage
      */
     public function getFileContent()
     {
+
         return $this->FileContent;
     }
 
@@ -105,6 +122,7 @@ abstract class AbstractStorage
      */
     public function setFileContent($FileContent)
     {
+
         $this->FileContent = $FileContent;
     }
 
@@ -113,6 +131,7 @@ abstract class AbstractStorage
      */
     public function getFileType()
     {
+
         return $this->FileType;
     }
 
@@ -121,6 +140,7 @@ abstract class AbstractStorage
      */
     public function setFileType($FileType)
     {
+
         $this->FileType = $FileType;
     }
 
@@ -129,7 +149,8 @@ abstract class AbstractStorage
      */
     public function getFileSize()
     {
-        if (empty($this->FileSize)) {
+
+        if (empty( $this->FileSize )) {
             $this->setFileSize(filesize($this->getRealPath()));
         }
         return $this->FileSize;
@@ -140,6 +161,7 @@ abstract class AbstractStorage
      */
     public function setFileSize($FileSize)
     {
+
         $this->FileSize = $FileSize;
     }
 
@@ -152,7 +174,7 @@ abstract class AbstractStorage
         $SERVER = GlobalsKernel::getGlobals()->getSERVER();
         $SplFileInfo = (new \SplFileInfo($this->getFileLocation()));
         if (!$SplFileInfo->getRealPath()) {
-            $SplFileInfo = (new \SplFileInfo($SERVER['DOCUMENT_ROOT'] . $this->getFileLocation()));
+            $SplFileInfo = (new \SplFileInfo($SERVER['DOCUMENT_ROOT'].$this->getFileLocation()));
         }
         return $SplFileInfo->getRealPath() ? $SplFileInfo->getRealPath() : '';
     }
@@ -162,6 +184,7 @@ abstract class AbstractStorage
      */
     public function getFileLocation()
     {
+
         return $this->FileLocation;
     }
 
@@ -170,6 +193,7 @@ abstract class AbstractStorage
      */
     public function setFileLocation($FileLocation)
     {
+
         $this->FileLocation = $FileLocation;
     }
 
@@ -178,7 +202,8 @@ abstract class AbstractStorage
      */
     public function getFilePath()
     {
-        if (empty($this->FilePath)) {
+
+        if (empty( $this->FilePath )) {
             $this->setFilePath(dirname($this->getFileLocation()));
         }
         return $this->FilePath;
@@ -189,6 +214,7 @@ abstract class AbstractStorage
      */
     public function setFilePath($FilePath)
     {
+
         $this->FilePath = $FilePath;
     }
 }
