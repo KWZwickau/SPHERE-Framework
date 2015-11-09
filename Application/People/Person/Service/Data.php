@@ -25,7 +25,7 @@ class Data extends AbstractData
 
     /**
      * @param string $Salutation
-     * @param bool   $IsLocked
+     * @param bool $IsLocked
      *
      * @return TblSalutation
      */
@@ -44,20 +44,20 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblSalutation $tblSalutation
-     * @param string        $Title
-     * @param string        $FirstName
-     * @param string        $SecondName
-     * @param string        $LastName
+     * @param        $Salutation
+     * @param string $Title
+     * @param string $FirstName
+     * @param string $SecondName
+     * @param string $LastName
      *
      * @return TblPerson
      */
-    public function createPerson(TblSalutation $tblSalutation, $Title, $FirstName, $SecondName, $LastName)
+    public function createPerson($Salutation, $Title, $FirstName, $SecondName, $LastName)
     {
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = new TblPerson();
-        $Entity->setTblSalutation($tblSalutation);
+        $Entity->setTblSalutation($Salutation !== null ? $this->getSalutationById($Salutation) : $Salutation);
         $Entity->setTitle($Title);
         $Entity->setFirstName($FirstName);
         $Entity->setSecondName($SecondName);
@@ -68,18 +68,18 @@ class Data extends AbstractData
     }
 
     /**
-     * @param TblPerson     $tblPerson
-     * @param TblSalutation $tblSalutation
-     * @param string        $Title
-     * @param string        $FirstName
-     * @param string        $SecondName
-     * @param string        $LastName
+     * @param TblPerson $tblPerson
+     * @param        $Salutation
+     * @param string $Title
+     * @param string $FirstName
+     * @param string $SecondName
+     * @param string $LastName
      *
      * @return bool
      */
     public function updatePerson(
         TblPerson $tblPerson,
-        TblSalutation $tblSalutation,
+        $Salutation,
         $Title,
         $FirstName,
         $SecondName,
@@ -91,7 +91,7 @@ class Data extends AbstractData
         $Entity = $Manager->getEntityById('TblPerson', $tblPerson->getId());
         $Protocol = clone $Entity;
         if (null !== $Entity) {
-            $Entity->setTblSalutation($tblSalutation);
+            $Entity->setTblSalutation($Salutation !== null ? $this->getSalutationById($Salutation) : $Salutation);
             $Entity->setTitle($Title);
             $Entity->setFirstName($FirstName);
             $Entity->setSecondName($SecondName);
@@ -132,10 +132,10 @@ class Data extends AbstractData
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblPerson')->findBy(array(
             TblPerson::ATTR_FIRST_NAME => $FirstName,
-            TblPerson::ATTR_LAST_NAME  => $LastName
+            TblPerson::ATTR_LAST_NAME => $LastName
         ));
 
-        return empty( $EntityList ) ? false : $EntityList;
+        return empty($EntityList) ? false : $EntityList;
     }
 
     /**
@@ -155,8 +155,8 @@ class Data extends AbstractData
     public function getPersonById($Id)
     {
 
-//        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
-        return $this->getConnection()->getEntityManager()->getEntityById( 'TblPerson', $Id );
+        return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblPerson', $Id);
+//        return $this->getConnection()->getEntityManager()->getEntityById('TblPerson', $Id);
     }
 
     /**
@@ -168,5 +168,6 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSalutation', $Id);
+//        return $this->getConnection()->getEntityManager()->getEntityById('TblSalutation', $Id);
     }
 }
