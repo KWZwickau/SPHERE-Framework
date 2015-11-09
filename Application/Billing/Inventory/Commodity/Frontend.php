@@ -120,28 +120,37 @@ class Frontend extends Extension implements IFrontendInterface
             new ChevronLeft()
         ));
 
-        $Stage->setContent(Commodity::useService()->createCommodity(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Commodity[Name]', 'Name', 'Name', new Conversation()
-                            ), 6),
-                        new FormColumn(
-                            new SelectBox('Commodity[Type]', 'Leistungsart', array(
-                                'Name' => Commodity::useService()->getCommodityTypeAll()
-                            ))
-                            , 6)
-                    )),
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Commodity[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                            ), 12)
-                    ))
-                ))
-            ), new Primary('Hinzufügen')), $Commodity));
+        $Form = $this->formCommodity()
+            ->appendFormButton(new Primary('Hinzufügen'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(Commodity::useService()->createCommodity($Form, $Commodity));
 
         return $Stage;
+    }
+
+    public function formCommodity()
+    {
+
+        return new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Commodity[Name]', 'Name', 'Name', new Conversation()
+                        ), 6),
+                    new FormColumn(
+                        new SelectBox('Commodity[Type]', 'Leistungsart', array(
+                            'Name' => Commodity::useService()->getCommodityTypeAll()
+                        ))
+                        , 6)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Commodity[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
+                        ), 12)
+                ))
+            ))
+        ));
     }
 
     /**
@@ -201,28 +210,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
-                $Stage->setContent(Commodity::useService()->changeCommodity(
-                    new Form(array(
-                        new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new TextField('Commodity[Name]', 'Name', 'Name', new Conversation()
-                                    ), 6),
-                                new FormColumn(
-                                    new SelectBox('Commodity[Type]', 'Leistungsart', array(
-                                        'Name' => Commodity::useService()->getCommodityTypeAll()
-                                    ))
-                                    , 6)
-                            )),
-                            new FormRow(array(
-                                new FormColumn(
-                                    new TextField('Commodity[Description]', 'Beschreibung', 'Beschreibung',
-                                        new Conversation()
-                                    ), 12)
-                            ))
-                        ))
-                    ), new Primary('Änderungen speichern')
-                    ), $tblCommodity, $Commodity));
+                $Form = $this->formCommodity()
+                    ->appendFormButton(new Primary('Änderungen speichern'))
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+                $Stage->setContent(Commodity::useService()->changeCommodity($Form, $tblCommodity, $Commodity));
             }
         }
 

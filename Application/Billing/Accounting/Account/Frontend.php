@@ -139,32 +139,36 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAccountKey = Account::useService()->getKeyValueAll();
         $tblAccountType = Account::useService()->getTypeValueAll();
 
-        $Stage->setContent(Account::useService()->createAccount(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()
-                            ), 6),
-                        new FormColumn(
-                            new TextField('Account[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                            ), 6
-                        )
-                    )),
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Account[Key]', 'Mehrwertsteuer',
-                                array('Value' => $tblAccountKey)
-                            ), 6
-                        ),
-                        new FormColumn(
-                            new SelectBox('Account[Type]', 'Typ',
-                                array('Name' => $tblAccountType)
-                            ), 6
-                        )
-                    ))
+        $Form = new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()
+                        ), 6),
+                    new FormColumn(
+                        new TextField('Account[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
+                        ), 6
+                    )
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Account[Key]', 'Mehrwertsteuer',
+                            array('Value' => $tblAccountKey)
+                        ), 6
+                    ),
+                    new FormColumn(
+                        new SelectBox('Account[Type]', 'Typ',
+                            array('Name' => $tblAccountType)
+                        ), 6
+                    )
                 ))
-            ), new Primary('Hinzufügen')), $Account)
+            ))
+        ));
+        $Form->appendFormButton(new Primary('Hinzufügen'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(Account::useService()->createAccount(
+            $Form, $Account)
         );
 
         return $Stage;
