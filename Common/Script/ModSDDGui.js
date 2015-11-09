@@ -1,7 +1,7 @@
-(function ($)
+(function($)
 {
     'use strict';
-    $.fn.ModSDDGui = function (options)
+    $.fn.ModSDDGui = function(options)
     {
         var _this = this;
 
