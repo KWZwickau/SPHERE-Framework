@@ -329,6 +329,65 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param                $Subject
+     * @param                $Id
+     *
+     * @return IFormInterface|string
+     */
+    public function changeSubject(IFormInterface $Form, $Subject, $Id)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Subject) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Subject['Acronym'] ) && empty( $Subject['Acronym'] )) {
+            $Form->setError('Subject[Acronym]', 'Bitte geben Sie ein eineindeutiges Kürzel an');
+            $Error = true;
+        }
+
+        if (isset( $Subject['Name'] ) && empty( $Subject['Name'] )) {
+            $Form->setError('Subject[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            $tblSubject = Subject::useService()->getSubjectById($Id);
+            if ($tblSubject) {
+                if ((new Data($this->getBinding()))->changeSubject(
+                    $tblSubject, $Subject['Acronym'], $Subject['Name'], $Subject['Description']
+                )
+                ) {
+                    return new Success('Das Fach wurde erfolgreich geändert')
+                    .new Redirect('/Education/Lesson/Subject/Create/Subject', 3);
+                } else {
+                    return new Danger('Das Fach konnte nicht geändert werden')
+                    .new Redirect('/Education/Lesson/Subject/Create/Subject');
+                }
+            } else {
+                return new Danger('Das Fach wurde nicht gefunden')
+                .new Redirect('/Education/Lesson/Subject/Create/Subject');
+            }
+        }
+        return $Form;
+    }
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblSubject
+     */
+    public function getSubjectById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectById($Id);
+    }
+    /**
      * @return bool|TblSubject[]
      */
     public function getSubjectAllHavingNoCategory()
@@ -336,7 +395,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectAllHavingNoCategory();
     }
-
     /**
      * @return bool|TblCategory[]
      */
@@ -345,7 +403,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCategoryAllHavingNoGroup();
     }
-
     /**
      * @param IFormInterface $Form
      * @param null|array     $Category
@@ -391,7 +448,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-
     /**
      * @param string $Name
      *
@@ -402,7 +458,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCategoryByName($Name);
     }
-
     /**
      * @param IFormInterface $Form
      * @param TblGroup       $tblGroup
@@ -453,7 +508,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-
     /**
      * @param TblGroup    $tblGroup
      * @param TblCategory $tblCategory
@@ -465,7 +519,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeGroupCategory($tblGroup, $tblCategory);
     }
-
     /**
      * @param TblGroup    $tblGroup
      * @param TblCategory $tblCategory
@@ -477,7 +530,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addGroupCategory($tblGroup, $tblCategory);
     }
-
     /**
      * @param int $Id
      *
@@ -488,7 +540,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCategoryById($Id);
     }
-
     /**
      * @param IFormInterface $Form
      * @param TblCategory    $tblCategory
@@ -539,7 +590,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-
     /**
      * @param TblCategory $tblCategory
      * @param TblSubject  $tblSubject
@@ -551,7 +601,6 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
     }
-
     /**
      * @param TblCategory $tblCategory
      * @param TblSubject  $tblSubject
@@ -562,16 +611,5 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->addCategorySubject($tblCategory, $tblSubject);
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblSubject
-     */
-    public function getSubjectById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getSubjectById($Id);
     }
 }

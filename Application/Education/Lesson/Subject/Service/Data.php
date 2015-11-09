@@ -142,10 +142,10 @@ class Data extends AbstractData
     }
 
     /**
-     * @param string        $Name
+     * @param string $Name
      * @param string $Description
      * @param bool   $IsLocked
-     * @param string        $Identifier
+     * @param string $Identifier
      *
      * @return TblGroup
      */
@@ -282,6 +282,35 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     * @param            $Acronym
+     * @param            $Name
+     * @param string     $Description
+     *
+     * @return bool
+     */
+    public function changeSubject(TblSubject $tblSubject, $Acronym, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblSubject $Entity */
+        $Entity = $Manager->getEntityById('TblSubject', $tblSubject->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setAcronym($Acronym);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
