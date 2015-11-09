@@ -178,7 +178,6 @@ class Service
                                 $countMother++;
                             }
 
-                            // Todo JohK tblState
                             // Addresses
                             $City = trim($Document->getValue($Document->getCell($Location['PLZ Ort'], $RunY)));
                             $CityCode = substr($City, 0, 5);
@@ -189,7 +188,7 @@ class Service
                                 trim($Document->getValue($Document->getCell($Location['Hausnr.'], $RunY))),
                                 $CityCode,
                                 $CityName,
-                                \SPHERE\Application\Contact\Address\Address::useService()->getStateById(1)
+                                ''
                             );
                             if ($tblPersonFather !== null) {
                                 $this->useContactAddress()->createAddressToPersonFromImport(
@@ -198,7 +197,7 @@ class Service
                                     trim($Document->getValue($Document->getCell($Location['Hausnr.'], $RunY))),
                                     $CityCode,
                                     $CityName,
-                                    \SPHERE\Application\Contact\Address\Address::useService()->getStateById(1)
+                                    ''
                                 );
                             }
                             if ($tblPersonMother !== null) {
@@ -208,7 +207,7 @@ class Service
                                     trim($Document->getValue($Document->getCell($Location['Hausnr.'], $RunY))),
                                     $CityCode,
                                     $CityName,
-                                    \SPHERE\Application\Contact\Address\Address::useService()->getStateById(1)
+                                    ''
                                 );
                             }
                         }
@@ -437,7 +436,6 @@ class Service
                                         $tblPerson); //Personendaten
                                     $countNewPerson++;
 
-                                    // Todo JohK tblState
                                     //Address
                                     $Street = trim($Document->getValue($Document->getCell($Location['Strasse'],
                                         $RunY)));
@@ -451,7 +449,7 @@ class Service
                                         $StreetNumber,
                                         trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
                                         trim($Document->getValue($Document->getCell($Location['Ort'], $RunY))),
-                                        \SPHERE\Application\Contact\Address\Address::useService()->getStateById(1)
+                                        ''
                                     );
                                 } else {
                                     $countUpdatePerson++;
