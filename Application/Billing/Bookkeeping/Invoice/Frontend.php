@@ -990,6 +990,23 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
+                $Form = new Form(array(
+                    new FormGroup(array(
+                        new FormRow(array(
+                            new FormColumn(
+                                new TextField('InvoiceItem[Price]', 'Preis in €', 'Preis',
+                                    new MoneyEuro()
+                                ), 6),
+                            new FormColumn(
+                                new TextField('InvoiceItem[Quantity]', 'Menge', 'Menge',
+                                    new Quantity()
+                                ), 6)
+                        ))
+                    ))
+                ));
+                $Form->appendFormButton(new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern'));
+                $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
                 $Stage->setContent(
                     new Layout(array(
                         new LayoutGroup(array(
@@ -1011,26 +1028,10 @@ class Frontend extends Extension implements IFrontendInterface
                         new LayoutGroup(array(
                             new LayoutRow(array(
                                 new LayoutColumn(array(
-                                        Invoice::useService()->changeInvoiceItem(
-                                            new Form(array(
-                                                new FormGroup(array(
-                                                    new FormRow(array(
-                                                        new FormColumn(
-                                                            new TextField('InvoiceItem[Price]', 'Preis in €', 'Preis',
-                                                                new MoneyEuro()
-                                                            ), 6),
-                                                        new FormColumn(
-                                                            new TextField('InvoiceItem[Quantity]', 'Menge', 'Menge',
-                                                                new Quantity()
-                                                            ), 6)
-                                                    ))
-                                                ))
-                                            ),
-                                                new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Änderungen speichern')
-                                            ), $tblInvoiceItem, $InvoiceItem
-                                        )
+                                    Invoice::useService()->changeInvoiceItem(
+                                        $Form, $tblInvoiceItem, $InvoiceItem
                                     )
-                                )
+                                ))
                             ))
                         ))
                     ))
