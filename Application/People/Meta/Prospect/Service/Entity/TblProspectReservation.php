@@ -5,8 +5,8 @@ use Doctrine\ORM\Mapping\Cache;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\Table;
-use SPHERE\Application\Corporation\Company\Company;
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\System\Database\Fitting\Element;
 
 /**
@@ -28,11 +28,11 @@ class TblProspectReservation extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblCompanyOptionA;
+    protected $serviceTblTypeOptionA;
     /**
      * @Column(type="bigint")
      */
-    protected $serviceTblCompanyOptionB;
+    protected $serviceTblTypeOptionB;
 
     /**
      * @return string
@@ -71,46 +71,46 @@ class TblProspectReservation extends Element
     }
 
     /**
-     * @return bool|TblCompany
+     * @return bool|TblType
      */
-    public function getServiceTblCompanyOptionA()
+    public function getServiceTblTypeOptionA()
     {
 
-        if (null === $this->serviceTblCompanyOptionA) {
+        if (null === $this->serviceTblTypeOptionA) {
             return false;
         } else {
-            return Company::useService()->getCompanyById($this->serviceTblCompanyOptionA);
+            return Type::useService()->getTypeById($this->serviceTblTypeOptionA);
         }
     }
 
     /**
-     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblType
      */
-    public function setServiceTblCompanyOptionA(TblCompany $tblCompany = null)
+    public function setServiceTblTypeOptionA(TblType $tblType = null)
     {
 
-        $this->serviceTblCompanyOptionA = ( null === $tblCompany ? null : $tblCompany->getId() );
+        $this->serviceTblTypeOptionA = ( null === $tblType ? null : $tblType->getId() );
     }
 
     /**
-     * @return bool|TblCompany
+     * @return bool|TblType
      */
-    public function getServiceTblCompanyOptionB()
+    public function getServiceTblTypeOptionB()
     {
 
-        if (null === $this->serviceTblCompanyOptionB) {
+        if (null === $this->serviceTblTypeOptionB) {
             return false;
         } else {
-            return Company::useService()->getCompanyById($this->serviceTblCompanyOptionB);
+            return Type::useService()->getTypeById($this->serviceTblTypeOptionB);
         }
     }
 
     /**
-     * @param TblCompany|null $tblCompany
+     * @param TblType|null $tblType
      */
-    public function setServiceTblCompanyOptionB(TblCompany $tblCompany = null)
+    public function setServiceTblTypeOptionB(TblType $tblType = null)
     {
 
-        $this->serviceTblCompanyOptionB = ( null === $tblCompany ? null : $tblCompany->getId() );
+        $this->serviceTblTypeOptionB = ( null === $tblType ? null : $tblType->getId() );
     }
 }

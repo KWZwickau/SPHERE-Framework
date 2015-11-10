@@ -72,11 +72,11 @@ class Setup extends AbstractSetup
         if (!$this->getConnection()->hasColumn('tblProspectReservation', 'ReservationDivision')) {
             $Table->addColumn('ReservationDivision', 'string');
         }
-        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionA')) {
-            $Table->addColumn('serviceTblCompanyOptionA', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblTypeOptionA')) {
+            $Table->addColumn('serviceTblTypeOptionA', 'bigint', array('notnull' => false));
         }
-        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblCompanyOptionB')) {
-            $Table->addColumn('serviceTblCompanyOptionB', 'bigint', array('notnull' => false));
+        if (!$this->getConnection()->hasColumn('tblProspectReservation', 'serviceTblTypeOptionB')) {
+            $Table->addColumn('serviceTblTypeOptionB', 'bigint', array('notnull' => false));
         }
         return $Table;
     }
