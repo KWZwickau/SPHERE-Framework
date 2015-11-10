@@ -89,7 +89,7 @@ class Frontend extends Extension implements IFrontendInterface
                         )
                     )),
                 )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
-                , $Select)
+                , $Select, '/Reporting/Custom/Chemnitz/Person/ClassList')
             .
             ($DivisionId !== null ?
                 (new Layout(new LayoutGroup(new LayoutRow(array(
@@ -159,35 +159,72 @@ class Frontend extends Extension implements IFrontendInterface
     }
 
     /**
+     * @param $DivisionId
+     * @param $Select
+     *
      * @return Stage
      */
-    public function frontendMedicList()
+    public function frontendMedicList($DivisionId, $Select)
     {
         $View = new Stage();
         $View->setTitle('ESZC Auswertung');
         $View->setDescription('Arztliste');
 
-        $View->addButton(
-            new Primary('Herunterladen',
-                '/Api/Reporting/Custom/Chemnitz/Common/MedicList/Download', new Download())
-        );
+        $tblDivisionAll = Division::useService()->getDivisionAll();
+        $tblDivision = new TblDivision();
+        $studentList = array();
 
-        $studentList = Person::useService()->createMedicList();
+        if ($DivisionId !== null) {
+
+            $Global = $this->getGlobal();
+            if (!$Global->POST) {
+                $Global->POST['Select']['Division'] = $DivisionId;
+                $Global->savePost();
+            }
+
+            //ToDo JohK Schuljahr
+
+            $tblDivision = Division::useService()->getDivisionById($DivisionId);
+            if ($tblDivision) {
+                $studentList = Person::useService()->createMedicList($tblDivision);
+                if ($studentList) {
+                    $View->addButton(
+                        new Primary('Herunterladen',
+                            '/Api/Reporting/Custom/Chemnitz/Common/MedicList/Download', new Download(),
+                            array('DivisionId' => $tblDivision->getId()))
+                    );
+                }
+            }
+        }
 
         $View->setContent(
-            new TableData($studentList, null,
-                array(
-                    'LastName' => 'Name',
-                    'FirstName' => 'Vorname',
-                    'Birthday' => 'Geburtsdatum',
-                    'Address' => 'Adresse',
-//                    'StreetName'         => 'Straße',
-//                    'StreetNumber'         => 'Hausnr.',
-//                    'Code'         => 'PLZ',
-//                    'City'         => 'Wohnort',
-                ),
-                false
-            )
+            Person::useService()->getClass(
+                new Form(new FormGroup(array(
+                    new FormRow(array(
+                        new FormColumn(
+                            new SelectBox('Select[Division]', 'Klasse', array('Name' => $tblDivisionAll)), 12
+                        )
+                    )),
+                )), new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Auswählen', new Select()))
+                , $Select, '/Reporting/Custom/Chemnitz/Person/MedicList')
+            .
+            ($DivisionId !== null ?
+                (new Layout(new LayoutGroup(new LayoutRow(array(
+                    new LayoutColumn(
+                        new Panel('Klasse:', $tblDivision->getName(),
+                            Panel::PANEL_TYPE_SUCCESS), 12
+                    ),
+                )))))
+                .
+                new TableData($studentList, null,
+                    array(
+                        'LastName' => 'Name',
+                        'FirstName' => 'Vorname',
+                        'Birthday' => 'Geburtsdatum',
+                        'Address' => 'Adresse',
+                    ),
+                    false
+                ) : '')
         );
 
         return $View;

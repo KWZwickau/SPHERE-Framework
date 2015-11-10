@@ -49,16 +49,25 @@ class Common
     }
 
     /**
-     * @return string
+     * @param $DivisionId
+     *
+     * @return bool|string
      */
-    public function downloadMedicList()
+    public function downloadMedicList($DivisionId = null)
     {
 
-        $studentList = Person::useService()->createMedicList();
-        $fileLocation = Person::useService()->createMedicListExcel($studentList);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $studentList = Person::useService()->createMedicList($tblDivision);
+            if ($studentList) {
+                $fileLocation = Person::useService()->createMedicListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Chemnitz Arztliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Chemnitz Arztliste " . $tblDivision->getName() ." " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -29,9 +29,11 @@ class Service
     /**
      * @param IFormInterface|null $Stage
      * @param null $Select
+     * @param string $Redirect
+     *
      * @return IFormInterface|Redirect
      */
-    public function getClass(IFormInterface $Stage = null, $Select = null)
+    public function getClass(IFormInterface $Stage = null, $Select = null, $Redirect)
     {
 
         /**
@@ -43,7 +45,7 @@ class Service
 
         $tblDivision = Division::useService()->getDivisionById($Select['Division']);
 
-        return new Redirect('/Reporting/Custom/Chemnitz/Person/ClassList', 0, array(
+        return new Redirect($Redirect, 0, array(
             'DivisionId' => $tblDivision->getId(),
         ));
     }
@@ -288,13 +290,14 @@ class Service
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
      * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
      */
-    public function createMedicList()
+    public function createMedicList(TblDivision $tblDivision)
     {
 
-        // Todo JohK Klassen einbauen
-        $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
         if (!empty($studentList)) {
             foreach ($studentList as $tblPerson) {

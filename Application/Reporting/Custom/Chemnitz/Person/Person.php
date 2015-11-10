@@ -56,14 +56,20 @@ class Person implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/MedicList', __NAMESPACE__ . '\Frontend::frontendMedicList'
-        ));
+        )
+            ->setParameterDefault('DivisionId', null)
+            ->setParameterDefault('Select', null)
+        );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/InterestedPersonList', __NAMESPACE__ . '\Frontend::frontendInterestedPersonList'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/ParentTeacherConferenceList',
             __NAMESPACE__ . '\Frontend::frontendParentTeacherConferenceList'
-        ));
+        )
+            ->setParameterDefault('DivisionId', null)
+            ->setParameterDefault('Select', null)
+        );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__ . '/ClubMemberList', __NAMESPACE__ . '\Frontend::frontendClubMemberList'
         ));
