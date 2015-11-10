@@ -10,12 +10,11 @@ use SPHERE\Application\Education\School\Course\Service\Entity\TblCourse;
 use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferArrive;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferEnrollment;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferLeave;
-use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransferProcess;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Form\Repository\Aspect;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
@@ -118,59 +117,63 @@ class Frontend extends Extension implements IFrontendInterface
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
-                    /** @var TblStudentTransfer $tblStudentTransfer */
-                    $tblStudentTransfer = $tblStudent->getTblStudentTransfer();
-                    if ($tblStudentTransfer) {
-                        /** @var TblStudentTransferEnrollment $tblStudentTransferEnrollment */
-                        $tblStudentTransferEnrollment = $tblStudentTransfer->getTblStudentTransferEnrollment();
-                        if ($tblStudentTransferEnrollment) {
-                            $Global->POST['Meta']['Transfer']['Enrollment']['School'] = (
-                            $tblStudentTransferEnrollment->getServiceTblCompany()
-                                ? $tblStudentTransferEnrollment->getServiceTblCompany()->getId()
-                                : 0
-                            );
-                            $Global->POST['Meta']['Transfer']['Enrollment']['Date'] = $tblStudentTransferEnrollment->getEnrollmentDate();
-                            $Global->POST['Meta']['Transfer']['Enrollment']['Remark'] = $tblStudentTransferEnrollment->getRemark();
-                        }
-                        /** @var TblStudentTransferArrive $tblStudentTransferArrive */
-                        $tblStudentTransferArrive = $tblStudentTransfer->getTblStudentTransferArrive();
-                        if ($tblStudentTransferArrive) {
-                            $Global->POST['Meta']['Transfer']['Arrive']['Type'] = (
-                            $tblStudentTransferArrive->getServiceTblType()
-                                ? $tblStudentTransferArrive->getServiceTblType()->getId()
-                                : 0
-                            );
-                            $Global->POST['Meta']['Transfer']['Arrive']['School'] = (
-                            $tblStudentTransferArrive->getServiceTblCompany()
-                                ? $tblStudentTransferArrive->getServiceTblCompany()->getId()
-                                : 0
-                            );
-                            $Global->POST['Meta']['Transfer']['Arrive']['Date'] = $tblStudentTransferArrive->getArriveDate();
-                            $Global->POST['Meta']['Transfer']['Arrive']['Remark'] = $tblStudentTransferArrive->getRemark();
-                        }
-                        /** @var TblStudentTransferLeave $tblStudentTransferLeave */
-                        $tblStudentTransferLeave = $tblStudentTransfer->getTblStudentTransferLeave();
-                        if ($tblStudentTransferLeave) {
-                            $Global->POST['Meta']['Transfer']['Leave']['Type'] = (
-                            $tblStudentTransferLeave->getServiceTblType()
-                                ? $tblStudentTransferLeave->getServiceTblType()->getId()
-                                : 0
-                            );
-                            $Global->POST['Meta']['Transfer']['Leave']['School'] = (
-                            $tblStudentTransferLeave->getServiceTblCompany()
-                                ? $tblStudentTransferLeave->getServiceTblCompany()->getId()
-                                : 0
-                            );
-                            $Global->POST['Meta']['Transfer']['Leave']['Date'] = $tblStudentTransferLeave->getLeaveDate();
-                            $Global->POST['Meta']['Transfer']['Leave']['Remark'] = $tblStudentTransferLeave->getRemark();
-                        }
-                        /** @var TblStudentTransferProcess $tblStudentTransferProcess */
-                        $tblStudentTransferProcess = $tblStudentTransfer->getTblStudentTransferProcess();
-                        if ($tblStudentTransferProcess) {
-                            $Global->POST['Meta']['Transfer']['Process']['Remark'] = $tblStudentTransferProcess->getRemark();
-                        }
-                        $Global->savePost();
+                    /** @var TblStudentTransfer $tblStudentTransferEnrollment */
+                    $tblStudentTransferEnrollment = Student::useService()->getStudentTransferByType(
+                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Enrollment')
+                    );
+                    if ($tblStudentTransferEnrollment) {
+                        $Global->POST['Meta']['Transfer']['Enrollment']['School'] = (
+                        $tblStudentTransferEnrollment->getServiceTblCompany()
+                            ? $tblStudentTransferEnrollment->getServiceTblCompany()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer']['Enrollment']['Date'] = $tblStudentTransferEnrollment->getTransferDate();
+                        $Global->POST['Meta']['Transfer']['Enrollment']['Remark'] = $tblStudentTransferEnrollment->getRemark();
                     }
+                    /** @var TblStudentTransfer $tblStudentTransferArrive */
+                    $tblStudentTransferArrive = Student::useService()->getStudentTransferByType(
+                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Arrive')
+                    );
+                    if ($tblStudentTransferArrive) {
+                        $Global->POST['Meta']['Transfer']['Arrive']['Type'] = (
+                        $tblStudentTransferArrive->getServiceTblType()
+                            ? $tblStudentTransferArrive->getServiceTblType()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer']['Arrive']['School'] = (
+                        $tblStudentTransferArrive->getServiceTblCompany()
+                            ? $tblStudentTransferArrive->getServiceTblCompany()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer']['Arrive']['Date'] = $tblStudentTransferArrive->getTransferDate();
+                        $Global->POST['Meta']['Transfer']['Arrive']['Remark'] = $tblStudentTransferArrive->getRemark();
+                    }
+                    /** @var TblStudentTransfer $tblStudentTransferLeave */
+                    $tblStudentTransferLeave = Student::useService()->getStudentTransferByType(
+                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Leave')
+                    );
+                    if ($tblStudentTransferLeave) {
+                        $Global->POST['Meta']['Transfer']['Leave']['Type'] = (
+                        $tblStudentTransferLeave->getServiceTblType()
+                            ? $tblStudentTransferLeave->getServiceTblType()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer']['Leave']['School'] = (
+                        $tblStudentTransferLeave->getServiceTblCompany()
+                            ? $tblStudentTransferLeave->getServiceTblCompany()->getId()
+                            : 0
+                        );
+                        $Global->POST['Meta']['Transfer']['Leave']['Date'] = $tblStudentTransferLeave->getTransferDate();
+                        $Global->POST['Meta']['Transfer']['Leave']['Remark'] = $tblStudentTransferLeave->getRemark();
+                    }
+                    /** @var TblStudentTransfer $tblStudentTransferProcess */
+                    $tblStudentTransferProcess = Student::useService()->getStudentTransferByType(
+                        $tblStudent, Student::useService()->getStudentTransferTypeByIdentifier('Process')
+                    );
+                    if ($tblStudentTransferProcess) {
+                        $Global->POST['Meta']['Transfer']['Process']['Remark'] = $tblStudentTransferProcess->getRemark();
+                    }
+                    $Global->savePost();
                 }
             }
         }
@@ -316,6 +319,36 @@ class Frontend extends Extension implements IFrontendInterface
             }
         }
 
+        /**
+         * Panel: Agreement
+         */
+        $tblAgreementCategoryAll = Student::useService()->getStudentAgreementCategoryAll();
+        $AgreementPanel = array();
+        array_walk($tblAgreementCategoryAll,
+            function (TblStudentAgreementCategory $tblStudentAgreementCategory) use (&$AgreementPanel) {
+
+                array_push($AgreementPanel, new Aspect($tblStudentAgreementCategory->getName()));
+                $tblAgreementTypeAll = Student::useService()->getStudentAgreementTypeAllByCategory($tblStudentAgreementCategory);
+                array_walk($tblAgreementTypeAll,
+                    function (TblStudentAgreementType $tblStudentAgreementType) use (
+                        &$AgreementPanel,
+                        $tblStudentAgreementCategory
+                    ) {
+
+                        array_push($AgreementPanel,
+                            new CheckBox('Meta['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
+                                $tblStudentAgreementType->getName(), 1)
+                        );
+                    }
+                );
+            }
+        );
+        $AgreementPanel = new Panel('Einverständniserklärung zur Datennutzung', $AgreementPanel,
+            Panel::PANEL_TYPE_INFO);
+
+        /**
+         * Form
+         */
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
@@ -372,18 +405,7 @@ class Frontend extends Extension implements IFrontendInterface
                             'Ausstiegshaltestelle', new StopSign()),
                         new TextArea('Meta[Transport][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO), 3),
-                new FormColumn(array(
-                    new Panel('Einverständniserklärung zur Datennutzung', array(
-                        new Aspect('Fotos des Schülers'),
-                        new CheckBox('Meta[PicturePermission][Internal]', 'in Schulschriften', 1),
-                        new CheckBox('Meta[PicturePermission][External]', 'in Veröffentlichungen', 1),
-                        new CheckBox('Meta[PicturePermission][Internet]', 'auf Internetpräsenz', 1),
-                        new CheckBox('Meta[PicturePermission][Facebook]', 'auf Facebookseite', 1),
-                        new CheckBox('Meta[PicturePermission][Press]', 'für Druckpresse', 1),
-                        new CheckBox('Meta[PicturePermission][Multimedia]', 'durch Ton/Video/Film', 1),
-                        new CheckBox('Meta[PicturePermission][Promotion]', 'für Werbung in eigener Sache', 1),
-                    ), Panel::PANEL_TYPE_INFO),
-                ), 3),
+                new FormColumn($AgreementPanel, 3),
             )),
         ), new Title('Allgemeines'));
     }
@@ -397,12 +419,29 @@ class Frontend extends Extension implements IFrontendInterface
     private function formGroupSubject(TblPerson $tblPerson = null, $Meta = array())
     {
 
+        $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
+
+        if ($tblStudent && empty( $Meta )) {
+            $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudent($tblStudent);
+            if ($tblStudentSubjectAll) {
+                $Global = $this->getGlobal();
+                array_walk($tblStudentSubjectAll, function (TblStudentSubject $tblStudentSubject) use (&$Global) {
+
+                    $Type = $tblStudentSubject->getTblStudentSubjectType()->getId();
+                    $Ranking = $tblStudentSubject->getTblStudentSubjectRanking()->getId();
+                    $Subject = $tblStudentSubject->getServiceTblSubject()->getId();
+                    $Global->POST['Meta']['Subject'][$Type][$Ranking] = $Subject;
+                });
+                $Global->savePost();
+            }
+        }
+
         // Orientation
         $tblSubjectOrientation = Subject::useService()->getSubjectOrientationAll();
         if ($tblSubjectOrientation) {
             array_push($tblSubjectOrientation, new TblSubject());
         } else {
-            $tblSubjectOrientation = array();
+            $tblSubjectOrientation = array(new TblSubject());
         }
 
         // Advanced
@@ -410,7 +449,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSubjectAdvanced) {
             array_push($tblSubjectAdvanced, new TblSubject());
         } else {
-            $tblSubjectAdvanced = array();
+            $tblSubjectAdvanced = array(new TblSubject());
         }
 
         // Elective
@@ -418,7 +457,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSubjectElective) {
             array_push($tblSubjectElective, new TblSubject());
         } else {
-            $tblSubjectElective = array();
+            $tblSubjectElective = array(new TblSubject());
         }
 
         // Profile
@@ -426,7 +465,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSubjectProfile) {
             array_push($tblSubjectProfile, new TblSubject());
         } else {
-            $tblSubjectProfile = array();
+            $tblSubjectProfile = array(new TblSubject());
         }
 
         // Religion
@@ -434,7 +473,7 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSubjectReligion) {
             array_push($tblSubjectReligion, new TblSubject());
         } else {
-            $tblSubjectReligion = array();
+            $tblSubjectReligion = array(new TblSubject());
         }
 
         // ForeignLanguage
@@ -442,124 +481,61 @@ class Frontend extends Extension implements IFrontendInterface
         if ($tblSubjectForeignLanguage) {
             array_push($tblSubjectForeignLanguage, new TblSubject());
         } else {
-            $tblSubjectForeignLanguage = array();
+            $tblSubjectForeignLanguage = array(new TblSubject());
         }
 
+        // All
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         array_push($tblSubjectAll, new TblSubject());
 
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(array(
-                    new Panel('Kurse / Profile / Religionsunterricht', array(
-                        new SelectBox('Meta[Subject][Orientation]', 'Neigungskurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectOrientation),
-                            new Education())
-                        .new Panel('Historie', array(
-                            'Klasse 8: Philosophie',
-                            'Klasse 9: Mathematik'
-                        ))
-                        .new Warning(
-                            'Vom System erkannte Fachklassen<br/>Wird bei Zensurenvergabe im entsprechenden Fach erzeugt'
-                        ),
-                        new SelectBox('Meta[Subject][Advanced]', 'Vertiefungskurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAdvanced),
-                            new Education())
-                        .new Panel('Historie', array(
-                            'Klasse 10: Germanistik',
-                            'Klasse 10: Mathematik'
-                        ))
-                        .new Warning(
-                            'Vom System erkannte Fachklassen<br/>Wird bei Zensurenvergabe im entsprechenden Fach erzeugt'
-                        ),
-                        new SelectBox('Meta[Subject][Profile]', 'Profil',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectProfile),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Religion]', 'Religion',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectReligion),
-                            new Education()),
-                    ), Panel::PANEL_TYPE_INFO),
+                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1),
+                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1),
+                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1),
+                    $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1),
+                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3),
                 ), 4),
                 new FormColumn(array(
-                    new Panel('Fremdsprachen', array(
-                        new SelectBox('Meta[Subject][ForeignLanguage][First]', '1. Fremdsprache',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                            new Education()),
-                        new SelectBox('Meta[Subject][ForeignLanguage][Second]', '2. Fremdsprache',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                            new Education()),
-                        new SelectBox('Meta[Subject][ForeignLanguage][Third]', '3. Fremdsprache',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                            new Education()),
-                        new SelectBox('Meta[Subject][ForeignLanguage][Fourth]', '4. Fremdsprache',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectForeignLanguage),
-                            new Education()),
-                    ), Panel::PANEL_TYPE_INFO),
-                    new Panel('Wahlfächer', array(
-                        new SelectBox('Meta[Subject][Elective][First]', '1. Wahlfach',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Elective][Second]', '2. Wahlfach',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectElective),
-                            new Education()),
-                    ), Panel::PANEL_TYPE_INFO),
-                    new Panel('Arbeitsgemeinschaften', array(
-                        new SelectBox('Meta[Subject][Team][First]', '1. Arbeitsgemeinschaft',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Team][Second]', '2. Arbeitsgemeinschaft',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Team][Third]', '3. Arbeitsgemeinschaft',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                    ), Panel::PANEL_TYPE_INFO),
+                    $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
+                        $tblSubjectForeignLanguage, 4),
+                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 2),
                 ), 4),
                 new FormColumn(array(
-                    new Panel('Leistungskurs / Grundkurs', array(
-                        new SelectBox('Meta[Subject][Track][Intensive][First]', new Education().' 1. Leistungskurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Intensive][Second]', new Education().' 2. Leistungskurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][0]', '1. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][1]', '2. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][2]', '3. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][3]', '4. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][4]', '5. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][5]', '6. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][6]', '7. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][7]', '8. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                        new SelectBox('Meta[Subject][Track][Basic][8]', '9. Grundkurs',
-                            array('{{ Acronym }} - {{ Name }} {{ Description }}' => $tblSubjectAll),
-                            new Education()),
-                    ), Panel::PANEL_TYPE_INFO),
+                    $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2),
+                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 7),
                 ), 4),
             )),
-        ), new Title('Unterrichtsfächer',
-            new Warning(
-                new Danger(
-                    new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Es können im Moment nur fest vorgegebene Fächer in der aktuellen Demo-Version verwendet werden'
+        ), new Title('Unterrichtsfächer'));
+    }
+
+    /**
+     * @param string       $Identifier
+     * @param string       $Title
+     * @param string       $Label
+     * @param TblSubject[] $SubjectList
+     * @param int          $Count
+     *
+     * @return Panel
+     */
+    private function panelSubjectList($Identifier, $Title, $Label, $SubjectList, $Count = 1)
+    {
+
+        $tblStudentSubjectType = Student::useService()->getStudentSubjectTypeByIdentifier(strtoupper($Identifier));
+        $Panel = array();
+        for ($Rank = 1; $Rank <= $Count; $Rank++) {
+            $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Rank);
+            array_push($Panel,
+                new SelectBox(
+                    'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
+                    ( $Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '' ).$Label,
+                    array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList),
+                    new Education()
                 )
-            )
-        ));
+            );
+        }
+        return new Panel($Title, $Panel, Panel::PANEL_TYPE_INFO);
     }
 
     /**

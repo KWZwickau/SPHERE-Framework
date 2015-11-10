@@ -541,13 +541,13 @@ class Service
                     $tblProspectReservation = $tblProspect->getTblProspectReservation();
                     if ($tblProspectReservation) {
                         $tblPerson->SchoolYear = $tblProspectReservation->getReservationYear();
-                        if ($tblProspectReservation->getServiceTblCompanyOptionA()) {
-                            $tblPerson->CompanyOptionA = $tblProspectReservation->getServiceTblCompanyOptionA()->getName();
+                        if ($tblProspectReservation->getServiceTblTypeOptionA()) {
+                            $tblPerson->CompanyOptionA = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
                         } else {
                             $tblPerson->CompanyOptionA = '';
                         }
-                        if ($tblProspectReservation->getServiceTblCompanyOptionB()) {
-                            $tblPerson->CompanyOptionB = $tblProspectReservation->getServiceTblCompanyOptionB()->getName();
+                        if ($tblProspectReservation->getServiceTblTypeOptionB()) {
+                            $tblPerson->CompanyOptionB = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
                         } else {
                             $tblPerson->CompanyOptionB = '';
                         }
