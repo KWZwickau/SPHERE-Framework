@@ -60,6 +60,11 @@ h4 {
 
 /* BOOTSTRAP */
 
+/** BREADCRUMP **/
+.breadcrumb {
+    margin-bottom: 0;
+}
+
 /** NAVBAR **/
 .navbar-toggle .icon-bar + .icon-bar {
     margin-top: 3px;

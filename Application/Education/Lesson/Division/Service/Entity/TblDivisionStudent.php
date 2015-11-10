@@ -20,6 +20,8 @@ use SPHERE\System\Database\Fitting\Element;
 class TblDivisionStudent extends Element
 {
 
+    const ATTR_TBL_DIVISION = 'tblDivision';
+
     /**
      * @Column(type="bigint")
      */

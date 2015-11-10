@@ -20,7 +20,6 @@ class TblItemCondition extends Element
      * @Column(type="bigint")
      */
     protected $serviceManagement_Student;
-
     /**
      * @Column(type="bigint")
      */

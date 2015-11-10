@@ -28,12 +28,10 @@ class TblBasketCommodity extends Element
      * @Column(type="bigint")
      */
     protected $tblBasket;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceManagement_Person;
-
     /**
      * @Column(type="bigint")
      */

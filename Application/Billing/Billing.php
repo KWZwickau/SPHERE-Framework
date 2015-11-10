@@ -48,6 +48,9 @@ class Billing implements IClusterInterface
         ));
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendInventory()
     {
 
@@ -55,6 +58,9 @@ class Billing implements IClusterInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendBookkeeping()
     {
 
@@ -62,6 +68,9 @@ class Billing implements IClusterInterface
         return $Stage;
     }
 
+    /**
+     * @return Stage
+     */
     public function frontendAccounting()
     {
 

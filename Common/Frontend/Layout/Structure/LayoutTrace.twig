@@ -1,0 +1,11 @@
+{% if(TraceList is not empty) %}
+<ol class="breadcrumb">
+    {% for Index, Step in TraceList %}
+        {% if(Index == TraceList|length) %}
+            <li class="active">{{ Step }}</li>
+            {% else %}
+                <li>{{ Step }}</li>
+            {% endif %}
+        {% endfor %}
+</ol>
+{% endif %}

@@ -93,7 +93,7 @@ class TblDebtor extends Element
     public function setServiceManagementPerson(TblPerson $ServiceManagementPerson)
     {
 
-        $this->ServiceManagementPerson = ( null === $ServiceManagementPerson ? null : $ServiceManagementPerson->getId() );//todo
+        $this->ServiceManagementPerson = ( null === $ServiceManagementPerson ? null : $ServiceManagementPerson->getId() );
     }
 
     /**

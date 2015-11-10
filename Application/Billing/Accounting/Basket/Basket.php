@@ -14,6 +14,7 @@ class Basket implements IModuleInterface
 
     public static function registerModule()
     {
+
         /**
          * Register Route
          */

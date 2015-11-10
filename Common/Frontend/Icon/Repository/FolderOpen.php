@@ -4,7 +4,7 @@ namespace SPHERE\Common\Frontend\Icon\Repository;
 use SPHERE\Common\Frontend\Icon\IIconInterface;
 
 /**
- * Class FolderOpenIcon
+ * Class FolderOpen
  *
  * @package SPHERE\Common\Frontend\Icon\Repository
  */

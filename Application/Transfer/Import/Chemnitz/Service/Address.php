@@ -18,13 +18,13 @@ class Address extends Service
         $StreetNumber,
         $CityCode,
         $CityName,
-        Service\Entity\TblState $tblState,
+        $State = null,
         $CityDistrict = '',
         $PostOfficeBox = ''
     ) {
 
         return $this->insertAddressToPerson($tblPerson, $StreetName, $StreetNumber, $CityCode, $CityName, $CityDistrict,
-            $PostOfficeBox, $tblState);
+            $PostOfficeBox, $State);
     }
 
 }

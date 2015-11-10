@@ -25,7 +25,6 @@ class TblBasketPerson extends Element
      * @Column(type="bigint")
      */
     protected $serviceManagement_Person;
-
     /**
      * @Column(type="bigint")
      */

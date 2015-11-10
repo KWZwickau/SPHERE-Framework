@@ -40,44 +40,70 @@ class Database extends AbstractWriter
             $this->setName($this->tblFile->getName());
             $this->setDescription($this->tblFile->getDescription());
             $this->setFileName($this->tblFile->getFileName());
-            $this->setFileSize($this->tblFile->getFileSize());
-            $this->setFileType($this->tblFile->getFileType());
             $this->setFileExtension($this->tblFile->getFileExtension());
-            $this->setFileContent($this->tblFile->getFileContent());
+            $this->setFileType($this->tblFile->getFileType());
+            $this->setFileContent(stream_get_contents($this->tblFile->getFileContent()));
+            $this->setFileSize($this->tblFile->getFileSize());
 
             $this->Container = new Temporary('SPHERE-Database', $this->getFileExtension());
             $this->Container->setName($this->getName());
             $this->Container->setDescription($this->getDescription());
             $this->Container->setFileName($this->getFileName());
-            $this->Container->setFileSize($this->getFileSize());
-            $this->Container->setFileType($this->getFileType());
             $this->Container->setFileExtension($this->getFileExtension());
+            $this->Container->setFileType($this->getFileType());
             $this->Container->setFileContent($this->getFileContent());
+            $this->Container->saveFile();
+
+            $this->setFileLocation($this->Container->getFileLocation());
         } else {
             $this->Container = new Temporary();
         }
     }
 
     /**
-     *
+     * @return bool
      */
     public function saveFile()
     {
 
-        // TODO: Save & Update
+        $this->Container->setName($this->getName());
+        $this->Container->setDescription($this->getDescription());
+        $this->Container->setFileName($this->getFileName());
+        $this->Container->setFileExtension($this->getFileExtension());
+        $this->Container->setFileType($this->getFileType());
+        $this->Container->setFileContent($this->getFileContent());
+        $this->Container->saveFile();
 
         if ($this->tblFile) {
-
-        } else {
-            $Entity = Storage::useService()->insertFile(
-                $this->getName(),
-                $this->getDescription(),
-                $this->getFileName(),
-                $this->getFileExtension(),
-                $this->getFileContent(),
-                $this->getFileType(),
-                $this->getFileSize()
+            $Result = Storage::useService()->changeFile(
+                $this->tblFile,
+                $this->Container->getName(),
+                $this->Container->getDescription(),
+                $this->Container->getFileName(),
+                $this->Container->getFileExtension(),
+                $this->Container->getFileContent(),
+                $this->Container->getFileType(),
+                $this->Container->getFileSize()
             );
+            $this->setFileSize($this->Container->getFileSize());
+            return $Result;
+        } else {
+            if (( $Entity = Storage::useService()->insertFile(
+                $this->Container->getName(),
+                $this->Container->getDescription(),
+                $this->Container->getFileName(),
+                $this->Container->getFileExtension(),
+                $this->Container->getFileContent(),
+                $this->Container->getFileType(),
+                $this->Container->getFileSize()
+            ) )
+            ) {
+                $this->tblFile = $Entity;
+                $this->loadFile();
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 

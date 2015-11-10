@@ -11,6 +11,7 @@ use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -59,7 +60,7 @@ class Frontend extends Extension implements IFrontendInterface
     /**
      * @param bool|false|string $TabActive
      *
-     * @param null|int   $Id
+     * @param null|int $Id
      * @param null|array $Person
      * @param null|array $Meta
      *
@@ -82,7 +83,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(new LayoutColumn($BasicTable)),
-                        new Title(new PersonParent().' Grunddaten', 'der Person')
+                        new Title(new PersonParent() . ' Grunddaten', 'der Person')
                     ),
                 ))
             );
@@ -91,15 +92,17 @@ class Frontend extends Extension implements IFrontendInterface
             $tblPerson = Person::useService()->getPersonById($Id);
 
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Person'] )) {
+            if (!isset($Global->POST['Person'])) {
                 $ShowMask = false;
-                $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
+                if ($tblPerson->getTblSalutation()) {
+                    $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
+                }
                 $Global->POST['Person']['Title'] = $tblPerson->getTitle();
                 $Global->POST['Person']['FirstName'] = $tblPerson->getFirstName();
                 $Global->POST['Person']['SecondName'] = $tblPerson->getSecondName();
                 $Global->POST['Person']['LastName'] = $tblPerson->getLastName();
                 $tblGroupAll = Group::useService()->getGroupAllByPerson($tblPerson);
-                if (!empty( $tblGroupAll )) {
+                if (!empty($tblGroupAll)) {
                     /** @var TblGroup $tblGroup */
                     foreach ((array)$tblGroupAll as $tblGroup) {
                         $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
@@ -113,8 +116,8 @@ class Frontend extends Extension implements IFrontendInterface
             $BasicTable = new Accordion();
             $BasicTable->addItem(
                 '<span class="glyphicons glyphicons-pencil"></span>&nbsp;'
-                .'Grunddaten & Gruppenzugehörigkeit ändern&nbsp;'
-                .new Muted(new Small('Klicken Sie hier um die Maske zu öffen/zu schließen'))
+                . 'Grunddaten & Gruppenzugehörigkeit ändern&nbsp;'
+                . new Muted(new Small('Klicken Sie hier um die Maske zu öffen/zu schließen'))
                 , Person::useService()->updatePerson(
                 $this->formPerson()
                     ->appendFormButton(new Primary('Grunddaten speichern'))
@@ -159,20 +162,20 @@ class Frontend extends Extension implements IFrontendInterface
             /** @var LayoutTab[] $MetaTabs */
             $MetaTabs = array_filter($MetaTabs);
             // Folded ?
-            if (!empty( $MetaTabs )) {
+            if (!empty($MetaTabs)) {
                 if (!$TabActive || $TabActive == '#') {
-                    array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronRight().'&nbsp;', '#',
+                    array_unshift($MetaTabs, new LayoutTab('&nbsp;' . new ChevronRight() . '&nbsp;', '#',
                         array('Id' => $tblPerson->getId())
                     ));
                     $MetaTabs[0]->setActive();
                 } else {
                     if ($TabActive == 'Common') {
-                        array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
+                        array_unshift($MetaTabs, new LayoutTab('&nbsp;' . new ChevronUp() . '&nbsp;', '#',
                             array('Id' => $tblPerson->getId())
                         ));
                         $MetaTabs[1]->setActive();
                     } else {
-                        array_unshift($MetaTabs, new LayoutTab('&nbsp;'.new ChevronUp().'&nbsp;', '#',
+                        array_unshift($MetaTabs, new LayoutTab('&nbsp;' . new ChevronUp() . '&nbsp;', '#',
                             array('Id' => $tblPerson->getId())
                         ));
                     }
@@ -193,7 +196,7 @@ class Frontend extends Extension implements IFrontendInterface
                     $MetaTable = Custody::useFrontend()->frontendMeta($tblPerson, $Meta);
                     break;
                 default:
-                    if (!empty( $MetaTabs )) {
+                    if (!empty($MetaTabs)) {
                         $MetaTable = new Well(new Muted('Bitte wählen Sie eine Rubrik'));
                     } else {
                         $MetaTable = new Well(new Warning('Keine Informationen verfügbar'));
@@ -204,23 +207,23 @@ class Frontend extends Extension implements IFrontendInterface
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(new LayoutColumn(array(
-                            new Panel(new PersonIcon().' Person',
+                            new Panel(new PersonIcon() . ' Person',
                                 $tblPerson->getFullName(),
                                 Panel::PANEL_TYPE_SUCCESS
                             ),
                             $BasicTable
                         ))),
-                        new Title(new PersonParent().' Grunddaten', 'der Person')
+                        new Title(new PersonParent() . ' Grunddaten', 'der Person')
                     ),
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(new LayoutTabs($MetaTabs))),
                         new LayoutRow(new LayoutColumn($MetaTable)),
-                    ), new Title(new Tag().' Informationen', 'zur Person')),
+                    ), new Title(new Tag() . ' Informationen', 'zur Person')),
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             Address::useFrontend()->frontendLayoutPerson($tblPerson)
                         )),
-                    ), (new Title(new TagList().' Adressdaten', 'der Person'))
+                    ), (new Title(new TagList() . ' Adressdaten', 'der Person'))
                         ->addButton(
                             new Standard('Adresse hinzufügen', '/People/Person/Address/Create',
                                 new ChevronDown(), array('Id' => $tblPerson->getId())
@@ -230,9 +233,9 @@ class Frontend extends Extension implements IFrontendInterface
                     new LayoutGroup(array(
                         new LayoutRow(new LayoutColumn(
                             Phone::useFrontend()->frontendLayoutPerson($tblPerson)
-                            .Mail::useFrontend()->frontendLayoutPerson($tblPerson)
+                            . Mail::useFrontend()->frontendLayoutPerson($tblPerson)
                         )),
-                    ), (new Title(new TagList().' Kontaktdaten', 'der Person'))
+                    ), (new Title(new TagList() . ' Kontaktdaten', 'der Person'))
                         ->addButton(
                             new Standard('Telefonnummer hinzufügen', '/People/Person/Phone/Create',
                                 new ChevronDown(), array('Id' => $tblPerson->getId())
@@ -249,7 +252,7 @@ class Frontend extends Extension implements IFrontendInterface
                             Relationship::useFrontend()->frontendLayoutPerson($tblPerson),
                             Relationship::useFrontend()->frontendLayoutCompany($tblPerson)
                         ))),
-                    ), (new Title(new TagList().' Beziehungen', 'zu Personen und Firmen'))
+                    ), (new Title(new TagList() . ' Beziehungen', 'zu Personen und Firmen'))
                         ->addButton(
                             new Standard('Personenbeziehung hinzufügen', '/People/Person/Relationship/Create',
                                 new ChevronDown(), array('Id' => $tblPerson->getId())
@@ -292,15 +295,15 @@ class Frontend extends Extension implements IFrontendInterface
                         $Global->POST['Person']['Group'][$tblGroup->getId()] = $tblGroup->getId();
                         $Global->savePost();
                         $tblGroup = new RadioBox(
-                            'Person[Group]['.$tblGroup->getId().']',
-                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            'Person[Group][' . $tblGroup->getId() . ']',
+                            $tblGroup->getName() . ' ' . new Muted(new Small($tblGroup->getDescription())),
                             $tblGroup->getId()
                         );
                         break;
                     default:
                         $tblGroup = new CheckBox(
-                            'Person[Group]['.$tblGroup->getId().']',
-                            $tblGroup->getName().' '.new Muted(new Small($tblGroup->getDescription())),
+                            'Person[Group][' . $tblGroup->getId() . ']',
+                            $tblGroup->getName() . ' ' . new Muted(new Small($tblGroup->getDescription())),
                             $tblGroup->getId()
                         );
                 }
@@ -310,6 +313,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblSalutationAll = Person::useService()->getSalutationAll();
+        $tblSalutationAll[] = new TblSalutation('');
 
         return new Form(
             new FormGroup(array(
