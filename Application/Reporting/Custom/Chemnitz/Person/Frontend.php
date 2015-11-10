@@ -231,6 +231,7 @@ class Frontend extends Extension implements IFrontendInterface
                     'FirstName'        => 'Vorname',
                     'LastName'         => 'Name',
                     'SchoolYear'       => 'Schuljahr',
+                    'DivisionLevel'    => 'Klassenstufe',
                     'CompanyOptionA'   => 'Schulart 1',
                     'CompanyOptionB'   => 'Schulart 2',
                     'Address'          => 'Adresse',

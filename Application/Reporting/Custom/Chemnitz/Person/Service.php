@@ -551,6 +551,11 @@ class Service
                         } else {
                             $tblPerson->CompanyOptionB = '';
                         }
+                        if ($tblProspectReservation->getReservationDivision()) {
+                            $tblPerson->DivisionLevel = $tblProspectReservation->getReservationDivision();
+                        } else {
+                            $tblPerson->DivisionLevel = '';
+                        }
                     }
                     $tblProspectAppointment = $tblProspect->getTblProspectAppointment();
                     if ($tblProspectAppointment) {
@@ -560,7 +565,7 @@ class Service
                     }
                 } else {
                     $tblPerson->SchoolYear = $tblPerson->CompanyOptionA = $tblPerson->CompanyOptionB
-                        = $tblPerson->RegistrationDate = '';
+                        = $tblPerson->RegistrationDate = $tblPerson->DivisionLevel = '';
                 }
 
                 $common = Common::useService()->getCommonByPerson($tblPerson);
@@ -659,24 +664,25 @@ class Service
             $export->setValue($export->getCell("1", "0"), "Vorname");
             $export->setValue($export->getCell("2", "0"), "Name");
             $export->setValue($export->getCell("3", "0"), "Schuljahr");
-            $export->setValue($export->getCell("4", "0"), "Schulart 1");
-            $export->setValue($export->getCell("5", "0"), "Schulart 2");
-            $export->setValue($export->getCell("6", "0"), "Straße");
-            $export->setValue($export->getCell("7", "0"), "Hausnummer");
-            $export->setValue($export->getCell("8", "0"), "PLZ");
-            $export->setValue($export->getCell("9", "0"), "Ort");
-            $export->setValue($export->getCell("10", "0"), "Geburtsdatum");
-            $export->setValue($export->getCell("11", "0"), "Geburtsort");
-            $export->setValue($export->getCell("12", "0"), "Staatsangeh.");
-            $export->setValue($export->getCell("13", "0"), "Bekenntnis");
-            $export->setValue($export->getCell("14", "0"), "Geschwister");
-            $export->setValue($export->getCell("15", "0"), "Hort");
-            $export->setValue($export->getCell("16", "0"), "Anrede V");
-            $export->setValue($export->getCell("17", "0"), "Name V");
-            $export->setValue($export->getCell("18", "0"), "Vorname V");
-            $export->setValue($export->getCell("19", "0"), "Anrede M");
-            $export->setValue($export->getCell("20", "0"), "Name M");
-            $export->setValue($export->getCell("21", "0"), "Vorname M");
+            $export->setValue($export->getCell("4", "0"), "Klassenstufe");
+            $export->setValue($export->getCell("5", "0"), "Schulart 1");
+            $export->setValue($export->getCell("6", "0"), "Schulart 2");
+            $export->setValue($export->getCell("7", "0"), "Straße");
+            $export->setValue($export->getCell("8", "0"), "Hausnummer");
+            $export->setValue($export->getCell("9", "0"), "PLZ");
+            $export->setValue($export->getCell("10", "0"), "Ort");
+            $export->setValue($export->getCell("11", "0"), "Geburtsdatum");
+            $export->setValue($export->getCell("12", "0"), "Geburtsort");
+            $export->setValue($export->getCell("13", "0"), "Staatsangeh.");
+            $export->setValue($export->getCell("14", "0"), "Bekenntnis");
+            $export->setValue($export->getCell("15", "0"), "Geschwister");
+            $export->setValue($export->getCell("16", "0"), "Hort");
+            $export->setValue($export->getCell("17", "0"), "Anrede V");
+            $export->setValue($export->getCell("18", "0"), "Name V");
+            $export->setValue($export->getCell("19", "0"), "Vorname V");
+            $export->setValue($export->getCell("20", "0"), "Anrede M");
+            $export->setValue($export->getCell("21", "0"), "Name M");
+            $export->setValue($export->getCell("22", "0"), "Vorname M");
 
             $Row = 1;
             foreach ($interestedPersonList as $tblPerson) {
@@ -685,24 +691,25 @@ class Service
                 $export->setValue($export->getCell("1", $Row), $tblPerson->getFirstName());
                 $export->setValue($export->getCell("2", $Row), $tblPerson->getLastName());
                 $export->setValue($export->getCell("3", $Row), $tblPerson->SchoolYear);
-                $export->setValue($export->getCell("4", $Row), $tblPerson->CompanyOptionA);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->CompanyOptionB);
-                $export->setValue($export->getCell("6", $Row), $tblPerson->StreetName);
-                $export->setValue($export->getCell("7", $Row), $tblPerson->StreetNumber);
-                $export->setValue($export->getCell("8", $Row), $tblPerson->Code);
-                $export->setValue($export->getCell("9", $Row), $tblPerson->City);
-                $export->setValue($export->getCell("10", $Row), $tblPerson->Birthday);
-                $export->setValue($export->getCell("11", $Row), $tblPerson->Birthplace);
-                $export->setValue($export->getCell("12", $Row), $tblPerson->Nationality);
-                $export->setValue($export->getCell("13", $Row), $tblPerson->Denomination);
-                $export->setValue($export->getCell("14", $Row), $tblPerson->Siblings);
-                $export->setValue($export->getCell("15", $Row), $tblPerson->Hoard);
-                $export->setValue($export->getCell("16", $Row), $tblPerson->FatherSalutation);
-                $export->setValue($export->getCell("17", $Row), $tblPerson->FatherLastName);
-                $export->setValue($export->getCell("18", $Row), $tblPerson->FatherFirstName);
-                $export->setValue($export->getCell("19", $Row), $tblPerson->MotherSalutation);
-                $export->setValue($export->getCell("20", $Row), $tblPerson->MotherLastName);
-                $export->setValue($export->getCell("21", $Row), $tblPerson->MotherFirstName);
+                $export->setValue($export->getCell("4", $Row), $tblPerson->DivisionLevel);
+                $export->setValue($export->getCell("5", $Row), $tblPerson->CompanyOptionA);
+                $export->setValue($export->getCell("6", $Row), $tblPerson->CompanyOptionB);
+                $export->setValue($export->getCell("7", $Row), $tblPerson->StreetName);
+                $export->setValue($export->getCell("8", $Row), $tblPerson->StreetNumber);
+                $export->setValue($export->getCell("9", $Row), $tblPerson->Code);
+                $export->setValue($export->getCell("10", $Row), $tblPerson->City);
+                $export->setValue($export->getCell("11", $Row), $tblPerson->Birthday);
+                $export->setValue($export->getCell("12", $Row), $tblPerson->Birthplace);
+                $export->setValue($export->getCell("13", $Row), $tblPerson->Nationality);
+                $export->setValue($export->getCell("14", $Row), $tblPerson->Denomination);
+                $export->setValue($export->getCell("15", $Row), $tblPerson->Siblings);
+                $export->setValue($export->getCell("16", $Row), $tblPerson->Hoard);
+                $export->setValue($export->getCell("17", $Row), $tblPerson->FatherSalutation);
+                $export->setValue($export->getCell("18", $Row), $tblPerson->FatherLastName);
+                $export->setValue($export->getCell("19", $Row), $tblPerson->FatherFirstName);
+                $export->setValue($export->getCell("20", $Row), $tblPerson->MotherSalutation);
+                $export->setValue($export->getCell("21", $Row), $tblPerson->MotherLastName);
+                $export->setValue($export->getCell("22", $Row), $tblPerson->MotherFirstName);
 
                 $Row++;
             }
