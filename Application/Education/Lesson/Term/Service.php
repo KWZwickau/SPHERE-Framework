@@ -262,7 +262,7 @@ class Service extends AbstractService
         if (isset( $Year['Name'] ) && empty( $Year['Name'] )) {
             $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
-        }else{
+        } else {
             if ($this->getYearByName($Year['Name'])) {
                 $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
                 $Error = true;
@@ -345,10 +345,10 @@ class Service extends AbstractService
         }
         if ((new Data($this->getBinding()))->destroyYear($tblYear)) {
             return new Success('Das Jahr wurde erfolgreich gelöscht')
-            .new Redirect('/Education/Lesson/Term', 0);
+            .new Redirect('/Education/Lesson/Term/Create/Year', 0);
         } else {
             return new Danger('Das Jahr konnte nicht gelöscht werden')
-            .new Redirect('/Education/Lesson/Term');
+            .new Redirect('/Education/Lesson/Term/Create/Year');
         }
 
     }
