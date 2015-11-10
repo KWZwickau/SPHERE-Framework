@@ -54,6 +54,15 @@ class Term implements IModuleInterface
             __NAMESPACE__.'/Create/Period', __NAMESPACE__.'\Frontend::frontendCreatePeriod'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Edit/Period', __NAMESPACE__.'\Frontend::frontendEditPeriod'
+        )->setParameterDefault('Id', null)
+            ->setParameterDefault('Period', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Period', __NAMESPACE__.'\Frontend::frontendDestroyPeriod'
+        )->setParameterDefault('Id', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Link/Period', __NAMESPACE__.'\Frontend::frontendLinkPeriod'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -88,7 +97,7 @@ class Term implements IModuleInterface
         $Stage = new Stage('Dashboard', 'Schuljahr');
 
         $Stage->addButton(new Standard('Schuljahr hinzufügen', __NAMESPACE__.'\Create\Year'));
-        $Stage->addButton(new Standard('Zeitraum hinzufügen', __NAMESPACE__.'\Create\Period'));
+        $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period'));
 
         $tblYearAll = Term::useService()->getYearAll();
         $Year = array();
@@ -103,7 +112,7 @@ class Term implements IModuleInterface
                         $tblPeriod = $tblPeriod->getName().' '.$tblPeriod->getDescription()
                             .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
                                 array('PeriodId' => $tblPeriod->getId(),
-                                      'Id'   => $tblYear->getId())))
+                                      'Id'       => $tblYear->getId())))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
                     }, $tblYear);
                 } else {

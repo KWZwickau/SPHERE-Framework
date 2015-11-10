@@ -46,7 +46,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateYear($Year = null)
     {
 
-        $Stage = new Stage('Schuljahre', 'Bearbeiten');
+        $Stage = new Stage('Schuljahre', 'Hinzufügen');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblYearAll = Term::useService()->getYearAll();
@@ -55,9 +55,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
                 $tblYear->Option =
-                    new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
-                        array('Id' => $tblYear->getId()), 'Bearbeiten'
-                    ).
+//                    new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
+//                        array('Id' => $tblYear->getId()), 'Bearbeiten'
+//                    ).
                     ( empty( $tblPeriodAll )
                         ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
                             array('Id' => $tblYear->getId()), 'Löschen'
@@ -71,17 +71,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-                            new TableData($tblYearAll, null, array(
-                                'Name'        => 'Name',
-                                'Description' => 'Beschreibung',
-                                'Option'      => 'Optionen',
-                            ))
-                        )
-                    ), new Title('Bestehende Schuljahre')
-                ),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
                             Term::useService()->createYear(
                                 $this->formYear()
                                     ->appendFormButton(new Primary('Schuljahr hinzufügen'))
@@ -90,7 +79,18 @@ class Frontend extends Extension implements IFrontendInterface
                             )
                         )
                     ), new Title('Schuljahr hinzufügen')
-                )
+                ),
+                new LayoutGroup(
+                    new LayoutRow(
+                        new LayoutColumn(
+                            new TableData($tblYearAll, null, array(
+                                'Name'        => 'Name',
+                                'Description' => 'Beschreibung',
+                                'Option'      => 'Option',
+                            ))
+                        )
+                    ), new Title('Bestehende Schuljahre')
+                ),
             ))
         );
 
@@ -149,12 +149,14 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreatePeriod($Period = null)
     {
 
-        $Stage = new Stage('Zeiträume', 'Bearbeiten');
+        $Stage = new Stage('Zeiträume', 'Hinzufügen / Bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblPeriodAll = Term::useService()->getPeriodAll();
         if ($tblPeriodAll) {
             array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) {
+
+                $tblPeriod->Period = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
 
                 $tblPeriod->Option =
                     new Standard('', __NAMESPACE__.'\Edit\Period', new Pencil(),
@@ -174,6 +176,7 @@ class Frontend extends Extension implements IFrontendInterface
                             new TableData($tblPeriodAll, null, array(
                                 'Name'        => 'Name',
                                 'Description' => 'Beschreibung',
+                                'Period'      => 'Zeitraum',
                                 'Option'      => 'Optionen',
                             ))
                         )
@@ -322,7 +325,7 @@ class Frontend extends Extension implements IFrontendInterface
     ) {
 
         if ($tblYear) {
-            $Panel = new Panel($tblYear->getDescription().new PullRight($tblYear->getName()), '', Panel::PANEL_TYPE_INFO);
+            $Panel = new Panel($tblYear->getDescription().'&nbsp'.new PullRight($tblYear->getName()), '', Panel::PANEL_TYPE_INFO);
             return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Panel, 6))));
         }
         return false;
@@ -381,6 +384,44 @@ class Frontend extends Extension implements IFrontendInterface
             $Stage->setContent(Term::useService()->destroyYear($tblYear));
         } else {
             $Stage->setContent(new Warning('Jahr konnte nicht gefunden werden'));
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     * @param $Period
+     *
+     * @return Stage
+     */
+    public function frontendEditPeriod($Id, $Period)
+    {
+
+        $Stage = new Stage('Zeitraum', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term/Create/Period', new ChevronLeft()));
+        $tblPeriod = Term::useService()->getPeriodById($Id);
+
+        if ($tblPeriod) {
+            $Form = $this->formPeriod($tblPeriod)
+                ->appendFormButton(new Primary('Änderungen speichern'))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+            $Stage->setContent(Term::useService()->changePeriod($Form, $tblPeriod, $Period));
+        } else {
+            $Stage->setContent(new Warning('Zeitraum nicht gefunden!'));
+        }
+        return $Stage;
+    }
+
+    public function frontendDestroyPeriod($Id)
+    {
+
+        $Stage = new Stage('Zeitraum', 'Entfernen');
+        if ($Id) {
+            $tblPeriod = Term::useService()->getPeriodById($Id);
+            $Stage->setContent(Term::useService()->destroyPeriod($tblPeriod));
+        } else {
+            $Stage->setContent(new Warning('Zeitraum konnte nicht gefunden werden'));
         }
         return $Stage;
     }
