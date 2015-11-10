@@ -4,6 +4,7 @@ namespace SPHERE\Application\Api\Reporting\Custom\Chemnitz;
 use MOC\V\Core\FileSystem\FileSystem;
 use SPHERE\Application\Education\Lesson\Division\Division;
 use SPHERE\Application\Reporting\Custom\Chemnitz\Person\Person;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 
 /**
  * Class Common
@@ -36,16 +37,21 @@ class Common
     }
 
     /**
-     * @return string
+     * @return bool|string
      */
     public function downloadStaffList()
     {
 
         $staffList = Person::useService()->createStaffList();
-        $fileLocation = Person::useService()->createStaffListExcel($staffList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Chemnitz Mitarbeiterliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+        if ($staffList) {
+            $fileLocation = Person::useService()->createStaffListExcel($staffList);
+
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Chemnitz Mitarbeiterliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+        }
+
+        return false;
     }
 
     /**
@@ -92,41 +98,55 @@ class Common
     }
 
     /**
-     * @return string
+     * @return string|bool
      */
     public function downloadClubMemberList()
     {
 
         $clubMemberList = Person::useService()->createClubMemberList();
+
+        if ($clubMemberList)
+        {
         $fileLocation = Person::useService()->createClubMemberListExcel($clubMemberList);
 
         return FileSystem::getDownload($fileLocation->getRealPath(),
             "Chemnitz Vereinsmitgliederliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+        }
+
+        return false;
     }
 
     /**
-     * @return string
+     * @return string|bool
      */
     public function downloadInterestedPersonList()
     {
 
         $interestedPersonList = Person::useService()->createInterestedPersonList();
-        $fileLocation = Person::useService()->createInterestedPersonListExcel($interestedPersonList);
+        if ($interestedPersonList) {
+            $fileLocation = Person::useService()->createInterestedPersonListExcel($interestedPersonList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Chemnitz Interessentenliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Chemnitz Interessentenliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+        }
+
+        return false;
     }
 
     /**
-     * @return string
+     * @return string|bool
      */
     public function downloadSchoolFeeList()
     {
 
         $studentList = Person::useService()->createSchoolFeeList();
-        $fileLocation = Person::useService()->createSchoolFeeListExcel($studentList);
+        if ($studentList) {
+            $fileLocation = Person::useService()->createSchoolFeeListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Chemnitz Schulgeldliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            return FileSystem::getDownload($fileLocation->getRealPath(),
+                "Chemnitz Schulgeldliste " . date("Y-m-d H:i:s") . ".xls")->__toString();
+        }
+
+        return false;
     }
 }

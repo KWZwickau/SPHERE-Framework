@@ -438,50 +438,53 @@ class Service
      */
     public function createClubMemberList()
     {
+        $clubGroup = Group::useService()->getGroupByName('Verein');
+        if ($clubGroup) {
+            $clubMemberList = Group::useService()->getPersonAllByGroup($clubGroup);
+            if ($clubMemberList) {
+                foreach ($clubMemberList as $tblPerson) {
 
-        $clubMemberList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Verein'));
+                    if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
+                        $address = $addressList[0];
+                    } else {
+                        $address = null;
+                    }
 
-        if (!empty($clubMemberList)) {
-            foreach ($clubMemberList as $tblPerson) {
+                    $tblPerson->Salutation = $tblPerson->getSalutation();
 
-                if ($addressList = Address::useService()->getAddressAllByPerson($tblPerson)) {
-                    $address = $addressList[0];
-                } else {
-                    $address = null;
+                    if ($address !== null) {
+                        $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
+                        $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
+                        $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
+                        $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
+
+                        $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
+                            $address->getTblAddress()->getStreetNumber() . ' ' .
+                            $address->getTblAddress()->getTblCity()->getCode() . ' ' .
+                            $address->getTblAddress()->getTblCity()->getName();
+                    } else {
+                        $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
+                        $tblPerson->Address = '';
+                    }
+
+                    $tblPerson->Phone = $tblPerson->Mail = '';
+                    $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
+                    if ($phoneList) {
+                        $tblPerson->Phone = $phoneList[0]->getTblPhone()->getNumber();
+                    }
+                    $mailList = Mail::useService()->getMailAllByPerson($tblPerson);
+                    if ($mailList) {
+                        $tblPerson->Mail = $mailList[0]->getTblMail()->getAddress();
+                    }
+
+                    $tblPerson->Directorate = '';
                 }
-
-                $tblPerson->Salutation = $tblPerson->getSalutation();
-
-                if ($address !== null) {
-                    $tblPerson->StreetName = $address->getTblAddress()->getStreetName();
-                    $tblPerson->StreetNumber = $address->getTblAddress()->getStreetNumber();
-                    $tblPerson->Code = $address->getTblAddress()->getTblCity()->getCode();
-                    $tblPerson->City = $address->getTblAddress()->getTblCity()->getName();
-
-                    $tblPerson->Address = $address->getTblAddress()->getStreetName() . ' ' .
-                        $address->getTblAddress()->getStreetNumber() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getCode() . ' ' .
-                        $address->getTblAddress()->getTblCity()->getName();
-                } else {
-                    $tblPerson->StreetName = $tblPerson->StreetNumber = $tblPerson->Code = $tblPerson->City = '';
-                    $tblPerson->Address = '';
-                }
-
-                $tblPerson->Phone = $tblPerson->Mail = '';
-                $phoneList = Phone::useService()->getPhoneAllByPerson($tblPerson);
-                if ($phoneList) {
-                    $tblPerson->Phone = $phoneList[0]->getTblPhone()->getNumber();
-                }
-                $mailList = Mail::useService()->getMailAllByPerson($tblPerson);
-                if ($mailList) {
-                    $tblPerson->Mail = $mailList[0]->getTblMail()->getAddress();
-                }
-
-                $tblPerson->Directorate = '';
             }
+
+            return $clubMemberList;
         }
 
-        return $clubMemberList;
+        return false;
     }
 
     /**
@@ -571,15 +574,15 @@ class Service
                     $tblProspectReservation = $tblProspect->getTblProspectReservation();
                     if ($tblProspectReservation) {
                         $tblPerson->SchoolYear = $tblProspectReservation->getReservationYear();
-                        if ($tblProspectReservation->getServiceTblCompanyOptionA()) {
-                            $tblPerson->CompanyOptionA = $tblProspectReservation->getServiceTblCompanyOptionA()->getName();
+                        if ($tblProspectReservation->getServiceTblTypeOptionA()) {
+                            $tblPerson->TypeOptionA = $tblProspectReservation->getServiceTblTypeOptionA()->getName();
                         } else {
-                            $tblPerson->CompanyOptionA = '';
+                            $tblPerson->TypeOptionA = '';
                         }
-                        if ($tblProspectReservation->getServiceTblCompanyOptionB()) {
-                            $tblPerson->CompanyOptionB = $tblProspectReservation->getServiceTblCompanyOptionB()->getName();
+                        if ($tblProspectReservation->getServiceTblTypeOptionB()) {
+                            $tblPerson->TypeOptionB = $tblProspectReservation->getServiceTblTypeOptionB()->getName();
                         } else {
-                            $tblPerson->CompanyOptionB = '';
+                            $tblPerson->TypeOptionB = '';
                         }
                         if ($tblProspectReservation->getReservationDivision()) {
                             $tblPerson->DivisionLevel = $tblProspectReservation->getReservationDivision();
@@ -594,7 +597,7 @@ class Service
                         $tblPerson->RegistrationDate = '';
                     }
                 } else {
-                    $tblPerson->SchoolYear = $tblPerson->CompanyOptionA = $tblPerson->CompanyOptionB
+                    $tblPerson->SchoolYear = $tblPerson->TypeOptionA = $tblPerson->TypeOptionB
                         = $tblPerson->RegistrationDate = $tblPerson->DivisionLevel = '';
                 }
 
@@ -722,8 +725,8 @@ class Service
                 $export->setValue($export->getCell("2", $Row), $tblPerson->getLastName());
                 $export->setValue($export->getCell("3", $Row), $tblPerson->SchoolYear);
                 $export->setValue($export->getCell("4", $Row), $tblPerson->DivisionLevel);
-                $export->setValue($export->getCell("5", $Row), $tblPerson->CompanyOptionA);
-                $export->setValue($export->getCell("6", $Row), $tblPerson->CompanyOptionB);
+                $export->setValue($export->getCell("5", $Row), $tblPerson->TypeOptionA);
+                $export->setValue($export->getCell("6", $Row), $tblPerson->TypeOptionB);
                 $export->setValue($export->getCell("7", $Row), $tblPerson->StreetName);
                 $export->setValue($export->getCell("8", $Row), $tblPerson->StreetNumber);
                 $export->setValue($export->getCell("9", $Row), $tblPerson->Code);
