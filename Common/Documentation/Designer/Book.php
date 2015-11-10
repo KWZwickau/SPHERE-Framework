@@ -10,7 +10,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\Search;
 use SPHERE\Common\Frontend\Icon\Repository\TileBig;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
+use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -86,17 +86,22 @@ class Book extends Extension
             new LayoutGroup(
                 new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Listing($this->getBookDirectory()),
-                        new Listing($this->getChapterDirectory()),
+                        new Panel(implode(array_slice($this->getBookDirectory(), 0, 1)),
+                            array_slice($this->getBookDirectory(), 1)
+                        ),
+                        new Panel(implode(array_slice($this->getChapterDirectory(), 0, 1)),
+                            array_slice($this->getChapterDirectory(), 1)
+                        ),
                         new Form(
                             new FormGroup(
                                 new FormRow(
                                     new FormColumn(
-                                        new TextField('Search', 'Suchtext', 'Auf der aktuellen Seite suchen',
-                                            new Search())
+                                        new Panel('Auf der aktuellen Seite suchen', array(
+                                            new TextField('Search', 'Suchtext', '', new Search())
+                                        ), Panel::PANEL_TYPE_DEFAULT, new Primary('Suchen'))
                                     )
                                 )
-                            ), new Primary('Suchen')
+                            )
                         ),
                     ), 3),
                     new LayoutColumn(

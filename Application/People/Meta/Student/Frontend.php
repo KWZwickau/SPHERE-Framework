@@ -48,12 +48,12 @@ use SPHERE\Common\Frontend\Icon\Repository\Shield;
 use SPHERE\Common\Frontend\Icon\Repository\Stethoscope;
 use SPHERE\Common\Frontend\Icon\Repository\StopSign;
 use SPHERE\Common\Frontend\Icon\Repository\TempleChurch;
+use SPHERE\Common\Frontend\Icon\Repository\TileSmall;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Listing;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Text\Repository\Bold;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Window\Stage;
@@ -78,13 +78,8 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage();
 
-        $Stage->setMessage(
-            new Warning(
-                new Danger(
-                    new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Speichern der Schülerakte in aktueller Demo-Version noch nicht möglich'
-                )
-            )
-            .new Danger(
+        $Stage->setDescription(
+            new Danger(
                 new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
             )
         );
@@ -215,7 +210,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     new Panel('Schüler - Aufnahme', array(
                         new TextField('Meta[Transfer][Arrive][Identifier]', 'Schülernummer',
-                            new Danger(new Info().' Schülernummer')),
+                            'Schülernummer'),
                         new SelectBox('Meta[Transfer][Arrive][Type]', 'Letzte Schulart', array(
                             '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
                         ), new Education()),
@@ -241,7 +236,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     new Panel('Schulverlauf', array(
                         new SelectBox('Meta[Transfer][Process][Type]', 'Aktuelle Schulart', array(
-                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool,
+                            '{{ Name }} {{ Description }}' => $tblSchoolTypeAll,
                         ), new Education()),
                         new SelectBox('Meta[Transfer][Process][Type]', 'Aktueller Bildungsgang', array(
                             '{{ Name }} {{ Description }}' => $tblSchoolCourseAll,
@@ -252,38 +247,29 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     // TODO:
                     new Panel('Besuchte Schulklassen', array(
-                        new Listing(array(
-                            new Bold('Aktuelle Klasse 10b'),
-                            '2016/2017 Klasse 9b',
-                            '2015/2016 Klasse 8a',
-                        )),
+                        new Bold('Aktuelle Klasse 10b'),
+                        '2016/2017 Klasse 9b',
+                        '2015/2016 Klasse 8a',
                     ), Panel::PANEL_TYPE_DEFAULT,
-                        new \SPHERE\Common\Frontend\Message\Repository\Info(
-                            'Vom System erkannte Besuche.<br/>Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
-                            , null, true)
+                        new Warning(
+                            'Vom System erkannte Besuche. Wird bei Klassen&shy;zuordnung in Schuljahren erzeugt'
+                        )
                     ),
                 ), 3),
                 new FormColumn(array(
                     // TODO:
                     new Panel('Aktuelle Schuljahrwiederholungen', array(
-                        new Listing(array(
-                            '2015/2016 Klassenstufe 8',
-                            '2017/2018 Klassenstufe 10'
-                        )),
+                        '2015/2016 Klassenstufe 8',
+                        '2017/2018 Klassenstufe 10'
                     ), Panel::PANEL_TYPE_DEFAULT,
-                        new \SPHERE\Common\Frontend\Message\Repository\Info(
-                            'Vom System erkannte Schuljahr&shy;wiederholungen.<br/>Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
-                            , null, true)
+                        new Warning(
+                            'Vom System erkannte Schuljahr&shy;wiederholungen.'
+                            .'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
+                        )
                     ),
                 ), 3),
             )),
-        ), new Title('Schülertransfer',
-            new Warning(
-                new Danger(
-                    new \SPHERE\Common\Frontend\Icon\Repository\Warning().' Es können im Moment nur fest vorgegebene Schularten/Bildungsgänge in der aktuellen Demo-Version verwendet werden'
-                )
-            )
-        ));
+        ), new Title(new TileSmall().' Schülertransfer'));
     }
 
     /**
@@ -373,6 +359,7 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn(array(
                     new Panel('Fakturierung', array(
                         new SelectBox('Meta[MedicalRecord][InsuranceState]', 'Geschwisterkind', array(
+                            0 => '',
                             1 => '1. Geschwisterkind',
                             2 => '2. Geschwisterkind',
                             3 => '3. Geschwisterkind',
@@ -407,7 +394,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ), Panel::PANEL_TYPE_INFO), 3),
                 new FormColumn($AgreementPanel, 3),
             )),
-        ), new Title('Allgemeines'));
+        ), new Title(new TileSmall().' Allgemeines'));
     }
 
     /**
@@ -491,23 +478,25 @@ class Frontend extends Extension implements IFrontendInterface
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(array(
-                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1),
-                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1),
-                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1),
                     $this->panelSubjectList('RELIGION', 'Religion', 'Religion', $tblSubjectReligion, 1),
-                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3),
-                ), 4),
-                new FormColumn(array(
+                    $this->panelSubjectList('PROFILE', 'Profile', 'Profil', $tblSubjectProfile, 1),
                     $this->panelSubjectList('FOREIGN_LANGUAGE', 'Fremdsprachen', 'Fremdsprache',
                         $tblSubjectForeignLanguage, 4),
-                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 2),
-                ), 4),
+                ), 3),
                 new FormColumn(array(
+                    $this->panelSubjectList('ORIENTATION', 'Neigungskurse', 'Neigungskurs', $tblSubjectOrientation, 1),
+                    $this->panelSubjectList('ELECTIVE', 'Wahlfächer', 'Wahlfach', $tblSubjectElective, 2),
+                    $this->panelSubjectList('TEAM', 'Arbeitsgemeinschaften', 'Arbeitsgemeinschaft', $tblSubjectAll, 3),
+                ), 3),
+                new FormColumn(array(
+                    $this->panelSubjectList('ADVANCED', 'Vertiefungskurse', 'Vertiefungskurs', $tblSubjectAdvanced, 1),
                     $this->panelSubjectList('TRACK_INTENSIVE', 'Leistungskurse', 'Leistungskurs', $tblSubjectAll, 2),
-                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 7),
-                ), 4),
+                ), 3),
+                new FormColumn(array(
+                    $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8),
+                ), 3),
             )),
-        ), new Title('Unterrichtsfächer'));
+        ), new Title(new TileSmall().' Unterrichtsfächer'));
     }
 
     /**
@@ -609,6 +598,6 @@ class Frontend extends Extension implements IFrontendInterface
                         new CheckBox('Meta[Integration][Disorder][5]', 'Körperliche Beeinträchtigung', 1),
                     ), Panel::PANEL_TYPE_INFO), 3),
             )),
-        ), new Title('Integration'));
+        ), new Title(new TileSmall().' Integration'));
     }
 }
