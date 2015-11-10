@@ -407,7 +407,7 @@ fieldset[disabled] .twitter-typeahead .tt-input {
 .panel {
     background-color: #EEE;
     margin: 5px 1px;
-    margin-bottom: 10px;
+    margin-bottom: 15px;
     border: 0;
 }
 
@@ -472,6 +472,11 @@ form > h4,
 div.row > div > h4 {
     padding: 4px 6px;
     background-color: #FBEBE2;
+}
+
+form > h4 + hr,
+div.row > div > h4 + hr {
+    display: none;
 }
 
 .alert {

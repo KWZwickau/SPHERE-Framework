@@ -283,10 +283,12 @@ class Display extends Extension implements ITemplateInterface
 
         $Debug = $this->getDebugger();
         $Runtime = $Debug->getRuntime();
-        $this->Template->setVariable('DebuggerProtocol',
-            (new Accordion())->addItem('Debug Protocol '.$Runtime, $Debug->getProtocol())
-        );
-
+        $Protocol = $Debug->getProtocol();
+        if (!empty( $Protocol )) {
+            $this->Template->setVariable('DebuggerProtocol',
+                (new Accordion())->addItem('Debug Protocol '.$Runtime, $Protocol)
+            );
+        }
         $this->Template->setVariable('DebuggerHost', gethostname());
         $this->Template->setVariable('DebuggerRuntime', $Runtime);
 

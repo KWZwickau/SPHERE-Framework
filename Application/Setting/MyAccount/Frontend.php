@@ -14,6 +14,7 @@ use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Building;
 use SPHERE\Common\Frontend\Icon\Repository\Exclamation;
+use SPHERE\Common\Frontend\Icon\Repository\Key;
 use SPHERE\Common\Frontend\Icon\Repository\Lock;
 use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\IFrontendInterface;
@@ -25,6 +26,7 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Text\Repository\Bold;
 use SPHERE\Common\Frontend\Text\Repository\Danger;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
@@ -135,77 +137,51 @@ class Frontend implements IFrontendInterface
             });
         }
 
-        $Person = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Informationen zur Person',
-                        ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
-                    )
-                )
+        $Person = new Panel('Informationen zur Person',
+            ( !empty( $tblPersonAll ) ? new Listing($tblPersonAll) : new Danger(new Exclamation().new Small(' Keine Person angeben')) )
+        );
+
+        $Authentication = new Panel('Authentication',
+            ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
+        );
+
+        $Authorization = new Panel('Berechtigungen',
+            ( !empty( $tblAuthorizationAll )
+                ? $tblAuthorizationAll
+                : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
             )
         );
 
-        $Authentication = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Authentication',
-                        ( $tblAccount->getServiceTblIdentification() ? $tblAccount->getServiceTblIdentification()->getDescription() : '' )
-                    )
-                )
+        $Token = new Panel('Hardware-Schlüssel',
+            array(
+                $tblAccount->getServiceTblToken()
+                    ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
+                        4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
+                    : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
             )
         );
 
-        $Authorization = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Berechtigungen',
-                        ( !empty( $tblAuthorizationAll )
-                            ? $tblAuthorizationAll
-                            : array(new Danger(new Exclamation().new Small(' Keine Berechtigungen vergeben')))
-                        )
-                    )
-                )
-            )
-        );
-
-        $Token = new LayoutGroup(
-            new LayoutRow(
-                new LayoutColumn(
-                    new Panel('Hardware-Schlüssel',
-                        array(
-                            $tblAccount->getServiceTblToken()
-                                ? substr($tblAccount->getServiceTblToken()->getSerial(), 0,
-                                    4).' '.substr($tblAccount->getServiceTblToken()->getSerial(), 4, 4)
-                                : new Muted(new Small('Kein Hardware-Schlüssel vergeben'))
-                        )
-                    )
-                )
-            )
-        );
-
-        $Account = new Layout(array(
+        $Account = array(
             $Person,
             $Authentication,
             $Authorization,
             $Token,
-        ));
+        );
 
         $Stage->setContent(
-            new Layout(array(
+            new Layout(
                 new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
+                    new LayoutRow(array(
+                        new LayoutColumn(array(
+                            new Title('Benutzerkonto', 'Informationen'),
                             new Panel(
-                                'Benutzerkonto: '.$tblAccount->getUsername(), $Account
+                                'Benutzerkonto: '.new Bold($tblAccount->getUsername()), $Account
                                 , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Passwort ändern', new Route(__NAMESPACE__.'/Password'))
+                                new Standard('Mein Passwort ändern', new Route(__NAMESPACE__.'/Password'), new Key())
                             )
-                        )
-                    )
-                    , new Title('Benutzerkonto', 'Informationen')),
-                new LayoutGroup(
-                    new LayoutRow(
-                        new LayoutColumn(
+                        ), 4),
+                        new LayoutColumn(array(
+                            new Title('Mandant (Schulträger)', 'Informationen'),
                             new Panel(
                                 $tblAccount->getServiceTblConsumer()->getName().' ['.$tblAccount->getServiceTblConsumer()->getAcronym().']',
                                 array(
@@ -215,12 +191,12 @@ class Frontend implements IFrontendInterface
                                     'TODO: Anzeigen von zugehörigen Adressen, Telefonnummern, Personen'
                                 )
                                 , Panel::PANEL_TYPE_DEFAULT,
-                                new Standard('Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
+                                new Standard('Zugriff auf Mandant ändern', new Route(__NAMESPACE__.'/Consumer'))
                             )
-                        )
-                    )
-                    , new Title('Mandant', 'Informationen')),
-            ))
+                        ), 8)
+                    ))
+                )
+            )
         );
 
         return $Stage;
