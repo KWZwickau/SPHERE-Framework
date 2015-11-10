@@ -292,7 +292,7 @@ class Data extends AbstractData
      *
      * @return bool
      */
-    public function changeSubject(TblSubject $tblSubject, $Acronym, $Name, $Description = '')
+    public function updateSubject(TblSubject $tblSubject, $Acronym, $Name, $Description = '')
     {
 
         $Manager = $this->getConnection()->getEntityManager();

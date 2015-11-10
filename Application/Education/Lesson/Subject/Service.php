@@ -360,7 +360,7 @@ class Service extends AbstractService
         if (!$Error) {
             $tblSubject = Subject::useService()->getSubjectById($Id);
             if ($tblSubject) {
-                if ((new Data($this->getBinding()))->changeSubject(
+                if ((new Data($this->getBinding()))->updateSubject(
                     $tblSubject, $Subject['Acronym'], $Subject['Name'], $Subject['Description']
                 )
                 ) {
