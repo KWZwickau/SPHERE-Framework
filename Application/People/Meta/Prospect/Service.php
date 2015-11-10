@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect;
 
-use SPHERE\Application\Corporation\Company\Company;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Prospect\Service\Data;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
@@ -62,8 +62,8 @@ class Service extends AbstractService
                 $Meta['Appointment']['InterviewDate'],
                 $Meta['Appointment']['TrialDate']
             );
-            $OptionA = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionA']);
-            $OptionB = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionB']);
+            $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
+            $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
             (new Data($this->getBinding()))->updateProspectReservation(
                 $tblProspect->getTblProspectReservation(),
                 $Meta['Reservation']['Year'],
@@ -81,8 +81,8 @@ class Service extends AbstractService
                 $Meta['Appointment']['InterviewDate'],
                 $Meta['Appointment']['TrialDate']
             );
-            $OptionA = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionA']);
-            $OptionB = Company::useService()->getCompanyById($Meta['Reservation']['SchoolOptionB']);
+            $OptionA = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionA']);
+            $OptionB = Type::useService()->getTypeById($Meta['Reservation']['SchoolTypeOptionB']);
             $tblProspectReservation = (new Data($this->getBinding()))->createProspectReservation(
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
