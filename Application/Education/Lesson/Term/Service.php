@@ -262,11 +262,12 @@ class Service extends AbstractService
         if (isset( $Year['Name'] ) && empty( $Year['Name'] )) {
             $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
             $Error = true;
+        }else{
+            if ($this->getYearByName($Year['Name'])) {
+                $Stage->setError('Year[Name]', 'Dieser Name wird bereits verwendet');
+                $Error = true;
+            }
         }
-//        if (isset( $Year['Description'] ) && empty( $Year['Description'] )) {
-//            $Stage->setError('Year[Description]', 'Bitte geben Sie eine Beschreibung an');
-//            $Error = true;
-//        }
 
         if (!$Error) {
             if ((new Data($this->getBinding()))->updateYear(
@@ -276,10 +277,10 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Education/Lesson/Term', 0);
+                    .new Redirect('/Education/Lesson/Term/Create/Year', 0);
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Education/Lesson/Term');
+                    .new Redirect('/Education/Lesson/Term/Create/Year');
             };
         }
         return $Stage;

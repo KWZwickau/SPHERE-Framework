@@ -6,7 +6,6 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Common\Frontend\Icon\Repository\Clock;
-use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\PullRight;
@@ -96,7 +95,7 @@ class Term implements IModuleInterface
 
         $Stage = new Stage('Dashboard', 'Schuljahr');
 
-        $Stage->addButton(new Standard('Schuljahr hinzufügen', __NAMESPACE__.'\Create\Year'));
+        $Stage->addButton(new Standard('Schuljahr', __NAMESPACE__.'\Create\Year'));
         $Stage->addButton(new Standard('Zeitraum', __NAMESPACE__.'\Create\Period'));
 
         $tblYearAll = Term::useService()->getYearAll();
@@ -112,7 +111,7 @@ class Term implements IModuleInterface
                         $tblPeriod = $tblPeriod->getName().' '.$tblPeriod->getDescription()
                             .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
                                 array('PeriodId' => $tblPeriod->getId(),
-                                      'Id'       => $tblYear->getId())))
+                                      'Id'       => $tblYear->getId()),'Zeitraum entfernen'))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
                     }, $tblYear);
                 } else {
@@ -121,21 +120,27 @@ class Term implements IModuleInterface
                 array_push($Year, array(
                     'Schuljahr' => $tblYear->getName().' '.$tblYear->getDescription(),
                     'Zeiträume' => new Panel(
-                        ( empty( $tblPeriodAll ) ? 'Keine Zeiträume hinterlegt' : count($tblPeriodAll).' Zeiträume' ),
+                        ( empty( $tblPeriodAll ) ?
+                            new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
+                                array('Id' => $tblYear->getId()), 'Zeitraum hinzufügen'
+                            ).'Keine Zeiträume hinterlegt'
+                            : new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
+                                array('Id' => $tblYear->getId()), 'Zeitraum hinzufügen'
+                            ).count($tblPeriodAll).' Zeiträume' ),
                         $tblPeriodAll,
                         ( empty( $tblPeriodAll ) ? Panel::PANEL_TYPE_WARNING : Panel::PANEL_TYPE_DEFAULT )),
-                    'Optionen'  =>
-                        new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
-                            array('Id' => $tblYear->getId()), 'Bearbeiten'
-                        ).
-                        new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
-                            array('Id' => $tblYear->getId()), 'Zeitraum'
-                        ).
-                        ( empty( $tblPeriodAll )
-                            ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
-                                array('Id' => $tblYear->getId()), 'Löschen'
-                            ) : ''
-                        )
+//                    'Optionen'  =>
+//                        new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
+//                            array('Id' => $tblYear->getId()), 'Bearbeiten'
+//                        ).
+//                        new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
+//                            array('Id' => $tblYear->getId()), 'Zeitraum'
+//                        )
+//                        .( empty( $tblPeriodAll )
+//                            ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
+//                                array('Id' => $tblYear->getId()), 'Löschen'
+//                            ) : ''
+//                        )
                 ));
             });
         }
@@ -149,7 +154,7 @@ class Term implements IModuleInterface
                                 $Year, null, array(
                                     'Schuljahr' => 'Schuljahr',
                                     'Zeiträume' => 'Zeiträume',
-                                    'Optionen'  => 'Optionen'
+//                                    'Optionen'  => 'Zuordnung'
                                 )
                             )
                         )

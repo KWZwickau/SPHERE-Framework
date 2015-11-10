@@ -46,7 +46,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreateYear($Year = null)
     {
 
-        $Stage = new Stage('Schuljahre', 'Hinzufügen');
+        $Stage = new Stage('Schuljahre', 'erstellen / bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblYearAll = Term::useService()->getYearAll();
@@ -55,9 +55,9 @@ class Frontend extends Extension implements IFrontendInterface
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
                 $tblYear->Option =
-//                    new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
-//                        array('Id' => $tblYear->getId()), 'Bearbeiten'
-//                    ).
+                    new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
+                        array('Id' => $tblYear->getId()), 'Bearbeiten'
+                    ).
                     ( empty( $tblPeriodAll )
                         ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
                             array('Id' => $tblYear->getId()), 'Löschen'
@@ -78,7 +78,7 @@ class Frontend extends Extension implements IFrontendInterface
                                 , $Year
                             )
                         )
-                    ), new Title('Schuljahr hinzufügen')
+                    ), new Title('Schuljahr erstellen')
                 ),
                 new LayoutGroup(
                     new LayoutRow(
@@ -149,7 +149,7 @@ class Frontend extends Extension implements IFrontendInterface
     public function frontendCreatePeriod($Period = null)
     {
 
-        $Stage = new Stage('Zeiträume', 'Hinzufügen / Bearbeiten');
+        $Stage = new Stage('Zeiträume', 'hinzufügen / bearbeiten');
         $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblPeriodAll = Term::useService()->getPeriodAll();
@@ -355,7 +355,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Jahr', 'bearbeiten');
-        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term/Create/Year', new ChevronLeft()));
         $tblYear = Term::useService()->getYearById($Id);
 
         if ($tblYear) {
