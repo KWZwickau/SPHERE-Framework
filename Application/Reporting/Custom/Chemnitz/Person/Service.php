@@ -9,10 +9,14 @@ use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\Contact\Mail\Mail;
 use SPHERE\Application\Contact\Phone\Phone;
 use SPHERE\Application\Document\Explorer\Storage\Storage;
+use SPHERE\Application\Education\Lesson\Division\Division;
+use SPHERE\Application\Education\Lesson\Division\Service\Entity\TblDivision;
 use SPHERE\Application\People\Meta\Common\Common;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Application\People\Search\Group\Group;
+use SPHERE\Common\Frontend\Form\IFormInterface;
+use SPHERE\Common\Window\Redirect;
 
 /**
  * Class Service
@@ -23,13 +27,35 @@ class Service
 {
 
     /**
-     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     * @param IFormInterface|null $Stage
+     * @param null $Select
+     * @return IFormInterface|Redirect
      */
-    public function createClassList()
+    public function getClass(IFormInterface $Stage = null, $Select = null)
     {
 
-        // Todo JohK Klassen einbauen
-        $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Select) {
+            return $Stage;
+        }
+
+        $tblDivision = Division::useService()->getDivisionById($Select['Division']);
+
+        return new Redirect('/Reporting/Custom/Chemnitz/Person/ClassList', 0, array(
+            'DivisionId' => $tblDivision->getId(),
+        ));
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
+     */
+    public function createClassList(TblDivision $tblDivision)
+    {
+
+        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
         if (!empty($studentList)) {
             foreach ($studentList as $tblPerson) {
