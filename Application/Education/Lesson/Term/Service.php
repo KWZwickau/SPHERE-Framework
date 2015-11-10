@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Term\Service\Setup;
 use SPHERE\Common\Frontend\Form\IFormInterface;
 use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
 
@@ -120,6 +121,68 @@ class Service extends AbstractService
     }
 
     /**
+     * @param $Year
+     * @param $Period
+     *
+     * @return Success
+     */
+    public function addYearPeriod($Year, $Period)
+    {
+
+        $tblYear = $this->getYearById($Year);
+        $tblPeriod = $this->getPeriodById($Period);
+
+        if ((new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod)) {
+            return new Success('Zeitraum festgelegt').
+            new Redirect('/Education/Lesson/Term', 0);
+        }
+        return new Warning('Zeitraum konnte nicht festgelegt werden').
+        new Redirect('/Education/Lesson/Term');
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblYear
+     */
+    public function getYearById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getYearById($Id);
+    }
+
+    /**
+     * @param string $Id
+     *
+     * @return bool|TblPeriod
+     */
+    public function getPeriodById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getPeriodById($Id);
+    }
+
+    /**
+     * @param $Year
+     * @param $Period
+     *
+     * @return Success
+     */
+    public function removeYearPeriod($Year, $Period)
+    {
+
+        $tblYear = $this->getYearById($Year);
+        $tblPeriod = $this->getPeriodById($Period);
+
+        if ((new Data($this->getBinding()))->removeYearPeriod($tblYear, $tblPeriod)) {
+            return new Success('Zeitraum entfernt').
+            new Redirect('/Education/Lesson/Term', 0);
+        }
+        return new Warning('Zeitraum konnte nicht entfernt werden').
+        new Redirect('/Education/Lesson/Term');
+    }
+
+    /**
      * @param IFormInterface $Form
      * @param null|array     $Period
      *
@@ -182,27 +245,5 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getPeriodByName($Name);
-    }
-
-    /**
-     * @param string $Id
-     *
-     * @return bool|TblPeriod
-     */
-    public function getPeriodById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getPeriodById($Id);
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblYear
-     */
-    public function getYearById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getYearById($Id);
     }
 }

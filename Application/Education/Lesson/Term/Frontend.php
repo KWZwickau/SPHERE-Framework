@@ -12,16 +12,20 @@ use SPHERE\Common\Frontend\Form\Structure\FormColumn;
 use SPHERE\Common\Frontend\Form\Structure\FormGroup;
 use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\Icon\Repository\Calendar;
+use SPHERE\Common\Frontend\Icon\Repository\ChevronLeft;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
+use SPHERE\Common\Frontend\Icon\Repository\Select;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
@@ -242,5 +246,97 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param $Id
+     * @param $PeriodId
+     *
+     * @return Stage
+     */
+    public function frontendChoosePeriod($Id, $PeriodId)
+    {
+
+        $Stage = new Stage('Zeitraum', 'wählen');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
+        if (isset( $PeriodId )) {
+            $Stage->setContent(Term::useService()->addYearPeriod($Id, $PeriodId));
+        } else {
+            $tblYear = Term::useService()->getYearById($Id);
+            $tblPeriodList = Term::useService()->getPeriodAll();
+            $tblPeriodListUses = Term::useService()->getPeriodAllByYear($tblYear);
+
+            if (!empty( $tblPeriodListUses )) {
+                $tblPeriodList = array_udiff($tblPeriodList, $tblPeriodListUses,
+                    function (TblPeriod $ObjectA, TblPeriod $ObjectB) {
+
+                        return $ObjectA->getId() - $ObjectB->getId();
+                    }
+                );
+            }
+
+            foreach ($tblPeriodList as &$tblPeriod) {
+                $tblPeriod->Option = new Standard('', '/Education/Lesson/Term/Choose/Period', new Select(),
+                    array('Id'       => $tblYear->getId(),
+                          'PeriodId' => $tblPeriod->getId()), 'Auswählen');
+                $tblPeriod->Period = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
+            }
+
+            if ($tblYear) {
+                if ($tblPeriodList) {
+                    $Stage->setContent($this->layoutYear($tblYear)
+                        .new Layout(
+                            new LayoutGroup(
+                                new LayoutRow(
+                                    new LayoutColumn(
+                                        new TableData($tblPeriodList, null,
+                                            array('Id'          => 'lfd.Nr.',
+                                                  'Name'        => 'Name',
+                                                  'Description' => 'Beschreibung',
+                                                  'Period'      => 'Zeitraum',
+                                                  'Option'      => 'Option')
+                                        )
+                                    )
+                                )
+                            )
+                        ));
+                } else {
+                    $Stage->setContent(new Warning('Keine weiteren Zeiträume verfügbar!'));
+                }
+            } else {
+                $Stage->setContent(new Warning('Schuljahr nicht gefunden!'));
+            }
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return bool|Layout
+     */
+    public function layoutYear(
+        TblYear $tblYear
+    ) {
+
+        if ($tblYear) {
+            $Panel = new Panel($tblYear->getDescription().new PullRight($tblYear->getName()), '', Panel::PANEL_TYPE_INFO);
+            return new Layout(new LayoutGroup(new LayoutRow(new LayoutColumn($Panel, 6))));
+        }
+        return false;
+    }
+
+    /**
+     * @param $PeriodId
+     * @param $YearId
+     *
+     * @return \SPHERE\Common\Frontend\Message\Repository\Success
+     */
+    public function frontendRemovePeriod($PeriodId, $YearId)
+    {
+
+        $Stage = new Stage('Zeitraum', 'entfernen');
+        $Stage->setContent(Term::useService()->removeYearPeriod($YearId, $PeriodId));
+        return $Stage;
     }
 }

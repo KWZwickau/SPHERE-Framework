@@ -5,9 +5,11 @@ use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblPeriod;
 use SPHERE\Application\Education\Lesson\Term\Service\Entity\TblYear;
 use SPHERE\Application\IModuleInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
+use SPHERE\Common\Frontend\Icon\Repository\Clock;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\Remove;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
+use SPHERE\Common\Frontend\Layout\Repository\PullRight;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
@@ -40,11 +42,26 @@ class Term implements IModuleInterface
             __NAMESPACE__.'/Create/Year', __NAMESPACE__.'\Frontend::frontendCreateYear'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Edit/Year', __NAMESPACE__.'\Frontend::frontendEditYear'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Period', __NAMESPACE__.'\Frontend::frontendCreatePeriod'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Link/Period', __NAMESPACE__.'\Frontend::frontendLinkPeriod'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Choose/Period', __NAMESPACE__.'\Frontend::frontendChoosePeriod'
+        )->setParameterDefault('Id', null)
+            ->setParameterDefault('PeriodId', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Remove/Period', __NAMESPACE__.'\Frontend::frontendRemovePeriod'
+        )->setParameterDefault('PeriodId', null)
+            ->setParameterDefault('YearId', null)
+        );
+
+
     }
 
     /**
@@ -74,11 +91,15 @@ class Term implements IModuleInterface
 
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
                 if ($tblPeriodAll) {
-                    array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod) {
+                    /** @noinspection PhpUnusedParameterInspection */
+                    array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod, $index, TblYear $tblYear) {
 
                         $tblPeriod = $tblPeriod->getName().' '.$tblPeriod->getDescription()
+                            .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
+                                array('PeriodId' => $tblPeriod->getId(),
+                                      'YearId'   => $tblYear->getId())))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
-                    });
+                    }, $tblYear);
                 } else {
                     $tblPeriodAll = array();
                 }
@@ -91,6 +112,9 @@ class Term implements IModuleInterface
                     'Optionen'  =>
                         new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
                             array('Id' => $tblYear->getId()), 'Bearbeiten'
+                        ).
+                        new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),
+                            array('Id' => $tblYear->getId()), 'Zeitraum'
                         ).
                         ( empty( $tblPeriodAll )
                             ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
