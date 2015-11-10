@@ -379,13 +379,14 @@ class Service
     }
 
     /**
+     * @param TblDivision $tblDivision
+     *
      * @return bool|\SPHERE\Application\People\Person\Service\Entity\TblPerson[]
      */
-    public function createParentTeacherConferenceList()
+    public function createParentTeacherConferenceList(TblDivision $tblDivision)
     {
 
-        // Todo JohK Klassen einbauen
-        $studentList = Group::useService()->getPersonAllByGroup(Group::useService()->getGroupByName('Schüler'));
+        $studentList = Division::useService()->getStudentAllByDivision($tblDivision);
 
         if (!empty($studentList)) {
             foreach ($studentList as $tblPerson) {

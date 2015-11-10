@@ -71,15 +71,24 @@ class Common
     }
 
     /**
-     * @return string
+     * @param null $DivisionId
+     *
+     * @return bool|string
      */
-    public function downloadParentTeacherConferenceList()
+    public function downloadParentTeacherConferenceList($DivisionId = null)
     {
-        $studentList = Person::useService()->createParentTeacherConferenceList();
-        $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($studentList);
+        $tblDivision = Division::useService()->getDivisionById($DivisionId);
+        if ($tblDivision) {
+            $studentList = Person::useService()->createParentTeacherConferenceList($tblDivision);
+            if ($studentList) {
+                $fileLocation = Person::useService()->createParentTeacherConferenceListExcel($studentList);
 
-        return FileSystem::getDownload($fileLocation->getRealPath(),
-            "Chemnitz Elternabende " . date("Y-m-d H:i:s") . ".xls")->__toString();
+                return FileSystem::getDownload($fileLocation->getRealPath(),
+                    "Chemnitz Elternabende " . $tblDivision->getName() ." " . date("Y-m-d H:i:s") . ".xls")->__toString();
+            }
+        }
+
+        return false;
     }
 
     /**
