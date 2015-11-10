@@ -43,7 +43,13 @@ class Term implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Edit/Year', __NAMESPACE__.'\Frontend::frontendEditYear'
-        ));
+        )->setParameterDefault('Id', null)
+            ->setParameterDefault('Year', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Year', __NAMESPACE__.'\Frontend::frontendDestroyYear'
+        )->setParameterDefault('Id', null)
+        );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Period', __NAMESPACE__.'\Frontend::frontendCreatePeriod'
         ));
@@ -58,7 +64,7 @@ class Term implements IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Remove/Period', __NAMESPACE__.'\Frontend::frontendRemovePeriod'
         )->setParameterDefault('PeriodId', null)
-            ->setParameterDefault('YearId', null)
+            ->setParameterDefault('Id', null)
         );
 
 
@@ -97,7 +103,7 @@ class Term implements IModuleInterface
                         $tblPeriod = $tblPeriod->getName().' '.$tblPeriod->getDescription()
                             .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
                                 array('PeriodId' => $tblPeriod->getId(),
-                                      'YearId'   => $tblYear->getId())))
+                                      'Id'   => $tblYear->getId())))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
                     }, $tblYear);
                 } else {

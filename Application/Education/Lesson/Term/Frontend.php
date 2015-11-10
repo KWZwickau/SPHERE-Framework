@@ -47,6 +47,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Schuljahre', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblYearAll = Term::useService()->getYearAll();
         if ($tblYearAll) {
@@ -149,6 +150,7 @@ class Frontend extends Extension implements IFrontendInterface
     {
 
         $Stage = new Stage('Zeiträume', 'Bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
 
         $tblPeriodAll = Term::useService()->getPeriodAll();
         if ($tblPeriodAll) {
@@ -328,15 +330,58 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param $PeriodId
-     * @param $YearId
+     * @param $Id
      *
      * @return \SPHERE\Common\Frontend\Message\Repository\Success
      */
-    public function frontendRemovePeriod($PeriodId, $YearId)
+    public function frontendRemovePeriod($PeriodId, $Id)
     {
 
         $Stage = new Stage('Zeitraum', 'entfernen');
-        $Stage->setContent(Term::useService()->removeYearPeriod($YearId, $PeriodId));
+        $Stage->setContent(Term::useService()->removeYearPeriod($Id, $PeriodId));
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     * @param $Year
+     *
+     * @return Stage
+     */
+    public function frontendEditYear($Id, $Year)
+    {
+
+        $Stage = new Stage('Jahr', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Term', new ChevronLeft()));
+        $tblYear = Term::useService()->getYearById($Id);
+
+        if ($tblYear) {
+            $Form = $this->formYear($tblYear)
+                ->appendFormButton(new Primary('Änderungen speichern'))
+                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+            $Stage->setContent(Term::useService()->changeYear($Form, $tblYear, $Year));
+//            $Stage->setContent( Term::useService()->changeYear($this->formYear($tblYear)
+//            ->appendFormButton(new Primary('Änderungen speichern'))
+//            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+//            ,$tblYear, $Year)
+//            );
+        } else {
+            $Stage->setContent(new Warning('Jahr nicht gefunden!'));
+        }
+        return $Stage;
+    }
+
+    public function frontendDestroyYear($Id)
+    {
+
+        $Stage = new Stage('Jahr', 'Entfernen');
+        if ($Id) {
+            $tblYear = Term::useService()->getYearById($Id);
+            $Stage->setContent(Term::useService()->destroyYear($tblYear));
+        } else {
+            $Stage->setContent(new Warning('Jahr konnte nicht gefunden werden'));
+        }
         return $Stage;
     }
 }

@@ -246,4 +246,74 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getPeriodByName($Name);
     }
+
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblYear             $tblYear
+     * @param                     $Year
+     *
+     * @return IFormInterface|string
+     */
+    public function changeYear(
+        IFormInterface &$Stage = null,
+        TblYear $tblYear,
+        $Year
+    ) {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Year
+        ) {
+            return $Stage;
+        }
+
+        $Error = false;
+
+        if (isset( $Year['Name'] ) && empty( $Year['Name'] )) {
+            $Stage->setError('Year[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        }
+//        if (isset( $Year['Description'] ) && empty( $Year['Description'] )) {
+//            $Stage->setError('Year[Description]', 'Bitte geben Sie eine Beschreibung an');
+//            $Error = true;
+//        }
+
+        if (!$Error) {
+            if ((new Data($this->getBinding()))->updateYear(
+                $tblYear,
+                $Year['Name'],
+                $Year['Description']
+            )
+            ) {
+                $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
+                    .new Redirect('/Education/Lesson/Term', 0);
+            } else {
+                $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
+                    .new Redirect('/Education/Lesson/Term');
+            };
+        }
+        return $Stage;
+    }
+
+    /**
+     * @param TblYear $tblYear
+     *
+     * @return string
+     */
+    public function destroyYear(TblYear $tblYear)
+    {
+
+        if (null === $tblYear) {
+            return '';
+        }
+
+        if ((new Data($this->getBinding()))->destroyYear($tblYear)) {
+            return new Success('Das Jahr wurde erfolgreich gelöscht')
+            .new Redirect('/Education/Lesson/Term', 0);
+        } else {
+            return new Danger('Das Jahr konnte nicht gelöscht werden')
+            .new Redirect('/Education/Lesson/Term');
+        }
+    }
 }
