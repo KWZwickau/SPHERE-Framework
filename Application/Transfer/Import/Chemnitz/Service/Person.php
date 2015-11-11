@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\Transfer\Import\Chemnitz\Service;
 
-use Doctrine\ORM\Query\Expr\Join;
+use SPHERE\Application\Contact\Address\Address;
 use SPHERE\Application\People\Person\Service;
 
 /**
@@ -48,41 +48,26 @@ class Person extends Service
     }
 
     /**
-     * @param $FirstName
-     * @param $LastName
-     * @param $Code
-     *
-     * @return array
+     * @param string $FirstName
+     * @param string $LastName
+     * @param string $ZipCode
+     * @return bool|Service\Entity\TblPerson
      */
-    public function getPersonAllByFirstNameAndLastNameAndZipCode($FirstName, $LastName, $Code)
+    public function  getPersonExists($FirstName, $LastName, $ZipCode)
     {
+        $exists = false;
 
-        $QueryBuilder = $this->getQueryBuilder();
-        return $QueryBuilder->select('P')
-            ->from('\SPHERE\Application\People\Person\Service\Entity\TblPerson', 'P')
-            ->leftJoin('\SPHERE\Application\Contact\Address\Service\Entity\TblToPerson', 'AP',
-                Join::WITH, 'P.Id = AP.serviceTblPerson'
-            )
-            ->leftJoin('\SPHERE\Application\Contact\Address\Service\Entity\TblAddress', 'A',
-                Join::WITH, 'A.Id = AP.tblAddress'
-            )
-            ->leftJoin('\SPHERE\Application\Contact\Address\Service\Entity\TblCity', 'C',
-                Join::WITH, 'C.Id = A.tblCity'
-            )
-            ->where('P.FirstName = ?1')
-            ->andWhere('P.LastName = ?2')
-            ->andWhere('C.Code = ?3')
-            ->setParameter(1, $FirstName)
-            ->setParameter(2, $LastName)
-            ->setParameter(3, $Code)
-            ->getQuery()
-            ->getResult();
+        if ($persons = $this->getPersonAllByFirstNameAndLastName($FirstName, $LastName)
+        ) {
+            foreach ($persons as $person) {
+                if ($addresses = Address::useService()->getAddressAllByPerson($person)) {
+                    if ($addresses[0]->getTblAddress()->getTblCity()->getCode() == $ZipCode) {
+                        $exists = $person;
+                    }
+                }
+            }
+        }
 
-//        ->where(
-//                $QueryBuilder->expr()->andX(
-//                    $QueryBuilder->expr()->eq('P.FirstName', $FirstName),
-//                    $QueryBuilder->expr()->eq('P.LastName', $LastName),
-//                    $QueryBuilder->expr()->eq('C.Code', $Code)
-//                )
+        return $exists;
     }
 }

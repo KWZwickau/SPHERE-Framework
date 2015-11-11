@@ -19,10 +19,13 @@ class Chemnitz implements IModuleInterface
     {
 
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Student', __NAMESPACE__.'\Frontend::frontendStudentImport'
+            __NAMESPACE__ . '/Student', __NAMESPACE__ . '\Frontend::frontendStudent'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
-            __NAMESPACE__.'/Person', __NAMESPACE__.'\Frontend::frontendPersonImport'
+            __NAMESPACE__ . '/Student/Import', __NAMESPACE__ . '\Frontend::frontendStudentImport'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__ . '/Person', __NAMESPACE__ . '\Frontend::frontendPersonImport'
         ));
     }
 
