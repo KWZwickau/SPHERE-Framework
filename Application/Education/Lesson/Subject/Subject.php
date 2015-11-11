@@ -45,6 +45,15 @@ class Subject implements IModuleInterface
             __NAMESPACE__.'/Create/Category', __NAMESPACE__.'\Frontend::frontendCreateCategory'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Change/Category', __NAMESPACE__.'\Frontend::frontendChangeCategory'
+        )->setParameterDefault('Id', null)
+            ->setParameterDefault('Category', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Category', __NAMESPACE__.'\Frontend::frontendDestroyCategory'
+        )->setParameterDefault('Id', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Link/Category', __NAMESPACE__.'\Frontend::frontendLinkCategory'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -81,8 +90,8 @@ class Subject implements IModuleInterface
 
         $Stage = new Stage('Dashboard', 'Fächer');
 
-        $Stage->addButton(new Standard('Fächer bearbeiten', __NAMESPACE__.'\Create\Subject'));
-        $Stage->addButton(new Standard('Kategorien bearbeiten', __NAMESPACE__.'\Create\Category'));
+        $Stage->addButton(new Standard('Fächer', __NAMESPACE__.'\Create\Subject',null,null,'erstellen / bearbeiten'));
+        $Stage->addButton(new Standard('Kategorien', __NAMESPACE__.'\Create\Category',null,null,'erstellen / bearbeiten'));
 
         $tblGroupAll = $this->useService()->getGroupAll();
         $Content = array();

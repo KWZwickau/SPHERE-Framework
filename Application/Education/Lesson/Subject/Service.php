@@ -235,6 +235,86 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblCategory $tblCategory
+     *
+     * @return string
+     */
+    public function destroyCategory(TblCategory $tblCategory)
+    {
+
+        if (null === $tblCategory) {
+            return '';
+        }
+
+        $Error = false;
+
+        // Remove link Subject
+        $tblSubjectAll = $tblCategory->getTblSubjectAll();
+        array_walk($tblSubjectAll, function (TblSubject $tblSubject) use ($tblCategory, &$Error) {
+
+            if (!$this->removeCategorySubject($tblCategory, $tblSubject)) {
+                $Error = true;
+            }
+        });
+        // Remove link Group
+        $tblGroupList = Subject::useService()->getGroupByCategory($tblCategory);
+        if ($tblGroupList) {
+            foreach ($tblGroupList as $tblGroup)
+                if (!$this->removeGroupCategory($tblGroup, $tblCategory)) {
+                    $Error = true;
+                }
+        }
+
+        if (!$Error) {
+            if ((new Data($this->getBinding()))->destroyCategory($tblCategory)) {
+                return new Success('Die Kategorie wurde erfolgreich gelöscht')
+                .new Redirect('/Education/Lesson/Subject/Create/Category', 1);
+            } else {
+                return new Danger('Die Kategorie konnte nicht gelöscht werden')
+                .new Redirect('/Education/Lesson/Subject/Create/Category');
+            }
+        }
+        return new Danger('Die Kategorie wurde benutzt!')
+        .new Redirect('/Education/Lesson/Subject/Create/Category');
+
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     * @param TblSubject  $tblSubject
+     *
+     * @return bool
+     */
+    public function removeCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     *
+     * @return bool|null|TblGroup[]
+     */
+    public function getGroupByCategory(TblCategory $tblCategory)
+    {
+
+        return (new Data($this->getBinding()))->getGroupByCategory($tblCategory);
+    }
+
+    /**
+     * @param TblGroup    $tblGroup
+     * @param TblCategory $tblCategory
+     *
+     * @return bool
+     */
+    public function removeGroupCategory(TblGroup $tblGroup, TblCategory $tblCategory)
+    {
+
+        return (new Data($this->getBinding()))->removeGroupCategory($tblGroup, $tblCategory);
+    }
+
+    /**
      * int
      */
     public function countSubjectAll()
@@ -244,7 +324,6 @@ class Service extends AbstractService
     }
 
     /**
-     *
      * @param TblGroup $tblGroup
      *
      * @return bool|TblCategory[]
@@ -256,7 +335,6 @@ class Service extends AbstractService
     }
 
     /**
-     *
      * @param TblCategory $tblCategory
      *
      * @return bool|TblSubject[]
@@ -431,6 +509,78 @@ class Service extends AbstractService
     }
 
     /**
+     * @param IFormInterface $Form
+     * @param                $Category
+     * @param                $Id
+     *
+     * @return IFormInterface|string
+     */
+    public function changeCategory(IFormInterface $Form, $Category, $Id)
+    {
+
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Category) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        if (isset( $Category['Name'] ) && empty( $Category['Name'] )) {
+            $Form->setError('Category[Name]', 'Bitte geben Sie einen Namen an');
+            $Error = true;
+        } else {
+            if ($this->getCategoryByName($Category['Name']) && $Id !== $this->getCategoryByName($Category['Name'])->getId()) {
+                $Form->setError('Category[Name]', 'Name schon benutzt');
+                $Error = true;
+            }
+        }
+
+        if (!$Error) {
+            $tblCategory = Subject::useService()->getCategoryById($Id);
+            if ($tblCategory) {
+                if ((new Data($this->getBinding()))->updateCategory(
+                    $tblCategory, $Category['Name'], $Category['Description']
+                )
+                ) {
+                    return new Success('Die Kategorie wurde erfolgreich geändert')
+                    .new Redirect('/Education/Lesson/Subject/Create/Category', 3);
+                } else {
+                    return new Danger('Die Kategorie konnte nicht geändert werden')
+                    .new Redirect('/Education/Lesson/Subject/Create/Category');
+                }
+            } else {
+                return new Danger('Die Kategorie wurde nicht gefunden')
+                .new Redirect('/Education/Lesson/Subject/Create/Category');
+            }
+        }
+        return $Form;
+    }
+
+    /**
+     * @param string $Name
+     *
+     * @return bool|TblCategory
+     */
+    public function getCategoryByName($Name)
+    {
+
+        return (new Data($this->getBinding()))->getCategoryByName($Name);
+    }
+
+    /**
+     * @param int $Id
+     *
+     * @return bool|TblCategory
+     */
+    public function getCategoryById($Id)
+    {
+
+        return (new Data($this->getBinding()))->getCategoryById($Id);
+    }
+
+    /**
      * @return bool|TblSubject[]
      */
     public function getSubjectAllHavingNoCategory()
@@ -493,16 +643,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-    /**
-     * @param string $Name
-     *
-     * @return bool|TblCategory
-     */
-    public function getCategoryByName($Name)
-    {
-
-        return (new Data($this->getBinding()))->getCategoryByName($Name);
-    }
 
     /**
      * @param IFormInterface $Form
@@ -559,35 +699,12 @@ class Service extends AbstractService
      * @param TblGroup    $tblGroup
      * @param TblCategory $tblCategory
      *
-     * @return bool
-     */
-    public function removeGroupCategory(TblGroup $tblGroup, TblCategory $tblCategory)
-    {
-
-        return (new Data($this->getBinding()))->removeGroupCategory($tblGroup, $tblCategory);
-    }
-
-    /**
-     * @param TblGroup    $tblGroup
-     * @param TblCategory $tblCategory
-     *
      * @return TblGroupCategory
      */
     public function addGroupCategory(TblGroup $tblGroup, TblCategory $tblCategory)
     {
 
         return (new Data($this->getBinding()))->addGroupCategory($tblGroup, $tblCategory);
-    }
-
-    /**
-     * @param int $Id
-     *
-     * @return bool|TblCategory
-     */
-    public function getCategoryById($Id)
-    {
-
-        return (new Data($this->getBinding()))->getCategoryById($Id);
     }
 
     /**
@@ -639,18 +756,6 @@ class Service extends AbstractService
             }
         }
         return $Form;
-    }
-
-    /**
-     * @param TblCategory $tblCategory
-     * @param TblSubject  $tblSubject
-     *
-     * @return bool
-     */
-    public function removeCategorySubject(TblCategory $tblCategory, TblSubject $tblSubject)
-    {
-
-        return (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
     }
 
     /**
