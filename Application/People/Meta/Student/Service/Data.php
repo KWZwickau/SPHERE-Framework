@@ -1,7 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Student\Service;
 
-use SPHERE\Application\People\Meta\Student\Service\Data\Subject;
+use SPHERE\Application\People\Meta\Student\Service\Data\Integration;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBaptism;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentBilling;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentLocker;
@@ -15,7 +15,7 @@ use SPHERE\Application\Platform\System\Protocol\Protocol;
  *
  * @package SPHERE\Application\People\Meta\Student\Service
  */
-class Data extends Subject
+class Data extends Integration
 {
 
     public function setupDatabaseContent()
@@ -53,6 +53,26 @@ class Data extends Subject
         $this->createStudentSubjectRanking('7', '7.');
         $this->createStudentSubjectRanking('8', '8.');
         $this->createStudentSubjectRanking('9', '9.');
+
+        $this->createStudentFocusType('Sprache');
+        $this->createStudentFocusType('Körperlich-motorische Entwicklung');
+        $this->createStudentFocusType('Sozial-emotionale Entwicklung');
+        $this->createStudentFocusType('Hören');
+        $this->createStudentFocusType('Sehen');
+        $this->createStudentFocusType('Geistige Entwicklung');
+        $this->createStudentFocusType('Lernen');
+
+        $this->createStudentDisorderType('LRS');
+        $this->createStudentDisorderType('Gehörschwierigkeiten');
+        $this->createStudentDisorderType('Augenleiden');
+        $this->createStudentDisorderType('Sprachfehler');
+        $this->createStudentDisorderType('Dyskalkulie');
+        $this->createStudentDisorderType('Autismus');
+        $this->createStudentDisorderType('ADS / ADHS');
+        $this->createStudentDisorderType('Rechenschwäche');
+        $this->createStudentDisorderType('Hochbegabung');
+        $this->createStudentDisorderType('Konzentrationsstörung');
+        $this->createStudentDisorderType('Körperliche Beeinträchtigung');
     }
 
     /**

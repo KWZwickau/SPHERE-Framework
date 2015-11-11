@@ -12,6 +12,8 @@ use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudent;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementCategory;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentAgreementType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentDisorderType;
+use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentFocusType;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentMedicalRecord;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentSubject;
 use SPHERE\Application\People\Meta\Student\Service\Entity\TblStudentTransfer;
@@ -541,6 +543,32 @@ class Frontend extends Extension implements IFrontendInterface
         );
         array_push($tblCompanyAllSchool, new TblCompany());
 
+        $PanelDisorder = array();
+        $tblStudentDisorderType = Student::useService()->getStudentDisorderTypeAll();
+        $tblStudentDisorderType = $this->getSorter($tblStudentDisorderType)->sortObjectList('Name');
+        array_walk($tblStudentDisorderType,
+            function (TblStudentDisorderType $tblStudentDisorderType) use (&$PanelDisorder) {
+
+                array_push($PanelDisorder,
+                    new CheckBox('Meta[Integration][Disorder]['.$tblStudentDisorderType->getId().']',
+                        $tblStudentDisorderType->getName(), 1)
+                );
+            });
+        $PanelDisorder = new Panel('Förderbedarf: Teilleistungsstörungen', $PanelDisorder, Panel::PANEL_TYPE_INFO);
+
+        $PanelFocus = array();
+        $tblStudentFocusType = Student::useService()->getStudentFocusTypeAll();
+        $tblStudentFocusType = $this->getSorter($tblStudentFocusType)->sortObjectList('Name');
+        array_walk($tblStudentFocusType,
+            function (TblStudentFocusType $tblStudentFocusType) use (&$PanelFocus) {
+
+                array_push($PanelFocus,
+                    new CheckBox('Meta[Integration][Focus]['.$tblStudentFocusType->getId().']',
+                        $tblStudentFocusType->getName(), 1)
+                );
+            });
+        $PanelFocus = new Panel('Förderbedarf: Schwerpunkte', $PanelFocus, Panel::PANEL_TYPE_INFO);
+
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
@@ -571,32 +599,8 @@ class Frontend extends Extension implements IFrontendInterface
                         new TextArea('Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
 
                     ), Panel::PANEL_TYPE_INFO), 3),
-                new FormColumn(
-                // TODO::
-                    new Panel('Förderbedarf: Schwerpunkte', array(
-                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Sprache', 1),
-                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Körperlich-motorische Entwicklung', 1),
-                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Sozial-emotionale Entwicklung', 1),
-                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Hören', 1),
-                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Sehen', 1),
-                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Geistige Entwicklung', 1),
-                        new CheckBox('Meta[Integration][PracticeModule][1]', 'Lernen', 1),
-                    ), Panel::PANEL_TYPE_INFO), 3),
-                new FormColumn(
-                // TODO::
-                    new Panel('Förderbedarf: Teilleistungsstörungen', array(
-                        new CheckBox('Meta[Integration][Disorder][5]', 'LRS', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Gehörschwierigkeiten', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Augenleiden', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Sprachfehler', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Dyskalkulie', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Autismus', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'ADS / ADHS', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Rechenschwäche', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Hochbegabung', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Konzentrationsstörung', 1),
-                        new CheckBox('Meta[Integration][Disorder][5]', 'Körperliche Beeinträchtigung', 1),
-                    ), Panel::PANEL_TYPE_INFO), 3),
+                new FormColumn($PanelFocus, 3),
+                new FormColumn($PanelDisorder, 3),
             )),
         ), new Title(new TileSmall().' Integration'));
     }
