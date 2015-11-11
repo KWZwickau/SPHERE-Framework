@@ -16,57 +16,58 @@ use SPHERE\System\Database\Fitting\Element;
 class TblStudentAgreement extends Element
 {
 
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblStudentAgreementCategory;
-    /**
-     * @Column(type="bigint")
-     */
-    protected $serviceTblStudentAgreementType;
+    const ATTR_TBL_STUDENT = 'tblStudent';
 
     /**
-     * @return bool|TblStudentAgreementCategory
+     * @Column(type="bigint")
      */
-    public function getServiceTblStudentAgreementCategory()
+    protected $tblStudent;
+    /**
+     * @Column(type="bigint")
+     */
+    protected $tblStudentAgreementType;
+
+    /**
+     * @return bool|TblStudent
+     */
+    public function getTblStudent()
     {
 
-        if (null === $this->serviceTblStudentAgreementCategory) {
+        if (null === $this->tblStudent) {
             return false;
         } else {
-            return Student::useService()->getStudentAgreementCategoryById($this->serviceTblStudentAgreementCategory);
+            return Student::useService()->getStudentById($this->tblStudent);
         }
     }
 
     /**
-     * @param TblStudentAgreementCategory|null $tblStudentAgreementCategory
+     * @param null|TblStudent $tblStudent
      */
-    public function setServiceTblStudentAgreementCategory(
-        TblStudentAgreementCategory $tblStudentAgreementCategory = null
-    ) {
+    public function setTblStudent(TblStudent $tblStudent = null)
+    {
 
-        $this->serviceTblStudentAgreementCategory = ( null === $tblStudentAgreementCategory ? null : $tblStudentAgreementCategory->getId() );
+        $this->tblStudent = ( null === $tblStudent ? null : $tblStudent->getId() );
     }
 
     /**
      * @return bool|TblStudentAgreementType
      */
-    public function getServiceTblStudentAgreementType()
+    public function getTblStudentAgreementType()
     {
 
-        if (null === $this->serviceTblStudentAgreementType) {
+        if (null === $this->tblStudentAgreementType) {
             return false;
         } else {
-            return Student::useService()->getStudentAgreementTypeById($this->serviceTblStudentAgreementType);
+            return Student::useService()->getStudentAgreementTypeById($this->tblStudentAgreementType);
         }
     }
 
     /**
      * @param TblStudentAgreementType|null $tblStudentAgreementType
      */
-    public function setServiceTblStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType = null)
+    public function setTblStudentAgreementType(TblStudentAgreementType $tblStudentAgreementType = null)
     {
 
-        $this->serviceTblStudentAgreementType = ( null === $tblStudentAgreementType ? null : $tblStudentAgreementType->getId() );
+        $this->tblStudentAgreementType = ( null === $tblStudentAgreementType ? null : $tblStudentAgreementType->getId() );
     }
 }
