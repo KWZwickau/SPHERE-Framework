@@ -158,13 +158,12 @@ class Service
                                     && trim($Document->getValue($Document->getCell($Location['Import Vater'],
                                         $RunY))) !== 'nein'
                                 ) {
-
-                                    if (!$this->usePeoplePerson()->getPersonExists(
+                                    $tblPersonFatherExists = $this->usePeoplePerson()->getPersonExists(
                                         $FatherFirstName,
                                         $LastName,
                                         $CityCode
-                                    )
-                                    ) {
+                                    );
+                                    if (!$tblPersonFatherExists) {
                                         $tblPersonFather = $this->usePeoplePerson()->createPersonFromImport(
                                             \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1),
                                             '',
@@ -185,6 +184,13 @@ class Service
 
                                         $countFather++;
                                     } else {
+
+                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
+                                            $tblPersonFatherExists,
+                                            $tblPerson,
+                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                        );
+
                                         $countFatherExists++;
                                     }
                                 }
@@ -198,12 +204,12 @@ class Service
                                         $RunY))) !== 'nein'
                                 ) {
 
-                                    if (!$this->usePeoplePerson()->getPersonExists(
+                                    $tblPersonMotherExists = $this->usePeoplePerson()->getPersonExists(
                                         $MotherFirstName,
                                         $LastName,
                                         $CityCode
-                                    )
-                                    ) {
+                                    );
+                                    if (!$tblPersonMotherExists) {
                                         $tblPersonMother = $this->usePeoplePerson()->createPersonFromImport(
                                             \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2),
                                             '',
@@ -225,6 +231,12 @@ class Service
                                         $countMother++;
                                     } else {
                                         $countMotherExists++;
+
+                                        $this->usePeopleRelationship()->createRelationshipToPersonFromImport(
+                                            $tblPersonMotherExists,
+                                            $tblPerson,
+                                            \SPHERE\Application\People\Relationship\Relationship::useService()->getTypeById(1) //Sorgeberechtigt
+                                        );
                                     }
                                 }
 
