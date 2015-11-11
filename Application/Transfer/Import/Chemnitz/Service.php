@@ -442,35 +442,18 @@ class Service
 
                     for ($RunY = 1; $RunY < $Y; $RunY++) {
                         if (trim($Document->getValue($Document->getCell($Location['Firma'], $RunY))) == 'Falsch') {
-                            $HasFoundPerson = false;
-                            $tblPerson = null;
+
                             $FirstName = trim($Document->getValue($Document->getCell($Location['Vorname'], $RunY)));
                             $LastName = trim($Document->getValue($Document->getCell($Location['Name'], $RunY)));
                             $ZipCode = trim($Document->getValue($Document->getCell($Location['Plz'], $RunY)));
                             if (strpos($FirstName, 'u.') === false && strpos($FirstName, ',') === false) {
 
-                                if ($persons = $this->usePeoplePerson()
-                                    ->getPersonAllByFirstNameAndLastName($FirstName, $LastName)
-                                ) {
-                                    foreach ($persons as $person) {
-                                        if ($addresses = \SPHERE\Application\Contact\Address\Address::useService()->getAddressAllByPerson($person)) {
-                                            if ($addresses[0]->getTblAddress()->getTblCity()->getCode() == $ZipCode) {
-                                                $HasFoundPerson = true;
-                                                $tblPerson = $person;
-                                            }
-                                        }
-                                    }
-                                }
+                                $tblPerson = $this->usePeoplePerson()->getPersonExists($FirstName, $LastName, $ZipCode);
 
-                                if ($HasFoundPerson === false) {
-                                    $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(1);
-                                    if (trim($Document->getValue($Document->getCell($Location['Anrede'],
-                                            $RunY))) == 'Frau'
-                                    ) {
-                                        $tblSalutation = \SPHERE\Application\People\Person\Person::useService()->getSalutationById(2);
-                                    }
+                                if (!$tblPerson) {
+
                                     $tblPerson = $this->usePeoplePerson()->createPersonFromImport(
-                                        $tblSalutation,
+                                        null,
                                         '',
                                         $FirstName,
                                         '',
@@ -483,18 +466,21 @@ class Service
                                     //Address
                                     $Street = trim($Document->getValue($Document->getCell($Location['Strasse'],
                                         $RunY)));
-                                    preg_match_all('!\d+!', $Street, $matches);
-                                    $pos = strpos($Street, $matches[0][0]);
-                                    $StreetName = trim(substr($Street, 0, $pos));
-                                    $StreetNumber = trim(substr($Street, $pos));
-                                    $this->useContactAddress()->createAddressToPersonFromImport(
-                                        $tblPerson,
-                                        $StreetName,
-                                        $StreetNumber,
-                                        trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
-                                        trim($Document->getValue($Document->getCell($Location['Ort'], $RunY))),
-                                        ''
-                                    );
+                                    if (preg_match_all('!\d+!', $Street, $matches)) {
+                                        $pos = strpos($Street, $matches[0][0]);
+                                        if ($pos !== null) {
+                                            $StreetName = trim(substr($Street, 0, $pos));
+                                            $StreetNumber = trim(substr($Street, $pos));
+                                            $this->useContactAddress()->createAddressToPersonFromImport(
+                                                $tblPerson,
+                                                $StreetName,
+                                                $StreetNumber,
+                                                trim($Document->getValue($Document->getCell($Location['Plz'], $RunY))),
+                                                trim($Document->getValue($Document->getCell($Location['Ort'], $RunY))),
+                                                ''
+                                            );
+                                        }
+                                    }
                                 } else {
                                     $countUpdatePerson++;
                                 }

@@ -13,16 +13,17 @@ class Person extends Service
 {
 
     /**
-     * @param Service\Entity\TblSalutation $tblSalutation
-     * @param                              $Title
-     * @param                              $FirstName
-     * @param                              $SecondName
-     * @param                              $LastName
+     * @param $Salutation
+     * @param $Title
+     * @param $FirstName
+     * @param $SecondName
+     * @param $LastName
+     * @param null $GroupList
      *
-     * @return Service\Entity\TblPerson
+     * @return bool|Service\Entity\TblPerson
      */
     public function createPersonFromImport(
-        Service\Entity\TblSalutation $tblSalutation,
+        $Salutation,
         $Title,
         $FirstName,
         $SecondName,
@@ -30,7 +31,7 @@ class Person extends Service
         $GroupList = null
     ) {
 
-        $tblPerson = $this->insertPerson($tblSalutation, $Title, $FirstName, $SecondName, $LastName, $GroupList);
+        $tblPerson = $this->insertPerson($Salutation, $Title, $FirstName, $SecondName, $LastName, $GroupList);
 
         return $tblPerson;
     }
