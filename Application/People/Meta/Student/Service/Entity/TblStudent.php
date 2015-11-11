@@ -35,19 +35,15 @@ class TblStudent extends Element
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentTransfer;
-    /**
-     * @Column(type="bigint")
-     */
     protected $tblStudentBilling;
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentBaptism;
+    protected $tblStudentLocker;
     /**
      * @Column(type="bigint")
      */
-    protected $tblStudentAgreement;
+    protected $tblStudentBaptism;
 
     /**
      * @return bool|TblStudentMedicalRecord
@@ -91,28 +87,6 @@ class TblStudent extends Element
     {
 
         $this->tblStudentTransport = ( null === $tblStudentTransport ? null : $tblStudentTransport->getId() );
-    }
-
-    /**
-     * @return bool|TblStudentTransfer
-     */
-    public function getTblStudentTransfer()
-    {
-
-        if (null === $this->tblStudentTransfer) {
-            return false;
-        } else {
-            return Student::useService()->getStudentTransferById($this->tblStudentTransfer);
-        }
-    }
-
-    /**
-     * @param null|TblStudentTransfer $tblStudentTransfer
-     */
-    public function setTblStudentTransfer(TblStudentTransfer $tblStudentTransfer = null)
-    {
-
-        $this->tblStudentTransfer = ( null === $tblStudentTransfer ? null : $tblStudentTransfer->getId() );
     }
 
     /**
@@ -182,24 +156,24 @@ class TblStudent extends Element
     }
 
     /**
-     * @return bool|TblStudentAgreement
+     * @return bool|TblStudentLocker
      */
-    public function getTblStudentAgreement()
+    public function getTblStudentLocker()
     {
 
-        if (null === $this->tblStudentAgreement) {
+        if (null === $this->tblStudentLocker) {
             return false;
         } else {
-            return Student::useService()->getStudentAgreementById($this->tblStudentAgreement);
+            return Student::useService()->getStudentLockerById($this->tblStudentLocker);
         }
     }
 
     /**
-     * @param null|TblStudentAgreement $tblStudentAgreement
+     * @param null|TblStudentLocker $tblStudentLocker
      */
-    public function setTblStudentAgreement(TblStudentAgreement $tblStudentAgreement = null)
+    public function setTblStudentLocker(TblStudentLocker $tblStudentLocker = null)
     {
 
-        $this->tblStudentAgreement = ( null === $tblStudentAgreement ? null : $tblStudentAgreement->getId() );
+        $this->tblStudentLocker = ( null === $tblStudentLocker ? null : $tblStudentLocker->getId() );
     }
 }

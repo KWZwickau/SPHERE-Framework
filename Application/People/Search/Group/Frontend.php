@@ -7,6 +7,7 @@ use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\Icon\Repository\PersonGroup;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\Headline;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Structure\Layout;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
@@ -42,7 +43,7 @@ class Frontend implements IFrontendInterface
         $Stage = new Stage('Suche', 'nach Gruppe');
 
         $tblGroupAll = Group::useService()->getGroupAll();
-        if (!empty( $tblGroupAll )) {
+        if (!empty($tblGroupAll)) {
             /** @noinspection PhpUnusedParameterInspection */
             array_walk($tblGroupAll, function (TblGroup &$tblGroup, $Index, Stage $Stage) {
 
@@ -69,19 +70,19 @@ class Frontend implements IFrontendInterface
                     if ($tblAddressAll) {
                         $tblToPerson = $tblAddressAll[0];
                         $tblAddressAll =
-                            $tblToPerson->getTblAddress()->getStreetName().' '
-                            .$tblToPerson->getTblAddress()->getStreetNumber().' '
-                            .$tblToPerson->getTblAddress()->getTblCity()->getCode().' '
-                            .$tblToPerson->getTblAddress()->getTblCity()->getName().' '
-                            .$tblToPerson->getTblAddress()->getTblState()->getName()
-                            .( $tblToPerson->getRemark()
-                                ? '<br/>'.new Small(new Muted($tblToPerson->getRemark()))
+                            $tblToPerson->getTblAddress()->getStreetName() . ' '
+                            . $tblToPerson->getTblAddress()->getStreetNumber() . ' '
+                            . $tblToPerson->getTblAddress()->getTblCity()->getCode() . ' '
+                            . $tblToPerson->getTblAddress()->getTblCity()->getName() . ' '
+                            . ($tblToPerson->getTblAddress()->getTblState() ? $tblToPerson->getTblAddress()->getTblState()->getName() : '')
+                            . ($tblToPerson->getRemark()
+                                ? '<br/>' . new Small(new Muted($tblToPerson->getRemark()))
                                 : ''
                             );
                     }
 
                     $tblPerson->FullName = $tblPerson->getFullName();
-                    $tblPerson->Address = ( $tblAddressAll
+                    $tblPerson->Address = ($tblAddressAll
                         ? $tblAddressAll
                         : new Warning('Keine Adresse hinterlegt')
                     );
@@ -92,22 +93,23 @@ class Frontend implements IFrontendInterface
             $Stage->setContent(
                 new Layout(new LayoutGroup(array(
                     new LayoutRow(new LayoutColumn(
-                        new Panel(new PersonGroup().' Gruppe', array(
+                        new Panel(new PersonGroup() . ' Gruppe', array(
                             new Bold($tblGroup->getName()),
-                            ( $tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : '' ),
-                            ( $tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '' )
+                            ($tblGroup->getDescription() ? new Small($tblGroup->getDescription()) : ''),
+                            ($tblGroup->getRemark() ? new Danger(new Italic(nl2br($tblGroup->getRemark()))) : '')
                         ), Panel::PANEL_TYPE_SUCCESS
                         )
                     )),
-                    new LayoutRow(new LayoutColumn(
+                    new LayoutRow(new LayoutColumn(array(
+                        new Headline('Verfügbare Personen', 'in dieser Gruppe'),
                         new TableData($tblPersonAll, null,
                             array(
                                 'FullName' => 'Name',
                                 'Address' => 'Adresse',
-                                'Option'   => 'Optionen',
+                                'Option' => 'Optionen',
                             )
                         )
-                    ))
+                    )))
                 )))
             );
         } else {
