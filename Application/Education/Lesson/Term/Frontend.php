@@ -57,11 +57,11 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPeriodAll = $tblYear->getTblPeriodAll();
                 $tblYear->Option =
                     new Standard('', __NAMESPACE__.'\Edit\Year', new Pencil(),
-                        array('Id' => $tblYear->getId()), 'Ändern'
+                        array('Id' => $tblYear->getId())
                     ).
                     ( empty( $tblPeriodAll )
                         ? new Standard('', __NAMESPACE__.'\Destroy\Year', new Remove(),
-                            array('Id' => $tblYear->getId()), 'Löschen'
+                            array('Id' => $tblYear->getId())
                         ) : ''
                     );
             });
@@ -130,7 +130,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Schuljahr',
                             array(
-                                new AutoCompleter('Year[Name]', 'Name', 'z.B: '.date('Y').'/'.( date('Y') + 1 ),
+                                new AutoCompleter('Year[Name]', 'Name', 'z.B: '.date('Y').'/'.( date('Y') + 1 ).' Gymnasium',
                                     $acNameAll, new Pencil()),
                                 new TextField('Year[Description]', 'z.B: für Gymnasium', 'Beschreibung',
                                     new Pencil())
@@ -159,13 +159,12 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblPeriod->Period = $tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
 
                 $tblPeriod->Option =
-                    ( Term::useService()->getPeriodExistWithYear($tblPeriod) ) ?
-                        new Standard('', __NAMESPACE__.'\Edit\Period', new Pencil(),
-                            array('Id' => $tblPeriod->getId()), 'Ändern')
-                        : new Standard('', __NAMESPACE__.'\Edit\Period', new Pencil(),
-                            array('Id' => $tblPeriod->getId()), 'Ändern')
-                        .new Standard('', __NAMESPACE__.'\Destroy\Period', new Remove(),
-                            array('Id' => $tblPeriod->getId()), 'Löschen');
+                    new Standard('', __NAMESPACE__.'\Edit\Period', new Pencil(),
+                        array('Id' => $tblPeriod->getId()))
+                    .( ( Term::useService()->getPeriodExistWithYear($tblPeriod) === false ) ?
+                        new Standard('', __NAMESPACE__.'\Destroy\Period', new Remove(),
+                            array('Id' => $tblPeriod->getId()))
+                        : '' );
             });
         }
 
@@ -235,11 +234,10 @@ class Frontend extends Extension implements IFrontendInterface
                     new FormColumn(
                         new Panel('Zeitraum',
                             array(
-                                new AutoCompleter('Period[Name]', 'Name', 'z.B: 1. Halbjahr - '.date('Y'),
+                                new AutoCompleter('Period[Name]', 'Name', 'z.B: 1.Halbjahr',
                                     $acNameAll, new Pencil()),
                                 new TextField('Period[Description]', 'z.B: für Gymnasium', 'Beschreibung',
                                     new Pencil())
-
                             ), Panel::PANEL_TYPE_INFO
                         ), 6),
                     new FormColumn(

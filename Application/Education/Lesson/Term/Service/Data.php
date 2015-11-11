@@ -57,7 +57,10 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblPeriod')->findOneBy(array(
-            TblPeriod::ATTR_NAME => $Name
+            TblPeriod::ATTR_NAME        => $Name,
+            TblPeriod::ATTR_FROM_DATE   => (new \DateTime($From)),
+            TblPeriod::ATTR_TO_DATE     => (new \DateTime($To)),
+            TblPeriod::ATTR_DESCRIPTION => $Description
         ));
         if (null === $Entity) {
             $Entity = new TblPeriod();

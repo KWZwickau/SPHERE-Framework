@@ -15,6 +15,8 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
+use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Frontend\Text\Repository\Small;
 use SPHERE\Common\Main;
 use SPHERE\Common\Window\Navigation\Link;
 use SPHERE\Common\Window\Stage;
@@ -108,17 +110,17 @@ class Term implements IModuleInterface
                     /** @noinspection PhpUnusedParameterInspection */
                     array_walk($tblPeriodAll, function (TblPeriod &$tblPeriod, $index, TblYear $tblYear) {
 
-                        $tblPeriod = $tblPeriod->getName().' '.$tblPeriod->getDescription()
+                        $tblPeriod = $tblPeriod->getName().' '.new Muted(new Small($tblPeriod->getDescription()))
                             .new PullRight(new Standard('', __NAMESPACE__.'\Remove\Period', new Remove(),
                                 array('PeriodId' => $tblPeriod->getId(),
-                                      'Id'       => $tblYear->getId()),'Zeitraum entfernen'))
+                                      'Id'       => $tblYear->getId()), 'Zeitraum entfernen'))
                             .'<br/>'.$tblPeriod->getFromDate().' - '.$tblPeriod->getToDate();
                     }, $tblYear);
                 } else {
                     $tblPeriodAll = array();
                 }
                 array_push($Year, array(
-                    'Schuljahr' => $tblYear->getName().' '.$tblYear->getDescription(),
+                    'Schuljahr' => $tblYear->getName().'<br/>'.new Muted($tblYear->getDescription()),
                     'Zeiträume' => new Panel(
                         ( empty( $tblPeriodAll ) ?
                             new Standard('', __NAMESPACE__.'\Choose\Period', new Clock(),

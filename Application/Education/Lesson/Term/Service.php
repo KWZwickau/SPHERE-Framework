@@ -97,7 +97,7 @@ class Service extends AbstractService
 
             if ((new Data($this->getBinding()))->createYear($Year['Name'], $Year['Description'])) {
                 return new Success('Das Schuljahr wurde erfolgreich hinzugefügt')
-                .new Redirect($this->getRequest()->getUrl(), 3);
+                .new Redirect($this->getRequest()->getUrl(), 2);
             } else {
                 return new Danger('Das Schuljahr konnte nicht hinzugefügt werden')
                 .new Redirect($this->getRequest()->getUrl());
@@ -129,7 +129,7 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->addYearPeriod($tblYear, $tblPeriod)) {
             return new Success('Zeitraum festgelegt').
-            new Redirect('/Education/Lesson/Term', 0);
+            new Redirect('/Education/Lesson/Term', 1);
         }
         return new Warning('Zeitraum konnte nicht festgelegt werden').
         new Redirect('/Education/Lesson/Term');
@@ -168,7 +168,7 @@ class Service extends AbstractService
 
         if ((new Data($this->getBinding()))->removeYearPeriod($tblYear, $tblPeriod)) {
             return new Success('Zeitraum entfernt').
-            new Redirect('/Education/Lesson/Term', 0);
+            new Redirect('/Education/Lesson/Term', 1);
         }
         return new Warning('Zeitraum konnte nicht entfernt werden').
         new Redirect('/Education/Lesson/Term');
@@ -196,11 +196,6 @@ class Service extends AbstractService
         if (isset( $Period['Name'] ) && empty( $Period['Name'] )) {
             $Form->setError('Period[Name]', 'Bitte geben Sie einen eineindeutigen Namen an');
             $Error = true;
-        } else {
-            if ($this->getPeriodByName($Period['Name'])) {
-                $Form->setError('Period[Name]', 'Dieser Name wird bereits verwendet');
-                $Error = true;
-            }
         }
 
         if (isset( $Period['From'] ) && empty( $Period['From'] )) {
@@ -210,6 +205,20 @@ class Service extends AbstractService
         if (isset( $Period['To'] ) && empty( $Period['To'] )) {
             $Form->setError('Period[To]', 'Bitte geben Sie Ende-Datum an');
             $Error = true;
+        }
+        $tblPeriod = $this->getPeriodByName($Period['Name']);
+        if (!empty( $tblPeriod )) {
+            if ($tblPeriod->getFromDate() === $Period['From']
+                && $tblPeriod->getToDate() === $Period['To']
+                && $tblPeriod->getDescription() === $Period['Description']
+            ) {
+                $Form->setError('Period[From]', 'Kombination vergeben');
+                $Form->setError('Period[To]', 'Kombination vergeben');
+                $Form->setError('Period[Name]', 'Kombination vergeben');
+                $Form->setError('Period[Description]', 'Kombination vergeben');
+                $Form .= new Warning('Kombination aus Name, Beschreibung und Zeitraum schon vorhanden!');
+                $Error = true;
+            }
         }
 
         if (!$Error) {
@@ -277,7 +286,7 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Education/Lesson/Term/Create/Year', 0);
+                    .new Redirect('/Education/Lesson/Term/Create/Year', 1);
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
                     .new Redirect('/Education/Lesson/Term/Create/Year');
@@ -324,7 +333,7 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen gespeichert, die Daten werden neu geladen...')
-                    .new Redirect('/Education/Lesson/Term/Create/Period', 0);
+                    .new Redirect('/Education/Lesson/Term/Create/Period', 1);
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
                     .new Redirect('/Education/Lesson/Term/Create/Period');
@@ -345,7 +354,7 @@ class Service extends AbstractService
         }
         if ((new Data($this->getBinding()))->destroyYear($tblYear)) {
             return new Success('Das Jahr wurde erfolgreich gelöscht')
-            .new Redirect('/Education/Lesson/Term/Create/Year', 0);
+            .new Redirect('/Education/Lesson/Term/Create/Year', 1);
         } else {
             return new Danger('Das Jahr konnte nicht gelöscht werden')
             .new Redirect('/Education/Lesson/Term/Create/Year');
@@ -371,7 +380,7 @@ class Service extends AbstractService
         if (!$Error) {
             if ((new Data($this->getBinding()))->destroyPeriod($tblPeriod)) {
                 return new Success('Der Zeitraum wurde erfolgreich gelöscht')
-                .new Redirect('/Education/Lesson/Term/Create/Period', 0);
+                .new Redirect('/Education/Lesson/Term/Create/Period', 1);
             } else {
                 return new Danger('Der Zeitraum konnte nicht gelöscht werden')
                 .new Redirect('/Education/Lesson/Term/Create/Period');
