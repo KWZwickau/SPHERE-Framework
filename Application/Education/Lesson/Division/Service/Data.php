@@ -125,4 +125,29 @@ class Data extends AbstractData
         }
         return empty($EntityList) ? false : $EntityList;
     }
+
+    /**
+     * @param TblDivision  $tblDivision
+     * @param TblPerson $tblPerson
+     *
+     * @return TblDivisionStudent
+     */
+    public function addDivisionStudent(TblDivision $tblDivision, TblPerson $tblPerson)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivisionStudent')
+            ->findOneBy(array(
+                TblDivisionStudent::ATTR_TBL_DIVISION     => $tblDivision->getId(),
+                TblDivisionStudent::ATTR_SERVICE_TBL_PERSON => $tblPerson->getId()
+            ));
+        if (null === $Entity) {
+            $Entity = new TblDivisionStudent();
+            $Entity->setTblDivision($tblDivision);
+            $Entity->setServiceTblPerson($tblPerson);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        }
+        return $Entity;
+    }
 }
