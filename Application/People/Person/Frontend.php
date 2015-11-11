@@ -27,12 +27,10 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
-use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -66,7 +64,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendPerson($TabActive = 'Common', $Id = null, $Person = null, $Meta = null)
+    public function frontendPerson($TabActive = '#', $Id = null, $Person = null, $Meta = null)
     {
 
         $Stage = new Stage('Personen', 'Datenblatt');
@@ -94,7 +92,6 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Person'] )) {
-                $ShowMask = false;
                 if ($tblPerson->getTblSalutation()) {
                     $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
                 }
@@ -110,21 +107,14 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $Global->savePost();
-            } else {
-                $ShowMask = true;
             }
 
-            $BasicTable = new Accordion();
-            $BasicTable->addItem(
-                '<span class="glyphicons glyphicons-chevron-right"></span>&nbsp;'
-                .'Grunddaten & Gruppenzugehörigkeit ändern&nbsp;'
-                .new Muted(new Small('Klicken Sie hier um die Maske zu öffen/zu schließen'))
-                , Person::useService()->updatePerson(
+            $BasicTable = Person::useService()->updatePerson(
                 $this->formPerson()
                     ->appendFormButton(new Primary('Grunddaten speichern'))
                     ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
                     ->setError('Person[BirthName]', 'Wird im Moment noch nicht gespeichert'),
-                $tblPerson, $Person), $ShowMask);
+                $tblPerson, $Person);
 
             $MetaTabs = Group::useService()->getGroupAllByPerson($tblPerson);
             // Sort by Name
@@ -199,20 +189,17 @@ class Frontend extends Extension implements IFrontendInterface
                     break;
                 default:
                     if (!empty( $MetaTabs )) {
-                        $MetaTable = new Well(new Muted('Bitte wählen Sie eine Rubrik'));
+                        $MetaTable = new Muted('Bitte wählen Sie eine Rubrik');
                     } else {
-                        $MetaTable = new Well(new Warning('Keine Informationen verfügbar'));
+                        $MetaTable = new Warning('Keine Informationen verfügbar');
                     }
             }
+            $MetaTable = new Well($MetaTable);
 
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(new LayoutColumn(array(
-                            new Panel(new PersonIcon().' Person',
-                                $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS
-                            ),
                             $BasicTable
                         ))),
                         new Title(new PersonParent().' Grunddaten', 'der Person')
