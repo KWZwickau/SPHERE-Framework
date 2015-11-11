@@ -82,10 +82,8 @@ class Data extends AbstractData
     {
 
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblAccount')->findOneBy
-        (array(
-            TblAccount::ATTR_TBL_DEBTOR => $tblDebtor->getId(),
-            TblAccount::ATTR_TBL_ACTIVE => true
-        ));
+        (array(TblAccount::ATTR_TBL_DEBTOR => $tblDebtor->getId(),
+               TblAccount::ATTR_TBL_ACTIVE => true));
         return ( null === $Entity ? false : $Entity );
     }
 
@@ -196,10 +194,8 @@ class Data extends AbstractData
     {
 
         $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblReference')
-            ->findBy(array(
-                TblReference::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
-                TblReference::ATTR_IS_VOID     => false
-            ));
+            ->findBy(array(TblReference::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+                           TblReference::ATTR_IS_VOID     => false));
         return ( null === $EntityList ? false : $EntityList );
     }
 

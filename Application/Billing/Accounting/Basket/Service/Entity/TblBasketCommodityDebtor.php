@@ -25,7 +25,6 @@ class TblBasketCommodityDebtor extends Element
      * @Column(type="bigint")
      */
     protected $tblBasketCommodity;
-
     /**
      * @Column(type="bigint")
      */

@@ -214,7 +214,7 @@ class TblAccount extends Element
     }
 
     /**
-     * @param $Active |bool
+     * @param bool|$Active
      */
     public function setActive($Active)
     {

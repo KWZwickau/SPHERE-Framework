@@ -12,7 +12,7 @@ class Select implements IIconInterface
 {
 
     /** @var string $Value */
-    private $Value = 'glyphicons glyphicons-screenshot';
+    private $Value = 'glyphicon glyphicon-ok-circle';
 
     /**
      * @return string

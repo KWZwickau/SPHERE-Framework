@@ -25,12 +25,10 @@ class TblCommodityItem extends Element
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Quantity;
-
     /**
      * @Column(type="bigint")
      */
     protected $tblCommodity;
-
     /**
      * @Column(type="bigint")
      */

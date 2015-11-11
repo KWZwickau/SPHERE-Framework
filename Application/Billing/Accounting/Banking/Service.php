@@ -252,21 +252,51 @@ class Service extends AbstractService
         if (null === $tblDebtor) {
             return '';
         }
+        $Error = false;
 
-        if (Banking::useService()->getAccountAllByDebtor($tblDebtor)) {
-            $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
-            foreach ($tblAccountList as $tblAccount) {
-                Banking::useService()->destroyAccount($tblAccount);
+        $tblInvoiceList = Invoice::useService()->getInvoiceAll();
+        foreach ($tblInvoiceList as $tblInvoice) {
+            if (!$tblInvoice->getIsVoid()) {
+                if (!$tblInvoice->getIsPaid()) {
+                    if (!$tblInvoice->getIsConfirmed()) {
+                        $tblDebtorInvoice = Banking::useService()->getDebtorByDebtorNumber($tblInvoice->getDebtorNumber());
+                        if ($tblDebtorInvoice->getId() === $tblDebtor->getId()) {
+                            $Error = true;
+                        }
+                    }
+                }
             }
         }
 
-        if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
-            return new Success('Die Leistung wurde erfolgreich gelöscht')
-            .new Redirect('/Billing/Accounting/Banking', 1);
-        } else {
-            return new Danger('Die Leistung konnte nicht gelöscht werden')
-            .new Redirect('/Billing/Accounting/Banking', 3);
+        if (!$Error) {
+            if (Banking::useService()->getAccountAllByDebtor($tblDebtor)) {
+                $tblAccountList = Banking::useService()->getAccountAllByDebtor($tblDebtor);
+                foreach ($tblAccountList as $tblAccount) {
+                    Banking::useService()->destroyAccount($tblAccount);
+                }
+            }
+
+            if ((new Data($this->getBinding()))->removeBanking($tblDebtor)) {
+                return new Success('Der Debitor wurde erfolgreich gelöscht')
+                .new Redirect('/Billing/Accounting/Banking', 1);
+            } else {
+                return new Danger('Der Debitor konnte nicht gelöscht werden')
+                .new Redirect('/Billing/Accounting/Banking', 3);
+            }
         }
+        return new Danger('Es bestehen noch offene Rechnungen mit diesem Debitor')
+        .new Redirect('/Billing/Accounting/Banking', 3);
+    }
+
+    /**
+     * @param $DebtorNumber
+     *
+     * @return bool|TblDebtor
+     */
+    public function getDebtorByDebtorNumber($DebtorNumber)
+    {
+
+        return (new Data($this->getBinding()))->getDebtorByDebtorNumber($DebtorNumber);
     }
 
     /**
@@ -330,6 +360,7 @@ class Service extends AbstractService
 
     /**
      * @param TblReference $tblReference
+     * @param              $AccountId
      *
      * @return string
      */
@@ -342,17 +373,13 @@ class Service extends AbstractService
         if ((new Data($this->getBinding()))->deactivateReference($tblReference)) {
             return new Success('Die Deaktivierung ist erfasst worden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1,
-                array(
-                    'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
-                    'AccountId' => $AccountId
-                ));
+                array('DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
+                      'AccountId' => $AccountId));
         } else {
             return new Danger('Die Referenz konnte nicht deaktiviert werden')
             .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 3,
-                array(
-                    'DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
-                    'AccountId' => $AccountId
-                ));
+                array('DebtorId'  => $tblReference->getServiceTblDebtor()->getId(),
+                      'AccountId' => $AccountId));
         }
     }
 
@@ -479,6 +506,14 @@ class Service extends AbstractService
         return (new Data($this->getBinding()))->getPaymentTypeById($Id);
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param                     $DebtorId
+     * @param                     $AccountId
+     * @param                     $Account
+     *
+     * @return IFormInterface|string
+     */
     public function changeAccount(IFormInterface &$Stage = null, $DebtorId, $AccountId, $Account)
     {
 
@@ -537,6 +572,15 @@ class Service extends AbstractService
         return $Stage;
     }
 
+    /**
+     * @param IFormInterface|null $Stage
+     * @param TblReference        $tblReference
+     * @param                     $DebtorId
+     * @param                     $AccountId
+     * @param                     $Reference
+     *
+     * @return IFormInterface|string
+     */
     public function changeReference(
         IFormInterface &$Stage = null,
         TblReference $tblReference,
@@ -566,16 +610,12 @@ class Service extends AbstractService
             )
             ) {
                 $Stage .= new Success('Änderungen sind erfasst')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1, array(
-                        'DebtorId'  => $DebtorId,
-                        'AccountId' => $AccountId
-                    ));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 1, array('DebtorId'  => $DebtorId,
+                                                                                           'AccountId' => $AccountId));
             } else {
                 $Stage .= new Danger('Änderungen konnten nicht gespeichert werden')
-                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 10, array(
-                        'Id'        => $DebtorId,
-                        'AccountId' => $AccountId
-                    ));
+                    .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 10, array('Id'        => $DebtorId,
+                                                                                            'AccountId' => $AccountId));
             }
             return $Stage;
         }
@@ -590,12 +630,7 @@ class Service extends AbstractService
      *
      * @return IFormInterface|string
      */
-    public function createReference(
-        IFormInterface &$Stage = null,
-        TblDebtor $tblDebtor,
-        TblAccount $tblAccount,
-        $Reference
-    )
+    public function createReference(IFormInterface &$Stage = null, TblDebtor $tblDebtor, TblAccount $tblAccount, $Reference)
     {
 
         /**
@@ -625,10 +660,8 @@ class Service extends AbstractService
                 $tblAccount);
 
             return new Success('Die Referenz ist erfasst worden')
-            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array(
-                'DebtorId'  => $tblDebtor->getId(),
-                'AccountId' => $tblAccount->getId()
-            ));
+            .new Redirect('/Billing/Accounting/Banking/Debtor/Reference', 0, array('DebtorId'  => $tblDebtor->getId(),
+                                                                                   'AccountId' => $tblAccount->getId()));
         }
 
         return $Stage;
@@ -698,16 +731,12 @@ class Service extends AbstractService
     }
 
     /**
-     * @param $DebtorNumber
+     * @param IFormInterface|null $Stage
+     * @param                     $Account
+     * @param TblDebtor           $tblDebtor
      *
-     * @return bool|TblDebtor
+     * @return IFormInterface|string
      */
-    public function getDebtorByDebtorNumber($DebtorNumber)
-    {
-
-        return (new Data($this->getBinding()))->getDebtorByDebtorNumber($DebtorNumber);
-    }
-
     public function createAccount(IFormInterface &$Stage = null, $Account, TblDebtor $tblDebtor)
     {
 

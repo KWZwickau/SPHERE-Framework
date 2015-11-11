@@ -83,11 +83,9 @@ class Data extends AbstractData
      * @param $Description
      * @param $Price
      * @param $CostUnit
-    //     * @param $Course
-     * //     * @param $ChildRank
      *
      * @return TblItem
-     */
+     */                         //ToDO $Course, $ChildRank
     public function createItem(
         $Name,
         $Description,
@@ -127,11 +125,9 @@ class Data extends AbstractData
      * @param         $Description
      * @param         $Price
      * @param         $CostUnit
-    //     * @param         $Course
-     * //     * @param         $ChildRank
      *
      * @return bool
-     */                         //ToDO
+     */                         //ToDO $Course, $ChildRank
     public function updateItem(
         TblItem $tblItem,
         $Name,
@@ -224,14 +220,13 @@ class Data extends AbstractData
     public function addItemAccount(
         TblItem $tblItem,
         TblAccount $tblAccount
-    )
-    {
+    ) {
 
         $Manager = $this->getConnection()->getEntityManager();
 
         $Entity = $Manager->getEntity('TblItemAccount')->findOneBy(
             array(
-                TblItemAccount::ATTR_TBL_ITEM => $tblItem->getId(),
+                TblItemAccount::ATTR_TBL_ITEM                => $tblItem->getId(),
                 TblItemAccount::ATTR_SERVICE_BILLING_ACCOUNT => $tblAccount->getId()
             ));
         if (null === $Entity) {

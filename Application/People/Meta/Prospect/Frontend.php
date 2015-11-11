@@ -1,8 +1,8 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect;
 
-use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
-use SPHERE\Application\Corporation\Group\Group;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
+use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
@@ -22,7 +22,7 @@ use SPHERE\Common\Frontend\Icon\Repository\Info;
 use SPHERE\Common\Frontend\Icon\Repository\Pencil;
 use SPHERE\Common\Frontend\IFrontendInterface;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
-use SPHERE\Common\Frontend\Text\Repository\Danger;
+use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -45,16 +45,14 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage = new Stage();
 
-        $Stage->setMessage(
+        $Stage->setDescription(
             new Danger(
                 new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
             )
         );
 
-        $tblCompanyAllSchool = Group::useService()->getCompanyAllByGroup(
-            Group::useService()->getGroupByMetaTable('SCHOOL')
-        );
-        array_push($tblCompanyAllSchool, new TblCompany());
+        $tblTypeAll = Type::useService()->getTypeAll();
+        array_push($tblTypeAll, new TblType());
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
@@ -75,14 +73,14 @@ class Frontend extends Extension implements IFrontendInterface
                     if ($tblProspectReservation) {
                         $Global->POST['Meta']['Reservation']['Year'] = $tblProspectReservation->getReservationYear();
                         $Global->POST['Meta']['Reservation']['Division'] = $tblProspectReservation->getReservationDivision();
-                        $Global->POST['Meta']['Reservation']['SchoolOptionA'] = (
-                        $tblProspectReservation->getServiceTblCompanyOptionA()
-                            ? $tblProspectReservation->getServiceTblCompanyOptionA()->getId()
+                        $Global->POST['Meta']['Reservation']['SchoolTypeOptionA'] = (
+                        $tblProspectReservation->getServiceTblTypeOptionA()
+                            ? $tblProspectReservation->getServiceTblTypeOptionA()->getId()
                             : 0
                         );
-                        $Global->POST['Meta']['Reservation']['SchoolOptionB'] = (
-                        $tblProspectReservation->getServiceTblCompanyOptionB()
-                            ? $tblProspectReservation->getServiceTblCompanyOptionB()->getId()
+                        $Global->POST['Meta']['Reservation']['SchoolTypeOptionB'] = (
+                        $tblProspectReservation->getServiceTblTypeOptionB()
+                            ? $tblProspectReservation->getServiceTblTypeOptionB()->getId()
                             : 0
                         );
                     }
@@ -115,10 +113,10 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Panel('Voranmeldung für', array(
                                     new TextField('Meta[Reservation][Year]', 'Schuljahr', 'Schuljahr'),
                                     new TextField('Meta[Reservation][Division]', 'Klassenstufe', 'Klassenstufe'),
-                                    new SelectBox('Meta[Reservation][SchoolOptionA]', 'Schule: Option 1',
-                                        array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool), new Education()),
-                                    new SelectBox('Meta[Reservation][SchoolOptionB]', 'Schule: Option 2',
-                                        array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool), new Education()),
+                                    new SelectBox('Meta[Reservation][SchoolTypeOptionA]', 'Schulart: Option 1',
+                                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new Education()),
+                                    new SelectBox('Meta[Reservation][SchoolTypeOptionB]', 'Schulart: Option 2',
+                                        array('{{ Name }} {{ Description }}' => $tblTypeAll), new Education()),
                                 ), Panel::PANEL_TYPE_INFO)
                             ), 4),
                             new FormColumn(array(

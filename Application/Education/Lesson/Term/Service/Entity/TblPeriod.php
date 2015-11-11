@@ -16,6 +16,10 @@ class TblPeriod extends Element
 {
 
     const ATTR_NAME = 'Name';
+    const ATTR_DESCRIPTION = 'Description';
+    const ATTR_FROM_DATE = 'FromDate';
+    const ATTR_TO_DATE = 'ToDate';
+
 
     /**
      * @Column(type="string")

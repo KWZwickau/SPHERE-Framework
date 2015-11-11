@@ -50,8 +50,10 @@ class Frontend extends Extension implements IFrontendInterface
         $tblSubjectAll = Subject::useService()->getSubjectAll();
         array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
 
-            $tblSubject->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
-                .new Standard('', '', new Remove(), array(), 'Löschen');
+            $tblSubject->Option = new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(),
+                    array('Id' => $tblSubject->getId()), 'Bearbeiten')
+                .new Standard('', '', new Remove(),
+                    array(), 'Löschen');
         });
 
         $Stage->setContent(
@@ -85,7 +87,6 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
-
     /**
      * @param null|TblSubject $tblSubject
      *
@@ -134,6 +135,32 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+    /**
+     * @param $Id
+     * @param $Subject
+     *
+     * @return Stage
+     */
+    public function frontendChangeSubject($Id, $Subject)
+    {
+
+        $Stage = new Stage('Fach', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Subject/Create/Subject', new ChevronLeft()));
+        $tblSubject = Subject::useService()->getSubjectById($Id);
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Id'] ) && $tblSubject) {
+            $Global->POST['Subject']['Acronym'] = $tblSubject->getAcronym();
+            $Global->POST['Subject']['Name'] = $tblSubject->getName();
+            $Global->POST['Subject']['Description'] = $tblSubject->getDescription();
+            $Global->savePost();
+        }
+        $Stage->setContent(Subject::useService()->changeSubject($this->formSubject($tblSubject)
+            ->appendFormButton(new Primary('Änderung speichern'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+            , $Subject, $Id));
+
+        return $Stage;
     }
 
     /**

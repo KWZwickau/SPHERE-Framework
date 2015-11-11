@@ -29,12 +29,10 @@ class TblTempInvoice extends Element
      * @Column(type="bigint")
      */
     protected $serviceBilling_Basket;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceManagement_Person;
-
     /**
      * @Column(type="bigint")
      */

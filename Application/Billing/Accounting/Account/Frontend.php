@@ -51,16 +51,16 @@ class Frontend extends Extension implements IFrontendInterface
                 $tblAccount->Typ = $tblAccount->getTblAccountType()->getName();
                 if ($tblAccount->getIsActive() === true) {
                     $tblAccount->Option =
-                        (new Standard('Deaktivieren', '/Billing/Accounting/Account/Deactivate',
+                        (new Standard('', '/Billing/Accounting/Account/Deactivate',
                             new Remove(), array(
                                 'Id' => $tblAccount->getId()
-                            )))->__toString();
+                            ), 'Deaktivieren'))->__toString();
                 } else {
                     $tblAccount->Option =
-                        (new Standard('Aktivieren', '/Billing/Accounting/Account/Activate',
+                        (new Standard('', '/Billing/Accounting/Account/Activate',
                             new Ok(), array(
                                 'Id' => $tblAccount->getId()
-                            )))->__toString();
+                            ), 'Aktivieren'))->__toString();
                 }
             });
         }
@@ -139,32 +139,36 @@ class Frontend extends Extension implements IFrontendInterface
         $tblAccountKey = Account::useService()->getKeyValueAll();
         $tblAccountType = Account::useService()->getTypeValueAll();
 
-        $Stage->setContent(Account::useService()->createAccount(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()
-                            ), 6),
-                        new FormColumn(
-                            new TextField('Account[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                            ), 6
-                        )
-                    )),
-                    new FormRow(array(
-                        new FormColumn(
-                            new SelectBox('Account[Key]', 'Mehrwertsteuer',
-                                array('Value' => $tblAccountKey)
-                            ), 6
-                        ),
-                        new FormColumn(
-                            new SelectBox('Account[Type]', 'Typ',
-                                array('Name' => $tblAccountType)
-                            ), 6
-                        )
-                    ))
+        $Form = new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Account[Number]', 'Kennziffer', 'Kennziffer', new BarCode()
+                        ), 6),
+                    new FormColumn(
+                        new TextField('Account[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
+                        ), 6
+                    )
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new SelectBox('Account[Key]', 'Mehrwertsteuer',
+                            array('Value' => $tblAccountKey)
+                        ), 6
+                    ),
+                    new FormColumn(
+                        new SelectBox('Account[Type]', 'Typ',
+                            array('Name' => $tblAccountType)
+                        ), 6
+                    )
                 ))
-            ), new Primary('Hinzufügen')), $Account)
+            ))
+        ));
+        $Form->appendFormButton(new Primary('Hinzufügen'));
+        $Form->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(Account::useService()->createAccount(
+            $Form, $Account)
         );
 
         return $Stage;

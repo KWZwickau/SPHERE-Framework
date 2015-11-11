@@ -25,17 +25,14 @@ class TblBasketItem extends Element
      * @Column(type="bigint")
      */
     protected $serviceBilling_CommodityItem;
-
     /**
      * @Column(type="bigint")
      */
     protected $tblBasket;
-
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $Quantity;
-
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */

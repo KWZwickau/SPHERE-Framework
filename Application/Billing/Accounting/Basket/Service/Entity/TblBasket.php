@@ -19,7 +19,6 @@ class TblBasket extends Element
      * @Column(type="datetime")
      */
     protected $CreateDate;
-
     /**
      * @Column(type="string")
      */

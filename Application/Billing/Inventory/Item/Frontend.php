@@ -134,43 +134,50 @@ class Frontend extends Extension implements IFrontendInterface
         //        $tblChildRankAll = Management::serviceStudent()->entityChildRankAll();
         //        array_unshift( $tblChildRankAll, new TblChildRank( '' ) );
 
-        $Stage->setContent(Item::useService()->createItem(
-            new Form(array(
-                new FormGroup(array(
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Item[Name]', 'Name', 'Name', new Conversation()
-                            ), 6),
-                        new FormColumn(
-                            new TextField('Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
-                            ), 6)
-                    )),
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
-                            ), 6)
-                    )),
-                    new FormRow(array(
-                        new FormColumn(
-                            new TextField('Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
-                            ), 12)
-                    )),
-                    //                    new FormRow( array(       //todo
-                    //                        new FormColumn(
-                    //                            new SelectBox( 'Item[Course]', 'Bedingung Bildungsgang',
-                    //                                array('Name' => $tblCourseAll
-                    //                                ) )
-                    //                            , 6 ),
-                    //                        new FormColumn(
-                    //                            new SelectBox( 'Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
-                    //                                array('Description' => $tblChildRankAll
-                    //                                ) )
-                    //                            , 6 )
-                    //                    ) )
-                ))
-            ), new Primary('Hinzufügen')), $Item));
+        $Form = $this->formItem()
+            ->appendFormButton(new Primary('Hinzufügen'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+        $Stage->setContent(Item::useService()->createItem($Form, $Item));
 
         return $Stage;
+    }
+
+    public function formItem()
+    {
+
+        return new Form(array(
+            new FormGroup(array(
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Item[Name]', 'Name', 'Name', new Conversation()
+                        ), 4),
+                    new FormColumn(
+                        new TextField('Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
+                        ), 4),
+                    new FormColumn(
+                        new TextField('Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
+                        ), 4)
+                )),
+                new FormRow(array(
+                    new FormColumn(
+                        new TextField('Item[Description]', 'Beschreibung', 'Beschreibung', new Conversation()
+                        ), 12)
+                )),
+                //                    new FormRow( array(       //todo
+                //                        new FormColumn(
+                //                            new SelectBox( 'Item[Course]', 'Bedingung Bildungsgang',
+                //                                array('Name' => $tblCourseAll
+                //                                ) )
+                //                            , 6 ),
+                //                        new FormColumn(
+                //                            new SelectBox( 'Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
+                //                                array('Description' => $tblChildRankAll
+                //                                ) )
+                //                            , 6 )
+                //                    ) )
+            ))
+        ));
     }
 
     /**
@@ -287,43 +294,11 @@ class Frontend extends Extension implements IFrontendInterface
                     $Global->savePost();
                 }
 
-                $Stage->setContent(Item::useService()->changeItem(
-                    new Form(array(
-                        new FormGroup(array(
-                            new FormRow(array(
-                                new FormColumn(
-                                    new TextField('Item[Name]', 'Name', 'Name', new Conversation()
-                                    ), 6),
-                                new FormColumn(
-                                    new TextField('Item[Price]', 'Preis in €', 'Preis', new MoneyEuro()
-                                    ), 6)
-                            )),
-                            new FormRow(array(
-                                new FormColumn(
-                                    new TextField('Item[CostUnit]', 'Kostenstelle', 'Kostenstelle', new Money()
-                                    ), 6)
-                            )),
-                            new FormRow(array(
-                                new FormColumn(
-                                    new TextField('Item[Description]', 'Beschreibung', 'Beschreibung',
-                                        new Conversation()
-                                    ), 12)
-                            )),
-                            //                            new FormRow( array(   //todo
-                            //                                new FormColumn(
-                            //                                    new SelectBox( 'Item[Course]', 'Bedingung Bildungsgang',
-                            //                                        array('Name' => $tblCourseAll
-                            //                                        ) )
-                            //                                    , 6 ),
-                            //                                new FormColumn(
-                            //                                    new SelectBox( 'Item[ChildRank]', 'Bedingung Kind-Reihenfolge',
-                            //                                        array('Description' => $tblChildRankAll
-                            //                                        ) )
-                            //                                    , 6 )
-                            //                            ) )
-                        ))
-                    ), new Primary('Änderungen speichern')
-                    ), $tblItem, $Item));
+                $Form = $this->formItem()
+                    ->appendFormButton(new Primary('Hinzufügen'))
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert');
+
+                $Stage->setContent(Item::useService()->changeItem($Form, $tblItem, $Item));
             }
         }
 

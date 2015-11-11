@@ -77,7 +77,6 @@ class Data extends AbstractData
     public function getCommodityAll()
     {
 
-        return $this->getCachedEntityList(__METHOD__, $this->getConnection()->getEntityManager(), 'TblCommodity');
         $Entity = $this->getConnection()->getEntityManager()->getEntity('TblCommodity')->findAll();
         return ( null === $Entity ? false : $Entity );
     }

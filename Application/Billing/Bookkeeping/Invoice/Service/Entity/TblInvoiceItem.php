@@ -22,32 +22,26 @@ class TblInvoiceItem extends Element
      * @Column(type="string")
      */
     protected $CommodityDescription;
-
     /**
      * @Column(type="string")
      */
     protected $CommodityName;
-
     /**
      * @Column(type="string")
      */
     protected $ItemDescription;
-
     /**
      * @Column(type="string")
      */
     protected $ItemName;
-
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $ItemPrice;
-
     /**
      * @Column(type="decimal", precision=14, scale=4)
      */
     protected $ItemQuantity;
-
     /**
      * @Column(type="bigint")
      */

@@ -11,6 +11,7 @@ use SPHERE\Application\People\Meta\Custody\Custody;
 use SPHERE\Application\People\Meta\Prospect\Prospect;
 use SPHERE\Application\People\Meta\Student\Student;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
+use SPHERE\Application\People\Person\Service\Entity\TblSalutation;
 use SPHERE\Application\People\Relationship\Relationship;
 use SPHERE\Common\Frontend\Form\Repository\Button\Primary;
 use SPHERE\Common\Frontend\Form\Repository\Field\AutoCompleter;
@@ -26,12 +27,10 @@ use SPHERE\Common\Frontend\Icon\Repository\ChevronDown;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronRight;
 use SPHERE\Common\Frontend\Icon\Repository\ChevronUp;
 use SPHERE\Common\Frontend\Icon\Repository\Conversation;
-use SPHERE\Common\Frontend\Icon\Repository\Person as PersonIcon;
 use SPHERE\Common\Frontend\Icon\Repository\PersonParent;
 use SPHERE\Common\Frontend\Icon\Repository\Tag;
 use SPHERE\Common\Frontend\Icon\Repository\TagList;
 use SPHERE\Common\Frontend\IFrontendInterface;
-use SPHERE\Common\Frontend\Layout\Repository\Accordion;
 use SPHERE\Common\Frontend\Layout\Repository\Panel;
 use SPHERE\Common\Frontend\Layout\Repository\Title;
 use SPHERE\Common\Frontend\Layout\Repository\Well;
@@ -65,7 +64,7 @@ class Frontend extends Extension implements IFrontendInterface
      *
      * @return Stage
      */
-    public function frontendPerson($TabActive = 'Common', $Id = null, $Person = null, $Meta = null)
+    public function frontendPerson($TabActive = '#', $Id = null, $Person = null, $Meta = null)
     {
 
         $Stage = new Stage('Personen', 'Datenblatt');
@@ -75,7 +74,8 @@ class Frontend extends Extension implements IFrontendInterface
             $BasicTable = Person::useService()->createPerson(
                 $this->formPerson()
                     ->appendFormButton(new Primary('Grunddaten anlegen'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                    ->setError('Person[BirthName]', 'Wird im Moment noch nicht gespeichert'),
                 $Person);
 
             $Stage->setContent(
@@ -92,8 +92,9 @@ class Frontend extends Extension implements IFrontendInterface
 
             $Global = $this->getGlobal();
             if (!isset( $Global->POST['Person'] )) {
-                $ShowMask = false;
-                $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
+                if ($tblPerson->getTblSalutation()) {
+                    $Global->POST['Person']['Salutation'] = $tblPerson->getTblSalutation()->getId();
+                }
                 $Global->POST['Person']['Title'] = $tblPerson->getTitle();
                 $Global->POST['Person']['FirstName'] = $tblPerson->getFirstName();
                 $Global->POST['Person']['SecondName'] = $tblPerson->getSecondName();
@@ -106,20 +107,14 @@ class Frontend extends Extension implements IFrontendInterface
                     }
                 }
                 $Global->savePost();
-            } else {
-                $ShowMask = true;
             }
 
-            $BasicTable = new Accordion();
-            $BasicTable->addItem(
-                '<span class="glyphicons glyphicons-pencil"></span>&nbsp;'
-                .'Grunddaten & Gruppenzugehörigkeit ändern&nbsp;'
-                .new Muted(new Small('Klicken Sie hier um die Maske zu öffen/zu schließen'))
-                , Person::useService()->updatePerson(
+            $BasicTable = Person::useService()->updatePerson(
                 $this->formPerson()
                     ->appendFormButton(new Primary('Grunddaten speichern'))
-                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert'),
-                $tblPerson, $Person), $ShowMask);
+                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                    ->setError('Person[BirthName]', 'Wird im Moment noch nicht gespeichert'),
+                $tblPerson, $Person);
 
             $MetaTabs = Group::useService()->getGroupAllByPerson($tblPerson);
             // Sort by Name
@@ -194,20 +189,17 @@ class Frontend extends Extension implements IFrontendInterface
                     break;
                 default:
                     if (!empty( $MetaTabs )) {
-                        $MetaTable = new Well(new Muted('Bitte wählen Sie eine Rubrik'));
+                        $MetaTable = new Muted('Bitte wählen Sie eine Rubrik');
                     } else {
-                        $MetaTable = new Well(new Warning('Keine Informationen verfügbar'));
+                        $MetaTable = new Warning('Keine Informationen verfügbar');
                     }
             }
+            $MetaTable = new Well($MetaTable);
 
             $Stage->setContent(
                 new Layout(array(
                     new LayoutGroup(
                         new LayoutRow(new LayoutColumn(array(
-                            new Panel(new PersonIcon().' Person',
-                                $tblPerson->getFullName(),
-                                Panel::PANEL_TYPE_SUCCESS
-                            ),
                             $BasicTable
                         ))),
                         new Title(new PersonParent().' Grunddaten', 'der Person')
@@ -310,6 +302,7 @@ class Frontend extends Extension implements IFrontendInterface
         }
 
         $tblSalutationAll = Person::useService()->getSalutationAll();
+        $tblSalutationAll[] = new TblSalutation('');
 
         return new Form(
             new FormGroup(array(
@@ -320,13 +313,17 @@ class Frontend extends Extension implements IFrontendInterface
                                 new Conversation()),
                             new AutoCompleter('Person[Title]', 'Titel', 'Titel', array('Dipl.- Ing.'),
                                 new Conversation()),
-                        ), Panel::PANEL_TYPE_INFO), 4),
+                        ), Panel::PANEL_TYPE_INFO), 2),
                     new FormColumn(
-                        new Panel('Name', array(
+                        new Panel('Vorname', array(
                             new TextField('Person[FirstName]', 'Rufname', 'Vorname'),
                             new TextField('Person[SecondName]', 'weitere Vornamen', 'Zweiter Vorname'),
-                            new TextField('Person[LastName]', 'Nachname geb. Geburtsname', 'Nachname / Geburtsname'),
-                        ), Panel::PANEL_TYPE_INFO), 4),
+                        ), Panel::PANEL_TYPE_INFO), 3),
+                    new FormColumn(
+                        new Panel('Nachname', array(
+                            new TextField('Person[LastName]', 'Nachname', 'Nachname'),
+                            new TextField('Person[BirthName]', 'Geburtsname', 'Geburtsname'),
+                        ), Panel::PANEL_TYPE_INFO), 3),
                     new FormColumn(
                         new Panel('Gruppen', $tblGroupList, Panel::PANEL_TYPE_INFO), 4),
                 ))

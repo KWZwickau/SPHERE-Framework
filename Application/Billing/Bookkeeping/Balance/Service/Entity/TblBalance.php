@@ -26,12 +26,10 @@ class TblBalance extends Element
      * @Column(type="bigint")
      */
     protected $serviceBilling_Banking;
-
     /**
      * @Column(type="bigint")
      */
     protected $serviceBilling_Invoice;
-
     /**
      * @Column(type="date")
      */

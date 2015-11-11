@@ -2,6 +2,7 @@
 namespace SPHERE\Application\People\Meta\Prospect\Service;
 
 use SPHERE\Application\Corporation\Company\Service\Entity\TblCompany;
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectAppointment;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspectReservation;
@@ -65,16 +66,16 @@ class Data extends AbstractData
     /**
      * @param string          $ReservationYear
      * @param string          $ReservationDivision
-     * @param null|TblCompany $tblCompanyOptionA
-     * @param null|TblCompany $tblCompanyOptionB
+     * @param null|TblCompany $tblTypeOptionA
+     * @param null|TblCompany $tblTypeOptionB
      *
      * @return TblProspectReservation
      */
     public function createProspectReservation(
         $ReservationYear,
         $ReservationDivision,
-        TblCompany $tblCompanyOptionA = null,
-        TblCompany $tblCompanyOptionB = null
+        TblType $tblTypeOptionA = null,
+        TblType $tblTypeOptionB = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -82,8 +83,8 @@ class Data extends AbstractData
         $Entity = new TblProspectReservation();
         $Entity->setReservationYear($ReservationYear);
         $Entity->setReservationDivision($ReservationDivision);
-        $Entity->setServiceTblCompanyOptionA($tblCompanyOptionA);
-        $Entity->setServiceTblCompanyOptionB($tblCompanyOptionB);
+        $Entity->setServiceTblTypeOptionA($tblTypeOptionA);
+        $Entity->setServiceTblTypeOptionB($tblTypeOptionB);
         $Manager->saveEntity($Entity);
         Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
 
@@ -189,8 +190,8 @@ class Data extends AbstractData
      * @param TblProspectReservation $tblProspectReservation
      * @param string                 $ReservationYear
      * @param string                 $ReservationDivision
-     * @param null|TblCompany        $tblCompanyOptionA
-     * @param null|TblCompany        $tblCompanyOptionB
+     * @param null|TblType           $tblTypeOptionA
+     * @param null|TblType           $tblTypeOptionB
      *
      * @return TblProspectReservation
      */
@@ -198,8 +199,8 @@ class Data extends AbstractData
         TblProspectReservation $tblProspectReservation,
         $ReservationYear,
         $ReservationDivision,
-        TblCompany $tblCompanyOptionA = null,
-        TblCompany $tblCompanyOptionB = null
+        TblType $tblTypeOptionA = null,
+        TblType $tblTypeOptionB = null
     ) {
 
         $Manager = $this->getConnection()->getEntityManager();
@@ -209,8 +210,8 @@ class Data extends AbstractData
             $Protocol = clone $Entity;
             $Entity->setReservationYear($ReservationYear);
             $Entity->setReservationDivision($ReservationDivision);
-            $Entity->setServiceTblCompanyOptionA($tblCompanyOptionA);
-            $Entity->setServiceTblCompanyOptionB($tblCompanyOptionB);
+            $Entity->setServiceTblTypeOptionA($tblTypeOptionA);
+            $Entity->setServiceTblTypeOptionB($tblTypeOptionB);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
             return true;
