@@ -56,6 +56,10 @@ class Subject implements IModuleInterface
             ->setParameterDefault('Subject', null)
         );
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Subject', __NAMESPACE__.'\Frontend::frontendDestroySubject'
+        )->setParameterDefault('Id', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Link/Subject', __NAMESPACE__.'\Frontend::frontendLinkSubject'
         ));
     }

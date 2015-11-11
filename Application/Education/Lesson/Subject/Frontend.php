@@ -23,9 +23,11 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
 use SPHERE\Common\Frontend\Text\Repository\Small;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -51,9 +53,12 @@ class Frontend extends Extension implements IFrontendInterface
         array_walk($tblSubjectAll, function (TblSubject &$tblSubject) {
 
             $tblSubject->Option = new Standard('', '/Education/Lesson/Subject/Change/Subject', new Pencil(),
-                    array('Id' => $tblSubject->getId()), 'Bearbeiten')
-                .new Standard('', '', new Remove(),
-                    array(), 'Löschen');
+                    array('Id' => $tblSubject->getId()))
+//                .new Standard('', '', new Remove(), array());
+                .( Subject::useService()->getSubjectActiveState($tblSubject) === false ?
+                    new Standard('', '/Education/Lesson/Subject/Destroy/Subject', new Remove(),
+                        array('Id' => $tblSubject->getId()))
+                    : '' );
         });
 
         $Stage->setContent(
@@ -87,6 +92,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         return $Stage;
     }
+
     /**
      * @param null|TblSubject $tblSubject
      *
@@ -136,6 +142,7 @@ class Frontend extends Extension implements IFrontendInterface
             ))
         );
     }
+
     /**
      * @param $Id
      * @param $Subject
@@ -432,5 +439,24 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroySubject($Id)
+    {
+
+        $Stage = new Stage('Fach', 'entfernen');
+        $tblSubject = Subject::useService()->getSubjectById($Id);
+        if ($tblSubject) {
+            $Stage->setContent(Subject::useService()->destroySubject($tblSubject));
+        } else {
+            return $Stage.new Warning('Fach nicht gefunden!')
+            .new Redirect('/Education/Lesson/Subject/Create/Subject');
+        }
+        return $Stage;
     }
 }

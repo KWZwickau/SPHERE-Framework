@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -324,6 +325,47 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubject', array(
             TblSubject::ATTR_ACRONYM => $Acronym
         ));
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getSubjectActiveState(TblSubject $tblSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCategorySubject $Entity */
+        $Entity = $Manager->getEntity('TblCategorySubject')
+            ->findOneBy(array(
+                TblCategorySubject::ATTR_TBL_SUBJECT => $tblSubject->getId()
+            ));
+        if (null !== $Entity) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function destroySubject(TblSubject $tblSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblSubject')->findOneBy(array('Id' => $tblSubject->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 
     /**

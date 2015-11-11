@@ -194,6 +194,47 @@ class Service extends AbstractService
     }
 
     /**
+     * @param TblSubject $tblSubject
+     *
+     * @return string
+     */
+    public function destroySubject(TblSubject $tblSubject)
+    {
+
+        if (null === $tblSubject) {
+            return '';
+        }
+        $Error = false;
+
+        if ($this->getSubjectActiveState($tblSubject)) {
+            var_dump('Test');
+            $Error = true;
+        }
+        if (!$Error) {
+            if ((new Data($this->getBinding()))->destroySubject($tblSubject)) {
+                return new Success('Das Fach wurde erfolgreich gelöscht')
+                .new Redirect('/Education/Lesson/Subject/Create/Subject', 1);
+            } else {
+                return new Danger('Das Fach konnte nicht gelöscht werden')
+                .new Redirect('/Education/Lesson/Subject/Create/Subject');
+            }
+        }
+        return new Danger('Das Fach wird benutzt!')
+        .new Redirect('/Education/Lesson/Subject/Create/Subject');
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getSubjectActiveState(TblSubject $tblSubject)
+    {
+
+        return (new Data($this->getBinding()))->getSubjectActiveState($tblSubject);
+    }
+
+    /**
      * int
      */
     public function countSubjectAll()
@@ -377,6 +418,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param int $Id
      *
@@ -387,6 +429,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectById($Id);
     }
+
     /**
      * @return bool|TblSubject[]
      */
@@ -395,6 +438,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getSubjectAllHavingNoCategory();
     }
+
     /**
      * @return bool|TblCategory[]
      */
@@ -403,6 +447,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCategoryAllHavingNoGroup();
     }
+
     /**
      * @param IFormInterface $Form
      * @param null|array     $Category
@@ -458,6 +503,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCategoryByName($Name);
     }
+
     /**
      * @param IFormInterface $Form
      * @param TblGroup       $tblGroup
@@ -508,6 +554,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param TblGroup    $tblGroup
      * @param TblCategory $tblCategory
@@ -519,6 +566,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeGroupCategory($tblGroup, $tblCategory);
     }
+
     /**
      * @param TblGroup    $tblGroup
      * @param TblCategory $tblCategory
@@ -530,6 +578,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->addGroupCategory($tblGroup, $tblCategory);
     }
+
     /**
      * @param int $Id
      *
@@ -540,6 +589,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getCategoryById($Id);
     }
+
     /**
      * @param IFormInterface $Form
      * @param TblCategory    $tblCategory
@@ -590,6 +640,7 @@ class Service extends AbstractService
         }
         return $Form;
     }
+
     /**
      * @param TblCategory $tblCategory
      * @param TblSubject  $tblSubject
@@ -601,6 +652,7 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->removeCategorySubject($tblCategory, $tblSubject);
     }
+
     /**
      * @param TblCategory $tblCategory
      * @param TblSubject  $tblSubject
