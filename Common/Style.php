@@ -1,6 +1,8 @@
 <?php
 namespace SPHERE\Common;
 
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Application\Setting\MyAccount\MyAccount;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -20,8 +22,26 @@ class Style extends Extension
     private function __construct()
     {
 
-//        $this->setSource('/Common/Style/Bootstrap.css');
-        $this->setSource('/Common/Style/theme.css');
+        $tblAccount = Account::useService()->getAccountBySession();
+        if ($tblAccount) {
+            $SettingSurface = MyAccount::useService()->getSettingByAccount($tblAccount, 'Surface');
+            if ($SettingSurface) {
+                $SettingSurface = $SettingSurface->getValue();
+            } else {
+                $SettingSurface = 1;
+            }
+        } else {
+            $SettingSurface = 1;
+        }
+
+        switch ($SettingSurface) {
+            case 1:
+                $this->setSource('/Common/Style/Bootstrap.css');
+                break;
+            case 2:
+                $this->setSource('/Common/Style/theme.css');
+                break;
+        }
 
         $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons_halflings/web/html_css/css/glyphicons-halflings.css');
         $this->setSource('/Library/Bootstrap.Glyphicons/1.9.0/glyphicons/web/html_css/css/glyphicons.css');
@@ -46,10 +66,16 @@ class Style extends Extension
         $this->setSource('/Library/jQuery.FlowPlayer/6.0.3/skin/functional.css');
         $this->setSource('/Library/Highlight.js/8.8.0/styles/docco.css');
 
-//        $this->setSource('/Common/Style/Correction.css');
-        $this->setSource('/Common/Style/theme.correction.css');
-        $this->setSource('/Common/Style/PhpInfo.css');
+        switch ($SettingSurface) {
+            case 1:
+                $this->setSource('/Common/Style/Correction.css');
+                break;
+            case 2:
+                $this->setSource('/Common/Style/theme.correction.css');
+                break;
+        }
 
+        $this->setSource('/Common/Style/PhpInfo.css');
     }
 
     /**

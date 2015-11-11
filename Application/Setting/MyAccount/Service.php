@@ -115,4 +115,39 @@ class Service extends \SPHERE\Application\Platform\Gatekeeper\Authorization\Acco
             }
         }
     }
+
+    /**
+     * @param IFormInterface $Form
+     * @param TblAccount     $tblAccount
+     * @param array          $Setting
+     *
+     * @return IFormInterface|Redirect
+     */
+    public function updateSetting(
+        IFormInterface &$Form,
+        TblAccount $tblAccount,
+        $Setting
+    ) {
+
+        if (empty( $Setting )) {
+            return $Form;
+        }
+
+        $Error = false;
+
+        foreach ((array)$Setting as $Identifier => $Value) {
+            if (!$this->setSettingByAccount($tblAccount, $Identifier, $Value)) {
+                $Error = true;
+            }
+        }
+
+        if ($Error) {
+            return new Danger('Einige Einstellungen konnten nicht gespeichert werden').new Redirect('/Setting/MyAccount',
+                10);
+        } else {
+            return new Success('Die Einstellungen wurden erfolgreich gespeichert').new Redirect('/Setting/MyAccount',
+                1);
+        }
+    }
+
 }

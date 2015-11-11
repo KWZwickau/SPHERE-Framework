@@ -32,6 +32,7 @@ class Setup extends AbstractSetup
         $this->setTableAuthorization($Schema, $tblAccount);
         $this->setTableAuthentication($Schema, $tblAccount, $tblIdentification);
         $this->setTableUser($Schema, $tblAccount);
+        $this->setTableSetting($Schema, $tblAccount);
         /**
          * Migration & Protocol
          */
@@ -164,6 +165,26 @@ class Setup extends AbstractSetup
         $Table = $this->getConnection()->createTable($Schema, 'tblUser');
         if (!$this->getConnection()->hasColumn('tblUser', 'serviceTblPerson')) {
             $Table->addColumn('serviceTblPerson', 'bigint', array('notnull' => false));
+        }
+        $this->getConnection()->addForeignKey($Table, $tblAccount);
+        return $Table;
+    }
+
+    /**
+     * @param Schema $Schema
+     * @param Table  $tblAccount
+     *
+     * @return Table
+     */
+    private function setTableSetting(Schema &$Schema, Table $tblAccount)
+    {
+
+        $Table = $this->getConnection()->createTable($Schema, 'tblSetting');
+        if (!$this->getConnection()->hasColumn('tblSetting', 'Identifier')) {
+            $Table->addColumn('Identifier', 'string');
+        }
+        if (!$this->getConnection()->hasColumn('tblSetting', 'Value')) {
+            $Table->addColumn('Value', 'string');
         }
         $this->getConnection()->addForeignKey($Table, $tblAccount);
         return $Table;

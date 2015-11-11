@@ -42,6 +42,9 @@ class MyAccount implements IApplicationInterface, IModuleInterface
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Consumer', __NAMESPACE__.'\Frontend::frontendChangeConsumer'
         ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Configuration', __NAMESPACE__.'\Frontend::frontendConfiguration'
+        ));
     }
 
     /**

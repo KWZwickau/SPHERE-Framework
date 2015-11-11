@@ -9,6 +9,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Setup;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -531,5 +532,30 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->changeConsumer($tblConsumer, $tblAccount);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $Identifier
+     *
+     * @return bool|TblSetting
+     */
+    public function getSettingByAccount(TblAccount $tblAccount, $Identifier)
+    {
+
+        return (new Data($this->getBinding()))->getSettingByAccount($tblAccount, $Identifier);
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $Identifier
+     * @param string     $Value
+     *
+     * @return bool|TblSetting
+     */
+    public function setSettingByAccount(TblAccount $tblAccount, $Identifier, $Value)
+    {
+
+        return (new Data($this->getBinding()))->setSettingByAccount($tblAccount, $Identifier, $Value);
     }
 }

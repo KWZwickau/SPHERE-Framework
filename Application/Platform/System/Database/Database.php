@@ -6,8 +6,11 @@ use SPHERE\Application\IServiceInterface;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
 use SPHERE\Common\Frontend\Icon\Repository\Ok;
+use SPHERE\Common\Frontend\Icon\Repository\Repeat;
 use SPHERE\Common\Frontend\Icon\Repository\Warning;
 use SPHERE\Common\Frontend\IFrontendInterface;
+use SPHERE\Common\Frontend\Layout\Repository\PullClear;
+use SPHERE\Common\Frontend\Layout\Repository\PullLeft;
 use SPHERE\Common\Frontend\Link\Repository\External;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
 use SPHERE\Common\Frontend\Table\Structure\Table;
@@ -34,6 +37,8 @@ class Database extends Extension implements IModuleInterface
 
     /** @var array $ServiceRegister */
     private static $ServiceRegister = array();
+    /** @var array $SetupRegister */
+    private static $SetupRegister = array();
 
     public static function registerModule()
     {
@@ -241,6 +246,7 @@ class Database extends Extension implements IModuleInterface
             $this->menuButton($Stage);
         }
         if ($Simulation) {
+            self::$SetupRegister = array();
             $ClassList = self::$ServiceRegister;
             array_walk($ClassList, function (&$Class) {
 
@@ -254,7 +260,13 @@ class Database extends Extension implements IModuleInterface
                         $Class = $Class->useService();
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
-                            $Class = $Class->setupService(true, false);
+                            if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
+                                $Result = $Class->setupService(true, false);
+                                self::$SetupRegister[get_class($Class)] = $Result;
+                                $Class = $Result;
+                            } else {
+                                $Class = new PullClear(new PullLeft(new Repeat()).self::$SetupRegister[get_class($Class)]);
+                            }
                         } else {
                             $Class = false;
                         }
@@ -266,6 +278,7 @@ class Database extends Extension implements IModuleInterface
             $ClassList = array_filter($ClassList);
 
         } else {
+            self::$SetupRegister = array();
             $ClassList = self::$ServiceRegister;
             array_walk($ClassList, function (&$Class) {
 
@@ -279,7 +292,13 @@ class Database extends Extension implements IModuleInterface
                         $Class = $Class->useService();
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
-                            $Class = $Class->setupService(false, false);
+                            if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
+                                $Result = $Class->setupService(false, false);
+                                self::$SetupRegister[get_class($Class)] = $Result;
+                                $Class = $Result;
+                            } else {
+                                $Class = new PullClear(new PullLeft(new Repeat()).self::$SetupRegister[get_class($Class)]);
+                            }
                         } else {
                             $Class = false;
                         }
@@ -290,6 +309,7 @@ class Database extends Extension implements IModuleInterface
             });
             $ClassList = array_filter($ClassList);
 
+            self::$SetupRegister = array();
             $DataList = self::$ServiceRegister;
             array_walk($DataList, function (&$Class) {
 
@@ -303,7 +323,13 @@ class Database extends Extension implements IModuleInterface
                         $Class = $Class->useService();
                         /** @var IServiceInterface $Class */
                         if ($Class instanceof IServiceInterface) {
-                            $Class = $Class->setupService(false, true);
+                            if (!array_key_exists(get_class($Class), self::$SetupRegister)) {
+                                $Result = $Class->setupService(false, true);
+                                self::$SetupRegister[get_class($Class)] = $Result;
+                                $Class = $Result;
+                            } else {
+                                $Class = new PullClear(new PullLeft(new Repeat()).self::$SetupRegister[get_class($Class)]);
+                            }
                         } else {
                             $Class = false;
                         }

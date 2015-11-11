@@ -10,6 +10,7 @@ use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblAuthorization;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblIdentification;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSession;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblSetting;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Service\Entity\TblUser;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Consumer;
 use SPHERE\Application\Platform\Gatekeeper\Authorization\Consumer\Service\Entity\TblConsumer;
@@ -43,24 +44,28 @@ class Data extends AbstractData
         $tblAccount = $this->createAccount('System', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        $this->setSettingByAccount($tblAccount, 'Surface', 1);
 
         // System (Jens)
         $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjge');
         $tblAccount = $this->createAccount('Kmiezik', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        $this->setSettingByAccount($tblAccount, 'Surface', 1);
 
         // System (Sidney)
         $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgt');
         $tblAccount = $this->createAccount('Rackel', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        $this->setSettingByAccount($tblAccount, 'Surface', 1);
 
         // System (Johannes)
         $tblToken = Token::useService()->getTokenByIdentifier('ccccccectjgr');
         $tblAccount = $this->createAccount('Kauschke', 'System', $tblToken, $tblConsumer);
         $this->addAccountAuthentication($tblAccount, $tblIdentification);
         $this->addAccountAuthorization($tblAccount, $tblRole);
+        $this->setSettingByAccount($tblAccount, 'Surface', 1);
     }
 
     /**
@@ -168,6 +173,41 @@ class Data extends AbstractData
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
         }
         return $Entity;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $Identifier
+     * @param string     $Value
+     *
+     * @return bool|TblSetting
+     */
+    public function setSettingByAccount(TblAccount $tblAccount, $Identifier, $Value)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblSetting')->findOneBy(array(
+            TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+            TblSetting::ATTR_IDENTIFIER  => $Identifier
+        ));
+        if (null === $Entity) {
+            $Entity = new TblSetting();
+            $Entity->setTblAccount($tblAccount);
+            $Entity->setIdentifier($Identifier);
+            $Entity->setValue($Identifier);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+        } else {
+            /**
+             * @var TblSetting $Protocol
+             * @var TblSetting $Entity
+             */
+            $Protocol = clone $Entity;
+            $Entity->setValue($Value);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(), $Protocol, $Entity);
+        }
+        return ( null === $Entity ? false : $Entity );
     }
 
     /**
@@ -670,5 +710,21 @@ class Data extends AbstractData
             return true;
         }
         return false;
+    }
+
+    /**
+     * @param TblAccount $tblAccount
+     * @param string     $Identifier
+     *
+     * @return bool|TblSetting
+     */
+    public function getSettingByAccount(TblAccount $tblAccount, $Identifier)
+    {
+
+        $Entity = $this->getConnection()->getEntityManager()->getEntity('TblSetting')->findOneBy(array(
+            TblSetting::ATTR_TBL_ACCOUNT => $tblAccount->getId(),
+            TblSetting::ATTR_IDENTIFIER  => $Identifier
+        ));
+        return ( null === $Entity ? false : $Entity );
     }
 }
