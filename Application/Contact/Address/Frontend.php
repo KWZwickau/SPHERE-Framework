@@ -530,6 +530,35 @@ class Frontend extends Extension implements IFrontendInterface
                             }
                         }
                     }
+
+                    if ($tblPerson->getId() != $tblRelationship->getServiceTblPersonTo()->getId()) {
+                        $tblRelationshipAddressAll = Address::useService()->getAddressAllByPerson($tblRelationship->getServiceTblPersonTo());
+                        if ($tblRelationshipAddressAll) {
+                            foreach ($tblRelationshipAddressAll as $tblAddress) {
+
+                                $Panel = array($tblAddress->getTblAddress()->getLayout());
+                                if ($tblAddress->getRemark()) {
+                                    array_push($Panel, new Muted(new Small($tblAddress->getRemark())));
+                                }
+
+                                $tblAddress = new LayoutColumn(
+                                    new Panel(
+                                        new MapMarker() . ' ' . $tblAddress->getTblType()->getName(), $Panel,
+                                        Panel::PANEL_TYPE_DEFAULT,
+                                        $tblRelationship->getServiceTblPersonTo()->getFullName()
+                                        . ' (' . $tblRelationship->getTblType()->getName() . ')'
+                                    )
+                                    , 3);
+
+                                if ($tblAddressAll !== false) {
+                                    $tblAddressAll[] = $tblAddress;
+                                } else {
+                                    $tblAddressAll = array();
+                                    $tblAddressAll[] = $tblAddress;
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
