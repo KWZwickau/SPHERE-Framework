@@ -300,6 +300,10 @@ class Display extends Extension implements ITemplateInterface
                 .Consumer::useService()->getConsumerBySession()->getName()
             );
         }
+
+        $this->Template->setVariable('SeoTitle',
+            str_replace('/', ' - ', trim($this->getRequest()->getPathInfo(), '/')));
+
         return $this->Template->getContent();
     }
 
