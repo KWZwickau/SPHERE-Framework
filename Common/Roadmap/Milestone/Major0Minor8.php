@@ -63,7 +63,7 @@ class Major0Minor8
         $Feature->createTask('Benutzerkonten')
             ->createDuty('Benutzerkonten bearbeiten', false);
         $Feature->createTask('Mein Benutzerkonto')
-            ->createDuty('Informationen anzeigen (Vervollständigen)');
+            ->createDuty('Informationen anzeigen (Vervollständigen)', false);
 
         $Feature = $Category->createFeature('Mandant',
             new External('siehe EGE', 'http://www.ege-annaberg.de/node/416'));

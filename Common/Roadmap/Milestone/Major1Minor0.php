@@ -28,7 +28,7 @@ class Major1Minor0
         $Task = $Feature->createTask('Elektronisches Notenbuch')
             ->createDuty('Basisfunktionalitäten')
             ->createDuty('Eingabe/Ausgabe von Zensuren')
-            ->createDuty('Anlegen & Auswahl von Leistungsüberprüfungen');
+            ->createDuty('Anlegen & Auswahl von Leistungsüberprüfungen', true);
 
         // Auswertungen
         $Release->createCategory('Auswertungen')
@@ -42,21 +42,5 @@ class Major1Minor0
         // Firmenverwaltung
         $Category = $Release->createCategory('Firmenverwaltung');
         $Category->createFeature('Firma löschen');
-
-        // Fehlerbehebung
-        $Category = $Release->createCategory('Fehlerkorrekturen');
-        $Feature = $Category->createFeature('Cache System');
-        $Task = $Feature->createTask('MemcacheD');
-        $Task->createDuty('Konfiguration');
-        $Task->createDuty('Performance');
-        $Task = $Feature->createTask('ApcU');
-        $Task->createDuty('Konfiguration');
-        $Feature = $Category->createFeature('Database System');
-        $Task = $Feature->createTask('MySql');
-        $Task->createDuty('Konfiguration');
-        $Task->createDuty('Performance');
-        $Feature = $Category->createFeature('Code Style');
-        $Feature->createTask('PSR-1/PSR2');
-        $Category->createFeature('Code Performance');
     }
 }
