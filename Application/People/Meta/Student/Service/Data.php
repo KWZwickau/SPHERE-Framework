@@ -73,6 +73,10 @@ class Data extends Integration
         $this->createStudentDisorderType('Hochbegabung');
         $this->createStudentDisorderType('Konzentrationsstörung');
         $this->createStudentDisorderType('Körperliche Beeinträchtigung');
+
+        $this->createStudentTransferType('ENROLLMENT', 'Einschulung');
+        $this->createStudentTransferType('ARRIVE', 'Aufnahme');
+        $this->createStudentTransferType('LEAVE', 'Abgabe');
     }
 
     /**

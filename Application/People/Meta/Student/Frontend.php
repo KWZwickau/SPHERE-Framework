@@ -71,7 +71,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson $tblPerson
-     * @param array     $Meta
+     * @param array $Meta
      *
      * @return Stage
      */
@@ -82,11 +82,22 @@ class Frontend extends Extension implements IFrontendInterface
 
         $Stage->setDescription(
             new Danger(
-                new Info().' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
+                new Info() . ' Es dürfen ausschließlich für die Schulverwaltung notwendige Informationen gespeichert werden.'
             )
         );
 
         $Stage->setContent((new Form(array(
+
+            new FormGroup(
+                new FormRow(array(
+                    new FormColumn(
+                        new Panel('Identifikation', array(
+                            new TextField('Meta[Transfer][Student][Identifier]', 'Schülernummer',
+                                'Schülernummer')
+                        ), Panel::PANEL_TYPE_INFO)
+                        , 4),
+                ))
+            ),
             $this->formGroupTransfer($tblPerson, $Meta),
             $this->formGroupGeneral($tblPerson, $Meta),
             $this->formGroupSubject($tblPerson, $Meta),
@@ -101,7 +112,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson|null $tblPerson
-     * @param array          $Meta
+     * @param array $Meta
      *
      * @return FormGroup
      */
@@ -110,7 +121,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta'] )) {
+            if (!isset($Global->POST['Meta'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -184,6 +195,13 @@ class Frontend extends Extension implements IFrontendInterface
             $tblCompanyAllSchool = array(new TblCompany());
         }
 
+        $tblCompanyAllSchoolNursery = Group::useService()->getCompanyAllByGroup(
+            Group::useService()->getGroupByMetaTable('NURSERY')
+        );
+        if ($tblCompanyAllSchool) {
+            $tblCompanyAllSchoolNursery = array_merge($tblCompanyAllSchool, $tblCompanyAllSchoolNursery);
+        }
+
         $tblSchoolTypeAll = Type::useService()->getTypeAll();
         if ($tblSchoolTypeAll) {
             array_push($tblSchoolTypeAll, new TblType());
@@ -198,39 +216,70 @@ class Frontend extends Extension implements IFrontendInterface
             $tblSchoolCourseAll = array(new TblCourse());
         }
 
+        $tblStudentTransferTypeEnrollment = Student::useService()->getStudentTransferTypeByIdentifier('Enrollment');
+        $tblStudentTransferTypeArrive = Student::useService()->getStudentTransferTypeByIdentifier('Arrive');
+        $tblStudentTransferTypeLeave = Student::useService()->getStudentTransferTypeByIdentifier('Leave');
+
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(array(
                     new Panel('Ersteinschulung', array(
-                        new SelectBox('Meta[Transfer][Enrollment][School]', 'Schule', array(
-                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                        ), new Education()),
-                        new DatePicker('Meta[Transfer][Enrollment][Date]', 'Datum', 'Datum', new Calendar()),
-                        new TextArea('Meta[Transfer][Enrollment][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeEnrollment->getId() . '][School]',
+                            'Schule', array(
+                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeEnrollment->getId() . '][Type]',
+                            'Schulart', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeEnrollment->getId() . '][Course]',
+                            'Bildungsgang', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+                            ), new Education()),
+                        new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeEnrollment->getId() . '][Date]',
+                            'Datum', 'Datum', new Calendar()),
+                        new TextArea('Meta[Transfer][' . $tblStudentTransferTypeEnrollment->getId() . '][Remark]',
+                            'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
                 new FormColumn(array(
                     new Panel('Schüler - Aufnahme', array(
-                        new TextField('Meta[Transfer][Arrive][Identifier]', 'Schülernummer',
-                            'Schülernummer'),
-                        new SelectBox('Meta[Transfer][Arrive][Type]', 'Letzte Schulart', array(
-                            '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                        ), new Education()),
-                        new SelectBox('Meta[Transfer][Arrive][School]', 'Abgebende Schule', array(
-                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                        ), new Education()),
-                        new DatePicker('Meta[Transfer][Arrive][Date]', 'Datum', 'Datum', new Calendar()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][School]',
+                            'Abgebende Schule / Kita', array(
+                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchoolNursery
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Type]',
+                            'Letzte Schulart', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Course]',
+                            'Letzter Bildungsgang', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+                            ), new Education()),
+                        new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Date]', 'Datum',
+                            'Datum', new Calendar()),
+                        new TextArea('Meta[Transfer][' . $tblStudentTransferTypeArrive->getId() . '][Remark]',
+                            'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
                 new FormColumn(array(
                     new Panel('Schüler - Abgabe', array(
-                        new SelectBox('Meta[Transfer][Leave][Type]', 'Letzte Schulart', array(
-                            '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
-                        ), new Education()),
-                        new SelectBox('Meta[Transfer][Leave][School]', 'Aufnehmende Schule', array(
-                            '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
-                        ), new Education()),
-                        new DatePicker('Meta[Transfer][Leave][Date]', 'Datum', 'Datum', new Calendar()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][School]',
+                            'Aufnehmende Schule', array(
+                                '{{ Name }} {{ Description }}' => $tblCompanyAllSchool
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][Type]',
+                            'Letzte Schulart', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolTypeAll
+                            ), new Education()),
+                        new SelectBox('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][Course]',
+                            'Letzter Bildungsgang', array(
+                                '{{ Name }} {{ Description }}' => $tblSchoolCourseAll
+                            ), new Education()),
+                        new DatePicker('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][Date]', 'Datum',
+                            'Datum', new Calendar()),
+                        new TextArea('Meta[Transfer][' . $tblStudentTransferTypeLeave->getId() . '][Remark]',
+                            'Bemerkungen', 'Bemerkungen', new Pencil()),
                     ), Panel::PANEL_TYPE_INFO),
                 ), 4),
             )),
@@ -266,17 +315,17 @@ class Frontend extends Extension implements IFrontendInterface
                     ), Panel::PANEL_TYPE_DEFAULT,
                         new Warning(
                             'Vom System erkannte Schuljahr&shy;wiederholungen.'
-                            .'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
+                            . 'Wird bei wiederholter Klassen&shy;zuordnung in verschiedenen Schuljahren erzeugt'
                         )
                     ),
                 ), 3),
             )),
-        ), new Title(new TileSmall().' Schülertransfer'));
+        ), new Title(new TileSmall() . ' Schülertransfer'));
     }
 
     /**
      * @param TblPerson|null $tblPerson
-     * @param array          $Meta
+     * @param array $Meta
      *
      * @return FormGroup
      */
@@ -285,7 +334,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         if (null !== $tblPerson) {
             $Global = $this->getGlobal();
-            if (!isset( $Global->POST['Meta'] )) {
+            if (!isset($Global->POST['Meta'])) {
                 /** @var TblStudent $tblStudent */
                 $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
                 if ($tblStudent) {
@@ -324,7 +373,7 @@ class Frontend extends Extension implements IFrontendInterface
                     ) {
 
                         array_push($AgreementPanel,
-                            new CheckBox('Meta['.$tblStudentAgreementCategory->getId().']['.$tblStudentAgreementType->getId().']',
+                            new CheckBox('Meta[' . $tblStudentAgreementCategory->getId() . '][' . $tblStudentAgreementType->getId() . ']',
                                 $tblStudentAgreementType->getName(), 1)
                         );
                     }
@@ -340,7 +389,7 @@ class Frontend extends Extension implements IFrontendInterface
         return new FormGroup(array(
             new FormRow(array(
                 new FormColumn(
-                    new Panel(new Hospital().' Krankenakte', array(
+                    new Panel(new Hospital() . ' Krankenakte', array(
                         new TextArea('Meta[MedicalRecord][Disease]', 'Krankheiten / Allergien',
                             'Krankheiten / Allergien', new Heart()),
                         new TextArea('Meta[MedicalRecord][Medication]', 'Mediakamente', 'Mediakamente',
@@ -396,12 +445,12 @@ class Frontend extends Extension implements IFrontendInterface
                     ), Panel::PANEL_TYPE_INFO), 3),
                 new FormColumn($AgreementPanel, 3),
             )),
-        ), new Title(new TileSmall().' Allgemeines'));
+        ), new Title(new TileSmall() . ' Allgemeines'));
     }
 
     /**
      * @param TblPerson|null $tblPerson
-     * @param array          $Meta
+     * @param array $Meta
      *
      * @return FormGroup
      */
@@ -410,7 +459,7 @@ class Frontend extends Extension implements IFrontendInterface
 
         $tblStudent = Student::useService()->getStudentByPerson($tblPerson);
 
-        if ($tblStudent && empty( $Meta )) {
+        if ($tblStudent && empty($Meta)) {
             $tblStudentSubjectAll = Student::useService()->getStudentSubjectAllByStudent($tblStudent);
             if ($tblStudentSubjectAll) {
                 $Global = $this->getGlobal();
@@ -498,15 +547,15 @@ class Frontend extends Extension implements IFrontendInterface
                     $this->panelSubjectList('TRACK_BASIC', 'Grundkurse', 'Grundkurs', $tblSubjectAll, 8),
                 ), 3),
             )),
-        ), new Title(new TileSmall().' Unterrichtsfächer'));
+        ), new Title(new TileSmall() . ' Unterrichtsfächer'));
     }
 
     /**
-     * @param string       $Identifier
-     * @param string       $Title
-     * @param string       $Label
+     * @param string $Identifier
+     * @param string $Title
+     * @param string $Label
      * @param TblSubject[] $SubjectList
-     * @param int          $Count
+     * @param int $Count
      *
      * @return Panel
      */
@@ -519,8 +568,8 @@ class Frontend extends Extension implements IFrontendInterface
             $tblStudentSubjectRanking = Student::useService()->getStudentSubjectRankingByIdentifier($Rank);
             array_push($Panel,
                 new SelectBox(
-                    'Meta[Subject]['.$tblStudentSubjectType->getId().']['.$tblStudentSubjectRanking->getId().']',
-                    ( $Count > 1 ? $tblStudentSubjectRanking->getName().' ' : '' ).$Label,
+                    'Meta[Subject][' . $tblStudentSubjectType->getId() . '][' . $tblStudentSubjectRanking->getId() . ']',
+                    ($Count > 1 ? $tblStudentSubjectRanking->getName() . ' ' : '') . $Label,
                     array('{{ Acronym }} - {{ Name }} {{ Description }}' => $SubjectList),
                     new Education()
                 )
@@ -531,7 +580,7 @@ class Frontend extends Extension implements IFrontendInterface
 
     /**
      * @param TblPerson|null $tblPerson
-     * @param array          $Meta
+     * @param array $Meta
      *
      * @return FormGroup
      */
@@ -550,7 +599,7 @@ class Frontend extends Extension implements IFrontendInterface
             function (TblStudentDisorderType $tblStudentDisorderType) use (&$PanelDisorder) {
 
                 array_push($PanelDisorder,
-                    new CheckBox('Meta[Integration][Disorder]['.$tblStudentDisorderType->getId().']',
+                    new CheckBox('Meta[Integration][Disorder][' . $tblStudentDisorderType->getId() . ']',
                         $tblStudentDisorderType->getName(), 1)
                 );
             });
@@ -563,7 +612,7 @@ class Frontend extends Extension implements IFrontendInterface
             function (TblStudentFocusType $tblStudentFocusType) use (&$PanelFocus) {
 
                 array_push($PanelFocus,
-                    new CheckBox('Meta[Integration][Focus]['.$tblStudentFocusType->getId().']',
+                    new CheckBox('Meta[Integration][Focus][' . $tblStudentFocusType->getId() . ']',
                         $tblStudentFocusType->getName(), 1)
                 );
             });
@@ -593,7 +642,8 @@ class Frontend extends Extension implements IFrontendInterface
                             array('{{ Name }} {{ Description }}' => $tblCompanyAllSchool),
                             new Education()),
                         new SelectBox('Meta[Integration][3]',
-                            'Schulbegleitung '.new Small(new Muted('Integrationsbeauftragter')), array(), new Person()),
+                            'Schulbegleitung ' . new Small(new Muted('Integrationsbeauftragter')), array(),
+                            new Person()),
                         new NumberField('Meta[Integration][3]', 'Stundenbedarf pro Woche',
                             'Stundenbedarf pro Woche', new Clock()),
                         new TextArea('Meta[Integration][Remark]', 'Bemerkungen', 'Bemerkungen', new Pencil()),
@@ -602,6 +652,6 @@ class Frontend extends Extension implements IFrontendInterface
                 new FormColumn($PanelFocus, 3),
                 new FormColumn($PanelDisorder, 3),
             )),
-        ), new Title(new TileSmall().' Integration'));
+        ), new Title(new TileSmall() . ' Integration'));
     }
 }
