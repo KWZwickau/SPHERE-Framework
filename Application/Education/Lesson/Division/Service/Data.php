@@ -9,6 +9,7 @@ use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\People\Person\Service\Entity\TblPerson;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -45,8 +46,39 @@ class Data extends AbstractData
             $Entity->setDescription($Description);
             $Manager->saveEntity($Entity);
             Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            return $Entity;
         }
-        return $Entity;
+        return false;
+    }
+
+    /**
+     * @param TblYear  $tblYear
+     * @param TblLevel $tblLevel
+     * @param          $Name
+     * @param string   $Description
+     *
+     * @return null|object|TblDivision
+     */
+    public function createDivision(TblYear $tblYear, TblLevel $tblLevel, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivision')->findOneBy(array(
+            TblDivision::ATTR_NAME  => $Name,
+            TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+            TblDivision::ATTR_YEAR  => $tblYear->getId(),
+        ));
+        if (null === $Entity) {
+            $Entity = new TblDivision();
+            $Entity->setServiceTblYear($tblYear);
+            $Entity->setTblLevel($tblLevel);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createInsertEntry($this->getConnection()->getDatabase(), $Entity);
+            return $Entity;
+        }
+        return false;
     }
 
     /**
@@ -77,12 +109,13 @@ class Data extends AbstractData
      *
      * @return bool|TblDivision
      */
-    public function getDivisionByGroupAndLevel($Name, TblLevel $tblLevel)
+    public function getDivisionByGroupAndLevelAndYear($Name, TblLevel $tblLevel, TblYear $tblYear)
     {
 
         $Entity = $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblDivision', array(
             TblDivision::ATTR_NAME  => $Name,
-            TblDivision::ATTR_LEVEL => $tblLevel->getId()
+            TblDivision::ATTR_LEVEL => $tblLevel->getId(),
+            TblDivision::ATTR_YEAR  => $tblYear->getId(),
         ));
         return ( $Entity ? $Entity : false );
     }
@@ -195,6 +228,26 @@ class Data extends AbstractData
             Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
                 $Protocol,
                 $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblDivision $tblDivision
+     *
+     * @return bool
+     */
+    public function destroyDivision(TblDivision $tblDivision)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblDivision')->findOneBy(array('Id' => $tblDivision->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
             return true;
         }
         return false;

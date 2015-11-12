@@ -207,7 +207,6 @@ class Service extends AbstractService
         $Error = false;
 
         if ($this->getSubjectActiveState($tblSubject)) {
-            var_dump('Test');
             $Error = true;
         }
         if (!$Error) {

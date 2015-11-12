@@ -22,6 +22,7 @@ class TblDivision extends Element
 
     const ATTR_NAME = 'Name';
     const ATTR_LEVEL = 'tblLevel';
+    const ATTR_YEAR = 'serviceTblYear';
 
     /**
      * @Column(type="string")

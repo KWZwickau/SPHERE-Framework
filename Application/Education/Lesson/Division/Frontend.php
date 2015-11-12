@@ -25,8 +25,10 @@ use SPHERE\Common\Frontend\Layout\Structure\LayoutColumn;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutGroup;
 use SPHERE\Common\Frontend\Layout\Structure\LayoutRow;
 use SPHERE\Common\Frontend\Link\Repository\Standard;
+use SPHERE\Common\Frontend\Message\Repository\Warning;
 use SPHERE\Common\Frontend\Table\Structure\TableData;
 use SPHERE\Common\Frontend\Text\Repository\Muted;
+use SPHERE\Common\Window\Redirect;
 use SPHERE\Common\Window\Stage;
 use SPHERE\System\Extension\Extension;
 
@@ -169,7 +171,7 @@ class Frontend extends Extension implements IFrontendInterface
                     new Muted($tblDivision->getTblLevel()->getServiceTblType()->getName()) : '' );
                 $tblDivision->Option = new Standard('', '/Education/Lesson/Division/Change/Division', new Pencil(),
                         array('Id' => $tblDivision->getId()))
-                    .new Standard('', '', new Remove(), array(), 'Löschen');
+                    .new Standard('', '/Education/Lesson/Division/Destroy/Division', new Remove(), array('Id' => $tblDivision->getId()));
             });
         }
         $Stage->setContent(
@@ -190,12 +192,12 @@ class Frontend extends Extension implements IFrontendInterface
                 new LayoutGroup(
                     new LayoutRow(
                         new LayoutColumn(
-//                            Division::useService()->createDivision(
-                            $this->formDivision()
-                                ->appendFormButton(new Primary('Klassengruppe hinzufügen'))
-                                ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
-//                                , $Division
-//                            )
+                            Division::useService()->createDivision(
+                                $this->formDivision()
+                                    ->appendFormButton(new Primary('Klassengruppe hinzufügen'))
+                                    ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+                                , $Division
+                            )
                         )
                     ), new Title('Klassengruppe hinzufügen')
                 )
@@ -294,6 +296,25 @@ class Frontend extends Extension implements IFrontendInterface
             ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
             , $Division, $Id));
 
+        return $Stage;
+    }
+
+    /**
+     * @param $Id
+     *
+     * @return Stage|string
+     */
+    public function frontendDestroyDivision($Id)
+    {
+
+        $Stage = new Stage('Klassengruppe', 'entfernen');
+        $tblDivision = Division::useService()->getDivisionById($Id);
+        if ($tblDivision) {
+            $Stage->setContent(Division::useService()->destroyDivision($tblDivision));
+        } else {
+            return $Stage.new Warning('Klassengruppe nicht gefunden!')
+            .new Redirect('/Education/Lesson/Division/Create/Division');
+        }
         return $Stage;
     }
 }

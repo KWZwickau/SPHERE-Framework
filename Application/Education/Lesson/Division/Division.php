@@ -43,9 +43,11 @@ class Division implements IModuleInterface
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Change/Division', __NAMESPACE__.'\Frontend::frontendChangeDivision'
-        )->setParameterDefault('Id', null)
-            ->setParameterDefault('Division', null)
+        )->setParameterDefault('Division', null)
         );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Division', __NAMESPACE__.'\Frontend::frontendDestroyDivision'
+        ));
     }
 
     /**
