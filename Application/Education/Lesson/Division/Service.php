@@ -136,18 +136,37 @@ class Service extends AbstractService
         }
 
         $Error = false;
-
-        $tblYear = Term::useService()->getYearById($Division['Year']);
-        $tblLevel = $this->getLevelById($Division['Level']);
-
-        if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
-            $Form->setError('Division[Name]', 'Bitte geben Sie einen eineindeutigen Namen in Bezug auf die Schulart an');
-            $Error = true;
-        } else {
-            if ($this->getDivisionByGroupAndLevelAndYear($Division['Name'], $Division['Level'], $Division['Year'])) {
-                $Form->setError('Division[Name]', 'Name wird in der Klassenstufe '.$tblLevel->getName().'
-                vom Jahrgang '.$tblYear->getName().' bereits verwendet');
+        $Division['Year'] = 5;
+        if (isset( $Division['Year'] )) {
+            $tblYear = Term::useService()->getYearById($Division['Year']);
+            if (empty( $tblYear )) {
+                $Form->setError('Division[Year]', 'Schuljahr nicht gefunden');
                 $Error = true;
+            }
+        } else {
+            $Form->setError('Division[Year]', 'Schuljahr benötigt');
+            $Error = true;
+        }
+        if (isset( $Division['Level'] )) {
+            $tblLevel = $this->getLevelById($Division['Level']);
+            if (empty( $tblLevel )) {
+                $Form->setError('Division[Level]', 'Klassenstufe nicht gefunden');
+                $Error = true;
+            }
+        } else {
+            $Form->setError('Division[Level]', 'Klassenstufe benötigt');
+            $Error = true;
+        }
+
+        if (!$Error) {
+            if (isset( $Division['Name'] ) && empty( $Division['Name'] )) {
+                $Form->setError('Division[Name]', 'Bitte geben Sie einen eineindeutigen Namen in Bezug auf die Schulart an');
+                $Error = true;
+            } else {
+                if ($this->getDivisionByGroupAndLevelAndYear($Division['Name'], $Division['Level'], $Division['Year'])) {
+                    $Form->setError('Division[Name]', 'Name wird in der Klassenstufe/Jahrgang bereits verwendet');
+                    $Error = true;
+                }
             }
         }
 

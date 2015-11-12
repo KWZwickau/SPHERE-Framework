@@ -84,15 +84,18 @@ class Division implements IModuleInterface
         $tblLevelAll = $this->useService()->getLevelAll();
         $Content = array();
 
-        foreach ($tblLevelAll as $key => $row) {
+        if ($tblLevelAll) {
+            foreach ($tblLevelAll as $key => $row) {
 //            $klass[$key] = strtoupper($row->getName());
-            $second[$key] = strtoupper($row->getServiceTblType()->getName());
-            $id[$key] = $row->getId();
-        }
-        array_multisort(/*$klass, SORT_ASC,*/
-            $second, SORT_ASC, $tblLevelAll);
+                $second[$key] = strtoupper($row->getServiceTblType()->getName());
+                $id[$key] = $row->getId();
+            }
+            array_multisort(/*$klass, SORT_ASC,*/
+                $second, SORT_ASC, $tblLevelAll);
 
 //        sort($tblLevelAll);
+        }
+
 
         if ($tblLevelAll) {
             array_push($Content, new LayoutRow(array(
