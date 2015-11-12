@@ -148,7 +148,7 @@ class YouTrack extends Extension implements ITypeInterface
         $this->ticketLogin();
         $CurlHandler = curl_init();
         curl_setopt($CurlHandler, CURLOPT_URL,
-            $this->Host.'/rest/issue/byproject/KREDA?filter='.urlencode('Status: -GelÃ¶st Ersteller: KREDA-Support')
+            $this->Host . '/rest/issue/byproject/KREDA?filter=' . urlencode('Status: -Gelöst Ersteller: KREDA-Support')
         );
         curl_setopt($CurlHandler, CURLOPT_HEADER, false);
         curl_setopt($CurlHandler, CURLOPT_VERBOSE, false);

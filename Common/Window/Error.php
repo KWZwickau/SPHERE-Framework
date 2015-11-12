@@ -2,8 +2,13 @@
 namespace SPHERE\Common\Window;
 
 use MOC\V\Component\Template\Component\IBridgeInterface;
+use SPHERE\Application\Platform\Gatekeeper\Authorization\Account\Account;
+use SPHERE\Common\Frontend\Form\Repository\Field\HiddenField;
+use SPHERE\Common\Frontend\Form\Structure\Form;
+use SPHERE\Common\Frontend\Form\Structure\FormColumn;
+use SPHERE\Common\Frontend\Form\Structure\FormGroup;
+use SPHERE\Common\Frontend\Form\Structure\FormRow;
 use SPHERE\Common\Frontend\ITemplateInterface;
-use SPHERE\Common\Frontend\Link\Repository\Primary;
 use SPHERE\System\Extension\Extension;
 
 /**
@@ -39,12 +44,17 @@ class Error extends Extension implements ITemplateInterface
         } else {
             $this->Template->setVariable('ErrorMessage', $Message);
             $this->Template->setVariable('ErrorMenu', array(
-                    new Primary('Fehlerbericht senden', '/System/Assistance/Support/Ticket', null,
-                        array(
-                            'TicketSubject' => urlencode($Code),
-                            'TicketMessage' => urlencode($Message)
+                    new Form(
+                        new FormGroup(
+                            new FormRow(
+                                new FormColumn(array(
+                                    (new HiddenField('TicketSubject'))->setDefaultValue(urlencode($Code . ' Account: ' . Account::useService()->getAccountBySession()->getId())),
+                                    (new HiddenField('TicketMessage'))->setDefaultValue(urlencode($Message)),
+                                    new \SPHERE\Common\Frontend\Form\Repository\Button\Primary('Fehlerbericht senden')
+                                ))
+                            )
                         )
-                    )
+                        , null, '/Platform/Assistance/Support')
                 )
             );
         }
