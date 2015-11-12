@@ -136,7 +136,6 @@ class Service extends AbstractService
         }
 
         $Error = false;
-        $Division['Year'] = 5;
         if (isset( $Division['Year'] )) {
             $tblYear = Term::useService()->getYearById($Division['Year']);
             if (empty( $tblYear )) {
