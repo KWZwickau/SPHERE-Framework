@@ -104,6 +104,21 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblLevel $tblLevel
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionByLevel(TblLevel $tblLevel)
+    {
+
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblDivision')->findBy(array(
+            TblDivision::ATTR_LEVEL => $tblLevel->getId()
+        ));
+
+        return empty( $EntityList ) ? false : $EntityList;
+    }
+
+    /**
      * @param $Name
      * @param $tblLevel
      *
@@ -124,7 +139,7 @@ class Data extends AbstractData
      * @param TblType $tblType
      * @param string  $Name
      *
-     * @return bool
+     * @return bool|TblLevel
      */
     public function checkLevelExists(TblType $tblType, $Name)
     {
@@ -133,7 +148,7 @@ class Data extends AbstractData
             TblLevel::ATTR_NAME        => $Name,
             TblLevel::SERVICE_TBL_TYPE => $tblType->getId()
         ));
-        return ( $Entity ? true : false );
+        return ( $Entity ? $Entity : false );
     }
 
     /**
@@ -233,6 +248,35 @@ class Data extends AbstractData
         return false;
     }
 
+    /***
+     * @param TblLevel $tblLevel
+     * @param TblType  $tblType
+     * @param          $Name
+     * @param string   $Description
+     *
+     * @return bool
+     */
+    public function updateLevel(TblLevel $tblLevel, TblType $tblType, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblLevel $Entity */
+        $Entity = $Manager->getEntityById('TblLevel', $tblLevel->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setServiceTblType($tblType);
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * @param TblDivision $tblDivision
      *
@@ -243,6 +287,21 @@ class Data extends AbstractData
 
         $Manager = $this->getConnection()->getEntityManager();
         $Entity = $Manager->getEntity('TblDivision')->findOneBy(array('Id' => $tblDivision->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    public function destroyLevel(TblLevel $tblLevel)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        $Entity = $Manager->getEntity('TblLevel')->findOneBy(array('Id' => $tblLevel->getId()));
         if (null !== $Entity) {
             /** @var Element $Entity */
             Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),

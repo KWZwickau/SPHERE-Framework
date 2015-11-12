@@ -15,6 +15,7 @@ use SPHERE\Common\Frontend\Message\Repository\Danger;
 use SPHERE\Common\Frontend\Message\Repository\Success;
 use SPHERE\Common\Window\Redirect;
 use SPHERE\System\Database\Binding\AbstractService;
+use SPHERE\System\Extension\Repository\Debugger;
 
 /**
  * Class Service
@@ -81,11 +82,11 @@ class Service extends AbstractService
         $tblType = Type::useService()->getTypeById($Level['Type']);
 
         if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
-            $Form->setError('Level[Name]', 'Bitte geben Sie einen eineindeutigen Namen in Bezug auf die Schulart an');
+            $Form->setError('Level[Name]', 'Bitte geben Sie eine eindeutige Klassenstufe für die Schulart an');
             $Error = true;
         } else {
             if ($this->checkLevelExists($tblType, $Level['Name'])) {
-                $Form->setError('Level[Name]', 'Dieser Name wird bereits verwendet');
+                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
                 $Error = true;
             }
         }
@@ -110,7 +111,7 @@ class Service extends AbstractService
      * @param TblType $tblType
      * @param string  $Name
      *
-     * @return bool
+     * @return bool|TblLevel
      */
     public function checkLevelExists(TblType $tblType, $Name)
     {
@@ -263,7 +264,6 @@ class Service extends AbstractService
         }
         return $Form;
     }
-
     /**
      * @param int $Id
      *
@@ -274,7 +274,52 @@ class Service extends AbstractService
 
         return (new Data($this->getBinding()))->getDivisionById($Id);
     }
+    public function changeLevel(IFormInterface $Form, $Level, $Id)
+    {
 
+        /**
+         * Skip to Frontend
+         */
+        if (null === $Level) {
+            return $Form;
+        }
+
+        $Error = false;
+        $tblType = Type::useService()->getTypeById($Level['Type']);
+        $tblLevel = Division::useService()->getLevelById($Id);
+
+        if (isset( $Level['Name'] ) && empty( $Level['Name'] )) {
+            $Form->setError('Division[Name]', 'Bitte geben sie einen Namen an');
+            $Error = true;
+        } else {
+            Debugger::screenDump($tblLevel->getServiceTblType()->getId().' - '.$tblType->getId());
+            $tblLevelTest = $this->checkLevelExists($tblType, $Level['Name']);
+            if ($tblLevelTest->getId() !== $tblLevel->getId()) {
+                $Form->setError('Level[Name]', 'Diese Klassenstufe wird in <b>'.$tblType->getName().'</b> bereits verwendet');
+                $Error = true;
+            }
+        }
+
+        if (!$Error) {
+
+            if ($tblLevel) {
+                if ((new Data($this->getBinding()))->updateLevel(
+                    $tblLevel, $tblType, $Level['Name'], $Level['Description']
+                )
+                ) {
+                    return new Success('Die Klassenstufe wurde erfolgreich geändert')
+                    .new Redirect('/Education/Lesson/Division/Create/Level', 3);
+                } else {
+                    return new Danger('Die Klassenstufe konnte nicht geändert werden')
+                    .new Redirect('/Education/Lesson/Division/Create/Level');
+                }
+            } else {
+                return new Danger('Die Klassenstufe wurde nicht gefunden')
+                .new Redirect('/Education/Lesson/Division/Create/Level');
+            }
+        }
+        return $Form;
+    }
     /**
      * @param TblDivision $tblDivision
      *
@@ -299,5 +344,44 @@ class Service extends AbstractService
         }
         return new Danger('Die Klassengruppe wird benutzt!')
         .new Redirect('/Education/Lesson/Division/Create/Division');
+    }
+    /**
+     * @param TblLevel $tblLevel
+     *
+     * @return string
+     */
+    public function destroyLevel(TblLevel $tblLevel)
+    {
+
+        if (null === $tblLevel) {
+            return '';
+        }
+        $Error = false;
+        if ($this->getDivisionByLevel($tblLevel)) {
+            $Error = true;
+            var_dump('nicht gelöscht');
+        }
+
+        if (!$Error) {
+            if ((new Data($this->getBinding()))->destroyLevel($tblLevel)) {
+                return new Success('Die Klassenstufe wurde erfolgreich gelöscht')
+                .new Redirect('/Education/Lesson/Division/Create/Level', 1);
+            } else {
+                return new Danger('Die Klassenstufe konnte nicht gelöscht werden')
+                .new Redirect('/Education/Lesson/Division/Create/Level');
+            }
+        }
+        return new Danger('Die Klassenstufe enthält Klassengruppen!')
+        .new Redirect('/Education/Lesson/Division/Create/Level');
+    }
+    /**
+     * @param TblLevel $tblLevel
+     *
+     * @return bool|TblDivision[]
+     */
+    public function getDivisionByLevel(TblLevel $tblLevel)
+    {
+
+        return (new Data($this->getBinding()))->getDivisionByLevel($tblLevel);
     }
 }

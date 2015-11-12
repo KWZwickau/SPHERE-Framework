@@ -60,8 +60,10 @@ class Frontend extends Extension implements IFrontendInterface
                     ? $tblType->getName().' '.$tblType->getDescription()
                     : ''
                 );
-                $tblLevel->Option = new Standard('', '', new Pencil(), array(), 'Bearbeiten')
-                    .new Standard('', '', new Remove(), array(), 'Löschen');
+                $tblLevel->Option = new Standard('', '/Education/Lesson/Division/Change/Level', new Pencil(),
+                        array('Id' => $tblLevel->getId()))
+                    .new Standard('', '/Education/Lesson/Division/Destroy/Level', new Remove(),
+                        array('Id' => $tblLevel->getId()));
             });
         }
         $Stage->setContent(
@@ -146,6 +148,33 @@ class Frontend extends Extension implements IFrontendInterface
                 )),
             ))
         );
+    }
+
+    /**
+     * @param $Id
+     * @param $Level
+     *
+     * @return Stage
+     */
+    public function frontendChangeLevel($Id, $Level)
+    {
+
+        $Stage = new Stage('Klassenstufe', 'bearbeiten');
+        $Stage->addButton(new Standard('Zurück', '/Education/Lesson/Division/Create/Level', new ChevronLeft()));
+        $tblLevel = Division::useService()->getLevelById($Id);
+        $Global = $this->getGlobal();
+        if (!isset( $Global->POST['Id'] ) && $tblLevel) {
+            $Global->POST['Division']['Type'] = $tblLevel->getServiceTblType()->getId();
+            $Global->POST['Division']['Name'] = $tblLevel->getName();
+            $Global->POST['Division']['Description'] = $tblLevel->getDescription();
+            $Global->savePost();
+        }
+        $Stage->setContent(Division::useService()->changeLevel($this->formLevel($tblLevel)
+            ->appendFormButton(new Primary('Änderung speichern'))
+            ->setConfirm('Eventuelle Änderungen wurden noch nicht gespeichert')
+            , $Level, $Id));
+
+        return $Stage;
     }
 
     /**
@@ -314,6 +343,20 @@ class Frontend extends Extension implements IFrontendInterface
         } else {
             return $Stage.new Warning('Klassengruppe nicht gefunden!')
             .new Redirect('/Education/Lesson/Division/Create/Division');
+        }
+        return $Stage;
+    }
+
+    public function frontendDestroyLevel($Id)
+    {
+
+        $Stage = new Stage('Klassenstufe', 'entfernen');
+        $tblLevel = Division::useService()->getLevelById($Id);
+        if ($tblLevel) {
+            $Stage->setContent(Division::useService()->destroyLevel($tblLevel));
+        } else {
+            return $Stage.new Warning('Klassenstufe nicht gefunden!')
+            .new Redirect('/Education/Lesson/Division/Create/Level');
         }
         return $Stage;
     }

@@ -39,6 +39,13 @@ class Division implements IModuleInterface
             __NAMESPACE__.'/Create/Level', __NAMESPACE__.'\Frontend::frontendCreateLevel'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Change/Level', __NAMESPACE__.'\Frontend::frontendChangeLevel'
+        )->setParameterDefault('Level', null)
+        );
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
+            __NAMESPACE__.'/Destroy/Level', __NAMESPACE__.'\Frontend::frontendDestroyLevel'
+        ));
+        Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
             __NAMESPACE__.'/Create/Division', __NAMESPACE__.'\Frontend::frontendCreateDivision'
         ));
         Main::getDispatcher()->registerRoute(Main::getDispatcher()->createRoute(
@@ -114,7 +121,7 @@ class Division implements IModuleInterface
 
                 array_push($Content, new LayoutRow(array(
                     new LayoutColumn(array(
-                        new Title('Klassenstufe: '.new Bold($tblLevel->getName()), $tblLevel->getDescription()),
+                        new Title('Klassenstufe: '.new Bold($tblLevel->getName()).' '.$tblLevel->getDescription().' '.$tblLevel->getServiceTblType()->getName()),
                         new Standard('Zuweisen von Kategorien', __NAMESPACE__.'\Link\Category', new Transfer(),
                             array('Id' => $tblLevel->getId())
                         )
