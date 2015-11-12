@@ -8,6 +8,7 @@ use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblGroupCategory;
 use SPHERE\Application\Education\Lesson\Subject\Service\Entity\TblSubject;
 use SPHERE\Application\Platform\System\Protocol\Protocol;
 use SPHERE\System\Database\Binding\AbstractData;
+use SPHERE\System\Database\Fitting\Element;
 
 /**
  * Class Data
@@ -314,6 +315,33 @@ class Data extends AbstractData
     }
 
     /**
+     * @param TblCategory $tblCategory
+     * @param             $Name
+     * @param string      $Description
+     *
+     * @return bool
+     */
+    public function updateCategory(TblCategory $tblCategory, $Name, $Description = '')
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        /** @var TblCategory $Entity */
+        $Entity = $Manager->getEntityById('TblCategory', $tblCategory->getId());
+        $Protocol = clone $Entity;
+        if (null !== $Entity) {
+            $Entity->setName($Name);
+            $Entity->setDescription($Description);
+            $Manager->saveEntity($Entity);
+            Protocol::useService()->createUpdateEntry($this->getConnection()->getDatabase(),
+                $Protocol,
+                $Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * @param string $Acronym
      *
      * @return bool|TblSubject
@@ -324,6 +352,68 @@ class Data extends AbstractData
         return $this->getCachedEntityBy(__METHOD__, $this->getConnection()->getEntityManager(), 'TblSubject', array(
             TblSubject::ATTR_ACRONYM => $Acronym
         ));
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function getSubjectActiveState(TblSubject $tblSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+        /** @var TblCategorySubject $Entity */
+        $Entity = $Manager->getEntity('TblCategorySubject')
+            ->findOneBy(array(
+                TblCategorySubject::ATTR_TBL_SUBJECT => $tblSubject->getId()
+            ));
+        if (null !== $Entity) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblSubject $tblSubject
+     *
+     * @return bool
+     */
+    public function destroySubject(TblSubject $tblSubject)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblSubject')->findOneBy(array('Id' => $tblSubject->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     *
+     * @return bool
+     */
+    public function destroyCategory(TblCategory $tblCategory)
+    {
+
+        $Manager = $this->getConnection()->getEntityManager();
+
+        $Entity = $Manager->getEntity('TblCategory')->findOneBy(array('Id' => $tblCategory->getId()));
+        if (null !== $Entity) {
+            /** @var Element $Entity */
+            Protocol::useService()->createDeleteEntry($this->getConnection()->getDatabase(),
+                $Entity);
+            $Manager->killEntity($Entity);
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -439,6 +529,24 @@ class Data extends AbstractData
     {
 
         return $this->getCachedEntityById(__METHOD__, $this->getConnection()->getEntityManager(), 'TblGroup', $Id);
+    }
+
+    /**
+     * @param TblCategory $tblCategory
+     *
+     * @return bool|null|TblGroup[]
+     */
+    public function getGroupByCategory(TblCategory $tblCategory)
+    {
+        /** @var TblGroupCategory[] $EntityList */
+        $EntityList = $this->getConnection()->getEntityManager()->getEntity('TblGroupCategory')->findBy(array(
+            TblGroupCategory::ATTR_TBL_CATEGORY => $tblCategory->getId()
+        ));
+        array_walk($EntityList, function (TblGroupCategory &$V) {
+
+            $V = $V->getTblGroup();
+        });
+        return ( null === $EntityList ? false : $EntityList );
     }
 
     /**

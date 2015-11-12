@@ -1,6 +1,7 @@
 <?php
 namespace SPHERE\Application\People\Meta\Prospect;
 
+use SPHERE\Application\Education\School\Type\Service\Entity\TblType;
 use SPHERE\Application\Education\School\Type\Type;
 use SPHERE\Application\People\Meta\Prospect\Service\Data;
 use SPHERE\Application\People\Meta\Prospect\Service\Entity\TblProspect;
@@ -39,8 +40,8 @@ class Service extends AbstractService
 
     /**
      * @param IFormInterface $Form
-     * @param TblPerson      $tblPerson
-     * @param array          $Meta
+     * @param TblPerson $tblPerson
+     * @param array $Meta
      *
      * @return IFormInterface|Redirect
      */
@@ -68,8 +69,8 @@ class Service extends AbstractService
                 $tblProspect->getTblProspectReservation(),
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
-                ( $OptionA ? $OptionA : null ),
-                ( $OptionB ? $OptionB : null )
+                ($OptionA ? $OptionA : null),
+                ($OptionB ? $OptionB : null)
             );
             (new Data($this->getBinding()))->updateProspect(
                 $tblProspect,
@@ -86,8 +87,8 @@ class Service extends AbstractService
             $tblProspectReservation = (new Data($this->getBinding()))->createProspectReservation(
                 $Meta['Reservation']['Year'],
                 $Meta['Reservation']['Division'],
-                ( $OptionA ? $OptionA : null ),
-                ( $OptionB ? $OptionB : null )
+                ($OptionA ? $OptionA : null),
+                ($OptionB ? $OptionB : null)
             );
             (new Data($this->getBinding()))->createProspect(
                 $tblPerson,
@@ -97,7 +98,7 @@ class Service extends AbstractService
             );
         }
         return new Success('Die Daten wurde erfolgreich gespeichert')
-        .new Redirect('/People/Person', 3, array('Id' => $tblPerson->getId()));
+        . new Redirect('/People/Person', 3, array('Id' => $tblPerson->getId()));
     }
 
     /**
@@ -143,5 +144,48 @@ class Service extends AbstractService
     {
 
         return (new Data($this->getBinding()))->getProspectReservationById($Id);
+    }
+
+    /**
+     * @param TblPerson $tblPerson
+     * @param string $ReservationDate
+     * @param string $InterviewDate
+     * @param string $TrialDate
+     * @param $ReservationYear
+     * @param $ReservationDivision
+     * @param TblType|null $tblTypeOptionA
+     * @param TblType|null $tblTypeOptionB
+     * @param $Remark
+     *
+     * @return TblProspect
+     */
+    public function insertMeta(
+        TblPerson $tblPerson,
+        $ReservationDate,
+        $InterviewDate,
+        $TrialDate,
+        $ReservationYear,
+        $ReservationDivision,
+        TblType $tblTypeOptionA = null,
+        TblType $tblTypeOptionB = null,
+        $Remark
+    ) {
+        $tblProspectAppointment = (new Data($this->getBinding()))->createProspectAppointment(
+            $ReservationDate,
+            $InterviewDate,
+            $TrialDate
+        );
+        $tblProspectReservation = (new Data($this->getBinding()))->createProspectReservation(
+            $ReservationYear,
+            $ReservationDivision,
+            $tblTypeOptionA,
+            $tblTypeOptionB
+        );
+        return (new Data($this->getBinding()))->createProspect(
+            $tblPerson,
+            $tblProspectAppointment,
+            $tblProspectReservation,
+            $Remark
+        );
     }
 }

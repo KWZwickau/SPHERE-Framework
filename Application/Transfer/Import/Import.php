@@ -73,6 +73,13 @@ class Import implements IApplicationInterface
         Main::getDispatcher()->registerWidget('Import',
             new Thumbnail(
                 FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
+                'Chemntiz', 'Interessentendaten',
+                new Standard('', '/Transfer/Import/Chemnitz/InterestedPerson', new Upload(), array(), 'Upload')
+            ), 2, 2
+        );
+        Main::getDispatcher()->registerWidget('Import',
+            new Thumbnail(
+                FileSystem::getFileLoader('/Common/Style/Resource/eszc.png'),
                 'Chemntiz', 'Personendaten',
                 new Standard('', '/Transfer/Import/Chemnitz/Person', new Upload(), array(), 'Upload')
             ), 2, 2
